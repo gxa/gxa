@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+		  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+           version="2.5">
+    <context-param>
+        <description>SOLR Gene Index</description>
+        <param-name>gene_idx</param-name>
+        <param-value>/ebi/work/solr_idxs/solr_gene</param-value>
+    </context-param>
+
+    <context-param>
+        <description>SOLR Experiment Index</description>
+        <param-name>expt_idx</param-name>
+        <param-value>/ebi/work/solr_idxs/solr_expt</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>ae3.servlet.AE3Listener</listener-class>
+    </listener>
+</web-app>
