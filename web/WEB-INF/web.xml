@@ -17,6 +17,16 @@
     </context-param>
 
     <listener>
-        <listener-class>ae3.servlet.AE3Listener</listener-class>
+        <listener-class>ae3.servlet.ApplicationListener</listener-class>
     </listener>
+    <servlet>
+        <display-name>AE3 Query Servlet</display-name>
+        <servlet-name>query</servlet-name>
+        <servlet-class>ae3.servlet.QueryServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>query</servlet-name>
+        <url-pattern>/query</url-pattern>
+    </servlet-mapping>
 </web-app>

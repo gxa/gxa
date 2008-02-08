@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module relativePaths="true" type="JAVA_MODULE" version="4">
   <component name="DBNavigator.Module.ConnectionManager">
-    <connections />
+    <connections>
+      <connection id="577cddcc-1698-41fb-a476-682b2b2cce4c" name="AEDWD" description="Dev't Warehouse" driver-library="$MODULE_DIR$/lib/ojdbc-14.jar" driver="oracle.jdbc.driver.OracleDriver" url="jdbc:oracle:thin:@expression.ebi.ac.uk:1521:AEDWD" user="aemart" password="marte" current-schema="" />
+    </connections>
   </component>
   <component name="FacetManager">
     <facet type="web" name="Web">
       <configuration>
         <descriptors>
           <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/web/WEB-INF/web.xml" optional="false" version="2.5" />
+          <deploymentDescriptor url="file://context.xml">
+            <option name="DEFAULT_DIR" value="META-INF" />
+          </deploymentDescriptor>
         </descriptors>
         <webroots>
           <root url="file://$MODULE_DIR$/web" relative="/" />
