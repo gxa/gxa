@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Vector;
+import java.util.HashMap;
 
 /**
  * User: ostolop
@@ -31,15 +32,109 @@ import java.util.Vector;
  */
 
 public class QueryServlet extends HttpServlet {
-    Log log = LogFactory.getLog("ae3");
+    static final Log log = LogFactory.getLog("ae3");
 
-    public Connection getAEConnection() throws SQLException {
-        DataSource ds = (DataSource) getServletContext().getAttribute("aewds");
+    private static DirectSolrConnection solr_gene;
+    private static DirectSolrConnection solr_expt;
+    private static DataSource ds;
+
+    public void init() throws ServletException {
+        solr_gene = (DirectSolrConnection) getServletContext().getAttribute("solr_gene");
+        solr_expt = (DirectSolrConnection) getServletContext().getAttribute("solr_expt");
+        ds = (DataSource) getServletContext().getAttribute("aewds");
+    }
+
+    public static Connection getAEConnection() throws SQLException {
         if (ds != null)
             return ds.getConnection();
 
         return null;
     }
+
+
+    public static String fullTextQueryGenes(String query) {
+        String res = null;
+        try {
+            res = solr_gene.request("/select?wt=xml&rows=50&q=" + query, null);
+        } catch (Exception e) {
+            log.error(e);
+        }
+        return res;
+    }
+
+    public static String fullTextQueryExpts(String query) {
+        String res = null;
+        query = "exp_description:" + query + "+OR+exp_factors:" + query + "+OR+bs_attribute:" + query + "+OR+exp_accession:" + query;
+        try {
+            res = solr_expt.request("/select?wt=xml&rows=50&q=" + query, null);
+        } catch (Exception e) {
+            log.error(e);
+        }
+        return res;
+    }
+
+    public static Vector<HashMap<String,Object>> atlasQuery(String inGeneIds, String inExptIds) {
+        String atlas_query = "select /*+INDEX(atlas atlas_by_de)*/ \n" +
+                "distinct expt.experiment_accession,\n" +
+                "expt.experiment_description, \n" +
+                "         nvl(atlas.fpvaladj,999.0) as rank, \n" +
+                "         atlas.ef as expfactor, \n" +
+                "         gene.gene_id_key, \n" +
+                "         gene.GENE_NAME || ' (' || gene.gene_identifier || ')' as gene,\n" +
+                "         gene.designelement_name,\n" +
+                "         atlas.efv,\n" +
+                "         atlas.updn\n" +
+                "from aemart.atlas atlas, aemart.ae2__designelement__main gene, aemart.ae1__experiment__main expt\n" +
+                "where atlas.designelement_id_key=gene.designelement_id_key \n" +
+                "and atlas.experiment_id_key=expt.experiment_id_key\n" +
+                "and gene.gene_id_key IN ( " + inGeneIds + " ) \n" +
+                "and updn <> 0\n" +
+                (inExptIds.length() != 0 ? "and atlas.experiment_id_key in (" + inExptIds + ")\n" : "" )+
+//                "and rownum<1001\n" +
+                "order by rank, expfactor, updn desc, experiment_accession";
+
+        log.info(atlas_query);
+
+        Connection connection = null;
+        Vector<HashMap<String,Object>> expts = null;
+
+        try {
+            connection = getAEConnection();
+            expts = new Vector<HashMap<String,Object>>();
+
+            try {
+                PreparedStatement stm = connection.prepareStatement(atlas_query);
+                ResultSet rs = stm.executeQuery();
+
+                while (rs.next()) {
+                    HashMap<String,Object> expt = new HashMap<String,Object>();
+                    expt.put("expt_acc", rs.getString("experiment_accession"));
+                    expt.put("expt_desc", rs.getString("experiment_description"));
+                    expt.put("rank", rs.getDouble("rank"));
+                    expt.put("ef",rs.getString("expfactor"));
+                    expt.put("efv", rs.getString("efv"));
+                    expt.put("gene", rs.getString("gene"));
+                    expt.put("updn", rs.getInt("updn"));
+                    expts.add(expt);
+                }
+
+                rs.close();
+                stm.close();
+            } catch (SQLException e) {
+                log.error("SQL Error!", e);
+            }
+        } catch (SQLException e) {
+            log.error("Couldn't get connection", e);
+        } finally {
+            if (connection != null) try {
+                connection.close();
+            } catch (Exception e) {
+            }
+        }
+
+        return expts;
+    }
+    
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
@@ -126,11 +221,9 @@ public class QueryServlet extends HttpServlet {
         }
     }
 
+
     private void doFullTextSearch(HttpServletRequest request, HttpServletResponse response) {
         try {
-            DirectSolrConnection solr_gene = (DirectSolrConnection) getServletContext().getAttribute("solr_gene");
-            DirectSolrConnection solr_expt = (DirectSolrConnection) getServletContext().getAttribute("solr_expt");
-
             String gene_xml = solr_gene.request("/select?wt=xml&q=" + request.getParameter("q"), null);
             String expt_xml = solr_expt.request("/select?wt=xml&q=" + request.getParameter("q"), null);
 

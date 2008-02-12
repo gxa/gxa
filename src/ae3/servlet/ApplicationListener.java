@@ -22,6 +22,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.solr.servlet.DirectSolrConnection;
 
+import ae3.service.AtlasSearch;
+
 public class ApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 
@@ -45,25 +47,19 @@ public class ApplicationListener implements ServletContextListener,
         String solr_gene_instance = sc.getInitParameter("gene_idx");
         String solr_expt_instance = sc.getInitParameter("expt_idx");
 
-        try {
-            DirectSolrConnection solr_gene = new DirectSolrConnection(solr_gene_instance, solr_gene_instance + "/data", null);
-            DirectSolrConnection solr_expt = new DirectSolrConnection(solr_expt_instance, solr_expt_instance + "/data", null);
+        AtlasSearch as = AtlasSearch.instance();
 
-            sc.setAttribute("solr_gene", solr_gene);
-            sc.setAttribute("solr_expt", solr_expt);
-        } catch (Exception e) {
-            log.error("Error creating direct SOLR connections", e);
-        }
-
-        // put datasource in servlet context
         try {
+            as.setSolrGene(new DirectSolrConnection(solr_gene_instance, solr_gene_instance + "/data", null));
+            as.setSolrExpt(new DirectSolrConnection(solr_expt_instance, solr_expt_instance + "/data", null));
+
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
             DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWD");
 
-            sc.setAttribute("aewds", ds);
-        } catch (NamingException ne) {
-            log.error(ne);
+            as.setDataSource(ds);
+        } catch (Exception e) {
+            log.error(e);
         }
     }
 
@@ -75,23 +71,8 @@ public class ApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        DirectSolrConnection solr_gene = (DirectSolrConnection) sc.getAttribute("solr_gene");
-        DirectSolrConnection solr_expt = (DirectSolrConnection) sc.getAttribute("solr_expt");
-
-        try {
-            if (solr_gene != null)
-                solr_gene.close();
-
-            if (solr_expt != null)
-                solr_expt.close();
-        } catch (Exception e) {
-            log.error("Error closing SOLR indexes", e);
-        }
-
-
-        sc.removeAttribute("solr_gene");
-        sc.removeAttribute("solr_expt");
-        sc.removeAttribute("aewds");
+        AtlasSearch as = AtlasSearch.instance();
+        as.shutdown();
     }
 
     // -------------------------------------------------------
