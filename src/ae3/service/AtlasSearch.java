@@ -26,6 +26,13 @@ import output.TableWriter;
  * User: ostolop
  * Date: 12-Feb-2008
  * <p/>
+ *
+ * Singleton class for executing searches.
+ *
+ * Keeps references to Direct SOLR (Gene, Experiment) and to an Oracle DBCP (set up at web app start time).
+ *
+ * TODO: Add specialized exceptions.
+ *
  * EBI Microarray Informatics Team (c) 2007
  */
 public class AtlasSearch {
@@ -38,6 +45,11 @@ public class AtlasSearch {
 
     private static AtlasSearch _instance = null;
 
+    /**
+     * Returns the singleton instance.
+     *
+     * @return Singleton instance of AtlasSearch
+     */
     public static AtlasSearch instance() {
       if(null == _instance) {
          _instance = new AtlasSearch();
@@ -46,6 +58,12 @@ public class AtlasSearch {
       return _instance;
     }
 
+    /**
+     * Gives a connection from the pool. Don't forget to close.
+     *
+     * @return a connection from the pool
+     * @throws SQLException
+     */
     public Connection getAEConnection() throws SQLException {
         if (ds != null)
             return ds.getConnection();
@@ -53,7 +71,12 @@ public class AtlasSearch {
         return null;
     }
 
-
+    /**
+     * Performs a full text SOLR search on genes.
+     *
+     * @param query query terms, can be a complete Lucene query or just a bit of text
+     * @return {@link org.w3c.dom.Document}
+     */
      public Document fullTextQueryGenes(String query) {
         String res;
         try {
@@ -74,6 +97,12 @@ public class AtlasSearch {
         return null;
     }
 
+    /**
+     * Performs a full text SOLR search on experiments.
+     *
+     * @param query query terms, can be a complete Lucene query or just a bit of text
+     * @return {@link org.w3c.dom.Document}
+     */
     public Document fullTextQueryExpts(String query) {
         String res;
         query = "exp_description:" + query + "+OR+exp_factors:" + query + "+OR+bs_attribute:" + query + "+OR+exp_accession:" + query;
@@ -95,6 +124,15 @@ public class AtlasSearch {
         return null;
     }
 
+    /**
+     * Similar to {@link #atlasQuery(String, String)} but only returns the count of results
+     *
+     * TODO: Exception to check on missing inGeneIds.
+     *
+     * @param inGeneIds comma-separated list of gene ids to retrieve data for (required)
+     * @param inExptIds comma-separated list of experiment ids on which to restrict the genes (optional)
+     * @return
+     */
     public int getAtlasQueryCount(String inGeneIds, String inExptIds) {
         String atlas_count_query = "select count(*) from\n" +
                 "(select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
@@ -138,6 +176,18 @@ public class AtlasSearch {
         return count;
     }
 
+    /**
+     * Executes an atlas query to retrieve expt acc, desc, ef, efv, gene, updn, and p-value for requested gene ids,
+     * optionally restricting to a supplied list of experiment ids.
+     *
+     * Then writes the results to passed in {@link TableWriter}.
+     *
+     * TODO: Exception to check on missing inGeneIds.
+     *
+     * @param inGeneIds comma-separated list of gene ids to retrieve data for (required)
+     * @param inExptIds comma-separated list of experiment ids on which to restrict the genes (optional)
+     * @param tw        instance of {@link output.TableWriter} to write query results to
+     */
     public void writeAtlasQuery(String inGeneIds, String inExptIds, TableWriter tw) throws IOException {
         String atlas_query = "select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
                                 "         expt.experiment_accession,\n" +
@@ -199,7 +249,17 @@ public class AtlasSearch {
 
     }
 
-
+    /**
+     * Similar to {@link #writeAtlasQuery(String, String, output.TableWriter)} but doesn't write anything.
+     *
+     * TODO: Exception to check on missing inGeneIds.
+     *
+     * @param inGeneIds comma-separated list of gene id's to retrieve data for (required)
+     * @param inExptIds comma-separated list of experiment id's on which to restrict the genes (optional)
+     * @return a Vector of HashMaps, one HashMap per atlas query result, keys
+     *         are 'expt_acc, expt_desc, ef, efv, gene, updn, rank' for experiment accession, description, factor,
+     *         factor value, gene name + identifier in parentheses, up/dn label (-1,1) and adjusted p-value.
+     */
     public Vector<HashMap<String,Object>> atlasQuery(String inGeneIds, String inExptIds) {
         String atlas_query = "select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
                                 "         expt.experiment_accession,\n" +
@@ -273,6 +333,9 @@ public class AtlasSearch {
         this.ds = ds;
     }
 
+    /**
+     * Should be called when app is going down.
+     */
     public void shutdown() {
         try {
             if (solr_gene != null)
@@ -287,5 +350,9 @@ public class AtlasSearch {
         } catch (Exception e) {
             log.error("Error shutting down AtlasSearch!", e);
         }
+    }
+
+    protected void finalize() throws Throwable {
+        shutdown();
     }
 }
