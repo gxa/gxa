@@ -1,7 +1,5 @@
-package html;
+package output;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
 import java.io.PrintWriter;
 import java.io.IOException;
 
@@ -12,12 +10,10 @@ import java.io.IOException;
  * EBI Microarray Informatics Team (c) 2007
  */
 public class TableWriter {
-    public HttpServletResponse response;
     protected PrintWriter pw;
 
-    public TableWriter(HttpServletResponse response) throws IOException {
-        this.response = response;
-        this.pw = response.getWriter();
+    public TableWriter(PrintWriter pw) throws IOException {
+        this.pw = pw;
     }
 
     public void writeHeader() {

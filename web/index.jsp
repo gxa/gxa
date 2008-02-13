@@ -4,7 +4,7 @@
 <%@ page import="javax.xml.xpath.XPath" %>
 <%@ page import="javax.xml.xpath.XPathConstants" %>
 <%@ page import="org.w3c.dom.NodeList" %>
-<%@ page import="html.AtlasTableWriter" %>
+<%@ page import="output.AtlasTableWriter" %>
 <%@ page session="false" buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -111,7 +111,7 @@ Debug:   We have gene ids: <%=inGeneIds%>
             } else {
                 if (request.getParameter("restrict_expt") == null)
                     inExptIds.setLength(0);
-                AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new AtlasTableWriter(response));
+                AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new AtlasTableWriter(response.getWriter(), response));
             }
         }
     %>

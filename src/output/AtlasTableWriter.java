@@ -1,8 +1,8 @@
-package html;
+package output;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 
 /**
@@ -15,9 +15,12 @@ public class AtlasTableWriter extends TableWriter {
     private int count = 0;
     private String last_expt = "";
     private String last_ef = "";
+    private HttpServletResponse response;
 
-    public AtlasTableWriter(HttpServletResponse response) throws IOException {
-        super(response);
+    public AtlasTableWriter(PrintWriter pw, HttpServletResponse response) throws IOException {
+        super(pw);
+
+        this.response = response;
     }
 
     public void writeRow(Object elt) throws IOException {

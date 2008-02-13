@@ -20,7 +20,7 @@ import java.sql.SQLException;
 import java.io.StringReader;
 import java.io.IOException;
 
-import html.TableWriter;
+import output.TableWriter;
 
 /**
  * User: ostolop
@@ -55,7 +55,7 @@ public class AtlasSearch {
 
 
      public Document fullTextQueryGenes(String query) {
-        String res = null;
+        String res;
         try {
             res = solr_gene.request("/select?wt=xml&rows=50&q=" + query, null);
 
@@ -75,7 +75,7 @@ public class AtlasSearch {
     }
 
     public Document fullTextQueryExpts(String query) {
-        String res = null;
+        String res;
         query = "exp_description:" + query + "+OR+exp_factors:" + query + "+OR+bs_attribute:" + query + "+OR+exp_accession:" + query;
         try {
             res = solr_expt.request("/select?wt=xml&rows=50&q=" + query, null);
@@ -201,24 +201,23 @@ public class AtlasSearch {
 
 
     public Vector<HashMap<String,Object>> atlasQuery(String inGeneIds, String inExptIds) {
-        String atlas_query = "select /*+INDEX(atlas atlas_by_de)*/ \n" +
-                "distinct expt.experiment_accession,\n" +
-                "expt.experiment_description, \n" +
-                "         nvl(atlas.fpvaladj,999.0) as rank, \n" +
-                "         atlas.ef as expfactor, \n" +
-                "         gene.gene_id_key, \n" +
-                "         gene.GENE_NAME || ' (' || gene.gene_identifier || ')' as gene,\n" +
-                "         gene.designelement_name,\n" +
-                "         atlas.efv,\n" +
-                "         atlas.updn\n" +
-                "from aemart.atlas atlas, aemart.ae2__designelement__main gene, aemart.ae1__experiment__main expt\n" +
-                "where atlas.designelement_id_key=gene.designelement_id_key \n" +
-                "and atlas.experiment_id_key=expt.experiment_id_key\n" +
-                "and gene.gene_id_key IN ( " + inGeneIds + " ) \n" +
-                "and updn <> 0\n" +
-                (inExptIds.length() != 0 ? "and atlas.experiment_id_key in (" + inExptIds + ")\n" : "" )+
-//                "and rownum<1001\n" +
-                "order by rank, expfactor, updn desc, experiment_accession";
+        String atlas_query = "select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
+                                "         expt.experiment_accession,\n" +
+                                "         expt.experiment_description, \n" +
+                                "         nvl(atlas.fpvaladj,999.0) as rank, \n" +
+                                "         atlas.ef as expfactor, \n" +
+                                "         gene.gene_id_key, \n" +
+                                "         gene.GENE_NAME || ' (' || gene.gene_identifier || ')' as gene,\n" +
+                                "         gene.designelement_name,\n" +
+                                "         atlas.efv,\n" +
+                                "         atlas.updn\n" +
+                                "from aemart.atlas atlas, aemart.ae2__designelement__main gene, aemart.ae1__experiment__main expt\n" +
+                                "where atlas.designelement_id_key=gene.designelement_id_key \n" +
+                                "and atlas.experiment_id_key=expt.experiment_id_key\n" +
+                                "and gene.gene_id_key IN ( " + inGeneIds + " ) \n" +
+                                "and updn <> 0\n" +
+                                (inExptIds.length() != 0 ? "and atlas.experiment_id_key in (" + inExptIds + ")\n" : "" )+
+                                "order by rank, expfactor, updn desc, experiment_accession";
 
         log.info(atlas_query);
 
