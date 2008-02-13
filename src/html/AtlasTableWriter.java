@@ -1,6 +1,8 @@
 package html;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -10,16 +12,15 @@ import java.util.HashMap;
  * EBI Microarray Informatics Team (c) 2007
  */
 public class AtlasTableWriter extends TableWriter {
-
     private int count = 0;
     private String last_expt = "";
     private String last_ef = "";
 
-    public AtlasTableWriter(PrintWriter pw) {
-        super(pw);
+    public AtlasTableWriter(HttpServletResponse response) throws IOException {
+        super(response);
     }
 
-    public void writeRow(Object elt) {
+    public void writeRow(Object elt) throws IOException {
         HashMap expt = (HashMap) elt;
 
         String this_expt = (String) expt.get("expt_acc");
@@ -35,7 +36,7 @@ public class AtlasTableWriter extends TableWriter {
             "<td valign=\"top\">" + String.format("%.3g", (Double) expt.get("rank")) + "</td>" +
         "</tr>");
 
-        if ( ++count % 500 == 0 ) pw.flush();
+        response.flushBuffer();
 
         last_expt = this_expt;
         last_ef   = this_ef;

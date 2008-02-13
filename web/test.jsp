@@ -1,15 +1,7 @@
 <%@ page import="java.util.Vector" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="ae3.service.AtlasSearch" %>
-<%@ page import="html.TableWriter" %>
-<%@ page import="org.w3c.dom.Document" %>
-<%@ page import="javax.xml.xpath.XPathFactory" %>
-<%@ page import="javax.xml.xpath.XPath" %>
-<%@ page import="javax.xml.xpath.XPathConstants" %>
-<%@ page import="org.w3c.dom.Node" %>
-<%@ page import="org.w3c.dom.NodeList" %>
-<%@ page import="html.AtlasTableWriter" %>
-<%@ page autoFlush="true" buffer="0kb" %>
+<%@ page import="ae3.servlet.QueryServlet" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
   <head>
@@ -65,36 +57,36 @@ border-spacing: 0px;
       </style>
   </head>
   <body>
-    <form action="test.jsp">
+    <form action="index.jsp">
         <%String query = request.getParameter("query");%>
         <input type="text" name="query" size="40" value="<%=query != null ? query : ""%>"/>
         <input type="submit" value="query genes in all experiments"/>
         <input type="submit" value="query genes restricting to keyword-matching experiments" name="restrict_expt"/>
 
     <% if (query != null) {
-        Document genes = AtlasSearch.instance().fullTextQueryGenes(query);
-        Document expts = AtlasSearch.instance().fullTextQueryExpts(query);
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList nodes;
-        int nlen;
-
-        nodes = (NodeList) xpath.evaluate("//str[@name='gene_id']", genes, XPathConstants.NODESET);
+        String genes = QueryServlet.fullTextQueryGenes(query);
+        String expts = QueryServlet.fullTextQueryExpts(query);
 
         StringBuilder inGeneIds = new StringBuilder();
-        nlen = nodes.getLength();
-        for (int i = 0; i < nlen; i++) {
-            inGeneIds.append(nodes.item(i).getTextContent());
-            if (i != nlen - 1) inGeneIds.append(",");
+
+        int last_idx = genes.indexOf("<str name=\"gene_id\">");
+        while(last_idx > 0) {
+            if (inGeneIds.length() != 0) inGeneIds.append(",");
+            inGeneIds.append(genes.substring(last_idx + 20, genes.indexOf("<", last_idx + 1)));
+
+            last_idx = genes.indexOf("<str name=\"gene_id\">", last_idx + 1);
         }
 
-        nodes = (NodeList) xpath.evaluate("//str[@name='exp_id']", expts, XPathConstants.NODESET);
+        last_idx = -1;
 
         StringBuilder inExptIds = new StringBuilder();
-        nlen = nodes.getLength();
-        for (int i = 0; i < nlen; i++) {
-            inExptIds.append(nodes.item(i).getTextContent());
-            if (i != nlen - 1) inExptIds.append(",");
+
+        last_idx = expts.indexOf("<str name=\"exp_id\">");
+        while(last_idx > 0) {
+            if (inExptIds.length() != 0) inExptIds.append(",");
+            inExptIds.append(expts.substring(last_idx + 19, expts.indexOf("<", last_idx + 1)));
+
+            last_idx = expts.indexOf("<str name=\"exp_id\">", last_idx + 1);
         }
         %>
     <pre>
@@ -103,8 +95,37 @@ Debug:   We have gene ids: <%=inGeneIds%>
     </pre>
         <%
             if(request.getParameter("restrict_expt") == null) inExptIds.setLength(0);
+        Vector<HashMap<String,Object>> atlas_results = QueryServlet.atlasQuery(inGeneIds.toString(), inExptIds.toString());
+        if ( atlas_results.size() > 0 ) {
+            %>
+    <table class="sofT" border="1" cellpadding="2">
+        <tr><th>Experiment</th><th>Description</th><th>Factor</th><th>Factor Value</th><th>Up/Dn</th><th>Gene</th><th>p-value</th></tr>
+        <tr><th colspan="7">Found <%=atlas_results.size() == 1000 ? ">1000" : atlas_results.size() %> results</th></tr>
+            <%
+                String last_expt_acc = "";
+                String last_ef = "";
+            for ( HashMap<String,Object> a_result : atlas_results ) {
+                String this_expt_acc = (String) a_result.get("expt_acc");
+                String this_ef = (String) a_result.get("ef");
+                %>
+        <tr style="height:2.4em">
+            <td valign="top" style="<%=(last_expt_acc.equals(this_expt_acc) ? "" : "background-color:lightgray")%>"><%=(last_expt_acc.equals(this_expt_acc) ? "&nbsp;" : this_expt_acc)%></td>
+            <td valign="top"><%=(last_expt_acc.equals(this_expt_acc) ? "&nbsp;" : a_result.get("expt_desc"))%></td>
+            <td valign="top"><%=(last_ef.equals(this_ef)             ? "&nbsp;" : a_result.get("ef"))%></td>
+            <td valign="top"><%=a_result.get("efv")%></td>
+            <td valign="top"><%=a_result.get("updn")%></td>
+            <td valign="top"><%=a_result.get("gene")%></td>
+            <td valign="top"><%=String.format("%.3g", a_result.get("rank"))%></td>
+        </tr>
+                <%
+                last_expt_acc = this_expt_acc;
+                last_ef = this_ef;
+            }
+            %>
+    </table>
+            <%
+        }
 
-            AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new AtlasTableWriter(response.getWriter()));
     } %>
     </form>
   </body>

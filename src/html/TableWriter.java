@@ -1,7 +1,9 @@
 package html;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.io.PrintWriter;
+import java.io.IOException;
 
 /**
  * User: ostolop
@@ -10,21 +12,27 @@ import java.io.PrintWriter;
  * EBI Microarray Informatics Team (c) 2007
  */
 public class TableWriter {
-    public PrintWriter pw;
+    public HttpServletResponse response;
+    protected PrintWriter pw;
 
-    public TableWriter(PrintWriter pw) {
-        this.pw = pw;
+    public TableWriter(HttpServletResponse response) throws IOException {
+        this.response = response;
+        this.pw = response.getWriter();
     }
 
     public void writeHeader() {
         pw.println("<table class=\"sofT\" border=\"1\" cellpadding=\"2\">");
     }
 
-    public void writeRow(Object elt) {
+    public void writeRow(Object elt) throws IOException {
         pw.write("<tr><td>" + elt.toString() + "</td></tr>\n");
     }
 
     public void writeFooter() {
         pw.println("</table>");
+    }
+
+    protected PrintWriter getWriter() {
+        return pw;
     }
 }

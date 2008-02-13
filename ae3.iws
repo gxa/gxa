@@ -77,137 +77,12 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="index.jsp" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="index.jsp" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/web/index.jsp">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="119" column="0" selection-start="3643" selection-end="4369" vertical-scroll-proportion="0.6524272">
-              <folding>
-                <element signature="tag#style#0;tag#head#0;tag#html#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test.jsp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/web/test.jsp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="106" column="104" selection-start="3307" selection-end="3307" vertical-scroll-proportion="0.7735849">
+            <state line="70" column="0" selection-start="2214" selection-end="2214" vertical-scroll-proportion="0.81509435">
               <folding />
             </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TableWriter.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/html/TableWriter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="0" selection-start="512" selection-end="512" vertical-scroll-proportion="0.52747256">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AtlasTableWriter.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/html/AtlasTableWriter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="97" selection-start="465" selection-end="465" vertical-scroll-proportion="0.42857143">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="QueryServlet.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ae3/servlet/QueryServlet.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="89" selection-start="808" selection-end="808" vertical-scroll-proportion="0.35164836">
-              <folding>
-                <element signature="method#doGet#0;class#QueryServlet#0" expanded="false" />
-                <element signature="method#doAtlasSearch#0;class#QueryServlet#0" expanded="false" />
-                <element signature="method#doFullTextSearch#0;class#QueryServlet#0" expanded="false" />
-                <element signature="method#doTopGenesForExperiment#0;class#QueryServlet#0" expanded="false" />
-                <element signature="method#doPValueSearch#0;class#QueryServlet#0" expanded="false" />
-                <element signature="method#prepareLuceneQuery#0;class#QueryServlet#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AtlasSearch.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ae3/service/AtlasSearch.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="135" column="58" selection-start="5144" selection-end="5144" vertical-scroll-proportion="0.50549453">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ApplicationListener.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ae3/servlet/ApplicationListener.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="55" column="33" selection-start="1961" selection-end="1961" vertical-scroll-proportion="0.71428573">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DirectSolrConnection.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file:///ebi/work/apache-solr-nightly/src/webapp/src/org/apache/solr/servlet/DirectSolrConnection.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="170" column="0" selection-start="6330" selection-end="6330" vertical-scroll-proportion="1.3956044">
-              <folding>
-                <marker date="1202285450000" expanded="false" signature="0:802" placeholder="/.../" />
-                <marker date="1202285450000" expanded="false" signature="845:1589" placeholder="..." />
-                <marker date="1202285450000" expanded="true" signature="1591:1962" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="2063:2139" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="2174:2275" placeholder="{...}" />
-                <marker date="1202285450000" expanded="true" signature="2279:2331" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="2378:2458" placeholder="{...}" />
-                <marker date="1202285450000" expanded="true" signature="2462:3140" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="3231:4408" placeholder="{...}" />
-                <marker date="1202285450000" expanded="true" signature="4415:4596" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="4677:6360" placeholder="{...}" />
-                <marker date="1202285450000" expanded="true" signature="6366:6457" placeholder="/**...*/" />
-                <marker date="1202285450000" expanded="true" signature="6480:6503" placeholder="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Web" pinned="false" current="false" current-in-tab="false">
-        <entry file="javaeeDummy://JavaeeElement:/ae37f5975c0//ae3/web/Web/Facet">
-          <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleAssemblyDescriptorReferencesProvider">
-            <state />
-          </provider>
-          <provider selected="true" editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleGeneralEditorProvider">
-            <state />
-          </provider>
-          <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleAssemblyDescriptorProvider">
-            <state />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="web.xml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/web/WEB-INF/web.xml">
-          <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleAssemblyDescriptorReferencesProvider">
-            <state />
-          </provider>
-          <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleGeneralEditorProvider">
-            <state />
-          </provider>
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="17" column="0" selection-start="706" selection-end="706" vertical-scroll-proportion="0.4214876">
-              <folding />
-            </state>
-          </provider>
-          <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleAssemblyDescriptorProvider">
-            <state />
           </provider>
         </entry>
       </file>
@@ -804,15 +679,15 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="10" y="22" width="1900" height="1127" extended-state="0" />
-    <editor active="true" />
+    <frame x="9" y="22" width="1900" height="1127" extended-state="0" />
+    <editor active="false" />
     <layout>
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="7" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24972972" order="0" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="1" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="1" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24972972" order="1" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32968128" order="8" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="6" />
       <window_info id="Profile" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
@@ -821,17 +696,17 @@
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="1" />
       <window_info id="Maven projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
+      <window_info id="IntelliJad Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32968128" order="8" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32968128" order="2" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="2" />
       <window_info id="DB Browser" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="0" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.39940238" order="4" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39940238" order="4" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Duplicates" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="0" />
-      <window_info id="IntelliJad Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32968128" order="8" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="2" />
       <window_info id="EJB" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="3" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="5" />
@@ -900,20 +775,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$PROJECT_DIR$/lib/ojdbc-14.jar!/oracle/jdbc/driver/OracleStatement.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="375" column="0" selection-start="18518" selection-end="18518" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home/src.jar!/src/java/net/SocketInputStream.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/web/i.xsl">
       <provider selected="true" editor-type-id="text-editor">
         <state line="9" column="0" selection-start="308" selection-end="308" vertical-scroll-proportion="0.20377359">
@@ -949,6 +810,91 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/javaee.jar!/javax/servlet/Servlet.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="32" selection-start="304" selection-end="304" vertical-scroll-proportion="0.17582418">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/javaee.jar!/javax/servlet/ServletResponse.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="intellijad://intellijad/javax/servlet/ServletResponse.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="57" selection-start="1080" selection-end="1080" vertical-scroll-proportion="0.74025977">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/web/test.jsp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="6" selection-start="6" selection-end="6" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/commons-logging-1.0.4.jar!/org/apache/commons/logging/impl/Jdk14Logger.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="0" selection-start="1948" selection-end="1948" vertical-scroll-proportion="0.84615386">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/html/TableWriter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="26" column="0" selection-start="613" selection-end="613" vertical-scroll-proportion="0.5714286">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/html/AtlasTableWriter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="38" column="8" selection-start="1515" selection-end="1515" vertical-scroll-proportion="0.83516484">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ae3/servlet/QueryServlet.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="89" selection-start="808" selection-end="808" vertical-scroll-proportion="0.35164836">
+          <folding>
+            <element signature="method#doGet#0;class#QueryServlet#0" expanded="false" />
+            <element signature="method#doAtlasSearch#0;class#QueryServlet#0" expanded="false" />
+            <element signature="method#doFullTextSearch#0;class#QueryServlet#0" expanded="false" />
+            <element signature="method#doTopGenesForExperiment#0;class#QueryServlet#0" expanded="false" />
+            <element signature="method#doPValueSearch#0;class#QueryServlet#0" expanded="false" />
+            <element signature="method#prepareLuceneQuery#0;class#QueryServlet#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ae3/service/AtlasSearch.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="108" column="82" selection-start="3539" selection-end="3539" vertical-scroll-proportion="0.5531136">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ae3/servlet/ApplicationListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="55" column="33" selection-start="1961" selection-end="1961" vertical-scroll-proportion="0.71428573">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="javaeeDummy://JavaeeElement:/ae37f5975c0//ae3/web/Web/Facet">
       <provider editor-type-id="com.intellij.javaee.module.view.web.viewlets.WebModuleAssemblyDescriptorReferencesProvider">
         <state />
@@ -976,69 +922,10 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ae3/servlet/ApplicationListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="55" column="33" selection-start="1961" selection-end="1961" vertical-scroll-proportion="0.71428573">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/web/index.jsp">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="119" column="0" selection-start="3643" selection-end="4369" vertical-scroll-proportion="0.6524272">
-          <folding>
-            <element signature="tag#style#0;tag#head#0;tag#html#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/web/test.jsp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="106" column="104" selection-start="3307" selection-end="3307" vertical-scroll-proportion="0.7735849">
+        <state line="70" column="0" selection-start="2214" selection-end="2214" vertical-scroll-proportion="0.81509435">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/html/TableWriter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="0" selection-start="512" selection-end="512" vertical-scroll-proportion="0.52747256">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ae3/servlet/QueryServlet.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="89" selection-start="808" selection-end="808" vertical-scroll-proportion="0.35164836">
-          <folding>
-            <element signature="method#doGet#0;class#QueryServlet#0" expanded="false" />
-            <element signature="method#doAtlasSearch#0;class#QueryServlet#0" expanded="false" />
-            <element signature="method#doFullTextSearch#0;class#QueryServlet#0" expanded="false" />
-            <element signature="method#doTopGenesForExperiment#0;class#QueryServlet#0" expanded="false" />
-            <element signature="method#doPValueSearch#0;class#QueryServlet#0" expanded="false" />
-            <element signature="method#prepareLuceneQuery#0;class#QueryServlet#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ae3/service/AtlasSearch.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="135" column="58" selection-start="5144" selection-end="5144" vertical-scroll-proportion="0.50549453">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/html/AtlasTableWriter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="97" selection-start="465" selection-end="465" vertical-scroll-proportion="0.42857143">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
