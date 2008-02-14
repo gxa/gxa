@@ -5,7 +5,13 @@
 <%@ page import="javax.xml.xpath.XPathConstants" %>
 <%@ page import="org.w3c.dom.NodeList" %>
 <%@ page import="output.HtmlTableWriter" %>
-<%@ page session="false" buffer="0kb" %>
+<%@ page import="org.apache.commons.fileupload.servlet.ServletFileUpload" %>
+<%@ page import="org.apache.commons.fileupload.util.Streams" %>
+<%@ page import="org.apache.commons.fileupload.FileItemStream" %>
+<%@ page import="java.io.InputStream" %>
+<%@ page import="org.apache.commons.fileupload.FileItemIterator" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -64,57 +70,129 @@
     </style>
 </head>
 <body>
+
+<table>
+<tr>
+<td valign="top">
 <form action="index.jsp">
-    <%String query = request.getParameter("query");%>
-    <input type="text" name="query" size="40" value="<%=query != null ? query : ""%>"/>
-    <input type="submit" value="get counts" name="get_counts"/>
-    <input type="submit" value="query genes in all experiments"/>
-    <input type="submit" value="query genes restricting to keyword-matching experiments" name="restrict_expt"/>
+        <%
+            HashMap<String,String> sessionQueryFiles = (HashMap<String,String>) session.getAttribute("queryFiles");
+            if(sessionQueryFiles == null) sessionQueryFiles = new HashMap<String,String>();
+
+            boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+            String query = null;
+            String get_counts = null;
+            String restrict_expt = null;
+
+            if (isMultipart) {
+                ServletFileUpload upload = new ServletFileUpload();
+                FileItemIterator iter = upload.getItemIterator(request);
+
+                while (iter.hasNext()) {
+                    FileItemStream item = iter.next();
+                    String name = item.getFieldName();
+                    InputStream stream = item.openStream();
+                    String s = Streams.asString(stream);
+
+                    if (name.equals("queryFile")) {
+                        sessionQueryFiles.put(item.getName(), s);
+                        session.setAttribute("queryFiles", sessionQueryFiles);
+                    }
+                }
+            }
+
+            get_counts = request.getParameter("get_counts");
+            restrict_expt = request.getParameter("restrict_expt");
+
+            if ( !request.getParameter("query").equals("") ) {
+                query = request.getParameter("query");
+            } else {
+                query = sessionQueryFiles.get(request.getParameter("queryFileChoose"));
+            }
+
+            if (query != null)
+                query = query.replaceAll("\n"," ");
+        %>
+        Search keyword(s): <input type="text" name="query" size="40" value="<%=request.getParameter("query").equals("") ? "" : query %>"/>
+        or use an uploaded file:
+            <select name="queryFileChoose">
+                <option value="">Available files:</option>
+            <%
+            for ( String queryFile : sessionQueryFiles.keySet() ) {
+                String data = sessionQueryFiles.get(queryFile);
+                %>
+                <option value="<%=queryFile%>" <%=queryFile.equals(request.getParameter("queryFileChoose")) ? "selected" : ""%>><%=queryFile%> (<span style="font-size:small"><%=data.length() > 20 ? data.substring(0,20) + " ..." : data %></span>)</option>
+                <%
+            }
+            %></select><%
+        %>
+
+        <br/>
+        <input type="submit" value="get counts" name="get_counts"/>
+        <input type="submit" value="query genes in all experiments"/>
+        <input type="submit" value="query genes restricting to keyword-matching experiments" name="restrict_expt"/>
+        <input type="reset"/>
+
+    </form>
+</td>
+<td valign="top">
+<form enctype="multipart/form-data" method="post" action="index.jsp">
+    upload a query file <input type="file" name="queryFile"/>
+    <input type="submit" value="Upload"/>
+</form>
+</td>
+</tr>
+</table>
 
     <%
         if (query != null) {
+            int geneIdsLen, exptIdsLen;
+
             Document genes = AtlasSearch.instance().fullTextQueryGenes(query);
             Document expts = AtlasSearch.instance().fullTextQueryExpts(query);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
             NodeList nodes;
-            int nlen;
 
             nodes = (NodeList) xpath.evaluate("//str[@name='gene_id']", genes, XPathConstants.NODESET);
 
             StringBuilder inGeneIds = new StringBuilder();
-            nlen = nodes.getLength();
-            for (int i = 0; i < nlen; i++) {
+            geneIdsLen = nodes.getLength();
+            for (int i = 0; i < geneIdsLen; i++) {
                 inGeneIds.append(nodes.item(i).getTextContent());
-                if (i != nlen - 1) inGeneIds.append(",");
+                if (i != geneIdsLen - 1) inGeneIds.append(",");
             }
 
             nodes = (NodeList) xpath.evaluate("//str[@name='exp_id']", expts, XPathConstants.NODESET);
 
             StringBuilder inExptIds = new StringBuilder();
-            nlen = nodes.getLength();
-            for (int i = 0; i < nlen; i++) {
+            exptIdsLen = nodes.getLength();
+            for (int i = 0; i < exptIdsLen; i++) {
                 inExptIds.append(nodes.item(i).getTextContent());
-                if (i != nlen - 1) inExptIds.append(",");
+                if (i != exptIdsLen - 1) inExptIds.append(",");
             }
     %>
     <pre>
-Debug:   We have gene ids: <%=inGeneIds%>
-         We have expt ids: <%=inExptIds%>
+Debug:   We have <%=geneIdsLen%> gene ids: <%=inGeneIds.length() > 200 ? inGeneIds.substring(0,100) + " ..." : inGeneIds %>
+         We have <%=exptIdsLen%> expt ids: <%=inExptIds.length() > 200 ? inExptIds.substring(0,100) + " ..." : inExptIds %>
     </pre>
     <%
             response.flushBuffer();
-            if (request.getParameter("get_counts") != null) {
-                int full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "");
-                int restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptIds.toString());
-                response.getWriter().println("<pre>Counts: " + full_count + ", " + restr_count + "</pre>");
+            if (geneIdsLen > 100 || exptIdsLen > 100) {
+                response.getWriter().println(String.format("Not running atlas query -- too many ids (genes: %d, expts: %d)", geneIdsLen, exptIdsLen));
             } else {
-                if (request.getParameter("restrict_expt") == null)
-                    inExptIds.setLength(0);
-                AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new HtmlTableWriter(response.getWriter(), response));
+                if (get_counts != null) {
+                    int full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "");
+                    int restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptIds.toString());
+                    response.getWriter().println("<pre>Counts: " + full_count + ", " + restr_count + "</pre>");
+                } else {
+                    if (restrict_expt == null)
+                        inExptIds.setLength(0);
+                    AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new HtmlTableWriter(response.getWriter(), response));
+                }
             }
         }
     %>
-</form>
 </body>
 </html>

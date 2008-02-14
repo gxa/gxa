@@ -2,6 +2,7 @@ package output;
 
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * User: ostolop
@@ -20,7 +21,7 @@ public class TableWriter {
         pw.println("<table class=\"sofT\" border=\"1\" cellpadding=\"2\">");
     }
 
-    public void writeRow(Object elt) throws IOException {
+    public void writeRow(Map elt) throws IOException {
         pw.write("<tr><td>" + elt.toString() + "</td></tr>\n");
     }
 

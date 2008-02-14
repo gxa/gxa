@@ -3,6 +3,7 @@ package output;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: ostolop
@@ -20,9 +21,7 @@ public class XmlTableWriter extends TableWriter {
         pw.println("<?xml version='1.0'?>\n<atlas>\n");
     }
 
-    public void writeRow(Object elt) throws IOException {
-        HashMap expt = (HashMap) elt;
-
+    public void writeRow(Map expt) throws IOException {        
         pw.println("<atlas_result>" +
             "<expt_acc>"  + expt.get("expt_acc")      + "</expt_acc>" +
             "<expt_desc>" + expt.get("expt_desc")     + "</expt_desc>" +

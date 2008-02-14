@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: ostolop
@@ -23,9 +24,7 @@ public class HtmlTableWriter extends TableWriter {
         this.response = response;
     }
 
-    public void writeRow(Object elt) throws IOException {
-        HashMap expt = (HashMap) elt;
-
+    public void writeRow(Map expt) throws IOException {
         String this_expt = (String) expt.get("expt_acc");
         String this_ef   = (String) expt.get("ef");
 

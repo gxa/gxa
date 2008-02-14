@@ -6,6 +6,7 @@ import org.apache.solr.servlet.DirectSolrConnection;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilder;
@@ -13,6 +14,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -79,11 +82,30 @@ public class AtlasSearch {
      */
      public Document fullTextQueryGenes(String query) {
         String res;
-        try {
-            res = solr_gene.request("/select?wt=xml&rows=50&q=" + query, null);
+        Document doc = null;
 
+        try {
             DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            return docBuilder.parse(new InputSource(new StringReader(res)));
+
+            if ( query.split("\\s").length > 500 ) {
+                Pattern pattern = Pattern.compile("(\\p{Alnum}+\\s){500}");
+                Matcher matcher = pattern.matcher(query);
+
+                while (matcher.find()) {
+                    String qi = matcher.group();
+                    res = solr_gene.request("/select?wt=xml&rows=500&q=gene_ids:(" + qi + ")", null);
+
+                    if ( doc == null)
+                        doc = docBuilder.parse(new InputSource(new StringReader(res)));
+                    else {
+                        Element tmp = docBuilder.parse(new InputSource(new StringReader(res))).getDocumentElement();
+                        doc.getDocumentElement().appendChild(doc.importNode(tmp, true));
+                    }
+                }
+            } else {
+                res = solr_gene.request("/select?wt=xml&rows=500&q=" + query + " gene_ids:(" + query + ")", null);
+                doc = docBuilder.parse(new InputSource(new StringReader(res)));                
+            }
         } catch (ParserConfigurationException e) {
             log.error(e);
         } catch (IOException e) {
@@ -94,7 +116,7 @@ public class AtlasSearch {
             log.error(e);
         }
 
-        return null;
+        return doc;
     }
 
     /**
@@ -105,6 +127,10 @@ public class AtlasSearch {
      */
     public Document fullTextQueryExpts(String query) {
         String res;
+
+        if (query.length()>500)
+            query = query.substring(0,500);
+
         query = "exp_description:" + query + "+OR+exp_factors:" + query + "+OR+bs_attribute:" + query + "+OR+exp_accession:" + query;
         try {
             res = solr_expt.request("/select?wt=xml&rows=50&q=" + query, null);
