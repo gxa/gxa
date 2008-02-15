@@ -105,7 +105,7 @@
             get_counts = request.getParameter("get_counts");
             restrict_expt = request.getParameter("restrict_expt");
 
-            if ( !request.getParameter("query").equals("") ) {
+            if ( request.getParameter("query")!= null && !request.getParameter("query").equals("") ) {
                 query = request.getParameter("query");
             } else {
                 query = sessionQueryFiles.get(request.getParameter("queryFileChoose"));
@@ -114,7 +114,7 @@
             if (query != null)
                 query = query.replaceAll("\n"," ");
         %>
-        Search keyword(s): <input type="text" name="query" size="40" value="<%=request.getParameter("query").equals("") ? "" : query %>"/>
+        Search keyword(s): <input type="text" name="query" size="40" value="<%=query == null || request.getParameter("query").equals("") ? "" : query %>"/>
         or use an uploaded file:
             <select name="queryFileChoose">
                 <option value="">Available files:</option>
@@ -148,9 +148,17 @@
     <%
         if (query != null) {
             int geneIdsLen, exptIdsLen;
+            String gene_query = query;
+            String expt_query = query;
 
-            Document genes = AtlasSearch.instance().fullTextQueryGenes(query);
-            Document expts = AtlasSearch.instance().fullTextQueryExpts(query);
+            if ( query.indexOf(" in ") != -1 ) {
+                gene_query = query.substring(0, query.indexOf(" in "));
+                expt_query = query.substring(query.indexOf(" in ") + 4);
+                restrict_expt = "restrict_expt";
+            }
+
+            Document genes = AtlasSearch.instance().fullTextQueryGenes(gene_query);
+            Document expts = AtlasSearch.instance().fullTextQueryExpts(expt_query);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
             NodeList nodes;

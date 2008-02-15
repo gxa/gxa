@@ -160,6 +160,9 @@ public class AtlasSearch {
      * @return
      */
     public int getAtlasQueryCount(String inGeneIds, String inExptIds) {
+        if ( inGeneIds == null || inGeneIds.equals("") ) 
+            return 0;
+
         String atlas_count_query = "select count(*) from\n" +
                 "(select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
                 " atlas.fpvaladj, atlas.ef, atlas.efv, atlas.updn, atlas.DESIGNELEMENT_ID_KEY\n" +
