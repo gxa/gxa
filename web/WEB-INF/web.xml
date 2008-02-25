@@ -5,19 +5,13 @@
 		  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
            version="2.5">
     <context-param>
-        <description>SOLR Gene Index</description>
-        <param-name>gene_idx</param-name>
-        <param-value>/ebi/work/solr_idxs/solr_gene</param-value>
-    </context-param>
-
-    <context-param>
-        <description>SOLR Experiment Index</description>
-        <param-name>expt_idx</param-name>
-        <param-value>/ebi/work/solr_idxs/solr_expt</param-value>
+        <description>SOLR Multicore Index Location</description>
+        <param-name>solr_index_location</param-name>
+        <param-value>/ebi/work/solr_idxs/multicore</param-value>
     </context-param>
 
     <listener>
-        <listener-class>ae3.servlet.ApplicationListener</listener-class>
+        <listener-class>ae3.servlet.AtlasApplicationListener</listener-class>
     </listener>
     <servlet>
         <display-name>AE3 Query Servlet</display-name>

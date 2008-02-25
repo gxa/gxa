@@ -11,6 +11,10 @@
 <%@ page import="java.io.InputStream" %>
 <%@ page import="org.apache.commons.fileupload.FileItemIterator" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="org.apache.lucene.search.Hits" %>
+<%@ page import="org.apache.solr.client.solrj.response.QueryResponse" %>
+<%@ page import="org.apache.solr.common.SolrDocumentList" %>
+<%@ page import="org.apache.solr.common.SolrDocument" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -114,7 +118,7 @@
             if (query != null)
                 query = query.replaceAll("\n"," ");
         %>
-        Search keyword(s): <input type="text" name="query" size="40" value="<%=query == null || request.getParameter("query").equals("") ? "" : query %>"/>
+        Search keyword(s): <input type="text" name="query" size="40" value="<%=query == null || request.getParameter("query").equals("") ? "" : query.replaceAll("\"","&quot;") %>"/>
         or use an uploaded file:
             <select name="queryFileChoose">
                 <option value="">Available files:</option>
@@ -147,57 +151,66 @@
 
     <%
         if (query != null) {
-            int geneIdsLen, exptIdsLen;
+            long geneIdsLen = 0;
+            long exptIdsLen = 0;
             String gene_query = query;
             String expt_query = query;
 
-            if ( query.indexOf(" in ") != -1 ) {
-                gene_query = query.substring(0, query.indexOf(" in "));
-                expt_query = query.substring(query.indexOf(" in ") + 4);
+            // find possible index of " in " in the query. can't do toLowerCase() since query might be big.
+            int restrQuery = query.indexOf(" in ");
+            if ( restrQuery == -1 ) restrQuery = query.indexOf(" IN ");
+
+            if ( restrQuery != -1) {
+                gene_query = query.substring(0, restrQuery);
+                expt_query = query.substring(restrQuery + 4);
                 restrict_expt = "restrict_expt";
             }
 
-            Document genes = AtlasSearch.instance().fullTextQueryGenes(gene_query);
-            Document expts = AtlasSearch.instance().fullTextQueryExpts(expt_query);
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            NodeList nodes;
-
-            nodes = (NodeList) xpath.evaluate("//str[@name='gene_id']", genes, XPathConstants.NODESET);
+            SolrDocumentList geneHits = AtlasSearch.instance().fullTextQueryGenes(gene_query).getResults();
+            SolrDocumentList exptHits = AtlasSearch.instance().fullTextQueryExpts(expt_query).getResults();
 
             StringBuilder inGeneIds = new StringBuilder();
-            geneIdsLen = nodes.getLength();
-            for (int i = 0; i < geneIdsLen; i++) {
-                inGeneIds.append(nodes.item(i).getTextContent());
-                if (i != geneIdsLen - 1) inGeneIds.append(",");
+            if ( geneHits != null ) {
+                geneIdsLen = geneHits.getNumFound();
+                for (SolrDocument doc : geneHits ) {
+                    inGeneIds.append("'").append((String) doc.getFieldValue("gene_id")).append("',");
+                }
+                inGeneIds.deleteCharAt(inGeneIds.length()-1);
             }
 
-            nodes = (NodeList) xpath.evaluate("//str[@name='exp_id']", expts, XPathConstants.NODESET);
-
-            StringBuilder inExptIds = new StringBuilder();
-            exptIdsLen = nodes.getLength();
-            for (int i = 0; i < exptIdsLen; i++) {
-                inExptIds.append(nodes.item(i).getTextContent());
-                if (i != exptIdsLen - 1) inExptIds.append(",");
+            StringBuilder inExptAccs = new StringBuilder();
+            if ( exptHits != null ) {
+                exptIdsLen = exptHits.getNumFound();
+                for (SolrDocument doc : exptHits) {
+                    String expid = (String) doc.getFieldValue("exp_accession");
+                    inExptAccs.append("'").append(expid).append("',");
+                }
+                inExptAccs.deleteCharAt(inExptAccs.length()-1);
             }
     %>
     <pre>
 Debug:   We have <%=geneIdsLen%> gene ids: <%=inGeneIds.length() > 200 ? inGeneIds.substring(0,100) + " ..." : inGeneIds %>
-         We have <%=exptIdsLen%> expt ids: <%=inExptIds.length() > 200 ? inExptIds.substring(0,100) + " ..." : inExptIds %>
+         We have <%=exptIdsLen%> expt ids: <%=inExptAccs.length() > 200 ? inExptAccs.substring(0,100) + " ..." : inExptAccs %>
     </pre>
     <%
             response.flushBuffer();
-            if (geneIdsLen > 100 || exptIdsLen > 100) {
+            if ( 1 == 0 /*geneIdsLen > 100 || exptIdsLen > 100*/) {
                 response.getWriter().println(String.format("Not running atlas query -- too many ids (genes: %d, expts: %d)", geneIdsLen, exptIdsLen));
             } else {
                 if (get_counts != null) {
-                    int full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "");
-                    int restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptIds.toString());
+                    response.getWriter().println("Getting counts... ");
+                    response.flushBuffer();
+                    long full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "");
+                    long restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptAccs.toString());
                     response.getWriter().println("<pre>Counts: " + full_count + ", " + restr_count + "</pre>");
                 } else {
                     if (restrict_expt == null)
-                        inExptIds.setLength(0);
-                    AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptIds.toString(), new HtmlTableWriter(response.getWriter(), response));
+                        inExptAccs.setLength(0);
+
+                    response.getWriter().println("Getting atlas data... ");
+                    response.flushBuffer();
+                    long recs = AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptAccs.toString(), new HtmlTableWriter(response.getWriter(), response));
+                    response.getWriter().println("Done (" +  recs+  " records).");
                 }
             }
         }

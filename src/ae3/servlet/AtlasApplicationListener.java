@@ -24,13 +24,13 @@ import org.apache.solr.servlet.DirectSolrConnection;
 
 import ae3.service.AtlasSearch;
 
-public class ApplicationListener implements ServletContextListener,
+public class AtlasApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 
     private Log log = LogFactory.getLog("ae3");
 
     // Public constructor is required by servlet spec
-    public ApplicationListener() {
+    public AtlasApplicationListener() {
     }
 
     // -------------------------------------------------------
@@ -44,20 +44,16 @@ public class ApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        String solr_gene_instance = sc.getInitParameter("gene_idx");
-        String solr_expt_instance = sc.getInitParameter("expt_idx");
-
         AtlasSearch as = AtlasSearch.instance();
+        as.setSolrIndexLocation(sc.getInitParameter("solr_index_location"));
 
         try {
-            as.setSolrGene(new DirectSolrConnection(solr_gene_instance, solr_gene_instance + "/data", null));
-            as.setSolrExpt(new DirectSolrConnection(solr_expt_instance, solr_expt_instance + "/data", null));
-
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
             DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWD");
 
             as.setDataSource(ds);
+            as.initialize();
         } catch (Exception e) {
             log.error(e);
         }

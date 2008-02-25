@@ -3,6 +3,7 @@ package ae3.servlet;
 import ae3.service.AtlasSearch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.search.Hits;
 import org.w3c.dom.Document;
 import output.XmlTableWriter;
 
@@ -74,14 +75,14 @@ public class QueryServlet extends HttpServlet {
 
     private void doFullTextSearch(HttpServletRequest request, HttpServletResponse response) {
         try {
-            Document gene_doc = AtlasSearch.instance().fullTextQueryGenes(request.getParameter("q"));
-            Document expt_doc = AtlasSearch.instance().fullTextQueryExpts(request.getParameter("q"));
+//            Hits gene_doc = AtlasSearch.instance().fullTextQueryGenes(request.getParameter("q"));
+//            Hits expt_doc = AtlasSearch.instance().fullTextQueryExpts(request.getParameter("q"));
 
             String xslt = request.getParameter("xsl");
             if (xslt == null) xslt = "i.xsl";
 
-            Source gene_xmlSource = new DOMSource(gene_doc);
-            Source expt_xmlSource = new DOMSource(expt_doc);
+//            Source gene_xmlSource = new DOMSource(gene_doc);
+//            Source expt_xmlSource = new DOMSource(expt_doc);
             Source xsltSource = new StreamSource(getServletContext().getResourceAsStream(xslt));
 
             TransformerFactory transFact = TransformerFactory.newInstance();
@@ -91,8 +92,8 @@ public class QueryServlet extends HttpServlet {
 
             response.getWriter().println("<xml>");
 
-            trans.transform(gene_xmlSource, new StreamResult(response.getWriter()));
-            trans.transform(expt_xmlSource, new StreamResult(response.getWriter()));
+//            trans.transform(gene_xmlSource, new StreamResult(response.getWriter()));
+//            trans.transform(expt_xmlSource, new StreamResult(response.getWriter()));
 
             response.getWriter().println("</xml>");
         } catch (Exception e) {
