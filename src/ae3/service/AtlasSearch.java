@@ -193,7 +193,7 @@ public class AtlasSearch {
 
         try {
             SolrQuery q = new SolrQuery(query);
-            q.setRows(30);
+            q.setRows(50);
             return solr_expt.query(q);
         } catch (SolrServerException e) {
             log.error(e);
