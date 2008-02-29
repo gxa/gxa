@@ -297,7 +297,8 @@ public class AtlasSearch {
      * @param tw        instance of {@link output.TableWriter} to write query results to
      */
     public long writeAtlasQuery(String inGeneIds, String inExptIds, TableWriter tw) throws IOException {
-        String atlas_query = "select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
+    	
+        String atlas_query = "select /*+ INDEX(atlas atlas_by_de) INDEX(expt) */ \n" +
                                 "         expt.experiment_accession,\n" +
                                 "         expt.experiment_description, \n" +
                                 "         nvl(atlas.fpvaladj,999.0) as rank, \n" +
