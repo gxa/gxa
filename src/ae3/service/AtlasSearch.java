@@ -374,7 +374,7 @@ public class AtlasSearch {
      *         factor value, gene name + identifier in parentheses, up/dn label (-1,1) and adjusted p-value.
      */
     public Vector<HashMap<String,Object>> atlasQuery(String inGeneIds, String inExptIds) {
-        String atlas_query = "select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
+        String atlas_query = "select /*+ INDEX(atlas atlas_by_de) INDEX(expt) */ \n" +
                                 "         expt.experiment_accession,\n" +
                                 "         expt.experiment_description, \n" +
                                 "         nvl(atlas.fpvaladj,999.0) as rank, \n" +
