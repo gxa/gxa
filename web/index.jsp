@@ -175,7 +175,8 @@
                 for (SolrDocument doc : geneHits ) {
                     inGeneIds.append("'").append((String) doc.getFieldValue("gene_id")).append("',");
                 }
-                inGeneIds.deleteCharAt(inGeneIds.length()-1);
+                if (inGeneIds.length() > 0)
+                  inGeneIds.deleteCharAt(inGeneIds.length()-1);
             }
 
             StringBuilder inExptAccs = new StringBuilder();
@@ -185,7 +186,8 @@
                     String expid = (String) doc.getFieldValue("exp_accession");
                     inExptAccs.append("'").append(expid).append("',");
                 }
-                inExptAccs.deleteCharAt(inExptAccs.length()-1);
+                if (inExptAccs.length() > 0)
+                  inExptAccs.deleteCharAt(inExptAccs.length()-1);
             }
     %>
     <pre>
