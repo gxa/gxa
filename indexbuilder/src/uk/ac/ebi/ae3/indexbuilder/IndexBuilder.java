@@ -1,3 +1,4 @@
+package uk.ac.ebi.ae3.indexbuilder;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.KeywordAnalyzer;
@@ -22,6 +23,10 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
+import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
+import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParserFactory;
+
 
 import java.io.File;
 import java.io.FileReader;
@@ -30,9 +35,6 @@ import java.io.FilenameFilter;
 import java.util.Map;
 import java.util.List;
 
-import ae3.magetab.MageTabParserFactory;
-import ae3.magetab.MageTabParser;
-import ae3.magetab.MageTabDocument;
 
 import javax.xml.parsers.ParserConfigurationException;
 

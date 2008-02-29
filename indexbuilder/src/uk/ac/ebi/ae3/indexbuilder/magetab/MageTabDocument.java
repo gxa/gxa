@@ -1,4 +1,4 @@
-package ae3.magetab;
+package uk.ac.ebi.ae3.indexbuilder.magetab;
 
 import org.apache.commons.lang.StringUtils;
 

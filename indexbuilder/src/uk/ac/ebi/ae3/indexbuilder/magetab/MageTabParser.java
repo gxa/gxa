@@ -1,4 +1,4 @@
-package ae3.magetab;
+package uk.ac.ebi.ae3.indexbuilder.magetab;
 
 
 import com.Ostermiller.util.ExcelCSVParser;
@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 
 /**
  * User: ostolop

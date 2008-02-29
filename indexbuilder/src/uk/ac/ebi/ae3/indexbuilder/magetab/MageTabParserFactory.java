@@ -1,4 +1,5 @@
-package ae3.magetab;
+package uk.ac.ebi.ae3.indexbuilder.magetab;
+
 
 /**
  * User: ostolop
