@@ -1,5 +1,6 @@
 package ae3.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.servlet.DirectSolrConnection;
@@ -298,6 +299,8 @@ public class AtlasSearch {
      */
     public long writeAtlasQuery(String inGeneIds, String inExptIds, TableWriter tw) throws IOException {
     	
+    	if (StringUtils.isEmpty(inGeneIds))
+    		return 0;
         String atlas_query = "select /*+ INDEX(atlas atlas_by_de) INDEX(expt) */ \n" +
                                 "         expt.experiment_accession,\n" +
                                 "         expt.experiment_description, \n" +
