@@ -17,13 +17,17 @@ import org.junit.Test;
  */
 public class IndexBuilderTest
 {
-	
+	private String argsPropertry[]={};
+	private String argsCli[]={};
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
+		System.out.println("tear before");
+
 	}
 	
 	/**
@@ -32,6 +36,8 @@ public class IndexBuilderTest
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception
 	{
+		System.out.println("tear down");
+
 	}
 	
 	/**
@@ -40,6 +46,7 @@ public class IndexBuilderTest
 	@Before
 	public void setUp() throws Exception
 	{
+		System.out.println("Start test");
 	}
 	
 	/**
@@ -56,8 +63,16 @@ public class IndexBuilderTest
 	@Test
 	public void testParse()
 	{
-		
-		fail("Not yet implemented");
+		try
+		{
+		   IndexBuilder indexBuilder = new IndexBuilder();
+		   indexBuilder.parse(argsCli);
+		   indexBuilder.parse(argsPropertry);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	/**
