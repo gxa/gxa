@@ -66,64 +66,9 @@ public class IndexBuilder {
     public void run() throws ParserConfigurationException, IOException, SAXException, SolrServerException 
     {
         
-        //read configuration
-    		;
-            MultiCore.getRegistry().load(confService.getIndexDir(), new File(confService.getIndexDir(), "multicore.xml"));
-            SolrServer solr = new EmbeddedSolrServer("expt");
-
-            File idf = new File(confService.getMageDir());
-            if (idf.isDirectory()) {
-                File[] idfs = idf.listFiles(new FilenameFilter() {
-                    public boolean accept(File dir, String name) {
-                        return name.endsWith(".idf.txt");
-                    }
-                }
-                );
-
-                for (File nextidf : idfs) {
-                    log.info("Indexing " + nextidf.getAbsolutePath());
-                    indexMageTab(nextidf, solr);
-                }
-            } else {
-                indexMageTab(idf, solr);
-            }
-
-            UpdateResponse response = solr.commit();
-            response = solr.optimize();
-            
-            MultiCore.getRegistry().shutdown();
     	
     }
     
-    private static void indexMageTab(File idfFile, SolrServer solr) throws IOException, SolrServerException {
-        MageTabParser mtp = MageTabParserFactory.getParser();
-        MageTabDocument mtd = mtp.parseIDF(new FileReader(idfFile));
-
-        SolrInputDocument doc = new SolrInputDocument();
-
-        addMageTabFields(doc, mtd.getFields());
-
-        File sdrfFile = new File(idfFile.getAbsolutePath().replace(".idf.txt", ".sdrf.txt"));
-        if (sdrfFile.exists()) {
-            log.info("Found " + sdrfFile.getAbsolutePath());
-            MageTabDocument mtd_sdrf = mtp.parseSDRF(new FileReader(sdrfFile));
-            addMageTabFields(doc, mtd_sdrf.getFields());
-        }
-
-        doc.addField("exp_accession", idfFile.getName().replace(".idf.txt",""));
-        UpdateResponse response = solr.add(doc);
-    }
-
-    private static void addMageTabFields(SolrInputDocument doc, Map<String, List<String>> mtFields) {
-        for (Map.Entry<String, List<String>> entry : mtFields.entrySet()) {
-            String fieldName = entry.getKey();
-            List<String> fieldValues = entry.getValue();
-
-            for ( String val : fieldValues ) {
-                doc.addField(fieldName, val);
-            }
-        }
-    }
     
     public static void main(String[] args) 
     {
