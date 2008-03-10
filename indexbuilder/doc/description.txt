@@ -1,0 +1,4 @@
+Add libraries commons-cli, commons-colection, commons-configuration
+Created service layer:  uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService
+                        uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderservice
+Change structure of resources for the maven.                        
