@@ -9,6 +9,8 @@ import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrServer;
@@ -46,6 +48,7 @@ public class IndexBuilderService
 	 */
 	public void buildIndex() throws IOException, SolrServerException, ParserConfigurationException, SAXException
 	{
+		String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
         MultiCore.getRegistry().load(confService.getIndexDir(), new File(confService.getIndexDir(), "multicore.xml"));
         SolrServer solr = new EmbeddedSolrServer(IndexBuilder.SOLR_CORE_NAME);
 
@@ -89,6 +92,7 @@ public class IndexBuilderService
         }
 
         doc.addField("exp_accession", idfFile.getName().replace(IndexBuilder.IDF_EXTENSION,""));
+        log.info("ALALALALALALALL" + idfFile.getName().replace(IndexBuilder.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 
