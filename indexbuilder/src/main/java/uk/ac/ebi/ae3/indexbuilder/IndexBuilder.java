@@ -34,6 +34,7 @@ import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParserFactory;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
+import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 
 /**
  * User: ostolop, mdylag
@@ -45,6 +46,11 @@ import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 public class IndexBuilder {
     private static final Log log = LogFactory.getLog(IndexBuilder.class);
     private ConfigurationService confService = new ConfigurationService();
+    private IndexBuilderService indexBuilderService = new IndexBuilderService(confService);
+	public static final String SDRF_EXTENSION=".sdrf.txt";
+	public static final String IDF_EXTENSION=".idf.txt";
+	/* CONSTANTS */
+	public static final String SOLR_CORE_NAME="expt";
    
     /**
      * DOCUMENT ME
@@ -65,8 +71,7 @@ public class IndexBuilder {
      */
     public void run() throws ParserConfigurationException, IOException, SAXException, SolrServerException 
     {
-        
-    	
+    	this.indexBuilderService.buildIndex();    	
     }
     
     

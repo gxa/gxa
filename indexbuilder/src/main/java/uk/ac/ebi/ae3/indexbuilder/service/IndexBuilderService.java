@@ -19,6 +19,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.MultiCore;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParserFactory;
@@ -46,13 +47,13 @@ public class IndexBuilderService
 	public void buildIndex() throws IOException, SolrServerException, ParserConfigurationException, SAXException
 	{
         MultiCore.getRegistry().load(confService.getIndexDir(), new File(confService.getIndexDir(), "multicore.xml"));
-        SolrServer solr = new EmbeddedSolrServer("expt");
+        SolrServer solr = new EmbeddedSolrServer(IndexBuilder.SOLR_CORE_NAME);
 
         File idf = new File(confService.getMageDir());
         if (idf.isDirectory()) {
             File[] idfs = idf.listFiles(new FilenameFilter() {
                 public boolean accept(File dir, String name) {
-                    return name.endsWith(".idf.txt");
+                    return name.endsWith(IndexBuilder.IDF_EXTENSION);
                 }
             }
             );
@@ -80,14 +81,14 @@ public class IndexBuilderService
 
         addMageTabFields(doc, mtd.getFields());
 
-        File sdrfFile = new File(idfFile.getAbsolutePath().replace(".idf.txt", ".sdrf.txt"));
+        File sdrfFile = new File(idfFile.getAbsolutePath().replace(IndexBuilder.IDF_EXTENSION, IndexBuilder.SDRF_EXTENSION));
         if (sdrfFile.exists()) {
             log.info("Found " + sdrfFile.getAbsolutePath());
             MageTabDocument mtd_sdrf = mtp.parseSDRF(new FileReader(sdrfFile));
             addMageTabFields(doc, mtd_sdrf.getFields());
         }
 
-        doc.addField("exp_accession", idfFile.getName().replace(".idf.txt",""));
+        doc.addField("exp_accession", idfFile.getName().replace(IndexBuilder.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 

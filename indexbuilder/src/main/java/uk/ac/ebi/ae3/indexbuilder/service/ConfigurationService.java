@@ -47,9 +47,11 @@ public class ConfigurationService
     											 create();
     
     private final DefaultOption optionMageTabDir = optionBuilder.withLongName(ConfigurationService.KEY_MAGETABDIR).
+	 											   withArgument(pathArgument).    
 	 											   withDescription("an files directory").create();
 
     private final DefaultOption optionProperty = optionBuilder.withLongName(ConfigurationService.KEY_PROPERTY).withRequired(true).
+	 											 withArgument(pathArgument).
 	 											 withDescription("Property file").create();
     //Read configuration from property file 
     private final CompositeConfiguration config= new CompositeConfiguration();
@@ -65,6 +67,11 @@ public class ConfigurationService
     	parser.setHelpFormatter(helpFormatter);
     	parser.setHelpTrigger("--help");
     	CommandLine cl = parser.parseAndHelp(args);
+    	if (cl==null)
+    	{
+    		helpFormatter.printException();
+    		System.exit(-1);
+    	}
     	if (cl.hasOption(optionProperty))
     	{
     		propertyFile = (String)cl.getValue(optionProperty);
