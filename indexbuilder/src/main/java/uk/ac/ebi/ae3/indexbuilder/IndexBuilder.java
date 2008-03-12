@@ -69,7 +69,7 @@ public class IndexBuilder {
      * @throws ParserConfigurationException 
      * @throws SolrServerException 
      */
-    public void run() throws ParserConfigurationException, IOException, SAXException, SolrServerException 
+    public void run() throws ParserConfigurationException, IOException, SAXException, SolrServerException, IndexBuilderException
     {
     	this.indexBuilderService.buildIndex();    	
     }
@@ -92,6 +92,9 @@ public class IndexBuilder {
             log.error(e);
         } catch (SAXException e) {
             log.error(e);
+        }
+        catch (IndexBuilderException e) {
+        	log.error(e);
         }
     }
 	

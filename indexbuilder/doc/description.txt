@@ -4,23 +4,27 @@ Created service layer:  uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService
 Change structure of resources for the maven.         
 Added the method buildIndex.
 Moved methods indexMageTab and addMageTabFields to IndexBuilderservice.
-
-Location of Information:
-	* Accession Number, Title, Species              	-
-	* Descriptions  						        	- (IDF File Experiment Description)
-	* Experiment Design									- (IDF) Experimental Design
-	* Secondary Accessions, MIAME Score     	    	-
-	* Array Design References, Protocol References  	-
-	* Sample Attributes									-
-	* Factor Values										-
-	* Bibliography References (publications)			-
-    * Providers											-
-    * Experiment Type (presently not in the database)   - 
-
-
-
-
 Add an argument to option property and magetabdir
 Add member IndexBuilderService to IndexBuilder.
 Add the MageTabUtils class which will be contains methods to read a directory structure. 
 Create new constants (file extension, core name).
+
+Location of Information:
+	* Accession Number									- Name of directory 
+	* Title												- (IDF) Investigation Title
+	* Species              								- (SDRF) Characteristics[Organism]
+	* Descriptions  						        	- (IDF) Experiment Description
+	* Experiment Design									- (IDF) Experimental Design
+	* Secondary Accessions, MIAME Score     	    	- Does not exists in MAGE-TAB
+	* Array Design References							- (SDRF) Array Design REF
+	* Protocol References  								- (SDRF) Protocol REF
+	* Sample Attributes									- (SDRF) Characteristics[CellLine]
+	* Factor Values										- (SDRF) Factor Value [EF1](genotype)"
+	* Bibliography References (publications)			- (IDF) Pub Med Id
+    * Providers											- (IDF) Person Last Name
+    * Experiment Type (presently not in the database)   - DOES not exists in MAGE-TAB
+
+
+
+
+
