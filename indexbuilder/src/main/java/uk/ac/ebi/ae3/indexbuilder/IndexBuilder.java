@@ -34,6 +34,7 @@ import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParserFactory;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
+import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromMageTab;
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 
 /**
@@ -44,20 +45,21 @@ import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
  * EBI Microarray Informatics Team (c) 2008
  */
 public class IndexBuilder {
+	
     private static final Log log = LogFactory.getLog(IndexBuilder.class);
     private ConfigurationService confService = new ConfigurationService();
-    private IndexBuilderService indexBuilderService = new IndexBuilderService(confService);
+    private IndexBuilderService indexBuilderService = new IndexBuilderFromMageTab(confService);
 	public static final String SDRF_EXTENSION=".sdrf.txt";
 	public static final String IDF_EXTENSION=".idf.txt";
 	/* CONSTANTS */
 	public static final String SOLR_CORE_NAME="expt";
    
-    /**
-     * DOCUMENT ME
-     * @param args
-     * @throws org.apache.commons.configuration.ConfigurationException 
-     */
-    public void parse(String[] args) throws org.apache.commons.configuration.ConfigurationException
+   /**
+    * DOCUMENT ME
+    * @param args
+    * @throws org.apache.commons.configuration.ConfigurationException 
+    */   
+	public void parse(String[] args) throws org.apache.commons.configuration.ConfigurationException
     {
         //System.out.println("Usage: IndexBuilder <indexDir> <idfFile>\nidfFile can be a directory, in which case all *.idf.txt and *.sdrf.txt will be parsed.");
     	confService.parseAndConfigure(args);
@@ -74,7 +76,10 @@ public class IndexBuilder {
     	this.indexBuilderService.buildIndex();    	
     }
     
-    
+    /**
+     * DOCUMENT ME
+     * @param args
+     */
     public static void main(String[] args) 
     {
     	try
