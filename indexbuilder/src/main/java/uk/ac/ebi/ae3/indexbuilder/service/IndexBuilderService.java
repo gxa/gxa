@@ -1,34 +1,18 @@
 package uk.ac.ebi.ae3.indexbuilder.service;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.MultiCore;
 import org.xml.sax.SAXException;
 
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
-import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
-import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParserFactory;
-import uk.ac.ebi.ae3.indexbuilder.utils.MageTabUtils;
 
 public abstract class IndexBuilderService
 {
@@ -42,7 +26,6 @@ public abstract class IndexBuilderService
 	public static final String[] idfFields={TITLE,"Experiment Description","Person Last Name","Person First Name","Experimental Design"};
 	public static final String[] sdrfFields={SPECIE,"Array Design REF","Protocol REF","Characteristics[CellLine]",
 											  "Factor Value [EF1](genotype)","Publication Title","Publication Author List","Publication Status","Publication Status Term Source REF"};
-	public static final String INDEX_FILE="multicore.xml";
 
 
 	public IndexBuilderService(ConfigurationService confService)

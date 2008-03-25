@@ -2,18 +2,14 @@ package uk.ac.ebi.ae3.indexbuilder.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.FileNameMap;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
 
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
+import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 
 public class MageTabUtils
 {
@@ -115,7 +111,7 @@ public class MageTabUtils
 	public static final String getAccesionNumberFromIdf(File idfFile)
 	{
 		String filename=idfFile.getName();
-		filename=filename.replace(IndexBuilder.IDF_EXTENSION, "");
+		filename=filename.replace(ConfigurationService.IDF_EXTENSION, "");
 		System.out.println(filename);
 		return filename;
 	}

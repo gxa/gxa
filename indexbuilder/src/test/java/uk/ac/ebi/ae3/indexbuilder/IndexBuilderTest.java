@@ -63,16 +63,6 @@ public class IndexBuilderTest
 	@Test
 	public void testParse()
 	{
-		try
-		{
-		   IndexBuilder indexBuilder = new IndexBuilder();
-		   indexBuilder.parse(argsCli);
-		   indexBuilder.parse(argsPropertry);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
 	}
 	
 	/**

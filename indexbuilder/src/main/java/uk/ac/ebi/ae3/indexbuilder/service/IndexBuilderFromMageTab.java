@@ -5,8 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -18,7 +16,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.MultiCore;
 import org.xml.sax.SAXException;
 
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
@@ -47,8 +44,8 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	public void buildIndex() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
-        MultiCore.getRegistry().load(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), INDEX_FILE));
-        SolrServer solr = new EmbeddedSolrServer(IndexBuilder.SOLR_CORE_NAME);
+        MultiCore.getRegistry().load(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
+        SolrServer solr = new EmbeddedSolrServer(ConfigurationService.SOLR_CORE_NAME);
         Collection<File> idfFiles=MageTabUtils.getIdfFiles(getConfService().getMageDir());
         Iterator<File> itIdfFiles = idfFiles.iterator();
         while (itIdfFiles.hasNext())
@@ -90,7 +87,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(IndexBuilderFromMageTab.ACCESION_NUMBER, idfFile.getName().replace(IndexBuilder.IDF_EXTENSION,""));
+        doc.addField(IndexBuilderFromMageTab.ACCESION_NUMBER, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 
