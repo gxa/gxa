@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -89,6 +91,36 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 
         doc.addField(IndexBuilderFromMageTab.ACCESION_NUMBER, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
+    }
+
+    /**
+     * DOCUMENT ME
+     * @param doc       - 
+     * @param mtFields  -
+     * @param idxfields - 
+     */
+    protected static void addMageTabFields(SolrInputDocument doc, Map<String, List<String>> mtFields, String[] idxfields) {
+        for (Map.Entry<String, List<String>> entry : mtFields.entrySet()) {
+            String fieldName = entry.getKey();
+            List<String> fieldValues = entry.getValue();
+
+            for ( String val : fieldValues ) {
+            	if (existsInIndex(fieldName, idxfields))
+            	{
+            		doc.addField(fieldName, val);
+            	}
+            }
+        }
+    }
+
+    protected static boolean existsInIndex(final String field, final String[] idxFields)
+    {
+    	for (String val : idxFields)
+    	{
+    		if (val.equals(field))
+    			return true;
+    	}
+    	return false;
     }
 
     

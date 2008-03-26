@@ -10,15 +10,24 @@
         <property name="password" value="${jdbc.password}"/>
     </bean>
 
+	<bean id="experimentJdbcDao" class="uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
 
 	<bean id="configurationService" class="uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService">
 		<property name="indexDir" value="${indexbuilder.indexdir}"></property>
 		<property name="mageDir" value="${indexbuilder.magedir}"></property>
 	</bean>
 	
-	<bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromMageTab">
+	<!-- <bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromMageTab">
 	   <constructor-arg index="0" ref="configurationService"></constructor-arg>
 	</bean>
+    -->
+	<bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromDb">
+	   <constructor-arg index="0" ref="configurationService"></constructor-arg>
+	   <property name="experimentDao" ref="experimentJdbcDao"></property>
+	</bean>
+	
 
 
 
