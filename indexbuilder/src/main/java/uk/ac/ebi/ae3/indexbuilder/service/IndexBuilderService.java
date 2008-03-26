@@ -27,7 +27,8 @@ public abstract class IndexBuilderService
 	public static final String[] sdrfFields={SPECIE,"Array Design REF","Protocol REF","Characteristics[CellLine]",
 											  "Factor Value [EF1](genotype)","Publication Title","Publication Author List","Publication Status","Publication Status Term Source REF"};
 
-
+	
+	
 	public IndexBuilderService(ConfigurationService confService)
 	{
 		this.confService = confService;
