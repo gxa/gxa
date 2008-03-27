@@ -71,12 +71,21 @@ public class ExperimentJdbcDao
 	 */	
 	public Experiment getExperiment(Experiment experiment) throws DocumentException
 	{
-		String xml = (String)this.jdbcTemplate.queryForObject(sqlExperimentXml, new Object[] {experiment.getId()},rowMapper);
+		String xml = getExperimentAsXml(experiment);
 		XmlUtil.createExperiment(xml,experiment);
 		System.out.println(xml);
 		System.out.println(experiment.getName());
-
 		return experiment;
+	}
+	/**
+	 * 
+	 * @param experiment
+	 * @return
+	 */
+	public String getExperimentAsXml(Experiment experiment)
+	{
+		String xml = (String)this.jdbcTemplate.queryForObject(sqlExperimentXml, new Object[] {experiment.getId()},rowMapper);
+		return xml;
 	}
 	
 	/**

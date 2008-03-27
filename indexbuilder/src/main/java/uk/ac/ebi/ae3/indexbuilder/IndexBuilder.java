@@ -1,5 +1,5 @@
 /**
- * 
+ * EBI Microarray Informatics Team (c) 2007-2008
  */
 package uk.ac.ebi.ae3.indexbuilder;
 
@@ -57,27 +57,15 @@ public class IndexBuilder
 			IndexBuilder app = new IndexBuilder();
 			app.parse(args);
 			app.run();		
-     	} catch (java.io.IOException e) {
+     	} catch (Exception e) {
+     		e.printStackTrace();
             log.error(e);
             System.exit(-1);
-        } catch (SolrServerException e) {
-            log.error(e);
-            System.exit(-1);            
-        } catch (ParserConfigurationException e) {
-            log.error(e);
-            System.exit(-1);            
-        } catch (SAXException e) {
-            log.error(e);
-            System.exit(-1);            
-        }
-        catch (IndexBuilderException e) {
-        	log.error(e);
-            System.exit(-1);        	
-        }
+     	}
         
 	}
 	
-	public void run() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
+	public void run() throws Exception 
 	{
 		PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
 		conf.setLocation(new FileSystemResource(propertyFile));	

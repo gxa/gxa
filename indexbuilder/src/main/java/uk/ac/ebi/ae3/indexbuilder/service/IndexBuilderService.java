@@ -1,3 +1,6 @@
+/**
+ * EBI Microarray Informatics Team (c) 2007-2008
+ */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
 import java.io.IOException;
@@ -20,7 +23,6 @@ public abstract class IndexBuilderService
 	private ConfigurationService confService;
 	/** */
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
-	public static final String ACCESION_NUMBER="exp_accession";
 	public static final String TITLE="Investigation Title";
 	public static final String SPECIE="Characteristics [Organism]";
 	public static final String[] idfFields={TITLE,"Experiment Description","Person Last Name","Person First Name","Experimental Design"};
@@ -35,7 +37,7 @@ public abstract class IndexBuilderService
 	}
 
 
-	public abstract void buildIndex() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException;
+	public abstract void buildIndex() throws Exception;
 
 	public ConfigurationService getConfService()
 	{

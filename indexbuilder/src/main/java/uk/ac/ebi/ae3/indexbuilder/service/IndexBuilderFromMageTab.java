@@ -1,3 +1,6 @@
+/**
+ * EBI Microarray Informatics Team (c) 2007-2008
+ */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
 import java.io.File;
@@ -89,7 +92,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(IndexBuilderFromMageTab.ACCESION_NUMBER, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
+        doc.addField(ConfigurationService.ACCESION_NUMBER, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 
