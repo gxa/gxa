@@ -29,12 +29,18 @@ import uk.ac.ebi.ae3.indexbuilder.utils.MageTabUtils;
 
 public class IndexBuilderFromMageTab extends IndexBuilderService
 {
+	public static final String TITLE="Investigation Title";
+	public static final String SPECIE="Characteristics [Organism]";
+	public static final String[] idfFields={TITLE,"Experiment Description","Person Last Name","Person First Name","Experimental Design"};
+	public static final String[] sdrfFields={SPECIE,"Array Design REF","Protocol REF","Characteristics[CellLine]",
+											  "Factor Value [EF1](genotype)","Publication Title","Publication Author List","Publication Status","Publication Status Term Source REF"};
+
 	/** */
 	/**
 	 * DOCUMENT ME
 	 * @param confService
 	 */
-	public IndexBuilderFromMageTab(ConfigurationService confService)
+	public IndexBuilderFromMageTab(ConfigurationService confService) throws ParserConfigurationException, IOException, SAXException
 	{
 		super(confService);
 	}
@@ -46,7 +52,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	 * @throws SAXException 
 	 * @throws ParserConfigurationException 
 	 */
-	public void buildIndex() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
+	protected void createIndexDocs() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
         MultiCore.getRegistry().load(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
@@ -92,7 +98,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(ConfigurationService.ACCESION_NUMBER, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
+        doc.addField(ConfigurationService.FIELD_EXP_ACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 

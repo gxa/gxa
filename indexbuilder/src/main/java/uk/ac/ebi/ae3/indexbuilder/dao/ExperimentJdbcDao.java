@@ -1,7 +1,5 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,19 +7,21 @@ import java.util.Collection;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.lang.StringUtils;
 import org.dom4j.DocumentException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.RowMapperResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
-
+/**
+ * 
+ * @author mdylag
+ *
+ */
 public class ExperimentJdbcDao
 {
+	/**  */
 	private JdbcTemplate jdbcTemplate;
 	private static final String sqlExperiments = "select distinct e.id, i.identifier as accession, case when v.user_id = 1 then 1 else 0 end as \"public\" " +
 									 "from tt_experiment e left outer join tt_identifiable i on i.id = e.id " +
@@ -88,11 +88,11 @@ public class ExperimentJdbcDao
 		return xml;
 	}
 	
+
 	/**
 	 * 
 	 * @return
 	 */
-	
 	public Collection<Experiment> getExperiments()
 	{
 		Collection<Experiment> colection=this.jdbcTemplate.query(sqlExperiments, rowMapperExperiments);
@@ -119,6 +119,8 @@ public class ExperimentJdbcDao
 	}
 	/**
 	 * 
+	 * @author mdylag
+	 *
 	 */
 	class RowMapperExperimentXml implements ParameterizedRowMapper<String>
 	{
@@ -128,33 +130,6 @@ public class ExperimentJdbcDao
 			Clob clob=arg0.getClob(1);
 			String str=clob.getSubString(1,(int)clob.length());
 			return str;
-			/*if (clob==null)
-				return null;
-			BufferedReader buf = new BufferedReader(clob.getCharacterStream());
-			StringBuffer strBuf = new StringBuffer();
-			String line;
-			try
-			{
-				while ( (line=buf.readLine())!=null)
-				{
-					strBuf.append(line);
-				}
-				XmlUtil.createExperiment(strBuf.toString());
-				System.out.println(strBuf);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-				throw new SQLException(e.getLocalizedMessage());
-			}
-			catch (DocumentException e)
-			{
-				e.printStackTrace();
-				throw new SQLException(e.getLocalizedMessage());
-				
-			}*/
-			
-			
 		}
 		
 	}

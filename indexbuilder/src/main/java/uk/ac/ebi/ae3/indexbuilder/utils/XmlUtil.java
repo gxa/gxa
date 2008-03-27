@@ -81,16 +81,20 @@ public class XmlUtil
 	 * @param fieldName
 	 * @return
 	 */
-	private static String addFieldToDoc(Element element, String name, SolrInputDocument doc, String fieldName)
+	private static void addFieldToDoc(Element element, String name, SolrInputDocument doc, String fieldName)
 	{
 		Attribute attr=element.attribute(name);
-		String value = null;
 		if (attr!=null)
 		{
-			value = attr.getStringValue();
-			doc.addField(fieldName, value); 
+			String value=attr.getStringValue();
+			addField(doc, fieldName, value);
 		}
-		return value;			
+	}
+	
+	private static final void addField(SolrInputDocument doc, String fieldName, String value)
+	{
+		doc.addField(fieldName, value);
+		
 	}
 	
 	
@@ -111,10 +115,10 @@ public class XmlUtil
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
-		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, "ConfigurationService.ACCESION_NUMBER");		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_id, doc, "exp_id");		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_name, doc, "exp_name");		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_releasedate, doc, "exp_releasedate");	
+		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_EXP_ACCESSION);		
+		addFieldToDoc(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_EXP_ID);		
+		addFieldToDoc(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_EXP_NAME);		
+		addFieldToDoc(elExperiment, ConfigurationService.AT_releasedate, doc, ConfigurationService.FIELD_EXP_RELEASEDATE);	
 		Element el;
 		List<Element> list=elExperiment.elements(ConfigurationService.EL_users);
 		for (int i=0;i<list.size();i++)

@@ -73,11 +73,14 @@ public class ConfigurationService
 	public static final String AT_pages="pages";
 	public static final String AT_contact="contact";
 	public static final String AT_role="role";
-	public static final String AT_type="type";
-	
+	public static final String AT_type="type";	
 
 	//INDEX FIELDS
-	public static final String ACCESION_NUMBER="exp_accession";
+	public static final String FIELD_EXP_ACCESSION="exp_accession";
+	public static final String FIELD_EXP_ID="exp_id";
+	public static final String FIELD_EXP_NAME="exp_name";
+	public static final String FIELD_EXP_RELEASEDATE="exp_releasedate";
+
 
 
     private String indexDir;
