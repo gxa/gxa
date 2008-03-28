@@ -82,21 +82,15 @@ public class ConfigurationService
 	public static final String FIELD_EXP_RELEASEDATE="exp_releasedate";
 
 
-
+    /** */
     private String indexDir;
+    /** */   
     private String mageDir;
 
-	//CLI library - parse comman line arguments
     //Read configuration from property file 
     private static final Log log = LogFactory.getLog(ConfigurationService.class);
 
 	
-	public void parseAndConfigure(String[] args) throws org.apache.commons.configuration.ConfigurationException
-	{
-		
-	}
-
-
 	public String getIndexDir()
 	{
 		return indexDir;

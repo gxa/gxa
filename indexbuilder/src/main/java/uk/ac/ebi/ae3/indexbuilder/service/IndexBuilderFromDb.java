@@ -42,6 +42,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				if (doc!=null)
 				{
 					response = solr.add(doc);
+					System.out.println("add ");
 				}
 
 			}
