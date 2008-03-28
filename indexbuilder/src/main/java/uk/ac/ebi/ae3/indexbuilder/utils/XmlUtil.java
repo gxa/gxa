@@ -14,6 +14,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.model.SampleAttribute;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
@@ -109,9 +110,12 @@ public class XmlUtil
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
-        
-		//Parse xml
-		Document xmlDoc = DocumentHelper.parseText(xml);
+		System.out.println(xml);
+		xml=xml.replace("\u0019", "");
+		
+		Document xmlDoc = null;
+		//Parse xml String		
+	    xmlDoc = DocumentHelper.parseText(xml);
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
