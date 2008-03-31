@@ -6,17 +6,21 @@ package uk.ac.ebi.ae3.web;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.request.UpdateRequest;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.MultiCore;
+import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
@@ -30,7 +34,9 @@ public class IndexQueryService
 {
 
 	private ConfigurationService conf = new ConfigurationService();
-	protected org.apache.solr.client.solrj.SolrServer solr;
+	protected SolrServer solr;
+	private SolrCore exptCore;
+
 
 	/**
 	 * @throws SAXException 
@@ -47,12 +53,14 @@ public class IndexQueryService
 	private void startupSolr() throws ParserConfigurationException, IOException, SAXException
 	{
         MultiCore.getRegistry().load(conf.getIndexDir(), new File(conf.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-        this.solr = new EmbeddedSolrServer(ConfigurationService.SOLR_CORE_NAME);
+        exptCore = MultiCore.getRegistry().getCore(ConfigurationService.SOLR_CORE_NAME);
+		this.solr = new EmbeddedSolrServer(exptCore);
 
 	}
 	
 	private void shutdownSolr()
 	{
+		exptCore.close();
 		MultiCore.getRegistry().shutdown();
 	}
 	
@@ -68,6 +76,7 @@ public class IndexQueryService
 		  q.setQuery(query);
 		  q.setShowDebugInfo(true);
           QueryResponse resp=solr.query(q);
+         
           SolrDocumentList sList=resp.getResults();          
           Iterator<SolrDocument> it =sList.iterator();
           System.out.println("Size is " + sList.size() + " another ");
