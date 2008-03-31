@@ -50,7 +50,7 @@ public class AtlasApplicationListener implements ServletContextListener,
         try {
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
-            DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWD");
+            DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWDEV");
 
             as.setDataSource(ds);
             as.initialize();

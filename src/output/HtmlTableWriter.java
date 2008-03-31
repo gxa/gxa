@@ -33,9 +33,10 @@ public class HtmlTableWriter extends TableWriter {
             "<td valign=\"top\">" + (!last_expt.equals(this_expt) ? expt.get("expt_desc") : "") + "</td>" +
             "<td valign=\"top\">" + ((!last_ef.equals(this_ef) || !last_expt.equals(this_expt)) ? this_ef : "" )    + "</td>" +
             "<td valign=\"top\">" + expt.get("efv")       + "</td>" +
-            "<td valign=\"top\">" + expt.get("updn")      + "</td>" +
+            "<td valign=\"top\">" + ((Integer) expt.get("updn") == 1 ? " up " : " down") + "</td>" +
+            "<td valign=\"top\">" + "<i>p</i> (adj) = " + String.format("%.3g", (Float) expt.get("updn_pvaladj")) + "" + "</td>" +
             "<td valign=\"top\">" + expt.get("gene")      + "</td> " +
-            "<td valign=\"top\">" + String.format("%.3g", (Double) expt.get("rank")) + "</td>" +
+//            "<td valign=\"top\">" + String.format("%.3g", (Double) expt.get("rank")) + "</td>" +
         "</tr>");
 
         response.flushBuffer();

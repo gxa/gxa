@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context swallowOutput="true">
   <Resource
-      name="jdbc/AEDWD"
+      name="jdbc/AEDWDEV"
       type="javax.sql.DataSource"
       username="aemart"
       password="marte"
       driverClassName="oracle.jdbc.driver.OracleDriver"
       maxIdle="2"
       maxWait="5000"
-      url="jdbc:oracle:thin:@expression.ebi.ac.uk:1521:AEDWD"
+      url="jdbc:oracle:thin:@progression.ebi.ac.uk:1521:AEDWDEV"
       maxActive="50"
       />
 </Context>

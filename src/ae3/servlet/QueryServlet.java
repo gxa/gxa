@@ -66,7 +66,7 @@ public class QueryServlet extends HttpServlet {
         try {
             XmlTableWriter xtw = new XmlTableWriter(response.getWriter());
 
-            AtlasSearch.instance().writeAtlasQuery(sbInGeneIds.toString(), "", xtw);
+            AtlasSearch.instance().writeAtlasQuery(sbInGeneIds.toString(), "", "", xtw);
         } catch (IOException e) {
              log.error(e);
         }

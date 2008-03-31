@@ -155,6 +155,7 @@
             long exptIdsLen = 0;
             String gene_query = query;
             String expt_query = query;
+            String gene_expr_filter = "";
 
             // find possible index of " in " in the query. can't do toLowerCase() since query might be big.
             int restrQuery = query.indexOf(" in ");
@@ -163,6 +164,15 @@
             if ( restrQuery != -1) {
                 gene_query = query.substring(0, restrQuery);
                 expt_query = query.substring(restrQuery + 4);
+
+                if (gene_query.toLowerCase().endsWith(" up")) {
+                    gene_expr_filter = "up";
+                    gene_query = gene_query.substring(0, gene_query.length() - 3);
+                } else if (gene_query.toLowerCase().endsWith(" down") ) {
+                    gene_expr_filter = "down";
+                    gene_query = gene_query.substring(0, gene_query.length() - 5);
+                }
+
                 restrict_expt = "restrict_expt";
             }
 
@@ -202,8 +212,8 @@ Debug:   We have <%=geneIdsLen%> gene ids: <%=inGeneIds.length() > 200 ? inGeneI
                 if (get_counts != null) {
                     response.getWriter().println("Getting counts... ");
                     response.flushBuffer();
-                    long full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "");
-                    long restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptAccs.toString());
+                    long full_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), "", gene_expr_filter);
+                    long restr_count = AtlasSearch.instance().getAtlasQueryCount(inGeneIds.toString(), inExptAccs.toString(), gene_expr_filter);
                     response.getWriter().println("<pre>Counts: " + full_count + ", " + restr_count + "</pre>");
                 } else {
                     if (restrict_expt == null)
@@ -211,7 +221,7 @@ Debug:   We have <%=geneIdsLen%> gene ids: <%=inGeneIds.length() > 200 ? inGeneI
 
                     response.getWriter().println("Getting atlas data... ");
                     response.flushBuffer();
-                    long recs = AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptAccs.toString(), new HtmlTableWriter(response.getWriter(), response));
+                    long recs = AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptAccs.toString(), gene_expr_filter, new HtmlTableWriter(response.getWriter(), response));
                     response.getWriter().println("Done (" +  recs+  " records).");
                 }
             }

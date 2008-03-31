@@ -7,8 +7,8 @@
     <context-param>
         <description>SOLR Multicore Index Location</description>
         <param-name>solr_index_location</param-name>
-        <!-- <param-value>/ebi/work/solr_idxs/multicore</param-value> -->
-        <param-value>D:/tools/ebi_env/multicore</param-value>        
+        <param-value>/ebi/work/solr_idxs/multicore</param-value>
+        <!--<param-value>D:/tools/ebi_env/multicore</param-value>-->        
     </context-param>
 
     <listener>

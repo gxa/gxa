@@ -238,9 +238,17 @@ public class AtlasSearch {
      * @param inExptIds comma-separated list of experiment ids on which to restrict the genes (optional)
      * @return
      */
-    public long getAtlasQueryCount(String inGeneIds, String inExptIds) {
+    public long getAtlasQueryCount(String inGeneIds, String inExptIds, String gene_expr_filter) {
         if ( inGeneIds == null || inGeneIds.equals("") ) 
             return 0;
+
+        String updn_filter = " and updn <> 0)";
+
+        if (gene_expr_filter.equals("up"))
+            updn_filter = " and updn = 1)";
+
+        if (gene_expr_filter.equals("down"))
+            updn_filter = " and updn = -1)";
 
         String atlas_count_query = "select count(*) from\n" +
                 "(select /*+INDEX(atlas atlas_by_de) INDEX(expt)*/ \n" +
@@ -249,8 +257,8 @@ public class AtlasSearch {
                 "where atlas.designelement_id_key=gene.designelement_id_key \n" +
                 "and expt.experiment_id_key=atlas.experiment_id_key\n" +
                 "and gene.gene_id_key IN ( " + inGeneIds + ") \n" +
-                (inExptIds.length() != 0 ? "and expt.experiment_accession in (" + inExptIds + ")\n" : "" )+
-                "and updn <> 0)";
+                (inExptIds.length() != 0 ? "and expt.experiment_accession in (" + inExptIds + ")\n" : "" ) +
+                updn_filter;
 
         log.info(atlas_count_query);
 
@@ -297,10 +305,20 @@ public class AtlasSearch {
      * @param inExptIds comma-separated list of experiment ids on which to restrict the genes (optional)
      * @param tw        instance of {@link output.TableWriter} to write query results to
      */
-    public long writeAtlasQuery(String inGeneIds, String inExptIds, TableWriter tw) throws IOException {
+    public long writeAtlasQuery(String inGeneIds, String inExptIds, String gene_expr_filter, TableWriter tw) throws IOException {
     	
     	if (StringUtils.isEmpty(inGeneIds))
     		return 0;
+
+        String updn_filter = " and updn <> 0\n";
+
+        if (gene_expr_filter.equals("up"))
+            updn_filter = " and updn = 1\n";
+
+        if (gene_expr_filter.equals("down"))
+            updn_filter = " and updn = -1\n";
+
+
         String atlas_query = "select /*+ INDEX(atlas atlas_by_de) INDEX(expt) */ \n" +
                                 "         expt.experiment_accession,\n" +
                                 "         expt.experiment_description, \n" +
@@ -310,12 +328,14 @@ public class AtlasSearch {
                                 "         gene.GENE_NAME || ' (' || gene.gene_identifier || ')' as gene,\n" +
                                 "         gene.designelement_name,\n" +
                                 "         atlas.efv,\n" +
-                                "         atlas.updn\n" +
+                                "         atlas.updn,\n" +
+                                "         atlas.updn_tstat,\n" +
+                                "         atlas.updn_pvaladj\n" +
                                 "from aemart.atlas atlas, aemart.ae2__designelement__main gene, aemart.ae1__experiment__main expt\n" +
                                 "where atlas.designelement_id_key=gene.designelement_id_key \n" +
                                 "and atlas.experiment_id_key=expt.experiment_id_key\n" +
                                 "and gene.gene_id_key IN ( " + inGeneIds + " ) \n" +
-                                "and updn <> 0\n" +
+                                updn_filter +
                                 (inExptIds.length() != 0 ? "and expt.experiment_accession in (" + inExptIds + ")\n" : "" )+
                                 "order by rank, expfactor, gene, updn desc, experiment_accession";
 
@@ -342,6 +362,8 @@ public class AtlasSearch {
                     expt.put("efv", rs.getString("efv"));
                     expt.put("gene", rs.getString("gene"));
                     expt.put("updn", rs.getInt("updn"));
+                    expt.put("updn_tstat", rs.getFloat("updn_tstat"));
+                    expt.put("updn_pvaladj", rs.getFloat("updn_pvaladj"));
 
                     tw.writeRow(expt);
                     numrecs++;
