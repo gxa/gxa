@@ -16,17 +16,33 @@ import org.xml.sax.SAXException;
 import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
-
+/**
+ * 
+ * Class description goes here.
+ *
+ * @version 	1.0 2008-04-01
+ * @author 	Miroslaw Dylag
+ */
 public class IndexBuilderFromDb extends IndexBuilderService
 {
-	
+    	/** */
 	private ExperimentJdbcDao experimentDao;
 	
+	/**
+	 * 
+	 * @param confService
+	 * @throws ParserConfigurationException
+	 * @throws IOException
+	 * @throws SAXException
+	 */
 	public IndexBuilderFromDb(ConfigurationService confService) throws ParserConfigurationException, IOException, SAXException
 	{
 		super(confService);
 	}
 
+	/**
+	 * 
+	 */
 	@Override
 	protected void createIndexDocs() throws Exception
 	{
@@ -50,10 +66,6 @@ public class IndexBuilderFromDb extends IndexBuilderService
 		
 	}
 	
-	private void addField()
-	{
-		
-	}
 
 	public ExperimentJdbcDao getExperimentDao()
 	{

@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.MultiCore;
+import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
@@ -34,7 +35,11 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	public static final String[] idfFields={TITLE,"Experiment Description","Person Last Name","Person First Name","Experimental Design"};
 	public static final String[] sdrfFields={SPECIE,"Array Design REF","Protocol REF","Characteristics[CellLine]",
 											  "Factor Value [EF1](genotype)","Publication Title","Publication Author List","Publication Status","Publication Status Term Source REF"};
-
+	protected SolrServer solr;
+	private SolrCore exptCore;
+	private MultiCore multiCore;
+	/** */
+	
 	/** */
 	/**
 	 * DOCUMENT ME
@@ -55,8 +60,10 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	protected void createIndexDocs() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
-        MultiCore.getRegistry().load(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-        SolrServer solr = new EmbeddedSolrServer(ConfigurationService.SOLR_CORE_NAME);
+	this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
+	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);		
+	this.solr = new EmbeddedSolrServer(exptCore);
+	    
         Collection<File> idfFiles=MageTabUtils.getIdfFiles(getConfService().getMageDir());
         Iterator<File> itIdfFiles = idfFiles.iterator();
         while (itIdfFiles.hasNext())
@@ -69,7 +76,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
         UpdateResponse response = solr.commit();
         response = solr.optimize();
        
-        MultiCore.getRegistry().shutdown();
+        multiCore.shutdown();
     }
 	
 	/**

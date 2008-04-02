@@ -30,6 +30,7 @@ public abstract class IndexBuilderService
 	protected SolrServer solr;
 	private ConfigurationService confService;
 	private SolrCore exptCore;
+	private MultiCore multiCore;
 	/** */
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
 
@@ -57,9 +58,11 @@ public abstract class IndexBuilderService
 	 */
 	private void startupSolr() 	throws ParserConfigurationException, IOException, SAXException
 	{
-        MultiCore.getRegistry().load(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-		exptCore = MultiCore.getRegistry().getCore(ConfigurationService.SOLR_CORE_NAME);
-		this.solr = new EmbeddedSolrServer(exptCore);
+
+	    this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
+	    this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);		
+	    this.solr = new EmbeddedSolrServer(exptCore);
+
 	}
 	
 	/**
@@ -72,7 +75,7 @@ public abstract class IndexBuilderService
        response = solr.commit();
        response = solr.optimize();
    	   exptCore.close();
-       MultiCore.getRegistry().shutdown();		
+       multiCore.shutdown();		
 		
 	}
 

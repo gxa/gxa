@@ -36,6 +36,7 @@ public class IndexQueryService
 	private ConfigurationService conf = new ConfigurationService();
 	protected SolrServer solr;
 	private SolrCore exptCore;
+	MultiCore multiCore;
 
 
 	/**
@@ -52,8 +53,9 @@ public class IndexQueryService
 	
 	private void startupSolr() throws ParserConfigurationException, IOException, SAXException
 	{
-        MultiCore.getRegistry().load(conf.getIndexDir(), new File(conf.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-        exptCore = MultiCore.getRegistry().getCore(ConfigurationService.SOLR_CORE_NAME);
+	    
+        multiCore = new MultiCore(conf.getIndexDir(), new File(conf.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
+        exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);
 		this.solr = new EmbeddedSolrServer(exptCore);
 
 	}
@@ -61,7 +63,7 @@ public class IndexQueryService
 	private void shutdownSolr()
 	{
 		exptCore.close();
-		MultiCore.getRegistry().shutdown();
+		multiCore.shutdown();
 	}
 	
 	public void dispose()

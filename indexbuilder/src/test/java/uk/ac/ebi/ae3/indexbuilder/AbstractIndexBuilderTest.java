@@ -31,6 +31,7 @@ public class AbstractIndexBuilderTest extends TestCase
     private SolrServer solr_gene;
     private SolrServer solrExpt;
     private XmlBeanFactory appContext;
+    private MultiCore multiCore;
 
 	@Override
 	protected void setUp() throws Exception
@@ -48,9 +49,9 @@ public class AbstractIndexBuilderTest extends TestCase
     	indexBuilderService.buildIndex();
 
     	ConfigurationService configurationService=(ConfigurationService)appContext.getBean("configurationService");
-        MultiCore.getRegistry().load(configurationService.getIndexDir(), new File(configurationService.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-        solr_gene = new EmbeddedSolrServer("gene");
-        solrExpt = new EmbeddedSolrServer("expt");
+        multiCore = new MultiCore(configurationService.getIndexDir(), new File(configurationService.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
+        solr_gene = new EmbeddedSolrServer(multiCore, "gene");
+        solrExpt = new EmbeddedSolrServer(multiCore, "expt");
         
 
 		//initialize solr
@@ -61,7 +62,7 @@ public class AbstractIndexBuilderTest extends TestCase
 	{
 		super.tearDown();
 		//shutdown solr
-		MultiCore.getRegistry().shutdown();		
+		multiCore.shutdown();		
 	}
 	/**
 	 * 

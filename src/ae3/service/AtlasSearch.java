@@ -61,7 +61,7 @@ public class AtlasSearch {
     private SolrServer solr_gene;
     private SolrServer solr_expt;
     private DataSource ds;
-
+    MultiCore multiCore;
     private String solrIndexLocation;
 
     private AtlasSearch() {};
@@ -86,9 +86,9 @@ public class AtlasSearch {
         // setSolrGene(new DirectSolrConnection(geneIndexLocation, geneIndexLocation + "/data", null));
 
         try {
-            MultiCore.getRegistry().load(solrIndexLocation, new File(solrIndexLocation, "multicore.xml"));
-            solr_gene = new EmbeddedSolrServer("gene");
-            solr_expt = new EmbeddedSolrServer("expt");
+	    multiCore = new MultiCore(solrIndexLocation, new File(solrIndexLocation, "multicore.xml"));
+            solr_gene = new EmbeddedSolrServer(multiCore,"gene");
+            solr_expt = new EmbeddedSolrServer(multiCore,"expt");
         } catch (Exception e) {
             log.error(e);
         }
@@ -479,7 +479,7 @@ public class AtlasSearch {
         try {
             if (ds != null) ds = null;
 
-            MultiCore.getRegistry().shutdown();
+            multiCore.shutdown();
             solr_gene = null;
             solr_expt = null;
         } catch (Exception e) {
