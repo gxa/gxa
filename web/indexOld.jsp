@@ -15,6 +15,7 @@
 <%@ page import="org.apache.solr.client.solrj.response.QueryResponse" %>
 <%@ page import="org.apache.solr.common.SolrDocumentList" %>
 <%@ page import="org.apache.solr.common.SolrDocument" %>
+<%@ page import="java.util.Map" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -78,7 +79,7 @@
 <table>
 <tr>
 <td valign="top">
-<form action="index.jsp">
+<form action="indexOld.jsp">
         <%
             HashMap<String,String> sessionQueryFiles = (HashMap<String,String>) session.getAttribute("queryFiles");
             if(sessionQueryFiles == null) sessionQueryFiles = new HashMap<String,String>();
@@ -88,6 +89,7 @@
             String query = null;
             String get_counts = null;
             String restrict_expt = null;
+            String all_expt = null;
 
             if (isMultipart) {
                 ServletFileUpload upload = new ServletFileUpload();
@@ -108,6 +110,7 @@
 
             get_counts = request.getParameter("get_counts");
             restrict_expt = request.getParameter("restrict_expt");
+            all_expt = request.getParameter("all_expt");
 
             if ( request.getParameter("query")!= null && !request.getParameter("query").equals("") ) {
                 query = request.getParameter("query");
@@ -134,14 +137,14 @@
 
         <br/>
         <input type="submit" value="get counts" name="get_counts"/>
-        <input type="submit" value="query genes in all experiments"/>
+        <input type="submit" value="query genes in all experiments" name="all_expt"/>
         <input type="submit" value="query genes restricting to keyword-matching experiments" name="restrict_expt"/>
         <input type="reset"/>
 
     </form>
 </td>
 <td valign="top">
-<form enctype="multipart/form-data" method="post" action="index.jsp">
+<form enctype="multipart/form-data" method="post" action="indexOld.jsp">
     upload a query file <input type="file" name="queryFile"/>
     <input type="submit" value="Upload"/>
 </form>
@@ -168,16 +171,31 @@
                 if (gene_query.toLowerCase().endsWith(" up")) {
                     gene_expr_filter = "up";
                     gene_query = gene_query.substring(0, gene_query.length() - 3);
-                } else if (gene_query.toLowerCase().endsWith(" down") ) {
+                } else if (gene_query.toLowerCase().endsWith(" down")) {
                     gene_expr_filter = "down";
                     gene_query = gene_query.substring(0, gene_query.length() - 5);
                 }
 
+                if (gene_query.toLowerCase().equals("up")) gene_expr_filter = "up";
+                if (gene_query.toLowerCase().equals("down")) gene_expr_filter = "down";                
+
                 restrict_expt = "restrict_expt";
             }
 
-            SolrDocumentList geneHits = AtlasSearch.instance().fullTextQueryGenes(gene_query).getResults();
-            SolrDocumentList exptHits = AtlasSearch.instance().fullTextQueryExpts(expt_query).getResults();
+            if (all_expt != null) {
+                expt_query = "";
+                restrict_expt = null;
+            }
+            
+            SolrDocumentList geneHits = null;
+            if ( !gene_query.toLowerCase().equals("up") && !gene_query.toLowerCase().equals("down") )
+                geneHits = AtlasSearch.instance().fullTextQueryGenes(gene_query).getResults();
+
+            QueryResponse exptHitsResponse = AtlasSearch.instance().fullTextQueryExpts(expt_query);
+
+            SolrDocumentList exptHits = null;
+            if (exptHitsResponse != null )
+                exptHits = exptHitsResponse.getResults();
 
             StringBuilder inGeneIds = new StringBuilder();
             if ( geneHits != null ) {
@@ -218,10 +236,19 @@ Debug:   We have <%=geneIdsLen%> gene ids: <%=inGeneIds.length() > 200 ? inGeneI
                 } else {
                     if (restrict_expt == null)
                         inExptAccs.setLength(0);
+                    else if ( restrict_expt != null && exptHits.getNumFound() == 0 ) {
+                        response.getWriter().println("No matching experiments. Done.");
+                        response.flushBuffer();
+                        return;
+                    }
+
 
                     response.getWriter().println("Getting atlas data... ");
                     response.flushBuffer();
-                    long recs = AtlasSearch.instance().writeAtlasQuery(inGeneIds.toString(), inExptAccs.toString(), gene_expr_filter, new HtmlTableWriter(response.getWriter(), response));
+                    long recs = AtlasSearch.instance().
+                            writeAtlasQuery(inGeneIds.toString(), inExptAccs.toString(),
+                                            exptHitsResponse, null,
+                                            gene_expr_filter, new HtmlTableWriter(response.getWriter(), response));
                     response.getWriter().println("Done (" +  recs+  " records).");
                 }
             }
