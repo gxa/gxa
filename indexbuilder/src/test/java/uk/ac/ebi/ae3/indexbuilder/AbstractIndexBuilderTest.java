@@ -46,7 +46,12 @@ public class AbstractIndexBuilderTest extends TestCase
 	    appContext = new XmlBeanFactory(new ClassPathResource("app-context.xml"));
     	conf.postProcessBeanFactory(appContext);
     	IndexBuilderService indexBuilderService = (IndexBuilderService) appContext.getBean(ConfigurationService.indexBuilderServiceID);
-    	indexBuilderService.buildIndex();
+    	try {
+	    indexBuilderService.buildIndex();
+	} catch (IndexException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
 
     	ConfigurationService configurationService=(ConfigurationService)appContext.getBean("configurationService");
         multiCore = new MultiCore(configurationService.getIndexDir(), new File(configurationService.getIndexDir(), ConfigurationService.VAL_INDEXFILE));

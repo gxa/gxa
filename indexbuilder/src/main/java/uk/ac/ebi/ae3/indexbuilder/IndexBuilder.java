@@ -59,13 +59,17 @@ public class IndexBuilder
 			app.run();		
      	} catch (Exception e) {
      		e.printStackTrace();
-            log.error(e);
-            System.exit(-1);
-     	}
+     		log.error(e);
+     		System.exit(-1);
+     	} catch (IndexException e) {
+     	    	e.printStackTrace();
+     	    	log.error(e);
+     	    	System.exit(-1);	    
+	}
         
 	}
 	
-	public void run() throws Exception 
+	public void run() throws Exception, IndexException 
 	{
 		PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
 		conf.setLocation(new FileSystemResource(propertyFile));	

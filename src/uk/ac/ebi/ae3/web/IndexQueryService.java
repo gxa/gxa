@@ -3,40 +3,39 @@
  */
 package uk.ac.ebi.ae3.web;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.request.UpdateRequest;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.core.MultiCore;
-import org.apache.solr.core.SolrCore;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexException;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
+import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbededIndex;
+import uk.ac.ebi.ae3.indexbuilder.utils.*;
 
 /**
  * 
- * @author mdylag
+ * Class description goes here.
  *
+ * @version 	1.0 2008-04-03
+ * @author 	Miroslaw Dylag
  */
 public class IndexQueryService
 {
 
 	private ConfigurationService conf = new ConfigurationService();
-	protected SolrServer solr;
-	private SolrCore exptCore;
-	MultiCore multiCore;
+	private SolrEmbededIndex solrEmbededIndex;
+	
 
 
 	/**
@@ -45,57 +44,125 @@ public class IndexQueryService
 	 * @throws ParserConfigurationException 
 	 * 
 	 */
-	public IndexQueryService() throws ParserConfigurationException, IOException, SAXException
+	public IndexQueryService(String multicoredir) 
 	{
-		conf.setIndexDir("D:\\tools\\ebi_env\\multicore\\");
-		startupSolr();
+		this.conf.setIndexDir(multicoredir);
+		solrEmbededIndex = new SolrEmbededIndex(multicoredir);
+		
 	}
 	
-	private void startupSolr() throws ParserConfigurationException, IOException, SAXException
+	public void init() throws ParserConfigurationException, IOException, SAXException, IndexException
 	{
+	    this.solrEmbededIndex.init();
+	}
+	
+	public void dispose() 
+	{
+	    this.solrEmbededIndex.dispose();
+	}
+	
+	
+	public SolrDocumentList getExperiments(String[] keywords, int start, int rows) throws SolrServerException, CorruptIndexException, IOException
+	{
+	    String query = parseQuery(keywords);	    
+	    SolrDocumentList l=this.solrEmbededIndex.search(query,start, rows);
+	    return l;
+	}
+
+	/**
+	 * Return number of documents in index
+	 * @param keywords
+	 * @return
+	 * @throws SolrServerException
+	 * @throws CorruptIndexException
+	 * @throws IOException
+	 */
+	public long getCount(String[] keywords) throws SolrServerException, CorruptIndexException, IOException
+	{
+	    String q = "exp_accession:hiv OR hiv OR cancer";
+	    String query = parseQuery(keywords);
+	    long count=this.solrEmbededIndex.getCount(query);
+	    return count;
+	}
+	
+	private static final String parseQuery(String[] keywords)
+	{
+	    StringBuffer buff = new StringBuffer();
+	    for (int i=0; i<keywords.length; i++) {
+		String val = keywords[i];
+		buff.append(ConfigurationService.FIELD_EXP_ACCESSION).append(":").append(val);
+		buff.append(" ");
+		buff.append(val).append(" ");
+	    }
 	    
-        multiCore = new MultiCore(conf.getIndexDir(), new File(conf.getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-        exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);
-		this.solr = new EmbeddedSolrServer(exptCore);
+	    String query = buff.toString().trim();
+	    return query;
+	    
+	}
+	public void printExperiments(String[] keywords, PrintWriter out) throws CorruptIndexException, SolrServerException, IOException
+	{
+		long count=getCount(keywords);
+		if (count==0)
+		{
+		    Document doc = DocumentHelper.createDocument(DocumentHelper.createElement("xml"));
+		    out.println(doc.asXML());
+		    return;
+		}
+		int start=0;
+		int max=400;
+		int rows = 0;
+		int size = 0;
+		
+		if (count==1)
+		{
+		    SolrDocumentList l=getExperiments(keywords, 0, 1);
+		    Element el=XmlUtil.createElement(l.get(0));
+		    out.println(el);
+		}
+		else
+		{
+		    out.print("<experiments>");
+		    while (rows < count)
+		    {
+	
+			start = rows;
+			rows = rows + max; 
+			SolrDocumentList l=getExperiments(keywords, start, rows);
+			Iterator<SolrDocument> it=l.iterator();
+			while (it.hasNext())
+			{
+			    SolrDocument doc=it.next();
+			    Element el=XmlUtil.createElement(doc);
+			    out.println(el.asXML());
+			    
+			}
 
-	}
-	
-	private void shutdownSolr()
-	{
-		exptCore.close();
-		multiCore.shutdown();
-	}
-	
-	public void dispose()
-	{
-		shutdownSolr();
-	}
-	
-	public void getExperiments() throws SolrServerException
-	{
-		  String query = ConfigurationService.FIELD_EXP_ACCESSION + ":A* or E*";
-		  SolrQuery q = new SolrQuery();
-		  q.setQuery(query);
-		  q.setShowDebugInfo(true);
-          QueryResponse resp=solr.query(q);
-         
-          SolrDocumentList sList=resp.getResults();          
-          Iterator<SolrDocument> it =sList.iterator();
-          System.out.println("Size is " + sList.size() + " another ");
-          while (it.hasNext())
-          {
-        	  SolrDocument doc=it.next();
-        	  System.out.println(doc.getFieldValue(ConfigurationService.FIELD_EXP_ACCESSION ));
-          }
-          
+		    }
+		    
+		    out.print("</experiments>");
 
+		}
+	    
 	}
-	
-	public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, SolrServerException
+	/**
+	 * Main method fot test this class. It solution is not good.
+	 * In future I want to add JUnit tests.
+	 * @param args
+	 * @throws ParserConfigurationException
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws SolrServerException
+	 * @throws IndexException 
+	 */
+	public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, SolrServerException, IndexException
 	{
-		IndexQueryService idx = new IndexQueryService();
-		idx.getExperiments();
+		IndexQueryService idx = new IndexQueryService("C:\\Users\\mdylag\\workspaces\\ebi\\ae3\\indexbuilder\\data\\multicore");
+		idx.init();
+		String[] keywords = {"kurwa"};
+		PrintWriter out = new PrintWriter(System.out);
+		idx.printExperiments(keywords, out);
 		idx.dispose();
+	
 	}
 	
 	

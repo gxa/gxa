@@ -19,6 +19,7 @@ import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
+import uk.ac.ebi.ae3.indexbuilder.IndexException;
 /**
  * 
  * @author mdylag
@@ -27,10 +28,11 @@ import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 public abstract class IndexBuilderService
 {
 	protected UpdateResponse response;
-	protected SolrServer solr;
+	//protected SolrServer solr;
 	private ConfigurationService confService;
-	private SolrCore exptCore;
-	private MultiCore multiCore;
+	//private SolrCore exptCore;
+	//private MultiCore multiCore;
+	private SolrEmbededIndex solrEmbededIndex;
 	/** */
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
 
@@ -47,37 +49,10 @@ public abstract class IndexBuilderService
 
 	{
 		this.confService = confService;
-		startupSolr();
 	}
 	
-	/**
-	 * 
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 */
-	private void startupSolr() 	throws ParserConfigurationException, IOException, SAXException
-	{
-
-	    this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-	    this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);		
-	    this.solr = new EmbeddedSolrServer(exptCore);
-
-	}
 	
-	/**
-	 * 
-	 * @throws SolrServerException
-	 * @throws IOException
-	 */
-	private void shutdownSolr() throws SolrServerException, IOException
-	{
-       response = solr.commit();
-       response = solr.optimize();
-   	   exptCore.close();
-       multiCore.shutdown();		
-		
-	}
+	
 
 	/**
 	 * 
@@ -86,18 +61,21 @@ public abstract class IndexBuilderService
 	 */
 	protected void dispose() throws SolrServerException, IOException
 	{
-		shutdownSolr();
+	   solrEmbededIndex.commit();
+	   solrEmbededIndex.dispose();
 	}
 
 	/**
 	 * 
 	 * @throws Exception
+	 * @throws IndexException 
 	 */
-	public void buildIndex() throws Exception
+	public void buildIndex() throws Exception, IndexException
 	{
 		try
 		{
-			createIndexDocs();		
+		    solrEmbededIndex.init();
+		    createIndexDocs();		
 		}
 		catch (Exception e)
 		{
@@ -105,7 +83,7 @@ public abstract class IndexBuilderService
 		}		
 		finally
 		{
-	        dispose();			
+		    dispose();			
 		}
 	}
 	
@@ -114,6 +92,14 @@ public abstract class IndexBuilderService
 	public ConfigurationService getConfService()
 	{
 		return confService;
+	}
+
+	public SolrEmbededIndex getSolrEmbededIndex() {
+	    return solrEmbededIndex;
+	}
+
+	public void setSolrEmbededIndex(SolrEmbededIndex solrEmbededIndex) {
+	    this.solrEmbededIndex = solrEmbededIndex;
 	}
 
 }

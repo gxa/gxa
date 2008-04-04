@@ -234,14 +234,16 @@
    -->
 
   <field name="exp_id" type="long" indexed="true" stored="true"/>
-  <field name="exp_type" type="text" indexed="true" stored="true" multiValued="true"/>
   <field name="exp_accession" type="string" indexed="true" stored="true"/>
+  <field name="exp_xml" type="string" indexed="false" stored="true"/>  
+    
+<!--   <field name="exp_type" type="text" indexed="true" stored="true" multiValued="true"/>
   <field name="exp_description" type="text" indexed="false" stored="true" multiValued="true"/>
   <field name="exp_releasedate" type="text" indexed="false" stored="true" multiValued="true"/>
  
-  <field name="exp_factors" type="text" indexed="true" stored="false" multiValued="true"/> <!-- copy field -->
+  <field name="exp_factors" type="text" indexed="true" stored="false" multiValued="true"/> 
   <field name="exp_topgeneids" type="string" indexed="true" stored="true" multiValued="true"/>
-  
+ -->  
    <!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema  -->
    <field name="text" type="text" indexed="true" stored="true" multiValued="true"/>
 

@@ -4,9 +4,11 @@
 package uk.ac.ebi.ae3.indexbuilder.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -14,7 +16,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.model.SampleAttribute;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
@@ -69,9 +70,100 @@ public class XmlUtil
 	 * TODO: Method does not complete
 	 * @param experiment
 	 */
-	private static void createXml(Experiment experiment)
+	public static Element createElement(SolrDocument doc)
 	{
+	    Long lid=(Long)doc.getFieldValue(ConfigurationService.FIELD_EXP_ID);
+	    String id="";
+	    if (lid!=null)
+		id=lid.toString();
+	    Element elExperiment = DocumentHelper.createElement(ConfigurationService.EL_experiment);
+	    elExperiment.addAttribute(ConfigurationService.AT_accnum , (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_ACCESSION));		
+	    elExperiment.addAttribute(ConfigurationService.AT_id,id);		
+	    elExperiment.addAttribute(ConfigurationService.AT_name, (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_NAME));		
+	    elExperiment.addAttribute(ConfigurationService.AT_releasedate, (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_RELEASEDATE));
+	    //TODO: fix me - bad name of field	    
+	    Element elS = elExperiment.addElement(ConfigurationService.EL_users);
+	    Collection col1= doc.getFieldValues("saat_cat");
+	    Collection col2=doc.getFieldValues("saat_value");
+	    if (col1!= null)
+	    {
+		Iterator<String> it1=col1.iterator();
+		Iterator<String> it2=col2.iterator();
+		while (it1.hasNext())
+		{
+		    Element el=elS.addElement(ConfigurationService.EL_user);
+		    el.addAttribute("CATEGORY",it1.next());
+		    el.addAttribute("VALUE",it2.next());
+		}		
+	    }
+	    elS = elExperiment.addElement(ConfigurationService.EL_secondaryaccessions);
+	    //TODO: fix me
+	    elS = elExperiment.addElement(ConfigurationService.EL_sampleattributes);
+	    
+	    elS=elExperiment.addElement(ConfigurationService.EL_factorvalues);
+
+	    col1= doc.getFieldValues("fv_factorname");
+	    col2=doc.getFieldValues("fv_oe");
+	    if (col1!= null)
+	    {
+		Iterator<String> it1=col1.iterator();
+		Iterator<String> it2=null;
+		if (col2!=null)
+		{
+		    it2=col2.iterator();
+		}
+		while (it1.hasNext())
+		{
+		    Element el=elS.addElement(ConfigurationService.EL_factorvalue);
+		    el.addAttribute("FACTORNAME",it1.next());
+		    if (it2!=null && it2.hasNext())
+		    {
+			el.addAttribute("FV_OE",it2.next());
+		    }
+		}		
+	    }
 		
+	    elS=elExperiment.addElement(ConfigurationService.EL_miamescores);
+	    col1= doc.getFieldValues("mimescore_name");
+	    col2=doc.getFieldValues("mimescore_value");
+	    if (col1!= null)
+	    {
+		Iterator<String> it1=col1.iterator();
+		Iterator<String> it2=col2.iterator();
+		while (it1.hasNext())
+		{
+		    Element el=elS.addElement(ConfigurationService.EL_miamescore);
+		    el.addAttribute("name",it1.next());
+		    el.addAttribute("value",it2.next());
+		}		
+	    }
+	    
+
+
+	    
+
+	    return elExperiment;
+	    
+	}
+	
+	private static final Element createArrayDesign(SolrDocument doc, Element elExperiment)
+	{
+	    Element elS=elExperiment.addElement(ConfigurationService.EL_arraydesigns);
+	    Collection col1= doc.getFieldValues("");
+	    Collection col2=doc.getFieldValues("");
+	    if (col1!= null)
+	    {
+		Iterator<String> it1=col1.iterator();
+		Iterator<String> it2=col2.iterator();
+		while (it1.hasNext())
+		{
+		    Element el=elS.addElement(ConfigurationService.EL_arraydesign);
+		    el.addAttribute("",it1.next());
+		    el.addAttribute("",it2.next());
+		}		
+	    }
+	    return elS;
+	    
 	}
 
 	/**
@@ -110,12 +202,13 @@ public class XmlUtil
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
+		doc.addField("exp_xml", xml);
 		System.out.println(xml);
 		xml=xml.replace("\u0019", "");
 		
 		Document xmlDoc = null;
 		//Parse xml String		
-	    xmlDoc = DocumentHelper.parseText(xml);
+	        xmlDoc = DocumentHelper.parseText(xml);
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
