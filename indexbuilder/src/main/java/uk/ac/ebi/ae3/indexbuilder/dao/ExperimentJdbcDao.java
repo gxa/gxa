@@ -66,19 +66,6 @@ public class ExperimentJdbcDao
 	}
 	/**
 	 * 
-	 * @param id
-	 * @return
-	 */	
-	public Experiment getExperiment(Experiment experiment) throws DocumentException
-	{
-		String xml = getExperimentAsXml(experiment);
-		XmlUtil.createExperiment(xml,experiment);
-		System.out.println(xml);
-		System.out.println(experiment.getName());
-		return experiment;
-	}
-	/**
-	 * 
 	 * @param experiment
 	 * @return
 	 */

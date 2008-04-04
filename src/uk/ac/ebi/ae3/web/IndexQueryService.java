@@ -116,8 +116,8 @@ public class IndexQueryService
 		if (count==1)
 		{
 		    SolrDocumentList l=getExperiments(keywords, 0, 1);
-		    Element el=XmlUtil.createElement(l.get(0));
-		    out.println(el);
+		    String xml=XmlUtil.createElement(l.get(0));
+		    out.println(xml);
 		}
 		else
 		{
@@ -132,8 +132,9 @@ public class IndexQueryService
 			while (it.hasNext())
 			{
 			    SolrDocument doc=it.next();
-			    Element el=XmlUtil.createElement(doc);
-			    out.println(el.asXML());
+			    String xml=XmlUtil.createElement(doc);
+			    out.println(xml);
+			    out.flush();
 			    
 			}
 

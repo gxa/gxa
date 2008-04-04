@@ -235,7 +235,7 @@
 
   <field name="exp_id" type="long" indexed="true" stored="true"/>
   <field name="exp_accession" type="string" indexed="true" stored="true"/>
-  <field name="exp_xml" type="string" indexed="false" stored="true"/>  
+  <field name="xml_doc" type="string" indexed="false" stored="true"/>  
     
 <!--   <field name="exp_type" type="text" indexed="true" stored="true" multiValued="true"/>
   <field name="exp_description" type="text" indexed="false" stored="true" multiValued="true"/>
@@ -268,7 +268,7 @@
 
  <copyField source="ba_*" dest="exp_factors"/>
  <copyField source="bs_*" dest="exp_factors"/>
- <copyField source="*" dest="text"/>
+ <copyField source="exp_*" dest="text"/>
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,

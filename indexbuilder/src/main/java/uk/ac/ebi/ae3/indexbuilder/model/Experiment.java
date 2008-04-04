@@ -20,17 +20,6 @@ public class Experiment
 	private String releaseDate;
 	private String mimegold;
 	private String userId;
-	private List<SampleAttribute> sampleAtrList = new ArrayList<SampleAttribute>();
-	private List<FactorValue> factorValueList = new ArrayList<FactorValue>();
-	private List<MimeScore> mimeScoreList = new ArrayList<MimeScore>();
-	private List<ArrayDesign> arrayDesignList = new ArrayList<ArrayDesign>();
-	private List<BioAssayDataGroup> bioAssayDataGrList = new ArrayList<BioAssayDataGroup>();
-	private List<Bibliography> bibliographyList = new ArrayList<Bibliography>();
-	private List<Provider> providerList = new ArrayList<Provider>();
-	private List<ExperimentDesign> expDesignList = new ArrayList<ExperimentDesign>();
-	private List<Description> descriptionList = new ArrayList<Description>();
-	
-	
 	
 	public Experiment()
 	{
@@ -105,77 +94,4 @@ public class Experiment
 	{
 		this.userId = userId;
 	}
-	public List<SampleAttribute> getSampleAtrList()
-	{
-		return sampleAtrList;
-	}
-	public void setSampleAtrList(List<SampleAttribute> sampleAtrList)
-	{
-		this.sampleAtrList = sampleAtrList;
-	}
-	public List<FactorValue> getFactorValueList()
-	{
-		return factorValueList;
-	}
-	public void setFactorValueList(List<FactorValue> factorValueList)
-	{
-		this.factorValueList = factorValueList;
-	}
-	public List<MimeScore> getMimeScoreList()
-	{
-		return mimeScoreList;
-	}
-	public void setMimeScoreList(List<MimeScore> mimeScoreList)
-	{
-		this.mimeScoreList = mimeScoreList;
-	}
-	public List<ArrayDesign> getArrayDesignList()
-	{
-		return arrayDesignList;
-	}
-	public void setArrayDesignList(List<ArrayDesign> arrayDesignList)
-	{
-		this.arrayDesignList = arrayDesignList;
-	}
-	public List<BioAssayDataGroup> getBioAssayDataGrList()
-	{
-		return bioAssayDataGrList;
-	}
-	public void setBioAssayDataGrList(List<BioAssayDataGroup> bioAssayDataGrList)
-	{
-		this.bioAssayDataGrList = bioAssayDataGrList;
-	}
-	public List<Bibliography> getBibliographyList()
-	{
-		return bibliographyList;
-	}
-	public void setBibliographyList(List<Bibliography> bibliographyList)
-	{
-		this.bibliographyList = bibliographyList;
-	}
-	public List<Provider> getProviderList()
-	{
-		return providerList;
-	}
-	public void setProviderList(List<Provider> providerList)
-	{
-		this.providerList = providerList;
-	}
-	public List<ExperimentDesign> getExpDesignList()
-	{
-		return expDesignList;
-	}
-	public void setExpDesignList(List<ExperimentDesign> expDesignList)
-	{
-		this.expDesignList = expDesignList;
-	}
-	public List<Description> getDescriptionList()
-	{
-		return descriptionList;
-	}
-	public void setDescriptionList(List<Description> descriptionList)
-	{
-		this.descriptionList = descriptionList;
-	}
-	
 }

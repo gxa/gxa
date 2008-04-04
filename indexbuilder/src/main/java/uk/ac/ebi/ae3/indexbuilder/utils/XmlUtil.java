@@ -4,7 +4,6 @@
 package uk.ac.ebi.ae3.indexbuilder.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.model.SampleAttribute;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 /**
  * 
@@ -26,143 +24,19 @@ import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
  */
 public class XmlUtil
 {
-	/**
-	 * 
-	 * @param xml
-	 * @param exp
-	 * @throws DocumentException
-	 */
-	public static void createExperiment(final String xml, final Experiment exp) 
-	throws DocumentException
-	{		
-		Document doc = DocumentHelper.parseText(xml);
-		Element elExperiment=doc.getRootElement();
-		exp.setName(elExperiment.attribute("name").getText());
-		//Get user
-		exp.setUserId(elExperiment.element("users").element("user").attribute("id").getStringValue());
-		exp.setSampleAtrList(getSampleAttributes(elExperiment));
-	}
-	
-	/**
-	 * 
-	 * @param elExperiment
-	 * @return
-	 */
-	private static List<SampleAttribute> getSampleAttributes(Element elExperiment)
-	{
-		List<SampleAttribute> list = new ArrayList<SampleAttribute>();
-		List<Element> sampleAttr=elExperiment.element("sampleattributes").elements();
-		Iterator<Element> it=sampleAttr.iterator();
-		Element el;
-		while (it.hasNext())
-		{
-			SampleAttribute sampleAttribute = new SampleAttribute(); 
-			el=it.next();
-			sampleAttribute.setCategory(el.attribute("CATEGORY").getStringValue());
-			sampleAttribute.setValue(el.attribute("VALUE").getStringValue());
-			list.add(sampleAttribute);
-
-		}		
-		return list;
-	}	
 	
 	/**
 	 * TODO: Method does not complete
 	 * @param experiment
 	 */
-	public static Element createElement(SolrDocument doc)
+	public static String createElement(SolrDocument doc)
 	{
-	    Long lid=(Long)doc.getFieldValue(ConfigurationService.FIELD_EXP_ID);
-	    String id="";
-	    if (lid!=null)
-		id=lid.toString();
-	    Element elExperiment = DocumentHelper.createElement(ConfigurationService.EL_experiment);
-	    elExperiment.addAttribute(ConfigurationService.AT_accnum , (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_ACCESSION));		
-	    elExperiment.addAttribute(ConfigurationService.AT_id,id);		
-	    elExperiment.addAttribute(ConfigurationService.AT_name, (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_NAME));		
-	    elExperiment.addAttribute(ConfigurationService.AT_releasedate, (String)doc.getFieldValue(ConfigurationService.FIELD_EXP_RELEASEDATE));
-	    //TODO: fix me - bad name of field	    
-	    Element elS = elExperiment.addElement(ConfigurationService.EL_users);
-	    Collection col1= doc.getFieldValues("saat_cat");
-	    Collection col2=doc.getFieldValues("saat_value");
-	    if (col1!= null)
-	    {
-		Iterator<String> it1=col1.iterator();
-		Iterator<String> it2=col2.iterator();
-		while (it1.hasNext())
-		{
-		    Element el=elS.addElement(ConfigurationService.EL_user);
-		    el.addAttribute("CATEGORY",it1.next());
-		    el.addAttribute("VALUE",it2.next());
-		}		
-	    }
-	    elS = elExperiment.addElement(ConfigurationService.EL_secondaryaccessions);
-	    //TODO: fix me
-	    elS = elExperiment.addElement(ConfigurationService.EL_sampleattributes);
-	    
-	    elS=elExperiment.addElement(ConfigurationService.EL_factorvalues);
-
-	    col1= doc.getFieldValues("fv_factorname");
-	    col2=doc.getFieldValues("fv_oe");
-	    if (col1!= null)
-	    {
-		Iterator<String> it1=col1.iterator();
-		Iterator<String> it2=null;
-		if (col2!=null)
-		{
-		    it2=col2.iterator();
-		}
-		while (it1.hasNext())
-		{
-		    Element el=elS.addElement(ConfigurationService.EL_factorvalue);
-		    el.addAttribute("FACTORNAME",it1.next());
-		    if (it2!=null && it2.hasNext())
-		    {
-			el.addAttribute("FV_OE",it2.next());
-		    }
-		}		
-	    }
-		
-	    elS=elExperiment.addElement(ConfigurationService.EL_miamescores);
-	    col1= doc.getFieldValues("mimescore_name");
-	    col2=doc.getFieldValues("mimescore_value");
-	    if (col1!= null)
-	    {
-		Iterator<String> it1=col1.iterator();
-		Iterator<String> it2=col2.iterator();
-		while (it1.hasNext())
-		{
-		    Element el=elS.addElement(ConfigurationService.EL_miamescore);
-		    el.addAttribute("name",it1.next());
-		    el.addAttribute("value",it2.next());
-		}		
-	    }
-	    
-
-
-	    
-
-	    return elExperiment;
-	    
+	    String value=(String)doc.getFieldValue("xml_doc");
+	    return value;	    
 	}
 	
-	private static final Element createArrayDesign(SolrDocument doc, Element elExperiment)
+	private void run()
 	{
-	    Element elS=elExperiment.addElement(ConfigurationService.EL_arraydesigns);
-	    Collection col1= doc.getFieldValues("");
-	    Collection col2=doc.getFieldValues("");
-	    if (col1!= null)
-	    {
-		Iterator<String> it1=col1.iterator();
-		Iterator<String> it2=col2.iterator();
-		while (it1.hasNext())
-		{
-		    Element el=elS.addElement(ConfigurationService.EL_arraydesign);
-		    el.addAttribute("",it1.next());
-		    el.addAttribute("",it2.next());
-		}		
-	    }
-	    return elS;
 	    
 	}
 
@@ -202,7 +76,7 @@ public class XmlUtil
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("exp_xml", xml);
+		doc.addField("xml_doc", xml);
 		System.out.println(xml);
 		xml=xml.replace("\u0019", "");
 		
@@ -215,7 +89,6 @@ public class XmlUtil
 		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_EXP_ACCESSION);		
 		addFieldToDoc(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_EXP_ID);		
 		addFieldToDoc(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_EXP_NAME);		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_releasedate, doc, ConfigurationService.FIELD_EXP_RELEASEDATE);	
 		Element el;
 		List<Element> list=elExperiment.elements(ConfigurationService.EL_users);
 		for (int i=0;i<list.size();i++)
@@ -225,8 +98,7 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "CATEGORY", doc, "saat_cat");
-				addFieldToDoc(e, "VALUE", doc, "saat_value");				
+				addFieldToDoc(e, "id", doc, "exp_user_id");
 			}
 			
 		}
@@ -245,8 +117,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "CATEGORY", doc, "saat_cat");
-				addFieldToDoc(e, "VALUE", doc, "saat_value");				
+				addFieldToDoc(e, "CATEGORY", doc, "exp_saat_cat");
+				addFieldToDoc(e, "VALUE", doc, "exp_saat_value");				
 			}
 		}
 		
@@ -258,8 +130,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "FACTORNAME", doc, "fv_factorname");
-				addFieldToDoc(e, "FV_OE", doc, "fv_oe");				
+				addFieldToDoc(e, "FACTORNAME", doc, "exp_fv_factorname");
+				addFieldToDoc(e, "FV_OE", doc, "exp_fv_oe");				
 			}
 		}
 		
@@ -268,12 +140,11 @@ public class XmlUtil
 		{
 			el=list.get(i);
 			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_miamescore);
-			addFieldToDoc(el, "mimescore", doc, "mimescore");
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "name", doc, "mimescore_name");
-				addFieldToDoc(e, "value", doc, "mimescore_value");				
+				addFieldToDoc(e, "name", doc, "exp_mimescore_name");
+				addFieldToDoc(e, "value", doc, "exp_mimescore_value");				
 			}
 		}
 		
@@ -285,10 +156,10 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "id", doc, "arraydes_id");
-				addFieldToDoc(e, "identifier", doc, "arraydes_identifier");
-				addFieldToDoc(e, "name", doc, "arraydes_name");
-				addFieldToDoc(e, "count", doc, "arraydes_count");				
+				addFieldToDoc(e, "id", doc, "exp_arraydes_id");
+				addFieldToDoc(e, "identifier", doc, "exp_arraydes_identifier");
+				addFieldToDoc(e, "name", doc, "exp_arraydes_name");
+				addFieldToDoc(e, "count", doc, "exp_arraydes_count");				
 				
 			}
 		}
@@ -301,26 +172,26 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "name", doc, "bdg_name");
-				addFieldToDoc(e, "id", doc, "bdg_id");
-				addFieldToDoc(e, "num_bad_cubes", doc, "bdg_num_bad_cubes");
-				addFieldToDoc(e, "arraydesign", doc, "bdg_arraydesign");				
-				addFieldToDoc(e, "dataformat", doc, "bdg_dataformat");				
-				addFieldToDoc(e, "bioassay_count", doc, "bdg_bioassay_count");
-				addFieldToDoc(e, "is_derived", doc, "bdg_is_derived");				
+				addFieldToDoc(e, "name", doc, "exp_bdg_name");
+				addFieldToDoc(e, "id", doc, "exp_bdg_id");
+				addFieldToDoc(e, "num_bad_cubes", doc, "exp_bdg_num_bad_cubes");
+				addFieldToDoc(e, "arraydesign", doc, "exp_bdg_arraydesign");				
+				addFieldToDoc(e, "dataformat", doc, "exp_bdg_dataformat");				
+				addFieldToDoc(e, "bioassay_count", doc, "exp_bdg_bioassay_count");
+				addFieldToDoc(e, "is_derived", doc, "exp_bdg_is_derived");				
 			}
 		}		
 		list=elExperiment.elements(ConfigurationService.EL_bibliography);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldToDoc(el, "publication", doc, "bi_publication");
-			addFieldToDoc(el, "authors", doc, "bi_authors");
-			addFieldToDoc(el, "title", doc, "bi_title");
-			addFieldToDoc(el, "year", doc, "bi_year");
-			addFieldToDoc(el, "volume", doc, "bi_volume");
-			addFieldToDoc(el, "issue", doc, "bi_issue");
-			addFieldToDoc(el, "pages", doc, "bi_pages");
+			addFieldToDoc(el, "publication", doc, "exp_bi_publication");
+			addFieldToDoc(el, "authors", doc, "exp_bi_authors");
+			addFieldToDoc(el, "title", doc, "exp_bi_title");
+			addFieldToDoc(el, "year", doc, "exp_bi_year");
+			addFieldToDoc(el, "volume", doc, "exp_bi_volume");
+			addFieldToDoc(el, "issue", doc, "exp_bi_issue");
+			addFieldToDoc(el, "pages", doc, "exp_bi_pages");
 			
 		}		
 		list=elExperiment.elements(ConfigurationService.EL_providers);
@@ -331,8 +202,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "contact", doc, "provider_contact");
-				addFieldToDoc(e, "role", doc, "provider_role");
+				addFieldToDoc(e, "contact", doc, "exp_provider_contact");
+				addFieldToDoc(e, "role", doc, "exp_provider_role");
 			}
 		}				
 		list=elExperiment.elements(ConfigurationService.EL_experimentdesigns);
@@ -343,15 +214,15 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "type", doc, "expdes_type");
+				addFieldToDoc(e, "type", doc, "exp_expdes_type");
 			}
 		}				
 		list=elExperiment.elements(ConfigurationService.EL_description);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldToDoc(el, "id", doc, "desc_id");
-			doc.addField("desc_text", el.getText());			
+			addFieldToDoc(el, "id", doc, "exp_desc_id");
+			doc.addField("exp_desc_text", el.getText());			
 		}		
 		return doc;
 	}
