@@ -157,9 +157,11 @@ public class IndexQueryService
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, SolrServerException, IndexException
 	{
-		IndexQueryService idx = new IndexQueryService("C:\\Users\\mdylag\\workspaces\\ebi\\ae3\\indexbuilder\\data\\multicore");
+		String value = "D:\\tools\\workspaces\\ebi2\\ae3\\indexbuilder\\data\\multicore";
+		//"C:\\Users\\mdylag\\workspaces\\ebi\\ae3\\indexbuilder\\data\\multicore"
+		IndexQueryService idx = new IndexQueryService(value);
 		idx.init();
-		String[] keywords = {"kurwa"};
+		String[] keywords = {"hiv"};
 		PrintWriter out = new PrintWriter(System.out);
 		idx.printExperiments(keywords, out);
 		idx.dispose();

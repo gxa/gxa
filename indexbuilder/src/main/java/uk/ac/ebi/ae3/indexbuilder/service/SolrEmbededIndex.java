@@ -6,6 +6,8 @@ package uk.ac.ebi.ae3.indexbuilder.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -126,15 +128,18 @@ public class SolrEmbededIndex {
 
     public SolrDocumentList search(String queryStr, int start, int rows) throws SolrServerException
     {
-	SolrQuery q = new SolrQuery(queryStr);
-	q.setRows(rows);
-	q.setStart(start);
-	QueryResponse queryResponse = solrServer.query(q);
+    	SolrQuery q = new SolrQuery(queryStr);
+    	q.setRows(rows);
+    	q.setStart(start);
+    	QueryResponse queryResponse = solrServer.query(q);
+    	Map<String,Map<String,List<String>>> map = 	queryResponse.getHighlighting();
 	
-	SolrDocumentList l=queryResponse.getResults();
-	System.out.println(l.size());
-	return l;
+    	SolrDocumentList l=queryResponse.getResults();
+    	System.out.println(l.size());
+    	return l;
     }
+    
+
     
     /*public DocList search(String query) throws CorruptIndexException, IOException
     {
