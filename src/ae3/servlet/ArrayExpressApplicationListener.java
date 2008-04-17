@@ -14,23 +14,23 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.naming.InitialContext;
 import javax.naming.Context;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.apache.solr.servlet.DirectSolrConnection;
+import ae3.service.ArrayExpressSearchService;
+import ae3.service.AtlasResultSet;
 
-import ae3.service.AtlasSearch;
+import java.util.HashSet;
 
-public class AtlasApplicationListener implements ServletContextListener,
+public class ArrayExpressApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 
-    private Log log = LogFactory.getLog("ae3");
+    private Log log = LogFactory.getLog(ArrayExpressApplicationListener.class);
 
     // Public constructor is required by servlet spec
-    public AtlasApplicationListener() {
+    public ArrayExpressApplicationListener() {
     }
 
     // -------------------------------------------------------
@@ -44,16 +44,19 @@ public class AtlasApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        AtlasSearch as = AtlasSearch.instance();
+        ArrayExpressSearchService as = ArrayExpressSearchService.instance();
         as.setSolrIndexLocation(sc.getInitParameter("solr_index_location"));
 
         try {
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
             DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWDEV");
+            DataSource memds = (DataSource) envContext.lookup("jdbc/ATLAS");
 
-            as.setDataSource(ds);
+            as.setMEMDataSource(memds);
+            as.setAEDataSource(ds);
             as.initialize();
+
         } catch (Exception e) {
             log.error(e);
         }
@@ -67,7 +70,7 @@ public class AtlasApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        AtlasSearch as = AtlasSearch.instance();
+        ArrayExpressSearchService as = ArrayExpressSearchService.instance();
         as.shutdown();
     }
 
@@ -79,7 +82,7 @@ public class AtlasApplicationListener implements ServletContextListener,
     }
 
     public void sessionDestroyed(HttpSessionEvent se) {
-        /* Session is destroyed. */
+        /* Sesssion is destroyed */
     }
 
     // -------------------------------------------------------

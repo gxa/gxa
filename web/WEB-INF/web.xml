@@ -1,40 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee     http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
- <context-param>
-  <description>SOLR Multicore Index Location</description>
-  <param-name>solr_index_location</param-name>
-  <param-value>/ebi/work/solr_idxs/multicore</param-value>
-  <!--<param-value>D:/tools/ebi_env/multicore</param-value>-->
- </context-param>
- <listener>
-  <listener-class>ae3.servlet.AtlasApplicationListener</listener-class>
- </listener>
- <servlet>
-  <display-name>AE3 Query Servlet</display-name>
-  <servlet-name>query</servlet-name>
-  <servlet-class>ae3.servlet.QueryServlet</servlet-class>
-  <load-on-startup>0</load-on-startup>
- </servlet>
- <servlet>
-  <display-name>Experiment Query Servlet</display-name>
-  <servlet-name>expQuery</servlet-name>
-  <servlet-class>uk.ac.ebi.ae3.web.ExpQueryServlet</servlet-class>
-  <init-param>
-   <param-name>multicoredir</param-name>
-   <param-value>D:\tools\workspaces\ebi2\ae3\indexbuilder\data\multicore</param-value>
-  </init-param>
-  <load-on-startup>1</load-on-startup>
- </servlet>
- <servlet-mapping>
-  <servlet-name>query</servlet-name>
-  <url-pattern>/query</url-pattern>
- </servlet-mapping>
- <servlet-mapping>
-  <servlet-name>expQuery</servlet-name>
-  <url-pattern>/expQuery</url-pattern>
- </servlet-mapping>
- <login-config>
-  <auth-method>BASIC</auth-method>
- </login-config>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee     http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+    <listener>
+        <listener-class>ae3.servlet.ArrayExpressApplicationListener</listener-class>
+    </listener>
+
+    <servlet>
+        <display-name>AE3 Query Servlet</display-name>
+        <servlet-name>query</servlet-name>
+        <servlet-class>ae3.servlet.QueryServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>Vertical Text Servlet</display-name>
+        <servlet-name>vtext</servlet-name>
+        <servlet-class>ae3.servlet.VerticalTextServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>Experiment Query Servlet</display-name>
+        <servlet-name>expQuery</servlet-name>
+        <servlet-class>uk.ac.ebi.ae3.web.ExpQueryServlet</servlet-class>
+        <init-param>
+            <param-name>multicoredir</param-name>
+            <param-value>D:\tools\workspaces\ebi2\ae3\indexbuilder\data\multicore</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>vtext</servlet-name>
+        <url-pattern>/vtext</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>query</servlet-name>
+        <url-pattern>/query</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>expQuery</servlet-name>
+        <url-pattern>/expQuery</url-pattern>
+    </servlet-mapping>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
 </web-app>

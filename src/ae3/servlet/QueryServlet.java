@@ -1,10 +1,8 @@
 package ae3.servlet;
 
-import ae3.service.AtlasSearch;
+import ae3.service.ArrayExpressSearchService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.search.Hits;
-import org.w3c.dom.Document;
 import output.XmlTableWriter;
 
 import javax.servlet.ServletException;
@@ -14,8 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.sql.Connection;
@@ -66,7 +62,7 @@ public class QueryServlet extends HttpServlet {
         try {
             XmlTableWriter xtw = new XmlTableWriter(response.getWriter());
 
-            AtlasSearch.instance().writeAtlasQuery(sbInGeneIds.toString(), "", null, null, "", xtw);
+//            ArrayExpressSearchService.instance().writeAtlasQuery(sbInGeneIds.toString(), "", null, null, "", xtw);
         } catch (IOException e) {
              log.error(e);
         }
@@ -75,8 +71,8 @@ public class QueryServlet extends HttpServlet {
 
     private void doFullTextSearch(HttpServletRequest request, HttpServletResponse response) {
         try {
-//            Hits gene_doc = AtlasSearch.instance().fullTextQueryGenes(request.getParameter("q"));
-//            Hits expt_doc = AtlasSearch.instance().fullTextQueryExpts(request.getParameter("q"));
+//            Hits gene_doc = ArrayExpressSearchService.instance().fullTextQueryGenes(request.getParameter("q"));
+//            Hits expt_doc = ArrayExpressSearchService.instance().fullTextQueryExpts(request.getParameter("q"));
 
             String xslt = request.getParameter("xsl");
             if (xslt == null) xslt = "i.xsl";

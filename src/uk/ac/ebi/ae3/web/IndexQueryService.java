@@ -15,12 +15,11 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
-import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbededIndex;
+import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbeddedIndex;
 import uk.ac.ebi.ae3.indexbuilder.utils.*;
 
 /**
@@ -34,7 +33,7 @@ public class IndexQueryService
 {
 
 	private ConfigurationService conf = new ConfigurationService();
-	private SolrEmbededIndex solrEmbededIndex;
+	private SolrEmbeddedIndex solrEmbeddedIndex;
 	
 
 
@@ -47,25 +46,25 @@ public class IndexQueryService
 	public IndexQueryService(String multicoredir) 
 	{
 		this.conf.setIndexDir(multicoredir);
-		solrEmbededIndex = new SolrEmbededIndex(multicoredir);
+		solrEmbeddedIndex = new SolrEmbeddedIndex(multicoredir);
 		
 	}
 	
 	public void init() throws ParserConfigurationException, IOException, SAXException, IndexException
 	{
-	    this.solrEmbededIndex.init();
+	    this.solrEmbeddedIndex.init();
 	}
 	
 	public void dispose() 
 	{
-	    this.solrEmbededIndex.dispose();
+	    this.solrEmbeddedIndex.dispose();
 	}
 	
 	
 	public SolrDocumentList getExperiments(String[] keywords, int start, int rows) throws SolrServerException, CorruptIndexException, IOException
 	{
 	    String query = parseQuery(keywords);	    
-	    SolrDocumentList l=this.solrEmbededIndex.search(query,start, rows);
+	    SolrDocumentList l=this.solrEmbeddedIndex.search(query,start, rows);
 	    return l;
 	}
 
@@ -81,7 +80,7 @@ public class IndexQueryService
 	{
 	    String q = "exp_accession:hiv OR hiv OR cancer";
 	    String query = parseQuery(keywords);
-	    long count=this.solrEmbededIndex.getCount(query);
+	    long count=this.solrEmbeddedIndex.getCount(query);
 	    return count;
 	}
 	
