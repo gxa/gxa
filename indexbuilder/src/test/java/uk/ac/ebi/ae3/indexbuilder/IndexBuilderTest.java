@@ -15,11 +15,8 @@ import org.junit.Test;
  * @author mdylag
  *
  */
-public class IndexBuilderTest
+public class IndexBuilderTest extends AbstractIndexBuilderTest
 {
-	private String argsPropertry[]={};
-	private String argsCli[]={};
-
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -46,6 +43,7 @@ public class IndexBuilderTest
 	@Before
 	public void setUp() throws Exception
 	{
+		super.setUp();
 		System.out.println("Start test");
 	}
 	
@@ -55,21 +53,35 @@ public class IndexBuilderTest
 	@After
 	public void tearDown() throws Exception
 	{
+		
 	}
 	
 	/**
+	 * Method 
 	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#parse(java.lang.String[])}.
 	 */
 	@Test
-	public void testParse()
+	public void test_parse()
 	{
+		IndexBuilder indexBuilder = new IndexBuilder();
+		//Test parse input arguments. 
+		//No parameters. Method should return false
+		String[] args1={};	
+		assertFalse(indexBuilder.parse(args1));
+		//Wrong parameters. Method should return false		
+		String[] args2={"--prox","sosos"};
+		assertFalse(indexBuilder.parse(args2));	
+		//Correct parameters
+		String[] args3={"--property","resource//indexbuilder.properties"};
+		assertTrue(indexBuilder.parse(args3));	
+		
 	}
 	
 	/**
 	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#run()}.
 	 */
 	@Test
-	public void testRun()
+	public void test_run()
 	{
 		fail("Not yet implemented");
 	}
@@ -78,9 +90,11 @@ public class IndexBuilderTest
 	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#main(java.lang.String[])}.
 	 */
 	@Test
-	public void testMain()
+	public void test_main()
 	{
 		fail("Not yet implemented");
 	}
+	
+	
 	
 }

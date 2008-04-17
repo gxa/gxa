@@ -25,81 +25,118 @@ import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 /**
  * The main class which contains main method. Create expt lucene index.
  * Configuration is stored in app-context.xml file
+ * 
  * @author mdylag
  * 
  */
-public class IndexBuilder {
-    /** */
-    private final HelpFormatter helpFormatter = new HelpFormatter();
-    
-    private final DefaultOptionBuilder optionBuilder = new DefaultOptionBuilder();
-    private final ArgumentBuilder argumentBuilder = new ArgumentBuilder();
-    private final GroupBuilder groupBuilder = new GroupBuilder();
-
-    private final Argument pathArgument = argumentBuilder.withName("path")
-	    .withMaximum(1).withMaximum(1).create();
-
-    private final DefaultOption optionProperty = optionBuilder.withLongName(
-	    ConfigurationService.KEY_PROPERTY).withRequired(true).withArgument(
-	    pathArgument).withRequired(true).withDescription("Property file")
-	    .create();
-    private String propertyFile;
-
-    private static final Log log = LogFactory.getLog(IndexBuilder.class);
-
-    public static void main(String[] args) {
-	try {
-	    IndexBuilder app = new IndexBuilder();
-	    app.parse(args);
-	    app.run();
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    log.error(e);
-	    System.exit(-1);
-	} catch (IndexException e) {
-	    e.printStackTrace();
-	    log.error(e);
-	    System.exit(-1);
+public class IndexBuilder
+{
+	/** */
+	private final HelpFormatter		helpFormatter   = new HelpFormatter();
+	
+	private final DefaultOptionBuilder optionBuilder   = new DefaultOptionBuilder();
+	private final ArgumentBuilder	  argumentBuilder = new ArgumentBuilder();
+	private final GroupBuilder		 groupBuilder	= new GroupBuilder();
+	
+	private final Argument			 pathArgument	= argumentBuilder
+															   .withName("path")
+															   .withMaximum(1)
+															   .withMaximum(1)
+															   .create();
+	
+	private final DefaultOption		optionProperty  = optionBuilder
+															   .withLongName(
+																	   ConfigurationService.KEY_PROPERTY)
+															   .withRequired(
+																	   true)
+															   .withArgument(
+																	   pathArgument)
+															   .withRequired(
+																	   true)
+															   .withDescription(
+																	   "Property file")
+															   .create();
+	private String					 propertyFile;
+	private XmlBeanFactory appContext; 	
+	
+	private static final Log		   log			 = LogFactory
+															   .getLog(IndexBuilder.class);
+	
+	public static void main(String[] args)
+	{
+		try
+		{
+			IndexBuilder app = new IndexBuilder();
+			app.parse(args);
+			app.run();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			log.error(e);
+			System.exit(-1);
+		}
+		catch (IndexException e)
+		{
+			e.printStackTrace();
+			log.error(e);
+			System.exit(-1);
+		}
+		
 	}
-
-    }
-
-    /**
-     * 
-     * @throws Exception
-     * @throws IndexException
-     */
-
-    public void run() throws Exception, IndexException {
-	PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
-	conf.setLocation(new FileSystemResource(propertyFile));
-
-	XmlBeanFactory appContext = new XmlBeanFactory(new ClassPathResource(
-		"app-context.xml"));
-	conf.postProcessBeanFactory(appContext);
-	IndexBuilderService indexBuilderService = (IndexBuilderService) appContext
-		.getBean(ConfigurationService.indexBuilderServiceID);
-	indexBuilderService.buildIndex();
-
-    }
-
-    public void parse(String[] args) {
-	Group groupOptions = groupBuilder.withOption(optionProperty).create();
-	Parser parser = new Parser();
-
-	parser.setGroup(groupOptions);
-	parser.setHelpFormatter(helpFormatter);
-	parser.setHelpTrigger("--help");
-	CommandLine cl = parser.parseAndHelp(args);
-	if (cl == null) {
-	    helpFormatter.printException();
-	    System.exit(-1);
+	protected void startContext()
+	{
+		PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
+		conf.setLocation(new FileSystemResource(propertyFile));
+		
+		appContext = new XmlBeanFactory(new ClassPathResource(
+				"app-context.xml"));
+		conf.postProcessBeanFactory(appContext);
+		
 	}
-	if (cl.hasOption(optionProperty)) {
-	    propertyFile = (String) cl.getValue(optionProperty);
-
+	/**
+	 * DOCUMENT ME
+	 * @throws Exception
+	 * @throws IndexException
+	 */
+	
+	protected void run() throws Exception, IndexException
+	{
+		IndexBuilderService indexBuilderService = (IndexBuilderService) appContext
+				.getBean(ConfigurationService.indexBuilderServiceID);
+		indexBuilderService.buildIndex();
+		
 	}
-
-    }
-
+	
+	protected boolean parse(String[] args)
+	{
+		Group groupOptions = groupBuilder.withOption(optionProperty).create();
+		Parser parser = new Parser();
+		
+		parser.setGroup(groupOptions);
+		parser.setHelpFormatter(helpFormatter);
+		parser.setHelpTrigger("--help");
+		CommandLine cl = parser.parseAndHelp(args);
+		if (cl == null || !cl.hasOption(optionProperty))
+		{
+			helpFormatter.printException();
+			return false;
+		}
+		else 
+		{
+			propertyFile = (String) cl.getValue(optionProperty);
+			return true;
+			
+		}
+		
+	}
+	public XmlBeanFactory getAppContext()
+	{
+		return appContext;
+	}
+	public void setAppContext(XmlBeanFactory appContext)
+	{
+		this.appContext = appContext;
+	}
+	
 }
