@@ -67,7 +67,9 @@ public class IndexBuilder
 		try
 		{
 			IndexBuilder app = new IndexBuilder();
+			//TODO: Add exception to parse method
 			app.parse(args);
+			app.startContext();		
 			app.run();
 		}
 		catch (Exception e)

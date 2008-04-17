@@ -61,7 +61,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
 	this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME);		
+	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_AEEXPER);		
 	this.solr = new EmbeddedSolrServer(exptCore);
 	    
         Collection<File> idfFiles=MageTabUtils.getIdfFiles(getConfService().getMageDir());

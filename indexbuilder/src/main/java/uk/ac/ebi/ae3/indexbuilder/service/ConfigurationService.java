@@ -21,7 +21,7 @@ public class ConfigurationService
     public static final String VAL_INDEXFILE="multicore.xml";
 	public static final String SDRF_EXTENSION=".sdrf.txt";
 	public static final String IDF_EXTENSION=".idf.txt";
-	public static final String SOLR_CORE_NAME="expt";
+	public static final String SOLR_CORE_NAME_AEEXPER="aeexpt";
 	public static final String indexBuilderServiceID="indexBuilderService";
 
 	//XML ATTRIBUTES and ELEMENTS
