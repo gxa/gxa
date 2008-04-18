@@ -26,13 +26,14 @@
 //                emptyGroupCaption: "(none)",
 //                collapsableGroups: false
             });
+
         }
     );
     </script>
 
     <title>Atlas Query Prototype</title>
     <style type="text/css">
-        th {
+        table.heatmap th {
             border-bottom: 2px solid #6699CC;
             border-left: 1px solid #6699CC;
             background-color: #BEC8D1;
@@ -42,6 +43,18 @@
             font-weight: bold;
             font-size: 11px;
             color: #404040;
+        }
+
+        table.heatmap {
+            text-align: left;
+            font-family: Verdana;
+            font-weight: normal;
+            font-size: 11px;
+            color: #404040;
+            background-color: #fafafa;
+            border: 1px #6699CC solid;
+            border-collapse: collapse;
+            border-spacing: 0px;
         }
     </style>
 </head>
@@ -144,7 +157,7 @@
 
     if(recs > 0 && viewParam == null || viewParam.equals("heatmap")) {
         %>
-        <table border="1" class="sofT">
+        <table border="1" class="heatmap" cellpadding="3" cellspacing="0">
             <tr>
                 <th valign="bottom">Factor Value</th>
                 <th style="border-right: thick solid"><img src="vtext?<%=response.encodeURL("Number of studies")%>" title="Number of studies"/></th>
@@ -307,7 +320,7 @@
 
     if (q_expt.equals("") && q_gene.equals(""))
         response.getWriter().println("Try entering some query parameters!" );
-%>
+    %>
 
 </body>
 </html>
