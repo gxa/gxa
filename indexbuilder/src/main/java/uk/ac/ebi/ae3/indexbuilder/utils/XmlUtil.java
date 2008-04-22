@@ -222,7 +222,7 @@ public class XmlUtil
 		{
 			el=list.get(i);
 			addFieldToDoc(el, "id", doc, "exp_desc_id");
-			doc.addField("exp_desc_text", el.getText());			
+			doc.addField(ConfigurationService.FIELD_EXP_DESC_TEXT, el.getText());			
 		}		
 		return doc;
 	}

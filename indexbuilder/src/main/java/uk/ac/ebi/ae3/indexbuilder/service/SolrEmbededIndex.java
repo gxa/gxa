@@ -130,12 +130,20 @@ public class SolrEmbededIndex {
     {
     	SolrQuery q = new SolrQuery(queryStr);
     	q.setRows(rows);
+        q.setHighlight(true);
+        q.addHighlightField(ConfigurationService.FIELD_EXP_DESC_TEXT);
+        /*q.addHighlightField("gene_goterm");
+        q.addHighlightField("gene_interproterm");
+        q.addHighlightField("gene_keyword");
+        q.addHighlightField("gene_name");
+        q.addHighlightField("gene_synonym");*/
+        q.setHighlightSnippets(500);
     	q.setStart(start);
+
     	QueryResponse queryResponse = solrServer.query(q);
     	Map<String,Map<String,List<String>>> map = 	queryResponse.getHighlighting();
-	
+    	
     	SolrDocumentList l=queryResponse.getResults();
-    	System.out.println(l.size());
     	return l;
     }
     

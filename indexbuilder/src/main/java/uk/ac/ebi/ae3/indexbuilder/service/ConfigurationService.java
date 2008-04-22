@@ -80,6 +80,7 @@ public class ConfigurationService
 	public static final String FIELD_EXP_ID="exp_id";
 	public static final String FIELD_EXP_NAME="exp_name";
 	public static final String FIELD_EXP_RELEASEDATE="exp_releasedate";
+	public static final String FIELD_EXP_DESC_TEXT="exp_desc_text";
 
 
     /** */
