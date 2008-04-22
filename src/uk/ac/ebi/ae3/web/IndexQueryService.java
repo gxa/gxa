@@ -19,7 +19,7 @@ import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
-import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbeddedIndex;
+import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbededIndex;
 import uk.ac.ebi.ae3.indexbuilder.utils.*;
 
 /**
@@ -33,7 +33,7 @@ public class IndexQueryService
 {
 
 	private ConfigurationService conf = new ConfigurationService();
-	private SolrEmbeddedIndex solrEmbeddedIndex;
+	private SolrEmbededIndex solrEmbeddedIndex;
 	
 
 
@@ -46,7 +46,7 @@ public class IndexQueryService
 	public IndexQueryService(String multicoredir) 
 	{
 		this.conf.setIndexDir(multicoredir);
-		solrEmbeddedIndex = new SolrEmbeddedIndex(multicoredir);
+		solrEmbeddedIndex = new SolrEmbededIndex(multicoredir);
 		
 	}
 	
