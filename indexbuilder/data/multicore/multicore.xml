@@ -2,5 +2,4 @@
 <multicore adminPath="/admin/multicore" persistent="true">
  <core name="gene" instanceDir="gene" default="true"/>
  <core name="expt" instanceDir="expt"/>
- <core name="aeexpt" instanceDir="aeexpt_old"/> 
 </multicore>
