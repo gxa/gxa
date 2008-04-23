@@ -61,7 +61,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
 	this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_AEEXPER);		
+	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_EXPT);		
 	this.solr = new EmbeddedSolrServer(exptCore);
 	    
         Collection<File> idfFiles=MageTabUtils.getIdfFiles(getConfService().getMageDir());
@@ -105,7 +105,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(ConfigurationService.FIELD_EXP_ACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
+        doc.addField(ConfigurationService.FIELD_AE_EXP_ACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 

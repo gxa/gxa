@@ -74,7 +74,7 @@ public class SolrEmbededIndex {
      if (!init)
      {
        this.multiCore = new MultiCore(indexDir, new File(indexDir, ConfigurationService.VAL_INDEXFILE));
-       this.exptSolrCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_AEEXPER);		
+       this.exptSolrCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_EXPT);		
        this.solrServer = new EmbeddedSolrServer(exptSolrCore);
        init = true;
      }

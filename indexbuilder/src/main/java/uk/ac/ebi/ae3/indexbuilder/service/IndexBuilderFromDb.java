@@ -13,6 +13,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentDwJdbcDao;
 import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
@@ -27,6 +28,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 {
     	/** */
 	private ExperimentJdbcDao experimentDao;
+	private ExperimentDwJdbcDao experimentDwDao;
 	
 	/**
 	 * 
@@ -46,19 +48,18 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	@Override
 	protected void createIndexDocs() throws Exception
 	{
-			Collection<Experiment> colExp=experimentDao.getExperiments();
-		
+			Collection<Experiment> colExp=experimentDao.getExperiments();		
 			Iterator<Experiment> it=colExp.iterator();
 			while (it.hasNext())
 			{
 				Experiment exp=it.next();
 				String xml=experimentDao.getExperimentAsXml(exp);
+				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
 				SolrInputDocument doc = null;
 				doc = XmlUtil.createSolrInputDoc(xml);				
 				if (doc!=null)
 				{
 					getSolrEmbededIndex().addDoc(doc);
-					System.out.println("add ");
 				}
 
 			}
@@ -75,6 +76,16 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	public void setExperimentDao(ExperimentJdbcDao experimentDao)
 	{
 		this.experimentDao = experimentDao;
+	}
+
+	public ExperimentDwJdbcDao getExperimentDwDao()
+	{
+		return experimentDwDao;
+	}
+
+	public void setExperimentDwDao(ExperimentDwJdbcDao experimentDwDao)
+	{
+		this.experimentDwDao = experimentDwDao;
 	}
 	
 

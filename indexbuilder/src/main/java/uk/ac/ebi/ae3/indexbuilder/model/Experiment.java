@@ -20,6 +20,7 @@ public class Experiment
 	private String releaseDate;
 	private String mimegold;
 	private String userId;
+	private String expSource;	
 	
 	public Experiment()
 	{

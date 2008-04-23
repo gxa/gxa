@@ -3,16 +3,29 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="dataSource" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
-        <property name="driverClassName" value="${jdbc.driverClassName}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
+    <bean id="dataSourceAE" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${jdbc.ae.driverClassName}"/>
+        <property name="url" value="${jdbc.ae.url}"/>
+        <property name="username" value="${jdbc.ae.username}"/>
+        <property name="password" value="${jdbc.ae.password}"/>
     </bean>
     
+    <bean id="dataSourceDW" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${jdbc.dw.driverClassName}"/>
+        <property name="url" value="${jdbc.dw.url}"/>
+        <property name="username" value="${jdbc.dw.username}"/>
+        <property name="password" value="${jdbc.dw.password}"/>
+    </bean>
+    
+    
 	<bean id="experimentJdbcDao" class="uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao">
-		<property name="dataSource" ref="dataSource"></property>
+		<property name="dataSource" ref="dataSourceAE"></property>
 	</bean>
+	
+	<bean id="experimentDwJdbcDao" class="uk.ac.ebi.ae3.indexbuilder.dao.ExperimentDwJdbcDao">
+		<property name="dataSource" ref="dataSourceDW"></property>
+	</bean>
+	
 	
 	<bean id="solrEmbededIndex" class="uk.ac.ebi.ae3.indexbuilder.service.SolrEmbededIndex">
 	    <constructor-arg index="0" value="${indexbuilder.indexdir}"></constructor-arg>
@@ -21,7 +34,7 @@
 
 	<bean id="configurationService" class="uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService">
 		<property name="indexDir" value="${indexbuilder.indexdir}"></property>
-		<property name="mageDir" value="${indexbuilder.magedir}"></property>
+		<!-- <property name="mageDir" value="${indexbuilder.magedir}"></property> -->
 	</bean>
 	
 	<!-- <bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromMageTab">
@@ -31,6 +44,7 @@
 	<bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromDb">
 	   <constructor-arg index="0" ref="configurationService"></constructor-arg>
 	   <property name="experimentDao" ref="experimentJdbcDao"></property>
+	   <property name="experimentDwDao" ref="experimentDwJdbcDao"></property>
 	   <property name="solrEmbededIndex" ref="solrEmbededIndex"></property>
 	</bean>
 	

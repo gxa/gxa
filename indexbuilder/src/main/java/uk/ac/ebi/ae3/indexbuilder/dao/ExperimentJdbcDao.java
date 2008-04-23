@@ -15,20 +15,23 @@ import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
 /**
- * 
+ * The class gets data from AE database.
+ *  
  * @author mdylag
  *
  */
 public class ExperimentJdbcDao
 {
-	/**  */
+	/** The instance of Spring JDBC template */
 	private JdbcTemplate jdbcTemplate;
+	/** The SQL statement which returns all experiments**/
 	private static final String sqlExperiments = "select distinct e.id, i.identifier as accession, case when v.user_id = 1 then 1 else 0 end as \"public\" " +
 									 "from tt_experiment e left outer join tt_identifiable i on i.id = e.id " +
 									 "left outer join tt_extendable ext on ext.id = e.id " +
 									 "left outer join pl_visibility v on v.label_id = ext.label_id " +
 									 "order by i.identifier asc";
 	
+	/** The SQL statement which returns all data as the XML document for specified experiment **/	
 	private static String sqlExperimentXml = "select XmlElement( \"experiment\"" +
     " , XmlAttributes( i.identifier as \"accnum\", e.id as \"id\", nvt_name.value as \"name\", nvt_releasedate.value as \"releasedate\", nvt_miamegold.value as \"miamegold\" )" +
     " , ( select XmlElement( \"users\", XmlAgg( XmlElement( \"user\", XmlAttributes( v.user_id as \"id\" ) ) ) ) from tt_extendable ext left outer join pl_visibility v on v.label_id = ext.label_id where ext.id = e.id )" +
@@ -58,14 +61,21 @@ public class ExperimentJdbcDao
     "  , nvt_releasedate.value" +
     "  , nvt_miamegold.value";
 	
+	/** An instance of JDBC RowMapper for sqlExperiments **/
 	private RowMapper rowMapperExperiments = new RowMapperExperiments();
-	private RowMapper rowMapper = new RowMapperExperimentXml(); 
+	/** An instance of JDBC RowMapper for sqlExperimentXml**/
+	private RowMapper rowMapper = new RowMapperExperimentXml();
+	
+	/**
+	 * Set DataSource instance.
+	 * @param dataSource
+	 */
 	public void setDataSource(DataSource dataSource)
 	{
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 	/**
-	 * 
+	 * Gets data for one experiment
 	 * @param experiment
 	 * @return
 	 */
@@ -77,7 +87,7 @@ public class ExperimentJdbcDao
 	
 
 	/**
-	 * 
+	 * Return all experiments
 	 * @return
 	 */
 	public Collection<Experiment> getExperiments()
@@ -88,38 +98,24 @@ public class ExperimentJdbcDao
 	}
 	
 	/**
-	 * 
+	 * Inner class
+	 * TODO: Document ME
 	 * @author mdylag
 	 *
 	 */
 	class RowMapperExperiments implements ParameterizedRowMapper<Experiment>
 	{
-		public Experiment mapRow(ResultSet arg0, int arg1) throws SQLException
+		/**
+		 * Maps result set of SQL whci is in sqlExperiments to the Experiment object.
+		 */		
+		public Experiment mapRow(ResultSet rst, int arg1) throws SQLException
 		{
 			Experiment exp = new Experiment();
-			exp.setId(arg0.getLong(1));
-			exp.setAccession(arg0.getString(2));
-			exp.setPub(arg0.getBoolean(3));
+			exp.setId(rst.getLong(1));
+			exp.setAccession(rst.getString(2));
+			exp.setPub(rst.getBoolean(3));
 			return exp;
 		}
 		
 	}
-	/**
-	 * 
-	 * @author mdylag
-	 *
-	 */
-	class RowMapperExperimentXml implements ParameterizedRowMapper<String>
-	{
-		public String mapRow(ResultSet arg0, int arg1) throws SQLException
-		{
-			Experiment exp = new Experiment();
-			Clob clob=arg0.getClob(1);
-			String str=clob.getSubString(1,(int)clob.length());
-			return str;
-		}
-		
-	}
-	 
-	/* */
 }

@@ -86,7 +86,7 @@ public class XmlUtil
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
-		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_EXP_ACCESSION);		
+		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_AE_EXP_ACCESSION);		
 		addFieldToDoc(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_EXP_ID);		
 		addFieldToDoc(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_EXP_NAME);		
 		Element el;

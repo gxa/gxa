@@ -13,7 +13,10 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ConfigurationService
 {
-    /*Constants*/
+    /** **/
+	public static enum ExperimentSource { DW, AE};
+	
+	/*Constants*/
 	public static final String KEY_INDEXDIR="indexdir";
     public static final String KEY_MAGETABDIR="magedir";
     public static final String KEY_INDEXFILE="indexfile";
@@ -21,7 +24,7 @@ public class ConfigurationService
     public static final String VAL_INDEXFILE="multicore.xml";
 	public static final String SDRF_EXTENSION=".sdrf.txt";
 	public static final String IDF_EXTENSION=".idf.txt";
-	public static final String SOLR_CORE_NAME_AEEXPER="aeexpt";
+	public static final String SOLR_CORE_NAME_EXPT="expt";
 	public static final String indexBuilderServiceID="indexBuilderService";
 
 	//XML ATTRIBUTES and ELEMENTS
@@ -76,11 +79,11 @@ public class ConfigurationService
 	public static final String AT_type="type";	
 
 	//INDEX FIELDS
-	public static final String FIELD_EXP_ACCESSION="exp_accession";
-	public static final String FIELD_EXP_ID="exp_id";
-	public static final String FIELD_EXP_NAME="exp_name";
-	public static final String FIELD_EXP_RELEASEDATE="exp_releasedate";
-	public static final String FIELD_EXP_DESC_TEXT="exp_desc_text";
+	public static final String FIELD_AE_EXP_ACCESSION="aeexp_accession";
+	public static final String FIELD_EXP_ID="aeexp_id";
+	public static final String FIELD_EXP_NAME="aeexp_name";
+	public static final String FIELD_EXP_RELEASEDATE="aeexp_releasedate";
+	public static final String FIELD_EXP_DESC_TEXT="aeexp_desc_text";
 
 
     /** */
