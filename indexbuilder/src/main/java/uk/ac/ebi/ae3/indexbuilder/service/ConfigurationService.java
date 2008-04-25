@@ -79,12 +79,41 @@ public class ConfigurationService
 	public static final String AT_type="type";	
 
 	//INDEX FIELDS
+	/** Constant that represents */
 	public static final String FIELD_AE_EXP_ACCESSION="aeexp_accession";
 	public static final String FIELD_EXP_ID="aeexp_id";
 	public static final String FIELD_EXP_NAME="aeexp_name";
 	public static final String FIELD_EXP_RELEASEDATE="aeexp_releasedate";
+	public static final String FIELD_EXP_USER_ID="exp_user_id";
+	public static final String FIELD_EXP_SAAT_CAT = "exp_saat_cat";
+	public static final String FIELD_EXP_SAAT_VALUE = "exp_saat_value";
+	public static final String FIELD_EXP_FV_FACTORNAME = "exp_fv_factorname";
+	public static final String FIELD_EXP_FV_OE = "exp_fv_oe";
+	public static final String FIELD_EXP_MIMESCORE_NAME = "exp_mimescore_name";
+	public static final String FIELD_EXP_MIMESCORE_VALUE = "exp_mimescore_value";
+	public static final String FIELD_EXP_ARRAYDES_ID = "exp_arraydes_id";
+	public static final String FIELD_EXP_ARRAYDES_IDENTIFIER = "exp_arraydes_identifier";
+	public static final String FIELD_EXP_ARRAYDES_NAME = "exp_arraydes_name";
+	public static final String FIELD_EXP_ARRAYDES_COUNT = "exp_arraydes_count";
+	public static final String FIELD_EXP_BDG_NAME = "exp_bdg_name";
+	public static final String FIELD_EXP_BDG_ID = "exp_bdg_id";
+	public static final String FIELD_EXP_BDG_NUM_BAD_CUBES = "exp_bdg_num_bad_cubes";
+	public static final String FIELD_EXP_BDG_ARRAYDESIGN = "exp_bdg_arraydesign";
+	public static final String FIELD_EXP_BDG_DATAFORMAT = "exp_bdg_dataformat";
+	public static final String FIELD_EXP_BDG_BIOASSAY_COUNT = "exp_bdg_bioassay_count";
+	public static final String FIELD_EXP_BDGIS_DERIVED = "exp_bdg_is_derived";
+	public static final String FIELD_EXP_BI_PUBLICATION = "exp_bi_publication";
+	public static final String FIELD_EXP_BI_AUTHORS = "exp_bi_authors";
+	public static final String FIELD_EXP_BI_TITLE = "exp_bi_title";
+	public static final String FIELD_EXP_BI_YEAR = "exp_bi_year";
+	public static final String FIELD_EXP_BI_VOLUME = "exp_bi_volume";
+	public static final String FIELD_EXP_BI_ISSUE = "exp_bi_issue";
+	public static final String FIELD_EXP_BI_PAGES = "exp_bi_pages";
+	public static final String FIELD_EXP_PROVIDER_CONTRACT = "exp_provider_contact";
+	public static final String FIELD_EXP_PROVIDER_ROLE = "exp_provider_role";
+	public static final String FIELD_EXP_PROVIDER_TYPES = "exp_expdes_type";
+	public static final String FIELD_EXP_DESC_ID = "exp_desc_id";	
 	public static final String FIELD_EXP_DESC_TEXT="aeexp_desc_text";
-
 
     /** */
     private String indexDir;
