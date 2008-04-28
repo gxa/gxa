@@ -55,8 +55,10 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				Experiment exp=it.next();
 				String xml=experimentDao.getExperimentAsXml(exp);
 				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
+				System.out.println("DW xml: " + xmlDw);
 				SolrInputDocument doc = null;
-				doc = XmlUtil.createSolrInputDoc(xml);				
+				doc = XmlUtil.createSolrInputDoc(xml);
+				XmlUtil.addExperimentFromDW(xmlDw, doc);
 				if (doc!=null)
 				{
 					getSolrEmbededIndex().addDoc(doc);

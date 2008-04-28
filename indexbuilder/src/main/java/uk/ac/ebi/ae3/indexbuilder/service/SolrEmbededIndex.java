@@ -14,6 +14,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -113,31 +115,34 @@ public class SolrEmbededIndex {
     public long getCount(String queryStr) throws SolrServerException
     {
 	
-	SolrQuery q = new SolrQuery(queryStr);
-	long count=0;
-	int start = 0 ;
-	q.setRows(1);
-	q.setStart(start);
-	QueryResponse queryResponse = solrServer.query(q);
-	SolrDocumentList l=queryResponse.getResults();
-	count=l.getNumFound();
+    	SolrQuery q = new SolrQuery(queryStr);
+    	long count=0;
+    	int start = 0 ;
+    	q.setRows(1);
+    	q.setStart(start);
+    	QueryResponse queryResponse = solrServer.query(q);
+    	SolrDocumentList l=queryResponse.getResults();
+    	count=l.getNumFound();
 	
-	return count;
+    	return count;
 	
     }
 
     public SolrDocumentList search(String queryStr, int start, int rows) throws SolrServerException
     {
     	SolrQuery q = new SolrQuery(queryStr);
+    	//QueryParser parser = new QueryParser();
+        //q.setHighlight(true);
+    	
     	q.setRows(rows);
-        q.setHighlight(true);
-        q.addHighlightField(ConfigurationService.FIELD_EXP_DESC_TEXT);
+        //q.addHighlightField(ConfigurationService.FIELD_AEEXP_ACCESSION);
+        //q.addHighlightField(ConfigurationService.FIELD_EXP_DESC_TEXT);
         /*q.addHighlightField("gene_goterm");
         q.addHighlightField("gene_interproterm");
         q.addHighlightField("gene_keyword");
         q.addHighlightField("gene_name");
         q.addHighlightField("gene_synonym");*/
-        q.setHighlightSnippets(500);
+        //q.setHighlightSnippets(100);
     	q.setStart(start);
 
     	QueryResponse queryResponse = solrServer.query(q);

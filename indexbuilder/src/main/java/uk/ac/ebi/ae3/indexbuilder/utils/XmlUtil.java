@@ -15,6 +15,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 /**
@@ -48,7 +49,7 @@ public class XmlUtil
 	 * @param fieldName
 	 * @return
 	 */
-	private static void addFieldToDoc(Element element, String name, SolrInputDocument doc, String fieldName)
+	private static void addFieldFromAttr(Element element, String name, SolrInputDocument doc, String fieldName)
 	{
 		Attribute attr=element.attribute(name);
 		if (attr!=null)
@@ -58,37 +59,63 @@ public class XmlUtil
 		}
 	}
 	
+	private static void addFieldFromEl(Element element, SolrInputDocument doc, String fieldName)
+	{
+		if (element!=null)
+		{
+			String value=element.getText();
+			addField(doc, fieldName, value);
+		}
+	}
+
+	
 	private static final void addField(SolrInputDocument doc, String fieldName, String value)
 	{
 		doc.addField(fieldName, value);
 		
 	}
 	
-	
+
+	public static void addExperimentFromDW(String xmlDw, SolrInputDocument doc) throws DocumentException, IndexBuilderException
+	{
+		if (doc == null)
+			throw new IndexBuilderException("Solr documentd can not be null");
+		if (xmlDw == null)
+			return;
+		doc.addField("exp_in_dw", true);
+		Document xmlDoc = null;
+		//Parse xml String		
+        xmlDoc = DocumentHelper.parseText(xmlDw);
+        Element elExperiment=xmlDoc.getRootElement();
+        addFieldFromAttr(elExperiment, "EXPERIMENT_ID_KEY", doc, "dwexp_id");
+        addFieldFromAttr(elExperiment, "EXPERIMENT_IDENTIFIER", doc, "dwexp_accession");
+        addFieldFromAttr(elExperiment, "EXPERIMENT_DESCRIPTION", doc, "dwexp_expdescription");
+        addFieldFromEl(elExperiment, doc, "dwexp_exptype");
+		
+	}
 	
 	/**
 	 * 
-	 * @param xml
+	 * @param xmlAe
 	 * @return
 	 * @throws DocumentException
 	 */
-	public static SolrInputDocument createSolrInputDoc(String xml) throws DocumentException
+	public static SolrInputDocument createSolrInputDoc(String xmlAe) throws DocumentException
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("xml_doc", xml);
-		System.out.println(xml);
-		xml=xml.replace("\u0019", "");
+		doc.addField("xml_doc", xmlAe);
+		xmlAe=xmlAe.replace("\u0019", "");
 		
 		Document xmlDoc = null;
 		//Parse xml String		
-	        xmlDoc = DocumentHelper.parseText(xml);
+        xmlDoc = DocumentHelper.parseText(xmlAe);
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
-		addFieldToDoc(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_AE_EXP_ACCESSION);		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_EXP_ID);		
-		addFieldToDoc(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_EXP_NAME);		
+		addFieldFromAttr(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_AEEXP_ACCESSION);		
+		addFieldFromAttr(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_AEEXP_ID);		
+		addFieldFromAttr(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_AEEXP_NAME);		
 		Element el;
 		List<Element> list=elExperiment.elements(ConfigurationService.EL_users);
 		for (int i=0;i<list.size();i++)
@@ -98,7 +125,7 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "id", doc, "exp_user_id");
+				addFieldFromAttr(e, "id", doc, "exp_user_id");
 			}
 			
 		}
@@ -114,11 +141,11 @@ public class XmlUtil
 		{
 			el=list.get(i);
 			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_sampleattribute);
-			while (it.hasNext())
+			while (it.hasNext())				
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "CATEGORY", doc, "exp_saat_cat");
-				addFieldToDoc(e, "VALUE", doc, "exp_saat_value");				
+				addFieldFromAttr(e, "CATEGORY", doc, ConfigurationService.FIELD_EXP_SAAT_CAT);
+				addFieldFromAttr(e, "VALUE", doc, ConfigurationService.FIELD_EXP_SAAT_VALUE);				
 			}
 		}
 		
@@ -130,8 +157,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "FACTORNAME", doc, "exp_fv_factorname");
-				addFieldToDoc(e, "FV_OE", doc, "exp_fv_oe");				
+				addFieldFromAttr(e, "FACTORNAME", doc, ConfigurationService.FIELD_EXP_FV_FACTORNAME );
+				addFieldFromAttr(e, "FV_OE", doc, ConfigurationService.FIELD_EXP_FV_OE);				
 			}
 		}
 		
@@ -143,8 +170,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "name", doc, "exp_mimescore_name");
-				addFieldToDoc(e, "value", doc, "exp_mimescore_value");				
+				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_EXP_MIMESCORE_NAME);
+				addFieldFromAttr(e, "value", doc, ConfigurationService.FIELD_EXP_MIMESCORE_VALUE);				
 			}
 		}
 		
@@ -156,10 +183,10 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "id", doc, "exp_arraydes_id");
-				addFieldToDoc(e, "identifier", doc, "exp_arraydes_identifier");
-				addFieldToDoc(e, "name", doc, "exp_arraydes_name");
-				addFieldToDoc(e, "count", doc, "exp_arraydes_count");				
+				addFieldFromAttr(e, "id", doc, ConfigurationService.FIELD_EXP_ARRAYDES_ID);
+				addFieldFromAttr(e, "identifier", doc, ConfigurationService.FIELD_EXP_ARRAYDES_IDENTIFIER);
+				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_EXP_ARRAYDES_NAME);
+				addFieldFromAttr(e, "count", doc, ConfigurationService.FIELD_EXP_ARRAYDES_COUNT);				
 				
 			}
 		}
@@ -172,26 +199,26 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "name", doc, "exp_bdg_name");
-				addFieldToDoc(e, "id", doc, "exp_bdg_id");
-				addFieldToDoc(e, "num_bad_cubes", doc, "exp_bdg_num_bad_cubes");
-				addFieldToDoc(e, "arraydesign", doc, "exp_bdg_arraydesign");				
-				addFieldToDoc(e, "dataformat", doc, "exp_bdg_dataformat");				
-				addFieldToDoc(e, "bioassay_count", doc, "exp_bdg_bioassay_count");
-				addFieldToDoc(e, "is_derived", doc, "exp_bdg_is_derived");				
+				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_EXP_BDG_NAME);
+				addFieldFromAttr(e, "id", doc, ConfigurationService.FIELD_EXP_BDG_ID);
+				addFieldFromAttr(e, "num_bad_cubes", doc, ConfigurationService.FIELD_EXP_BDG_NUM_BAD_CUBES);
+				addFieldFromAttr(e, "arraydesign", doc, ConfigurationService.FIELD_EXP_BDG_ARRAYDESIGN);				
+				addFieldFromAttr(e, "dataformat", doc, ConfigurationService.FIELD_EXP_BDG_DATAFORMAT);				
+				addFieldFromAttr(e, "bioassay_count", doc, ConfigurationService.FIELD_EXP_BDG_BIOASSAY_COUNT);
+				addFieldFromAttr(e, "is_derived", doc, ConfigurationService.FIELD_EXP_BDG_IS_DERIVED);				
 			}
 		}		
 		list=elExperiment.elements(ConfigurationService.EL_bibliography);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldToDoc(el, "publication", doc, "exp_bi_publication");
-			addFieldToDoc(el, "authors", doc, "exp_bi_authors");
-			addFieldToDoc(el, "title", doc, "exp_bi_title");
-			addFieldToDoc(el, "year", doc, "exp_bi_year");
-			addFieldToDoc(el, "volume", doc, "exp_bi_volume");
-			addFieldToDoc(el, "issue", doc, "exp_bi_issue");
-			addFieldToDoc(el, "pages", doc, "exp_bi_pages");
+			addFieldFromAttr(el, "publication", doc, ConfigurationService.FIELD_EXP_BI_PUBLICATION);
+			addFieldFromAttr(el, "authors", doc, ConfigurationService.FIELD_EXP_BI_AUTHORS);
+			addFieldFromAttr(el, "title", doc, ConfigurationService.FIELD_EXP_BI_TITLE);
+			addFieldFromAttr(el, "year", doc, ConfigurationService.FIELD_EXP_BI_YEAR);
+			addFieldFromAttr(el, "volume", doc, ConfigurationService.FIELD_EXP_BI_VOLUME);
+			addFieldFromAttr(el, "issue", doc, ConfigurationService.FIELD_EXP_BI_ISSUE);
+			addFieldFromAttr(el, "pages", doc, ConfigurationService.FIELD_EXP_BI_PAGES);
 			
 		}		
 		list=elExperiment.elements(ConfigurationService.EL_providers);
@@ -202,8 +229,8 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "contact", doc, "exp_provider_contact");
-				addFieldToDoc(e, "role", doc, "exp_provider_role");
+				addFieldFromAttr(e, "contact", doc, ConfigurationService.FIELD_EXP_PROVIDER_CONTRACT);
+				addFieldFromAttr(e, "role", doc, ConfigurationService.FIELD_EXP_PROVIDER_ROLE);
 			}
 		}				
 		list=elExperiment.elements(ConfigurationService.EL_experimentdesigns);
@@ -214,14 +241,14 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldToDoc(e, "type", doc, "exp_expdes_type");
+				addFieldFromAttr(e, "type", doc, ConfigurationService.FIELD_EXP_EXPDES_TYPES);
 			}
 		}				
 		list=elExperiment.elements(ConfigurationService.EL_description);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldToDoc(el, "id", doc, "exp_desc_id");
+			addFieldFromAttr(el, "id", doc, ConfigurationService.FIELD_EXP_DESC_ID);
 			doc.addField(ConfigurationService.FIELD_EXP_DESC_TEXT, el.getText());			
 		}		
 		return doc;

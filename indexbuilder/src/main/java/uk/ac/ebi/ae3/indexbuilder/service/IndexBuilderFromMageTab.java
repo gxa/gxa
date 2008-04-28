@@ -105,7 +105,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(ConfigurationService.FIELD_AE_EXP_ACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
+        doc.addField(ConfigurationService.FIELD_AEEXP_ACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 

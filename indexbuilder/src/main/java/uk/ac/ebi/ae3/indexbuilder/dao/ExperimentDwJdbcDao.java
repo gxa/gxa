@@ -10,7 +10,8 @@ import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 
 /**
- * The class prepares the sql statement and gets all data for experiments from DW database.
+ * The class prepares the sql statement and gets data for experiments from DW database.
+ * The class uses 
  * 
  * @author mdylag
  * @version 1.0
@@ -19,10 +20,10 @@ import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
  */
 public class ExperimentDwJdbcDao
 {
-	/** The instance of DataSource**/
+	/** The instance of JdbcTemplate **/
 	private JdbcTemplate jdbcTemplate;
 
-	/** **/
+	/** The SQL string which returns xml for one experiment **/
 	private static final String SQL_ASXML = "  SELECT XmlElement(\"experiment\",XmlAttributes( experiment.experiment_id_key, experiment.experiment_identifier, experiment.experiment_description )," +
 			" (SELECT XmlAgg ( XmlForest ( experiment_type.value as \"type\") ) FROM ae1__experiment_type__dm experiment_type WHERE experiment.experiment_id_key=experiment_type.experiment_id_key)," +
 			" (xmlelement(\"assay_attributes\",(SELECT distinct XmlAgg(XmlForest ( ba_age.value as \"ba_age\" )) FROM ae1__assay_age__dm ba_age WHERE experiment.experiment_id_key=ba_age.experiment_id_key)," +

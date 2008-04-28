@@ -236,6 +236,7 @@
   <field name="aeexp_id" type="long" indexed="true" stored="true"/>
   <field name="aeexp_accession" type="string" indexed="true" stored="true"/>
   <field name="aeexp_xml_doc" type="string" indexed="false" stored="true"/>  
+  <field name="exp_in_dw" type="boolean" indexed="false" stored="true"/>
     
 <!--   <field name="exp_type" type="text" indexed="true" stored="true" multiValued="true"/>
   <field name="exp_description" type="text" indexed="false" stored="true" multiValued="true"/>

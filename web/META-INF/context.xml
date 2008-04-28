@@ -23,5 +23,5 @@
               url="jdbc:h2:mem:ATLAS"/>
     <!--/ebi/work/ae3/testdb/ae3;FILE_LOCK=NO;DB_CLOSE_ON_EXIT=FALSE-->
 
-    <Parameter name="solr_index_location" description="SOLR Multicore Index Location" value="/ebi/work/solr_idxs/multicore"/>
+    <Parameter name="solr_index_location" description="SOLR Multicore Index Location" value="D:\tools\workspaces\ebi2\ae3\indexbuilder\data\multicore"/>
 </Context>

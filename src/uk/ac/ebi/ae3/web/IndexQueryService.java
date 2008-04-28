@@ -78,7 +78,6 @@ public class IndexQueryService
 	 */
 	public long getCount(String[] keywords) throws SolrServerException, CorruptIndexException, IOException
 	{
-	    String q = "exp_accession:hiv OR hiv OR cancer";
 	    String query = parseQuery(keywords);
 	    long count=this.solrEmbeddedIndex.getCount(query);
 	    return count;
@@ -88,13 +87,14 @@ public class IndexQueryService
 	{
 	    StringBuffer buff = new StringBuffer();
 	    for (int i=0; i<keywords.length; i++) {
-		String val = keywords[i];
-		buff.append(ConfigurationService.FIELD_AE_EXP_ACCESSION).append(":").append(val);
-		buff.append(" ");
-		buff.append(val).append(" ");
+    		String val = keywords[i];
+    		buff.append(ConfigurationService.FIELD_AEEXP_ACCESSION).append(":").append(val);
+    		buff.append(" ");
+    		buff.append(val).append(" ");
 	    }
 	    
 	    String query = buff.toString().trim();
+	    System.out.println(query);
 	    return query;
 	    
 	}
@@ -160,7 +160,7 @@ public class IndexQueryService
 		//"C:\\Users\\mdylag\\workspaces\\ebi\\ae3\\indexbuilder\\data\\multicore"
 		IndexQueryService idx = new IndexQueryService(value);
 		idx.init();
-		String[] keywords = {"hiv"};
+		String[] keywords = {"cancer"};
 		PrintWriter out = new PrintWriter(System.out);
 		idx.printExperiments(keywords, out);
 		idx.dispose();

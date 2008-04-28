@@ -79,10 +79,13 @@ public class ConfigurationService
 	public static final String AT_type="type";	
 
 	//INDEX FIELDS
-	/** Constant that represents */
-	public static final String FIELD_AE_EXP_ACCESSION="aeexp_accession";
-	public static final String FIELD_EXP_ID="aeexp_id";
-	public static final String FIELD_EXP_NAME="aeexp_name";
+	/** Constant that represents the index fields for DW*/
+	//public static final String FIELD_AEEXP_ACCESSION="aeexp_accession";
+	
+	/** Constant that represents the index fields for Repository*/
+	public static final String FIELD_AEEXP_ACCESSION="aeexp_accession";
+	public static final String FIELD_AEEXP_ID="aeexp_id";
+	public static final String FIELD_AEEXP_NAME="aeexp_name";
 	public static final String FIELD_EXP_RELEASEDATE="aeexp_releasedate";
 	public static final String FIELD_EXP_USER_ID="exp_user_id";
 	public static final String FIELD_EXP_SAAT_CAT = "exp_saat_cat";
@@ -101,7 +104,7 @@ public class ConfigurationService
 	public static final String FIELD_EXP_BDG_ARRAYDESIGN = "exp_bdg_arraydesign";
 	public static final String FIELD_EXP_BDG_DATAFORMAT = "exp_bdg_dataformat";
 	public static final String FIELD_EXP_BDG_BIOASSAY_COUNT = "exp_bdg_bioassay_count";
-	public static final String FIELD_EXP_BDGIS_DERIVED = "exp_bdg_is_derived";
+	public static final String FIELD_EXP_BDG_IS_DERIVED = "exp_bdg_is_derived";
 	public static final String FIELD_EXP_BI_PUBLICATION = "exp_bi_publication";
 	public static final String FIELD_EXP_BI_AUTHORS = "exp_bi_authors";
 	public static final String FIELD_EXP_BI_TITLE = "exp_bi_title";
@@ -111,7 +114,7 @@ public class ConfigurationService
 	public static final String FIELD_EXP_BI_PAGES = "exp_bi_pages";
 	public static final String FIELD_EXP_PROVIDER_CONTRACT = "exp_provider_contact";
 	public static final String FIELD_EXP_PROVIDER_ROLE = "exp_provider_role";
-	public static final String FIELD_EXP_PROVIDER_TYPES = "exp_expdes_type";
+	public static final String FIELD_EXP_EXPDES_TYPES = "exp_expdes_type";
 	public static final String FIELD_EXP_DESC_ID = "exp_desc_id";	
 	public static final String FIELD_EXP_DESC_TEXT="aeexp_desc_text";
 
