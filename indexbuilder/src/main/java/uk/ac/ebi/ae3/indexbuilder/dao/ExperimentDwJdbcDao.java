@@ -1,11 +1,14 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 
@@ -103,8 +106,10 @@ public class ExperimentDwJdbcDao
 			" (SELECT distinct XmlAgg ( XmlElement (\"bs_TUMORGRADING\", XMLAttributes(sample_TUMORGRADING.assay_id_key as \"assay_id\", sample_TUMORGRADING.sample_id_key as \"sample_id\") ,sample_TUMORGRADING.value) ) FROM AE1__SAMPLE_TUMORGRADING__DM sample_TUMORGRADING WHERE sample_TUMORGRADING.experiment_id_key=experiment.experiment_id_key) " + 
 			" ))).getClobVal() as xml FROM ae1__experiment__main experiment WHERE experiment.experiment_accession=?";
 
+	private static final String SQL_EXPERIMENT="select Experiment_id_key, experiment_identifier  FROM ae1__experiment__main experiment WHERE experiment.experiment_accession=?";
 	/** An instance of JDBC RowMapper for SQL_ASXML**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
+	private RowMapper rowMapperExp = new RowMapperExperiments();
 
 	/**
 	 * Set the default DataSource to be used by the ExperimentDwJdbcDao.
@@ -130,5 +135,31 @@ public class ExperimentDwJdbcDao
 		//String xml = (String)this.jdbcTemplate.queryForObject(SQL_ASXML, new Object[] {experiment.getAccession()},rowMapper);
 		
 		return xml;
+	}
+	
+	public boolean experimentExists(Experiment experiment)
+	{
+		List<String> l= this.jdbcTemplate.query(SQL_EXPERIMENT, new Object[] {experiment.getAccession()}, rowMapperExp);
+	
+		if (l.size()!= 0)
+		{
+			return true;
+		}
+		return false;
+	}
+	class RowMapperExperiments implements ParameterizedRowMapper<Experiment>
+	{
+		/**
+		 * Maps result set of SQL whci is in sqlExperiments to the Experiment object.
+		 */		
+		public Experiment mapRow(ResultSet rst, int arg1) throws SQLException
+		{
+			
+			Experiment exp = new Experiment();
+			exp.setId(rst.getLong(1));
+			exp.setAccession(rst.getString(2));
+			return exp;
+		}
+		
 	}
 }

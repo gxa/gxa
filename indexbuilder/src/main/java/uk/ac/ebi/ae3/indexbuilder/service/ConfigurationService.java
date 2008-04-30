@@ -192,6 +192,7 @@ public class ConfigurationService
 	
 
 	public static final String FIELD_XML_DOC_AER = "xml_doc_aer";
+	public static final String FIELD_EXP_IN_DW = "exp_in_dw"; 
 	/** Constant that represents the index fields for Repository*/
 	public static final String FIELD_AER_EXPACCESSION="aer_expaccession";
 	public static final String FIELD_AER_EXPID="aer_expid";

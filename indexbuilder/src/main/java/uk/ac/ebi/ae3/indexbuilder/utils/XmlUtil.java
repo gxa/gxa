@@ -88,7 +88,6 @@ public class XmlUtil
 			throw new IndexBuilderException("Solr documentd can not be null");
 		if (xmlDw == null)
 			return;
-		doc.addField("exp_in_dw", true);
 		Document xmlDoc = null;
 		//Parse xml String		
         xmlDoc = DocumentHelper.parseText(xmlDw);
