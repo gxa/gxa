@@ -88,7 +88,7 @@ public class IndexQueryService
 	    StringBuffer buff = new StringBuffer();
 	    for (int i=0; i<keywords.length; i++) {
     		String val = keywords[i];
-    		buff.append(ConfigurationService.FIELD_AEEXP_ACCESSION).append(":").append(val);
+    		buff.append(ConfigurationService.FIELD_AER_EXPACCESSION).append(":").append(val);
     		buff.append(" ");
     		buff.append(val).append(" ");
 	    }

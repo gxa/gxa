@@ -23,7 +23,6 @@ public class RowMapperExperimentXml implements ParameterizedRowMapper<String>
 	{
 		Clob clob=rst.getClob(1);
 		String str=clob.getSubString(1,(int)clob.length());
-		System.out.println(str + "------------------------");
 		return str;
 	}
 	
