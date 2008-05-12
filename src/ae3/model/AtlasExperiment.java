@@ -2,6 +2,8 @@ package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
+
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Map;
@@ -27,13 +29,17 @@ public class AtlasExperiment {
     private AtlasExperiment experimentDw;
 
     public AtlasExperiment(SolrDocument exptDoc) {
-        this.setExperimentId((String) exptDoc.getFieldValue("exp_id"));
-        this.setExperimentTypes(exptDoc.getFieldValues("exp_type"));
-        this.setExperimentAccession((String) exptDoc.getFieldValue("exp_accession"));
-        this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
-        this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
-        this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
-        //added other fields
+    	
+        this.setExperimentId((String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
+        this.setExperimentTypes(exptDoc.getFieldValues(Constants.FIELD_AER_EXP_TYPE));        
+        this.setExperimentAccession((String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION));
+        Collection col=exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
+        ;
+        int i = 0;
+        //uncomment
+        //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
+        //this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
+        //this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
         
     }
 

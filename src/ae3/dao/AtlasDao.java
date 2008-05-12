@@ -7,6 +7,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrDocument;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
+
 import java.util.Map;
 import java.util.Collection;
 
@@ -18,8 +20,9 @@ import java.util.Collection;
  * To change this template use File | Settings | File Templates.
  */
 public class AtlasDao {
-    public static AtlasExperiment getExperiment(String experiment_id_key) throws AtlasObjectNotFoundException {
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts("exp_id:" + experiment_id_key);
+    
+	public static AtlasExperiment getExperiment(String experiment_id_key) throws AtlasObjectNotFoundException {
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(Constants.FIELD_AER_EXPID + experiment_id_key);
 
         SolrDocumentList documentList = queryResponse.getResults();
 
@@ -30,7 +33,7 @@ public class AtlasDao {
 
         return new AtlasExperiment(exptDoc);
     }
-
+    
     public static AtlasExperiment getExperiment(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
         AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getExperimentId()));

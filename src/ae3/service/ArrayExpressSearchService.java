@@ -13,6 +13,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.MultiCore;
 import output.HtmlTableWriter;
 import output.TableWriter;
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -129,10 +130,12 @@ public class ArrayExpressSearchService {
         try {
             if (theAEDS != null) theAEDS = null;
             if (memAEDS != null) memAEDS = null;
-
-            multiCore.shutdown();
-            solr_gene = null;
-            solr_expt = null;
+            if (multiCore != null)
+            {
+            	multiCore.shutdown();
+            	solr_gene = null;
+            	solr_expt = null;
+            }
         } catch (Exception e) {
             log.error("Error shutting down ArrayExpressSearchService!", e);
         }
@@ -215,9 +218,9 @@ public class ArrayExpressSearchService {
             query = query.substring(0,500);
 
         try {
-            SolrQuery q = new SolrQuery("exp_factor_value:(" + query + ")");
+            SolrQuery q = new SolrQuery(Constants.FIELD_AER_FV_OE+":(" + query + ")");
             q.setHighlight(true);
-            q.addHighlightField("exp_factor_value");
+            q.addHighlightField(Constants.FIELD_AER_FV_OE);
             q.setHighlightSnippets(500);
             q.setRows(50);
 //            q.setFilterQueries();

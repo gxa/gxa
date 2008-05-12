@@ -201,7 +201,7 @@ public class Constants
 	public static final String FIELD_AER_BI_PAGES = "aer_bi_pages";
 	public static final String FIELD_AER_PROVIDER_CONTRACT = "aer_provider_contact";
 	public static final String FIELD_AER_PROVIDER_ROLE = "aer_provider_role";
-	public static final String FIELD_AER_EXPDES_TYPES = "aer_aerdes_type";
+	public static final String FIELD_AER_EXP_TYPE = "aer_aerdes_type";
 	public static final String FIELD_AER_DESC_ID = "aer_desc_id";
 	public static final String FIELD_AER_DESC_TEXT="aer_desc_text";
 	//INDEX FIELDS
