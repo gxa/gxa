@@ -90,8 +90,16 @@ replace(replace(table_name,'AE1__SAMPLE','sample'),'__DM','')  ||
 ' WHERE ' || replace(replace(table_name,'AE1__SAMPLE','sample'),'__DM','')  || '.experiment_id_key=experiment.experiment_id_key)'
 from all_Tables where table_name like 'AE1__SAMPLE_%' and table_name not in ('AE1__SAMPLE__MAIN','AE1__SAMPLE_AGE__DM','AE1__SAMPLE_ALL__DM');
 
+select 'public static final String EL_'|| replace(replace(table_name,'AE1__SAMPLE','BS'),'__DM','')  ||' = "' ||
+replace(replace(table_name,'AE1__SAMPLE','bs'),'__DM','')  || '";'
+from all_Tables where table_name like 'AE1__SAMPLE_%' ;
+
+select 'EL_'|| replace(replace(table_name,'AE1__SAMPLE','BS'),'__DM','')  ||',' 
+from all_Tables where table_name like 'AE1__SAMPLE_%' ;
 
 
+select Experiment_id_key, experiment_identifier 
+from ae1__experiment__main;
 
 
 

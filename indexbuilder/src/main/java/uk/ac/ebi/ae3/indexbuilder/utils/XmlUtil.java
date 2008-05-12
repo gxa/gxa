@@ -19,9 +19,9 @@ import org.dom4j.Element;
 import org.dom4j.util.AttributeHelper;
 import org.springframework.util.StringUtils;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 /**
  * 
  * @author mdylag
@@ -98,10 +98,10 @@ public class XmlUtil
         addFieldFromEl(elExperiment, doc, "dwexp_exptype");
         //  
         //get bioassays
-        for (int i=0; i<ConfigurationService.ARRAY_ASSAY_ELEMENTS.length; i++)
+        for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
         {
-        	Element assElement = elExperiment.element(ConfigurationService.EL_assay_attributes);
-        	Element element =assElement.element(ConfigurationService.ARRAY_ASSAY_ELEMENTS[i]);
+        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
+        	Element element =assElement.element(Constants.ARRAY_ASSAY_ELEMENTS[i]);
     		String assId=null;
     		String value=null;    		
         	
@@ -110,23 +110,23 @@ public class XmlUtil
         		value = element.getText();
         		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
         		{
-        			Attribute attr=element.attribute(ConfigurationService.AT_ASSAY_ID);
+        			Attribute attr=element.attribute(Constants.AT_ASSAY_ID);
         			if (attr!=null)
         			{
         			
         				assId=attr.getStringValue();
         			}
             		//Add data to index
-            		doc.addField(ConfigurationService.PREFIX_AEDW + ConfigurationService.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(ConfigurationService.PREFIX_AEDW  + ConfigurationService.ARRAY_ASSAY_ELEMENTS[i]+ ConfigurationService.SUFFIX_ASSAY_ID, assId);        			
+            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
+            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);        			
         		}
         	}
         }
         //process samples
-        for (int i=0; i<ConfigurationService.ARRAY_SAMPLE_ELEMENTS.length; i++)
+        for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
         {
-        	Element assElement = elExperiment.element(ConfigurationService.EL_assay_attributes);
-        	Element element =assElement.element(ConfigurationService.ARRAY_ASSAY_ELEMENTS[i]);
+        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
+        	Element element =assElement.element(Constants.ARRAY_ASSAY_ELEMENTS[i]);
     		String assId=null;
     		String sampleId=null;    		
     		String value=null;    		
@@ -136,8 +136,8 @@ public class XmlUtil
         		value = element.getText();
         		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
         		{
-        			Attribute attr1=element.attribute(ConfigurationService.AT_ASSAY_ID);
-        			Attribute attr2=element.attribute(ConfigurationService.AT_SAMPLE_ID);
+        			Attribute attr1=element.attribute(Constants.AT_ASSAY_ID);
+        			Attribute attr2=element.attribute(Constants.AT_SAMPLE_ID);
         			
         			if (attr1!=null)
         			{
@@ -150,9 +150,9 @@ public class XmlUtil
         				sampleId=attr2.getStringValue();
         			}
             		//Add data to index
-            		doc.addField(ConfigurationService.PREFIX_AEDW + ConfigurationService.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(ConfigurationService.PREFIX_AEDW  + ConfigurationService.ARRAY_ASSAY_ELEMENTS[i]+ ConfigurationService.SUFFIX_ASSAY_ID, assId);
-            		doc.addField(ConfigurationService.PREFIX_AEDW  + ConfigurationService.ARRAY_ASSAY_ELEMENTS[i]+ ConfigurationService.SUFFIX_SAMPLE_ID, sampleId);        			
+            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
+            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
+            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
             		
         		}
         	}
@@ -170,7 +170,7 @@ public class XmlUtil
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField(ConfigurationService.FIELD_XML_DOC_AER, xmlAe);
+		doc.addField(Constants.FIELD_XML_DOC_AER, xmlAe);
 		xmlAe=xmlAe.replace("\u0019", "");
 		
 		Document xmlDoc = null;
@@ -179,115 +179,115 @@ public class XmlUtil
 		//Get Roor element
 		Element elExperiment=xmlDoc.getRootElement();
 		
-		addFieldFromAttr(elExperiment,ConfigurationService.AT_accnum , doc, ConfigurationService.FIELD_AER_EXPACCESSION);		
-		addFieldFromAttr(elExperiment, ConfigurationService.AT_id, doc, ConfigurationService.FIELD_AER_EXPID);		
-		addFieldFromAttr(elExperiment, ConfigurationService.AT_name, doc, ConfigurationService.FIELD_AER_EXPNAME);		
+		addFieldFromAttr(elExperiment,Constants.AT_accnum , doc, Constants.FIELD_AER_EXPACCESSION);		
+		addFieldFromAttr(elExperiment, Constants.AT_id, doc, Constants.FIELD_AER_EXPID);		
+		addFieldFromAttr(elExperiment, Constants.AT_name, doc, Constants.FIELD_AER_EXPNAME);		
 		Element el;
-		List<Element> list=elExperiment.elements(ConfigurationService.EL_users);
+		List<Element> list=elExperiment.elements(Constants.EL_users);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_user);
+			Iterator<Element> it=el.elementIterator(Constants.EL_user);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "id", doc, ConfigurationService.FIELD_AER_USER_ID);
+				addFieldFromAttr(e, "id", doc, Constants.FIELD_AER_USER_ID);
 			}
 			
 		}
 		
-		list=elExperiment.elements(ConfigurationService.EL_secondaryaccessions);
+		list=elExperiment.elements(Constants.EL_secondaryaccessions);
 		for (int i=0;i<list.size();i++)
 		{
 			
 		}
 		//process sample attributes
-		list=elExperiment.elements(ConfigurationService.EL_sampleattributes);
+		list=elExperiment.elements(Constants.EL_sampleattributes);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_sampleattribute);
+			Iterator<Element> it=el.elementIterator(Constants.EL_sampleattribute);
 			while (it.hasNext())				
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "CATEGORY", doc, ConfigurationService.FIELD_AER_SAAT_CAT);
-				addFieldFromAttr(e, "VALUE", doc, ConfigurationService.FIELD_AER_SAAT_VALUE);				
+				addFieldFromAttr(e, "CATEGORY", doc, Constants.FIELD_AER_SAAT_CAT);
+				addFieldFromAttr(e, "VALUE", doc, Constants.FIELD_AER_SAAT_VALUE);				
 			}
 		}
 		
-		list=elExperiment.elements(ConfigurationService.EL_factorvalues);
+		list=elExperiment.elements(Constants.EL_factorvalues);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_factorvalue);
+			Iterator<Element> it=el.elementIterator(Constants.EL_factorvalue);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "FACTORNAME", doc, ConfigurationService.FIELD_AER_FV_FACTORNAME );
-				addFieldFromAttr(e, "FV_OE", doc, ConfigurationService.FIELD_AER_FV_OE);				
+				addFieldFromAttr(e, "FACTORNAME", doc, Constants.FIELD_AER_FV_FACTORNAME );
+				addFieldFromAttr(e, "FV_OE", doc, Constants.FIELD_AER_FV_OE);				
 			}
 		}
 		
-		list=elExperiment.elements(ConfigurationService.EL_miamescores);
+		list=elExperiment.elements(Constants.EL_miamescores);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_miamescore);
+			Iterator<Element> it=el.elementIterator(Constants.EL_miamescore);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_AER_MIMESCORE_NAME);
-				addFieldFromAttr(e, "value", doc, ConfigurationService.FIELD_AER_MIMESCORE_VALUE);				
+				addFieldFromAttr(e, "name", doc, Constants.FIELD_AER_MIMESCORE_NAME);
+				addFieldFromAttr(e, "value", doc, Constants.FIELD_AER_MIMESCORE_VALUE);				
 			}
 		}
 		
-		list=elExperiment.elements(ConfigurationService.EL_arraydesigns);
+		list=elExperiment.elements(Constants.EL_arraydesigns);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_arraydesign);
+			Iterator<Element> it=el.elementIterator(Constants.EL_arraydesign);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "id", doc, ConfigurationService.FIELD_AER_ARRAYDES_ID);
-				addFieldFromAttr(e, "identifier", doc, ConfigurationService.FIELD_AER_ARRAYDES_IDENTIFIER);
-				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_AER_ARRAYDES_NAME);
-				addFieldFromAttr(e, "count", doc, ConfigurationService.FIELD_AER_ARRAYDES_COUNT);				
+				addFieldFromAttr(e, "id", doc, Constants.FIELD_AER_ARRAYDES_ID);
+				addFieldFromAttr(e, "identifier", doc, Constants.FIELD_AER_ARRAYDES_IDENTIFIER);
+				addFieldFromAttr(e, "name", doc, Constants.FIELD_AER_ARRAYDES_NAME);
+				addFieldFromAttr(e, "count", doc, Constants.FIELD_AER_ARRAYDES_COUNT);				
 				
 			}
 		}
 		
-		list=elExperiment.elements(ConfigurationService.EL_bioassaydatagroups);
+		list=elExperiment.elements(Constants.EL_bioassaydatagroups);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_bioassaydatagroup);
+			Iterator<Element> it=el.elementIterator(Constants.EL_bioassaydatagroup);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "name", doc, ConfigurationService.FIELD_AER_BDG_NAME);
-				addFieldFromAttr(e, "id", doc, ConfigurationService.FIELD_AER_BDG_ID);
-				addFieldFromAttr(e, "num_bad_cubes", doc, ConfigurationService.FIELD_AER_BDG_NUM_BAD_CUBES);
-				addFieldFromAttr(e, "arraydesign", doc, ConfigurationService.FIELD_AER_BDG_ARRAYDESIGN);				
-				addFieldFromAttr(e, "dataformat", doc, ConfigurationService.FIELD_AER_BDG_DATAFORMAT);				
-				addFieldFromAttr(e, "bioassay_count", doc, ConfigurationService.FIELD_AER_BDG_BIOASSAY_COUNT);
-				addFieldFromAttr(e, "is_derived", doc, ConfigurationService.FIELD_AER_BDG_IS_DERIVED);				
+				addFieldFromAttr(e, "name", doc, Constants.FIELD_AER_BDG_NAME);
+				addFieldFromAttr(e, "id", doc, Constants.FIELD_AER_BDG_ID);
+				addFieldFromAttr(e, "num_bad_cubes", doc, Constants.FIELD_AER_BDG_NUM_BAD_CUBES);
+				addFieldFromAttr(e, "arraydesign", doc, Constants.FIELD_AER_BDG_ARRAYDESIGN);				
+				addFieldFromAttr(e, "dataformat", doc, Constants.FIELD_AER_BDG_DATAFORMAT);				
+				addFieldFromAttr(e, "bioassay_count", doc, Constants.FIELD_AER_BDG_BIOASSAY_COUNT);
+				addFieldFromAttr(e, "is_derived", doc, Constants.FIELD_AER_BDG_IS_DERIVED);				
 			}
 		}		
-		list=elExperiment.elements(ConfigurationService.EL_bibliography);
+		list=elExperiment.elements(Constants.EL_bibliography);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldFromAttr(el, "publication", doc, ConfigurationService.FIELD_AER_BI_PUBLICATION);
-			addFieldFromAttr(el, "authors", doc, ConfigurationService.FIELD_AER_BI_AUTHORS);
-			addFieldFromAttr(el, "title", doc, ConfigurationService.FIELD_AER_BI_TITLE);
-			addFieldFromAttr(el, "year", doc, ConfigurationService.FIELD_AER_BI_YEAR);
-			addFieldFromAttr(el, "volume", doc, ConfigurationService.FIELD_AER_BI_VOLUME);
-			addFieldFromAttr(el, "issue", doc, ConfigurationService.FIELD_AER_BI_ISSUE);
-			addFieldFromAttr(el, "pages", doc, ConfigurationService.FIELD_AER_BI_PAGES);
+			addFieldFromAttr(el, "publication", doc, Constants.FIELD_AER_BI_PUBLICATION);
+			addFieldFromAttr(el, "authors", doc, Constants.FIELD_AER_BI_AUTHORS);
+			addFieldFromAttr(el, "title", doc, Constants.FIELD_AER_BI_TITLE);
+			addFieldFromAttr(el, "year", doc, Constants.FIELD_AER_BI_YEAR);
+			addFieldFromAttr(el, "volume", doc, Constants.FIELD_AER_BI_VOLUME);
+			addFieldFromAttr(el, "issue", doc, Constants.FIELD_AER_BI_ISSUE);
+			addFieldFromAttr(el, "pages", doc, Constants.FIELD_AER_BI_PAGES);
 			
 		}		
-		list=elExperiment.elements(ConfigurationService.EL_providers);
+		list=elExperiment.elements(Constants.EL_providers);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
@@ -295,27 +295,27 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "contact", doc, ConfigurationService.FIELD_AER_PROVIDER_CONTRACT);
-				addFieldFromAttr(e, "role", doc, ConfigurationService.FIELD_AER_PROVIDER_ROLE);
+				addFieldFromAttr(e, "contact", doc, Constants.FIELD_AER_PROVIDER_CONTRACT);
+				addFieldFromAttr(e, "role", doc, Constants.FIELD_AER_PROVIDER_ROLE);
 			}
 		}				
-		list=elExperiment.elements(ConfigurationService.EL_experimentdesigns);
+		list=elExperiment.elements(Constants.EL_experimentdesigns);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			Iterator<Element> it=el.elementIterator(ConfigurationService.EL_experimentdesign);
+			Iterator<Element> it=el.elementIterator(Constants.EL_experimentdesign);
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "type", doc, ConfigurationService.FIELD_AER_EXPDES_TYPES);
+				addFieldFromAttr(e, "type", doc, Constants.FIELD_AER_EXPDES_TYPES);
 			}
 		}				
-		list=elExperiment.elements(ConfigurationService.EL_description);
+		list=elExperiment.elements(Constants.EL_description);
 		for (int i=0;i<list.size();i++)
 		{
 			el=list.get(i);
-			addFieldFromAttr(el, "id", doc, ConfigurationService.FIELD_AER_DESC_ID);
-			doc.addField(ConfigurationService.FIELD_AER_DESC_TEXT, el.getText());			
+			addFieldFromAttr(el, "id", doc, Constants.FIELD_AER_DESC_ID);
+			doc.addField(Constants.FIELD_AER_DESC_TEXT, el.getText());			
 		}		
 		return doc;
 	}

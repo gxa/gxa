@@ -12,7 +12,7 @@ import java.util.Collection;
 
 /**
  * Created by IntelliJ IDEA.
- * User: ostolop
+ * User: ostolop, mdylag
  * Date: Apr 17, 2008
  * Time: 9:32:22 AM
  * To change this template use File | Settings | File Templates.

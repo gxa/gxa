@@ -22,6 +22,7 @@ import org.apache.solr.core.MultiCore;
 import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabDocument;
 import uk.ac.ebi.ae3.indexbuilder.magetab.MageTabParser;
@@ -38,6 +39,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	protected SolrServer solr;
 	private SolrCore exptCore;
 	private MultiCore multiCore;
+	private String indexDir;
 	/** */
 	
 	/** */
@@ -45,9 +47,8 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	 * DOCUMENT ME
 	 * @param confService
 	 */
-	public IndexBuilderFromMageTab(ConfigurationService confService) throws ParserConfigurationException, IOException, SAXException
+	public IndexBuilderFromMageTab() throws ParserConfigurationException, IOException, SAXException
 	{
-		super(confService);
 	}
 	
 	/**
@@ -60,11 +61,11 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	protected void createIndexDocs() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
-	this.multiCore = new MultiCore(getConfService().getIndexDir(), new File(getConfService().getIndexDir(), ConfigurationService.VAL_INDEXFILE));
-	this.exptCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_EXPT);		
+	this.multiCore = new MultiCore(this.indexDir, new File(this.indexDir, Constants.VAL_INDEXFILE));
+	this.exptCore = multiCore.getCore(Constants.SOLR_CORE_NAME_EXPT);		
 	this.solr = new EmbeddedSolrServer(exptCore);
 	    
-        Collection<File> idfFiles=MageTabUtils.getIdfFiles(getConfService().getMageDir());
+        Collection<File> idfFiles=MageTabUtils.getIdfFiles(this.indexDir);
         Iterator<File> itIdfFiles = idfFiles.iterator();
         while (itIdfFiles.hasNext())
         {
@@ -105,7 +106,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
             addMageTabFields(doc, mtd_sdrf.getFields(), sdrfFields);
         }
 
-        doc.addField(ConfigurationService.FIELD_AER_EXPACCESSION, idfFile.getName().replace(ConfigurationService.IDF_EXTENSION,""));
+        doc.addField(Constants.FIELD_AER_EXPACCESSION, idfFile.getName().replace(Constants.IDF_EXTENSION,""));
         UpdateResponse response = solr.add(doc);
     }
 

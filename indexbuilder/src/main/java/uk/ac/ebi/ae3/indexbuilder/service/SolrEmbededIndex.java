@@ -33,6 +33,7 @@ import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocList;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
 
 /**
@@ -45,8 +46,6 @@ import uk.ac.ebi.ae3.indexbuilder.IndexException;
 public class SolrEmbededIndex {
     /** The handle to the SolrServer */
     private SolrServer solrServer;
-    /** The handle to the ConfigurationService */
-    private ConfigurationService confService;
     /** The handle to the SolrCore. The core name is "expt" */
     private SolrCore exptSolrCore;
     /** The handle to the {@link MultiCore} */
@@ -75,8 +74,8 @@ public class SolrEmbededIndex {
     {
      if (!init)
      {
-       this.multiCore = new MultiCore(indexDir, new File(indexDir, ConfigurationService.VAL_INDEXFILE));
-       this.exptSolrCore = multiCore.getCore(ConfigurationService.SOLR_CORE_NAME_EXPT);		
+       this.multiCore = new MultiCore(indexDir, new File(indexDir, Constants.VAL_INDEXFILE));
+       this.exptSolrCore = multiCore.getCore(Constants.SOLR_CORE_NAME_EXPT);		
        this.solrServer = new EmbeddedSolrServer(exptSolrCore);
        init = true;
      }

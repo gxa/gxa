@@ -8,8 +8,8 @@ import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 
 public class MageTabUtils
 {
@@ -111,7 +111,7 @@ public class MageTabUtils
 	public static final String getAccesionNumberFromIdf(File idfFile)
 	{
 		String filename=idfFile.getName();
-		filename=filename.replace(ConfigurationService.IDF_EXTENSION, "");
+		filename=filename.replace(Constants.IDF_EXTENSION, "");
 		System.out.println(filename);
 		return filename;
 	}

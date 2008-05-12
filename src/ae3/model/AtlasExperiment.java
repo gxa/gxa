@@ -16,12 +16,15 @@ import java.util.List;
  */
 public class AtlasExperiment {
     private String experimentId;
+    private String expName;
+    private long expId;
     private Collection<String> experimentTypes;
     private String experimentAccession;
     private String experimentDescription;
     private Collection<String> experimentFactorValues;
     private Collection<String> experimentFactors;
     private Map<String, List<String>> experimentHighlights;
+    private AtlasExperiment experimentDw;
 
     public AtlasExperiment(SolrDocument exptDoc) {
         this.setExperimentId((String) exptDoc.getFieldValue("exp_id"));
@@ -30,6 +33,8 @@ public class AtlasExperiment {
         this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
         this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
         this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
+        //added other fields
+        
     }
 
     public void setExperimentId(String experimentId) {

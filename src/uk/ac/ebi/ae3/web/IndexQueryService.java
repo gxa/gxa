@@ -17,22 +17,21 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
-import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 import uk.ac.ebi.ae3.indexbuilder.service.SolrEmbededIndex;
-import uk.ac.ebi.ae3.indexbuilder.utils.*;
+import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
 
 /**
  * 
  * Class description goes here.
- *
+ * @deprecated
  * @version 	1.0 2008-04-03
  * @author 	Miroslaw Dylag
  */
 public class IndexQueryService
 {
 
-	private ConfigurationService conf = new ConfigurationService();
 	private SolrEmbededIndex solrEmbeddedIndex;
 	
 
@@ -45,7 +44,6 @@ public class IndexQueryService
 	 */
 	public IndexQueryService(String multicoredir) 
 	{
-		this.conf.setIndexDir(multicoredir);
 		solrEmbeddedIndex = new SolrEmbededIndex(multicoredir);
 		
 	}
@@ -88,7 +86,7 @@ public class IndexQueryService
 	    StringBuffer buff = new StringBuffer();
 	    for (int i=0; i<keywords.length; i++) {
     		String val = keywords[i];
-    		buff.append(ConfigurationService.FIELD_AER_EXPACCESSION).append(":").append(val);
+    		buff.append(Constants.FIELD_AER_EXPACCESSION).append(":").append(val);
     		buff.append(" ");
     		buff.append(val).append(" ");
 	    }

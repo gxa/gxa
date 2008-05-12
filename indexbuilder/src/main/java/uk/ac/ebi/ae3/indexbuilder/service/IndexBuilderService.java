@@ -28,10 +28,6 @@ import uk.ac.ebi.ae3.indexbuilder.IndexException;
 public abstract class IndexBuilderService
 {
 	protected UpdateResponse response;
-	//protected SolrServer solr;
-	private ConfigurationService confService;
-	//private SolrCore exptCore;
-	//private MultiCore multiCore;
 	private SolrEmbededIndex solrEmbededIndex;
 	/** */
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
@@ -45,10 +41,9 @@ public abstract class IndexBuilderService
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public IndexBuilderService(ConfigurationService confService) throws ParserConfigurationException, IOException, SAXException
+	public IndexBuilderService() throws ParserConfigurationException, IOException, SAXException
 
 	{
-		this.confService = confService;
 	}
 	
 	
@@ -89,10 +84,6 @@ public abstract class IndexBuilderService
 	
 	protected abstract void createIndexDocs() throws Exception;
 
-	public ConfigurationService getConfService()
-	{
-		return confService;
-	}
 
 	public SolrEmbededIndex getSolrEmbededIndex() {
 	    return solrEmbededIndex;

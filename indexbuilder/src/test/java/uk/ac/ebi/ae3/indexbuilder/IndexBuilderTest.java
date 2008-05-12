@@ -58,12 +58,12 @@ public class IndexBuilderTest extends AbstractIndexBuilderTest
 	
 	/**
 	 * Method 
-	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#parse(java.lang.String[])}.
+	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.App#parse(java.lang.String[])}.
 	 */
 	@Test
 	public void test_parse()
 	{
-		IndexBuilder indexBuilder = new IndexBuilder();
+		App indexBuilder = new App();
 		//Test parse input arguments. 
 		//No parameters. Method should return false
 		String[] args1={};	
@@ -78,7 +78,7 @@ public class IndexBuilderTest extends AbstractIndexBuilderTest
 	}
 	
 	/**
-	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#run()}.
+	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.App#run()}.
 	 */
 	@Test
 	public void test_run()
@@ -87,7 +87,7 @@ public class IndexBuilderTest extends AbstractIndexBuilderTest
 	}
 	
 	/**
-	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder#main(java.lang.String[])}.
+	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.App#main(java.lang.String[])}.
 	 */
 	@Test
 	public void test_main()

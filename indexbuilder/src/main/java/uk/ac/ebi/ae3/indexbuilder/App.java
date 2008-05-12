@@ -19,7 +19,6 @@ import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 
-import uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService;
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 
 /**
@@ -29,7 +28,7 @@ import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
  * @author mdylag
  * 
  */
-public class IndexBuilder
+public class App
 {
 	/** */
 	private final HelpFormatter		helpFormatter   = new HelpFormatter();
@@ -46,7 +45,7 @@ public class IndexBuilder
 	
 	private final DefaultOption		optionProperty  = optionBuilder
 															   .withLongName(
-																	   ConfigurationService.KEY_PROPERTY)
+																	   Constants.KEY_PROPERTY)
 															   .withRequired(
 																	   true)
 															   .withArgument(
@@ -60,13 +59,13 @@ public class IndexBuilder
 	private XmlBeanFactory appContext; 	
 	
 	private static final Log		   log			 = LogFactory
-															   .getLog(IndexBuilder.class);
+															   .getLog(App.class);
 	
 	public static void main(String[] args)
 	{
 		try
 		{
-			IndexBuilder app = new IndexBuilder();
+			App app = new App();
 			//TODO: Add exception to parse method
 			app.parse(args);
 			app.startContext();		
@@ -105,7 +104,7 @@ public class IndexBuilder
 	protected void run() throws Exception, IndexException
 	{
 		IndexBuilderService indexBuilderService = (IndexBuilderService) appContext
-				.getBean(ConfigurationService.indexBuilderServiceID);
+				.getBean(Constants.indexBuilderServiceID);
 		indexBuilderService.buildIndex();
 		
 	}

@@ -13,6 +13,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentDwJdbcDao;
 import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao;
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
@@ -29,6 +30,8 @@ public class IndexBuilderFromDb extends IndexBuilderService
     	/** */
 	private ExperimentJdbcDao experimentDao;
 	private ExperimentDwJdbcDao experimentDwDao;
+    //private String mageDir;
+
 	
 	/**
 	 * 
@@ -37,9 +40,8 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public IndexBuilderFromDb(ConfigurationService confService) throws ParserConfigurationException, IOException, SAXException
+	public IndexBuilderFromDb() throws ParserConfigurationException, IOException, SAXException
 	{
-		super(confService);
 	}
 
 	/**
@@ -60,12 +62,12 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
 				if (experimentDwDao.experimentExists(exp))
 				{
-				  doc.addField(ConfigurationService.FIELD_EXP_IN_DW, true);
+				  doc.addField(Constants.FIELD_EXP_IN_DW, true);
 				  XmlUtil.addExperimentFromDW(xmlDw, doc);
 				}
 				else
 				{
-					  doc.addField(ConfigurationService.FIELD_EXP_IN_DW, false);					
+					  doc.addField(Constants.FIELD_EXP_IN_DW, false);					
 				}
 				if (doc!=null)
 				{

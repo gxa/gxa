@@ -26,7 +26,7 @@ import com.Ostermiller.util.StringTokenizer;
 /**
  * 
  * Class description goes here.
- *
+ * @deprecated
  * @version 	1.0 2008-04-02
  * @author 	Miroslaw Dylag
  */
@@ -41,6 +41,7 @@ public class ExpQueryServlet extends HttpServlet {
 	
     }
     @Override
+    @Deprecated
     public void init() throws ServletException {
         // TODO Auto-generated method stub
         super.init();
@@ -67,6 +68,7 @@ public class ExpQueryServlet extends HttpServlet {
     }
     
     @Override
+    @Deprecated
     public void destroy() {
         // TODO Auto-generated method stub
         super.destroy();
