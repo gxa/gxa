@@ -17,9 +17,8 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class AtlasExperiment {
-    private String experimentId;
+    private Long experimentId;
     private String expName;
-    private long expId;
     private Collection<String> experimentTypes;
     private String experimentAccession;
     private String experimentDescription;
@@ -30,7 +29,7 @@ public class AtlasExperiment {
 
     public AtlasExperiment(SolrDocument exptDoc) {
     	
-        this.setExperimentId((String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
+        this.setExperimentId((Long)exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
         this.setExperimentTypes(exptDoc.getFieldValues(Constants.FIELD_AER_EXP_TYPE));        
         this.setExperimentAccession((String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION));
         Collection col=exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
@@ -43,7 +42,7 @@ public class AtlasExperiment {
         
     }
 
-    public void setExperimentId(String experimentId) {
+    public void setExperimentId(Long experimentId) {
         this.experimentId = experimentId;
     }
 
@@ -67,7 +66,7 @@ public class AtlasExperiment {
         this.experimentFactors = experimentFactors;
     }
 
-    public String getExperimentId() {
+    public Long getExperimentId() {
         return experimentId;
     }
 

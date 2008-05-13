@@ -218,7 +218,7 @@ public class ArrayExpressSearchService {
             query = query.substring(0,500);
 
         try {
-            SolrQuery q = new SolrQuery(Constants.FIELD_AER_FV_OE+":(" + query + ")");
+       		SolrQuery q = new SolrQuery(query);
             q.setHighlight(true);
             q.addHighlightField(Constants.FIELD_AER_FV_OE);
             q.setHighlightSnippets(500);
@@ -231,6 +231,28 @@ public class ArrayExpressSearchService {
 
         return null;
     }
+    
+    /**
+     * Returns number of documents which the query find.
+     * @param query - the lucene query
+     * @return
+     */
+    public long getExperimentsCount(String query) throws SolrServerException
+    {
+  	
+        SolrQuery q = new SolrQuery(query);
+        long count=0;
+        q.setRows(1);
+        q.setStart(0);
+        QueryResponse queryResponse = solr_expt.query(q);
+        SolrDocumentList l=queryResponse.getResults();
+        count=l.getNumFound();
+        return count;  	
+    }
+    
+    /**
+     * 
+     */
 
     /**
      * Executes an atlas query to retrieve expt acc, desc, ef, efv, gene, updn, and p-value for requested gene ids,

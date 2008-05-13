@@ -1,16 +1,20 @@
 package ae3.dao;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.ArrayExpressSearchService;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrDocument;
-
-import uk.ac.ebi.ae3.indexbuilder.Constants;
-
-import java.util.Map;
-import java.util.Collection;
+import ae3.service.QueryHelper;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,8 +25,16 @@ import java.util.Collection;
  */
 public class AtlasDao {
     
+	/**
+	 * 
+	 * @param experiment_id_key
+	 * @return
+	 * @throws AtlasObjectNotFoundException
+	 */
 	public static AtlasExperiment getExperiment(String experiment_id_key) throws AtlasObjectNotFoundException {
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(Constants.FIELD_AER_EXPID + experiment_id_key);
+    	String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_AER_EXPID + ":" + experiment_id_key + ")";
+		
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
 
         SolrDocumentList documentList = queryResponse.getResults();
 
@@ -34,12 +46,68 @@ public class AtlasDao {
         return new AtlasExperiment(exptDoc);
     }
     
+	/**
+	 * 
+	 * @param solrExptDoc
+	 * @param exptHitsResponse
+	 * @return
+	 */
     public static AtlasExperiment getExperiment(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
         AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getExperimentId()));
 
         return expt;
     }
+    
+    /**
+     * 
+     * @return
+     * @throws AtlasObjectNotFoundException 
+     */
+    public static AtlasExperiment getExperimentByAccession(String accessionId) throws AtlasObjectNotFoundException 
+    {
+    	String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_AER_EXPACCESSION + ":" + accessionId + ")";
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
+
+        SolrDocumentList documentList = queryResponse.getResults();
+
+        if (documentList == null || documentList.size() == 0)
+            throw new AtlasObjectNotFoundException(accessionId);
+        
+    	SolrDocument exptDoc = documentList.get(0);
+    	return new AtlasExperiment(exptDoc);
+       
+
+    }
+
+    public static long getExperimentsCount(String keywords[]) throws SolrServerException  
+    {
+    	String query = QueryHelper.createQuery(keywords);
+    	long count= ArrayExpressSearchService.instance().getExperimentsCount(query);
+    	return count;
+    }
+    
+    public static List<AtlasExperiment> getExperiments(String[] keywords) 
+    {
+    	String query = QueryHelper.createQuery(keywords);
+    	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
+
+        SolrDocumentList documentList = queryResponse.getResults();
+
+        //if (documentList == null || documentList.size() == 0)
+          //  throw new AtlasObjectNotFoundException(keywords[0]);
+        ArrayList<AtlasExperiment> list = new ArrayList<AtlasExperiment>();
+       
+        Iterator<SolrDocument> itDoc=documentList.iterator();
+        while (itDoc.hasNext())
+        {
+        	SolrDocument exptDoc = itDoc.next();
+        	list.add(new AtlasExperiment(exptDoc));
+        }
+        return list;
+
+    }    
+    
 
     public static AtlasGene getGene(String gene_id_key) throws AtlasObjectNotFoundException {
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_id:" + gene_id_key);
