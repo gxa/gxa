@@ -211,6 +211,18 @@ public class ArrayExpressSearchService {
      * @return {@link org.w3c.dom.Document}
      */
     public QueryResponse fullTextQueryExpts(String query) {
+    	return fullTextQueryExpts(query, 0, 50);
+    }
+    
+    /**
+     * Performs pagination and full text SOLR search on experiments. 
+     * @param query - A lucene query
+     * @param start - a start record
+     * @param rows - maximum number of Documents 
+     * @return
+     */
+    public QueryResponse fullTextQueryExpts(String query, int start, int rows) 
+    {
         if (query == null || query.equals(""))
             return null;
 
@@ -222,7 +234,8 @@ public class ArrayExpressSearchService {
             q.setHighlight(true);
             q.addHighlightField(Constants.FIELD_AER_FV_OE);
             q.setHighlightSnippets(500);
-            q.setRows(50);
+            q.setRows(rows);
+            q.setStart(start);
 //            q.setFilterQueries();
             return solr_expt.query(q);
         } catch (SolrServerException e) {
@@ -230,6 +243,7 @@ public class ArrayExpressSearchService {
         }
 
         return null;
+    	
     }
     
     /**

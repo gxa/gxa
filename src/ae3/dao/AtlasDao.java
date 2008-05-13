@@ -87,10 +87,10 @@ public class AtlasDao {
     	return count;
     }
     
-    public static List<AtlasExperiment> getExperiments(String[] keywords) 
+    public static List<AtlasExperiment> getExperiments(String[] keywords, int start, int rows) 
     {
     	String query = QueryHelper.createQuery(keywords);
-    	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
+    	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
 
         SolrDocumentList documentList = queryResponse.getResults();
 
