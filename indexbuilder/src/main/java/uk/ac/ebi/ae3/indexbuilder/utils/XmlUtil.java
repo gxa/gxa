@@ -170,7 +170,7 @@ public class XmlUtil
 	{
 		//Create an instance of SolrInputDocument 
 		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField(Constants.FIELD_XML_DOC_AER, xmlAe);
+		//doc.addField(Constants.FIELD_XML_DOC_AER, xmlAe);
 		xmlAe=xmlAe.replace("\u0019", "");
 		
 		Document xmlDoc = null;
