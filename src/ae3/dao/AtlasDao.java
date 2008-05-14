@@ -26,9 +26,9 @@ import ae3.service.QueryHelper;
 public class AtlasDao {
     
 	/**
-	 * 
+	 * Returns an AtlasExperiment that contains all information from index.
 	 * @param experiment_id_key
-	 * @return
+	 * @return the AtlasExperiment at the specified experiment_id_key. 
 	 * @throws AtlasObjectNotFoundException
 	 */
 	public static AtlasExperiment getExperiment(String experiment_id_key) throws AtlasObjectNotFoundException {
@@ -47,7 +47,7 @@ public class AtlasDao {
     }
     
 	/**
-	 * 
+	 * Returns an AtlasExperiment that contains all information from index.
 	 * @param solrExptDoc
 	 * @param exptHitsResponse
 	 * @return
@@ -60,8 +60,9 @@ public class AtlasDao {
     }
     
     /**
-     * 
+	 * Returns an AtlasExperiment that contains all information from index.
      * @return
+     * @param accessionId - an experiment accession/identifier.
      * @throws AtlasObjectNotFoundException 
      */
     public static AtlasExperiment getExperimentByAccession(String accessionId) throws AtlasObjectNotFoundException 
@@ -80,6 +81,12 @@ public class AtlasDao {
 
     }
 
+    /**
+     * Returns number of experiments. 
+     * @param keywords - search keywords.
+     * @return number of experiments.
+     * @throws SolrServerException
+     */
     public static long getExperimentsCount(String keywords[]) throws SolrServerException  
     {
     	String query = QueryHelper.createQuery(keywords);
@@ -87,6 +94,14 @@ public class AtlasDao {
     	return count;
     }
     
+    /**
+     * Return a list of AtlasExperiment objects for specify keywords. 
+     *  
+     * @param keywords - the keywords parse to query 
+     * @param start - the start record
+     * @param rows  - number of records in result set
+     * @return {@link List}<AtlasExperiment>
+     */
     public static List<AtlasExperiment> getExperiments(String[] keywords, int start, int rows) 
     {
     	String query = QueryHelper.createQuery(keywords);
