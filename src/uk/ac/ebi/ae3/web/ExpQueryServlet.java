@@ -34,7 +34,6 @@ public class ExpQueryServlet extends HttpServlet {
 
     final Logger log = Logger.getLogger(ExpQueryServlet.class.getName());
     private final static String PAR_KEYWORDS="keywords";
-    private IndexQueryService indexQueryService;
     private String multicoredir;
     public ExpQueryServlet() 
     {
@@ -43,28 +42,8 @@ public class ExpQueryServlet extends HttpServlet {
     @Override
     @Deprecated
     public void init() throws ServletException {
-        // TODO Auto-generated method stub
         super.init();
-        log.info("Init servlet " + getServletName());
-        this.multicoredir = getInitParameter("multicoredir");
-        this.indexQueryService = new IndexQueryService(this.multicoredir);
-        try {
-	    this.indexQueryService.init();
-	} catch (ParserConfigurationException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (SAXException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (IndexException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-        //init of SolrServlet
-        
+        log.info("Init servlet " + getServletName());        
     }
     
     @Override
@@ -73,15 +52,7 @@ public class ExpQueryServlet extends HttpServlet {
         // TODO Auto-generated method stub
         super.destroy();
         log.info("Destroy servlet " + getServletName());
-        this.indexQueryService.dispose();
         
-    }
-    
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        // TODO Auto-generated method stub
-        super.doPost(req, resp);
     }
     
     @Override
@@ -94,33 +65,9 @@ public class ExpQueryServlet extends HttpServlet {
     
     private void request(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 
     {
-	String keyword=req.getParameter("keyword");
+    	String keyword=req.getParameter("keyword");
         PrintWriter out=resp.getWriter();
         resp.setContentType("text/xml");       
-	try
-	{
-        //Create table
-	    if (!StringUtils.isEmpty(keyword))
-	    {
-	       StringTokenizer tok = new StringTokenizer(keyword,"+");
-	       String keywords[]=tok.toArray();
-	       log.info("Keward is " + keywords.toString());
-	       this.indexQueryService.printExperiments(keywords, out);
-	    }
-	    else
-	    {
-		out.println("<xml></xml>");
-	    }
-	 } catch (SolrServerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	    }
-	    finally
-	    {
-	      
-	       out.close();            
-		
-	    }
 	   
 	        	
     }
