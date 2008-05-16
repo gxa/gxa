@@ -393,9 +393,9 @@ public class ArrayExpressSearchService {
 
                     try {
                         if (solrExptMap != null && solrExptMap.containsKey(experiment_id_key))
-                            expt = AtlasDao.getExperiment(solrExptMap.get(experiment_id_key), exptHitsResponse);
+                            expt = AtlasDao.getExperimentByIdDw(solrExptMap.get(experiment_id_key), exptHitsResponse);
                         else
-                            expt = AtlasDao.getExperiment(experiment_id_key);
+                            expt = AtlasDao.getExperimentByIdDw(experiment_id_key);
 
 
                         if (solrGeneMap != null && solrGeneMap.containsKey(gene_id_key))

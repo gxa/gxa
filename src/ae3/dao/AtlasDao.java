@@ -31,7 +31,7 @@ public class AtlasDao {
 	 * @return the AtlasExperiment at the specified experiment_id_key. 
 	 * @throws AtlasObjectNotFoundException
 	 */
-	public static AtlasExperiment getExperiment(String experiment_id_key) throws AtlasObjectNotFoundException {
+	public static AtlasExperiment getExperimentByIdAER(String experiment_id_key) throws AtlasObjectNotFoundException {
     	String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_AER_EXPID + ":" + experiment_id_key + ")";
 		
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
@@ -52,12 +52,45 @@ public class AtlasDao {
 	 * @param exptHitsResponse
 	 * @return
 	 */
-    public static AtlasExperiment getExperiment(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
+    public static AtlasExperiment getExperimentByIdAER(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
         AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
-        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getExperimentId()));
-
+        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getAerExpId()));
         return expt;
     }
+
+    /**
+     * 
+     * @param experiment_id_key
+     * @return
+     * @throws AtlasObjectNotFoundException
+     */
+	public static AtlasExperiment getExperimentByIdDw(String experiment_id_key) throws AtlasObjectNotFoundException {
+    	//String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_DWEXP_ID + ":" + experiment_id_key + ")";
+    	String query = Constants.FIELD_DWEXP_ID + ":" + experiment_id_key;
+		
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
+
+        SolrDocumentList documentList = queryResponse.getResults();
+
+        if (documentList == null || documentList.size() == 0)
+            throw new AtlasObjectNotFoundException(experiment_id_key);
+
+        SolrDocument exptDoc = documentList.get(0);
+
+        return new AtlasExperiment(exptDoc);
+    }
+    
+	/**
+	 * @param solrExptDoc
+	 * @param exptHitsResponse
+	 * @return
+	 */
+    public static AtlasExperiment getExperimentByIdDw(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
+        AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
+        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getDwExpId()));
+        return expt;
+    }
+
     
     /**
 	 * Returns an AtlasExperiment that contains all information from index.

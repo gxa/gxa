@@ -101,38 +101,42 @@ public class XmlUtil
         for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
         {
         	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
-        	Element element =assElement.element(Constants.ARRAY_ASSAY_ELEMENTS[i]);
+        	Iterator<Element> elementIt =assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
     		String assId=null;
     		String value=null;    		
-        	
-        	if (element != null)
+        	while (elementIt.hasNext())
         	{
+        		Element element=elementIt.next();
         		value = element.getText();
+    			Attribute attr=element.attribute(Constants.AT_ASSAY_ID);
+    			if (attr!=null)
+    			{
+    			
+    				assId=attr.getStringValue();
+    			}
         		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
         		{
-        			Attribute attr=element.attribute(Constants.AT_ASSAY_ID);
-        			if (attr!=null)
-        			{
-        			
-        				assId=attr.getStringValue();
-        			}
             		//Add data to index
             		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
             		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);        			
         		}
+    			
+        		
         	}
-        }
+       	}
         //process samples
         for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
         {
         	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
-        	Element element =assElement.element(Constants.ARRAY_ASSAY_ELEMENTS[i]);
+        	
+        	Iterator<Element> elementIt = assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
     		String assId=null;
     		String sampleId=null;    		
     		String value=null;    		
         	
-        	if (element != null)
+    		while (elementIt.hasNext())
         	{
+    			Element element = elementIt.next();
         		value = element.getText();
         		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
         		{

@@ -354,9 +354,9 @@ public class AtlasResultSet {
             PreparedStatement memstm = conn.prepareStatement(insert_query);
 
             memstm.setString(1, idkey);
-            memstm.setLong(2, atlasResult.getExperiment().getExperimentId());
-            memstm.setString(3, atlasResult.getExperiment().getExperimentAccession());
-            memstm.setString(4, atlasResult.getExperiment().getExperimentDescription());
+            memstm.setLong(2, atlasResult.getExperiment().getDwExpId());
+            memstm.setString(3, atlasResult.getExperiment().getDwExpAccession());
+            memstm.setString(4, atlasResult.getExperiment().getDwExpDescription());
             memstm.setString(5, atlasResult.getGene().getGeneId());
             memstm.setString(6, atlasResult.getGene().getGeneName());
             memstm.setString(7, atlasResult.getGene().getGeneIdentifier());
