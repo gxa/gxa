@@ -169,6 +169,13 @@ public class Constants
 	public static final String EL_miamescore="miamescore";
 	public static final String EL_providers ="providers";
 	public static final String EL_provider ="provider";
+
+	/*XML attribute for DW*/
+	public static final String AT_EXPERIMENT_ID_KEY = "EXPERIMENT_ID_KEY";
+	public static final String AT_EXPERIMENT_IDENTIFIER="EXPERIMENT_IDENTIFIER";
+	public static final String AT_EXPERIMENT_DESCRIPTION="EXPERIMENT_DESCRIPTION";
+
+	/** Constant that represents the index fields for Repository*/
 	public static final String FIELD_AER_ARRAYDES_ID = "aer_arraydes_id";
 	public static final String FIELD_AER_ARRAYDES_IDENTIFIER = "aer_arraydes_identifier";
 	public static final String FIELD_AER_ARRAYDES_NAME = "aer_arraydes_name";
@@ -180,7 +187,6 @@ public class Constants
 	public static final String FIELD_AER_BDG_DATAFORMAT = "aer_bdg_dataformat";
 	public static final String FIELD_AER_BDG_BIOASSAY_COUNT = "aer_bdg_bioassay_count";
 	public static final String FIELD_AER_BDG_IS_DERIVED = "aer_bdg_is_derived";
-	/** Constant that represents the index fields for Repository*/
 	public static final String FIELD_AER_EXPACCESSION="aer_expaccession";
 	public static final String FIELD_AER_EXPID="aer_expid";
 	public static final String FIELD_AER_EXPNAME="aer_expname";
@@ -204,6 +210,12 @@ public class Constants
 	public static final String FIELD_AER_EXP_TYPE = "aer_aerdes_type";
 	public static final String FIELD_AER_DESC_ID = "aer_desc_id";
 	public static final String FIELD_AER_DESC_TEXT="aer_desc_text";
+	//DW
+	public static final String FIELD_DWEXP_ID ="dwexp_id";
+	public static final String FIELD_DWEXP_ACCESSION = "dwexp_accession";
+	public static final String FIELD_DWEXP_EXPDESC= "dwexp_expdescription";
+	public static final String FIELD_DWEXP_EXPTYPE = "dwexp_exptype";
+
 	//INDEX FIELDS
 	/** Constant that represents the index fields for DW*/
 	//public static final String FIELD_AEEXP_ACCESSION="aeexp_accession";

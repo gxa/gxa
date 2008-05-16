@@ -92,10 +92,10 @@ public class XmlUtil
 		//Parse xml String		
         xmlDoc = DocumentHelper.parseText(xmlDw);
         Element elExperiment=xmlDoc.getRootElement();
-        addFieldFromAttr(elExperiment, "EXPERIMENT_ID_KEY", doc, "dwexp_id");
-        addFieldFromAttr(elExperiment, "EXPERIMENT_IDENTIFIER", doc, "dwexp_accession");
-        addFieldFromAttr(elExperiment, "EXPERIMENT_DESCRIPTION", doc, "dwexp_expdescription");
-        addFieldFromEl(elExperiment, doc, "dwexp_exptype");
+        addFieldFromAttr(elExperiment, "EXPERIMENT_ID_KEY", doc, Constants.FIELD_DWEXP_ID);
+        addFieldFromAttr(elExperiment, "EXPERIMENT_IDENTIFIER", doc, Constants.FIELD_DWEXP_ACCESSION);
+        addFieldFromAttr(elExperiment, "EXPERIMENT_DESCRIPTION", doc, Constants.FIELD_DWEXP_EXPDESC);
+        addFieldFromEl(elExperiment, doc, Constants.FIELD_DWEXP_EXPTYPE);
         //  
         //get bioassays
         for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
@@ -150,9 +150,9 @@ public class XmlUtil
         				sampleId=attr2.getStringValue();
         			}
             		//Add data to index
-            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
-            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
+            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
+            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
+            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
             		
         		}
         	}
