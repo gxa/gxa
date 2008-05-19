@@ -24,7 +24,7 @@
     <servlet>
         <display-name>Experiment Query Servlet</display-name>
         <servlet-name>expQuery</servlet-name>
-        <servlet-class>uk.ac.ebi.ae3.web.ExpQueryServlet</servlet-class>
+        <servlet-class>ae3.servlet.ExpQueryServlet</servlet-class>
         <init-param>
             <param-name>multicoredir</param-name>
             <param-value>D:\tools\workspaces\ebi2\ae3\indexbuilder\data\multicore</param-value>

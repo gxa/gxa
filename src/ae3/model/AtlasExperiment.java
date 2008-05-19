@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 /**
  * Created by IntelliJ IDEA.
@@ -24,7 +26,7 @@ public class AtlasExperiment {
     private String aerExpName;
     private String aerExpAccession;
     private String aerExpDescription;    
-    private Long aerUserId;    
+    private Collection aerUserId;    
     
     private Collection aerExperimentTypes;
     private Collection aerSampleAtsaCategory; 
@@ -78,7 +80,7 @@ public class AtlasExperiment {
         this.aerExpAccession =  (String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION);
         this.setAerExpName((String)exptDoc.getFieldValue(Constants.FIELD_AER_EXPNAME));        
 
-        this.aerUserId = (Long)exptDoc.getFieldValue(Constants.FIELD_AER_USER_ID);
+        this.aerUserId = exptDoc.getFieldValues(Constants.FIELD_AER_USER_ID);
         this.aerSampleAtsaCategory = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
         this.aerSampleAtsaValue  = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);       
         this.aerFactName = exptDoc.getFieldValues(Constants.FIELD_AER_FV_FACTORNAME);
@@ -246,4 +248,80 @@ public class AtlasExperiment {
 	{
 		this.aerExperimentTypes = aerExperimentTypes;
 	}
+
+	public Collection getAerSampleAtsaCategory()
+	{
+		return aerSampleAtsaCategory;
+	}
+
+	public Collection getAerSampleAtsaValue()
+	{
+		return aerSampleAtsaValue;
+	}
+
+	public Collection getAerFactName()
+	{
+		return aerFactName;
+	}
+
+	public Collection getAerFactOe()
+	{
+		return aerFactOe;
+	}
+	
+	public Vector<Collection<String>> getAerSampleAttributes()
+	{		
+		if (!hasAerSampleAttributes())
+			return null;
+		Vector<Collection<String>> vec = new Vector<Collection<String>>();
+		vec.add(this.aerSampleAtsaCategory);
+		vec.add(this.aerSampleAtsaValue);
+		return vec;		
+	}
+	
+	public boolean hasAerSampleAttributes()
+	{
+		if (this.aerSampleAtsaCategory == null | this.aerSampleAtsaValue == null)
+			return false;
+		return true;
+		
+	}
+	
+	public Vector<Collection<String>> getAerFactorAttributes()
+	{		
+		if (!hasAerFactorAttributes())
+			return null;
+		Vector<Collection<String>> vec = new Vector<Collection<String>>();
+		vec.add(this.aerFactName);
+		vec.add(this.aerFactOe);
+		return vec;		
+	}
+	
+	public boolean hasAerFactorAttributes()
+	{
+		if (this.aerFactName == null | this.aerFactOe == null)
+			return false;
+		return true;
+		
+	}
+	public Vector<Collection<String>> getAerArrayDesigns()
+	{		
+		if (!hasAerArrayDesigns())
+			return null;
+		Vector<Collection<String>> vec = new Vector<Collection<String>>();
+		vec.add(this.aerArrayDesId);
+		vec.add(this.aerArrayDesIdent);
+		vec.add(this.aerArrayDesName);
+		vec.add(this.aerArrayDesCount);		
+		return vec;		
+	}
+	
+	public boolean hasAerArrayDesigns()
+	{
+		if (this.aerArrayDesId == null)
+			return false;
+		return true;
+		
+	}
+	
 }

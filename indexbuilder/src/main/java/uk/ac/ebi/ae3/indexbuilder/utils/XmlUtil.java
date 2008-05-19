@@ -3,11 +3,12 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.utils;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.text.DefaultStyledDocument.AttributeUndoableEdit;
+import java.util.Map;
+import java.util.Vector;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
@@ -16,12 +17,9 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.util.AttributeHelper;
-import org.springframework.util.StringUtils;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 /**
  * 
  * @author mdylag

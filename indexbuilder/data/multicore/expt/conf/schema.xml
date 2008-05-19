@@ -245,7 +245,7 @@
   <field name="aer_bdg_dataformat" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_bioassay_count" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_is_derived" type="string" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_desc_id" type="long" indexed="false" stored="true" multiValued="true"/>  
+  <field name="aer_desc_id" type="string" indexed="false" stored="true" multiValued="true"/>  
   <!-- dwexp -->
   <field name="dwexp_id" type="long" indexed="true" stored="true" multiValued="true"/>  
   <field name="dwexp_accession" type="string" indexed="true" stored="true" multiValued="true"/>  
