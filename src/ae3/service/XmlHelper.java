@@ -84,6 +84,7 @@ public class XmlHelper
 					elNames, expt.getAerArrayDesigns());
 			
 		}
+		//
 		
 		
 		
@@ -96,7 +97,7 @@ public class XmlHelper
 		Vector<Element> vecElem = new Vector<Element>();
 		for (int i=0; i<vec.size(); i++)
 		{
-		  Collection<String> col1 = vec.get(i);
+		  Collection col1 = vec.get(i);
 		  Iterator<String> it=col1.iterator();
 		  int k=0;
 		  boolean bAddtoVec = false;

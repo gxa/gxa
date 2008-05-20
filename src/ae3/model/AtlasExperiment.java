@@ -86,8 +86,9 @@ public class AtlasExperiment {
         this.aerFactName = exptDoc.getFieldValues(Constants.FIELD_AER_FV_FACTORNAME);
         this.aerFactOe  = exptDoc.getFieldValues(Constants.FIELD_AER_FV_OE);       
         this.aerMimeScoreName  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_NAME);       
-        this.aerMimeScoreValue  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_VALUE);       
-        this.aerArrayDesId  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_ID);       
+        this.aerMimeScoreValue  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_VALUE);
+        Collection col1= exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_ID); 
+        this.aerArrayDesId  =        
         this.aerArrayDesIdent  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_IDENTIFIER);       
         this.aerArrayDesName  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_NAME);       
         this.aerArrayDesCount  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_COUNT);       
