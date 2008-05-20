@@ -1,6 +1,8 @@
-package ae3.service;
+package ae3;
 
 import java.util.logging.Logger;
+
+import ae3.service.ArrayExpressSearchService;
 
 import junit.framework.TestCase;
 

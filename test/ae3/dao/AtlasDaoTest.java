@@ -1,10 +1,11 @@
-package ae3.service;
+package ae3.dao;
 
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.junit.Test;
 
+import ae3.AtlasAbstractTest;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;

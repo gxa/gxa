@@ -5,21 +5,24 @@ package uk.ac.ebi.ae3.indexbuilder.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.core.MultiCore;
-import org.apache.solr.core.SolrCore;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
+import uk.ac.ebi.microarray.tools4ae.helpers.FileHelper;
 /**
  * 
  * @author mdylag
@@ -27,30 +30,44 @@ import uk.ac.ebi.ae3.indexbuilder.IndexException;
  */
 public abstract class IndexBuilderService
 {
+	/** an instance of {@link UpdateResponse}**/
 	protected UpdateResponse response;
+	/** an instance of SolrEmbededIndex */
 	private SolrEmbededIndex solrEmbededIndex;
-	/** */
+	/** a path to the ftp dir*/
+	private String ftpDir;
+	/** an instance of loging interface*/
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
-
+	/** The URL to the arrayexpress download resource*/
+	private static final String EBI_URL_DOWNLOAD = "http://www.ebi.ac.uk/microarray-as/ae/download";
+	/** The extension of the fgem files*/
+	private static final String FILE_FILTER_FGEM = "processed.zip";
+	/** The extension of the raw files*/	
+	private static final String FILE_FILTER_RAW = "raw.zip";
+	/** The extension of the 2columns files*/
+	private static final String FILE_FILTER_2COLUMNS = "2columns.txt";
+	/** The extension of the SDRF files*/
+	private static final String FILE_FILTER_SDRF = "sdrf.txt";
+	/** The extension of the biosamples png files*/
+	private static final String FILE_FILTER_BIOSAMPLES_PNG = "biosamples.png";
+	/** The extension of the biosamples svg files*/
+	private static final String FILE_FILTER_BIOSAMPLES_SVG = "biosamples.svg";
 	
 	
 	/**
-	 * 
+	 * Default constructor 
 	 * @param confService
 	 * @throws ParserConfigurationException
 	 * @throws IOException
 	 * @throws SAXException
 	 */
 	public IndexBuilderService() throws ParserConfigurationException, IOException, SAXException
-
 	{
 	}
 	
-	
-	
 
 	/**
-	 * 
+	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbededIndex instance. 
 	 * @throws SolrServerException
 	 * @throws IOException
 	 */
@@ -61,7 +78,7 @@ public abstract class IndexBuilderService
 	}
 
 	/**
-	 * 
+	 *  
 	 * @throws Exception
 	 * @throws IndexException 
 	 */
@@ -85,12 +102,70 @@ public abstract class IndexBuilderService
 	protected abstract void createIndexDocs() throws Exception;
 
 
+	/**
+	 * 
+	 * @return
+	 */
 	public SolrEmbededIndex getSolrEmbededIndex() {
 	    return solrEmbededIndex;
 	}
 
+	/**
+	 * 
+	 * @param solrEmbededIndex
+	 */
 	public void setSolrEmbededIndex(SolrEmbededIndex solrEmbededIndex) {
 	    this.solrEmbededIndex = solrEmbededIndex;
 	}
 
+
+
+	/**
+	 * Return a path to the experiments' ftp directory.
+	 * @return - String which contains path to directory when are the experiments
+	 */
+	public String getFtpDir()
+	{
+		return ftpDir;
+	}
+
+	/**
+	 * Sets 
+	 * @param ftpDir
+	 */
+	public void setFtpDir(String ftpDir)
+	{
+		this.ftpDir = ftpDir;
+	}
+
+	protected void getInfoFromFtp(String identifier, SolrInputDocument doc)
+	{
+   	    String subDir = identifier.substring(identifier.indexOf("-")+1, identifier.lastIndexOf("-"));
+		String dir = FilenameUtils.concat(ftpDir, subDir);
+		dir = FilenameUtils.concat(dir, identifier);
+		String[] fileFilter = {FILE_FILTER_FGEM, FILE_FILTER_RAW,FILE_FILTER_SDRF,"2columns.txt","biosamples.png","biosamples.svg"};
+		log.info(dir);
+		File fDir = new File(dir);
+		if (fDir.isDirectory())
+		{
+			Collection<File> col= FileUtils.listFiles(fDir, fileFilter, true);
+			Iterator<File> it=col.iterator();
+			while (it.hasNext())
+			{
+				File f=it.next();
+				String fileName = f.getName();
+				if (FileHelper.isSDRFFile(fileName))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_fgem_file", fileName);
+				}
+			
+			}
+		
+		}
+		else
+		{
+			log.warn("Directory " + fDir.getAbsolutePath() + " does not exists.");
+		}
+	}
 }

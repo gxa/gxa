@@ -5,6 +5,8 @@ import java.util.logging.Logger;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.junit.Test;
 
+import ae3.AtlasAbstractTest;
+
 
 import junit.framework.TestCase;
 

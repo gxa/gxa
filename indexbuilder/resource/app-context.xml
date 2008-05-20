@@ -39,6 +39,7 @@
 	   <property name="experimentDao" ref="experimentJdbcDao"></property>
 	   <property name="experimentDwDao" ref="experimentDwJdbcDao"></property>
 	   <property name="solrEmbededIndex" ref="solrEmbededIndex"></property>
+	   <property name="ftpDir" value="${indexbuilder.ftp}"></property>
 	</bean>
 	
 

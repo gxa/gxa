@@ -1,10 +1,8 @@
 package ae3.service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import org.dom4j.Document;
@@ -72,18 +70,18 @@ public class XmlHelper
 			
 		}
 		//TODO: Add mimescore 
-		el=elExp.addElement(Constants.EL_arraydesigns);
-		elNames.clear();
-		elNames.add(Constants.AT_id);
-		elNames.add(Constants.AT_identifier);
-		elNames.add(Constants.AT_name);
-		elNames.add(Constants.AT_count);		
-		if (expt.hasAerArrayDesigns())
-		{
-			createElementsFromCollection(el, Constants.EL_arraydesign, 
-					elNames, expt.getAerArrayDesigns());
+		//el=elExp.addElement(Constants.EL_arraydesigns);
+		//elNames.clear();
+		//elNames.add(Constants.AT_id);
+		//elNames.add(Constants.AT_identifier);
+		//elNames.add(Constants.AT_name);
+		//elNames.add(Constants.AT_count);		
+		//if (expt.hasAerArrayDesigns())
+		//{
+			//createElementsFromCollection(el, Constants.EL_arraydesign, 
+				//	elNames, expt.getAerArrayDesigns());
 			
-		}
+		//}
 		//
 		
 		

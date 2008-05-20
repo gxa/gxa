@@ -3,6 +3,7 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -42,6 +43,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	 */
 	public IndexBuilderFromDb() throws ParserConfigurationException, IOException, SAXException
 	{
+		
 	}
 
 	/**
@@ -60,6 +62,8 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				SolrInputDocument doc = null;
 				doc = XmlUtil.createSolrInputDoc(xml);
 				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
+				//Add information about ftp files to SolrDocument
+				getInfoFromFtp(exp.getAccession(), doc);
 				if (experimentDwDao.experimentExists(exp))
 				{
 				  doc.addField(Constants.FIELD_EXP_IN_DW, true);
@@ -99,6 +103,8 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	{
 		this.experimentDwDao = experimentDwDao;
 	}
+	
+	
 	
 
 
