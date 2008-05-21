@@ -27,7 +27,7 @@ public class ExperimentDwJdbcDao
 	private JdbcTemplate jdbcTemplate;
 	/** The SQL string which returns xml for one experiment **/
 	private static final String SQL_ASXML = " SELECT XmlElement(\"experiment\",XmlAttributes( experiment.experiment_id_key, experiment.experiment_identifier, experiment.experiment_description )," +
-			" (SELECT XmlAgg ( XmlForest ( experiment_type.value as \"type\") ) FROM ae1__experiment_type__dm experiment_type WHERE experiment.experiment_id_key=experiment_type.experiment_id_key)," +
+			" (SELECT XmlAgg ( XmlForest ( experiment_type.value as \"txt_type\") ) FROM ae1__experiment_type__dm experiment_type WHERE experiment.experiment_id_key=experiment_type.experiment_id_key)," +
 			" (xmlelement(\"assay_attributes\",(SELECT distinct XmlAgg(XmlForest ( ba_age.value as \"ba_age\" )) FROM ae1__assay_age__dm ba_age WHERE experiment.experiment_id_key=ba_age.experiment_id_key)," +
 			" (SELECT distinct XmlAgg(XmlElement ( \"ba_biometric\", XMLAttributes(ba_biometric.assay_id_key as \"assay_id\"), ba_biometric.value )) FROM ae1__assay_biometric__dm ba_biometric WHERE experiment.experiment_id_key=ba_biometric.experiment_id_key)," +
 			" (SELECT distinct XmlAgg(XmlElement ( \"ba_cellline\", XMLAttributes(ba_cellline.assay_id_key as \"assay_id\"), ba_cellline.value  )) FROM ae1__assay_cellline__dm ba_cellline WHERE experiment.experiment_id_key=ba_cellline.experiment_id_key)," +

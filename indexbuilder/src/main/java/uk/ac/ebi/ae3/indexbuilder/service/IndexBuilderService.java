@@ -150,15 +150,45 @@ public abstract class IndexBuilderService
 		{
 			Collection<File> col= FileUtils.listFiles(fDir, fileFilter, true);
 			Iterator<File> it=col.iterator();
+			FileHelper.AeFileType mhyType;
 			while (it.hasNext())
 			{
 				File f=it.next();
-				String fileName = f.getName();
-				if (FileHelper.isSDRFFile(fileName))
+				String filename = f.getName();
+				if (FileHelper.isSdrfExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_fgem_file", fileName);
+					doc.addField("aer_file_sdrf", filename);
 				}
+				else if (FileHelper.isFgemExtension(filename))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_file_fgem", filename);					
+				}
+				else if (FileHelper.isBiosamplePng(filename))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_file_biosamplepng", filename);					
+				}
+				else if (FileHelper.isBiosampleSvg(filename))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_file_biosamplesvg", filename);					
+					
+				}
+				else if (FileHelper.isRawExtension(filename))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_file_raw", filename);					
+
+				}
+				else if (FileHelper.isTwoColumnsExtension(filename))
+				{
+					log.info("##################################### Find file" + f);
+					doc.addField("aer_file_twocolumns", filename);					
+					
+				}
+
 			
 			}
 		

@@ -42,8 +42,8 @@ public class AtlasDao {
             throw new AtlasObjectNotFoundException(experiment_id_key);
 
         SolrDocument exptDoc = documentList.get(0);
-
-        return new AtlasExperiment(exptDoc);
+        
+        return AtlasExperiment.load(exptDoc, true, true);
     }
     
 	/**
@@ -52,8 +52,8 @@ public class AtlasDao {
 	 * @param exptHitsResponse
 	 * @return
 	 */
-    public static AtlasExperiment getExperimentByIdAER(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
-        AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
+    public static AtlasExperiment getExperimentByIdAER(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);;
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getAerExpId()));
         return expt;
     }
@@ -77,7 +77,8 @@ public class AtlasDao {
 
         SolrDocument exptDoc = documentList.get(0);
 
-        return new AtlasExperiment(exptDoc);
+        return AtlasExperiment.load(exptDoc, true, true);
+
     }
     
 	/**
@@ -85,8 +86,8 @@ public class AtlasDao {
 	 * @param exptHitsResponse
 	 * @return
 	 */
-    public static AtlasExperiment getExperimentByIdDw(SolrDocument solrExptDoc, QueryResponse exptHitsResponse) {
-        AtlasExperiment expt = new AtlasExperiment(solrExptDoc);
+    public static AtlasExperiment getExperimentByIdDw(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);;
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getDwExpId()));
         return expt;
     }
@@ -109,8 +110,7 @@ public class AtlasDao {
             throw new AtlasObjectNotFoundException(accessionId);
         
     	SolrDocument exptDoc = documentList.get(0);
-    	return new AtlasExperiment(exptDoc);
-       
+    	return AtlasExperiment.load(exptDoc, true, true);      
 
     }
 
@@ -135,7 +135,7 @@ public class AtlasDao {
      * @param rows  - number of records in result set
      * @return {@link List}<AtlasExperiment>
      */
-    public static List<AtlasExperiment> getExperiments(String[] keywords, int start, int rows) 
+    public static List<AtlasExperiment> getExperimentsAer(String[] keywords, int start, int rows) 
     {
     	String query = QueryHelper.createQuery(keywords);
     	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
@@ -150,7 +150,9 @@ public class AtlasDao {
         while (itDoc.hasNext())
         {
         	SolrDocument exptDoc = itDoc.next();
-        	list.add(new AtlasExperiment(exptDoc));
+        	AtlasExperiment atlasExp = new AtlasExperiment(true, false);
+        	atlasExp.load(exptDoc);
+        	list.add(atlasExp);
         }
         return list;
 

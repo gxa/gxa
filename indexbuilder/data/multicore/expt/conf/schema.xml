@@ -234,25 +234,37 @@
    -->
 
   <field name="aer_expid" type="long" indexed="true" stored="true"/>
-  <field name="aer_expaccession" type="string" indexed="true" stored="true"/>
-  <field name="aer_expname" type="string" indexed="true" stored="true"/>
+  <field name="aer_txt_expaccession" type="string" indexed="true" stored="true"/>
+  <field name="aer_txt_expname" type="string" indexed="false" stored="true"/>
   <field name="exp_in_dw" type="boolean" indexed="false" stored="true"/>
   <field name="aer_releasedate" type="string" indexed="false" stored="true"/>     
   <field name="aer_user_id" type="long" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_arraydes_id" type="long" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_txt_saat_cat" type="string" indexed="true" stored="true"/>
+  <field name="aer_txt_saat_value" type="string" indexed="true" stored="true"/>
+  <field name="aer_arraydes_id" type="long" indexed="true" stored="true" multiValued="true"/>
   <field name="aer_arraydes_count" type="integer" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_id" type="long" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_dataformat" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_bioassay_count" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_is_derived" type="string" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_desc_id" type="string" indexed="false" stored="true" multiValued="true"/>  
+  <field name="aer_desc_id" type="string" indexed="false" stored="true" multiValued="true"/>
+
+  <field name="aer_file_sdrf" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_file_fgem" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_file_biosamplepng" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_file_biosamplesvg" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_file_raw" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_file_twocolumns" type="string" indexed="false" stored="true" multiValued="true"/>    
+  
   <!-- dwexp -->
-  <field name="dwexp_id" type="long" indexed="true" stored="true" multiValued="true"/>  
-  <field name="dwexp_accession" type="string" indexed="true" stored="true" multiValued="true"/>  
-  <field name="dwexp_expdescription" type="string" indexed="true" stored="true" multiValued="true"/>  
+  <field name="dwe_id" type="long" indexed="true" stored="true" multiValued="true"/>  
+  <field name="dwe_txt_accession" type="string" indexed="true" stored="true" multiValued="true"/>  
+  <field name="dwe_txt_expdescription" type="string" indexed="false" stored="true" multiValued="true"/>  
+  <field name="dwe_txt_exptype" type="string" indexed="false" stored="true" multiValued="true"/>  
     
    <!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema  -->
-   <field name="text" type="text" indexed="true" stored="true" multiValued="true"/>
+   <field name="aer_text" type="text" indexed="true" stored="true" multiValued="true"/>
+   <field name="dwe_text" type="text" indexed="true" stored="true" multiValued="true"/>
 
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
@@ -265,17 +277,21 @@
 
 
   <!-- field to use to determine and enforce document uniqueness. -->
- <uniqueKey>aer_expaccession</uniqueKey>
+ <uniqueKey>aer_txt_expaccession</uniqueKey>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
- <defaultSearchField>text</defaultSearchField>
+ <defaultSearchField>aer_text</defaultSearchField>
 
  <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
  <solrQueryParser defaultOperator="OR"/>
 
- <copyField source="ba_*" dest="exp_factors"/>
- <copyField source="bs_*" dest="exp_factors"/>
- <copyField source="aer_*" dest="text"/>
+ <copyField source="dwe_ba_*" dest="exp_factors"/>
+ <copyField source="dwe_bs_*" dest="exp_factors"/>
+ <copyField source="aer_txt*" dest="aer_text"/>
+ <copyField source="dwe_txt*" dest="dwe_text"/>
+ <copyField source="dwe_ba*" dest="dwe_text"/>
+ <copyField source="dwe_bs*" dest="dwe_text"/>
+ 
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,

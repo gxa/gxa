@@ -67,7 +67,7 @@ public class AtlasDaoTest extends AtlasAbstractTest
 		{
 		  start = rows;		  
 		  rows = rows + 10;
-		  List<AtlasExperiment> l=AtlasDao.getExperiments(keywords,start,10);
+		  List<AtlasExperiment> l=AtlasDao.getExperimentsAer(keywords,start,10);
 		  log.info("############### Results: " + l.size());
 		}
 		

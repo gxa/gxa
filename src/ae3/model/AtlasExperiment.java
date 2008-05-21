@@ -27,6 +27,8 @@ public class AtlasExperiment {
     private String aerExpAccession;
     private String aerExpDescription;    
     private Collection aerUserId;    
+    private boolean loadAer = true;
+    private boolean loadDwe = true;
     
     private Collection aerExperimentTypes;
     private Collection aerSampleAtsaCategory; 
@@ -74,8 +76,25 @@ public class AtlasExperiment {
     private Map<String, List<String>> experimentHighlights;
     
 
-    public AtlasExperiment(SolrDocument exptDoc) {
-    	
+    /**
+     * 
+     * @param exptDoc
+     */
+    public AtlasExperiment(boolean loadaer, boolean loaddw) {
+    	this.loadAer = loadaer;
+    	this.loadDwe = loadDwe;
+        
+    }
+    
+    public static AtlasExperiment load(SolrDocument exptdoc, boolean loadaer, boolean loaddwe)
+    {
+    	AtlasExperiment expt = new AtlasExperiment(loadaer, loaddwe);
+    	expt.load(exptdoc);
+    	return expt;
+    }
+    
+    public void load(SolrDocument exptDoc)
+    {
         this.setAerExpId ((Long)exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
         this.aerExpAccession =  (String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION);
         this.setAerExpName((String)exptDoc.getFieldValue(Constants.FIELD_AER_EXPNAME));        
@@ -120,8 +139,8 @@ public class AtlasExperiment {
     	//Bioassay DW
         for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
         {
-        	Collection colValue=exptDoc.getFieldValues(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i]);
-        	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
+        	Collection colValue=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);
+        	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
         	this.atlasDwAsList.add(new AtlasDwAssay(Constants.ARRAY_ASSAY_ELEMENTS[i], colValue, colId));
         	
         }       
@@ -129,9 +148,9 @@ public class AtlasExperiment {
         this.atlasDwSampleList = new ArrayList<AtlasDwSample>();
         for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
         {
-        	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID);
-        	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
-        	Collection colValues=exptDoc.getFieldValues(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i]);        	
+        	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID);
+        	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
+        	Collection colValues=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);        	
         	this.atlasDwSampleList.add(new AtlasDwSample(Constants.ARRAY_SAMPLE_ELEMENTS[i], colSampleIds, colAssayIds, colValues));
         	
     		
@@ -141,7 +160,7 @@ public class AtlasExperiment {
         //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
         //this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
         //this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
-        
+    	
     }
 
     public void setAerExpId (Long aerExpId ) {

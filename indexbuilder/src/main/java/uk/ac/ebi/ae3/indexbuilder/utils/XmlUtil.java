@@ -115,8 +115,8 @@ public class XmlUtil
         		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
         		{
             		//Add data to index
-            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);        			
+            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
+            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);        			
         		}
     			
         		
@@ -152,9 +152,9 @@ public class XmlUtil
         				sampleId=attr2.getStringValue();
         			}
             		//Add data to index
-            		doc.addField(Constants.PREFIX_AEDW + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
-            		doc.addField(Constants.PREFIX_AEDW  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
+            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
+            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
+            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
             		
         		}
         	}

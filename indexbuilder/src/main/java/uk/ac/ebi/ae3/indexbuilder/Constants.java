@@ -177,44 +177,44 @@ public class Constants
 
 	/** Constant that represents the index fields for Repository*/
 	public static final String FIELD_AER_ARRAYDES_ID = "aer_arraydes_id";
-	public static final String FIELD_AER_ARRAYDES_IDENTIFIER = "aer_arraydes_identifier";
-	public static final String FIELD_AER_ARRAYDES_NAME = "aer_arraydes_name";
+	public static final String FIELD_AER_ARRAYDES_IDENTIFIER = "aer_txt_arraydes_identifier";
+	public static final String FIELD_AER_ARRAYDES_NAME = "aer_txt_arraydes_name";
 	public static final String FIELD_AER_ARRAYDES_COUNT = "aer_arraydes_count";
-	public static final String FIELD_AER_BDG_NAME = "aer_bdg_name";
+	public static final String FIELD_AER_BDG_NAME = "aer_txt_bdg_name";
 	public static final String FIELD_AER_BDG_ID = "aer_bdg_id";
 	public static final String FIELD_AER_BDG_NUM_BAD_CUBES = "aer_bdg_num_bad_cubes";
-	public static final String FIELD_AER_BDG_ARRAYDESIGN = "aer_bdg_arraydesign";
+	public static final String FIELD_AER_BDG_ARRAYDESIGN = "aer_txt_bdg_arraydesign";
 	public static final String FIELD_AER_BDG_DATAFORMAT = "aer_bdg_dataformat";
 	public static final String FIELD_AER_BDG_BIOASSAY_COUNT = "aer_bdg_bioassay_count";
 	public static final String FIELD_AER_BDG_IS_DERIVED = "aer_bdg_is_derived";
-	public static final String FIELD_AER_EXPACCESSION="aer_expaccession";
+	public static final String FIELD_AER_EXPACCESSION="aer_txt_expaccession";
 	public static final String FIELD_AER_EXPID="aer_expid";
-	public static final String FIELD_AER_EXPNAME="aer_expname";
+	public static final String FIELD_AER_EXPNAME="aer_txt_expname";
 	public static final String FIELD_AER_RELEASEDATE="aer_releasedate";
 	public static final String FIELD_AER_USER_ID="aer_user_id";
-	public static final String FIELD_AER_SAAT_CAT = "aer_saat_cat";
-	public static final String FIELD_AER_SAAT_VALUE = "aer_saat_value";
-	public static final String FIELD_AER_FV_FACTORNAME = "aer_fv_factorname";
-	public static final String FIELD_AER_FV_OE = "aer_fv_oe";
-	public static final String FIELD_AER_MIMESCORE_NAME = "aer_mimescore_name";
-	public static final String FIELD_AER_MIMESCORE_VALUE = "aer_mimescore_value";
-	public static final String FIELD_AER_BI_PUBLICATION = "aer_bi_publication";
-	public static final String FIELD_AER_BI_AUTHORS = "aer_bi_authors";
-	public static final String FIELD_AER_BI_TITLE = "aer_bi_title";
+	public static final String FIELD_AER_SAAT_CAT = "aer_txt_saat_cat";
+	public static final String FIELD_AER_SAAT_VALUE = "aer_txt_saat_value";
+	public static final String FIELD_AER_FV_FACTORNAME = "aer_txt_fv_factorname";
+	public static final String FIELD_AER_FV_OE = "aer_txt_fv_oe";
+	public static final String FIELD_AER_MIMESCORE_NAME = "aer_txt_mimescore_name";
+	public static final String FIELD_AER_MIMESCORE_VALUE = "aer_txt_mimescore_value";
+	public static final String FIELD_AER_BI_PUBLICATION = "aer_txt_bi_publication";
+	public static final String FIELD_AER_BI_AUTHORS = "aer_txt_bi_authors";
+	public static final String FIELD_AER_BI_TITLE = "aer_txt_bi_title";
 	public static final String FIELD_AER_BI_YEAR = "aer_bi_year";
 	public static final String FIELD_AER_BI_VOLUME = "aer_bi_volume";
 	public static final String FIELD_AER_BI_ISSUE = "aer_bi_issue";
 	public static final String FIELD_AER_BI_PAGES = "aer_bi_pages";
-	public static final String FIELD_AER_PROVIDER_CONTRACT = "aer_provider_contact";
-	public static final String FIELD_AER_PROVIDER_ROLE = "aer_provider_role";
-	public static final String FIELD_AER_EXP_TYPE = "aer_aerdes_type";
+	public static final String FIELD_AER_PROVIDER_CONTRACT = "aer_txt_provider_contact";
+	public static final String FIELD_AER_PROVIDER_ROLE = "aer_txt_provider_role";
+	public static final String FIELD_AER_EXP_TYPE = "aer_txt_aerdes_type";
 	public static final String FIELD_AER_DESC_ID = "aer_desc_id";
-	public static final String FIELD_AER_DESC_TEXT="aer_desc_text";
+	public static final String FIELD_AER_DESC_TEXT="aer_txt_desc_text";
 	//DW
-	public static final String FIELD_DWEXP_ID ="dwexp_id";
-	public static final String FIELD_DWEXP_ACCESSION = "dwexp_accession";
-	public static final String FIELD_DWEXP_EXPDESC= "dwexp_expdescription";
-	public static final String FIELD_DWEXP_EXPTYPE = "dwexp_exptype";
+	public static final String FIELD_DWEXP_ID ="dwe_id";
+	public static final String FIELD_DWEXP_ACCESSION = "dwe_txt_accession";
+	public static final String FIELD_DWEXP_EXPDESC= "dwe_txt_expdescription";
+	public static final String FIELD_DWEXP_EXPTYPE = "dwe_txt_exptype";
 
 	//INDEX FIELDS
 	/** Constant that represents the index fields for DW*/
@@ -223,7 +223,7 @@ public class Constants
 	
 	public static final String FIELD_XML_DOC_AER = "xml_doc_aer";
 	public static final String FIELD_EXP_IN_DW = "exp_in_dw";
-	public static final String PREFIX_AEDW="aew_";
+	public static final String PREFIX_DWE="dwe_";
 	public static final String SUFFIX_ASSAY_ID = "assay_id";
 	public static final String SUFFIX_SAMPLE_ID = "sample_id";
 	

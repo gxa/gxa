@@ -41,7 +41,7 @@ import com.Ostermiller.util.StringTokenizer;
  * http://localhost:8082/ae3/expQuery?keywords=cancer&option=count * 
  * 2) Returns XML document which contains experiment  *  
  * http://localhost:8082/ae3/expQuery?keywords=cancer&option=get&start=0&rows=10
- * 
+ * @deprecated
  * @version 	1.0 2008-04-02
  * @author 	Miroslaw Dylag
  */
@@ -137,7 +137,7 @@ public class ExpQueryServlet extends HttpServlet {
         	//get experiments
         	int _start = Integer.parseInt(start);
         	int _rows = Integer.parseInt(rows);        	
-        	List <AtlasExperiment> exps=AtlasDao.getExperiments(keywords, _start, _rows);
+        	List <AtlasExperiment> exps=AtlasDao.getExperimentsAer(keywords, _start, _rows);
         	Document doc=XmlHelper.createXmlDoc(exps, keywords, Long.toString(count), start, rows);
             out.write(doc.asXML());
         }

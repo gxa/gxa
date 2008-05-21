@@ -26,6 +26,6 @@ public class QueryHelper
 	    
 	    String query = buff.toString().trim();
 	    return query;	    
-	}	
+	}
 	
 }
