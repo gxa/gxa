@@ -239,8 +239,8 @@
   <field name="exp_in_dw" type="boolean" indexed="false" stored="true"/>
   <field name="aer_releasedate" type="string" indexed="false" stored="true"/>     
   <field name="aer_user_id" type="long" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_txt_saat_cat" type="string" indexed="true" stored="true"/>
-  <field name="aer_txt_saat_value" type="string" indexed="true" stored="true"/>
+  <field name="aer_txt_saat_cat" type="string" indexed="true" stored="true" multiValued="true"/>
+  <field name="aer_txt_saat_value" type="string" indexed="true" stored="true" multiValued="true"/>
   <field name="aer_arraydes_id" type="long" indexed="true" stored="true" multiValued="true"/>
   <field name="aer_arraydes_count" type="integer" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_id" type="long" indexed="false" stored="true" multiValued="true"/>
