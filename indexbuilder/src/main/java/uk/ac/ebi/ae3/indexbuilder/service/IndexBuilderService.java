@@ -194,7 +194,7 @@ public abstract class IndexBuilderService
 		}
 		else
 		{
-			log.warn("Directory " + fDir.getAbsolutePath() + " does not exists.");
+			log.warn("Directory " + fDir.getAbsolutePath() + " does not exist.");
 		}
 	}
 }
