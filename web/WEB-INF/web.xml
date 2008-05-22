@@ -21,17 +21,6 @@
         <load-on-startup>0</load-on-startup>
     </servlet>
 
-    <servlet>
-        <display-name>Experiment Query Servlet</display-name>
-        <servlet-name>expQuery</servlet-name>
-        <servlet-class>ae3.servlet.ExpQueryServlet</servlet-class>
-        <init-param>
-            <param-name>multicoredir</param-name>
-            <param-value>D:\tools\workspaces\ebi2\ae3\indexbuilder\data\multicore</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
     <servlet-mapping>
         <servlet-name>vtext</servlet-name>
         <url-pattern>/vtext</url-pattern>
@@ -40,11 +29,6 @@
     <servlet-mapping>
         <servlet-name>query</servlet-name>
         <url-pattern>/query</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>expQuery</servlet-name>
-        <url-pattern>/expQuery</url-pattern>
     </servlet-mapping>
 
     <login-config>
