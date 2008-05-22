@@ -75,7 +75,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				}
 				if (doc!=null)
 				{
-					getSolrEmbededIndex().addDoc(doc);
+					getSolrEmbeddedIndex().addDoc(doc);
 				}
 
 			}

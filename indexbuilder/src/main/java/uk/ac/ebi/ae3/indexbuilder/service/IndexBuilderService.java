@@ -16,7 +16,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.xml.sax.SAXException;
 
@@ -32,8 +31,8 @@ public abstract class IndexBuilderService
 {
 	/** an instance of {@link UpdateResponse}**/
 	protected UpdateResponse response;
-	/** an instance of SolrEmbededIndex */
-	private SolrEmbededIndex solrEmbededIndex;
+	/** an instance of SolrEmbeddedIndex */
+	private SolrEmbeddedIndex solrEmbeddedIndex;
 	/** a path to the ftp dir*/
 	private String ftpDir;
 	/** an instance of loging interface*/
@@ -67,14 +66,14 @@ public abstract class IndexBuilderService
 	
 
 	/**
-	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbededIndex instance. 
+	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbeddedIndex instance.
 	 * @throws SolrServerException
 	 * @throws IOException
 	 */
 	protected void dispose() throws SolrServerException, IOException
 	{
-	   solrEmbededIndex.commit();
-	   solrEmbededIndex.dispose();
+	   solrEmbeddedIndex.commit();
+	   solrEmbeddedIndex.dispose();
 	}
 
 	/**
@@ -86,7 +85,7 @@ public abstract class IndexBuilderService
 	{
 		try
 		{
-		    solrEmbededIndex.init();
+		    solrEmbeddedIndex.init();
 		    createIndexDocs();		
 		}
 		catch (Exception e)
@@ -106,16 +105,16 @@ public abstract class IndexBuilderService
 	 * 
 	 * @return
 	 */
-	public SolrEmbededIndex getSolrEmbededIndex() {
-	    return solrEmbededIndex;
+	public SolrEmbeddedIndex getSolrEmbeddedIndex() {
+	    return solrEmbeddedIndex;
 	}
 
 	/**
 	 * 
-	 * @param solrEmbededIndex
+	 * @param solrEmbeddedIndex
 	 */
-	public void setSolrEmbededIndex(SolrEmbededIndex solrEmbededIndex) {
-	    this.solrEmbededIndex = solrEmbededIndex;
+	public void setSolrEmbeddedIndex(SolrEmbeddedIndex solrEmbeddedIndex) {
+	    this.solrEmbeddedIndex = solrEmbeddedIndex;
 	}
 
 
