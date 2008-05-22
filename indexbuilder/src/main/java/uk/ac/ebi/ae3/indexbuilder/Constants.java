@@ -210,6 +210,9 @@ public class Constants
 	public static final String FIELD_AER_EXP_TYPE = "aer_txt_aerdes_type";
 	public static final String FIELD_AER_DESC_ID = "aer_desc_id";
 	public static final String FIELD_AER_DESC_TEXT="aer_txt_desc_text";
+	public static final String FIELD_AER_TOTAL_HYBS = "aer_total_hybs";
+	public static final String FIELD_AER_TOTAL_SAMPL = "aer_total_samples";
+
 	//DW
 	public static final String FIELD_DWEXP_ID ="dwe_id";
 	public static final String FIELD_DWEXP_ACCESSION = "dwe_txt_accession";

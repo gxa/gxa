@@ -9,7 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.Attribute;
@@ -27,7 +29,7 @@ import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
  */
 public class XmlUtil
 {
-	
+	private static final Logger log = Logger.getLogger(XmlUtil.class.getName());
 	/**
 	 * TODO: Method does not complete
 	 * @param experiment
@@ -317,8 +319,76 @@ public class XmlUtil
 		{
 			el=list.get(i);
 			addFieldFromAttr(el, "id", doc, Constants.FIELD_AER_DESC_ID);
-			doc.addField(Constants.FIELD_AER_DESC_TEXT, el.getText());			
-		}		
+			String descText = el.getText();
+			doc.addField(Constants.FIELD_AER_DESC_TEXT, descText);
+
+			//Parse string to find num of hybs and samples
+			if (descText.indexOf("(Generated Description)") != -1)
+			{
+				Integer totalSample = getSamplesFromDesc(descText);
+				Integer totalHybs = getHybsFromDesc(descText);
+				if (totalSample != null)
+				{
+					doc.addField(Constants.FIELD_AER_TOTAL_SAMPL, totalSample);
+				}
+				if (totalHybs!=null)
+				{
+					doc.addField(Constants.FIELD_AER_TOTAL_HYBS, totalHybs);
+				}
+			}
+			
+		}
+		
 		return doc;
 	}
+
+	private static final Integer getSamplesFromDesc(String descText)
+	{
+		Integer value = null;
+		try
+		{
+			if (!StringUtils.isEmpty(descText))
+			{
+				int idxHybBegin = descText.indexOf("Experiment with");
+				int idxHybEnd = descText.indexOf("hybrydization");
+
+				String str=descText.substring(idxHybBegin + 16, idxHybEnd);
+				value = new Integer(Integer.parseInt(str.trim()));
+			}
+		}
+		catch (Exception e) 
+		{
+			log.info("Error" + e.getMessage());
+		}
+		finally
+		{
+			return value;
+		}
+	}
+	
+	private static final Integer getHybsFromDesc(String descText)
+	{
+		Integer value =null;
+		try
+		{
+			if (!StringUtils.isEmpty(descText))
+			{
+
+				int idxSampBegin = descText.indexOf("hybrydizations, using");
+				int idxSampEnd = descText.indexOf("samples");
+				String str=descText.substring(idxSampBegin + 21, idxSampEnd);
+			}
+		}
+		catch (Exception e) 
+		{
+			log.info("Error" + e.getMessage());
+		}
+		finally
+		{
+			return value;
+		}
+		
+		
+	}
+
 }

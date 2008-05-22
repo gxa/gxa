@@ -257,6 +257,9 @@
   <field name="aer_file_biosamplesvg" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_raw" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_twocolumns" type="string" indexed="false" stored="true" multiValued="true"/>    
+
+  <field name="aer_total_hybs" type="integer" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_total_samples" type="integer" indexed="false" stored="true" multiValued="true"/>    
   
   <!-- dwexp -->
   <field name="dwe_id" type="long" indexed="true" stored="true" multiValued="true"/>  
