@@ -268,8 +268,8 @@
    <field name="aer_text" type="text" indexed="true" stored="false" multiValued="true"/>
    <field name="dwe_text" type="text" indexed="true" stored="false" multiValued="true"/>
 
-   <field name="exp_factors" type="text" indexed="true" stored="false" multiValued="true"/>
-   <field name="exp_factors_hl" type="string" indexed="false" stored="true" multiValued="true"/>
+   <field name="exp_factor_values" type="text" indexed="true" stored="true" multiValued="true"/>
+   <!--<field name="exp_factors_hl" type="text" indexed="false" stored="true" multiValued="true"/>-->
 
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
@@ -293,8 +293,8 @@
  <copyField source="dwe_ba_*" dest="exp_factors"/>
  <copyField source="dwe_bs_*" dest="exp_factors"/>
 
- <copyField source="dwe_ba_*" dest="exp_factors_hl"/>
- <copyField source="dwe_bs_*" dest="exp_factors_hl"/>
+ <!--<copyField source="dwe_ba_*" dest="exp_factors_hl"/>-->
+ <!--<copyField source="dwe_bs_*" dest="exp_factors_hl"/>-->
 
  <copyField source="aer_txt*" dest="aer_text"/>
  <copyField source="dwe_txt*" dest="dwe_text"/>
