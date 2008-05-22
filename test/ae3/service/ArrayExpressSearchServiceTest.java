@@ -25,7 +25,8 @@ public class ArrayExpressSearchServiceTest extends AtlasAbstractTest
 	public void test_fullTextQueryExpts()
 	{
 		log.info("Start test searchExptTest");
-		String query = Constants.FIELD_AER_SAAT_CAT + ":Organism";
+		String query = "(cancer )";
+		query = query + " AND ( " + Constants.FIELD_AER_SAAT_CAT + ":Organism AND " + Constants.FIELD_AER_SAAT_VALUE + ":\"Mus musculus\" )";
 		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query);
 		long count = resp.getResults().getNumFound();
 		log.info("####################### Count" + count);

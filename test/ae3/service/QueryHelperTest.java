@@ -7,7 +7,7 @@ public class QueryHelperTest extends AtlasAbstractTest
 	public void test_parseQuery()
 	{
 		String[] keywords = {"cancer"};
-		String query = QueryHelper.createQuery(keywords);
+		String query = QueryHelper.prepareQueryByKeywords(keywords);
 		log.info("######### Query is " + query);
 	}
 }

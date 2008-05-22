@@ -1,11 +1,26 @@
 package ae3.service.search;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
+import ae3.model.AtlasExperiment;
 import ae3.service.ArrayExpressSearchService;
+import ae3.service.QueryHelper;
 
 import com.Ostermiller.util.StringTokenizer;
 
@@ -19,52 +34,9 @@ import com.Ostermiller.util.StringTokenizer;
  */
 public class AeSearchService
 {
-	
-	private static boolean validateParam(String keywords, String species, Long arrayDesId, Integer start, Integer rows)
-	{
-		if (StringUtils.isEmpty(keywords) & StringUtils.isEmpty(species) & arrayDesId == null)
-			return false;
-		if (rows != null && rows == 0)
-			return false;
-		return true;
 
-	}
 	
-	private static String parseQuery(String keywords, String species, Long arrayDesId)
-	{
-		StringTokenizer tok;
-		String tabKeywords[];
-		String tabSpecies[]; 
-		boolean addAnd = false;
-		
-		
-		StringBuffer query = new StringBuffer();
-		
-		if (!StringUtils.isEmpty(keywords))
-    	{
-    		tok = new StringTokenizer(keywords," ");
-    		tabKeywords=tok.toArray();
-    		//create query keywords
-    		query.append("(").append(keywords).append(")");
-    		boolean addEnd = true;
-    	}
-		if (!StringUtils.isEmpty(species))
-		{
-	    	//tok = new StringTokenizer(species," ");
-	    	
-	    	//tabSpecies = tok.toArray();
-	    	//
-			if (addAnd)
-			{
-				query.append(" AND ");
-			}
-			query.append("(");
-			query.append(Constants.FIELD_AER_SAAT_CAT).append(":Organism");
-    		query.append(" AND ").append(Constants.FIELD_AER_SAAT_VALUE).append(":\"").append(species).append("\")");
-		}
-		return query.toString();
-
-	}
+	
 	/**
 	 * The method return the XML document contains experiment(s).
 	 * if keywords, species and arrayDesId is null returns null.
@@ -76,24 +48,50 @@ public class AeSearchService
 	 * @param rows - 
 	 * @return the XML document, null if (keywords, species and arrayDesId is null) or rows is 0.   
 	 */
-	public static String searchIndexAer(String keywords, String species, Long arrayDesId, int start, int rows)
+	public static String searchIdxAer(String keywords, String species, Long arrayDesId, int start, int rows) throws SolrServerException
 	{
-		String query;
-		return null;
+		if (!QueryHelper.parseParam(keywords, species, arrayDesId, null, null))
+			return null;
+		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
+		long total=getNumberOfDoc(query);
+		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
+		SolrDocumentList docList=resp.getResults();
+		List<FacetField> facetFields=resp.getFacetFields();
+		Document doc=XmlHelper.createXmlDoc(total, start, rows);
+		
+		return doc.asXML();
 	}
 	//
 	//TODO: Add special Exception
 	//	
 	public static long getNumberOfDoc(String keywords, String species, Long arrayDesId) throws SolrServerException
 	{
-		if (!validateParam(keywords, species, arrayDesId, null, null))
+		if (!QueryHelper.parseParam(keywords, species, arrayDesId, null, null))
 			return 0;
-		String query = parseQuery(keywords, species, arrayDesId);
+		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
 		return getNumberOfDoc(query);
 	}
 	
+	
 	private static long getNumberOfDoc(String query) throws SolrServerException
 	{		
-		return ArrayExpressSearchService.instance().getExperimentsCount(query);
+		return ArrayExpressSearchService.instance().getNumDoc(query);
 	}
+	
+	private static void getNumOfDocAndFacet(String query ) throws SolrServerException
+	{
+		SolrDocumentList docList=ArrayExpressSearchService.instance().getNumDoc(query, true, true);
+		//docList.
+	}
+	
+	/**
+	 * 
+	 * @param expts
+	 * @param count
+	 * @param start
+	 * @param rows
+	 * @return
+	 */
+	
+
 }

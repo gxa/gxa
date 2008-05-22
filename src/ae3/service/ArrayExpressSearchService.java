@@ -213,7 +213,8 @@ public class ArrayExpressSearchService {
     public QueryResponse fullTextQueryExpts(String query) {
     	return fullTextQueryExpts(query, 0, 50);
     }
-    
+
+   
     /**
      * Performs pagination and full text SOLR search on experiments. 
      * @param query - A lucene query
@@ -230,7 +231,8 @@ public class ArrayExpressSearchService {
             query = query.substring(0,500);
 
         try {
-       		SolrQuery q = new SolrQuery(query);
+        	
+       		SolrQuery q = new SolrQuery(query);          
             q.setHighlight(true);
             q.addHighlightField(Constants.FIELD_AER_FV_OE);
             q.setHighlightSnippets(500);
@@ -251,19 +253,29 @@ public class ArrayExpressSearchService {
      * @param query - the lucene query
      * @return
      */
-    public long getExperimentsCount(String query) throws SolrServerException
+    public long getNumDoc(String query) throws SolrServerException
+    {
+    	SolrDocumentList l=getNumDoc(query, false, false);
+    	return l.getNumFound();
+    }
+    
+    public SolrDocumentList getNumDoc(String query, boolean countSample, boolean countFactor) throws SolrServerException
     {
   	
         SolrQuery q = new SolrQuery(query);
-        long count=0;
+        if (countFactor | countSample)
+            q.setFacet(true);
+        if (countSample)
+        	q.setFields(Constants.FIELD_AER_SAAT_CAT);
+        if (countFactor)
+        	q.setFields(Constants.FIELD_AER_FV_FACTORNAME);        
         q.setRows(1);
         q.setStart(0);
         QueryResponse queryResponse = solr_expt.query(q);
         SolrDocumentList l=queryResponse.getResults();
-        count=l.getNumFound();
-        return count;  	
+        return l;
     }
-    
+        
     /**
      * 
      */

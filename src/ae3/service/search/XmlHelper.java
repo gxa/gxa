@@ -1,10 +1,11 @@
-package ae3.service;
+package ae3.service.search;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -19,24 +20,42 @@ public class XmlHelper
 	public static final String XML_EL_KEYWORDS= "keywords";
 	public static final String XML_EL_KEYWORD= "keyword";
 	
-	public static final String XML_AT_COUNT= "count";
+	public static final String XML_AT_COUNT= "total";
 	public static final String XML_AT_START= "start";
 	public static final String XML_AT_ROWS= "rows";
-	
-	public static Document createXmlDoc(List<AtlasExperiment> expts, String[] keywords, String count, String start, String rows)
+
+	private static Document createXmlDoc(SolrDocumentList list, long count, int start, int rows)
 	{
-		Document doc = createXmlDoc(keywords, count, start, rows);
+		Document doc = createXmlDoc(count, start, rows);
 		Element el=doc.getRootElement();
-    	Iterator<AtlasExperiment> itExps=expts.iterator();
-    	while (itExps.hasNext())
+		
+		return doc;
+	}
+	
+	public static Document createXmlDoc(long total, int start, int rows)
+	{
+		Document doc = DocumentHelper.createDocument();
+		//Add header attributes
+        Element rootEl = doc.addElement(XML_EL_EXPERIMENTS);
+        String _total = Long.toString(total);
+        String _start = Integer.toString(start);
+        String _rows = Integer.toString(rows);
+
+    	rootEl.addAttribute("total", _total);
+    	if (!org.apache.commons.lang.StringUtils.isEmpty(_start))
     	{
-    		AtlasExperiment exp=itExps.next();
-    		addExperimentToDoc(el, exp);
+        	rootEl.addAttribute("start", _start);    		
     	}
+
+    	if (!org.apache.commons.lang.StringUtils.isEmpty(_rows))
+    	{
+        	rootEl.addAttribute("rows", _rows);    		
+    	}
+
 		return doc;
 	}
 
-	private static void addExperimentToDoc(Element elExps, AtlasExperiment expt)
+	/*private static void addExperimentToDoc(Element elExps, AtlasExperiment expt)
 	{
 		Element elExp=elExps.addElement(XML_EL_EXPERIMENT);
 		//Experiment identifier
@@ -83,10 +102,6 @@ public class XmlHelper
 			
 		//}
 		//
-		
-		
-		
-		
 	}
 	
 	private static void createElementsFromCollection(Element parent, String childElName, 
@@ -133,48 +148,6 @@ public class XmlHelper
 		
 	}
 	
-	public static Document createXmlDoc(String[] keywords, String count)
-	{
-		return createXmlDoc(keywords, count, null, null);
-	}
-	public static Document createXmlDoc(String[] keywords, String count, String start, String rows)
-	{
-		Document doc = DocumentHelper.createDocument();
-		//Add count information
-        Element rootEl = doc.addElement(XML_EL_EXPERIMENTS);
-        Element keyWordEl = rootEl.addElement(XML_EL_KEYWORDS);        
-        if (keywords != null & keywords.length > 0)
-        {
-        	for (String string : keywords)
-			{
-        		System.out.println(string);
-                Element keyWordsEl = keyWordEl.addElement(XML_EL_KEYWORD);
-        		keyWordsEl.addText(string);				
-			}
-        }
-    	
-    	rootEl.addAttribute("count", count);
-    	if (!org.apache.commons.lang.StringUtils.isEmpty(start))
-    	{
-        	rootEl.addAttribute("start", start);    		
-    	}
+	*/
 
-    	if (!org.apache.commons.lang.StringUtils.isEmpty(rows))
-    	{
-        	rootEl.addAttribute("rows", rows);    		
-    	}
-
-		return doc;
-	}
-	/**
-	 * Function searches data in an index and create the XML document and print it
-	 * @return
-	 */
-	public static void createXmlAndPrint()
-	{
-		//get
-		Document doc = DocumentHelper.createDocument();
-		
-	}
-	
 }
