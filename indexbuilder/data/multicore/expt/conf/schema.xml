@@ -259,8 +259,8 @@
   <field name="aer_file_twocolumns" type="string" indexed="false" stored="true" multiValued="true"/>    
 
   <field name="aer_total_hybs" type="integer" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_total_samples" type="integer" indexed="false" stored="true" multiValued="true"/>    
-  
+  <field name="aer_total_samples" type="integer" indexed="false" stored="true" multiValued="true"/>
+
   <!-- dwexp -->
   <field name="dwe_id" type="long" indexed="true" stored="true" multiValued="true"/>  
   <field name="dwe_txt_accession" type="string" indexed="true" stored="true" multiValued="true"/>  
@@ -272,7 +272,7 @@
    <field name="dwe_text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <field name="exp_factor_values" type="text" indexed="true" stored="true" multiValued="true"/>
-   <!--<field name="exp_factors_hl" type="text" indexed="false" stored="true" multiValued="true"/>-->
+   <field name="exp_factor_values_facet" type="string" indexed="true" stored="true" multiValued="true"/>
 
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
@@ -293,11 +293,11 @@
  <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
  <solrQueryParser defaultOperator="OR"/>
 
- <copyField source="dwe_ba_*" dest="exp_factors"/>
- <copyField source="dwe_bs_*" dest="exp_factors"/>
+ <copyField source="dwe_ba_*" dest="exp_factor_values"/>
+ <copyField source="dwe_bs_*" dest="exp_factor_values"/>
 
- <!--<copyField source="dwe_ba_*" dest="exp_factors_hl"/>-->
- <!--<copyField source="dwe_bs_*" dest="exp_factors_hl"/>-->
+ <copyField source="dwe_ba_*" dest="exp_factor_values_facet"/>
+ <copyField source="dwe_bs_*" dest="exp_factor_values_facet"/>
 
  <copyField source="aer_txt*" dest="aer_text"/>
  <copyField source="dwe_txt*" dest="dwe_text"/>
