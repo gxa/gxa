@@ -236,7 +236,9 @@
   <field name="aer_expid" type="long" indexed="true" stored="true"/>
   <field name="aer_txt_expaccession" type="string" indexed="true" stored="true"/>
   <field name="aer_txt_expname" type="string" indexed="false" stored="true"/>
-  <field name="exp_in_dw" type="boolean" indexed="false" stored="true"/>
+
+  <field name="exp_in_dw" type="boolean" indexed="true" stored="true"/>
+
   <field name="aer_releasedate" type="string" indexed="false" stored="true"/>     
   <field name="aer_user_id" type="long" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_txt_saat_cat" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -262,15 +264,18 @@
   <field name="dwe_txt_expdescription" type="string" indexed="false" stored="true" multiValued="true"/>  
   <field name="dwe_txt_exptype" type="string" indexed="false" stored="true" multiValued="true"/>  
     
-   <!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema  -->
-   <field name="aer_text" type="text" indexed="true" stored="true" multiValued="true"/>
-   <field name="dwe_text" type="text" indexed="true" stored="true" multiValued="true"/>
+   <!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema)  -->
+   <field name="aer_text" type="text" indexed="true" stored="false" multiValued="true"/>
+   <field name="dwe_text" type="text" indexed="true" stored="false" multiValued="true"/>
+
+   <field name="exp_factors" type="text" indexed="true" stored="false" multiValued="true"/>
+   <field name="exp_factors_hl" type="string" indexed="false" stored="true" multiValued="true"/>
 
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
 
-   <dynamicField name="ba_*" type="text" indexed="false" stored="true" multiValued="true"/>
-   <dynamicField name="bs_*" type="text" indexed="false" stored="true" multiValued="true"/>
+   <dynamicField name="dwe_ba_*" type="string" indexed="true" stored="true" multiValued="true"/>
+   <dynamicField name="dwe_bs_*" type="string" indexed="true" stored="true" multiValued="true"/>
 
    <dynamicField name="*" type="text" indexed="false" stored="true" multiValued="true"/>
  </fields>
@@ -287,11 +292,12 @@
 
  <copyField source="dwe_ba_*" dest="exp_factors"/>
  <copyField source="dwe_bs_*" dest="exp_factors"/>
+
+ <copyField source="dwe_ba_*" dest="exp_factors_hl"/>
+ <copyField source="dwe_bs_*" dest="exp_factors_hl"/>
+
  <copyField source="aer_txt*" dest="aer_text"/>
  <copyField source="dwe_txt*" dest="dwe_text"/>
- <copyField source="dwe_ba*" dest="dwe_text"/>
- <copyField source="dwe_bs*" dest="dwe_text"/>
- 
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,
