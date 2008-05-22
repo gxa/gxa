@@ -323,8 +323,9 @@ public class XmlUtil
 			doc.addField(Constants.FIELD_AER_DESC_TEXT, descText);
 
 			//Parse string to find num of hybs and samples
-			if (descText.indexOf("(Generated Description)") != -1)
+			if (descText.indexOf("(Generated description)") != -1)
 			{
+				
 				Integer totalSample = getSamplesFromDesc(descText);
 				Integer totalHybs = getHybsFromDesc(descText);
 				if (totalSample != null)
@@ -350,7 +351,7 @@ public class XmlUtil
 			if (!StringUtils.isEmpty(descText))
 			{
 				int idxHybBegin = descText.indexOf("Experiment with");
-				int idxHybEnd = descText.indexOf("hybrydization");
+				int idxHybEnd = descText.indexOf("hybridizations");
 
 				String str=descText.substring(idxHybBegin + 16, idxHybEnd);
 				value = new Integer(Integer.parseInt(str.trim()));
@@ -374,9 +375,10 @@ public class XmlUtil
 			if (!StringUtils.isEmpty(descText))
 			{
 
-				int idxSampBegin = descText.indexOf("hybrydizations, using");
+				int idxSampBegin = descText.indexOf("hybridizations, using");
 				int idxSampEnd = descText.indexOf("samples");
 				String str=descText.substring(idxSampBegin + 21, idxSampEnd);
+				value = new Integer(Integer.parseInt(str.trim()));
 			}
 		}
 		catch (Exception e) 

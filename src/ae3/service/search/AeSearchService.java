@@ -57,8 +57,7 @@ public class AeSearchService
 		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
 		SolrDocumentList docList=resp.getResults();
 		List<FacetField> facetFields=resp.getFacetFields();
-		Document doc=XmlHelper.createXmlDoc(total, start, rows);
-		
+		Document doc=XmlHelper.createXmlDoc(docList, total, start, rows);		
 		return doc.asXML();
 	}
 	//
@@ -78,9 +77,11 @@ public class AeSearchService
 		return ArrayExpressSearchService.instance().getNumDoc(query);
 	}
 	
-	private static void getNumOfDocAndFacet(String query ) throws SolrServerException
+	private static SolrDocumentList getNumOfDocAndFacet(String query) throws SolrServerException
 	{
 		SolrDocumentList docList=ArrayExpressSearchService.instance().getNumDoc(query, true, true);
+		return docList;
+		
 		//docList.
 	}
 	

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -12,27 +13,98 @@ import org.dom4j.Element;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
-
+/**
+ * TODO: DOCUMENT ME and unify name of elements in xml files 
+ * @author mdylag
+ *
+ */
 public class XmlHelper
 {
 	public static final String XML_EL_EXPERIMENTS= "experiments";
 	public static final String XML_EL_EXPERIMENT= "experiment";
-	public static final String XML_EL_KEYWORDS= "keywords";
-	public static final String XML_EL_KEYWORD= "keyword";
+	public static final String XML_EL_ID= "id";
+	public static final String XML_EL_ACCESSION= "accession";
+	public static final String XML_EL_NAME= "name";
+	public static final String XML_EL_SPECIES= "species";
+	public static final String XML_EL_SAMPLES= "samples";
+	public static final String XML_EL_HYBS= "hybs";
+	public static final String XML_EL_USER= "user";
+	public static final String XML_EL_SECONDARYACCESSION= "secondaryaccession";
+	public static final String XML_EL_SAMPLEATTRIBUTE= "sampleattribute";
+	public static final String XML_EL_CATEGORY= "category";
+	public static final String XML_EL_VALUE= "value";
+/*	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	public static final String XML_EL_= "";
+	*/
 	
-	public static final String XML_AT_COUNT= "total";
+	public static final String XML_AT_TOTAL= "total";
 	public static final String XML_AT_START= "start";
 	public static final String XML_AT_ROWS= "rows";
 
-	private static Document createXmlDoc(SolrDocumentList list, long count, int start, int rows)
+	public static Document createXmlDoc(SolrDocumentList docList, long count, int start, int rows)
 	{
 		Document doc = createXmlDoc(count, start, rows);
-		Element el=doc.getRootElement();
-		
+		Element elRoot=doc.getRootElement();
+		//
+		Iterator<SolrDocument> docIt = docList.iterator();
+		while (docIt.hasNext())
+		{
+			SolrDocument solrDocument =docIt.next();
+			Element elExperiment = elRoot.addElement(XML_EL_EXPERIMENT);
+			
+			Element element = elExperiment.addElement(XML_EL_ID);
+			element.setText(getLongFieldValue(solrDocument, Constants.FIELD_AER_EXPID));
+
+			element = elExperiment.addElement(XML_EL_ACCESSION);
+			element.setText(getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPACCESSION));			
+
+			element = elExperiment.addElement(XML_EL_NAME);
+			element.setText(getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPNAME));
+			
+			//Adding species
+			element = elExperiment.addElement(XML_EL_SPECIES);
+			//element.setText(getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPNAME));
+
+			//Adding samples and hybs
+			element = elExperiment.addElement(XML_EL_SAMPLES);
+			element.setText(getStringFieldValue(solrDocument, Constants.FIELD_AER_TOTAL_SAMPL));
+			element = elExperiment.addElement(XML_EL_HYBS);
+			element.setText(getStringFieldValue(solrDocument, Constants.FIELD_AER_TOTAL_HYBS));
+			
+
+		}		
 		return doc;
 	}
 	
-	public static Document createXmlDoc(long total, int start, int rows)
+	private static String getLongFieldValue(SolrDocument solrDocument,String name)
+	{
+		Long value = (Long)solrDocument.getFieldValue(name);
+		if (value != null)
+		{
+			return value.toString();
+		}
+		return "";
+	}
+	
+	private static String getStringFieldValue(SolrDocument solrDocument,String name)
+	{
+		String value = (String)solrDocument.getFieldValue(name);
+		if (value != null)
+		{
+			return value;
+		}
+		return "";
+	}
+
+	
+	
+	private static Document createXmlDoc(long total, int start, int rows)
 	{
 		Document doc = DocumentHelper.createDocument();
 		//Add header attributes
@@ -41,15 +113,15 @@ public class XmlHelper
         String _start = Integer.toString(start);
         String _rows = Integer.toString(rows);
 
-    	rootEl.addAttribute("total", _total);
+    	rootEl.addAttribute(XML_AT_TOTAL, _total);
     	if (!org.apache.commons.lang.StringUtils.isEmpty(_start))
     	{
-        	rootEl.addAttribute("start", _start);    		
+        	rootEl.addAttribute(XML_AT_START, _start);    		
     	}
 
     	if (!org.apache.commons.lang.StringUtils.isEmpty(_rows))
     	{
-        	rootEl.addAttribute("rows", _rows);    		
+        	rootEl.addAttribute(XML_AT_ROWS, _rows);    		
     	}
 
 		return doc;
