@@ -140,7 +140,7 @@ public class AtlasExperiment {
         for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
         {
         	Collection colValue=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);
-        	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
+        	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
         	this.atlasDwAsList.add(new AtlasDwAssay(Constants.ARRAY_ASSAY_ELEMENTS[i], colValue, colId));
         	
         }       
@@ -148,8 +148,8 @@ public class AtlasExperiment {
         this.atlasDwSampleList = new ArrayList<AtlasDwSample>();
         for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
         {
-        	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID);
-        	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID);
+        	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID);
+        	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
         	Collection colValues=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);        	
         	this.atlasDwSampleList.add(new AtlasDwSample(Constants.ARRAY_SAMPLE_ELEMENTS[i], colSampleIds, colAssayIds, colValues));
         	

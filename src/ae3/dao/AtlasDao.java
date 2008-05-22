@@ -88,7 +88,7 @@ public class AtlasDao {
 	 */
     public static AtlasExperiment getExperimentByIdDw(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
         AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);;
-        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getDwExpId()));
+        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getDwExpAccession()));
         return expt;
     }
 

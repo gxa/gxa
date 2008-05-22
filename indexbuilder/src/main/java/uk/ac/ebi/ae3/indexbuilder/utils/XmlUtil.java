@@ -116,7 +116,7 @@ public class XmlUtil
         		{
             		//Add data to index
             		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_ASSAY_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);        			
+            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
         		}
     			
         		
@@ -153,8 +153,8 @@ public class XmlUtil
         			}
             		//Add data to index
             		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_ASSAY_ID, assId);
-            		doc.addField(Constants.PREFIX_DWE  + Constants.ARRAY_SAMPLE_ELEMENTS[i]+ Constants.SUFFIX_SAMPLE_ID, sampleId);        			
+            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
+            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID, sampleId);        			
             		
         		}
         	}
