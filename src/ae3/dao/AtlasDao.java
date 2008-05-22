@@ -122,8 +122,8 @@ public class AtlasDao {
      */
     public static long getExperimentsCount(String keywords[]) throws SolrServerException  
     {
-    	String query = QueryHelper.createQuery(keywords);
-    	long count= ArrayExpressSearchService.instance().getExperimentsCount(query);
+    	String query = QueryHelper.prepareQueryByKeywords(keywords);
+    	long count= ArrayExpressSearchService.instance().getNumDoc(query);
     	return count;
     }
     
@@ -137,7 +137,7 @@ public class AtlasDao {
      */
     public static List<AtlasExperiment> getExperimentsAer(String[] keywords, int start, int rows) 
     {
-    	String query = QueryHelper.createQuery(keywords);
+    	String query = QueryHelper.prepareQueryByKeywords(keywords);
     	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
 
         SolrDocumentList documentList = queryResponse.getResults();
@@ -157,7 +157,6 @@ public class AtlasDao {
         return list;
 
     }    
-    
 
     public static AtlasGene getGene(String gene_id_key) throws AtlasObjectNotFoundException {
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_id:" + gene_id_key);
