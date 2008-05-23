@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.xml.sax.SAXException;
 
+import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
 import uk.ac.ebi.microarray.tools4ae.helpers.FileHelper;
@@ -37,8 +38,6 @@ public abstract class IndexBuilderService
 	private String ftpDir;
 	/** an instance of loging interface*/
 	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
-	/** The URL to the arrayexpress download resource*/
-	private static final String EBI_URL_DOWNLOAD = "http://www.ebi.ac.uk/microarray-as/ae/download";
 	/** The extension of the fgem files*/
 	private static final String FILE_FILTER_FGEM = "processed.zip";
 	/** The extension of the raw files*/	
@@ -157,34 +156,34 @@ public abstract class IndexBuilderService
 				if (FileHelper.isSdrfExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_sdrf", filename);
+					doc.addField(Constants.FIELD_AER_FILE_SDRF, filename);
 				}
 				else if (FileHelper.isFgemExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_fgem", filename);					
+					doc.addField(Constants.FIELD_AER_FILE_FGEM, filename);					
 				}
 				else if (FileHelper.isBiosamplePng(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_biosamplepng", filename);					
+					doc.addField(Constants.FIELD_AER_FILE_BIOSAMPLEPNG, filename);					
 				}
 				else if (FileHelper.isBiosampleSvg(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_biosamplesvg", filename);					
+					doc.addField(Constants.FIELD_AER_FILE_BIOSAMPLESVG, filename);					
 					
 				}
 				else if (FileHelper.isRawExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_raw", filename);					
+					doc.addField(Constants.FIELD_AER_FILE_RAW, filename);					
 
 				}
 				else if (FileHelper.isTwoColumnsExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField("aer_file_twocolumns", filename);					
+					doc.addField(Constants.fIELD_AER_FILE_TWOCOLUMNS, filename);					
 					
 				}
 

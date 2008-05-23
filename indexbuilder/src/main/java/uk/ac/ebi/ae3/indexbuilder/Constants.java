@@ -8,7 +8,6 @@ package uk.ac.ebi.ae3.indexbuilder;
  */
 public class Constants
 {
-
 	/** **/
 	public static enum ExperimentSource { DW, AE}
 	/*Constants*/
@@ -207,12 +206,19 @@ public class Constants
 	public static final String FIELD_AER_BI_PAGES = "aer_bi_pages";
 	public static final String FIELD_AER_PROVIDER_CONTRACT = "aer_txt_provider_contact";
 	public static final String FIELD_AER_PROVIDER_ROLE = "aer_txt_provider_role";
-	public static final String FIELD_AER_EXP_TYPE = "aer_txt_aerdes_type";
+	public static final String FIELD_AER_PROVIDER_EMAIL = "aer_txt_provider_email";
+	public static final String FIELD_AER_EXPDES_TYPE = "aer_txt_aerdes_type";
 	public static final String FIELD_AER_DESC_ID = "aer_desc_id";
 	public static final String FIELD_AER_DESC_TEXT="aer_txt_desc_text";
 	public static final String FIELD_AER_TOTAL_HYBS = "aer_total_hybs";
 	public static final String FIELD_AER_TOTAL_SAMPL = "aer_total_samples";
-
+	public static final String FIELD_AER_FILE_SDRF = "aer_file_sdrf";
+	public static final String FIELD_AER_FILE_FGEM = "aer_file_fgem";
+	public static final String FIELD_AER_FILE_BIOSAMPLEPNG = "aer_file_biosamplepng";
+	public static final String FIELD_AER_FILE_BIOSAMPLESVG = "aer_file_biosamplesvg";
+	public static final String FIELD_AER_FILE_RAW = "aer_file_raw";
+	public static final String fIELD_AER_FILE_TWOCOLUMNS = "aer_file_twocolumns";
+	
 	//DW
 	public static final String FIELD_DWEXP_ID ="dwe_id";
 	public static final String FIELD_DWEXP_ACCESSION = "dwe_txt_accession";

@@ -301,6 +301,7 @@ public class XmlUtil
 				Element e=it.next();
 				addFieldFromAttr(e, "contact", doc, Constants.FIELD_AER_PROVIDER_CONTRACT);
 				addFieldFromAttr(e, "role", doc, Constants.FIELD_AER_PROVIDER_ROLE);
+				addFieldFromAttr(e, "email", doc, Constants.FIELD_AER_PROVIDER_EMAIL);
 			}
 		}				
 		list=elExperiment.elements(Constants.EL_experimentdesigns);

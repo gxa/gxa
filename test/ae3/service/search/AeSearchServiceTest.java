@@ -43,12 +43,22 @@ public class AeSearchServiceTest extends AtlasAbstractTest
 		long value = 0;		
 		value=AeSearchService.getNumberOfDoc(keywords, null, null);		
 		String xml=AeSearchService.searchIdxAer(keywords, null, null, 0, 1);
+		log.info("##########################################################");
 		log.info(xml);
+		
 		value=AeSearchService.getNumberOfDoc(keywords, species, null);		
-		xml=AeSearchService.searchIdxAer(keywords, species, null, 0, 1);
+		xml=AeSearchService.searchIdxAer(keywords, species, null, 0, 1);		
+		log.info("##########################################################");
 		log.info(xml);
-		value=AeSearchService.getNumberOfDoc(null, null, arrayDesId);		
+		
+		value=AeSearchService.getNumberOfDoc(null, null, arrayDesId);
 		xml=AeSearchService.searchIdxAer(keywords, species, arrayDesId, 0, 1);
+		log.info("##########################################################");	
+		log.info(xml);
+		
+		xml=AeSearchService.searchIdxAer("E-MEXP-444", null, null, 0, 1);
+		log.info("##########################################################");	
 		log.info(xml);		
+
 	}
 }

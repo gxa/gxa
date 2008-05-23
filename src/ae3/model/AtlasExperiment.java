@@ -125,7 +125,7 @@ public class AtlasExperiment {
         this.aerBiTitle  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_TITLE);       
         this.aerBiVolume  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_VOLUME);       
         this.aerProviderContac  = exptDoc.getFieldValues(Constants.FIELD_AER_PROVIDER_CONTRACT);       
-        this.aerExperimentTypes  = exptDoc.getFieldValues(Constants.FIELD_AER_EXP_TYPE);       
+        this.aerExperimentTypes  = exptDoc.getFieldValues(Constants.FIELD_AER_EXPDES_TYPE);       
         this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
         this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
 
