@@ -312,7 +312,7 @@ public class XmlUtil
 			while (it.hasNext())
 			{
 				Element e=it.next();
-				addFieldFromAttr(e, "type", doc, Constants.FIELD_AER_EXP_TYPE);
+				addFieldFromAttr(e, "type", doc, Constants.FIELD_AER_EXPDES_TYPE);
 			}
 		}				
 		list=elExperiment.elements(Constants.EL_description);
