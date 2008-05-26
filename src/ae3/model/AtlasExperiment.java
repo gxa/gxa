@@ -77,12 +77,13 @@ public class AtlasExperiment {
     
 
     /**
-     * 
-     * @param exptDoc
+     * A Constructor with 2 parameters 
+     * @param loadaer - loading AER data into model
+     * @param loaddw - loading DW data into model
      */
     public AtlasExperiment(boolean loadaer, boolean loaddw) {
     	this.loadAer = loadaer;
-    	this.loadDwe = loadDwe;
+    	this.loadDwe = loaddw;
         
     }
     
@@ -95,72 +96,76 @@ public class AtlasExperiment {
     
     public void load(SolrDocument exptDoc)
     {
-        this.setAerExpId ((Long)exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
-        this.aerExpAccession =  (String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION);
-        this.setAerExpName((String)exptDoc.getFieldValue(Constants.FIELD_AER_EXPNAME));        
-
-        this.aerUserId = exptDoc.getFieldValues(Constants.FIELD_AER_USER_ID);
-        this.aerSampleAtsaCategory = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
-        this.aerSampleAtsaValue  = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);       
-        this.aerFactName = exptDoc.getFieldValues(Constants.FIELD_AER_FV_FACTORNAME);
-        this.aerFactOe  = exptDoc.getFieldValues(Constants.FIELD_AER_FV_OE);       
-        this.aerMimeScoreName  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_NAME);       
-        this.aerMimeScoreValue  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_VALUE);
-        Collection col1= exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_ID); 
-        this.aerArrayDesId  =        
-        this.aerArrayDesIdent  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_IDENTIFIER);       
-        this.aerArrayDesName  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_NAME);       
-        this.aerArrayDesCount  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_COUNT);       
-        this.aerBdgId  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_ID);       
-        this.aerBdgName  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_NAME);       
-        this.aerBdgNumBadCube  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_NUM_BAD_CUBES);       
-        this.aerBdgArrayDes  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_ARRAYDESIGN);       
-        this.aerBdgDataFormat  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_DATAFORMAT);       
-        this.aerBdgBioAssCount  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_BIOASSAY_COUNT);       
-        this.aerBdgIsDerivied  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_IS_DERIVED);       
-        this.aerBiAuthors  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_AUTHORS);       
-        this.aerBiIssue  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_ISSUE);       
-        this.aerBiPages  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_PAGES);       
-        this.aerBiPublication  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_PUBLICATION);       
-        this.aerBiTitle  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_TITLE);       
-        this.aerBiVolume  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_VOLUME);       
-        this.aerProviderContac  = exptDoc.getFieldValues(Constants.FIELD_AER_PROVIDER_CONTRACT);       
-        this.aerExperimentTypes  = exptDoc.getFieldValues(Constants.FIELD_AER_EXPDES_TYPE);       
-        this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
-        this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
-
+	if (this.loadAer)
+	{
+            this.setAerExpId ((Long)exptDoc.getFieldValue(Constants.FIELD_AER_EXPID));
+            this.aerExpAccession =  (String) exptDoc.getFieldValue(Constants.FIELD_AER_EXPACCESSION);
+            this.setAerExpName((String)exptDoc.getFieldValue(Constants.FIELD_AER_EXPNAME));        
+    
+            this.aerUserId = exptDoc.getFieldValues(Constants.FIELD_AER_USER_ID);
+            this.aerSampleAtsaCategory = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
+            this.aerSampleAtsaValue  = exptDoc.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);       
+            this.aerFactName = exptDoc.getFieldValues(Constants.FIELD_AER_FV_FACTORNAME);
+            this.aerFactOe  = exptDoc.getFieldValues(Constants.FIELD_AER_FV_OE);       
+            this.aerMimeScoreName  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_NAME);       
+            this.aerMimeScoreValue  = exptDoc.getFieldValues(Constants.FIELD_AER_MIMESCORE_VALUE);
+            Collection col1= exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_ID); 
+            this.aerArrayDesId  =        
+            this.aerArrayDesIdent  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_IDENTIFIER);       
+            this.aerArrayDesName  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_NAME);       
+            this.aerArrayDesCount  = exptDoc.getFieldValues(Constants.FIELD_AER_ARRAYDES_COUNT);       
+            this.aerBdgId  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_ID);       
+            this.aerBdgName  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_NAME);       
+            this.aerBdgNumBadCube  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_NUM_BAD_CUBES);       
+            this.aerBdgArrayDes  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_ARRAYDESIGN);       
+            this.aerBdgDataFormat  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_DATAFORMAT);       
+            this.aerBdgBioAssCount  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_BIOASSAY_COUNT);       
+            this.aerBdgIsDerivied  = exptDoc.getFieldValues(Constants.FIELD_AER_BDG_IS_DERIVED);       
+            this.aerBiAuthors  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_AUTHORS);       
+            this.aerBiIssue  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_ISSUE);       
+            this.aerBiPages  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_PAGES);       
+            this.aerBiPublication  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_PUBLICATION);       
+            this.aerBiTitle  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_TITLE);       
+            this.aerBiVolume  = exptDoc.getFieldValues(Constants.FIELD_AER_BI_VOLUME);       
+            this.aerProviderContac  = exptDoc.getFieldValues(Constants.FIELD_AER_PROVIDER_CONTRACT);       
+            this.aerExperimentTypes  = exptDoc.getFieldValues(Constants.FIELD_AER_EXPDES_TYPE);       
+            this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
+            this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
+	}
         this.setDwExpId((Long) exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID));
-        this.dwExpAccession = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ACCESSION);
-        this.dwExpDescription = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_EXPDESC);
-        this.dwExpType = (Collection)exptDoc.getFieldValues(Constants.FIELD_DWEXP_EXPTYPE);
-
-    	atlasDwAsList = new ArrayList<AtlasDwAssay>();
-
-    	//Bioassay DW
-        for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
+        if (loadDwe)
         {
-        	Collection colValue=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);
-        	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
-        	this.atlasDwAsList.add(new AtlasDwAssay(Constants.ARRAY_ASSAY_ELEMENTS[i], colValue, colId));
-        	
-        }       
-        //samples DW
-        this.atlasDwSampleList = new ArrayList<AtlasDwSample>();
-        for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
-        {
-        	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID);
-        	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
-        	Collection colValues=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);        	
-        	this.atlasDwSampleList.add(new AtlasDwSample(Constants.ARRAY_SAMPLE_ELEMENTS[i], colSampleIds, colAssayIds, colValues));
-        	
-    		
-
+            this.dwExpAccession = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ACCESSION);
+            this.dwExpDescription = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_EXPDESC);
+            this.dwExpType = (Collection)exptDoc.getFieldValues(Constants.FIELD_DWEXP_EXPTYPE);
+    
+        	atlasDwAsList = new ArrayList<AtlasDwAssay>();
+    
+        	//Bioassay DW
+            for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
+            {
+            	Collection colValue=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);
+            	Collection colId=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
+            	this.atlasDwAsList.add(new AtlasDwAssay(Constants.ARRAY_ASSAY_ELEMENTS[i], colValue, colId));
+            	
+            }       
+            //samples DW
+            this.atlasDwSampleList = new ArrayList<AtlasDwSample>();
+            for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
+            {
+            	Collection colSampleIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID);
+            	Collection colAssayIds=exptDoc.getFieldValues(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID);
+            	Collection colValues=exptDoc.getFieldValues(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i]);        	
+            	this.atlasDwSampleList.add(new AtlasDwSample(Constants.ARRAY_SAMPLE_ELEMENTS[i], colSampleIds, colAssayIds, colValues));
+            	
+        		
+    
+            }
+            //uncomment
+            //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
+            //this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
+            //this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
         }
-        //uncomment
-        //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
-        //this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
-        //this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
-    	
     }
 
     public void setAerExpId (Long aerExpId ) {
