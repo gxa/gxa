@@ -216,13 +216,18 @@ public class ArrayExpressSearchService {
 
    
     /**
-     * Performs pagination and full text SOLR search on experiments. 
+     * Performs pagination of search result and full text SOLR search on the experiments index. 
      * @param query - A lucene query
      * @param start - a start record
      * @param rows - maximum number of Documents 
      * @return
      */
     public QueryResponse fullTextQueryExpts(String query, int start, int rows) 
+    {
+	return fullTextQueryExpts(query,start,rows,true,false);
+    }
+    
+    public QueryResponse fullTextQueryExpts(String query, int start, int rows, boolean addHiglightDw, boolean addHiglihtAer) 
     {
         if (query == null || query.equals(""))
             return null;
@@ -232,9 +237,29 @@ public class ArrayExpressSearchService {
 
         try {
         	
-       		SolrQuery q = new SolrQuery(query);          
-            q.setHighlight(true);
-            q.addHighlightField(Constants.FIELD_AER_FV_OE);
+       	    SolrQuery q = new SolrQuery(query);       
+       	    if (addHiglightDw || addHiglihtAer)
+       	    {
+       		q.setHighlight(true);
+       	    }
+       	    if (addHiglightDw)
+       		q.addHighlightField("exp_factor_values");
+       	    if (addHiglihtAer)
+       	    {
+       		q.addHighlightField(Constants.FIELD_AER_EXPNAME);
+       		q.addHighlightField(Constants.FIELD_AER_DESC_TEXT);
+       		q.addHighlightField(Constants.FIELD_AER_BI_AUTHORS);
+       		q.addHighlightField(Constants.FIELD_AER_BI_TITLE);
+       		q.addHighlightField(Constants.FIELD_AER_SAAT_VALUE);
+       		q.addHighlightField(Constants.FIELD_AER_SAAT_CAT);
+       		q.addHighlightField(Constants.FIELD_AER_FV_OE);
+       		//q.addHighlightField(Constants.);
+       		//q.addHighlightField(Constants.);
+       		//q.addHighlightField(Constants.);
+       		//q.addHighlightField(Constants.);
+
+       	    }
+
             q.setHighlightSnippets(500);
             q.setRows(rows);
             q.setStart(start);

@@ -14,7 +14,9 @@ public class AtlasAbstractTest extends TestCase
 	protected void setUp() throws Exception
 	{
 		log.info("Set up");
-		ArrayExpressSearchService.instance().setSolrIndexLocation("D:/tools/workspaces/ebi2/ae3/indexbuilder/data/multicore");
+		//ArrayExpressSearchService.instance().setSolrIndexLocation("C:/Users/mdylag/workspaces/ebi/ae3/indexbuilder/data/multicore");
+		ArrayExpressSearchService.instance().setSolrIndexLocation("indexbuilder/data/multicore");
+		
 		ArrayExpressSearchService.instance().initialize();		
 		super.setUp();
 		

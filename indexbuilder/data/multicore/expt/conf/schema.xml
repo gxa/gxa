@@ -250,7 +250,8 @@
   <field name="aer_bdg_bioassay_count" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_is_derived" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_desc_id" type="string" indexed="false" stored="true" multiValued="true"/>
-
+  <field name="aer_txt_desc_text" type="string" indexed="false" stored="true" multiValued="true"/>
+  
   <field name="aer_file_sdrf" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_fgem" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_biosamplepng" type="string" indexed="false" stored="true" multiValued="true"/>

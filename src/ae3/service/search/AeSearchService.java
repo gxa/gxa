@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,8 +55,9 @@ public class AeSearchService
 			return null;
 		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
 		long total=getNumberOfDoc(query);
-		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
+		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows, false ,true);
 		SolrDocumentList docList=resp.getResults();
+		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();
 		List<FacetField> facetFields=resp.getFacetFields();
 		Document doc=XmlHelper.createXmlDoc(docList, total, start, rows);		
 		return doc.asXML();
@@ -84,15 +86,6 @@ public class AeSearchService
 		
 		//docList.
 	}
-	
-	/**
-	 * 
-	 * @param expts
-	 * @param count
-	 * @param start
-	 * @param rows
-	 * @return
-	 */
-	
+
 
 }

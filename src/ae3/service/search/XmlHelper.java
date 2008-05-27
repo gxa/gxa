@@ -20,13 +20,17 @@ import com.sun.corba.se.impl.orbutil.closure.Constant;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
 /**
- * TODO: DOCUMENT ME and unify name of elements in xml files 
+ * TODO: DOCUMENT ME and unify name of elements in xml files
+ * The utility class has methods which help to create the XML file from a solr index.
+ * 
  * @author mdylag
  *
  */
 public class XmlHelper
 {
-	public static final String XML_EL_EXPERIMENTS= "experiments";
+	/** The XML elment name experiments*/
+    	public static final String XML_EL_EXPERIMENTS= "experiments";
+	/** The XML elment name experiment*/    	
 	public static final String XML_EL_EXPERIMENT= "experiment";
 	public static final String XML_EL_ID= "id";
 	public static final String XML_EL_ACCESSION= "accession";
@@ -80,6 +84,12 @@ public class XmlHelper
 	public static final String XML_AT_START= "start";
 	public static final String XML_AT_ROWS= "rows";
 
+	/**
+	 * 
+	 * @param parent
+	 * @param childName
+	 * @param attrValue
+	 */
 	private static void addElementWithAttr(Element parent, String childName, String attrValue)
 	{
 		Element element = parent.addElement(childName);
@@ -204,8 +214,8 @@ public class XmlHelper
 				Collection col1=solrDocument.getFieldValues(Constants.FIELD_AER_FV_FACTORNAME);
 				Collection col2=solrDocument.getFieldValues(Constants.FIELD_AER_FV_OE);
 				Map<String, Collection> map = new HashMap<String, Collection>();
-				map.put(XML_EL_FACTOR, col1);
-				map.put(XML_EL_NAME, col2);
+				map.put(XML_EL_NAME, col1);
+				map.put(XML_EL_VALUE, col2);
 				createElementFromMap(elExperiment, map, XML_EL_FACTOR);				
 			}
 			//Adding miamescores
