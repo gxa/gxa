@@ -601,7 +601,8 @@ public class ArrayExpressSearchService {
                         public Object handle(ResultSet rs) throws SQLException {
                             SortedSet<String> species = new TreeSet<String>();
                             while(rs.next()) {
-                                species.add(rs.getString(1).toLowerCase());
+                                String s = rs.getString(1);
+                                species.add(s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase());
                             }
 
                             return species;
