@@ -236,10 +236,13 @@
   <field name="aer_expid" type="long" indexed="true" stored="true"/>
   <field name="aer_txt_expaccession" type="string" indexed="true" stored="true"/>
   <field name="aer_txt_expname" type="string" indexed="false" stored="true"/>
-
-  <field name="exp_in_dw" type="boolean" indexed="true" stored="true"/>
-
-  <field name="aer_releasedate" type="string" indexed="false" stored="true"/>     
+  <field name="aer_releasedate" type="string" indexed="true" stored="true"/>
+  <field name="aer_total_hybs" type="integer" indexed="true" stored="true"/>
+  <field name="aer_total_samples" type="integer" indexed="true" stored="true"/>
+  <field name="aer_fgem_count" type="integer" indexed="true" stored="true"/>
+  <field name="aer_raw_celcount" type="integer" indexed="true" stored="true"/>
+  <field name="aer_raw_count" type="integer" indexed="true" stored="true"/>
+       
   <field name="aer_user_id" type="long" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_txt_saat_cat" type="string" indexed="true" stored="true" multiValued="true"/>
   <field name="aer_txt_saat_value" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -250,7 +253,7 @@
   <field name="aer_bdg_bioassay_count" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_bdg_is_derived" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_desc_id" type="string" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_txt_desc_text" type="string" indexed="false" stored="true" multiValued="true"/>
+  <field name="aer_txt_desc_text" type="text" indexed="false" stored="true" multiValued="true"/>
   
   <field name="aer_file_sdrf" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_fgem" type="string" indexed="false" stored="true" multiValued="true"/>
@@ -259,8 +262,7 @@
   <field name="aer_file_raw" type="string" indexed="false" stored="true" multiValued="true"/>
   <field name="aer_file_twocolumns" type="string" indexed="false" stored="true" multiValued="true"/>    
 
-  <field name="aer_total_hybs" type="integer" indexed="false" stored="true" multiValued="true"/>
-  <field name="aer_total_samples" type="integer" indexed="false" stored="true" multiValued="true"/>
+  <field name="exp_in_dw" type="boolean" indexed="true" stored="true"/>
 
   <!-- dwexp -->
   <field name="dwe_id" type="long" indexed="true" stored="true" multiValued="true"/>  
@@ -280,7 +282,6 @@
 
    <dynamicField name="dwe_ba_*" type="string" indexed="true" stored="true" multiValued="true"/>
    <dynamicField name="dwe_bs_*" type="string" indexed="true" stored="true" multiValued="true"/>
-
    <dynamicField name="*" type="text" indexed="false" stored="true" multiValued="true"/>
  </fields>
 

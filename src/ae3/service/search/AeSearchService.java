@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -46,15 +47,20 @@ public class AeSearchService
 	 * @param species - 
 	 * @param arrayDesId - 
 	 * @param start - 
-	 * @param rows - 
+	 * @param rows -
+	 * @param sortField - 
+	 * @param sortOrder -   
 	 * @return the XML document, null if (keywords, species and arrayDesId is null) or rows is 0.   
 	 */
-	public static String searchIdxAer(String keywords, String species, Long arrayDesId, int start, int rows) throws SolrServerException
+	public static String searchIdxAer(String keywords, String species, Long arrayDesId, int start, int rows, String sortField, String sortOrder) throws SolrServerException
 	{
 		if (!QueryHelper.parseParam(keywords, species, arrayDesId, null, null))
 			return null;
 		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
+		//get total
 		long total=getNumberOfDoc(query);
+		String _sortField = QueryHelper.convParamSortToFieldName(sortField);
+		ORDER _sortOrder = QueryHelper.convParamOrderToOrder(sortOrder); 
 		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows, false ,true);
 		SolrDocumentList docList=resp.getResults();
 		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();

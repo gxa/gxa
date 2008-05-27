@@ -102,13 +102,13 @@ public class SolrEmbeddedIndex {
 
     public void commit() throws SolrServerException, IOException
     {
-	solrServer.optimize();
-	solrServer.commit();
+    	solrServer.optimize();
+    	solrServer.commit();
     }
     
     public void addDoc(SolrInputDocument doc) throws SolrServerException, IOException
     {
-	solrServer.add(doc);
+	  solrServer.add(doc);
     }
 
     public long getCount(String queryStr) throws SolrServerException

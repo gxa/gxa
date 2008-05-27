@@ -43,6 +43,8 @@ public class XmlHelper
 	public static final String XML_EL_SAMPLEATTRIBUTE= "sampleattribute";
 	public static final String XML_EL_FACTOR= "factor";
 	public static final String XML_EL_ARRAYDESIGN="arraydesign";
+	public static final String XML_EL_RELEASEDATE="releasedate";
+	
 	public static final String XML_EL_COUNT="count";
 	
 	public static final String XML_EL_BIBLIOGRAPHY="bibliography";	
@@ -77,12 +79,12 @@ public class XmlHelper
 	public static final String XML_AT_URL= "url";
 	public static final String URL_EBI_DWONLOAD= "http://www.ebi.ac.uk/microarray-as/ae/download/";
 
-	//public static final String XML_EL_= "";
-
-	
 	public static final String XML_AT_TOTAL= "total";
 	public static final String XML_AT_START= "start";
 	public static final String XML_AT_ROWS= "rows";
+	public static final String XML_AT_COUNT = "count";
+	public static final String XML_AT_CELCOUNT = "celcount";
+	
 
 	/**
 	 * 
@@ -126,8 +128,13 @@ public class XmlHelper
 			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPNAME);
 			addElementWithAttr(elExperiment, XML_EL_NAME, attrValue);
 			
+			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_RELEASEDATE);
+			addElementWithAttr(elExperiment, XML_EL_RELEASEDATE, attrValue);
+
+			
 			//Adding species
-			//attrValue = geStringFieldValue(solrDocument, XML_EL_SPECIES);
+			Collection colSampleCat=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
+			Collection colSampleValue=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);
 			addElementWithAttr(elExperiment,XML_EL_SPECIES , "");
 
 			//Adding samples
@@ -141,53 +148,74 @@ public class XmlHelper
 			//Add files
 			Element element = elExperiment.addElement(XML_EL_FILES);
 			//Add FGEM
-			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_FGEM);
-			if (!StringUtils.isEmpty(value))
 			{
-				Element childEl=element.addElement(XML_EL_FGEM);
-				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
-			}
-			//Add RAW
-			value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_RAW);
-			if (!StringUtils.isEmpty(value))
-			{
-				Element childEl=element.addElement(XML_EL_RAW);
-				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
-			}
-			//Add TWOCOLUMNS
-			value=getStringFieldValue(solrDocument, Constants.fIELD_AER_FILE_TWOCOLUMNS);
-			if (!StringUtils.isEmpty(value))
-			{
-				Element childEl=element.addElement(XML_EL_TWOCOLUMNS);
-				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
-			}
-			//Add TWOCOLUMNS
-			value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_SDRF);
-			if (!StringUtils.isEmpty(value))
-			{
-				Element childEl=element.addElement(XML_EL_SDRF);
-				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
-			}			
-			String valuePng=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLEPNG);
-			String valueSvg=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLESVG);
+				String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_FGEM);
+				String valueCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_FILE_FGEM);
 			
-			if (!StringUtils.isEmpty(valueSvg) || !StringUtils.isEmpty(valuePng) )
-				
-			{
-				Element childEl=element.addElement(XML_EL_BIOSAMPLES);
-				if (!StringUtils.isEmpty(valuePng))
+				if (!StringUtils.isEmpty(value))
 				{
-					Element childEl1=element.addElement(XML_EL_PNG);
-					childEl1.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
-				}
-				if (!StringUtils.isEmpty(valueSvg))
-				{
-					Element childEl1=element.addElement(XML_EL_SVG);
-					childEl1.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
+					Element childEl=element.addElement(XML_EL_FGEM);
+					childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
+					childEl.addAttribute(XML_AT_COUNT, URL_EBI_DWONLOAD + valueCount);
+					
 				}
 
-			}			
-			value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLESVG);
+			}
+			//Add RAW
+			{
+    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_RAW);
+    			String valueCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_RAW_COUNT);
+    			String valueCelCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_RAW_CELCOUNT);
+    			
+    			if (!StringUtils.isEmpty(value))
+    			{
+    				Element childEl=element.addElement(XML_EL_RAW);
+    				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
+    				childEl.addAttribute(XML_AT_CELCOUNT, URL_EBI_DWONLOAD + valueCelCount);
+    				childEl.addAttribute(XML_AT_COUNT, URL_EBI_DWONLOAD + valueCount);
+    				
+    			}
+			}
+			//Add TWOCOLUMNS
+			{
+    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_TWOCOLUMNS);
+    			if (!StringUtils.isEmpty(value))
+    			{
+    				Element childEl=element.addElement(XML_EL_TWOCOLUMNS);
+    				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
+    			}
+			}
+			//Add SDRF
+			{
+    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_SDRF);
+    			if (!StringUtils.isEmpty(value))
+    			{
+    				Element childEl=element.addElement(XML_EL_SDRF);
+    				childEl.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + value);
+    			}
+			}
+			//Adding biosamples
+			{
+    			String valuePng=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLEPNG);
+    			String valueSvg=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLESVG);
+    			
+    			if (!StringUtils.isEmpty(valueSvg) || !StringUtils.isEmpty(valuePng) )
+    				
+    			{
+    				Element childEl=element.addElement(XML_EL_BIOSAMPLES);
+    				if (!StringUtils.isEmpty(valuePng))
+    				{
+    					Element childEl1=element.addElement(XML_EL_PNG);
+    					childEl1.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + valuePng);
+    				}
+    				if (!StringUtils.isEmpty(valueSvg))
+    				{
+    					Element childEl1=element.addElement(XML_EL_SVG);
+    					childEl1.addAttribute(XML_AT_URL, URL_EBI_DWONLOAD + valueSvg);
+    				}
+    
+    			}
+			}
 			//Adding user
 			{
 				Collection col=solrDocument.getFieldValues(Constants.FIELD_AER_USER_ID);
@@ -202,11 +230,9 @@ public class XmlHelper
 			//Adding seconary accession
 			//Adding sample attributes
 			{
-				Collection col1=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
-				Collection col2=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);
 				Map<String, Collection> map = new HashMap<String, Collection>();
-				map.put(XML_EL_CATEGORY, col1);
-				map.put(XML_EL_VALUE, col2);
+				map.put(XML_EL_CATEGORY, colSampleCat);
+				map.put(XML_EL_VALUE, colSampleValue);
 				createElementFromMap(elExperiment, map, XML_EL_SAMPLEATTRIBUTE);
 			}
 			//Adding factor
@@ -301,7 +327,7 @@ public class XmlHelper
 					Element elExpDesigns=elExperiment.addElement(XML_EL_EXPERIMENTDESIGN);
 					while (it.hasNext())
 					{
-						value = it.next();
+						String value = it.next();
 						elExpDesigns.addElement(XML_EL_EXPERIMENTDESIGN).setText(value);						
 					}
 				}
@@ -367,7 +393,7 @@ public class XmlHelper
 		{
 			return value.toString();
 		}
-		return "";
+		return "0";
 	}
 	
 	

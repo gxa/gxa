@@ -183,7 +183,7 @@ public abstract class IndexBuilderService
 				else if (FileHelper.isTwoColumnsExtension(filename))
 				{
 					log.info("##################################### Find file" + f);
-					doc.addField(Constants.fIELD_AER_FILE_TWOCOLUMNS, filename);					
+					doc.addField(Constants.FIELD_AER_FILE_TWOCOLUMNS, filename);					
 					
 				}
 

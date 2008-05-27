@@ -1,10 +1,14 @@
 package ae3.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
+
+import ae3.service.search.XmlHelper;
 
 import com.Ostermiller.util.StringTokenizer;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
 
 /**
  * The helper methods for working with lucene query.
@@ -43,8 +47,19 @@ public class QueryHelper
 			
 		if (!StringUtils.isEmpty(keywords))
 	    {
-	    	//create query keywords
-	    	query.append("(").append(keywords).append(")");
+	    	//create query keywords - change because I need to add highlight	
+			query.append(Constants.FIELD_AER_EXPNAME).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_SAAT_CAT).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_SAAT_VALUE).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_FV_FACTORNAME).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_FV_OE).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_ARRAYDES_NAME).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_BI_AUTHORS).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_BI_TITLE).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_EXPDES_TYPE).append("(").append(keywords).append(") ");
+			query.append(Constants.FIELD_AER_DESC_TEXT).append("(").append(keywords).append(") ");
+	    	//query.append("(").append(keywords).append(")");
+	    	//Add each field
 	    	addAnd = true;
 	    }
 		if (!StringUtils.isEmpty(species))
@@ -70,7 +85,15 @@ public class QueryHelper
 		return query.toString();
 
 		}
-	
+	/**
+	 * The methods checks the input parameters that are correct.
+	 * @param keywords 
+	 * @param species
+	 * @param arrayDesId
+	 * @param start
+	 * @param rows
+	 * @return true if parameters are correct, false if not. 
+	 */
 	public static boolean parseParam(String keywords, String species, Long arrayDesId, Integer start, Integer rows)
 	{
 		if (StringUtils.isEmpty(keywords) & StringUtils.isEmpty(species) & arrayDesId == null)
@@ -78,7 +101,42 @@ public class QueryHelper
 		if (rows != null && rows == 0)
 			return false;
 		return true;
+	}
+	
+	public static String convParamSortToFieldName(String name)
+	{
+		String _convert = Constants.FIELD_AER_RELEASEDATE;
+		if (name.equalsIgnoreCase(XmlHelper.XML_EL_ACCESSION))
+		{
+			_convert = Constants.FIELD_AER_EXPACCESSION;
+		}
+		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_NAME))
+		{
+			_convert = Constants.FIELD_AER_EXPNAME;
+		}
+		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_SPECIES))
+		{
+			_convert = Constants.FIELD_AER_SAAT_VALUE;
+		}
+		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_FGEM))
+		{
+			_convert = Constants.FIELD_AER_FGEM_COUNT;
+		}
+		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_RAW))
+		{
+			_convert = Constants.FIELD_AER_RAW_COUNT;
+		}
+		return _convert;
+	}
 
+	public static ORDER convParamOrderToOrder(String name)
+	{
+		ORDER _convert = ORDER.asc;
+		if (name.equalsIgnoreCase("desc"))
+		{
+			_convert = ORDER.desc;
+		}
+		return _convert;
 	}
 
 

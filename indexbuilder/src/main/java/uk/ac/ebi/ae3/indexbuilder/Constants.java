@@ -59,7 +59,7 @@ public class Constants
 	Constants.EL_BS_OBSERVATION, Constants.EL_BS_ORGANISMPART, Constants.EL_BS_ORGANISMSTATUS, Constants.EL_BS_PHENOTYPE, Constants.EL_BS_SEX, Constants.EL_BS_STRAINORLINE,
 	Constants.EL_BS_TARGETCELLTYPE, Constants.EL_BS_TESTRESULT, Constants.EL_BS_TESTTYPE, Constants.EL_BS_TEST, EL_BS_TUMORGRADING};
 	//exp_accesion fieeld
-	public static final String AT_accnum="accnum";
+	public static final String AT_accession="accession";
 	public static final String AT_CATEGORY="CATEGORY";
 	public static final String AT_count="count";
 	public static final String AT_arraydesign="arraydesign";
@@ -87,7 +87,6 @@ public class Constants
 	public static final String EL_ba_indgeneticchar = "ba_indgeneticchar";
 	public static final String EL_ba_individual = "ba_individual";
 	public static final String EL_ba_light = "ba_light";
-	public static final String EL_arraydesigns="arraydesigns";
 	public static final String EL_arraydesign="arraydesign";
 	public static final String AT_releasedate="releasedate";
 	public static final String AT_VALUE="VALUE";
@@ -121,7 +120,6 @@ public class Constants
 	public static final String EL_BS_CELLLINE = "bs_CELLLINE";
 	public static final String EL_BS_CELLTYPE = "bs_CELLTYPE";
 	public static final String EL_BS_CLINHISTORY = "bs_CLINHISTORY";
-	public static final String EL_bioassaydatagroups = "bioassaydatagroups";
 	public static final String EL_bioassaydatagroup = "bioassaydatagroup";
 	public static final String EL_bibliography = "bibliography";
 	/* Constants for samples element*/
@@ -152,9 +150,8 @@ public class Constants
 	public static final String EL_BS_TESTRESULT = "bs_TESTRESULT";
 	public static final String EL_BS_TESTTYPE = "bs_TESTTYPE";
 	public static final String EL_BS_TEST = "bs_TEST";
-	public static final String EL_factorvalues="factorvalues";
-	public static final String EL_factorvalue="factorvalue";
-	public static final String EL_experimentdesigns = "experimentdesigns";
+	public static final String EL_factorvalue="experimentalfactor";
+	//public static final String EL_factorvalue="factorvalue";
 	public static final String EL_experimentdesign = "experimentdesign";
 	public static final String EL_description = "description";
 	//XML ATTRIBUTES and ELEMENTS for AE
@@ -162,11 +159,10 @@ public class Constants
 	public static final String EL_user="user";
 	public static final String EL_secondaryaccessions="secondaryaccessions";
 	public static final String EL_secondaryaccession="secondaryaccession";
-	public static final String EL_sampleattributes="sampleattributes";
+	//public static final String EL_sampleattributes="sampleattributes";
 	public static final String EL_sampleattribute="sampleattribute";
-	public static final String EL_miamescores="miamescores";
+	public static final String EL_score="scotre";
 	public static final String EL_miamescore="miamescore";
-	public static final String EL_providers ="providers";
 	public static final String EL_provider ="provider";
 
 	/*XML attribute for DW*/
@@ -197,6 +193,8 @@ public class Constants
 	public static final String FIELD_AER_FV_OE = "aer_txt_fv_oe";
 	public static final String FIELD_AER_MIMESCORE_NAME = "aer_txt_mimescore_name";
 	public static final String FIELD_AER_MIMESCORE_VALUE = "aer_txt_mimescore_value";
+
+	public static final String FIELD_AER_BI_ACCESSION = "aer_bi_accession";
 	public static final String FIELD_AER_BI_PUBLICATION = "aer_txt_bi_publication";
 	public static final String FIELD_AER_BI_AUTHORS = "aer_txt_bi_authors";
 	public static final String FIELD_AER_BI_TITLE = "aer_txt_bi_title";
@@ -204,6 +202,8 @@ public class Constants
 	public static final String FIELD_AER_BI_VOLUME = "aer_bi_volume";
 	public static final String FIELD_AER_BI_ISSUE = "aer_bi_issue";
 	public static final String FIELD_AER_BI_PAGES = "aer_bi_pages";
+	public static final String FIELD_AER_BI_URI = "aer_bi_uri";
+	
 	public static final String FIELD_AER_PROVIDER_CONTRACT = "aer_txt_provider_contact";
 	public static final String FIELD_AER_PROVIDER_ROLE = "aer_txt_provider_role";
 	public static final String FIELD_AER_PROVIDER_EMAIL = "aer_txt_provider_email";
@@ -217,8 +217,11 @@ public class Constants
 	public static final String FIELD_AER_FILE_BIOSAMPLEPNG = "aer_file_biosamplepng";
 	public static final String FIELD_AER_FILE_BIOSAMPLESVG = "aer_file_biosamplesvg";
 	public static final String FIELD_AER_FILE_RAW = "aer_file_raw";
-	public static final String fIELD_AER_FILE_TWOCOLUMNS = "aer_file_twocolumns";
-	
+	public static final String FIELD_AER_FILE_TWOCOLUMNS = "aer_file_twocolumns";
+	public static final String FIELD_AER_FGEM_COUNT="aer_fgem_count";
+	public static final String FIELD_AER_RAW_CELCOUNT="aer_raw_celcount";
+	public static final String FIELD_AER_RAW_COUNT="aer_raw_count";
+
 	//DW
 	public static final String FIELD_DWEXP_ID ="dwe_id";
 	public static final String FIELD_DWEXP_ACCESSION = "dwe_txt_accession";
