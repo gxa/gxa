@@ -100,7 +100,7 @@ ArrayExpress Atlas Preview
             <th>Down Experiment Count</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody>                                       
         <%
             List<HashMap> fullGeneEFVCounts = (List<HashMap>) application.getAttribute("fullGeneEFVCounts");
             if ( null == fullGeneEFVCounts ) {
@@ -117,7 +117,7 @@ ArrayExpress Atlas Preview
             %>
                 <tr>
                     <td><%=ef%></td>
-                    <td><%=efv.startsWith("V1") ? efv.replaceFirst("V1","--") : efv%></td>
+                    <td><%=efv.startsWith("V1") ? "--" : efv%></td>
                     <td><a title="View table..." href="qr?q_orgn=any&view=table&q_updn=up&q_expt=aer_text%3A(<%=efurl%>)+AND+exp_factor_values%3A(<%=efvurl%>)"><%=count.get("gup_count")%></a></td>
                     <td><a title="View heatmap..." href="qr?q_orgn=any&view=heatmap&q_updn=up&q_expt=aer_text%3A(<%=efurl%>)+AND+exp_factor_values%3A(<%=efvurl%>)"><%=count.get("eup_count")%></a></td>
                     <td><a title="View table..." href="qr?q_orgn=any&view=table&q_updn=down&q_expt=aer_text%3A(<%=efurl%>)+AND+exp_factor_values%3A(<%=efvurl%>)"><%=count.get("gdn_count")%></a></td>

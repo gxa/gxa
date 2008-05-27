@@ -2,7 +2,6 @@
 <%@ page import="org.apache.solr.client.solrj.response.QueryResponse" %>
 <%@ page import="ae3.service.AtlasResultSet" %>
 <%@ page import="java.util.*" %>
-<%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
@@ -255,7 +254,7 @@ ArrayExpress Atlas Preview
                     <tr>
                         <td nowrap="true">
                             <span style="font-weight:bold" title="Matched in experiment(s) <%=ar.get("experiments")%>">
-                                <%=ar.get("efv").startsWith("V1") ? ar.get("efv").replaceFirst("V1","--") : ar.get("efv")%>
+                                <%=ar.get("efv").startsWith("V1") ? "--" : ar.get("efv")%>
                             </span>
                         </td>
                         <td  style="border-right: thick solid" align="right"><b><%=ar.get("experiment_count")%></b></td>
@@ -357,7 +356,8 @@ ArrayExpress Atlas Preview
                     String color = "black";
                     if ( c > 200 ) color = "white";
                     String efv = (String) ar.get("efv");
-                    if (efv.equals("V1")) efv = "<i>--</i>";
+                    if (efv.startsWith("V1")) efv = "--";
+                    String gene_species = (String) ar.get("gene_species");
                     %>
                     <tr style="height:2.4em">
                         <td><a title="Show experiment annotation in repository" target="_blank" href="http://www.ebi.ac.uk/arrayexpress/experiments/<%=ar.get("experiment_accession")%>"><%=ar.get("experiment_accession")%></a></td>
@@ -365,7 +365,7 @@ ArrayExpress Atlas Preview
                         <td><%=efv + " (" + ar.get("ef") + ")"%></td>
                         <td><%=ar.get("gene_name")%></td>
                         <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
-                        <td><%=ar.get("gene_species")%></td>
+                        <td><%=gene_species.substring(0,1).toUpperCase() + gene_species.substring(1).toLowerCase()%></td>
                         <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><%=String.format("%.3g", updn_pvaladj)%></td>
                         <td>
                             <a title="Show expression in warehouse"
