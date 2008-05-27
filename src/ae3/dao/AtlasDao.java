@@ -67,7 +67,13 @@ public class AtlasDao {
 	public static AtlasExperiment getExperimentByIdDw(String experiment_id_key) throws AtlasObjectNotFoundException {
     	//String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_DWEXP_ID + ":" + experiment_id_key + ")";
     	String query = Constants.FIELD_DWEXP_ID + ":" + experiment_id_key;
-		
+
+        net.sf.ehcache.Cache atlasCache = net.sf.ehcache.CacheManager.getInstance().getCache("atlasCache");
+        net.sf.ehcache.Element exptElement = atlasCache.get(query);
+
+        if(exptElement != null) 
+            return (AtlasExperiment) exptElement.getValue();
+
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
 
         SolrDocumentList documentList = queryResponse.getResults();
@@ -77,8 +83,10 @@ public class AtlasDao {
 
         SolrDocument exptDoc = documentList.get(0);
 
-        return AtlasExperiment.load(exptDoc, true, true);
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);
+        atlasCache.put(new net.sf.ehcache.Element(query,expt));
 
+        return expt;
     }
     
 	/**
