@@ -372,15 +372,16 @@
     disk cache, which in this configuration will go to wherever java.io.tmp is
     defined on your system. On a standard Linux system this will be /tmp"
     -->
-    <cache name="sampleCache1"
-           maxElementsInMemory="10000"
-           maxElementsOnDisk="1000"
-           eternal="false"
-           overflowToDisk="true"
+    <cache name="atlasCache"
+           maxElementsInMemory="5000"
+           maxElementsOnDisk="0"
+           eternal="true"
+           overflowToDisk="false"
            diskSpoolBufferSizeMB="20"
            timeToIdleSeconds="300"
            timeToLiveSeconds="600"
            memoryStoreEvictionPolicy="LFU"
+           diskPersistent="true"
             />
 
 

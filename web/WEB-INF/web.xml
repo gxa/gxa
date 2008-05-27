@@ -21,6 +21,18 @@
         <load-on-startup>0</load-on-startup>
     </servlet>
 
+    <servlet>
+        <display-name>Search JSP Servlet</display-name>
+        <servlet-name>qr</servlet-name>
+        <jsp-file>/search.jsp</jsp-file>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>qr</servlet-name>
+        <url-pattern>/qr</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>vtext</servlet-name>
         <url-pattern>/vtext</url-pattern>

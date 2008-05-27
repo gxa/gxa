@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.io.Serializable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,12 +18,13 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 * Time: 18:57:29
 * To change this template use File | Settings | File Templates.
 */
-public class AtlasResultSet {
+public class AtlasResultSet implements Serializable {
     private static final Log log = LogFactory.getLog(AtlasResultSet.class);
     private static final String insert_query = "insert into atlas (idkey, experiment_id, experiment_accession, experiment_description, gene_id, gene_name, gene_identifier, gene_species, ef, efv, updn, updn_pvaladj, gene_highlights) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     private String idkey;
     private boolean isAvailableInDB;
+    private int eltCount = 0;
 
 //    private QueryResponse geneHitsResponse;
 //    private QueryResponse exptHitsResponse;
@@ -368,6 +370,7 @@ public class AtlasResultSet {
             memstm.setString(13, atlasResult.getGene().getGeneHighlightStringForHtml());
 
             memstm.execute();
+            eltCount++;
         } catch (SQLException e) {
             log.error(e);
         } finally {
@@ -394,4 +397,8 @@ public class AtlasResultSet {
 //    public void setFullTextExpts(QueryResponse exptHitsResponse) {
 //        this.exptHitsResponse = exptHitsResponse;
 //    }
+
+    public int size() {
+        return eltCount;
+    }
 }

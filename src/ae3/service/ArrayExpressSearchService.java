@@ -3,16 +3,19 @@ package ae3.service;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.MultiCore;
-import output.HtmlTableWriter;
-import output.TableWriter;
+import org.apache.solr.schema.SchemaField;
+import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
@@ -58,6 +61,8 @@ public class ArrayExpressSearchService {
     // In-memory (local ArrayExpress AEW/Atlas helper) RDBMS Datasource
     private DataSource memAEDS;
 
+    private QueryRunner theAEQueryRunner;
+    private QueryRunner memAEQueryRunner;
 
     //// DataServer Instance(s)
 
@@ -110,7 +115,7 @@ public class ArrayExpressSearchService {
                             "updn int, " +
                             "updn_pvaladj double," +
                             "gene_highlights varchar(4000) )"
-            );            
+            );
             stmt.execute();
             stmt.close();
         } catch (Exception e) {
@@ -120,6 +125,15 @@ public class ArrayExpressSearchService {
                 conn.close();
             } catch (SQLException e) {}
         }
+
+        theAEQueryRunner = new QueryRunner(theAEDS);
+        memAEQueryRunner = new QueryRunner(memAEDS);
+
+        Map<String, SchemaField> fieldMap = multiCore.getCore("expt").getSchema().getFields();
+        log.info(fieldMap);
+        Collection names = multiCore.getCore("expt").getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+        log.info(names);
+
     }
 
     /**
@@ -141,22 +155,9 @@ public class ArrayExpressSearchService {
         }
     }
 
-
     /**
      * Gives a connection from the pool. Don't forget to close.
-     *
-     * @return a connection from the pool
-     * @throws SQLException
-     */
-    public Connection getAEConnection() throws SQLException {
-        if (theAEDS != null)
-            return theAEDS.getConnection();
-
-        return null;
-    }
-
-    /**
-     * Gives a connection from the pool. Don't forget to close.
+     * TODO: DbUtils
      *
      * @return a connection from the pool
      * @throws SQLException
@@ -214,20 +215,18 @@ public class ArrayExpressSearchService {
     	return fullTextQueryExpts(query, 0, 50);
     }
 
-   
     /**
-     * Performs pagination of search result and full text SOLR search on the experiments index. 
+     * Performs pagination and full text SOLR search on experiments.
      * @param query - A lucene query
      * @param start - a start record
-     * @param rows - maximum number of Documents 
+     * @param rows - maximum number of Documents
      * @return
      */
-    public QueryResponse fullTextQueryExpts(String query, int start, int rows) 
-    {
-	return fullTextQueryExpts(query,start,rows,true,false);
+    public QueryResponse fullTextQueryExpts(String query, int start, int rows) {
+	    return fullTextQueryExpts(query,start,rows,true,false);
     }
-    
-    public QueryResponse fullTextQueryExpts(String query, int start, int rows, boolean addHiglightDw, boolean addHiglihtAer) 
+
+    public QueryResponse fullTextQueryExpts(String query, int start, int rows, boolean addHiglightDw, boolean addHiglihtAer)
     {
         if (query == null || query.equals(""))
             return null;
@@ -236,43 +235,103 @@ public class ArrayExpressSearchService {
             query = query.substring(0,500);
 
         try {
-        	
-       	    SolrQuery q = new SolrQuery(query);       
-       	    if (addHiglightDw || addHiglihtAer)
-       	    {
-       		q.setHighlight(true);
-       	    }
-       	    if (addHiglightDw)
-       		q.addHighlightField("exp_factor_values");
-       	    if (addHiglihtAer)
-       	    {
-       		q.addHighlightField(Constants.FIELD_AER_EXPNAME);
-       		q.addHighlightField(Constants.FIELD_AER_DESC_TEXT);
-       		q.addHighlightField(Constants.FIELD_AER_BI_AUTHORS);
-       		q.addHighlightField(Constants.FIELD_AER_BI_TITLE);
-       		q.addHighlightField(Constants.FIELD_AER_SAAT_VALUE);
-       		q.addHighlightField(Constants.FIELD_AER_SAAT_CAT);
-       		q.addHighlightField(Constants.FIELD_AER_FV_OE);
-       		//q.addHighlightField(Constants.);
-       		//q.addHighlightField(Constants.);
-       		//q.addHighlightField(Constants.);
-       		//q.addHighlightField(Constants.);
-
-       	    }
-
-            q.setHighlightSnippets(500);
+            if (query.indexOf("exp_factor_values:") == -1) {
+                query = "exp_factor_values:(" + query + ")";
+            }
+            SolrQuery q = new SolrQuery(query);
+            q.setHighlight(true);
+            q.addHighlightField("exp_factor_values");
+            q.setHighlightSnippets(100);
             q.setRows(rows);
             q.setStart(start);
-//            q.setFilterQueries();
+            q.setFilterQueries("exp_in_dw:true");
+
             return solr_expt.query(q);
         } catch (SolrServerException e) {
             log.error(e);
         }
 
         return null;
-    	
+
     }
-    
+
+    public List<String> autoComplete(String query, String type) {
+        if(query == null || query.equals(""))
+            return null;
+
+        if (type.equals("expt")) {
+            return autoCompleteExpt(query);
+        } else {
+            return autoCompleteGene(query);
+        }
+    }
+
+    private List<String> autoCompleteExpt(String query) {
+        try {
+            SolrQuery q = new SolrQuery("exp_in_dw:true");
+            q.setRows(0);
+            q.setFacet(true);
+            q.addFacetField("exp_factor_values_facet");
+            q.setFacetPrefix(query);
+
+            QueryResponse qr = solr_expt.query(q);
+
+            if (null == qr.getFacetFields().get(0).getValues())
+                return null;
+
+            ArrayList<String> s = new ArrayList<String>();
+            int i = 0;
+            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                s.add(ffc.getName() + "|" + ffc.getCount());
+                if(++i>10) break;
+            }
+
+            return s;
+        } catch (SolrServerException e) {
+            log.error(e);
+        }
+
+        return null;
+    }
+
+    private List<String> autoCompleteGene(String query) {
+        try {
+            SolrQuery q = new SolrQuery("gene_id:[0 TO *]");
+            q.setRows(0);
+            q.setFacet(true);
+            q.addFacetField("gene_ids");
+            q.addFacetField("gene_desc");
+            q.setFacetLimit(20);
+            q.setFacetPrefix(query);
+
+            QueryResponse qr = solr_gene.query(q);
+
+            if (null == qr.getFacetFields().get(0).getValues() &&
+                null == qr.getFacetFields().get(1).getValues())
+                return null;
+
+            ArrayList<String> s = new ArrayList<String>();
+
+            if (null != qr.getFacetFields().get(0).getValues()) {
+                for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                    s.add(ffc.getName() + "|" + ffc.getCount());
+                }
+            }
+
+            if (null != qr.getFacetFields().get(1).getValues()) {
+                for (FacetField.Count ffc : qr.getFacetFields().get(1).getValues()) {
+                    s.add(ffc.getName() + "|" + ffc.getCount());
+                }
+            }
+
+            return s;
+        } catch (SolrServerException e) {
+            log.error(e);
+        }
+
+        return null;
+    }
+
     /**
      * Returns number of documents which the query find.
      * @param query - the lucene query
@@ -283,33 +342,32 @@ public class ArrayExpressSearchService {
     	SolrDocumentList l=getNumDoc(query, false, false);
     	return l.getNumFound();
     }
-    
+
     public SolrDocumentList getNumDoc(String query, boolean countSample, boolean countFactor) throws SolrServerException
     {
-  	
+
         SolrQuery q = new SolrQuery(query);
         if (countFactor | countSample)
             q.setFacet(true);
         if (countSample)
         	q.setFields(Constants.FIELD_AER_SAAT_CAT);
         if (countFactor)
-        	q.setFields(Constants.FIELD_AER_FV_FACTORNAME);        
+        	q.setFields(Constants.FIELD_AER_FV_FACTORNAME);
         q.setRows(1);
         q.setStart(0);
         QueryResponse queryResponse = solr_expt.query(q);
         SolrDocumentList l=queryResponse.getResults();
         return l;
     }
-        
-    /**
-     * 
-     */
 
     /**
      * Executes an atlas query to retrieve expt acc, desc, ef, efv, gene, updn, and p-value for requested gene ids,
      * optionally restricting to a supplied list of experiment ids.
      */
-    public AtlasResultSet doAtlasQuery(QueryResponse geneHitsResponse, QueryResponse exptHitsResponse, String geneExprFilter, String geneSpeciesFilter) throws IOException {
+    public AtlasResultSet doAtlasQuery(final QueryResponse geneHitsResponse,
+                                       final QueryResponse exptHitsResponse,
+                                       final String geneExprFilter,
+                                       final String geneSpeciesFilter) throws IOException {
         if (geneHitsResponse == null && exptHitsResponse == null)
             return null;
 
@@ -331,8 +389,8 @@ public class ArrayExpressSearchService {
 //        if (geneSpeciesFilter != null)
 //            gene_species_filter = " and UPPER(ad_species.value)='" + geneSpeciesFilter + "'";
 
-        Map<String, SolrDocument> solrExptMap = convertSolrDocumentListToMap(exptHitsResponse, "exp_id");
-        Map<String, SolrDocument> solrGeneMap = convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
+        final Map<String, SolrDocument> solrExptMap = convertSolrDocumentListToMap(exptHitsResponse, Constants.FIELD_DWEXP_ID);
+        final Map<String, SolrDocument> solrGeneMap = convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
 
         String inGeneIds = (solrGeneMap == null ? "" : StringUtils.join(solrGeneMap.keySet(), ","));
         String inExptIds = (solrExptMap == null ? "" : StringUtils.join(solrExptMap.keySet(), ","));
@@ -345,7 +403,7 @@ public class ArrayExpressSearchService {
 
             for ( Map<String, List<String>> vals : hl.values() ) {
                 if (vals == null || vals.size() == 0) continue;
-                for(String s : vals.get("exp_factor_value")) {
+                for(String s : vals.get("exp_factor_values")) {
                     ss.add("'" + s.replaceAll("</{0,1}em>","").replaceAll("'", "''") + "'");
                 }
             }
@@ -356,6 +414,7 @@ public class ArrayExpressSearchService {
 
 
         String arsCacheKey = inGeneIds + inExptIds +  efvFilter + updn_filter + geneSpeciesFilter;
+
         if (arsCache.containsKey(arsCacheKey))
             return arsCache.get(arsCacheKey);
 
@@ -404,103 +463,90 @@ public class ArrayExpressSearchService {
 
         log.info(atlas_query_topN);
 
-        Connection connection = null;
-        AtlasResultSet ars    = null;
-
+        AtlasResultSet arset = null;
         try {
-            connection = getAEConnection();
+            arset = (AtlasResultSet) theAEQueryRunner.query(atlas_query_topN, new ResultSetHandler() {
+                public AtlasResultSet handle(ResultSet rs) throws SQLException {
+                    AtlasResultSet arset = new AtlasResultSet();
+                    while(rs.next()) {
+                        AtlasResult atlasResult = new AtlasResult();
 
-            try {
-                PreparedStatement stm = connection.prepareStatement(atlas_query_topN);
+                        AtlasExperiment expt = null;
+                        AtlasGene gene       = null;
 
-                ResultSet rs = stm.executeQuery();
-                log.info("Executed query");
+                        String experiment_id_key = rs.getString("experiment_id_key");
+                        String gene_id_key = rs.getString("gene_id_key");
 
-                ars = new AtlasResultSet();
-                int recs = 0;
+                        try {
+                            if (solrExptMap != null && solrExptMap.containsKey(experiment_id_key)) {
+                                expt = AtlasDao.getExperimentByIdDw(solrExptMap.get(experiment_id_key), exptHitsResponse);
+                            } else {
+                                expt = AtlasDao.getExperimentByIdDw(experiment_id_key);
+                            }
 
-                while (rs.next()) {
-                    AtlasResult atlasResult = new AtlasResult();
+                            if (solrGeneMap != null && solrGeneMap.containsKey(gene_id_key)) {
+                                gene = AtlasDao.getGene(solrGeneMap.get(gene_id_key), geneHitsResponse);
+                            } else {
+                                gene = AtlasDao.getGene(gene_id_key);
+                            }
+                        } catch (AtlasObjectNotFoundException e) {
+                            log.error(e);
+                        }
 
-                    AtlasExperiment expt = null;
-                    AtlasGene gene       = null;
+                        AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
 
-                    String experiment_id_key = rs.getString("experiment_id_key");
-                    String gene_id_key = rs.getString("gene_id_key");
-
-                    try {
-                        if (solrExptMap != null && solrExptMap.containsKey(experiment_id_key))
-                            expt = AtlasDao.getExperimentByIdDw(solrExptMap.get(experiment_id_key), exptHitsResponse);
-                        else
-                            expt = AtlasDao.getExperimentByIdDw(experiment_id_key);
-
-
-                        if (solrGeneMap != null && solrGeneMap.containsKey(gene_id_key))
-                            gene = AtlasDao.getGene(solrGeneMap.get(gene_id_key), geneHitsResponse);
-                        else 
-                            gene = AtlasDao.getGene(gene_id_key);
-                    } catch (AtlasObjectNotFoundException e) {
-                        log.error(e);
-                    }
-
-                    AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
-
-                    if ( expt.getExperimentHighlights() != null) {
-                        List<String> s = expt.getExperimentHighlights().get("exp_factor_value");
-                        if (s != null ) {
-                            for (String efv : s) {
-                                if(atuple.getEfv().equals(efv.replaceAll("</{0,1}em>",""))) {
-                                    atuple.setEfv(efv);
-                                    break;
+                        //TODO: disabled highlighting in experiments, it's broken on SOLR side, it seems. Example: query for liver.
+                        if ( expt != null && expt.getExperimentHighlights() != null) {
+                            List<String> s = expt.getExperimentHighlights().get("exp_factor_values");
+                            if (s != null ) {
+                                for (String efv : s) {
+                                    if(atuple.getEfv().equals(efv.replaceAll("</{0,1}em>",""))) {
+                                        atuple.setEfv(efv);
+                                        break;
+                                    }
                                 }
                             }
                         }
+
+
+    //
+    //                    if (geneHitsResponse != null) {
+    //                        Map<String, List<String>> hilites = geneHitsResponse.getHighlighting().get(atlasResult.getGene().getGeneId());
+    //
+    //                        Set<String> hls = new HashSet<String>();
+    //                        for (String hlf : hilites.keySet()) {
+    //                            hls.add(hlf + ": " + StringUtils.join(hilites.get(hlf), ";"));
+    //                        }
+    //
+    //                        if(hls.size() > 0)
+    //                            atlasResult.getGene().setGeneHighlights(StringUtils.join(hls,"<br/>"));
+    //                    }
+    //
+
+                        if( ( expt != null && gene != null )
+                                &&
+                            ( geneSpeciesFilter == null || geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies())) ) {
+                                atlasResult.setExperiment(expt);
+                                atlasResult.setGene(gene);
+                                atlasResult.setAtuple(atuple);
+
+                            arset.add(atlasResult);
+                        }
                     }
 
-                    atlasResult.setExperiment(expt);
-                    atlasResult.setGene(gene);
-                    atlasResult.setAtuple(atuple);
-
-//
-//                    if (geneHitsResponse != null) {
-//                        Map<String, List<String>> hilites = geneHitsResponse.getHighlighting().get(atlasResult.getGene().getGeneId());
-//
-//                        Set<String> hls = new HashSet<String>();
-//                        for (String hlf : hilites.keySet()) {
-//                            hls.add(hlf + ": " + StringUtils.join(hilites.get(hlf), ";"));
-//                        }
-//
-//                        if(hls.size() > 0)
-//                            atlasResult.getGene().setGeneHighlights(StringUtils.join(hls,"<br/>"));
-//                    }
-//
-
-                    if(geneSpeciesFilter == null || geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies())) {
-                        ars.add(atlasResult);
-                        recs++;
-                    }
+                    return arset;
                 }
+            } );
 
-                rs.close();
-                stm.close();
+            log.info("Retrieved query completely: " + arset.size() + " records" );
 
-                log.info("Retrieved query completely: " + recs + " records" );
-
-                ars.setAvailableInDB(true);
-                arsCache.put(arsCacheKey, ars);
-            } catch (SQLException e) {
-                log.error("SQL Error!", e);
-            }
+            arset.setAvailableInDB(true);
+            arsCache.put(arsCacheKey, arset);
         } catch (SQLException e) {
-            log.error("Couldn't get connection", e);
-        } finally {
-            if (connection != null) try {
-                connection.close();
-            } catch (Exception e) {
-            }
+            log.error(e);
         }
 
-        return ars;
+        return arset;
     }
 
     public void setAEDataSource(DataSource aeds) {
@@ -534,7 +580,7 @@ public class ArrayExpressSearchService {
         Map<String, SolrDocument> idMap = new HashMap<String, SolrDocument>();
 
         for (SolrDocument doc : hits) {
-            String id = (String) doc.getFieldValue(idField);
+            String id = String.valueOf(doc.getFieldValue(idField));
             if(id != null) idMap.put(id, doc);
         }
 
@@ -546,37 +592,66 @@ public class ArrayExpressSearchService {
     }
 
     public SortedSet<String> getAllAvailableAtlasSpecies() {
-        Connection connection = null;
-        SortedSet<String> species = new TreeSet<String>();
+        SortedSet<String> species = null;
 
         try {
-            connection = getAEConnection();
+            species = (SortedSet<String>) theAEQueryRunner.query(
+                    "SELECT DISTINCT value FROM ae2__gene_species__dm WHERE value IS NOT NULL AND NOT (value LIKE 'UNK%')",
+                    new ResultSetHandler() {
+                        public Object handle(ResultSet rs) throws SQLException {
+                            SortedSet<String> species = new TreeSet<String>();
+                            while(rs.next()) {
+                                species.add(rs.getString(1).toLowerCase());
+                            }
 
-            try {
-                PreparedStatement stm = connection.prepareStatement("SELECT DISTINCT value FROM ae2__gene_species__dm WHERE value IS NOT NULL AND NOT (value LIKE 'UNK%')");
-
-                ResultSet rs = stm.executeQuery();
-                log.info("Executed query");
-
-                while (rs.next()) {
-                    String s = rs.getString(1).toLowerCase();
-                    species.add(s.substring(0,1).toUpperCase() + s.substring(1));
-                }
-
-                rs.close();
-                stm.close();
-            } catch (SQLException e) {
-                log.error("SQL Error!", e);
-            }
+                            return species;
+                        }
+                    }
+                );
         } catch (SQLException e) {
-            log.error("Couldn't get connection", e);
-        } finally {
-            if (connection != null) try {
-                connection.close();
-            } catch (Exception e) {
-            }
+            log.error(e);
         }
 
         return species;
+    }
+
+    public List<HashMap> getFullGeneEFVCounts() throws SQLException {
+        String querySQL = "select  count(distinct case when updn=1 then gene_id_key else null end) gup_count,\n" +
+                "        count(distinct case when updn=1 then experiment_id_key else null end) eup_count, \n" +
+                "        count(distinct case when updn=-1 then gene_id_key else null end) gdn_count,\n" +
+                "        count(distinct case when updn=-1 then experiment_id_key else null end) edn_count, \n" +
+                "        ef, \n" +
+                "        efv \n" +
+                "from atlas\n" +
+                "where\n" +
+                "gene_id_key is not null\n" +
+                "group by ef, efv";
+
+        log.info(querySQL);
+
+        List<HashMap> geneEFVCounts = (List<HashMap>) theAEQueryRunner.query(querySQL, new ResultSetHandler() {
+            public List<HashMap> handle(ResultSet rs) throws SQLException {
+                List<HashMap> geneEFVCounts = new ArrayList<HashMap>();
+                while(rs.next()) {
+                    HashMap m = new HashMap();
+
+                    m.put("gup_count", rs.getInt("gup_count"));
+                    m.put("eup_count", rs.getInt("eup_count"));
+                    m.put("gdn_count", rs.getInt("gdn_count"));
+                    m.put("edn_count", rs.getInt("edn_count"));
+
+                    m.put("ef", rs.getString("ef"));
+                    m.put("efv", rs.getString("efv"));
+
+                    geneEFVCounts.add(m);
+                }
+
+                return geneEFVCounts;
+            }
+        } );
+
+        log.info("Query executed..." + geneEFVCounts.size() + " results found.");
+
+        return geneEFVCounts;
     }
 }

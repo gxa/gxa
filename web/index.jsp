@@ -1,37 +1,97 @@
+<%String svnBuildString = "$Rev$ $Date$";%>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
-<%@ page import="org.apache.solr.client.solrj.response.QueryResponse" %>
-<%@ page import="ae3.service.AtlasResultSet" %>
 <%@ page import="java.util.*" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<html>
-<head>
-    <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
-    <script type="text/javascript">
-    $(document).ready(function()
-        {
-            $("#atlasTable").tablesorter({
-//                debug: true,
-                sortAppend: [[6,0]],
-                headers: {
-                    6: { sorter : 'digit' },
-                    7: { sorter : false },
-                    8: { sorter : false }                    
-                 }
-//                ,
-//                widgets: ['groups'],
-//                emptyGroupCaption: "(none)",
-//                collapsableGroups: false
-            });
+<jsp:include page="start_head.jsp"></jsp:include>
+ArrayExpress Atlas Preview
+<jsp:include page="end_head.jsp"></jsp:include>
 
+    <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+    <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
+
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.cookie.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
+    <script type="text/javascript" src="jquery.autocomplete.js"></script>
+<!--<script type="text/javascript" src="jquerydefaultvalue.js"></script>-->
+
+    <script type="text/javascript">
+        function toggleAtlasHelp() {
+            if($("div.atlasHelp").is(":hidden")) {
+                showAtlasHelp();
+            } else {
+                hideAtlasHelp();
+            }            
         }
-    );
+
+        function showAtlasHelp() {
+            if($("div.atlasHelp").is(":hidden")) {
+                $("div.atlasHelp").slideToggle();
+                $("#atlasHelpToggle").text("hide help");
+            }
+            $.cookie('atlas_help_state','shown');
+        }
+
+        function hideAtlasHelp() {
+            if($("div.atlasHelp").is(":visible")) {
+                $("div.atlasHelp").slideToggle();
+                $("#atlasHelpToggle").text("show help");
+            }
+            $.cookie('atlas_help_state','hidden');
+        }
+
+        $(document).ready(function()
+            {
+                // SET UP OUR SORTER
+                $("#atlasTable").tablesorter({
+    //                debug: true,
+                    sortAppend: [[6,0]],
+                    headers: {
+                        6: { sorter : 'digit' },
+                        7: { sorter : false },
+                        8: { sorter : false }
+                     }
+    //                ,
+    //                widgets: ['groups'],
+    //                emptyGroupCaption: "(none)",
+    //                collapsableGroups: false
+                });
+
+    //            $("#q_gene").defaultvalue("(all genes)");
+    //            $("#q_expt").defaultvalue("(all experiments)");
+
+                // TOGGLE HELP
+                $("#atlasHelpToggle").click(toggleAtlasHelp);
+
+                $("#q_expt").autocomplete("autocomplete.jsp", {
+                        minChars:1,
+                        matchSubset: false,
+                        extraParams: {type:"expt"},
+                        formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
+                });
+
+                $("#q_gene").autocomplete("autocomplete.jsp", {
+                        minChars:1,
+                        matchCase: true,
+                        matchSubset: false,
+                        extraParams: {type:"gene"},
+                        formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
+                });
+
+
+//                alert($.cookie('atlas_help_state') + ":hidden is " + $("div.atlasHelp").is(":hidden"))
+                if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
+                   showAtlasHelp();
+                } else if (($.cookie('atlas_help_state') == "hidden") && ($("div.atlasHelp").is(":visible"))) {
+                   hideAtlasHelp();
+                }
+            }
+        );
     </script>
 
-    <title>Atlas Query Prototype</title>
     <style type="text/css">
         table.heatmap th {
             border-bottom: 2px solid #6699CC;
@@ -56,15 +116,40 @@
             border-collapse: collapse;
             border-spacing: 0px;
         }
+
+        .label {
+            font-size: 10px;
+        }
+
+        .atlasHelp {
+            display: none;
+        }
     </style>
-</head>
-<body>
-<form name="atlasform" action="index.jsp">
+
+<jsp:include page="start_body_no_menus.jsp"></jsp:include>
+
+<jsp:include page="end_menu.jsp"></jsp:include>
+
+<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
+    <tr>
+        <td align="left">
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+        </td>
+        <td align="right">
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
+        </td>
+    </tr>
+</table>
+<form name="atlasform" action="qr">
     <%
         String q_gene = request.getParameter("q_gene");
         String q_expt = request.getParameter("q_expt");
         String q_updn = request.getParameter("q_updn");
-        String q_orgn = request.getParameter("q_orgn");        
+        String q_orgn = request.getParameter("q_orgn");
 
         if (q_updn == null) q_updn = "";
         if (q_expt == null) q_expt = "";
@@ -72,255 +157,112 @@
         if (q_orgn == null) q_orgn = "";
     %>
 
-    <a href="index.jsp"><img border="0" src="atlasbeta.jpg" style="float:right"/></a>
+    <table style="margin:auto;height:200px">
+        <tr valign="top">
+            <td valign="top"><img border="0" src="atlasbeta.jpg"/></td>
+            <td>
+                <table>
+                    <tr>
+                        <td>
+                            <label class="label" for="q_gene">Genes</label>
+                        </td>
+                        <td/>
+                        <td>
+                            <label class="label" for="q_orgn">Organism</label>
+                        </td>
+                        <td>
+                            <label class="label" for="q_expt">Conditions</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=q_gene%>"/>
+                        </td>
+                        <td>
+                            <select name="q_updn">
+                                <option value="updn" <%=q_updn.equals("updn") ? "selected" : ""%>>up/down in</option>
+                                <option value="up"   <%=q_updn.equals("up") ? "selected" : ""%>>up in</option>
+                                <option value="down" <%=q_updn.equals("down") ? "selected" : ""%>>down in</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select id="q_orgn" name="q_orgn" style="width:150px">
+                                <option value="any" <%=q_orgn.equals("") ? "selected" : ""%>>Any species</option>
+                                <%
+                                    SortedSet<String> species = ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies();
+                                    for (String s : species) {
+                                %>
+                                <option value="<%=s.toUpperCase()%>" <%=q_orgn.equals(s.toUpperCase()) ? "selected" : ""%>><%=s%>
+                                </option>
+                                <%
+                                    }
+                                %>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=q_expt%>"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="top" align="center" style="width:150px">
+                            <div class="atlasHelp">
+                                <div style="font-size: 0px; line-height: 0%; width: 0px; border-bottom: 20px solid pink; border-left: 10px solid white;border-right: 10px solid white;">&nbsp;</div>
+                                <div style="background-color:pink; text-align:left; height:100%; width: 140px;padding:5px">
+                                    Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
+                                </div>
+                            </div>
+                        </td>
+                        <td colspan="2" align="center" valign="top">
+                            <div style="margin-top:10px">
+                                <input type="submit" value="Search Atlas">
+                            </div>
+                            <div style="margin-top:10px">
+                                <label>View results as:</label>
+                                <input type="radio" name="view" id="view_table" value="table"
+                                    <%=request.getParameter("view") == null || request.getParameter("view").equals("table") ? "checked" : ""%>>
+                                <label for="view_table">table</label>
 
-    <table>
-        <tr>
-            <td>Find genes matching</td>
-            <td><input type="text" name="q_gene" size="30" value="<%=q_gene%>"/> that are</td>
-            <td>
-                <select name="q_updn">
-                    <option value="updn" <%=q_updn.equals("updn") ? "selected" : ""%>>up or down</option>
-                    <option value="up"   <%=q_updn.equals("up")   ? "selected" : ""%>>up</option>
-                    <option value="down" <%=q_updn.equals("down") ? "selected" : ""%>>down</option>
-                </select>
-                in
+                                <input type="radio" name="view" id="view_heatmap" value="heatmap"
+                                    <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
+                                <label for="view_heatmap">heatmap</label>
+                            </div>
+                        </td>
+                        <td valign="top" align="center" style="width:150px">
+                            <div class="atlasHelp">
+                                <div style="font-size: 0px; line-height: 0%; width: 0px; border-bottom: 20px solid pink; border-left: 10px solid white;border-right: 10px solid white;">&nbsp;</div>
+                                <div style="background-color:pink; text-align:left; height:100%; width: 140px;padding:5px">
+                                    Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice.
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td>
-                <input type="text" name="q_expt" size="30" value="<%=q_expt%>"/>
+            <td valign="top" style="padding-left:15px">
+                <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
+                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a>
             </td>
-            <td>Organism:
-                <select name="q_orgn">
-                    <option value="any" <%=q_orgn.equals("") ? "selected" : ""%>>Any species</option>
-                    <%
-                        SortedSet<String> species = ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies();
-                        for ( String s : species ) {
-                            %><option value="<%=s.toUpperCase()%>" <%=q_orgn.equals(s.toUpperCase()) ? "selected" : ""%>><%=s%></option><%
-                        }
-                    %>
-                </select>
-            </td>
-            <td>
-                <input type="submit" onclick="atlasform.view.value = 'table'"   value="Results as table">
-                <input type="submit" onclick="atlasform.view.value = 'heatmap'" value="Results as heatmap">
-            </td>
-            <!--<td>-->
-                <!--Sort by p-value and-->
-                <!--<select name="sortby">-->
-                    <!--<option value="experiment">Experiment</option>-->
-                    <!--<option value="experiment">Experiment</option>-->
-                    <!--<option value="ef">Factor</option>-->
-                    <!--<option value="efv">Factor Value</option>-->
-                    <!--<option value="gene">Gene</option>-->
-                <!--</select>-->
-            <!--</td>-->
-        </tr>
-        <tr>
-            <td></td>
-            <td><em>(leave blank for all genes)</em></td>
-            <td></td>
-            <td><em>(leave blank for all conditions)</em></td>
         </tr>
     </table>
+
     <input type="hidden" name="view"/>
 </form>
 
-<%
-    if(!request.getParameterNames().hasMoreElements()) return;
-    response.flushBuffer();
-
-    long t0 = System.currentTimeMillis();
-
-    if(q_expt.endsWith("*")) q_expt = q_expt.replaceAll("[*]$","?*");
-    QueryResponse exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
-    long t1 = System.currentTimeMillis();
-
-    if(q_gene.endsWith("*")) q_gene= q_gene.replaceAll("[*]$","?*");
-    QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(q_gene);
-    long t2 = System.currentTimeMillis();
-
-    long recs = 0;
-    String viewParam = request.getParameter("view");
-
-    AtlasResultSet atlasResultSet = ArrayExpressSearchService.instance().doAtlasQuery(geneHitsResponse, exptHitsResponse, q_updn, q_orgn);
-    HashSet<AtlasResultSet> sessionARS = (HashSet<AtlasResultSet>) session.getAttribute("sessionARS");
-
-    if (sessionARS == null) {
-        sessionARS = new HashSet<AtlasResultSet>();
-    }
-
-    sessionARS.add(atlasResultSet);
-    session.setAttribute("sessionARS", sessionARS);
-
-    if(atlasResultSet != null)
-        recs = atlasResultSet.getFullRecordCount();
-
-    if(recs > 0 && viewParam == null || viewParam.equals("heatmap")) {
-        %>
-        <table border="1" class="heatmap" cellpadding="3" cellspacing="0">
-            <tr>
-                <th valign="bottom">Factor Value</th>
-                <th style="border-right: thick solid"><img src="vtext?<%=response.encodeURL("Number of studies")%>" title="Number of studies"/></th>
-                <%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
-                <%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
-                <%
-                    List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
-                    for(HashMap<String,String> gene : genes ) {
-                        %>
-                            <th align="center"><a target="_blank" href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=gene.get("gene_identifier")%>&species=&displayInsitu=on&exp_query="><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name"))%>" title="Show expression for <%=gene.get("gene_name") + " (" + gene.get("gene_identifier") + ")"%> in AEW..."/></a></th>
-                        <%
-                    }
-                %>
+<form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
+    <div style="position:relative;top:150px;text-align:center">
+    for news and updates, subscribe to the atlas mailing list:
+        <table align="center">
+            <tr valign="middle">
+                <td>
+                    <input style="border: thin solid lightgray;font-size:11px" type="text" name="email" size="10" value=""/>
+                </td>
+                <td>
+                    <input style="font-size:11px" type="button" name="email-button" value="subscribe"/>
+                 </td>
             </tr>
-
-            <%
-                HashMap<String,HashMap<String,String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
-                for (HashMap<String,String> ar : atlasResultSet.getAtlasEfvCounts() ) {
-                    %>
-                    <tr>
-                        <td nowrap="true"><span style="font-weight:bold" title="Matched in experiment(s) <%=ar.get("experiments")%>"><%=ar.get("efv")%></span></td>
-                        <td  style="border-right: thick solid" align="right"><b><%=ar.get("experiment_count")%></b></td>
-                        <%--<td align="right"><b><%=ar.get("up_count")%></b></td>--%>
-                        <%--<td style="border-right: thick solid" align="right"><b><%=ar.get("dn_count")%></b></td>--%>
-
-                        <%
-
-                            for(HashMap<String,String> gene : genes ) {
-                                HashMap<String,String> gar = gars.get(gene.get("gene_identifier") + ar.get("efv"));
-
-                                if(gar != null && gar.size() != 0) {
-                                    Long r = 255L;
-                                    Long b = 255L;
-                                    Long g = 255L;
-
-                                    String mpvup = gar.get("mpvup");
-                                    String mpvdn = gar.get("mpvdn");
-
-                                    String sumup = gar.get("sumup");
-                                    String sumdn = gar.get("sumdn");
-
-                                    String display = "";
-                                    String title   = "Probes for " + gene.get("gene_identifier") + " found in experiment(s) " + gar.get("experiment_count") + 
-                                                     ", observed up "   + (sumup == null ? 0 : sumup) + " times (mean p=" + (mpvup == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvup))) + ")" +
-                                                     ", observed down " + (sumdn == null ? 0 : sumdn) + " times (mean p=" + (mpvdn == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvdn))) + ")";
-
-                                    if (mpvup == null && mpvdn == null) {
-                                        r = g = b = 255L;
-                                    } else if (mpvup == null && mpvdn != null) {
-                                        b = 255L;
-                                        g = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        r = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = "0/" + sumdn;
-                                    } else if (mpvup != null && mpvdn == null) {
-                                        r = 255L;
-                                        g = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        b = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        display = sumup + "/0";
-                                    } else {
-                                        g = 0L;
-                                        r = Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        b = Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = sumup + "/" + sumdn;
-                                    }
-
-                                    %>
-                                        <td align="center" style="background-color:rgb(<%=r%>,<%=g%>, <%=b%>)">
-                                            <span title="<%=title%>" style="text-decoration:none;font-weight:bold;color: white"><%=display%></span>
-                                        </td>
-                                    <%
-                                } else {
-                                    %>
-                                        <td>&nbsp;</td>
-                                    <%
-                                }
-                                %>
-                                <%
-                            }
-                        %>
-
-                    </tr>
-                    <%
-                }
-            %>
         </table>
-            <%
-    } else if(recs > 0 && viewParam.equals("table")) {
-        %>
-         <table class="tablesorter" id="atlasTable">
-             <thead>
-                 <tr>
-                     <th width="100">Experiment</th>
-                     <th>Description</th>
-                     <th>Factor Value (Factor)</th>
-                     <th width="100">Gene Name</th>
-                     <th>Gene Id</th>
-                     <th>Organism</th>
-                     <th width="70">P-value</th>
-                     <th>AEW</th>
-                     <th>...</th>
-                 </tr>
-             </thead>
-             <tbody>
-             <%
-                for(Map ar : atlasResultSet.getAllAtlasResults(request.getParameter("sortby"))) {
-                    Double updn_pvaladj = (Double) ar.get("updn_pvaladj");
-                    Integer updn = (Integer) ar.get("updn");
+</div>
+</form>
 
-                    Long c = Math.round(updn_pvaladj * (-255D/0.05D) + 255);
-
-                    String rgb = "white";
-
-                    if (updn == -1)
-                        rgb = "rgb(" + (255-c) + "," + (255-c) + ",255)";
-                    else if (updn == 1)
-                        rgb = "rgb(255," + (255-c) + "," + (255-c) + ")";
-
-                    String color = "black";
-                    if ( c > 200 ) color = "white";
-
-                    %>
-                    <tr style="height:2.4em">
-                        <td><a title="Show experiment annotation in repository" target="_blank" href="http://www.ebi.ac.uk/arrayexpress/experiments/<%=ar.get("experiment_accession")%>"><%=ar.get("experiment_accession")%></a></td>
-                        <td><%=ar.get("experiment_description")%></td>
-                        <td><%=ar.get("efv") + " (" + ar.get("ef") + ")"%></td>
-                        <td><%=ar.get("gene_name")%></td>
-                        <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
-                        <td><%=ar.get("gene_species")%></td>
-                        <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><%=String.format("%.3g", updn_pvaladj)%></td>
-                        <td>
-                            <a title="Show expression in warehouse"
-                               target="_blank"
-                               href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=ar.get("gene_identifier")%>&species=&displayInsitu=on&exp_query=<%=ar.get("experiment_accession")%>">More...                                
-                            </a>
-                        </td>
-                        <td>
-                            <%=ar.get("gene_highlights")%>
-                        </td>
-                    </tr>
-                    <%
-                }
-            %>
-             </tbody>
-         </table>
-        <%
-    }
-
-//    atlasResultSet.cleanup();
-    long t3 = System.currentTimeMillis();
-%>
-
-    <%
-    response.getWriter().println("<br/>Done: " +  recs +  " atlas records found in " + (t3-t2) + " ms. Total processing time: " + (t3-t0) + " ms.<br/><br/>");
-
-    if (exptHitsResponse != null)
-        response.getWriter().println("<br/>" + exptHitsResponse.getResults().getNumFound() +  " Solr experiment hits (" + exptHitsResponse.getResults().size() + " used), in " + (t1-t0) + " ms." );
-
-    if (geneHitsResponse != null)
-        response.getWriter().println("<br/>" + geneHitsResponse.getResults().getNumFound() +  " Solr gene hits  (" + geneHitsResponse.getResults().size() + " used), in " + (t2-t1) + " ms." );
-
-    if (q_expt.equals("") && q_gene.equals(""))
-        response.getWriter().println("Try entering some query parameters!" );
-    %>
-
-</body>
-</html>
+<span style="position:fixed;bottom:30px;right:0px;padding-right:10px">ArrayExpress Atlas Build <%=svnBuildString%></span>
+<jsp:include page="end_body.jsp"></jsp:include>
