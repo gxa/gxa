@@ -264,5 +264,5 @@ ArrayExpress Atlas Preview
 </div>
 </form>
 
-<span style="position:fixed;bottom:30px;right:0px;padding-right:10px">ArrayExpress Atlas Build <%=svnBuildString%></span>
+<span style="position:fixed;bottom:30px;right:0px;padding-right:10px">ArrayExpress Atlas Build <%=svnBuildString.replaceAll("\\$","")%></span>
 <jsp:include page="end_body.jsp"></jsp:include>

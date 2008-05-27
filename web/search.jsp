@@ -191,6 +191,9 @@ ArrayExpress Atlas Preview
         <%
         return;
     }
+    %>
+<div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
+    <%
     response.flushBuffer();
 
     long t0 = System.currentTimeMillis();
@@ -222,6 +225,10 @@ ArrayExpress Atlas Preview
 
     if(atlasResultSet != null)
         recs = atlasResultSet.getFullRecordCount();
+
+    %>
+    <script type="text/javascript">$("#loading_display").hide()</script>
+    <%
 
     if(recs > 0 && viewParam == null || viewParam.equals("heatmap")) {
         %>
