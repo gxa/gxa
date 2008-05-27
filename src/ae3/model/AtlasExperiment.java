@@ -21,7 +21,7 @@ import java.util.Vector;
  * Time: 9:31:07 AM
  * To change this template use File | Settings | File Templates.
  */
-public class AtlasExperiment {
+public class AtlasExperiment implements java.io.Serializable {
     private Long aerExpId;
     private String aerExpName;
     private String aerExpAccession;
