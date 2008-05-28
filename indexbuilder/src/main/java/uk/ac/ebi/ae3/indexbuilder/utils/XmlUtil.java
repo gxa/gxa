@@ -71,7 +71,14 @@ public class XmlUtil
 	
 	private static final void addField(SolrInputDocument doc, String fieldName, String value)
 	{
+	    if (StringUtils.isEmpty(value))
+	    {
+		doc.addField(fieldName, "");		
+	    }
+	    else
+	    {
 		doc.addField(fieldName, value);
+	    }
 		
 	}
 	
