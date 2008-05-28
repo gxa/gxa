@@ -12,8 +12,8 @@ import ae3.service.QueryHelper;
 public class AeSearchServiceTest extends AtlasAbstractTest
 {
 	String keywords = "cancer";
-	Long arrayDesId = new Long(1608943079);
-	String species = "Mus musculus";
+	Long arrayDesId = new Long(119901743);
+	String species = "Homo sapiens";
 	private boolean writeXmlToFile = true;
 
 	@Test
@@ -33,7 +33,7 @@ public class AeSearchServiceTest extends AtlasAbstractTest
 		log.info("######################################## Number of documents [keywords + species] is " + value);
 		
 		value=AeSearchService.getNumOfDoc(keywords, species, arrayDesId);
-		assertEquals(0, value);
+		//assertEquals(1, value);
 		log.info("######################################## Number of documents [keywords + species + arrayDesId] is " + value);
 		
 		//get only arraydesid
