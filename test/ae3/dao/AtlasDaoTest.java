@@ -56,29 +56,6 @@ public class AtlasDaoTest extends AtlasAbstractTest
 		AtlasExperiment exp=AtlasDao.getExperimentByAccession("E-MEXP-980");
 	}
 	
-	@Test
-	public void test_getExperiments() throws SolrServerException
-	{
-		String keywords[] = {"cancer"};
-		long count = AtlasDao.getExperimentsCount(keywords);
-		int start = 10;
-		int rows = 0;
-		while (rows < count)
-		{
-		  start = rows;		  
-		  rows = rows + 10;
-		  List<AtlasExperiment> l=AtlasDao.getExperimentsAer(keywords,start,10);
-		  log.info("############### Results: " + l.size());
-		}
-		
-	}
-	
-	public void test_getExperimentsCount() throws SolrServerException
-	{
-		String keywords[] = {"cancer"};
-		long count=AtlasDao.getExperimentsCount(keywords);
-		log.info("############### Number of exp is : " + count);
-		
-	}
+
 	
 }

@@ -29,4 +29,12 @@ public class AtlasAbstractTest extends TestCase
 		log.info("Shutdown");
 		ArrayExpressSearchService.instance().shutdown();
 	}
+	
+	protected void info(String message)
+	{
+	    log.info("###########################################################");
+	    log.info(message);
+	    log.info("###########################################################");
+
+	}
 }

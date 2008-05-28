@@ -106,6 +106,9 @@ public class QueryHelper
 	public static String convParamSortToFieldName(String name)
 	{
 		String _convert = Constants.FIELD_AER_RELEASEDATE;
+		if (StringUtils.isEmpty(name))
+		    return _convert;
+		
 		if (name.equalsIgnoreCase(XmlHelper.XML_EL_ACCESSION))
 		{
 			_convert = Constants.FIELD_AER_EXPACCESSION;
@@ -132,6 +135,10 @@ public class QueryHelper
 	public static ORDER convParamOrderToOrder(String name)
 	{
 		ORDER _convert = ORDER.asc;
+		if (StringUtils.isEmpty(name))
+		{
+		    return _convert;
+		}
 		if (name.equalsIgnoreCase("desc"))
 		{
 			_convert = ORDER.desc;

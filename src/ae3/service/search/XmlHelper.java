@@ -135,8 +135,30 @@ public class XmlHelper
 			//Adding species
 			Collection colSampleCat=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_CAT);
 			Collection colSampleValue=solrDocument.getFieldValues(Constants.FIELD_AER_SAAT_VALUE);
-			addElementWithAttr(elExperiment,XML_EL_SPECIES , "");
-
+			if (colSampleCat!=null)
+			{
+			    
+			    Iterator<String> itCat=colSampleCat.iterator();
+			    Iterator<String> itVal =null;
+			    Map<String, String> map;
+			    if (colSampleValue != null)
+			    {
+				itVal=colSampleValue.iterator();
+			    }
+			    while (itCat.hasNext())
+			    {
+				String cat=itCat.next();
+				String value="";
+				if (itVal != null)
+				{
+				    value=itVal.next();
+				}
+				if (cat.equalsIgnoreCase("Organism"))
+				{
+				    addElementWithAttr(elExperiment,XML_EL_SPECIES , value);
+				}
+			    }
+			}
 			//Adding samples
 			attrValue = getIntFieldValue(solrDocument, Constants.FIELD_AER_TOTAL_SAMPL);
 			addElementWithAttr(elExperiment,XML_EL_SAMPLES , attrValue);

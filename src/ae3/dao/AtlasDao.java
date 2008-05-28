@@ -122,18 +122,7 @@ public class AtlasDao {
 
     }
 
-    /**
-     * Returns number of experiments. 
-     * @param keywords - search keywords.
-     * @return number of experiments.
-     * @throws SolrServerException
-     */
-    public static long getExperimentsCount(String keywords[]) throws SolrServerException  
-    {
-    	String query = QueryHelper.prepareQueryByKeywords(keywords);
-    	long count= ArrayExpressSearchService.instance().getNumDoc(query);
-    	return count;
-    }
+    
     
     /**
      * Return a list of AtlasExperiment objects for specify keywords. 

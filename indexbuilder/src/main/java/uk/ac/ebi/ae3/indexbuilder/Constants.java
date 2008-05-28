@@ -89,6 +89,7 @@ public class Constants
 	public static final String EL_ba_light = "ba_light";
 	public static final String EL_arraydesign="arraydesign";
 	public static final String AT_releasedate="releasedate";
+						   
 	public static final String AT_VALUE="VALUE";
 	public static final String AT_value="value";
 	public static final String AT_publication="publication";

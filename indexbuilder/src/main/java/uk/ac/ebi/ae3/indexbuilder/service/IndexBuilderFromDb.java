@@ -52,7 +52,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	@Override
 	protected void createIndexDocs() throws Exception
 	{
-			Collection<Experiment> colExp=experimentDao.getExperiments();		
+			Collection<Experiment> colExp=experimentDao.getExperiments(null);		
 			Iterator<Experiment> it=colExp.iterator();
 			while (it.hasNext())
 			{

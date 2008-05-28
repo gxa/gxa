@@ -58,10 +58,11 @@ public class AeSearchService
 			return null;
 		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
 		//get total
-		long total=getNumberOfDoc(query);
+		SolrDocumentList list=getNumOfDocAndFacet(query);
+		long total = list.getNumFound();
 		String _sortField = QueryHelper.convParamSortToFieldName(sortField);
 		ORDER _sortOrder = QueryHelper.convParamOrderToOrder(sortOrder); 
-		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows, false ,true);
+		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExptsAer(query, start, rows, _sortField, _sortOrder);
 		SolrDocumentList docList=resp.getResults();
 		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();
 		List<FacetField> facetFields=resp.getFacetFields();
@@ -71,26 +72,30 @@ public class AeSearchService
 	//
 	//TODO: Add special Exception
 	//	
-	public static long getNumberOfDoc(String keywords, String species, Long arrayDesId) throws SolrServerException
+	public static long getNumOfDoc(String keywords, String species, Long arrayDesId) throws SolrServerException
 	{
 		if (!QueryHelper.parseParam(keywords, species, arrayDesId, null, null))
 			return 0;
 		String query = QueryHelper.prepareQuery(keywords, species, arrayDesId);
-		return getNumberOfDoc(query);
+		return getNumOfDoc(query);
 	}
 	
 	
-	private static long getNumberOfDoc(String query) throws SolrServerException
-	{		
-		return ArrayExpressSearchService.instance().getNumDoc(query);
+	public static long getNumOfDoc(String query) throws SolrServerException
+	{	
+	    long count = 0;
+	    SolrDocumentList list =ArrayExpressSearchService.instance().getNumDocAer(query, false);
+	    if (list != null)
+		count=list.getNumFound();
+	    return count;
 	}
 	
-	private static SolrDocumentList getNumOfDocAndFacet(String query) throws SolrServerException
+	protected static SolrDocumentList getNumOfDocAndFacet(String query) throws SolrServerException
 	{
-		SolrDocumentList docList=ArrayExpressSearchService.instance().getNumDoc(query, true, true);
-		return docList;
-		
-		//docList.
+	    if (StringUtils.isEmpty(query))
+		return null;
+	    SolrDocumentList docList=ArrayExpressSearchService.instance().getNumDocAer(query, true);
+	    return docList;
 	}
 
 

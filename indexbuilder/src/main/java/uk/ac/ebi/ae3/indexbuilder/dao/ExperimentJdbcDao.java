@@ -7,6 +7,7 @@ import java.util.Collection;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.dom4j.DocumentException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -24,6 +25,13 @@ public class ExperimentJdbcDao
 {
 	/** The instance of Spring JDBC template */
 	private JdbcTemplate jdbcTemplate;
+	/** The SQL statement which returns a indicate experiment*/
+	private static final String sqlExperimentsByAccession = "select distinct e.id, i.identifier as accession, case when v.user_id = 1 then 1 else 0 end as \"public\" " +
+	 "from tt_experiment e left outer join tt_identifiable i on i.id = e.id " +
+	 "left outer join tt_extendable ext on ext.id = e.id " +
+	 "left outer join pl_visibility v on v.label_id = ext.label_id where i.identifier = ?" +
+	 "order by i.identifier asc";
+	
 	/** The SQL statement which returns all experiments**/
 	private static final String sqlExperiments = "select distinct e.id, i.identifier as accession, case when v.user_id = 1 then 1 else 0 end as \"public\" " +
 									 "from tt_experiment e left outer join tt_identifiable i on i.id = e.id " +
@@ -87,13 +95,22 @@ public class ExperimentJdbcDao
 	
 
 	/**
-	 * Return all experiments
-	 * @return
+	 * Return all experiments or specific experiment
+	 * @return Collection of Experiments
 	 */
-	public Collection<Experiment> getExperiments()
+	public Collection<Experiment> getExperiments(String expAccession)
 	{
+	    if (StringUtils.isEmpty(expAccession))
+	    {
 		Collection<Experiment> colection=this.jdbcTemplate.query(sqlExperiments, rowMapperExperiments);
 		return colection;
+	    }
+	    else
+	    {
+		Collection<Experiment> colection=this.jdbcTemplate.query(sqlExperimentsByAccession, new Object[] {expAccession},rowMapperExperiments);
+		return colection;
+		
+	    }
 		
 	}
 	

@@ -8,6 +8,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -222,11 +223,9 @@ public class ArrayExpressSearchService {
      * @param rows - maximum number of Documents
      * @return
      */
-    public QueryResponse fullTextQueryExpts(String query, int start, int rows) {
-	    return fullTextQueryExpts(query,start,rows,true,false);
-    }
+  
 
-    public QueryResponse fullTextQueryExpts(String query, int start, int rows, boolean addHiglightDw, boolean addHiglihtAer)
+    public QueryResponse fullTextQueryExpts(String query, int start, int rows)
     {
         if (query == null || query.equals(""))
             return null;
@@ -245,6 +244,55 @@ public class ArrayExpressSearchService {
             q.setRows(rows);
             q.setStart(start);
             q.setFilterQueries("exp_in_dw:true");
+
+            return solr_expt.query(q);
+        } catch (SolrServerException e) {
+            log.error(e);
+        }
+
+        return null;
+
+    }
+
+    /**
+     * Performs pagination and full text SOLR search on experiments.
+     * @param query - A lucene query
+     * @param start - a start record
+     * @param rows - maximum number of Documents
+     * @return {@link QueryResponse} or null
+     */
+  
+
+    public QueryResponse fullTextQueryExptsAer(String query, int start, int rows, String sortField, ORDER sortOrder)
+    {
+        if (query == null || query.equals(""))
+            return null;
+
+        //if (query.length()>500)
+          //  query = query.substring(0,500);
+
+        try {
+            SolrQuery q = new SolrQuery(query);
+            q.setHighlight(true);
+            q.setHighlightSnippets(500);   
+            q.addHighlightField(Constants.FIELD_AER_EXPNAME);
+            q.addHighlightField(Constants.FIELD_AER_DESC_TEXT);
+            q.addHighlightField(Constants.FIELD_AER_BI_AUTHORS);
+            q.addHighlightField(Constants.FIELD_AER_BI_TITLE);
+            q.addHighlightField(Constants.FIELD_AER_SAAT_VALUE);
+            q.addHighlightField(Constants.FIELD_AER_SAAT_CAT);
+            q.addHighlightField(Constants.FIELD_AER_FV_OE);
+            if (sortField == null)
+            {
+                q.addSortField(Constants.FIELD_AER_RELEASEDATE, ORDER.asc);
+            }
+            else                  
+            {
+                q.addSortField(sortField, sortOrder);
+            }            
+            q.setRows(rows);
+            q.setStart(start);
+           
 
             return solr_expt.query(q);
         } catch (SolrServerException e) {
@@ -332,30 +380,21 @@ public class ArrayExpressSearchService {
         return null;
     }
 
-    /**
-     * Returns number of documents which the query find.
-     * @param query - the lucene query
-     * @return
-     */
-    public long getNumDoc(String query) throws SolrServerException
-    {
-    	SolrDocumentList l=getNumDoc(query, false, false);
-    	return l.getNumFound();
-    }
-
-    public SolrDocumentList getNumDoc(String query, boolean countSample, boolean countFactor) throws SolrServerException
+    public SolrDocumentList getNumDocAer(String query, boolean countSpecies) throws SolrServerException
     {
 
         SolrQuery q = new SolrQuery(query);
-        if (countFactor | countSample)
+        if (countSpecies)
+        {
             q.setFacet(true);
-        if (countSample)
-        	q.setFields(Constants.FIELD_AER_SAAT_CAT);
-        if (countFactor)
-        	q.setFields(Constants.FIELD_AER_FV_FACTORNAME);
+            q.setFacetLimit(-1);
+            q.setFields(Constants.FIELD_AER_SAAT_VALUE);
+            q.setFilterQueries(Constants.FIELD_AER_SAAT_CAT + ":Organism");
+        }
         q.setRows(1);
         q.setStart(0);
         QueryResponse queryResponse = solr_expt.query(q);
+        
         SolrDocumentList l=queryResponse.getResults();
         return l;
     }
