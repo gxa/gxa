@@ -224,7 +224,7 @@ public class XmlUtil
 		{
 			el=list.get(i);
 			addFieldFromAttr(el, Constants.AT_name, doc, Constants.FIELD_AER_FV_FACTORNAME );
-			addFieldFromAttr(el, Constants.AT_VALUE, doc, Constants.FIELD_AER_FV_OE);				
+			addFieldFromAttr(el, Constants.AT_value, doc, Constants.FIELD_AER_FV_OE);				
 		}
 		//process mimescore
 		list=elExperiment.elements(Constants.EL_miamescore);
@@ -236,7 +236,7 @@ public class XmlUtil
 			{
 				Element e=it.next();
 				addFieldFromAttr(e, Constants.AT_name, doc, Constants.FIELD_AER_MIMESCORE_NAME);
-				addFieldFromAttr(e, Constants.AT_VALUE, doc, Constants.FIELD_AER_MIMESCORE_VALUE);				
+				addFieldFromAttr(e, Constants.AT_value, doc, Constants.FIELD_AER_MIMESCORE_VALUE);				
 			}
 		}
 		//process arraydesign

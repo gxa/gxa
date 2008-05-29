@@ -90,7 +90,7 @@ public class Constants
 	public static final String EL_arraydesign="arraydesign";
 	public static final String AT_releasedate="releasedate";
 						   
-	public static final String AT_VALUE="VALUE";
+
 	public static final String AT_value="value";
 	public static final String AT_publication="publication";
 	public static final String AT_year="year";

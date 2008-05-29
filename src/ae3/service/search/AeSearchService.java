@@ -29,7 +29,8 @@ import com.Ostermiller.util.StringTokenizer;
 //import com.Ostermiller.util.StringTokenizer;
 
 /**
- * The class searches the experiment index 
+ * The class searches the experiment index by keywords, species and id array design.
+ * Affords API which creates a XML output file.
  * and return the XML document or number of documents. 
  * @author mdylag
  *
@@ -48,9 +49,9 @@ public class AeSearchService
 	 * @param arrayDesId - 
 	 * @param start - 
 	 * @param rows -
-	 * @param sortField - 
-	 * @param sortOrder -   
-	 * @return the XML document, null if (keywords, species and arrayDesId is null) or rows is 0.   
+	 * @param sortField - a sort field 
+	 * @param sortOrder - a   
+	 * @return the XML document, null if (keywords, species and arrayDesId is null) or rows is 0 or searching returbs 0.   
 	 */
 	public static String searchIdxAer(String keywords, String species, Long arrayDesId, int start, int rows, String sortField, String sortOrder) throws SolrServerException
 	{
