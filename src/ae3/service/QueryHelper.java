@@ -1,7 +1,10 @@
 package ae3.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.Query;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import org.apache.solr.client.solrj.response.QueryResponse;
 
 import ae3.service.search.XmlHelper;
 
@@ -145,8 +148,40 @@ public class QueryHelper
 		}
 		return _convert;
 	}
-
-
+	  /**
+	     * Performs pagination and full text SOLR search on experiments.
+	     * @param query - A lucene query
+	     * @param start - a start record
+	     * @param rows - maximum number of Documents
+	     * @return {@link QueryResponse} or null
+	     */
+	  
+	public static final SolrQuery createSolrQueryForAer(String query, int start, int rows, String sortField, ORDER sortOrder)
+	{
+	    if (query == null || query.equals(""))
+	            return null;
+	    SolrQuery q = new SolrQuery(query);
+            q.setHighlight(true);
+            q.setHighlightSnippets(500);         
+            q.addHighlightField(Constants.FIELD_AER_EXPNAME);
+            q.addHighlightField(Constants.FIELD_AER_DESC_TEXT);
+            q.addHighlightField(Constants.FIELD_AER_BI_AUTHORS);
+            q.addHighlightField(Constants.FIELD_AER_BI_TITLE);
+            q.addHighlightField(Constants.FIELD_AER_SAAT_VALUE);
+            q.addHighlightField(Constants.FIELD_AER_SAAT_CAT);
+            q.addHighlightField(Constants.FIELD_AER_FV_OE);
+            if (sortField == null)
+            {
+                q.addSortField(Constants.FIELD_AER_RELEASEDATE, ORDER.asc);
+            }
+            else                  
+            {
+                q.addSortField(sortField, sortOrder);
+            }            
+            q.setRows(rows);
+            q.setStart(start);
+            return q;
+	}
 }
 	
 	

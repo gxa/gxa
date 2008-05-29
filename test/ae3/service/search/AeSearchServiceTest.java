@@ -85,4 +85,14 @@ public class AeSearchServiceTest extends AtlasAbstractTest
 		log.info(xml);		
 
 	}
+	
+	public void test_searchIdxAerHg() throws Exception
+	{
+	    
+	    long value=AeSearchService.getNumOfDoc(keywords, null, null);		
+		String xml=AeSearchService.searchIdxAer(keywords, null, null, 0, 1, null,null);
+		log.info("##########################################################");
+		//File fileXml = new File("test\\a.xml");			
+		log.info(xml);
+	}
 }

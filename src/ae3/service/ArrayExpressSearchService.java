@@ -254,47 +254,12 @@ public class ArrayExpressSearchService {
 
     }
 
-    /**
-     * Performs pagination and full text SOLR search on experiments.
-     * @param query - A lucene query
-     * @param start - a start record
-     * @param rows - maximum number of Documents
-     * @return {@link QueryResponse} or null
-     */
   
 
-    public QueryResponse fullTextQueryExptsAer(String query, int start, int rows, String sortField, ORDER sortOrder)
+    public QueryResponse query(SolrQuery query)
     {
-        if (query == null || query.equals(""))
-            return null;
-
-        //if (query.length()>500)
-          //  query = query.substring(0,500);
-
-        try {
-            SolrQuery q = new SolrQuery(query);
-            q.setHighlight(true);
-            q.setHighlightSnippets(500);   
-            q.addHighlightField(Constants.FIELD_AER_EXPNAME);
-            q.addHighlightField(Constants.FIELD_AER_DESC_TEXT);
-            q.addHighlightField(Constants.FIELD_AER_BI_AUTHORS);
-            q.addHighlightField(Constants.FIELD_AER_BI_TITLE);
-            q.addHighlightField(Constants.FIELD_AER_SAAT_VALUE);
-            q.addHighlightField(Constants.FIELD_AER_SAAT_CAT);
-            q.addHighlightField(Constants.FIELD_AER_FV_OE);
-            if (sortField == null)
-            {
-                q.addSortField(Constants.FIELD_AER_RELEASEDATE, ORDER.asc);
-            }
-            else                  
-            {
-                q.addSortField(sortField, sortOrder);
-            }            
-            q.setRows(rows);
-            q.setStart(start);
-           
-
-            return solr_expt.query(q);
+      try {
+           return solr_expt.query(query);
         } catch (SolrServerException e) {
             log.error(e);
         }

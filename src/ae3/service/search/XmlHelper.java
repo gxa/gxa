@@ -9,8 +9,13 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.highlight.DefaultSolrHighlighter;
+import org.apache.solr.highlight.SolrHighlighter;
+import org.apache.solr.util.HighFrequencyDictionary;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -107,8 +112,11 @@ public class XmlHelper
 	 * @param rows
 	 * @return
 	 */
-	public static Document createXmlDoc(SolrDocumentList docList, long count, int start, int rows)
+	public static Document createXmlDoc(QueryResponse resp, long count, int start, int rows)
 	{
+	        SolrDocumentList docList=resp.getResults();
+		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();
+	
 		Document doc = createXmlDoc(count, start, rows);
 		Element elRoot=doc.getRootElement();
 		//
@@ -122,7 +130,7 @@ public class XmlHelper
 			addElementWithAttr(elExperiment, XML_EL_ID, attrValue);
 
 
-			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPACCESSION);
+			String expAccession = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPACCESSION);
 			addElementWithAttr(elExperiment, XML_EL_ACCESSION, attrValue);
 
 			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPNAME);
@@ -375,7 +383,9 @@ public class XmlHelper
 						el.addElement(XML_EL_ID).setText(idValue);
 						if (col2 != null && it2.hasNext())
 						{
-							el.setText(it2.next());
+						      String valueDesc = it2.next();
+						      valueDesc=getHighLight(expAccession,resp,valueDesc,Constants.FIELD_AER_DESC_TEXT);
+						      el.setText(valueDesc);
 						}
 						
 					}
@@ -386,6 +396,22 @@ public class XmlHelper
 			
 		}		
 		return doc;
+	}
+	
+	private static String getHighLight(String expAccession, QueryResponse resp, String text, String fieldName)
+	{
+	    String textHg = text; 
+	    Map<String, List<String>> map=resp.getHighlighting().get(expAccession);
+	    if (map!=null && map.size() > 0)
+	    {
+		List<String> list=map.get(fieldName);
+		Iterator<String> it=list.iterator();
+		while (it.hasNext())
+		{
+		    String value=it.next();
+		}
+	    }
+	    return textHg;
 	}
 
 	private static String getLongFieldValue(SolrDocument solrDocument,String name)

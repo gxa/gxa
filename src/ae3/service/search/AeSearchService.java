@@ -1,32 +1,25 @@
 package ae3.service.search;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.highlight.DefaultSolrHighlighter;
 import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
+
+import com.sun.jmx.mbeanserver.NamedObject;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
-import ae3.model.AtlasExperiment;
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.QueryHelper;
 
-import com.Ostermiller.util.StringTokenizer;
-
-//import com.Ostermiller.util.StringTokenizer;
 
 /**
  * The class searches the experiment index by keywords, species and id array design.
@@ -41,14 +34,14 @@ public class AeSearchService
 	
 	
 	/**
-	 * The method return the XML document contains experiment(s).
+	 * The method return a XML document contains experiment(s).
 	 * if keywords, species and arrayDesId is null returns null.
 	 * if rows is equal 0 returns null too. 
-	 * @param keywords - 
-	 * @param species - 
-	 * @param arrayDesId - 
-	 * @param start - 
-	 * @param rows -
+	 * @param keywords - is a keyword for full text search.
+	 * @param species - is a keyword for searching species.
+	 * @param arrayDesId - is a parameter for search array design id
+	 * @param start - define start row
+	 * @param rows - define number of row
 	 * @param sortField - a sort field 
 	 * @param sortOrder - a   
 	 * @return the XML document, null if (keywords, species and arrayDesId is null) or rows is 0 or searching returbs 0.   
@@ -63,16 +56,23 @@ public class AeSearchService
 		long total = list.getNumFound();
 		String _sortField = QueryHelper.convParamSortToFieldName(sortField);
 		ORDER _sortOrder = QueryHelper.convParamOrderToOrder(sortOrder); 
-		QueryResponse resp=ArrayExpressSearchService.instance().fullTextQueryExptsAer(query, start, rows, _sortField, _sortOrder);
-		SolrDocumentList docList=resp.getResults();
-		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();
-		List<FacetField> facetFields=resp.getFacetFields();
-		Document doc=XmlHelper.createXmlDoc(docList, total, start, rows);		
+		SolrQuery solrQuery=QueryHelper.createSolrQueryForAer(query, start, rows, _sortField, _sortOrder);
+		QueryResponse resp=ArrayExpressSearchService.instance().query(solrQuery);
+		 DefaultSolrHighlighter sol = new DefaultSolrHighlighter();
+		 String hgl[] = {Constants.FIELD_AER_DESC_TEXT};
+		 //NamedObject ob=sol.doHighlighting(resp.getResults()., solrQuery, resp, hgl);
+		Document doc=XmlHelper.createXmlDoc(resp, total, start, rows);		
 		return doc.asXML();
 	}
-	//
-	//TODO: Add special Exception
-	//	
+	
+	/**
+         * 
+         * @param keywords
+         * @param species
+         * @param arrayDesId
+         * @return
+         * @throws SolrServerException
+         */	
 	public static long getNumOfDoc(String keywords, String species, Long arrayDesId) throws SolrServerException
 	{
 		if (!QueryHelper.parseParam(keywords, species, arrayDesId, null, null))
@@ -81,7 +81,12 @@ public class AeSearchService
 		return getNumOfDoc(query);
 	}
 	
-	
+	/**
+	 * 
+	 * @param query
+	 * @return
+	 * @throws SolrServerException
+	 */
 	public static long getNumOfDoc(String query) throws SolrServerException
 	{	
 	    long count = 0;
@@ -91,6 +96,12 @@ public class AeSearchService
 	    return count;
 	}
 	
+	/**
+	 * 
+	 * @param query
+	 * @return
+	 * @throws SolrServerException
+	 */
 	protected static SolrDocumentList getNumOfDocAndFacet(String query) throws SolrServerException
 	{
 	    if (StringUtils.isEmpty(query))
