@@ -1,7 +1,5 @@
 
-select * from ae.TT_IDENTIFIABLE where identifier = 'E-TABM-444';
-
-select XmlElement( "experiment" +
+select XmlElement( "experiment"
 , XmlAttributes( e.id as "id", i.identifier as "accession", nvt_name.value as "name", nvt_releasedate.value as "releasedate", nvt_miamegold.value as "miamegold" )
 , ( select XmlAgg( XmlElement( "user", v.user_id ) ) from tt_extendable ext left outer join pl_visibility v on v.label_id = ext.label_id where ext.id = e.id )
 , ( select XmlAgg( XmlElement( "secondaryaccession", sa.value ) ) from tt_namevaluetype sa where sa.t_extendable_id = e.id and sa.name = 'SecondaryAccession' )
@@ -22,13 +20,14 @@ from tt_experiment e
  left outer join tt_namevaluetype nvt_name on ( nvt_name.t_extendable_id = e.id and nvt_name.name = 'AEExperimentDisplayName' )
  left outer join tt_namevaluetype nvt_miamegold on ( nvt_miamegold.t_extendable_id=e.id and nvt_miamegold.name='AEMIAMEGOLD' )
 where
- e.id = 1611111505
+ e.id = 282724898
 group by
  e.id
  , i.identifier
  , nvt_name.value
  , nvt_releasedate.value
- , nvt_miamegold.value 
+ , nvt_miamegold.value; 
+
 
 select XmlElement( "experiment"
  ,XmlAttributes( i.identifier as "accnum", e.id as "id", nvt_name.value as "name", nvt_releasedate.value as "releasedate", nvt_miamegold.value as "miamegold" )
@@ -51,7 +50,7 @@ left outer join tt_namevaluetype nvt_releasedate on ( nvt_releasedate.t_extendab
 left outer join tt_namevaluetype nvt_name on ( nvt_name.t_extendable_id = e.id and nvt_name.name = 'AEExperimentDisplayName' )
 left outer join tt_namevaluetype nvt_miamegold on ( nvt_miamegold.t_extendable_id=e.id and nvt_miamegold.name='AEMIAMEGOLD' )
 where
-e.id = ?
+e.id = 282724898
 group by
 e.id
 , i.identifier

@@ -16,7 +16,7 @@ public class AeSearchServiceTest extends AtlasAbstractTest
 	String species = "Homo sapiens";
 	private boolean writeXmlToFile = true;
 
-	@Test
+	
 	public void test_getNumOfDoc() throws Exception
 	{
 		
@@ -74,7 +74,7 @@ public class AeSearchServiceTest extends AtlasAbstractTest
 	{
 	    
 	    long value=AeSearchService.getNumOfDoc(keywords, null, null);		
-		String xml=AeSearchService.searchIdxAer(keywords, null, null, 0, 1, null,null);
+		String xml=AeSearchService.searchIdxAer(keywords, null, null, 0, 10, null,null);
 		log.info("##########################################################");
 		//File fileXml = new File("test\\a.xml");			
 		log.info(xml);
