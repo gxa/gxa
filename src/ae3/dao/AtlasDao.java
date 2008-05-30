@@ -14,7 +14,7 @@ import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.QueryHelper;
+import ae3.util.QueryHelper;
 
 /**
  * Created by IntelliJ IDEA.

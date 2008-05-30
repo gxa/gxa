@@ -1,4 +1,4 @@
-package ae3.service.search;
+package ae3.util;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -26,6 +27,7 @@ import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
 /**
  * TODO: DOCUMENT ME and unify name of elements in xml files
+ * TODO: This class should be split to smaller piece of code.
  * The utility class has methods which help to create the XML file from a solr index.
  * 
  * @author mdylag
@@ -115,7 +117,7 @@ public class XmlHelper
 	public static Document createXmlDoc(QueryResponse resp, long count, int start, int rows)
 	{
 	        SolrDocumentList docList=resp.getResults();
-		Map<String, Map<String, List<String>>>hgl=resp.getHighlighting();
+		Map<String,Map<String, List<String>>> hglMapAll=resp.getHighlighting();
 	
 		Document doc = createXmlDoc(count, start, rows);
 		Element elRoot=doc.getRootElement();
@@ -123,20 +125,21 @@ public class XmlHelper
 		Iterator<SolrDocument> docIt = docList.iterator();
 		while (docIt.hasNext())
 		{
+		    	
 			SolrDocument solrDocument =docIt.next();
 			Element elExperiment = elRoot.addElement(XML_EL_EXPERIMENT);
 
 			String attrValue = getLongFieldValue(solrDocument, Constants.FIELD_AER_EXPID);
 			addElementWithAttr(elExperiment, XML_EL_ID, attrValue);
 
-
-			String expAccession = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPACCESSION);
-			addElementWithAttr(elExperiment, XML_EL_ACCESSION, attrValue);
-
-			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_EXPNAME);
+			String expAccession = (String)solrDocument.getFieldValue(Constants.FIELD_AER_EXPACCESSION);
+			Map<String, List<String>> hglMapExp=hglMapAll.get(expAccession);			
+			addElementWithAttr(elExperiment, XML_EL_ACCESSION, expAccession);
+			
+			attrValue = getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_EXPNAME);
 			addElementWithAttr(elExperiment, XML_EL_NAME, attrValue);
 			
-			attrValue = getStringFieldValue(solrDocument, Constants.FIELD_AER_RELEASEDATE);
+			attrValue = getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_RELEASEDATE);
 			addElementWithAttr(elExperiment, XML_EL_RELEASEDATE, attrValue);
 
 			
@@ -179,7 +182,7 @@ public class XmlHelper
 			Element element = elExperiment.addElement(XML_EL_FILES);
 			//Add FGEM
 			{
-				String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_FGEM);
+				String value=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_FGEM);
 				String valueCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_FILE_FGEM);
 			
 				if (!StringUtils.isEmpty(value))
@@ -193,7 +196,7 @@ public class XmlHelper
 			}
 			//Add RAW
 			{
-    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_RAW);
+    			String value=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_RAW);
     			String valueCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_RAW_COUNT);
     			String valueCelCount=getIntFieldValue(solrDocument, Constants.FIELD_AER_RAW_CELCOUNT);
     			
@@ -208,7 +211,7 @@ public class XmlHelper
 			}
 			//Add TWOCOLUMNS
 			{
-    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_TWOCOLUMNS);
+    			String value=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_TWOCOLUMNS);
     			if (!StringUtils.isEmpty(value))
     			{
     				Element childEl=element.addElement(XML_EL_TWOCOLUMNS);
@@ -217,7 +220,7 @@ public class XmlHelper
 			}
 			//Add SDRF
 			{
-    			String value=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_SDRF);
+    			String value=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_SDRF);
     			if (!StringUtils.isEmpty(value))
     			{
     				Element childEl=element.addElement(XML_EL_SDRF);
@@ -226,8 +229,8 @@ public class XmlHelper
 			}
 			//Adding biosamples
 			{
-    			String valuePng=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLEPNG);
-    			String valueSvg=getStringFieldValue(solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLESVG);
+    			String valuePng=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLEPNG);
+    			String valueSvg=getStringFieldValue(expAccession, hglMapExp,solrDocument, Constants.FIELD_AER_FILE_BIOSAMPLESVG);
     			
     			if (!StringUtils.isEmpty(valueSvg) || !StringUtils.isEmpty(valuePng) )
     				
@@ -358,6 +361,8 @@ public class XmlHelper
 					while (it.hasNext())
 					{
 						String value = it.next();
+						value=getHighLight(expAccession, hglMapExp, value, Constants.FIELD_AER_EXPDES_TYPE);
+
 						elExpDesigns.addElement(XML_EL_EXPERIMENTDESIGN).setText(value);						
 					}
 				}
@@ -384,7 +389,7 @@ public class XmlHelper
 						if (col2 != null && it2.hasNext())
 						{
 						      String valueDesc = it2.next();
-						      valueDesc=getHighLight(expAccession,resp,valueDesc,Constants.FIELD_AER_DESC_TEXT);
+						      valueDesc=getHighLight(expAccession, hglMapExp, valueDesc, Constants.FIELD_AER_DESC_TEXT);
 						      el.setText(valueDesc);
 						}
 						
@@ -398,17 +403,45 @@ public class XmlHelper
 		return doc;
 	}
 	
-	private static String getHighLight(String expAccession, QueryResponse resp, String text, String fieldName)
+	private static boolean isHighLight(Map<String, List<String>> map, String fieldName)
 	{
+	  
+	    return map.containsKey(fieldName);
+	}
+	
+	private static String getHighLight(String expAccession, Map<String, List<String>> map, String text, String fieldName)
+	{
+	    if (!isHighLight(map,  fieldName))
+	    {
+		return text;
+	    }
+	    if (map==null || map.size() == 0)
+	    {
+		return text;
+	    }
 	    String textHg = text; 
-	    Map<String, List<String>> map=resp.getHighlighting().get(expAccession);
+	    
 	    if (map!=null && map.size() > 0)
 	    {
 		List<String> list=map.get(fieldName);
 		Iterator<String> it=list.iterator();
 		while (it.hasNext())
 		{
-		    String value=it.next();
+		    String hgValue=it.next();
+		    int fromIndex = 0;		
+		    int endIndex = 0;
+		
+		    while ( (fromIndex=hgValue.indexOf("<em>", fromIndex)) != -1)
+		    {
+				endIndex = hgValue.indexOf("</em>", fromIndex);
+				String match=hgValue.substring(fromIndex, endIndex+5);
+				String strSearch = match.replace("<em>", "").replace("</em>", "");			
+				if (textHg.indexOf(match)==-1)
+				{
+				    textHg=textHg.replace(strSearch, match);
+				}
+				fromIndex=endIndex;
+		    }
 		}
 	    }
 	    return textHg;
@@ -423,13 +456,14 @@ public class XmlHelper
 		}
 		return "";
 	}
-	
-	private static String getStringFieldValue(SolrDocument solrDocument,String name)
+		
+	private static String getStringFieldValue(String expAccession, Map<String,List<String>>map, SolrDocument solrDocument,String fieldName)
 	{
-		String value = (String)solrDocument.getFieldValue(name);
+		String value = (String)solrDocument.getFieldValue(fieldName);
 		if (value != null)
 		{
-			return value;
+		    value=getHighLight(expAccession, map, value, fieldName);
+		    return value;
 		}
 		return "";
 	}

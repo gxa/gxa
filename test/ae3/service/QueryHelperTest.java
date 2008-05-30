@@ -2,7 +2,8 @@ package ae3.service;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.AtlasAbstractTest;
-import ae3.service.search.XmlHelper;
+import ae3.util.QueryHelper;
+import ae3.util.XmlHelper;
 
 public class QueryHelperTest extends AtlasAbstractTest
 {

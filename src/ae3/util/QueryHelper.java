@@ -1,4 +1,10 @@
-package ae3.service;
+package ae3.util;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.Query;
@@ -6,7 +12,6 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.response.QueryResponse;
 
-import ae3.service.search.XmlHelper;
 
 import com.Ostermiller.util.StringTokenizer;
 
@@ -181,6 +186,53 @@ public class QueryHelper
             q.setRows(rows);
             q.setStart(start);
             return q;
+	}
+	
+	
+	private static Map<String, Map<String,String>> createHighlighting(QueryResponse resp)
+	{
+	    Map<String,Map<String,List<String>>> mapHg=resp.getHighlighting();
+	    Map<String, Map<String,String>> map = new HashMap<String, Map<String,String>>();
+	    if (mapHg == null || mapHg.isEmpty())
+	    {
+		return map;
+	    }
+	    Iterator<Entry<String,Map<String,List<String>>>> it=mapHg.entrySet().iterator();
+	    while (it.hasNext())
+	    {
+		Entry<String,Map<String,List<String>>> entryField=it.next();
+		String indexKey=entryField.getKey();
+		Iterator<Entry<String,List<String>>> itValue=entryField.getValue().entrySet().iterator();
+		while ( itValue.hasNext())
+		{
+		    Entry<String,List<String>> entry=itValue.next();
+		    //name of 
+		    String fieldName=entry.getKey();
+		    Iterator<String> hgValueIt=entry.getValue().iterator();
+		    while (hgValueIt.hasNext())
+		    {
+			String str=hgValueIt.next();
+			int fromIndex = 0;		
+			int endIndex = 0;
+			while ( (fromIndex=str.indexOf("<em>", fromIndex)) != -1)
+			{
+				endIndex = str.indexOf("</em>", fromIndex);
+				String match=str.substring(fromIndex, endIndex+5);
+				String strSearch = match.replace("<em>", "").replace("</em>", "");
+				fromIndex=endIndex;
+				Map<String,String> mapPair = new HashMap<String, String>();
+				
+			}
+			//
+		    }
+		}
+	    }
+	    return map;
+	}
+	
+	private void createHgString(String value, final QueryResponse response)
+	{
+	    
 	}
 }
 	

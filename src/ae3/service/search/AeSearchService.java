@@ -18,7 +18,8 @@ import com.sun.jmx.mbeanserver.NamedObject;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.QueryHelper;
+import ae3.util.QueryHelper;
+import ae3.util.XmlHelper;
 
 
 /**
