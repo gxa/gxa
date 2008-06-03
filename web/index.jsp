@@ -212,7 +212,7 @@ ArrayExpress Atlas Preview
                                 </div>
                             </div>
                         </td>
-                        <td colspan="2" align="center" valign="top">
+                        <td colspan="2" align="center" valign="top" width="200">
                             <div style="margin-top:10px">
                                 <input type="submit" value="Search Atlas">
                             </div>
@@ -225,6 +225,12 @@ ArrayExpress Atlas Preview
                                 <input type="radio" name="view" id="view_heatmap" value="heatmap"
                                     <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                                 <label for="view_heatmap">heatmap</label>
+
+                                <br/>
+                                <i><input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"
+                                    <%=request.getParameter("expand_efo") != null && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
+                                <label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>
+                                </i>
                             </div>
                         </td>
                         <td valign="top" align="center" style="width:150px">
@@ -243,6 +249,11 @@ ArrayExpress Atlas Preview
                 <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a>
             </td>
         </tr>
+        <tr>
+            <td colspan="3" align="center">
+                <b>Hint:</b> query for condition 'kidney' leaving blank the genes field for the most active genes in that tissue.
+            </td>
+        </tr>
     </table>
 
     <input type="hidden" name="view"/>
@@ -250,14 +261,14 @@ ArrayExpress Atlas Preview
 
 <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
     <div style="position:relative;top:150px;text-align:center">
-    for news and updates, subscribe to the atlas mailing list:
+    for news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:
         <table align="center">
             <tr valign="middle">
                 <td>
                     <input style="border: thin solid lightgray;font-size:11px" type="text" name="email" size="10" value=""/>
                 </td>
                 <td>
-                    <input style="font-size:11px" type="button" name="email-button" value="subscribe"/>
+                    <input style="font-size:11px" type="submit" name="email-button" value="subscribe"/>
                  </td>
             </tr>
         </table>

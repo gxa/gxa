@@ -3,6 +3,7 @@
 <%@ page import="ae3.service.AtlasResultSet" %>
 <%@ page import="java.util.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page buffer="0kb" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
 ArrayExpress Atlas Preview
@@ -173,6 +174,11 @@ ArrayExpress Atlas Preview
                             <input type="radio" name="view" id="view_heatmap" value="heatmap"
                                 <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                             <label for="view_heatmap">heatmap</label>
+
+                            <input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"
+                                <%=request.getParameter("expand_efo") != null && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
+                            <label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>
+
                         </td>
                     </tr>
                 </table>
@@ -198,7 +204,22 @@ ArrayExpress Atlas Preview
     long t0 = System.currentTimeMillis();
 
     if(q_expt.endsWith("*")) q_expt = q_expt.replaceAll("[*]$","?*");
-    QueryResponse exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
+
+    QueryResponse exptHitsResponse;
+    if ( null != request.getParameter("expand_efo") && null != q_expt && !q_expt.equals("") ) {
+        exptHitsResponse  = ArrayExpressSearchService.instance().fullTextQueryExptsWithOntologyExpansion(q_expt);
+        String expanded_efo = (String) exptHitsResponse.getHeader().get("expanded_efo");
+        if(null != expanded_efo && !expanded_efo.equals(q_expt)) {
+            %><div style="padding:5px">Your conditions query was expanded via <abbr title="Experimental Factor Ontology">EFO</abbr> to: <span style="font-family: monospace"><%=expanded_efo%></span></div><%
+        } else {
+            %><div style="padding:5px">No <abbr title="Experimental Factor Ontology">EFO</abbr> expansion found.</div><%            
+        }
+    } else {
+        exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
+    }
+
+    response.flushBuffer();
+
     long t1 = System.currentTimeMillis();
 
     if(q_gene.endsWith("*")) q_gene= q_gene.replaceAll("[*]$","?*");

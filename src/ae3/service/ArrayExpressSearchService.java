@@ -32,6 +32,8 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
+import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.ols.webservice.axis.Query;
 
 /**
  * User: ostolop
@@ -229,9 +231,9 @@ public class ArrayExpressSearchService {
     {
         if (query == null || query.equals(""))
             return null;
-
-        if (query.length()>500)
-            query = query.substring(0,500);
+//
+//        if (query.length()>500)
+//            query = query.substring(0,500);
 
         try {
             if (query.indexOf("exp_factor_values:") == -1) {
@@ -658,5 +660,36 @@ public class ArrayExpressSearchService {
         log.info("Query executed..." + geneEFVCounts.size() + " results found.");
 
         return geneEFVCounts;
+    }
+
+    public QueryResponse fullTextQueryExptsWithOntologyExpansion(String q_expt) {
+        try {
+            Query olsQuery = new QueryServiceLocator().getOntologyQuery();
+            HashMap<String,String> terms = olsQuery.getTermsByExactName(q_expt, "EFO");
+
+            Set<String> ontologyExpansion = new HashSet<String>();
+            StringBuffer s = new StringBuffer(q_expt);
+
+            for (String term : terms.keySet()) {
+                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", 1, null);
+                ontologyExpansion.addAll(termChildren.values());
+            }
+
+            for (String term : ontologyExpansion) {
+                if(term.contains(" ")) term = "\""  + term + "\"";
+                s.append(" ").append(term);
+            }
+            
+            String expanded_q_expt = s.toString();
+            log.info("Expanding experiments query with EFO to: " + expanded_q_expt);
+
+            QueryResponse qr = fullTextQueryExpts(expanded_q_expt);
+
+            if(null != qr) qr.getHeader().add("expanded_efo", expanded_q_expt);
+            return qr;
+        } catch (Exception e) {
+            log.error("Failed to expand query with EFO, proceeding with normal query", e);
+            return fullTextQueryExpts(q_expt);
+        }
     }
 }
