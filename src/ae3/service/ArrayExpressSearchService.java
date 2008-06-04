@@ -454,7 +454,7 @@ public class ArrayExpressSearchService {
                 "        where 1 = 1" + // atlas.designelement_id_key=gene.designelement_id_key \n" +
 //                " and atlas.experiment_id_key=expt.experiment_id_key\n" +
 //                " and gene.gene_identifier is not null\n" +
-                " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530) \n" + // ignore E-TABM-145a,b,c
+                " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
 //                " and ad_species.arraydesign_id_key=atlas.arraydesign_id_key\n" +
 //                " and gene_species.gene_id_key=gene.gene_id_key \n" +
                 (inGeneIds.length() != 0 ? "and atlas.gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
