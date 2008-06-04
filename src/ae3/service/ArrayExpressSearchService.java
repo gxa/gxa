@@ -602,13 +602,13 @@ public class ArrayExpressSearchService {
 
         try {
             species = (SortedSet<String>) theAEQueryRunner.query(
-                    "SELECT DISTINCT value FROM ae2__gene_species__dm WHERE value IS NOT NULL AND NOT (value LIKE 'UNK%')",
+                    "SELECT DISTINCT value FROM ae2__arraydesign_species WHERE arraydesign_id_key IN (SELECT DISTINCT arraydesign_id FROM ae1__sample__main) ORDER BY value DESC",
                     new ResultSetHandler() {
                         public Object handle(ResultSet rs) throws SQLException {
                             SortedSet<String> species = new TreeSet<String>();
                             while(rs.next()) {
-                                String s = rs.getString(1);
-                                species.add(s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase());
+                                species.add(rs.getString(1));
+//                                species.add(s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase());
                             }
 
                             return species;

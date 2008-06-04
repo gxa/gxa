@@ -16,7 +16,7 @@ ArrayExpress Atlas Preview
     <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
     <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="jquery.autocomplete.js"></script>
-<!--<script type="text/javascript" src="jquerydefaultvalue.js"></script>-->
+    <script type="text/javascript" src="jquerydefaultvalue.js"></script>
 
     <script type="text/javascript">
         function toggleAtlasHelp() {
@@ -45,25 +45,9 @@ ArrayExpress Atlas Preview
 
         $(document).ready(function()
             {
-                // SET UP OUR SORTER
-                $("#atlasTable").tablesorter({
-    //                debug: true,
-                    sortAppend: [[6,0]],
-                    headers: {
-                        6: { sorter : 'digit' },
-                        7: { sorter : false },
-                        8: { sorter : false }
-                     }
-    //                ,
-    //                widgets: ['groups'],
-    //                emptyGroupCaption: "(none)",
-    //                collapsableGroups: false
-                });
+                $("#q_gene").defaultvalue("(all genes)");
+                $("#q_expt").defaultvalue("(all conditions)");
 
-    //            $("#q_gene").defaultvalue("(all genes)");
-    //            $("#q_expt").defaultvalue("(all experiments)");
-
-                // TOGGLE HELP
                 $("#atlasHelpToggle").click(toggleAtlasHelp);
 
                 $("#q_expt").autocomplete("autocomplete.jsp", {
@@ -81,8 +65,6 @@ ArrayExpress Atlas Preview
                         formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
                 });
 
-
-//                alert($.cookie('atlas_help_state') + ":hidden is " + $("div.atlasHelp").is(":hidden"))
                 if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
                    showAtlasHelp();
                 } else if (($.cookie('atlas_help_state') == "hidden") && ($("div.atlasHelp").is(":visible"))) {
@@ -93,30 +75,6 @@ ArrayExpress Atlas Preview
     </script>
 
     <style type="text/css">
-        table.heatmap th {
-            border-bottom: 2px solid #6699CC;
-            border-left: 1px solid #6699CC;
-            background-color: #BEC8D1;
-            text-align: left;
-            text-indent: 5px;
-            font-family: Verdana;
-            font-weight: bold;
-            font-size: 11px;
-            color: #404040;
-        }
-
-        table.heatmap {
-            text-align: left;
-            font-family: Verdana;
-            font-weight: normal;
-            font-size: 11px;
-            color: #404040;
-            background-color: #fafafa;
-            border: 1px #6699CC solid;
-            border-collapse: collapse;
-            border-spacing: 0px;
-        }
-
         .label {
             font-size: 10px;
         }

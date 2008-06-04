@@ -18,7 +18,7 @@
 
   <category name="logger.EhCache" additivity="false">
     <priority value="INFO"/>
-    <appender-ref ref="${aew.application.log.appender.ref}"/>
+    <appender-ref ref="CONSOLE"/>
   </category>
 
   <root> 

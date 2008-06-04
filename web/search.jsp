@@ -16,22 +16,21 @@ ArrayExpress Atlas Preview
 <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
 <script type="text/javascript" src="jquery.autocomplete.js"></script>
+<script type="text/javascript" src="jquerydefaultvalue.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function()
         {
+            $("#q_gene").defaultvalue("(all genes)");
+            $("#q_expt").defaultvalue("(all conditions)");
+
             $("#atlasTable").tablesorter({
-//                debug: true,
                 sortAppend: [[6,0]],
                 headers: {
                     6: { sorter : 'digit' },
                     7: { sorter : false },
                     8: { sorter : false }
                  }
-//                ,
-//                widgets: ['groups'],
-//                emptyGroupCaption: "(none)",
-//                collapsableGroups: false
             });
 
             $("#q_expt").autocomplete("autocomplete.jsp", {
@@ -109,8 +108,8 @@ ArrayExpress Atlas Preview
         String q_orgn = request.getParameter("q_orgn");
 
         if (q_updn == null) q_updn = "";
-        if (q_expt == null) q_expt = "";
-        if (q_gene == null) q_gene = "";
+        if (q_expt == null || q_expt.equals("(all conditions)")) q_expt = "";
+        if (q_gene == null || q_gene.equals("(all genes)"))      q_gene = "";
         if (q_orgn == null) q_orgn = "";
     %>
 
@@ -234,22 +233,20 @@ ArrayExpress Atlas Preview
         exactmatch = true;
 
     AtlasResultSet atlasResultSet = ArrayExpressSearchService.instance().doAtlasQuery(geneHitsResponse, exptHitsResponse, q_updn, q_orgn);
-    HashSet<AtlasResultSet> sessionARS = (HashSet<AtlasResultSet>) session.getAttribute("sessionARS");
-
-    if (sessionARS == null) {
-        sessionARS = new HashSet<AtlasResultSet>();
-    }
-
-    sessionARS.add(atlasResultSet);
-    session.setAttribute("sessionARS", sessionARS);
 
     if(atlasResultSet != null)
         recs = atlasResultSet.getFullRecordCount();
 
     %>
     <script type="text/javascript">$("#loading_display").hide()</script>
-    <%
 
+    <%if(recs>0 && viewParam.equals("table")){
+        %><div style="text-align:right; padding:5px">Displaying results 1-<%=recs>1000 ? 1000 : recs%> of ~<%=recs%> found in the atlas</div><%
+    } else if(recs>0 && viewParam.equals("heatmap")) {
+        %><div style="text-align:right; padding:5px">Found ~<%=recs%> records in the atlas</div><%
+    }%>
+
+    <%
     if(recs > 0 && viewParam == null || viewParam.equals("heatmap")) {
         %>
         <table style="position:relative;top:-10px" border="1" class="heatmap" cellpadding="3" cellspacing="0">
@@ -344,8 +341,11 @@ ArrayExpress Atlas Preview
         </table>
             <%
     } else if(recs > 0 && viewParam.equals("table")) {
+        List<HashMap> atlasResults = atlasResultSet.getAllAtlasResults(request.getParameter("sortby"));
+        if (recs>1000) atlasResults = atlasResults.subList(0,1000);
+
         %>
-         <table style="position:relative; top:-10px;" class="tablesorter" id="atlasTable">
+        <table style="position:relative; top:-10px;" class="tablesorter" id="atlasTable">
              <thead>
                  <tr>
                      <th width="100">Experiment</th>
@@ -361,7 +361,7 @@ ArrayExpress Atlas Preview
              </thead>
              <tbody>
              <%
-                for(Map ar : atlasResultSet.getAllAtlasResults(request.getParameter("sortby"))) {
+                for(Map ar : atlasResults ) {
                     Double updn_pvaladj = (Double) ar.get("updn_pvaladj");
                     Integer updn = (Integer) ar.get("updn");
 
