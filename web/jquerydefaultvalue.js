@@ -43,7 +43,7 @@
 				var el = $(this);
 				var def = args[c++];
 
-				el.val(def).focus(function() {
+				el.val(el.val() == "" ? def : el.val()).focus(function() {
 					if(el.val() == def) {
 						el.val("");
 					}
