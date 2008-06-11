@@ -14,14 +14,14 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.MultiCore;
 import org.apache.solr.schema.SchemaField;
 import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -34,6 +34,7 @@ import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.ols.webservice.axis.Query;
+import net.sf.ehcache.CacheManager;
 
 /**
  * User: ostolop
@@ -47,7 +48,7 @@ import ae3.ols.webservice.axis.Query;
  * EBI Microarray Informatics Team (c) 2007, 2008
  */
 public class ArrayExpressSearchService {
-    private static final Log log = LogFactory.getLog(ArrayExpressSearchService.class);
+    protected final Log log = LogFactory.getLog(getClass());
 
     //// Full-text Search Index Instances
 
@@ -76,7 +77,7 @@ public class ArrayExpressSearchService {
     // TODO: Refactor to an external cache (e.g., ehcache) for caching AtlasResultSets, evicting LRU ones.
     //       When an element is removed from the cache, it needs to get removed from the in-memory DB as
     //       well (see the remove method on AtlasResultSetCache).
-    private static AtlasResultSetCache arsCache = new AtlasResultSetCache();
+    private AtlasResultSetCache arsCache = new AtlasResultSetCache();
 
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
@@ -105,7 +106,7 @@ public class ArrayExpressSearchService {
             conn = getMEMConnection();
             PreparedStatement stmt = conn.prepareStatement(
                     "CREATE TABLE atlas (" +
-                            "idkey uuid, " +
+                            "idkey varchar(500), " +
                             "experiment_id int, " +
                             "experiment_accession varchar(255), " +
                             "experiment_description varchar(300), " +
@@ -137,6 +138,8 @@ public class ArrayExpressSearchService {
         Collection names = multiCore.getCore("expt").getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
         log.info(names);
 
+        CacheManager.create();
+        arsCache.syncWithDB();
     }
 
     /**
@@ -144,15 +147,19 @@ public class ArrayExpressSearchService {
      */
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
+
         try {
             if (theAEDS != null) theAEDS = null;
             if (memAEDS != null) memAEDS = null;
-            if (multiCore != null)
-            {
+
+            if (multiCore != null) {
             	multiCore.shutdown();
             	solr_gene = null;
             	solr_expt = null;
             }
+
+            log.info("Shutting down AtlasResultSet cache: " + arsCache.size() + " result sets");
+            CacheManager.getInstance().shutdown();
         } catch (Exception e) {
             log.error("Error shutting down ArrayExpressSearchService!", e);
         }
@@ -418,11 +425,15 @@ public class ArrayExpressSearchService {
                 efvFilter = "and atlas.efv IN (" + StringUtils.join(ss.toArray(), ",") + ") \n";
         }
 
+        String geneReqUrl = geneHitsResponse == null ? "" : (String) ((NamedList) geneHitsResponse.getHeader().get("params")).get("q");
+        String exptReqUrl = exptHitsResponse == null ? "" : (String) ((NamedList) exptHitsResponse.getHeader().get("params")).get("q");
 
-        String arsCacheKey = inGeneIds + inExptIds +  efvFilter + updn_filter + geneSpeciesFilter;
+        final String arsCacheKey = geneReqUrl + exptReqUrl + efvFilter + updn_filter + geneSpeciesFilter;
 
-        if (arsCache.containsKey(arsCacheKey))
+        if (arsCache.containsKey(arsCacheKey)) {
+            log.info("Cache hit for " + arsCacheKey);
             return arsCache.get(arsCacheKey);
+        }
 
         String atlas_query_topN = "SELECT * FROM (\n" +
                 " SELECT\n" +
@@ -473,7 +484,7 @@ public class ArrayExpressSearchService {
         try {
             arset = (AtlasResultSet) theAEQueryRunner.query(atlas_query_topN, new ResultSetHandler() {
                 public AtlasResultSet handle(ResultSet rs) throws SQLException {
-                    AtlasResultSet arset = new AtlasResultSet();
+                    AtlasResultSet arset = new AtlasResultSet(arsCacheKey);
                     while(rs.next()) {
                         AtlasResult atlasResult = new AtlasResult();
 
@@ -546,7 +557,6 @@ public class ArrayExpressSearchService {
 
             log.info("Retrieved query completely: " + arset.size() + " records" );
 
-            arset.setAvailableInDB(true);
             arsCache.put(arsCacheKey, arset);
         } catch (SQLException e) {
             log.error(e);

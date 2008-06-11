@@ -25,7 +25,7 @@ import java.util.Vector;
  */
 
 public class QueryServlet extends HttpServlet {
-    private static final Log log = LogFactory.getLog("ae3");
+    protected final Log log = LogFactory.getLog(getClass());
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);

@@ -27,7 +27,7 @@ import java.util.HashSet;
 public class ArrayExpressApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 
-    private Log log = LogFactory.getLog(ArrayExpressApplicationListener.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     // Public constructor is required by servlet spec
     public ArrayExpressApplicationListener() {
@@ -72,6 +72,8 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
 
         ArrayExpressSearchService as = ArrayExpressSearchService.instance();
         as.shutdown();
+
+        LogFactory.releaseAll();
     }
 
     // -------------------------------------------------------

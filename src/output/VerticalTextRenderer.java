@@ -22,7 +22,7 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 public class VerticalTextRenderer {
-    private static final Log log = LogFactory.getLog(VerticalTextRenderer.class);
+    protected final Log log = LogFactory.getLog(getClass());
 
     private static final Map hints = new HashMap();
 

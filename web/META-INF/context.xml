@@ -20,7 +20,7 @@
               maxIdle="2"
               maxWait="5000"
               maxActive="50"
-              url="jdbc:h2:mem:ATLAS"/>
+              url="jdbc:h2:${java.io.tmpdir}/ATLAS;DB_CLOSE_ON_EXIT=FALSE"/>
     <!--/ebi/work/ae3/testdb/ae3;FILE_LOCK=NO;DB_CLOSE_ON_EXIT=FALSE-->
 
     <Parameter name="solr_index_location" description="SOLR Multicore Index Location" value="/ebi/work/solr_idxs/multicore"/>

@@ -1,35 +1,83 @@
 package ae3.service;
 
-import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-/**
- * Created by IntelliJ IDEA.
- * User: ostolop
- * Date: Apr 16, 2008
- * Time: 1:01:49 PM
- * To change this template use File | Settings | File Templates.
- */
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.util.List;
+
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
+
 public class AtlasResultSetCache {
-    private static SortedMap<String, AtlasResultSet> arsCache = Collections.synchronizedSortedMap(new TreeMap<String,AtlasResultSet>());
+    private final Log log = LogFactory.getLog(getClass());
+    private Cache arsCache;
 
-    synchronized public boolean containsKey(String arsCacheKey) {
-        return arsCache.containsKey(arsCacheKey);
+    public AtlasResultSetCache() {
+        arsCache = CacheManager.getInstance().getCache("AtlasResultSetCache");
     }
 
-
-    synchronized public AtlasResultSet get(String arsCacheKey) {
-        return arsCache.get(arsCacheKey);
+    public boolean containsKey(String arsCacheKey) {
+        return arsCache.isKeyInCache(arsCacheKey);
     }
 
-    synchronized public AtlasResultSet put(String arsCacheKey, AtlasResultSet ars) {
-        // TODO: evict LRU element if too many elts in cache
-        return arsCache.put(arsCacheKey, ars);
+    public AtlasResultSet get(String arsCacheKey) {
+        return (AtlasResultSet) arsCache.get(arsCacheKey).getValue();
     }
 
-    synchronized public AtlasResultSet remove(String arsCacheKey) {
-        AtlasResultSet ars = arsCache.remove(arsCacheKey);
-        ars.cleanup();
+    public void put(String arsCacheKey, AtlasResultSet ars) {
+        arsCache.put(new Element(arsCacheKey, ars));
+    }
 
-        return ars;
+    public int size() {
+        return arsCache.getSize();
+    }
+
+    /**
+     * Syncs the persistent cache with the DB. Any AtlasResultSet objects that have no entries in the DB are removed
+     * from the cache. Also any result sets that are in the DB but not in the cache are cleaned out of the DB.
+     */
+    public void syncWithDB() {
+        int outOfSyncCount = 0;
+        int notInCacheCount = 0;
+
+        for(String key : (List<String>) arsCache.getKeys()) {
+            AtlasResultSet ars = (AtlasResultSet) arsCache.get(key).getValue();
+
+            if(!ars.isAvailableInDB()) {
+                arsCache.remove(key);
+                outOfSyncCount++;
+            }
+        }
+
+        Connection conn = null;
+
+        try {
+            conn = ArrayExpressSearchService.instance().getMEMConnection();
+            PreparedStatement memstm = conn.prepareStatement("SELECT DISTINCT idkey FROM ATLAS");
+
+            ResultSet rs = memstm.executeQuery();
+            while(rs.next()) {
+                String idkey = rs.getString(1);
+
+                if(!arsCache.isKeyInCache(idkey)) {
+                    AtlasResultSet ars = new AtlasResultSet(idkey);
+                    arsCache.put(new Element(idkey, ars));
+                    notInCacheCount++;
+                }
+            }
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+
+        log.info("Synchronized cache with DB: " + outOfSyncCount + " result sets cleaned up, "
+                                                + notInCacheCount + " result sets added to cache, "
+                                                + arsCache.getSize() + " result sets total in cache.");
     }
 }

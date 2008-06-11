@@ -19,31 +19,34 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 * To change this template use File | Settings | File Templates.
 */
 public class AtlasResultSet implements Serializable {
-    private static final Log log = LogFactory.getLog(AtlasResultSet.class);
+    protected final Log log = LogFactory.getLog(getClass());
     private static final String insert_query = "insert into atlas (idkey, experiment_id, experiment_accession, experiment_description, gene_id, gene_name, gene_identifier, gene_species, ef, efv, updn, updn_pvaladj, gene_highlights) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     private String idkey;
-    private boolean isAvailableInDB;
     private int eltCount = 0;
 
 //    private QueryResponse geneHitsResponse;
 //    private QueryResponse exptHitsResponse;
 
-    public AtlasResultSet() {
-        Connection conn = null;
-        try {
-            conn = ArrayExpressSearchService.instance().getMEMConnection();
-            ResultSet idrs = conn.prepareStatement("SELECT RANDOM_UUID()").executeQuery();
-            idrs.next();
-            idkey = idrs.getString(1);
-            idrs.close();
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (conn != null) try { conn.close(); } catch (Exception e) {}
-        }
+//    public AtlasResultSet() {
+//        Connection conn = null;
+//        try {
+//            conn = ArrayExpressSearchService.instance().getMEMConnection();
+//            ResultSet idrs = conn.prepareStatement("SELECT RANDOM_UUID()").executeQuery();
+//            idrs.next();
+//            idkey = idrs.getString(1);
+//            idrs.close();
+//        } catch (SQLException e) {
+//            log.error(e);
+//        } finally {
+//            if (conn != null) try { conn.close(); } catch (Exception e) {}
+//        }
+//
+//        if (idkey == null) throw new ExceptionInInitializerError();
+//    }
 
-        if (idkey == null) throw new ExceptionInInitializerError();
+    public AtlasResultSet(final String _idkey) {
+        idkey = _idkey;
     }
 
     public List<HashMap> getAtlasEfvCounts() {
@@ -171,6 +174,9 @@ public class AtlasResultSet implements Serializable {
         return ars;
     }
 
+    /**
+     * Clean-up of AtlasResultSet: delete all relevant records from the in-memory (H2) ARS database.
+     */
     public void cleanup () {
         log.info("Cleaning up AtlasResultSet: " + idkey);
 
@@ -188,7 +194,7 @@ public class AtlasResultSet implements Serializable {
             if (conn != null) try { conn.close(); } catch (Exception e) {}
         }
 
-        setAvailableInDB(false);
+        assert !isAvailableInDB() : "Should be cleaned up from the database!";
     }
 
     public List<HashMap> getAtlasResultGenes() {
@@ -383,11 +389,29 @@ public class AtlasResultSet implements Serializable {
     }
 
     public boolean isAvailableInDB() {
-        return isAvailableInDB;
-    }
+        boolean isAvailableInDB = false;
 
-    public void setAvailableInDB(boolean availableInDB) {
-        isAvailableInDB = availableInDB;
+        Connection conn = null;
+
+        try {
+            conn = ArrayExpressSearchService.instance().getMEMConnection();
+            PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM ATLAS where idkey=?");
+            stmt.setString(1, idkey);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if(null != rs && rs.next() && rs.getInt(1) != 0 )
+                isAvailableInDB = true;
+
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+
+        return isAvailableInDB;
     }
 
 //    public void setFullTextGenes(QueryResponse geneHitsResponse) {
@@ -400,5 +424,9 @@ public class AtlasResultSet implements Serializable {
 
     public int size() {
         return eltCount;
+    }
+
+    public boolean equals(AtlasResultSet obj) {
+        return obj.getIdkey().equals(idkey);
     }
 }
