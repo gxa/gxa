@@ -157,7 +157,7 @@ public class MatrixGenerator {
 //					System.out.print("\t");
 				}
 			}
-			out.newLine();
+//			out.newLine();
 //			System.out.println();
 //			count++;
 //			if(count%10000==0)
@@ -184,6 +184,7 @@ public class MatrixGenerator {
 				}
 				out.newLine();
 			}
+			out.newLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
