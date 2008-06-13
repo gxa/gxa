@@ -77,18 +77,19 @@ public class MatrixGenerator {
 			int c=0;int s=0;
 			while(rset.next()){
 				deKey = rset.getInt("designelement_id_key");
-				if(c==0)
+				if(s==0)
 					oldkey = deKey;
 				if(!deKey.equals(oldkey)){
+					c++;
 					writeIt(data,deKey.toString());
 					data.clear();
 					oldkey=deKey;
 					if(c%1000==0){
-						System.out.println(c+" design elements writtent to file");
+						System.out.println(c+" unique design elements writtent to file");
 					}
 				}
 
-				c++;	
+					s++;
 				colHeader = rset.getObject("experiment_id_key")+"_"+rset.getObject("EF")+"_"+rset.getObject("EFV");
 				updn = rset.getInt("UPDN");
 //				if(deMap.containsKey(deKey)){
@@ -101,9 +102,9 @@ public class MatrixGenerator {
 //				s++;
 //				}
 				data.put(colHeader, updn.toString());
-//				if(c%1000==0){
-//				System.out.println(c+" records processed, size of map now is: "+deMap.size());
-//				}
+				if(s%10000==0){
+				System.out.println(c+" records processed");
+				}
 
 //				int index = heading.get(colHeader);
 //				data[index] = updn.toString();
@@ -124,7 +125,7 @@ public class MatrixGenerator {
 	private static void writeIt(HashMap<String, String> data, String deID){
 
 		try {
-			System.out.println("writing de to file");
+//			System.out.println("writing de to file");
 			BufferedWriter out = new BufferedWriter(new FileWriter("atlas_matrix.dat",true));
 //			for(int k=0; k<=2; k++){
 //			Iterator iter = headings.iterator(); //.entrySet().iterator();
@@ -140,7 +141,7 @@ public class MatrixGenerator {
 //			int count=0;
 //			while(iter2.hasNext()){
 //			Entry<Integer, HashMap> entry = (Entry<Integer, HashMap>)iter2.next();
-			System.out.println(deID);
+//			System.out.println(deID);
 			out.newLine();
 			out.write(deID+"\t"); // de_id
 //			HashMap data = entry.getValue();
