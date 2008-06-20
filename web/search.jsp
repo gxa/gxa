@@ -98,6 +98,7 @@ ArrayExpress Atlas Preview
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
         </td>
         <td align="right">
