@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="module_ae3" default="compile.module.ae3">
+  <dirname property="module.ae3.basedir" file="${ant.file.module_ae3}"/>
+  
+  <property name="module.jdk.home.ae3" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.ae3" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.ae3" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.ae3" value="${compiler.args}"/>
+  
+  <property name="ae3.output.dir" value="/ebi/work/ae3/out/production/Ae3"/>
+  <property name="ae3.testoutput.dir" value="/ebi/work/ae3/out/test/Ae3"/>
+  
+  <path id="ae3.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="ae3.module.classpath">
+    <path refid="library.wsdl4j.classpath"/>
+    <path refid="library.log4j.classpath"/>
+    <path refid="library.saaj.classpath"/>
+    <path refid="library.jax_rpc.classpath"/>
+    <path refid="library.commons_logging.classpath"/>
+    <path refid="library.commons_discovery.classpath"/>
+    <path refid="library.axis.classpath"/>
+    <path refid="${module.jdk.classpath.ae3}"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-1.2.0-dev.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-csv-1.0-SNAPSHOT-r609327.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/dom4j-1.6.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/h2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/xalan-2.7.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-api-1.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-highlighter-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-utils.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-dbcp.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-pool.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/spring.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-configuration-1.5.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ehcache-1.4.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-collections-3.2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-spellchecker-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/activation.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/junit-4.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/servlet-api-2.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-common-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/easymock.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/uk.ac.ebi.microarray.tools4ae-1.0-SNAPSHOT.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-logging-1.0.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/spring-sources.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-httpclient-3.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ostermillerutils_1_07_00.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-solrj-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-analyzers-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ojdbc-14.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-queries-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-codec-1.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-cli-20070823.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-snowball-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/mail.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-lang-2.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-fileupload-1.2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-core-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/backport-util-concurrent.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-dbutils-1.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.3.1.jar"/>
+    <path refid="library.ae3lib.classpath"/>
+    <pathelement location="${indexbuilder.output.dir}"/>
+    <pathelement location="${indexbuilder.testoutput.dir}"/>
+  </path>
+  
+  <path id="ae3.runtime.module.classpath">
+    <path refid="library.wsdl4j.classpath"/>
+    <path refid="library.log4j.classpath"/>
+    <path refid="library.saaj.classpath"/>
+    <path refid="library.jax_rpc.classpath"/>
+    <path refid="library.commons_logging.classpath"/>
+    <path refid="library.commons_discovery.classpath"/>
+    <path refid="library.axis.classpath"/>
+    <path refid="${module.jdk.classpath.ae3}"/>
+    <pathelement location="${ae3.output.dir}"/>
+    <pathelement location="${ae3.testoutput.dir}"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-1.2.0-dev.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-csv-1.0-SNAPSHOT-r609327.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/dom4j-1.6.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/h2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/xalan-2.7.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-api-1.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-highlighter-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/stax-utils.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-dbcp.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-pool.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/spring.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-configuration-1.5.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ehcache-1.4.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-collections-3.2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-spellchecker-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/activation.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/junit-4.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/servlet-api-2.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-common-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/easymock.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/uk.ac.ebi.microarray.tools4ae-1.0-SNAPSHOT.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-logging-1.0.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/spring-sources.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-httpclient-3.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ostermillerutils_1_07_00.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-solrj-nightly.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-analyzers-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/ojdbc-14.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-queries-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-codec-1.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-cli-20070823.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.4.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-snowball-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/mail.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-lang-2.3.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-fileupload-1.2.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/lucene-core-2.3.0.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/backport-util-concurrent.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-dbutils-1.1.jar"/>
+    <pathelement location="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.3.1.jar"/>
+    <path refid="library.ae3lib.classpath"/>
+    <pathelement location="${indexbuilder.output.dir}"/>
+    <pathelement location="${indexbuilder.testoutput.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.ae3">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.ae3">
+    <patternset refid="excluded.from.module.ae3"/>
+  </patternset>
+  
+  <path id="ae3.module.sourcepath">
+    <dirset dir="/ebi/work/ae3">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.ae3" depends="compile.module.ae3.production,compile.module.ae3.tests" description="Compile module Ae3"/>
+  
+  <target name="compile.module.ae3.production" depends="compile.module.indexbuilder" description="Compile module Ae3; production classes">
+    <mkdir dir="${ae3.output.dir}"/>
+    <javac destdir="${ae3.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.ae3}/javac">
+      <compilerarg line="${compiler.args.ae3}"/>
+      <bootclasspath refid="ae3.module.bootclasspath"/>
+      <classpath refid="ae3.module.classpath"/>
+      <src refid="ae3.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.ae3"/>
+    </javac>
+    
+    <copy todir="${ae3.output.dir}">
+      <fileset dir="/ebi/work/ae3/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.ae3.tests" depends="compile.module.ae3.production" description="compile module Ae3; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.ae3" description="cleanup module">
+    <delete dir="${ae3.output.dir}"/>
+    <delete dir="${ae3.testoutput.dir}"/>
+  </target>
+  
+  <property name="ae3web.dir.exploded" value="/ebi/work/ae3/out/exploded/Ae3Web"/>
+  <property name="ae3web.path.jar" value="/ebi/work/ae3/out/ae3.war"/>
+  <target name="j2ee.build.ae3web" depends="compile.module.ae3, compile.module.ae3, compile.module.indexbuilder" description="Build configured Java EE directories and archives for facet 'Web'">
+    <antcall target="j2ee.build.exploded.ae3web">
+      <param name="j2ee.dir.exploded" value="${ae3web.dir.exploded}"/>
+    </antcall>
+    <antcall target="j2ee.build.jar.ae3web">
+      <param name="j2ee.path.jar" value="${ae3web.path.jar}"/>
+    </antcall>
+  </target>
+  
+  <!-- Call the target to build exploded directory for module 'Web'.
+       Path to the exploded directory is specified by parameter 'j2ee.dir.exploded' -->
+  <target name="j2ee.build.exploded.ae3web" description="Build exploded directory for facet 'Web'">
+    <copy file="/ebi/work/ae3/web/WEB-INF/web.xml" tofile="${j2ee.dir.exploded}/WEB-INF/web.xml"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/wsdl4j-1.5.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/wsdl4j-1.5.1.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/log4j-1.2.8.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/log4j-1.2.8.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/saaj.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/saaj.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/jaxrpc.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/jaxrpc.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/commons-logging-1.0.4.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-logging-1.0.4.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/commons-discovery-0.2.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-discovery-0.2.jar"/>
+    <copy file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/axis.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/axis.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/backport-util-concurrent.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/backport-util-concurrent.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/uk.ac.ebi.microarray.tools4ae-1.0-SNAPSHOT.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/uk.ac.ebi.microarray.tools4ae-1.0-SNAPSHOT.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/mail.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/mail.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/activation.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/activation.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-dbutils-1.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-dbutils-1.1.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/ostermillerutils_1_07_00.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/ostermillerutils_1_07_00.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/spring.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/spring.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/spring-sources.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/spring-sources.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/ehcache-1.4.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/ehcache-1.4.1.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/h2.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/h2.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/xalan-2.7.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/xalan-2.7.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/stax-utils.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/stax-utils.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/stax-api-1.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/stax-api-1.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/stax-1.2.0-dev.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/stax-1.2.0-dev.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/servlet-api-2.4.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/servlet-api-2.4.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/ojdbc-14.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/ojdbc-14.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-spellchecker-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-spellchecker-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-snowball-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-snowball-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-queries-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-queries-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-highlighter-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-highlighter-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-core-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-core-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/lucene-analyzers-2.3.0.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/lucene-analyzers-2.3.0.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/junit-4.3.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/junit-4.3.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/easymock.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/easymock.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/dom4j-1.6.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/dom4j-1.6.1.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-pool.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-pool.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-logging-1.0.4.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-logging-1.0.4.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-lang-2.3.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-lang-2.3.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.4.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-io-1.4.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.3.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-io-1.3.1.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-httpclient-3.1.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-httpclient-3.1.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-fileupload-1.2.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-fileupload-1.2.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-dbcp.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-dbcp.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-csv-1.0-SNAPSHOT-r609327.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-csv-1.0-SNAPSHOT-r609327.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-configuration-1.5.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-configuration-1.5.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-collections-3.2.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-collections-3.2.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-codec-1.3.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-codec-1.3.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/commons-cli-20070823.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/commons-cli-20070823.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-solrj-nightly.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/apache-solr-solrj-nightly.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-nightly.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/apache-solr-nightly.jar"/>
+    <copy file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-common-nightly.jar" tofile="${j2ee.dir.exploded}/WEB-INF/lib/apache-solr-common-nightly.jar"/>
+    <dirname property="jar.dir" file="${j2ee.dir.exploded}/WEB-INF/lib/Indexbuilder.jar"/>
+    <mkdir dir="${jar.dir}"/>
+    <jar destfile="${j2ee.dir.exploded}/WEB-INF/lib/Indexbuilder.jar" duplicate="preserve">
+      <fileset dir="/ebi/work/ae3/out/production/Indexbuilder"/>
+    </jar>
+    <copy todir="${j2ee.dir.exploded}/WEB-INF/classes">
+      <fileset dir="/ebi/work/ae3/out/production/Ae3"/>
+    </copy>
+    <copy todir="${j2ee.dir.exploded}/">
+      <fileset dir="/ebi/work/ae3/web"/>
+    </copy>
+  </target>
+  
+  <!-- Call the target to build war archive for module 'Web'.
+       Path to the archive file is specified by parameter 'j2ee.path.jar' -->
+  <target name="j2ee.build.jar.ae3web" description="Build Java EE archive for facet 'Web'">
+    <property name="tmp.dir.ae3" value="/ebi/work/ae3/out/temp"/>
+    <mkdir dir="${tmp.dir.ae3}"/>
+    <jar destfile="${tmp.dir.ae3}/Indexbuilder.jar" duplicate="preserve">
+      <manifest>
+        <attribute name="Created-By" value="IntelliJ IDEA"/>
+        <attribute name="Manifest-Version" value="1.0"/>
+      </manifest>
+      <fileset dir="/ebi/work/ae3/out/production/Indexbuilder"/>
+    </jar>
+    <dirname property="jar.dir" file="${j2ee.path.jar}"/>
+    <mkdir dir="${jar.dir}"/>
+    <jar destfile="${j2ee.path.jar}" duplicate="preserve">
+      <manifest>
+        <attribute name="Created-By" value="IntelliJ IDEA"/>
+        <attribute name="Manifest-Version" value="1.0"/>
+      </manifest>
+      <zipfileset dir="/ebi/work/ae3/web" prefix=""/>
+      <zipfileset dir="/ebi/work/ae3/out/production/Ae3" prefix="WEB-INF/classes"/>
+      <zipfileset file="${tmp.dir.ae3}/Indexbuilder.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-common-nightly.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-nightly.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/apache-solr-solrj-nightly.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-cli-20070823.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-codec-1.3.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-collections-3.2.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-configuration-1.5.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-csv-1.0-SNAPSHOT-r609327.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-dbcp.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-fileupload-1.2.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-httpclient-3.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.3.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-io-1.4.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-lang-2.3.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-logging-1.0.4.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-pool.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/dom4j-1.6.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/easymock.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/junit-4.3.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-analyzers-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-core-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-highlighter-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-queries-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-snowball-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/lucene-spellchecker-2.3.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/ojdbc-14.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/servlet-api-2.4.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/stax-1.2.0-dev.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/stax-api-1.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/stax-utils.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/xalan-2.7.0.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/h2.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/ehcache-1.4.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/spring-sources.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/spring.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/ostermillerutils_1_07_00.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/commons-dbutils-1.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/activation.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/mail.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/uk.ac.ebi.microarray.tools4ae-1.0-SNAPSHOT.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/lib/backport-util-concurrent.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/axis.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/commons-discovery-0.2.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/commons-logging-1.0.4.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/jaxrpc.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/saaj.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/log4j-1.2.8.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/Volumes/Work/ostolop/Library/Caches/IntelliJIDEA70/webservices/axis-1.4.0/wsdl4j-1.5.1.jar" prefix="WEB-INF/lib"/>
+      <zipfileset file="/ebi/work/ae3/web/WEB-INF/web.xml" prefix="WEB-INF"/>
+    </jar>
+    <delete dir="${tmp.dir.ae3}"/>
+  </target>
+</project>
