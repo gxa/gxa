@@ -25,6 +25,8 @@ public class VerticalTextRenderer {
     protected final Log log = LogFactory.getLog(getClass());
 
     private static final Map hints = new HashMap();
+    private static final int IMG_WIDTH = 14;
+    private static final int IMG_HEIGHT = 160;
 
     static {
         hints.put(RenderingHints.KEY_ANTIALIASING,
@@ -40,7 +42,7 @@ public class VerticalTextRenderer {
     }
 
     public static WritableRenderedImage drawVerticalTextImage(final String s) {
-        BufferedImage img = new BufferedImage(14, 130, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2d = img.createGraphics();
         g2d.setRenderingHints(hints);
@@ -50,7 +52,7 @@ public class VerticalTextRenderer {
                 g2d.getFont(),
                 g2d.getFontRenderContext());
 
-        g2d.translate(10, 128);
+        g2d.translate(IMG_WIDTH - 4, IMG_HEIGHT - 2);
         g2d.rotate(- Math.PI / 2);
         g2d.setColor(Color.black);
         g2d.setPaint(Color.black);
