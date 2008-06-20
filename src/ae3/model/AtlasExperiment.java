@@ -7,12 +7,7 @@ import org.apache.solr.common.SolrDocument;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -74,7 +69,8 @@ public class AtlasExperiment implements java.io.Serializable {
     private Collection<String> experimentFactorValues;
     private Collection<String> experimentFactors;
     private Map<String, List<String>> experimentHighlights;
-    
+
+    private SolrDocument exptSolrDocument;
 
     /**
      * A Constructor with 2 parameters 
@@ -91,7 +87,9 @@ public class AtlasExperiment implements java.io.Serializable {
     {
     	AtlasExperiment expt = new AtlasExperiment(loadaer, loaddwe);
     	expt.load(exptdoc);
-    	return expt;
+        expt.setExptSolrDocument(exptdoc);
+
+        return expt;
     }
     
     public void load(SolrDocument exptDoc)
@@ -348,5 +346,26 @@ public class AtlasExperiment implements java.io.Serializable {
 		return true;
 		
 	}
-	
+
+    public HashMap serializeForWebServices() {
+        HashMap h = new HashMap();
+
+        SolrDocument expt = this.getExptSolrDocument();
+
+        if(expt != null){
+            Map m = expt.getFieldValuesMap();
+            for (Object key : m.keySet()) {
+                h.put(key, m.get(key));
+            }
+        }
+        return h;
+    }
+
+    public SolrDocument getExptSolrDocument() {
+        return exptSolrDocument;
+    }
+
+    public void setExptSolrDocument(SolrDocument exptSolrDocument) {
+        this.exptSolrDocument = exptSolrDocument;
+    }
 }

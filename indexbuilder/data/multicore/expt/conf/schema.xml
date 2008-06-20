@@ -275,7 +275,8 @@
    <field name="dwe_text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <field name="exp_factor_values" type="text" indexed="true" stored="true" multiValued="true"/>
-   <field name="exp_factor_values_facet" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="exp_factor_values_exact" type="string"  indexed="true" stored="true" multiValued="true"/>
+   <field name="exp_factor_values_facet" type="text_ws" indexed="true" stored="true" multiValued="true"/>
 
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
@@ -297,6 +298,9 @@
 
  <copyField source="dwe_ba_*" dest="exp_factor_values"/>
  <copyField source="dwe_bs_*" dest="exp_factor_values"/>
+
+ <copyField source="dwe_ba_*" dest="exp_factor_values_exact"/>
+ <copyField source="dwe_bs_*" dest="exp_factor_values_exact"/>
 
  <copyField source="dwe_ba_*" dest="exp_factor_values_facet"/>
  <copyField source="dwe_bs_*" dest="exp_factor_values_facet"/>

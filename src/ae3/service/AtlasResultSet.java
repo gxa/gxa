@@ -1,6 +1,7 @@
 package ae3.service;
 
 import java.util.*;
+import java.lang.IllegalArgumentException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -9,7 +10,6 @@ import java.io.Serializable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.response.QueryResponse;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,30 +23,30 @@ public class AtlasResultSet implements Serializable {
     private static final String insert_query = "insert into atlas (idkey, experiment_id, experiment_accession, experiment_description, gene_id, gene_name, gene_identifier, gene_species, ef, efv, updn, updn_pvaladj, gene_highlights) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     private String idkey;
+    private String searchkey;
     private int eltCount = 0;
 
-//    private QueryResponse geneHitsResponse;
-//    private QueryResponse exptHitsResponse;
+    public AtlasResultSet(final String searchkey) {
+        if(null== searchkey || searchkey.equals("")) {
+            throw new IllegalArgumentException ("Must be constructed with a non-empty cache string key");	
+        }
 
-//    public AtlasResultSet() {
-//        Connection conn = null;
-//        try {
-//            conn = ArrayExpressSearchService.instance().getMEMConnection();
-//            ResultSet idrs = conn.prepareStatement("SELECT RANDOM_UUID()").executeQuery();
-//            idrs.next();
-//            idkey = idrs.getString(1);
-//            idrs.close();
-//        } catch (SQLException e) {
-//            log.error(e);
-//        } finally {
-//            if (conn != null) try { conn.close(); } catch (Exception e) {}
-//        }
-//
-//        if (idkey == null) throw new ExceptionInInitializerError();
-//    }
+        this.searchkey = searchkey;
 
-    public AtlasResultSet(final String _idkey) {
-        idkey = _idkey;
+        Connection conn = null;
+        try {
+            conn = ArrayExpressSearchService.instance().getMEMConnection();
+            ResultSet idrs = conn.prepareStatement("SELECT RANDOM_UUID()").executeQuery();
+            idrs.next();
+            idkey = idrs.getString(1);
+            idrs.close();
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+
+        if (idkey == null) throw new IllegalStateException("Failed to obtain a UUID for AtlasResultSet");
     }
 
     public List<HashMap> getAtlasEfvCounts() {
@@ -428,5 +428,13 @@ public class AtlasResultSet implements Serializable {
 
     public boolean equals(AtlasResultSet obj) {
         return obj.getIdkey().equals(idkey);
+    }
+
+    public String getSearchKey() {
+        return searchkey;
+    }
+
+    public void setIdkey(String idkey) {
+        this.idkey = idkey;
     }
 }

@@ -1,6 +1,7 @@
 <%String svnBuildString = "$Rev$ $Date$";%>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ page import="java.util.*" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
@@ -53,6 +54,8 @@ ArrayExpress Atlas Preview
                 $("#q_expt").autocomplete("autocomplete.jsp", {
                         minChars:1,
                         matchSubset: false,
+                        multiple: true,
+                        multipleSeparator: " ",
                         extraParams: {type:"expt"},
                         formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
                 });
@@ -61,6 +64,8 @@ ArrayExpress Atlas Preview
                         minChars:1,
                         matchCase: true,
                         matchSubset: false,
+                        multiple: true,
+                        multipleSeparator: " ",                    
                         extraParams: {type:"gene"},
                         formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
                 });
@@ -84,6 +89,7 @@ ArrayExpress Atlas Preview
         }
     </style>
 
+<meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
 <jsp:include page="end_menu.jsp"></jsp:include>
@@ -134,7 +140,7 @@ ArrayExpress Atlas Preview
                     </tr>
                     <tr>
                         <td>
-                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=q_gene%>"/>
+                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
                         </td>
                         <td>
                             <select name="q_updn">
@@ -158,7 +164,7 @@ ArrayExpress Atlas Preview
                             </select>
                         </td>
                         <td>
-                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=q_expt%>"/>
+                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
                         </td>
                     </tr>
                     <tr>
@@ -184,11 +190,13 @@ ArrayExpress Atlas Preview
                                     <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                                 <label for="view_heatmap">heatmap</label>
 
-                                <br/>
-                                <i><input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"
-                                    <%=request.getParameter("expand_efo") != null && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
-                                <label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>
-                                </i>
+                                <%--<br/>--%>
+                                <%--<i><input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"--%>
+                                    <%--<%=null == request.getParameter("expand_efo") ? "checked" : ""%>--%>
+                                    <%--<%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>--%>
+                                <%--<label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>--%>
+                                <%--</i>--%>
+                                <input type="hidden" name="expand_efo" id="expand_efo" value="on"/>                            
                             </div>
                         </td>
                         <td valign="top" align="center" style="width:150px">
@@ -208,11 +216,15 @@ ArrayExpress Atlas Preview
             </td>
         </tr>
         <tr>
-            <td colspan="3" align="center">
+            <td colspan="3" align="center" valign="center">
                 <b>Hint:</b> query for condition 'kidney' leaving blank the genes field for the most active genes in that tissue.
             </td>
         </tr>
     </table>
+
+    <p style="position:relative;top:50px;text-align: center">
+    New: SOAP Web Services! More.
+    </p>
 
     <input type="hidden" name="view"/>
 </form>

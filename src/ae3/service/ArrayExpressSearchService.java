@@ -106,7 +106,7 @@ public class ArrayExpressSearchService {
             conn = getMEMConnection();
             PreparedStatement stmt = conn.prepareStatement(
                     "CREATE TABLE atlas (" +
-                            "idkey varchar(500), " +
+                            "idkey uuid, " +
                             "experiment_id int, " +
                             "experiment_accession varchar(255), " +
                             "experiment_description varchar(300), " +
@@ -148,6 +148,11 @@ public class ArrayExpressSearchService {
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
 
+        arsCache.syncWithDB();
+        log.info("Shutting down AtlasResultSet cache: " + arsCache.size() + " result sets");
+        CacheManager.getInstance().shutdown();
+
+        log.info("Shutting down DB connections and indexes");
         try {
             if (theAEDS != null) theAEDS = null;
             if (memAEDS != null) memAEDS = null;
@@ -157,9 +162,6 @@ public class ArrayExpressSearchService {
             	solr_gene = null;
             	solr_expt = null;
             }
-
-            log.info("Shutting down AtlasResultSet cache: " + arsCache.size() + " result sets");
-            CacheManager.getInstance().shutdown();
         } catch (Exception e) {
             log.error("Error shutting down ArrayExpressSearchService!", e);
         }
@@ -485,6 +487,7 @@ public class ArrayExpressSearchService {
             arset = (AtlasResultSet) theAEQueryRunner.query(atlas_query_topN, new ResultSetHandler() {
                 public AtlasResultSet handle(ResultSet rs) throws SQLException {
                     AtlasResultSet arset = new AtlasResultSet(arsCacheKey);
+
                     while(rs.next()) {
                         AtlasResult atlasResult = new AtlasResult();
 
@@ -542,7 +545,7 @@ public class ArrayExpressSearchService {
 
                         if( ( expt != null && gene != null )
                                 &&
-                            ( geneSpeciesFilter == null || geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies())) ) {
+                            ( geneSpeciesFilter == null || geneSpeciesFilter.equals("") || geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies())) ) {
                                 atlasResult.setExperiment(expt);
                                 atlasResult.setGene(gene);
                                 atlasResult.setAtuple(atuple);
@@ -556,8 +559,7 @@ public class ArrayExpressSearchService {
             } );
 
             log.info("Retrieved query completely: " + arset.size() + " records" );
-
-            arsCache.put(arsCacheKey, arset);
+            arsCache.put(arset);
         } catch (SQLException e) {
             log.error(e);
         }
@@ -681,13 +683,13 @@ public class ArrayExpressSearchService {
             StringBuffer s = new StringBuffer(q_expt);
 
             for (String term : terms.keySet()) {
-                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", 1, null);
+                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, null);
                 ontologyExpansion.addAll(termChildren.values());
             }
 
             for (String term : ontologyExpansion) {
-                if(term.contains(" ")) term = "\""  + term + "\"";
-                s.append(" ").append(term);
+                term = "\""  + term + "\"";
+                s.append(" exp_factor_values_exact:").append(term);
             }
             
             String expanded_q_expt = s.toString();
@@ -695,7 +697,7 @@ public class ArrayExpressSearchService {
 
             QueryResponse qr = fullTextQueryExpts(expanded_q_expt);
 
-            if(null != qr) qr.getHeader().add("expanded_efo", expanded_q_expt);
+            if(null != qr) qr.getHeader().add("expanded_efo", expanded_q_expt.replaceAll(" exp_factor_values_exact:", " "));
             return qr;
         } catch (Exception e) {
             log.error("Failed to expand query with EFO, proceeding with normal query", e);

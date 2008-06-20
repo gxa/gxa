@@ -5,25 +5,25 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: ostolop
- * Date: Apr 17, 2008
- * Time: 9:31:47 AM
- * To change this template use File | Settings | File Templates.
- */
 public class AtlasGene {
     private String geneId;
     private String geneName;
     private String geneIdentifier;
     private String geneSpecies;
+
+    private SolrDocument geneSolrDocument;
+
     private Map<String, List<String>> geneHighlights;
+
+    private AtlasGene() {};
 
     public AtlasGene(SolrDocument geneDoc) {
         this.setGeneId((String) geneDoc.getFieldValue("gene_id"));
         this.setGeneName((String) geneDoc.getFieldValue("gene_name"));
         this.setGeneIdentifier((String) geneDoc.getFieldValue("gene_identifier"));
         this.setGeneSpecies(geneDoc.getFieldValues("gene_species"));
+
+        this.setGeneSolrDocument(geneDoc);
     }
 
     public void setGeneId(String geneId) {
@@ -81,5 +81,23 @@ public class AtlasGene {
 
     public Map<String, List<String>> getGeneHighlights() {
         return geneHighlights;
+    }
+
+    public SolrDocument getGeneSolrDocument() {
+        return geneSolrDocument;
+    }
+
+    public void setGeneSolrDocument(SolrDocument geneSolrDocument) {
+        this.geneSolrDocument = geneSolrDocument;
+    }
+
+    public HashMap serializeForWebServices() {
+        HashMap h = new HashMap();
+        Map m = this.getGeneSolrDocument().getFieldValuesMap();
+        for (Object key : m.keySet()) {
+            h.put(key, m.get(key));
+        }
+
+        return h;
     }
 }

@@ -16,24 +16,38 @@ import net.sf.ehcache.Element;
 public class AtlasResultSetCache {
     private final Log log = LogFactory.getLog(getClass());
     private Cache arsCache;
+    private Cache arsSearchKeyCache;
 
     public AtlasResultSetCache() {
-        arsCache = CacheManager.getInstance().getCache("AtlasResultSetCache");
+        arsCache            = CacheManager.getInstance().getCache("AtlasResultSetCache");
+        arsSearchKeyCache   = CacheManager.getInstance().getCache("AtlasResultSetSearchKeyCache");
     }
 
-    public boolean containsKey(String arsCacheKey) {
-        return arsCache.isKeyInCache(arsCacheKey);
+    public boolean containsKey(String searchKey) {
+        if(arsSearchKeyCache.isKeyInCache(searchKey)) {
+            return arsCache.isKeyInCache(arsSearchKeyCache.get(searchKey).getValue());
+        }
+
+        return false;
     }
 
-    public AtlasResultSet get(String arsCacheKey) {
-        return (AtlasResultSet) arsCache.get(arsCacheKey).getValue();
+    public AtlasResultSet get(String searchKey) {
+        String arsIdKey = (String) arsSearchKeyCache.get(searchKey).getValue();
+
+        if (null == arsIdKey)
+            return null;
+
+        return (AtlasResultSet) arsCache.get(arsIdKey).getValue();
     }
 
-    public void put(String arsCacheKey, AtlasResultSet ars) {
-        arsCache.put(new Element(arsCacheKey, ars));
+    public void put(AtlasResultSet ars) {
+        arsSearchKeyCache.put(new Element(ars.getSearchKey(), ars.getIdkey()));
+        arsCache.put(new Element(ars.getIdkey(), ars));
     }
 
     public int size() {
+        assert (arsSearchKeyCache.getSize() == arsCache.getSize()) : "AtlasResultSetSearchKey Cache and AtlasResultSet Cache sizes not equal!";
+
         return arsCache.getSize();
     }
 
@@ -50,6 +64,7 @@ public class AtlasResultSetCache {
 
             if(!ars.isAvailableInDB()) {
                 arsCache.remove(key);
+                arsSearchKeyCache.remove(ars.getSearchKey());
                 outOfSyncCount++;
             }
         }
@@ -66,7 +81,8 @@ public class AtlasResultSetCache {
 
                 if(!arsCache.isKeyInCache(idkey)) {
                     AtlasResultSet ars = new AtlasResultSet(idkey);
-                    arsCache.put(new Element(idkey, ars));
+                    ars.setIdkey(idkey);
+                    ars.cleanup();
                     notInCacheCount++;
                 }
             }
@@ -76,8 +92,10 @@ public class AtlasResultSetCache {
             if (conn != null) try { conn.close(); } catch (Exception e) {}
         }
 
-        log.info("Synchronized cache with DB: " + outOfSyncCount + " result sets cleaned up, "
-                                                + notInCacheCount + " result sets added to cache, "
+        log.info("Synchronized cache with DB: " + outOfSyncCount + " result sets cleaned up from cache, "
+                                                + notInCacheCount + " result sets cleaned up from DB, "
                                                 + arsCache.getSize() + " result sets total in cache.");
+
+        assert (arsSearchKeyCache.getSize() == arsCache.getSize()) : "AtlasResultSetSearchKey Cache and AtlasResultSet Cache sizes not equal!";
     }
 }

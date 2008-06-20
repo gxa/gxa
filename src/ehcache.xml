@@ -45,8 +45,8 @@
     depending on what their listener is doing.
 
     If no class is specified, no listener is created. There is no default.
-    -->
     <cacheManagerEventListenerFactory class="" properties=""/>
+    -->
 
 
     <!--
@@ -108,7 +108,6 @@
     The hostname is the hostname of the remote CacheManager peer. The port is the listening
     port of the RMICacheManagerPeerListener of the remote CacheManager peer.
 
-    -->
     <cacheManagerPeerProviderFactory
             class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
             properties="peerDiscovery=automatic,
@@ -117,6 +116,7 @@
             propertySeparator=","
             />
 
+    -->
 
     <!--
     CacheManagerPeerListener
@@ -152,9 +152,9 @@
       messages to the listener. This should be long enough for the slowest message.
       If not specified it defaults 120000ms.
 
-    -->
     <cacheManagerPeerListenerFactory
             class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"/>
+    -->
 
 
     <!--
@@ -358,20 +358,6 @@
             memoryStoreEvictionPolicy="LRU"
             />
 
-    <!--
-    Sample caches. Following are some example caches. Remove these before use.
-    -->
-
-    <!--
-    Sample cache named sampleCache1
-    This cache contains a maximum in memory of 10000 elements, and will expire
-    an element if it is idle for more than 5 minutes and lives for more than
-    10 minutes.
-
-    If there are more than 10000 elements it will overflow to the
-    disk cache, which in this configuration will go to wherever java.io.tmp is
-    defined on your system. On a standard Linux system this will be /tmp"
-    -->
     <cache name="AtlasResultSetCache"
            maxElementsInMemory="500"
            maxElementsOnDisk="0"
@@ -384,91 +370,28 @@
            diskPersistent="true"
     />
 
-
-    <!--
-    Sample cache named sampleCache2
-    This cache has a maximum of 1000 elements in memory. There is no overflow to disk, so 1000
-    is also the maximum cache size. Note that when a cache is eternal, timeToLive and
-    timeToIdle are not used and do not need to be specified.
-    -->
-    <cache name="sampleCache2"
-           maxElementsInMemory="1000"
-           eternal="true"
-           overflowToDisk="false"
-           memoryStoreEvictionPolicy="FIFO"
-            />
-
-
-    <!--
-    Sample cache named sampleCache3. This cache overflows to disk. The disk store is
-    persistent between cache and VM restarts. The disk expiry thread interval is set to 10
-    minutes, overriding the default of 2 minutes.
-    -->
-    <cache name="sampleCache3"
+    <cache name="AtlasResultSetSearchKeyCache"
            maxElementsInMemory="500"
-           eternal="false"
+           maxElementsOnDisk="0"
+           eternal="true"
            overflowToDisk="true"
+           diskSpoolBufferSizeMB="20"
            timeToIdleSeconds="300"
            timeToLiveSeconds="600"
-           diskPersistent="true"
-           diskExpiryThreadIntervalSeconds="1"
            memoryStoreEvictionPolicy="LFU"
-            />
+           diskPersistent="true"
+    />
 
-
-    <!--
-    Sample distributed cache named sampleDistributedCache1.
-    This cache replicates using defaults.
-    It also bootstraps from the cluster, using default properties.
-    -->
-    <cache name="sampleDistributedCache1"
-           maxElementsInMemory="10"
-           eternal="false"
-           timeToIdleSeconds="100"
-           timeToLiveSeconds="100"
-           overflowToDisk="false">
-        <cacheEventListenerFactory
-                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"/>
-        <bootstrapCacheLoaderFactory
-                class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"/>
-    </cache>
-
-
-    <!--
-    Sample distributed cache named sampleDistributedCache2.
-    This cache replicates using specific properties.
-    It only replicates updates and does so synchronously via copy
-    -->
-    <cache name="sampleDistributedCache2"
-           maxElementsInMemory="10"
-           eternal="false"
-           timeToIdleSeconds="100"
-           timeToLiveSeconds="100"
-           overflowToDisk="false">
-        <cacheEventListenerFactory
-                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
-                properties="replicateAsynchronously=false, replicatePuts=false,
-                            replicateUpdates=true, replicateUpdatesViaCopy=true,
-                            replicateRemovals=false"/>
-    </cache>
-
-    <!--
-    Sample distributed cache named sampleDistributedCache3.
-    This cache replicates using defaults except that the asynchronous replication
-    interval is set to 200ms.
-    -->
-    <cache name="sampleDistributedCache3"
-           maxElementsInMemory="10"
-           eternal="false"
-           timeToIdleSeconds="100"
-           timeToLiveSeconds="100"
-           overflowToDisk="false">
-        <cacheEventListenerFactory
-                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
-                properties="asynchronousReplicationIntervalMillis=200"/>
-    </cache>
-
-    
-
+    <cache name="atlasCache"
+           maxElementsInMemory="500"
+           maxElementsOnDisk="0"
+           eternal="true"
+           overflowToDisk="true"
+           diskSpoolBufferSizeMB="20"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           memoryStoreEvictionPolicy="LFU"
+           diskPersistent="true"
+    />
 
 </ehcache>

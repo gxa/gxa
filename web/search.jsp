@@ -2,6 +2,7 @@
 <%@ page import="org.apache.solr.client.solrj.response.QueryResponse" %>
 <%@ page import="ae3.service.AtlasResultSet" %>
 <%@ page import="java.util.*" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page buffer="0kb" %>
 
@@ -36,6 +37,8 @@ ArrayExpress Atlas Preview
             $("#q_expt").autocomplete("autocomplete.jsp", {
                     minChars:1,
                     matchSubset: false,
+                    multiple: true,
+                    multipleSeparator: " ",
                     extraParams: {type:"expt"},
                     formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
             });
@@ -44,6 +47,8 @@ ArrayExpress Atlas Preview
                     minChars:1,
                     matchCase: true,
                     matchSubset: false,
+                    multiple: true,
+                    multipleSeparator: " ",
                     extraParams: {type:"gene"},
                     formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
             });
@@ -134,7 +139,7 @@ ArrayExpress Atlas Preview
                     </tr>
                     <tr>
                         <td>
-                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=q_gene%>"/>
+                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
                         </td>
                         <td>
                             <select name="q_updn">
@@ -144,7 +149,7 @@ ArrayExpress Atlas Preview
                             </select>
                         </td>
                         <td>
-                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=q_expt%>"/>
+                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
                         </td>
                         <td>
                             <select id="q_orgn" name="q_orgn" style="width:150px">
@@ -174,10 +179,11 @@ ArrayExpress Atlas Preview
                                 <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                             <label for="view_heatmap">heatmap</label>
 
-                            <input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"
-                                <%=request.getParameter("expand_efo") != null && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
-                            <label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>
-
+                            <%--<input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"--%>
+                                <%--<%=null == request.getParameter("expand_efo") ? "checked" : ""%> --%>
+                                <%--<%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>--%>
+                            <%--<label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>--%>
+                            <input type="hidden" name="expand_efo" id="expand_efo" value="on"/>                            
                         </td>
                     </tr>
                 </table>
@@ -196,7 +202,6 @@ ArrayExpress Atlas Preview
         return;
     }
     %>
-<div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
     <%
     response.flushBuffer();
 
@@ -205,18 +210,25 @@ ArrayExpress Atlas Preview
     if(q_expt.endsWith("*")) q_expt = q_expt.replaceAll("[*]$","?*");
 
     QueryResponse exptHitsResponse;
-    if ( null != request.getParameter("expand_efo") && null != q_expt && !q_expt.equals("") ) {
+    if ( null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("on") && null != q_expt && !q_expt.equals("") ) {
         exptHitsResponse  = ArrayExpressSearchService.instance().fullTextQueryExptsWithOntologyExpansion(q_expt);
         String expanded_efo = (String) exptHitsResponse.getHeader().get("expanded_efo");
         if(null != expanded_efo && !expanded_efo.equals(q_expt)) {
-            %><div style="padding:5px">Your conditions query was expanded via <abbr title="Experimental Factor Ontology">EFO</abbr> to: <span style="font-family: monospace"><%=expanded_efo%></span></div><%
-        } else {
-            %><div style="padding:5px">No <abbr title="Experimental Factor Ontology">EFO</abbr> expansion found.</div><%            
+            %>
+            <div>
+                Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology" target="_blank">EFO</a>,
+                an ontology of experimental variables developed by ArrayExpress Curation Team (below). You can rerun the query without the expansion: <input type="button" style="font:small" value="Search" onclick="atlasform.expand_efo.value='off';atlasform.submit()"/>
+                <div style="border:1px inset; font-family: monospace; font-size: x-small; padding: 5px; margin: 5px">
+                    <%=expanded_efo%>
+                </div>
+            </div><%
         }
     } else {
         exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
     }
-
+    %>
+    <div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
+    <%
     response.flushBuffer();
 
     long t1 = System.currentTimeMillis();
@@ -259,7 +271,7 @@ ArrayExpress Atlas Preview
                     List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
                     for(HashMap<String,String> gene : genes ) {
                         %>
-                            <th align="center"><a target="_blank" href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=gene.get("gene_identifier")%>&species=&displayInsitu=on&exp_query="><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name"))%>" title="Show expression for <%=gene.get("gene_name") + " (" + gene.get("gene_identifier") + ")"%> in AEW..."/></a></th>
+                            <th align="center"><a target="_blank" href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=gene.get("gene_identifier")%>&species=&displayInsitu=on&exp_query="><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>" title="Show expression for <%=gene.get("gene_name") + " (" + gene.get("gene_identifier") + ")"%> in AEW..."/></a></th>
                         <%
                     }
                 %>
@@ -387,7 +399,7 @@ ArrayExpress Atlas Preview
                         <td><%=ar.get("gene_name")%></td>
                         <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
                         <td><%=gene_species.substring(0,1).toUpperCase() + gene_species.substring(1).toLowerCase()%></td>
-                        <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><%=String.format("%.3g", updn_pvaladj)%></td>
+                        <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><span style="float:left"><%=updn == 1 ? "&uarr;" : "&darr;" %></span><span style="float:right"><%=updn_pvaladj > 1e-16D ? String.format("%.3g", updn_pvaladj) : "< 1e-16" %></span></td>
                         <td>
                             <a title="Show expression in warehouse"
                                target="_blank"

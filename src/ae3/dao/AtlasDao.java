@@ -9,6 +9,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
@@ -24,8 +26,9 @@ import ae3.util.QueryHelper;
  * To change this template use File | Settings | File Templates.
  */
 public class AtlasDao {
-    
-	/**
+    private final static Log log = LogFactory.getLog(AtlasDao.class);    
+
+    /**
 	 * Returns an AtlasExperiment that contains all information from index.
 	 * @param experiment_id_key
 	 * @return the AtlasExperiment at the specified experiment_id_key. 
@@ -174,4 +177,21 @@ public class AtlasDao {
         
         return gene;
     }
+
+    public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException {
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + gene_identifier);
+
+        SolrDocumentList documentList = queryResponse.getResults();
+
+        if (documentList == null || documentList.size() == 0)
+            throw new AtlasObjectNotFoundException(gene_identifier);
+
+        if (documentList.size() > 1)
+            log.info("More than one match for gene identifier " + gene_identifier + "; returning the first match");
+
+        SolrDocument geneDoc = documentList.get(0);
+
+        return new AtlasGene(geneDoc);
+    }
+
 }
