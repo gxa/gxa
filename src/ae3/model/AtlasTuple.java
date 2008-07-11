@@ -1,5 +1,7 @@
 package ae3.model;
 
+import java.util.Arrays;
+
 /**
  * Created by IntelliJ IDEA.
  * User: ostolop
@@ -29,7 +31,13 @@ public class AtlasTuple {
     }
 
     public String getEfv() {
-        return efv;
+    	String efvalue ="";
+    	String[] array = efv.split(" ");
+    	for(int i=0; i<array.length; i++){
+    		efvalue+= array[i].substring(0,1).toUpperCase()+array[i].substring(1) +" ";
+    	}
+    	 
+        return efvalue;
     }
 
     public void setEfv(String efv) {
@@ -50,5 +58,14 @@ public class AtlasTuple {
 
     public void setPval(Double pval) {
         this.pval = pval;
+    }
+    
+    public String getTxtSummary(){
+    	String text="";
+    	if(updn.intValue() == 1)
+    		text= "is overexpressed in "+efv+" vs other "+ef+"s in this study";
+    	else if(updn.intValue() == -1)
+    		text= "is underexpressed in "+efv+" vs other "+ef+"s in this study";
+    	return text;
     }
 }

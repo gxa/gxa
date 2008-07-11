@@ -254,7 +254,8 @@ public class AtlasExperiment implements java.io.Serializable {
 
 	public String getAerExpDescription()
 	{
-		return aerExpDescription;
+		
+		return aerDescText.toArray()[0].toString();
 	}
 
 	public void setAerExpDescription(String aerExpDescription)

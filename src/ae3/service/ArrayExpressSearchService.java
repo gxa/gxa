@@ -266,7 +266,22 @@ public class ArrayExpressSearchService {
     }
 
   
-
+    public QueryResponse queryExptsByField(String value, String field, int start, int rows){
+    	 if (value == null || value.equals("") || field == null)
+             return null;
+    	 try {
+			String query = field +":"+value;
+			 SolrQuery q = new SolrQuery(query);
+			 q.setRows(rows);
+			 q.setStart(start);
+			 return solr_expt.query(q);
+		} catch (SolrServerException e) {
+			log.error(e);
+		}
+		return null;
+    	 
+    }
+    
     public QueryResponse query(SolrQuery query)
     {
       try {
@@ -566,6 +581,75 @@ public class ArrayExpressSearchService {
 
         return arset;
     }
+    
+    public ArrayList getAtlasResults(String query){
+    	 ArrayList<AtlasTuple> atlasTuples = null;
+         try {
+        	 atlasTuples =  (ArrayList<AtlasTuple>)theAEQueryRunner.query(query, new ResultSetHandler() {
+                 public ArrayList<AtlasTuple> handle(ResultSet rs) throws SQLException {
+                    ArrayList<AtlasTuple> atlasTuples = new ArrayList<AtlasTuple>();
+
+                     while(rs.next()) {
+                         
+
+                         AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
+                         atlasTuples.add(atuple);
+                        
+                         
+                     }
+
+                     return atlasTuples;
+                 }
+             } );
+
+//             log.info("Retrieved query completely: " + arset.size() + " records" );
+//             arsCache.put(arset);
+         } catch (SQLException e) {
+             log.error(e);
+         }
+         return atlasTuples;
+    	
+    }
+    
+    public ArrayList getRankedGeneExperiments(String gene_id_key){
+   	 ArrayList<AtlasExperiment> atlasExps = null;
+   	 String query = "select experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
+   	 		"from ATLAS " +
+   	 		"where gene_id_key = "+gene_id_key +
+   	 	    " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)"+
+   	 		" group by experiment_id_key " +
+   	 		"order by minp asc";
+        try {
+        	atlasExps =  (ArrayList<AtlasExperiment>)theAEQueryRunner.query(query, new ResultSetHandler() {
+                public ArrayList<AtlasExperiment> handle(ResultSet rs) throws SQLException {
+                   ArrayList<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
+
+                    try {
+						while(rs.next()) {
+						    
+
+						    AtlasExperiment atlasExp = AtlasDao.getExperimentByIdDw(String.valueOf((rs.getInt("experiment_id_key"))));
+						    if(atlasExp != null)
+						    atlasExps.add(atlasExp);
+						   
+						    
+						}
+					} catch (AtlasObjectNotFoundException e) {
+						log.error(e);
+					}
+
+                    return atlasExps;
+                }
+            } );
+
+//            log.info("Retrieved query completely: " + arset.size() + " records" );
+//            arsCache.put(arset);
+        } catch (SQLException e) {
+            log.error(e);
+        }
+        return atlasExps;
+   	
+   }
 
     public void setAEDataSource(DataSource aeds) {
         this.theAEDS = aeds;

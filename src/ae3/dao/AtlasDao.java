@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -82,7 +83,8 @@ public class AtlasDao {
         SolrDocumentList documentList = queryResponse.getResults();
 
         if (documentList == null || documentList.size() == 0)
-            throw new AtlasObjectNotFoundException(experiment_id_key);
+          //  throw new AtlasObjectNotFoundException(experiment_id_key); 
+        	return null;
 
         SolrDocument exptDoc = documentList.get(0);
 
@@ -169,6 +171,20 @@ public class AtlasDao {
         SolrDocument geneDoc = documentList.get(0);
 
         return new AtlasGene(geneDoc);
+    }
+    
+    public static SolrDocumentList getGeneExperiments(String gene_id_key){
+    	SolrDocumentList results=null;
+    	try{
+    	AtlasGene gene = getGene(gene_id_key);
+//    	ArrayList geneExps = gene.getGeneSolrDocument().getFieldValues("gene_experiment")
+    	String expList = "("+StringUtils.join(gene.getGeneSolrDocument().getFieldValues("gene_experiment")," ")+")";
+    	QueryResponse solrResults =  ArrayExpressSearchService.instance().queryExptsByField(expList, "dwe_id", 0, 25);
+    	results = solrResults.getResults();
+    	}catch(AtlasObjectNotFoundException exp){
+    		log.error(exp);
+    	}
+    	return results;
     }
 
     public static AtlasGene getGene(SolrDocument solrGeneDoc, QueryResponse geneHitsResponse) {

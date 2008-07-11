@@ -334,7 +334,7 @@ ArrayExpress Atlas Preview
 
                                     %>
                                         <td align="center" style="background-color:rgb(<%=r%>,<%=g%>, <%=b%>)">
-                                            <span title="<%=title%>" style="text-decoration:none;font-weight:bold;color: white"><%=display%></span>
+                                            <span title="<%=title%>" style=" text-decoration:none;font-weight:bold;color: white"><%=display%></span>
                                         </td>
                                     <%
                                 } else {

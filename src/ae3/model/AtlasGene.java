@@ -40,6 +40,7 @@ public class AtlasGene {
 
     public void setGeneSpecies(Collection geneSpecies) {
         this.geneSpecies = (String) geneSpecies.toArray()[0];
+        this.geneSpecies = this.geneSpecies.substring(0, 1)+this.geneSpecies.substring(1, this.geneSpecies.length()).toLowerCase();
     }
 
     public String getGeneSpecies() {
