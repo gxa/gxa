@@ -15,9 +15,8 @@ ArrayExpress Atlas Gene View
 <style>
 <!--
 table.heatmap th {
-	border-bottom: 2px solid #6699CC;
-	border-left: 1px solid #6699CC;
-	background-color: #BEC8D1;
+	
+	background-color: #bdd7d7;
 	text-align: left;
 	text-indent: 5px;
 	font-family: Verdana;
@@ -33,15 +32,29 @@ table.heatmap {
 	font-size: 11px;
 	color: #404040;
 	background-color: #fafafa;
-	border: 1px #6699CC solid;
+	
 	border-collapse: collapse;
 	border-spacing: 0px;
+	
+}
+.foo{
+padding-left: 15px;
+padding-top: 20px;
+}
+.exp_summary{
+padding-left: 15px;
+padding-top: 10px;
 }
 
 .separator {
 	background-image: url(images/sep.png);
 	background-repeat: repeat-x;
 	height: 5px;
+}
+
+.exp_text{
+color: #404040;
+line-height: 15px;
 }
 
 .geneAnnotHeader {
@@ -56,16 +69,17 @@ table.heatmap {
 .moreLink {
 	cursor: pointer;
 	color: #408c8c;
+	text-align: right;
 }
 
 .sectionHeader {
-	color: #5e5e5e;
+	color: #9e9e9e;
 	font-size: 14pt;
 	text-align: left;
 }
 
 .titleHeader {
-	color: #dedede;
+	color: #9e9e9e;
 	font-size: 16pt;
 	text-align: left;
 }
@@ -73,8 +87,21 @@ table.heatmap {
 .fullSectionView {
 	color: #404040
 }
-.RankInfoBar{width:100px;height:8px;border:solid 1px #5588ff;margin:3px 4px 2px 0;float:left;overflow:hidden}
-.RankInfoInt{height:100%;background:#99ccff;overflow:hidden}
+
+.RankInfoBar {
+	width: 100px;
+	height: 8px;
+	border: solid 1px #5588ff;
+	margin: 3px 4px 2px 0;
+	float: left;
+	overflow: hidden
+}
+
+.RankInfoInt {
+	height: 100%;
+	background: #99ccff;
+	overflow: hidden
+}
 -->
 </style>
 <script src="scripts/jquery-1.2.3.js" type="text/javascript"></script>
@@ -114,7 +141,7 @@ viewMore( id )
 	media="print, projection, screen" />
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
-<div>
+<div class="foo">
 <%
 		AtlasGene atlasGene=null;
         String geneId = request.getParameter("gene");
@@ -134,10 +161,7 @@ viewMore( id )
 			style="border-bottom: thin; margin-top: 0; color: #1f7979; font-size: 9pt; font-weight: bold">
 		<%=atlasGene.getGeneSpecies()%> </span></td>
 	</tr>
-	<tr>
-		<td></td>
-		<td style="vertical-align: text-bottom; text-align: right"></td>
-	</tr>
+	
 </table>
 
 <table width="900">
@@ -201,9 +225,8 @@ viewMore( id )
  
 	<tr>
 		<td>
-		<div class="foo"
-			style="height: 250px; width: 100%; overflow: auto; overflow-x: hidden">
-		<table border="1" class="heatmap" cellpadding="3" cellspacing="0">
+		<div style="height: 250px; width: 100%; overflow: auto; overflow-x: hidden">
+		<table border="1" class="heatmap" cellpadding="3" cellspacing="0" >
 			<tr>
 				<th rowspan="2" >Factor Value</th>
 				<th rowspan="2" style="border-right: thick solid; border-left: thin">Studies</th>
@@ -226,6 +249,7 @@ viewMore( id )
 			<%
                 HashMap<String,HashMap<String,String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
                 for (HashMap<String,String> ar : atlasResultSet.getAtlasEfvCounts() ) {
+                	if(!ar.get("efv").startsWith("V1")){
                     %>
 			<tr>
 				<td nowrap="true"><span style="font-weight: bold"
@@ -306,7 +330,7 @@ viewMore( id )
 
 			</tr>
 			<%
-                }
+                }}
             %>
 		</table>
 		</div>
@@ -336,11 +360,12 @@ viewMore( id )
 	</tr>
 	<tr>
 		<td align="left">
-		<h3><%=exp.getDwExpAccession()%>: <%=exp.getAerExpName() %></h3>
+		<h3><%=exp.getDwExpAccession()%>: <%=exp.getAerExpName() %> </h3>
 		</td>
+		<t"></td>
 	</tr>
 	<tr>
-		<td align="left">
+		<td align="left" class="exp_text">
 		<div id="<%=exp.getDwExpId().toString()%>_main" class="fullSectionView">
 			<span><%=exp.getAerExpDescription().length()<=250 ? exp.getAerExpDescription(): exp.getAerExpDescription().substring(0,250) %>
 			</span><span class="moreLink" onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">...more</span>
@@ -351,23 +376,25 @@ viewMore( id )
 			class="fullSectionView" style="display: none"><span><%=exp.getAerExpDescription()%>
 		</span><span class="moreLink"
 			onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">...close</span>
-<br><br>
-		<div class="foo" style="height: 100px; width: 100%; overflow: auto; overflow-x: hidden">
-			<table class="heatmap" border="1" cellpadding="2">
+<br><br><div style="color: #9e9e9e; padding-left: 15px;">Atlas Results for <%=atlasGene.getGeneName() %></div>
+		<div class="exp_summary">
+			<table class="heatmap"  cellpadding="2">
+			
 			<tr>
 				<th class="subheading">Factor Value</th>
 				<th class="subheading">P-value</th>
 				<th class="subheading">Text Summary</th>
 			</tr>
 			<% List<AtlasTuple> atlusTuples = AtlasGeneService.getAtlasResult(atlasGene.getGeneId(),exp.getDwExpId().toString()); 
-				for(AtlasTuple atuple: atlusTuples){%>
+				for(AtlasTuple atuple: atlusTuples){
+				if(!atuple.getEfv().startsWith("V1")){%>
 				<tr>
 				<td><%=atuple.getEfv() %></td>
-				<td style="vertical-align: middle"><img src="images/dn_arrow.gif"><%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16" %></td>
+				<td valign="top"><%if(atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif"><% }else if(atuple.getUpdn().equals(-1)){%><img src="images/dn_arrow.gif"><%}%><%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16" %></td>
 				<td><%=atlasGene.getGeneName() +" "+ atuple.getTxtSummary() %></td>
 			</tr>
 					
-				<%}%>			
+				<%}}%>			
 		</table>
 		</div>
 		
