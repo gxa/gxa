@@ -33,10 +33,13 @@ public class AtlasTuple {
     public String getEfv() {
     	String efvalue ="";
     	String[] array = efv.split(" ");
-    	for(int i=0; i<array.length; i++){
-    		efvalue+= array[i].substring(0,1).toUpperCase()+array[i].substring(1) +" ";
-    	}
-    	 
+    	for(int i=0; i<array.length; i++)
+        {
+            if(array[i].length() > 0)
+            {
+    		    efvalue+= array[i].substring(0,1).toUpperCase()+array[i].substring(1) +" ";
+    	    }
+        }    	 
         return efvalue;
     }
 
