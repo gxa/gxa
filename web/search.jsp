@@ -305,13 +305,13 @@ ArrayExpress Atlas Preview
                                     String mpvup = gar.get("mpvup");
                                     String mpvdn = gar.get("mpvdn");
 
-                                    String sumup = gar.get("sumup");
-                                    String sumdn = gar.get("sumdn");
+                                    String countup = gar.get("countup").equals("0") ? " ": gar.get("countup");
+									String countdn = gar.get("countdn").equals("0") ? " ": gar.get("countdn");
 
                                     String display = "";
                                     String title   = "Probes for " + gene.get("gene_identifier") + " found in experiment(s) " + gar.get("experiment_count") +
-                                                     ", observed up "   + (sumup == null ? 0 : sumup) + " times (mean p=" + (mpvup == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvup))) + ")" +
-                                                     ", observed down " + (sumdn == null ? 0 : sumdn) + " times (mean p=" + (mpvdn == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvdn))) + ")";
+                                                     ", observed up "   + (countup == null ? 0 : countup) + " times (mean p=" + (mpvup == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvup))) + ")" +
+                                                     ", observed down " + (countdn == null ? 0 : countdn) + " times (mean p=" + (mpvdn == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvdn))) + ")";
 
                                     if (mpvup == null && mpvdn == null) {
                                         r = g = b = 255L;
@@ -319,17 +319,17 @@ ArrayExpress Atlas Preview
                                         b = 255L;
                                         g = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
                                         r = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = "0/" + sumdn;
+                                        display = "0/" + countdn;
                                     } else if (mpvup != null && mpvdn == null) {
                                         r = 255L;
                                         g = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
                                         b = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        display = sumup + "/0";
+                                        display = countup + "/0";
                                     } else {
                                         g = 0L;
                                         r = Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
                                         b = Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = sumup + "/" + sumdn;
+                                        display = countup + "/" + countdn;
                                     }
 
                                     %>

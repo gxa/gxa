@@ -247,7 +247,9 @@ public class AtlasResultSet implements Serializable {
                     " avg(casewhen(updn=1,updn_pvaladj,null))  as mpvup, " +
                     " avg(casewhen(updn=-1,updn_pvaladj,null)) as mpvdn, " +
                     " sum(casewhen(updn= 1,1,0)) as sumup, " +
-                    " sum(casewhen(updn=-1,1,0)) as sumdn " +
+                    " sum(casewhen(updn=-1,1,0)) as sumdn, " +
+                    " count(distinct (casewhen(updn=1,'1'||experiment_id,null))) as countup, "+
+                    " count(distinct (casewhen(updn=-1,'1'||experiment_id,null))) as countdn "+
                     " FROM ATLAS " +
                     " WHERE idkey=? " +
 //                    "AND gene_identifier=? " +
@@ -263,8 +265,8 @@ public class AtlasResultSet implements Serializable {
                 h.put("experiment_count", rs.getString("experiment_count"));
                 h.put("mpvup", rs.getString("mpvup"));
                 h.put("mpvdn", rs.getString("mpvdn"));
-                h.put("sumup", rs.getString("sumup"));
-                h.put("sumdn", rs.getString("sumdn"));
+                h.put("countup", rs.getString("countup"));
+                h.put("countdn", rs.getString("countdn"));
 
                 ars.put(rs.getString("gene_identifier") + rs.getString("efvef"), h);
             }
