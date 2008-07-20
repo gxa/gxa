@@ -164,6 +164,7 @@ viewMore( id )
 </table>
 
 <table width="900">
+<!--
 	<tr>
 		<td class="geneAnnotHeader">Description:</td>
 		<td align="left">NF-kapp-B inhibitor alpha</td>
@@ -175,7 +176,7 @@ viewMore( id )
 		<div class="separator"></div>
 		</td>
 	</tr>
-
+-->
 	<tr>
 		<td class="geneAnnotHeader">Synonyms:</td>
 		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
