@@ -204,7 +204,7 @@ public class AtlasResultSet implements Serializable {
         try {
             conn = ArrayExpressSearchService.instance().getMEMConnection();
             PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT gene_name, gene_identifier, avg(updn_pvaladj) as mpv " +
+                    "SELECT gene_name, gene_identifier,gene_id, avg(updn_pvaladj) as mpv " +
                     "FROM ATLAS " +
                     "WHERE idkey=? " +
                     "GROUP BY gene_name, gene_identifier " +
@@ -218,6 +218,7 @@ public class AtlasResultSet implements Serializable {
                 h.put("gene_name", rs.getString("gene_name"));
                 h.put("gene_identifier", rs.getString("gene_identifier"));
                 h.put("mpv", rs.getString("mpv"));
+                h.put("gene_id", rs.getString("gene_id"));
 
                 ars.add(h);
             }

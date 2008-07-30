@@ -273,8 +273,7 @@ viewMore( id )
 			<tr>
 				<td nowrap="true"><span style="font-weight: bold"
 					title="Matched in experiment(s) <%=ar.get("experiments")%>">
-				<%=ar.get("efv").startsWith("V1") ? "--" : ar
-							.get("efv")%> </span></td>
+				<%=ar.get("efv").startsWith("V1") ? "--" : ar.get("efv")%> </span></td>
 				<td style="border-right: thick solid" align="right"><b><%=ar.get("experiment_count")%></b></td>
 				<%--<td align="right"><b><%=ar.get("up_count")%></b></td>--%>
 				<%--<td style="border-right: thick solid" align="right"><b><%=ar.get("dn_count")%></b></td>--%>
@@ -402,7 +401,7 @@ viewMore( id )
 		<td align="left">
 		<h3><%=exp.getDwExpAccession()%>: <%=exp.getAerExpName()%></h3>
 		</td>
-		<t">
+		<td>
 		</td>
 	</tr>
 	<tr>

@@ -264,23 +264,39 @@ ArrayExpress Atlas Preview
         %>
         <table style="position:relative;top:-10px" border="1" class="heatmap" cellpadding="3" cellspacing="0">
             <tr>
-                <th valign="bottom">Factor Value</th>
-                <th style="border-right: thick solid"><img src="vtext?<%=response.encodeURL("Number of studies")%>" title="Number of studies"/></th>
+                <th <%if(q_updn.equals("updn")){ %>rowspan="2"<%}%>>Factor Value</th>
+                <th <%if(q_updn.equals("updn")){ %>rowspan="2"<%}%> style="border-right: thick solid; border-left: thin"><img src="vtext?<%=response.encodeURL("Number of studies")%>" title="Number of studies"/></th>
                 <%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
                 <%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
                 <%
                     List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
                     for(HashMap<String,String> gene : genes ) {
                         %>
-                            <th align="center"><a target="_blank" href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=gene.get("gene_identifier")%>&species=&displayInsitu=on&exp_query="><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>" title="Show expression for <%=gene.get("gene_name") + " (" + gene.get("gene_identifier") + ")"%> in AEW..."/></a></th>
+                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" target="_blank" href="/atlas/gene.jsp?gene=<%=gene.get("gene_id")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
                         <%
                     }
                 %>
             </tr>
+            <%if(q_updn.equals("updn")){ %>
+            <tr>
+            	
+            <%
+            for(int i=0; i<genes.size();i++){
+            %>
+            	<th <%if(i==0){ %>style="border-left: thick solid"<%} %>>UP</th>
+				<th>DN</th>
+			<%
+    		}
+            %>
+            </tr>
+            <%
+            }
+			%>
 
             <%
                 HashMap<String,HashMap<String,String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
                 for (HashMap<String,String> ar : atlasResultSet.getAtlasEfvCounts() ) {
+                	if (!ar.get("efv").startsWith("V1")) {
                     %>
                     <tr>
                         <td nowrap="true">
@@ -298,9 +314,13 @@ ArrayExpress Atlas Preview
                                 HashMap<String,String> gar = gars.get(gene.get("gene_identifier") + ar.get("efv"));
 
                                 if(gar != null && gar.size() != 0) {
-                                    Long r = 255L;
-                                    Long b = 255L;
-                                    Long g = 255L;
+                                	Long r_dn = 255L;
+									Long b_dn = 255L;
+									Long g_dn = 255L;
+
+									Long r_up = 255L;
+									Long b_up = 255L;
+									Long g_up = 255L;
 
                                     String mpvup = gar.get("mpvup");
                                     String mpvdn = gar.get("mpvdn");
@@ -309,46 +329,59 @@ ArrayExpress Atlas Preview
 									String countdn = gar.get("countdn").equals("0") ? " ": gar.get("countdn");
 
                                     String display = "";
+                                    String display_up = "";
+									String display_dn = "";
                                     String title   = "Probes for " + gene.get("gene_identifier") + " found in experiment(s) " + gar.get("experiment_count") +
                                                      ", observed up "   + (countup == null ? 0 : countup) + " times (mean p=" + (mpvup == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvup))) + ")" +
                                                      ", observed down " + (countdn == null ? 0 : countdn) + " times (mean p=" + (mpvdn == null ? "N/A" : String.format("%.3g", Double.valueOf(mpvdn))) + ")";
 
-                                    if (mpvup == null && mpvdn == null) {
-                                        r = g = b = 255L;
-                                    } else if (mpvup == null && mpvdn != null) {
-                                        b = 255L;
-                                        g = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        r = 255 - Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = "0/" + countdn;
-                                    } else if (mpvup != null && mpvdn == null) {
-                                        r = 255L;
-                                        g = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        b = 255 - Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        display = countup + "/0";
-                                    } else {
-                                        g = 0L;
-                                        r = Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-                                        b = Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-                                        display = countup + "/" + countdn;
-                                    }
-
+									if (mpvup == null && mpvdn == null) {
+										r_up = g_up = b_up = g_dn = r_dn = b_dn = 255L;
+									}
+									if (mpvdn != null) {
+										b_dn = 255L;
+										g_dn = 255 - Math.round(Double.valueOf(mpvdn)
+												* (-255D / 0.05D) + 255);
+										r_dn = 255 - Math.round(Double.valueOf(mpvdn)
+												* (-255D / 0.05D) + 255);
+										display_up = "0";
+										display_dn = countdn;
+									}
+									if (mpvup != null) {
+										r_up = 255L;
+										g_up = 255 - Math.round(Double.valueOf(mpvup)
+												* (-255D / 0.05D) + 255);
+										b_up = 255 - Math.round(Double.valueOf(mpvup)
+												* (-255D / 0.05D) + 255);
+										display_up = countup;
+										display_dn = "0";
+									} 
                                     %>
-                                        <td align="center" style="background-color:rgb(<%=r%>,<%=g%>, <%=b%>)">
-                                            <span title="<%=title%>" style=" text-decoration:none;font-weight:bold;color: white"><%=display%></span>
-                                        </td>
-                                    <%
-                                } else {
-                                    %>
-                                        <td>&nbsp;</td>
-                                    <%
-                                }
-                                %>
-                                <%
+									<%if(q_updn.contains("up")){ %>
+									<td align="center"
+									style="background-color: rgb(<%=     r_up %>, <%=     g_up %>, <%=     b_up %>)"><span
+									title="<%=title%>"
+									style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
+									</td>
+									<%} if(q_updn.contains("down") || q_updn.contains("dn")){ %>
+									<td align="center"
+										style="background-color: rgb(<%=     r_dn %>, <%=     g_dn %>, <%=     b_dn %>) <%if(q_updn.contains("dn")) %>;border-right: thin solid">
+										<span title="<%=title%>" style="text-decoration: none; font-weight: bold; color: lightgray"><%=countdn == "" ? " " : countdn%></span>
+									</td>
+									<%} 
+									} else if(q_updn.equals("updn")){%>
+										<td>&nbsp;</td>
+										<td style="border-right: thin solid" >&nbsp;</td>
+						              <%
+									}else{%>
+									<td>&nbsp;</td>
+										<%
+									}
                             }
                         %>
-
                     </tr>
                     <%
+                }
                 }
             %>
         </table>
@@ -397,7 +430,7 @@ ArrayExpress Atlas Preview
                         <td><a title="Show experiment annotation in repository" target="_blank" href="http://www.ebi.ac.uk/arrayexpress/experiments/<%=ar.get("experiment_accession")%>"><%=ar.get("experiment_accession")%></a></td>
                         <td><%=ar.get("experiment_description")%></td>
                         <td><%=efv + " (" + ar.get("ef") + ")"%></td>
-                        <td><%=ar.get("gene_name")%></td>
+                        <td><a target="_blank" href="/atlas/gene.jsp?gene=<%=ar.get("gene_id")%>" title="Show Atlas Gene Info"><%=ar.get("gene_name")%></a></td>
                         <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
                         <td><%=gene_species.substring(0,1).toUpperCase() + gene_species.substring(1).toLowerCase()%></td>
                         <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><span style="float:left"><%=updn == 1 ? "&uarr;" : "&darr;" %></span><span style="float:right"><%=updn_pvaladj > 1e-16D ? String.format("%.3g", updn_pvaladj) : "< 1e-16" %></span></td>
