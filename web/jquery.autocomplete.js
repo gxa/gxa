@@ -613,10 +613,10 @@ $.Autocompleter.Select = function (options, input, select, config) {
             listItems.slice(0, active).each(function() {
 				offset += this.offsetHeight;
 			});
-            if((offset + activeItem[0].offsetHeight - list.scrollTop()) > list[0].clientHeight) {
-                list.scrollTop(offset + activeItem[0].offsetHeight - list.innerHeight());
-            } else if(offset < list.scrollTop()) {
-                list.scrollTop(offset);
+            if((offset + activeItem[0].offsetHeight - list.scrollTop) > list[0].clientHeight) {
+                list.scrollTopFunc = offset + activeItem[0].offsetHeight - list.innerHeight;
+            } else if(offset < list.scrollTopFunc) {
+                list.scrollTopFunc = offset;
             }
         }
 	};
@@ -704,7 +704,7 @@ $.Autocompleter.Select = function (options, input, select, config) {
 				left: offset.left
 			}).show();
             if(options.scroll) {
-                list.scrollTop(0);
+                list.scrollTop = 0;
                 list.css({
 					maxHeight: options.scrollHeight,
 					overflow: 'auto'
