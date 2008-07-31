@@ -239,5 +239,7 @@ public class Constants
 	public static final String PREFIX_DWE="dwe_";
 	public static final String SUFFIX_ASSAY_ID = "assay_id";
 	public static final String SUFFIX_SAMPLE_ID = "sample_id";
+
+    public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
 	
 }

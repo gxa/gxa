@@ -29,6 +29,12 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet>
+        <display-name>Search JSP Servlet</display-name>
+        <servlet-name>qrs</servlet-name>
+        <jsp-file>/structured-query.jsp</jsp-file>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
         <display-name>Apache-Axis Servlet</display-name>
         <servlet-name>AxisServlet</servlet-name>
         <servlet-class>org.apache.axis.transport.http.AxisServlet</servlet-class>
@@ -53,6 +59,11 @@
     <servlet-mapping>
         <servlet-name>qr</servlet-name>
         <url-pattern>/qr</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>qrs</servlet-name>
+        <url-pattern>/qrs</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
