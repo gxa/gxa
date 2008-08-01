@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * @author pashky
  */
 public class AtlasStructuredQuery {
-    static public enum Regulation {
+    static public enum Expression {
         UP("up"),
         DOWN("down"),
         NOT_UP("not up"),
@@ -17,7 +17,7 @@ public class AtlasStructuredQuery {
         UP_DOWN("up or down");
 
         private String description;
-        Regulation(String description) { this.description = description; }
+        Expression(String description) { this.description = description; }
 
         /**
          * Get human-readable option description
@@ -31,7 +31,7 @@ public class AtlasStructuredQuery {
          */
         static public List<String[]> getOptionsList() {
             List<String[]> result = new ArrayList<String[]>();
-            for(Regulation r : values())
+            for(Expression r : values())
             {
                result.add(new String[] { r.name(), r.getDescription() });
             }
@@ -43,7 +43,7 @@ public class AtlasStructuredQuery {
      * Class representing one experiment condition
      */
     static public class Condition {
-        private Regulation regulation;
+        private Expression expression;
         private String factor;
         private List<String> factorValues;
 
@@ -51,12 +51,12 @@ public class AtlasStructuredQuery {
             factorValues = new ArrayList<String>();
         }
 
-        public Regulation getRegulation() {
-            return regulation;
+        public Expression getExpression() {
+            return expression;
         }
 
-        public void setRegulation(Regulation regulation) {
-            this.regulation = regulation;
+        public void setExpression(Expression expression) {
+            this.expression = expression;
         }
 
         public String getFactor() {

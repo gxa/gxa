@@ -645,9 +645,12 @@ public class ArrayExpressSearchService {
 
     /**
      */
-    public AtlasResultSet doExtendedAtlasQuery(final AtlasStructuredQuery request) throws IOException {
-        final QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(request.getGene());
+    public AtlasResultSet doExtendedAtlasQuery(final AtlasStructuredQuery query) throws IOException {
+        final QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(query.getGene());
         if (geneHitsResponse != null && geneHitsResponse.getResults().getNumFound() == 0)
+            return null;
+
+        if(geneHitsResponse == null && query.getConditions().size() == 0)
             return null;
 
         final Map<String, SolrDocument> solrGeneMap = convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
@@ -660,21 +663,21 @@ public class ArrayExpressSearchService {
         final Map<String, SolrDocument> solrExptMap = new HashMap<String, SolrDocument>();
         final Map<String, QueryResponse> solrExptResponseMap = new HashMap<String, QueryResponse>();
         StringBuffer conditionsWhere = new StringBuffer();
-        Iterator<AtlasStructuredQuery.Condition> i = request.getConditions().iterator();
+        Iterator<AtlasStructuredQuery.Condition> i = query.getConditions().iterator();
         while(i.hasNext())
         {
             AtlasStructuredQuery.Condition c = i.next();
             StringBuffer condition = new StringBuffer();
             condition.append("(atlas.");
-            switch(c.getRegulation())
+            switch(c.getExpression())
             {
                 case UP: condition.append("updn = 1"); break;
                 case DOWN: condition.append("updn = -1"); break;
                 case NOT_UP: condition.append("updn <> 1"); break;
                 case NOT_DOWN: condition.append("updn <> -1"); break;
                 case UP_DOWN: condition.append("updn <> 0"); break;
-                case NOT_EXPRESSED: conditionsWhere.append("updn = 0"); break;
-                default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getRegulation());
+                case NOT_EXPRESSED: condition.append("updn = 0"); break;
+                default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
             }
 
             QueryResponse response = ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
@@ -704,6 +707,9 @@ public class ArrayExpressSearchService {
             solrExptMap.putAll(map);
         }
 
+        if(geneHitsResponse == null && conditionsWhere.length() == 0)
+            return null;
+
         final String arsCacheKey = geneReqUrl + conditionsWhere;
 
         if (arsCache.containsKey(arsCacheKey)) {
@@ -725,8 +731,8 @@ public class ArrayExpressSearchService {
                 "              PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.ef, atlas.efv\n" +
                 "              ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc\n" +
                 "            ) TopN \n"+ //,\n" +
-                "        from aemart.atlas atlas \n" + //, aemart.ae2__designelement__main gene , aemart.ae1__experiment__main expt, aemart.AE2__GENE_SPECIES__DM gene_species \n" +
-                "        where 1 = 1" + // atlas.designelement_id_key=gene.designelement_id_key \n" +
+                "        from aemart.atlas atlas \n" +
+                "        where 1 = 1" +
                 " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
                 (inGeneIds.length() != 0 ? "and atlas.gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
                 (conditionsWhere.length() != 0 ? " and " + conditionsWhere.toString() : "") +
@@ -772,7 +778,7 @@ public class ArrayExpressSearchService {
                         AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
 
                         if(( expt != null && gene != null )
-                                && ( request.getSpecies().isEmpty() || request.getSpecies().contains(gene.getGeneSpecies())) ) {
+                                && ( query.getSpecies().isEmpty() || query.getSpecies().contains(gene.getGeneSpecies())) ) {
                             atlasResult.setExperiment(expt);
                             atlasResult.setGene(gene);
                             atlasResult.setAtuple(atuple);
@@ -906,7 +912,7 @@ public class ArrayExpressSearchService {
     }
 
     public List<String[]> getGeneExpressionOptions() {
-        return AtlasStructuredQuery.Regulation.getOptionsList();
+        return AtlasStructuredQuery.Expression.getOptionsList();
     }
 
     public List<String> getExperimentalFactorOptions() {

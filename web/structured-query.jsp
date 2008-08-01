@@ -5,6 +5,7 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="ae3.service.AtlasStructuredQuery" %>
 <%@ page import="ae3.util.StructuredQueryHelper" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
@@ -48,6 +49,43 @@ ArrayExpress Atlas Preview
                 initQuery();
             }
         );
+
+        var options = {
+            expressions : [
+                <% for(String[] i : ArrayExpressSearchService.instance().getGeneExpressionOptions()) { %>
+                [ "<%= StringEscapeUtils.escapeJavaScript(i[0]) %>", "<%= StringEscapeUtils.escapeJavaScript(i[1]) %>" ],
+                <% } %>
+            ],
+            factors : [
+                <% for(String i : ArrayExpressSearchService.instance().getExperimentalFactorOptions()) { %>
+                "<%= StringEscapeUtils.escapeJavaScript(i) %>",
+                <% } %>
+            ],
+            species : [
+                <% for(String i : ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies()) { %>
+                "<%= StringEscapeUtils.escapeJavaScript(i) %>",
+                <% } %>
+            ]
+        };
+
+        var lastquery;
+        <% AtlasStructuredQuery atlasQuery;
+           if(request.getParameterNames().hasMoreElements()) {
+                atlasQuery = StructuredQueryHelper.parseRequest(request);
+        %>
+        lastquery = {
+            gene : '<%= StringEscapeUtils.escapeJavaScript(atlasQuery.getGene()) %>',
+            species : [<% for(String s : atlasQuery.getSpecies()) response.getWriter().print("'" + StringEscapeUtils.escapeJavaScript(s) + "',"); %>],
+            conditions : [<% for(AtlasStructuredQuery.Condition c : atlasQuery.getConditions()) {
+                                response.getWriter().print("{");
+                                response.getWriter().print("factor:'" + StringEscapeUtils.escapeJavaScript(c.getFactor())
+                                    + "', expression:'" + StringEscapeUtils.escapeJavaScript(c.getExpression().name())
+                                    + "', values:[");
+                                for(String v : c.getFactorValues()) response.getWriter().print("'" + StringEscapeUtils.escapeJavaScript(v) + "',");
+                                response.getWriter().print("] }, ");
+                            } %>]
+        };
+        <% } %>
     </script>
 
     <style type="text/css">
@@ -100,43 +138,10 @@ ArrayExpress Atlas Preview
 
 <jsp:include page="end_menu.jsp"></jsp:include>
 
-<script type="text/javascript">
-var options = {
-    expressions : [
-        <%
-             for(String[] i : ArrayExpressSearchService.instance().getGeneExpressionOptions())
-             { %>[ "<%= StringEscapeUtils.escapeJavaScript(i[0]) %>", "<%= StringEscapeUtils.escapeJavaScript(i[1]) %>" ], <% }
-        %>
-    ],
-    factors : [
-        <% 
-             for(String i : ArrayExpressSearchService.instance().getExperimentalFactorOptions())
-             { %>"<%= StringEscapeUtils.escapeJavaScript(i) %>", <% }
-        %>
-    ],
-    species : [
-        <%
-             for(String i : ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies())
-             { %>"<%= StringEscapeUtils.escapeJavaScript(i) %>", <% }
-        %>
-    ],             
-};
-
-var lastquery = {
-        species : []
-};
-        
-</script>
 
 <form name="atlasform" action="qrs" onsubmit="renumberAll();">
-    <%
-        String q_gene = request.getParameter("gene");
-
-        if (q_gene == null) q_gene = "";
-    %>
     Search for genes 
-    <input type="text" name="gene" id="q_gene" style="width:150px"
-        value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
+    <input type="text" name="gene" id="gene" style="width:150px" value=""/>
 
     in
     

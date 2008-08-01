@@ -11,11 +11,12 @@ var counter = 0;
              return removeButton;
          }
 
-         function createSelect(name, options, optional) {
+         function createSelect(name, options, optional, value) {
              var e = document.createElement("select");
              if (name) e.name = name;
              if (optional) e.options[0] = new Option("(any)", "");
              if (options) {
+                 var selected = 0;
                  for (var i = 0; i < options.length; i++) {
                      var option;
                      if (typeof(options[i]) == "object") {
@@ -23,8 +24,11 @@ var counter = 0;
                      } else {
                          option = new Option(options[i], options[i]);
                      }
+                     if(value == option.value)
+                         selected = e.options.length;
                      e.options[e.options.length] = option;
                  }
+                 e.selectedIndex = selected;
              }
              return e;
          }
@@ -32,11 +36,11 @@ var counter = 0;
 
          var tbody = $("#species > tbody");
 
-         function addSpecieOr() {
+         function addSpecieOr(value) {
              var numrow = tbody.get(0).rows.length;
 
              var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : 'specie') + '</td></tr>')
-                 .append($('<td />').append(createSelect('specie_' + (++counter), options['species'], true)))
+                 .append($('<td />').append(createSelect('specie_' + (++counter), options['species'], true, value)))
                  .append($('<td class="removebutton" />')
                          .append(createRemoveButton(function (where) {
                                                         var tr = where.parents('tr:first');
@@ -63,7 +67,7 @@ var counter = 0;
              tbody.append(tr);
          };
 
-         function addConditionAnd(where) {
+         function addConditionAnd(where, condition) {
              var tbody = $('#conditions > tbody');
 
              var andid = ++counter;
@@ -71,7 +75,7 @@ var counter = 0;
              var tr = $('<tr/>');
              var fval = $('<td class="factorvalue"/>');
 
-             var factor = createSelect("fact_" + andid, options['factors']);
+             var factor = createSelect("fact_" + andid, options['factors'], false, condition && condition.factor);
 
              factor.className = 'factor';
              factor.onchange = function() {
@@ -83,28 +87,31 @@ var counter = 0;
              };
 
 
-             tr.append($('<td class="common"/>').append(createSelect("gexp_" + andid, options['expressions'])).append(' in ').append(factor))
+             tr.append($('<td class="common"/>').append(createSelect("gexp_" + andid, options['expressions'], false, condition && condition.expression))
+                       .append(' in ').append(factor))
                  .append(fval)
                  .append($('<td class="andbuttons" />')
-                     .append($('<div/>').append($('<input type="button" value=" and ">')
-                                 .bind('click', function() { addConditionAnd($(this)); } ))));
+                         .append($('<div/>').append($('<input type="button" value=" and ">')
+                                                    .bind('click', function() { addConditionAnd($(this)); } ))));
 
-             function addConditionOr(where) {
+             function addConditionOr(where, value) {
                  var orid = ++counter;
 
                  var input = $('<input type="text" class="value"/>').attr('name', "fval_" + andid + '_' + orid)
-                         .autocomplete("factorvalues.jsp", {
-                                           minChars:1,
-                                           matchCase: true,
-                                           matchSubset: false,
-                                           multiple: true,
-                                           multipleSeparator: " ",
-                                           scroll: false,
-                                           scrollHeight: 180,
-                                           max: 10,
-                                           extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
-                                           formatItem:function(row) {return row[0];}
-                                       }).flushCache();
+                     .autocomplete("factorvalues.jsp", {
+                                       minChars:1,
+                                       matchCase: true,
+                                       matchSubset: false,
+                                       multiple: true,
+                                       multipleSeparator: " ",
+                                       scroll: false,
+                                       scrollHeight: 180,
+                                       max: 10,
+                                       extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
+                                       formatItem:function(row) {return row[0];}
+                                   }).flushCache();
+                 if(value != null)
+                     input.val(value);
 
                  var newval = $('<div class="value" />')
                      .append($('<div class="input" />')
@@ -136,7 +143,7 @@ var counter = 0;
                                            })))
                      .append($('<div class="buttons" />')
                              .append(createRemoveButton(function (where) {
-                                                            if(fval.find('div').length == 1)
+                                                            if(fval.find('div.value').length == 1)
                                                             {
                                                                 if(tbody.find('tr').length != 1)
                                                                     tr.remove();
@@ -154,7 +161,12 @@ var counter = 0;
                      fval.append(newval);
              }
 
-             addConditionOr();
+             if(condition && condition.values.length) {
+                 for(var i = 0; i < condition.values.length; ++i)
+                     addConditionOr(null, condition.values[i]);
+             } else {
+                 addConditionOr();
+             }
 
              if(where)
                  where.parents('tr:first').after(tr);
@@ -162,24 +174,35 @@ var counter = 0;
                  tbody.append(tr);
          }
 
-         addSpecieOr();
-         addConditionAnd();
+         if(lastquery && lastquery.species.length) {
+             for(var i = 0; i < lastquery.species.length; ++i)
+                 addSpecieOr(lastquery.species[i]);
+         } else {
+             addSpecieOr();
+         }
+         
+         if(lastquery && lastquery.conditions.length) {
+             for(var i = 0; i < lastquery.conditions.length; ++i)
+                 addConditionAnd(null, lastquery.conditions[i]);
+         } else {
+             addConditionAnd();
+         }
      };
 
-    window.renumberAll = function() {
-        var i = 0;
-        $('#species select').each(function(){ this.name.replace(/_\d+/, '_' + (++i)); });
-        i = 0;
-        $('#conditions tr').each(function(){
-            $('td.common select', this).each(function(){ this.name.replace(/_\d+/, '_' + i); });
-            var j = 0;
-            $('td.factorvalue div.value', this)
-                    .each(function(){
-                $('input,select', this)
-                        .each(function(){ this.name.replace(/_\d+_\d+/, '_' + i + '_' + j); });
-                ++j;
-            });
-            ++i;
-        });
-    }
-})(jQuery);
+     window.renumberAll = function() {
+         var i = 0;
+         $('#species select').each(function(){ this.name = this.name.replace(/_\d+/, '_' + (++i)); });
+         i = 0;
+         $('#conditions tr').each(function(){
+                                      $('td.common select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
+                                      var j = 0;
+                                      $('td.factorvalue div.value', this)
+                                          .each(function(){
+                                                    $('input,select', this)
+                                                        .each(function(){ this.name = this.name.replace(/_\d+_\d+/, '_' + i + '_' + j); });
+                                                    ++j;
+                                                });
+                                      ++i;
+                                  });
+     };
+ })(jQuery);
