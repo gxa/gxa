@@ -214,6 +214,32 @@
         />
       </analyzer>
     </fieldtype>
+    <fieldType name="prefix_full" class="solr.TextField" positionIncrementGap="1">
+			<analyzer type="index">
+				<tokenizer class="solr.KeywordTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.EdgeNGramFilterFactory"
+					minGramSize="1" maxGramSize="50" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.KeywordTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<fieldType name="prefix_token" class="solr.TextField" positionIncrementGap="1">
+			<analyzer type="index">
+				<tokenizer class="solr.WhitespaceTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.EdgeNGramFilterFactory"
+					minGramSize="1" maxGramSize="50" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.WhitespaceTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+    
  </types>
 
 
@@ -278,6 +304,8 @@
    <field name="exp_factor_values_exact" type="string"  indexed="true" stored="true" multiValued="true"/>
    <field name="exp_factor_values_facet" type="text_ws" indexed="true" stored="true" multiValued="true"/>
 
+   <field name="suggest_full" type="prefix_full" indexed="true" stored="false"  multiValued="true"/>
+   <field name="suggest_token" type="prefix_token" indexed="true" stored="false"  multiValued="true"/>
    <!-- Here, default is used to create a "timestamp" field indicating when each document was indexed. -->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
 
@@ -307,6 +335,9 @@
 
  <copyField source="aer_txt*" dest="aer_text"/>
  <copyField source="dwe_txt*" dest="dwe_text"/>
+ 
+ <copyField source="dwe_ba_*" dest="suggest_full"/>
+ <copyField source="dwe_ba_*" dest="suggest_token"/>
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,

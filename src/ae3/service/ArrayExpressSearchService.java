@@ -317,7 +317,7 @@ public class ArrayExpressSearchService {
 
     }
 
-    public List<String> autoComplete(String query, String type) {
+    public TreeSet<String> autoComplete(String query, String type) {
         if(query == null || query.equals(""))
             return null;
 
@@ -328,24 +328,25 @@ public class ArrayExpressSearchService {
         }
     }
 
-    private List<String> autoCompleteExpt(String query) {
+    private TreeSet<String> autoCompleteExpt(String query) {
         try {
-            SolrQuery q = new SolrQuery("exp_in_dw:true");
+            SolrQuery q = new SolrQuery("(suggest_token:"+query+" suggest_full:"+query+") AND exp_in_dw:true");
             q.setRows(0);
             q.setFacet(true);
-            q.addFacetField("exp_factor_values_facet");
-            q.setFacetPrefix(query);
+            q.addFacetField("exp_factor_values_exact");
+            q.setFacetLimit(-1);
+            q.setFacetMinCount(1);
 
             QueryResponse qr = solr_expt.query(q);
 
-            if (null == qr.getFacetFields().get(0).getValues())
+            if (qr.getResults().getNumFound()==0)
                 return null;
+            TreeSet<String> s = new TreeSet<String>();
+            SolrDocumentList docList = qr.getResults();
 
-            ArrayList<String> s = new ArrayList<String>();
-            int i = 0;
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.add(ffc.getName() + "|" + ffc.getCount());
-                if(++i>10) break;
+                if(ffc.getName().toLowerCase().contains(query))
+            	s.add(ffc.getName() + "|" + ffc.getCount());
             }
 
             return s;
@@ -355,6 +356,7 @@ public class ArrayExpressSearchService {
 
         return null;
     }
+
 
     public List<String> autoCompleteFactorValues(String factor, String query, String limit) {
         try {
@@ -394,7 +396,8 @@ public class ArrayExpressSearchService {
         return null;
     }
 
-    private List<String> autoCompleteGene(String query) {
+private TreeSet<String> autoCompleteGene(String query) {
+
         try {
             SolrQuery q = new SolrQuery("gene_id:[0 TO *]");
             q.setRows(0);
@@ -410,7 +413,7 @@ public class ArrayExpressSearchService {
                 null == qr.getFacetFields().get(1).getValues())
                 return null;
 
-            ArrayList<String> s = new ArrayList<String>();
+            TreeSet<String> s = new TreeSet<String>();
 
             if (null != qr.getFacetFields().get(0).getValues()) {
                 for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {

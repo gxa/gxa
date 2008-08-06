@@ -1,5 +1,5 @@
 <%@page contentType="text/plain;encoding=UTF-8" %><%
-java.util.List<String> ac = ae3.service.ArrayExpressSearchService.instance().autoComplete(request.getParameter("q"), request.getParameter("type"));
+java.util.TreeSet<String> ac = ae3.service.ArrayExpressSearchService.instance().autoComplete(request.getParameter("q"), request.getParameter("type"));
 if (ac != null) {
     for(String s : ac) {
         response.getWriter().println(s);
