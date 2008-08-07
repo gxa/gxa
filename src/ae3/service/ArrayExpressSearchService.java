@@ -648,7 +648,7 @@ private TreeSet<String> autoCompleteGene(String query) {
 
     /**
      */
-    public AtlasResultSet doExtendedAtlasQuery(final AtlasStructuredQuery query) throws IOException {
+    public AtlasStructuredQueryResult doExtendedAtlasQuery(final AtlasStructuredQuery query) throws IOException {
         final QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(query.getGene());
         if (geneHitsResponse != null && geneHitsResponse.getResults().getNumFound() == 0)
             return null;
@@ -665,30 +665,25 @@ private TreeSet<String> autoCompleteGene(String query) {
 
         final Map<String, SolrDocument> solrExptMap = new HashMap<String, SolrDocument>();
         final Map<String, QueryResponse> solrExptResponseMap = new HashMap<String, QueryResponse>();
-        StringBuffer conditionsWhere = new StringBuffer();
+        final List<AtlasStructuredQueryResult.Condition> processedCondtions = new ArrayList<AtlasStructuredQueryResult.Condition>();
+
+        final StringBuffer conditionsField = new StringBuffer();
+        final StringBuffer conditionsWhere = new StringBuffer();
+        final StringBuffer conditionsHaving = new StringBuffer();
         Iterator<AtlasStructuredQuery.Condition> i = query.getConditions().iterator();
+        int number = 1;
         while(i.hasNext())
         {
             AtlasStructuredQuery.Condition c = i.next();
-            StringBuffer condition = new StringBuffer();
-            condition.append("(atlas.");
-            switch(c.getExpression())
-            {
-                case UP: condition.append("updn = 1"); break;
-                case DOWN: condition.append("updn = -1"); break;
-                case NOT_UP: condition.append("updn <> 1"); break;
-                case NOT_DOWN: condition.append("updn <> -1"); break;
-                case UP_DOWN: condition.append("updn <> 0"); break;
-                case NOT_EXPRESSED: condition.append("updn = 0"); break;
-                default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
-            }
 
             QueryResponse response = ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
             if (response == null || response.getResults().getNumFound() == 0)
                 break;
 
+            StringBuffer condition = new StringBuffer();
+            condition.append("atlas.ef = '").append(c.getFactor().replace("'", "''")).append("'");
+
             final Map<String, SolrDocument> map = convertSolrDocumentListToMap(response, Constants.FIELD_DWEXP_ID);
-            condition.append(" AND atlas.experiment_id_key IN (").append(StringUtils.join(map.keySet(), ",")).append(")");
 
             Set<String> factorValues = new HashSet<String>();
             for (Map<String, List<String>> vals : response.getHighlighting().values()) {
@@ -699,76 +694,74 @@ private TreeSet<String> autoCompleteGene(String query) {
                 }
             }
 
-            condition.append(" AND atlas.efv IN (").append(StringUtils.join(factorValues, ",")).append("))");
+            condition.append(" AND atlas.efv IN (").append(StringUtils.join(factorValues, ",")).append(")");
 
-            conditionsWhere.append(condition);
+            StringBuffer n_up = new StringBuffer();
+            n_up.append("count(case when ").append(condition).append(" and atlas.updn = 1 then 1 else null end)");
+            StringBuffer n_dn = new StringBuffer();
+            n_dn.append("count(case when ").append(condition).append(" and atlas.updn = -1 then 1 else null end)");
+
+            String having;
+            switch(c.getExpression())
+            {
+                case UP: having = n_up.toString() + " > 0"; break;
+                case DOWN: having = n_dn.toString() + " > 0"; break;
+                case NOT_UP: having = n_up.toString() + " = 0"; break;
+                case NOT_DOWN: having = n_dn.toString() + " = 0"; break;
+                case UP_DOWN: having = "(" + n_up.toString() + " > 0 OR " + n_dn.toString() + " > 0)"; break;
+                case NOT_EXPRESSED: having = "(" + n_up.toString() + " = 0 AND " + n_dn.toString() + " = 0)"; break;
+                default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
+            }
+
+            conditionsField.append(n_up).append(" as n_up").append(number)
+                    .append(",").append(n_dn).append(" as n_dn").append(number);
+            conditionsWhere.append('(').append(condition).append(')');
+            conditionsHaving.append(having);
             if(i.hasNext())
+            {
+                conditionsField.append(", ");
                 conditionsWhere.append(" OR ");
+                conditionsHaving.append(" AND ");
+            }
 
             for(String key : map.keySet())
                 solrExptResponseMap.put(key, response);
             solrExptMap.putAll(map);
+
+            processedCondtions.add(new AtlasStructuredQueryResult.Condition(number, c, factorValues));
+            
+            ++number;
         }
 
         if(geneHitsResponse == null && conditionsWhere.length() == 0)
             return null;
 
-        final String arsCacheKey = geneReqUrl + conditionsWhere;
-
-        if (arsCache.containsKey(arsCacheKey)) {
-            log.info("Cache hit for " + arsCacheKey);
-            return arsCache.get(arsCacheKey);
-        }
-
-        String atlas_query_topN = "SELECT * FROM (\n" +
+        String querySql =
                 " SELECT\n" +
-                "         atlas.experiment_id_key,\n" +
                 "         atlas.gene_id_key, \n" +
-                "         atlas.ef, \n" +
-                "         atlas.efv,\n" +
-                "         atlas.updn,\n" +
-                "         atlas.updn_tstat,\n" +
-                "         atlas.updn_pvaladj,\n" +
-                "         row_number()\n" +
-                "            OVER (\n" +
-                "              PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.ef, atlas.efv\n" +
-                "              ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc\n" +
-                "            ) TopN \n"+ //,\n" +
+                conditionsField.toString() +
                 "        from aemart.atlas atlas \n" +
-                "        where 1 = 1" +
-                " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
+                "        where atlas.gene_id_key is not null and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
                 (inGeneIds.length() != 0 ? "and atlas.gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
-                (conditionsWhere.length() != 0 ? " and " + conditionsWhere.toString() : "") +
-                ")\n" +
-                " WHERE \n" +
-                " TopN <= 20 and gene_id_key is not null\n" +
-                " ORDER by updn_pvaladj asc, updn_tstat desc";
+                " and " + conditionsWhere.toString() +
+                " GROUP BY atlas.gene_id_key " +
+                " HAVING " + conditionsHaving.toString() +
+                " ORDER by gene_id_key desc";
 
-        log.info(atlas_query_topN);
+        log.info(querySql);
 
-        AtlasResultSet arset = null;
+        AtlasStructuredQueryResult result = null;
         try {
-            arset = (AtlasResultSet) theAEQueryRunner.query(atlas_query_topN, new ResultSetHandler() {
-                public AtlasResultSet handle(ResultSet rs) throws SQLException {
-                    AtlasResultSet arset = new AtlasResultSet(arsCacheKey);
+            result = (AtlasStructuredQueryResult) theAEQueryRunner.query(querySql, new ResultSetHandler() {
+                public AtlasStructuredQueryResult handle(ResultSet rs) throws SQLException {
+                    AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(processedCondtions);
 
                     while(rs.next()) {
-                        AtlasResult atlasResult = new AtlasResult();
+                        AtlasGene gene = null;
 
-                        AtlasExperiment expt = null;
-                        AtlasGene gene       = null;
-
-                        String experiment_id_key = rs.getString("experiment_id_key");
                         String gene_id_key = rs.getString("gene_id_key");
 
                         try {
-                            if (solrExptMap != null && solrExptMap.containsKey(experiment_id_key)) {
-                                expt = AtlasDao.getExperimentByIdDw(solrExptMap.get(experiment_id_key),
-                                        solrExptResponseMap.get(experiment_id_key));
-                            } else {
-                                expt = AtlasDao.getExperimentByIdDw(experiment_id_key);
-                            }
-
                             if (solrGeneMap != null && solrGeneMap.containsKey(gene_id_key)) {
                                 gene = AtlasDao.getGene(solrGeneMap.get(gene_id_key), geneHitsResponse);
                             } else {
@@ -778,29 +771,31 @@ private TreeSet<String> autoCompleteGene(String query) {
                             log.error(e);
                         }
 
-                        AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
-
-                        if(( expt != null && gene != null )
+                        if(gene != null
                                 && ( query.getSpecies().isEmpty() || query.getSpecies().contains(gene.getGeneSpecies())) ) {
-                            atlasResult.setExperiment(expt);
-                            atlasResult.setGene(gene);
-                            atlasResult.setAtuple(atuple);
+                            List<AtlasStructuredQueryResult.UpdownCounter> counters
+                                    = new ArrayList<AtlasStructuredQueryResult.UpdownCounter>();
+                            for(AtlasStructuredQueryResult.Condition c : processedCondtions)
+                            {
+                                int number = c.getPosition();
+                                counters.add(new AtlasStructuredQueryResult.UpdownCounter(rs.getInt("n_up" + number),
+                                        rs.getInt("n_dn" + number)));
+                            }
 
-                            arset.add(atlasResult);
+                            result.addResult(new AtlasStructuredQueryResult.GeneResult(gene, counters));
                         }
                     }
 
-                    return arset;
+                    return result;
                 }
             } );
 
-            log.info("Retrieved query completely: " + arset.size() + " records" );
-            arsCache.put(arset);
+            log.info("Retrieved query completely: " + result.getSize() + " records" );
         } catch (SQLException e) {
             log.error(e);
         }
 
-        return arset;
+        return result;
     }
 
     public ArrayList getAtlasResults(String query){

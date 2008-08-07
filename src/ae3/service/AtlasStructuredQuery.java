@@ -48,7 +48,6 @@ public class AtlasStructuredQuery {
         private List<String> factorValues;
 
         public Condition() {
-            factorValues = new ArrayList<String>();
         }
 
         public Expression getExpression() {
@@ -73,11 +72,6 @@ public class AtlasStructuredQuery {
 
         public void setFactorValues(List<String> factorValues) {
             this.factorValues = factorValues;
-        }
-
-        public void addFactorValue(String factorValue)
-        {
-            this.factorValues.add(factorValue);
         }
     }
 

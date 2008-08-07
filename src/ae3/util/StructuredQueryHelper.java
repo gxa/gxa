@@ -5,11 +5,16 @@ import ae3.service.AtlasStructuredQuery;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Helper functions for parsing and managing structured query
  * @author pashky
  */
 public class StructuredQueryHelper {
+    static protected final Log log = LogFactory.getLog("StructuredQueryHelper");
+
     private static String PARAM_EXPRESSION = "gexp_";
     private static String PARAM_FACTOR = "fact_";
     private static String PARAM_FACTORVALUE = "fval_";
@@ -84,7 +89,7 @@ public class StructuredQueryHelper {
                 result.add(condition);
             } catch (IllegalArgumentException e) {
                 // Ignore this one, may be better stop future handling
-                e.printStackTrace();
+                log.error("Unable to parse and condition. Ignoring it.", e);
             }
         }
 
