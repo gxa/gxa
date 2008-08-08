@@ -45,10 +45,16 @@ public class AtlasStructuredQueryResult {
     static public class UpdownCounter {
         private int ups;
         private int downs;
+        private double mpvup;
+        private double mpvdn;
+        private Condition condition;
 
-        public UpdownCounter(int ups, int downs) {
+        public UpdownCounter(int ups, int downs, double mpvup, double mpvdn, final Condition condition) {
             this.ups = ups;
             this.downs = downs;
+            this.mpvup = mpvup;
+            this.mpvdn = mpvdn;
+            this.condition = condition;
         }
 
         public int getUps() {
@@ -57,6 +63,18 @@ public class AtlasStructuredQueryResult {
 
         public int getDowns() {
             return downs;
+        }
+
+        public double getMpvUp() {
+            return mpvup;
+        }
+
+        public double getMpvDn() {
+            return mpvdn;
+        }
+
+        public Condition getCondition() {
+            return condition;
         }
     }
 

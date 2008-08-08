@@ -109,6 +109,9 @@ ArrayExpress Atlas Preview
         #conditions td { vertical-align: top; padding: 2px; }
         #conditions td.factorvalue { padding-bottom: 10px }
         #conditions td.andbuttons { vertical-align: bottom; padding-bottom:10px; }
+        div.countup, div.countdn { width:50%;float:left;text-align:center; }
+        a.countexp { float:right;display:block; }
+        div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
 
     </style>
 
@@ -142,7 +145,7 @@ ArrayExpress Atlas Preview
     <div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
     <%
         response.flushBuffer();
-        AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doExtendedAtlasQuery(atlasQuery);
+        AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
         request.setAttribute("result", atlasResult);
     %>
     <script type="text/javascript">$("#loading_display").hide()</script>
@@ -150,19 +153,44 @@ ArrayExpress Atlas Preview
     <c:if test="${result.size > 0}">
     <table>
         <tr>
-            <th>Gene</th>
+            <th colspan="2">Gene</th>
             <c:forEach var="c" items="${result.conditions}">
-                <th>
-                    <c:out value="${c.factor}" escapeXml="true"/> is one of
-                    <c:forEach var="v" varStatus="s" items="${c.factorValues}"><c:out value="${v}" escapeXml="true"/><c:if test="${!s.last}">, </c:if></c:forEach>
+                <th style="padding-left:20px;">
+                    <c:out value="${c.expression.description}" escapeXml="true"/> in <c:out value="${c.factor}" escapeXml="true"/>
+                    <c:forEach var="v" varStatus="s" items="${c.factorValues}"><c:out value="${v}" escapeXml="true"/><c:if test="${!s.last}"> or </c:if></c:forEach>
                 </th>
             </c:forEach>
         </tr>
         <c:forEach var="row" items="${result.results}">
             <tr>
-                <td><c:out value="${row.gene.geneName}" escapeXml="true"/></td>
+                <td style="vertical-align:top">
+                    <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
+                        <c:param name="db" value="genomes"/>
+                        <c:param name="t" value="${row.gene.geneIdentifier}"/>
+                    </c:url>
+                    <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
+                </td>
+                <td style="vertical-align:top"><c:out value="${f:join(f:split(row.gene.geneName,';'), ' ')}" escapeXml="true"/></td>
                 <c:forEach var="ud" items="${row.counters}">
-                    <td><c:out value="${ud.ups}"/> | <c:out value="${ud.downs}"/></td>                   
+                    <c:url var="urlExperiments" value="/sexpt">
+                        <c:param name="gene" value="${row.gene.geneId}"/>
+                        <c:param name="ef" value="${ud.condition.factor}"/>
+                        <c:forEach var="v" items="${ud.condition.factorValues}"><c:param name="efv" value="${v}"/></c:forEach>
+                    </c:url>
+                    <td style="padding-left:20px;vertical-align:top">
+                        <div class="countup" style="background-color:${ud.ups != 0 ? u:heatColor(ud.mpvUp, '100') : '#ffffff'}">
+                            <c:if test="${ud.ups != 0}">
+                                <a class="countexp" onclick="loadExperiments(this, '${u:escapeJS(urlExperiments)}&updn=1');">▶</a>
+                                <c:out value="${ud.ups}"/>
+                            </c:if>
+                        </div>
+                        <div class="countdn" style="background-color:${ud.downs != 0 ? u:heatColor(ud.mpvDn, '001') : '#ffffff'}">
+                            <c:if test="${ud.ups != 0}">
+                                <a class="countexp" onclick="loadExperiments(this, '${u:escapeJS(urlExperiments)}&updn=-1');">▶</a>
+                                <c:out value="${ud.downs}"/>
+                            </c:if>
+                        </div>
+                    </td>
                 </c:forEach>
             </tr>
         </c:forEach>

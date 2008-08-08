@@ -98,7 +98,7 @@ var counter = 0;
                  var orid = ++counter;
 
                  var input = $('<input type="text" class="value"/>').attr('name', "fval_" + andid + '_' + orid)
-                     .autocomplete("factorvalues.jsp", {
+                     .autocomplete("fval", {
                                        minChars:1,
                                        matchCase: true,
                                        matchSubset: false,
@@ -124,7 +124,7 @@ var counter = 0;
                                                           mode: "abort",
                                                           // limit abortion to this input
                                                           port: "fvalues" + andid + orid,
-                                                          url: "factorvalues.jsp",
+                                                          url: "fval",
                                                           data: { q: '', limit: 1000, factor: factor.options[factor.selectedIndex].value },
                                                           success: function(data) {
                                                               var rows = data.split("\n");
@@ -205,4 +205,31 @@ var counter = 0;
                                       ++i;
                                   });
      };
+
+     window.loadExperiments = function(where, url) {
+         var w = $(where);
+         $.ajax({
+             // try to leverage ajaxQueue plugin to abort previous requests
+             mode: "queue",
+             port: "expt",
+             url: url,
+             success: function(data) {
+                 var o = eval(data);
+                 if(o.empty)
+                    return;
+                 for(var i = 0; i < o.length; ++i) {
+                     w.parents("div.countup:first,div.countdn:first")
+                             .append('<div class="expref"><a href="http://www.ebi.ac.uk/arrayexpress/experiments/' +
+                                     encodeURI(o[i].experimentAccessment) + '" title="' + escape(o[i].experimentName) + '">'
+                             + o[i].experimentAccessment + '</a></div>');
+                     w.text('\u25bc');
+                     w.get(0).onclick = function () {
+                         this.onclick = function() { loadExperiments(where, url); }
+                         $(this).text('\u25b6').siblings('div.expref').remove();
+                     };
+                 }
+             }
+         });
+     }
+
  })(jQuery);

@@ -4,6 +4,8 @@ import ae3.service.AtlasStructuredQuery;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -101,8 +103,7 @@ public class StructuredQueryHelper {
     * @param httpRequest HTTP servlet request
     * @return extended request made of succesfully parsed conditions
     */
-    static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest)
-    {
+    static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
         String gene = httpRequest.getParameter(PARAM_GENE);
         if(gene == null)
@@ -112,4 +113,45 @@ public class StructuredQueryHelper {
         request.setConditions(parseConditions(httpRequest));
         return request;
     }
+
+    /**
+     * Make an HTML/CSS-style hex color value according to p-value adjusted up/down average value and color mask
+     * Mask is a string of 3 characters corresponding to r, g, and b components.
+     * '1' - means that component should be interpolated by value
+     * any other - component stays 255
+     * So, example: "110" - interpolate between white and yellow
+     * @param mpv value
+     * @param mask mask, see method description
+     * @return hex color string
+     */
+    static public String heatColor(String mpv, String mask)
+    {
+        String color = "#";
+        for(int i = 0; i < 3; ++i)
+            switch(mask.charAt(i)) {
+                case '1':
+                    color += "ff"; break;
+                default:
+                    color += String.format("%02x", 255 - Math.round(Double.valueOf(mpv) * (-255D / 0.05D) + 255)); break;
+            }
+        return color;
+    }
+
+    /**
+     * Encode staring with URL encdoing (%xx's)
+     * @param str url
+     * @return encoded str
+     */
+    public static String escapeURL(String str)
+    {
+        try
+        {
+            return URLEncoder.encode(str, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            return "";
+        }
+    }
+
 }

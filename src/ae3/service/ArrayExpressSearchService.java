@@ -1,6 +1,7 @@
 package ae3.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.dbutils.QueryRunner;
@@ -647,8 +648,12 @@ private TreeSet<String> autoCompleteGene(String query) {
     }
 
     /**
+     * Process structured Atlas query
+     * @param query parsed query
+     * @return matching results
+     * @throws IOException
      */
-    public AtlasStructuredQueryResult doExtendedAtlasQuery(final AtlasStructuredQuery query) throws IOException {
+    public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) throws IOException {
         final QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(query.getGene());
         if (geneHitsResponse != null && geneHitsResponse.getResults().getNumFound() == 0)
             return null;
@@ -660,9 +665,6 @@ private TreeSet<String> autoCompleteGene(String query) {
 
         String inGeneIds = (solrGeneMap == null ? "" : StringUtils.join(solrGeneMap.keySet(), ","));
 
-
-        String geneReqUrl = geneHitsResponse == null ? "" : (String) ((NamedList) geneHitsResponse.getHeader().get("params")).get("q");
-
         final Map<String, SolrDocument> solrExptMap = new HashMap<String, SolrDocument>();
         final Map<String, QueryResponse> solrExptResponseMap = new HashMap<String, QueryResponse>();
         final List<AtlasStructuredQueryResult.Condition> processedCondtions = new ArrayList<AtlasStructuredQueryResult.Condition>();
@@ -670,6 +672,8 @@ private TreeSet<String> autoCompleteGene(String query) {
         final StringBuffer conditionsField = new StringBuffer();
         final StringBuffer conditionsWhere = new StringBuffer();
         final StringBuffer conditionsHaving = new StringBuffer();
+        final StringBuffer conditionsScore = new StringBuffer();
+
         Iterator<AtlasStructuredQuery.Condition> i = query.getConditions().iterator();
         int number = 1;
         while(i.hasNext())
@@ -681,7 +685,7 @@ private TreeSet<String> autoCompleteGene(String query) {
                 break;
 
             StringBuffer condition = new StringBuffer();
-            condition.append("atlas.ef = '").append(c.getFactor().replace("'", "''")).append("'");
+            condition.append("ef = '").append(StringEscapeUtils.escapeSql(c.getFactor())).append("'");
 
             final Map<String, SolrDocument> map = convertSolrDocumentListToMap(response, Constants.FIELD_DWEXP_ID);
 
@@ -690,38 +694,71 @@ private TreeSet<String> autoCompleteGene(String query) {
                 if (vals == null || vals.size() == 0)
                     continue;
                 for(String s : vals.get(Constants.FIELD_FACTOR_PREFIX + c.getFactor())) {
-                    factorValues.add("'" + s.replaceAll("</{0,1}em>","").replaceAll("'", "''") + "'");
+                    factorValues.add(s.replaceAll("</{0,1}em>",""));
                 }
             }
 
-            condition.append(" AND atlas.efv IN (").append(StringUtils.join(factorValues, ",")).append(")");
+            condition.append(" AND efv IN (");
+            int j = 0;
+            for(String s : factorValues)
+                condition.append(j++ > 0 ? "," : "").append("'").append(StringEscapeUtils.escapeSql(s)).append("'");
+            condition.append(")");
 
             StringBuffer n_up = new StringBuffer();
-            n_up.append("count(case when ").append(condition).append(" and atlas.updn = 1 then 1 else null end)");
+            n_up.append("count(case when ").append(condition).append(" and updn = 1 then 1 else null end)");
             StringBuffer n_dn = new StringBuffer();
-            n_dn.append("count(case when ").append(condition).append(" and atlas.updn = -1 then 1 else null end)");
+            n_dn.append("count(case when ").append(condition).append(" and updn = -1 then 1 else null end)");
+
+            StringBuffer s_up = new StringBuffer();
+            s_up.append("sum(case when ").append(condition).append(" and updn = 1 then updn_pvaladj else null end)");
+            StringBuffer s_dn = new StringBuffer();
+            s_dn.append("sum(case when ").append(condition).append(" and updn = -1 then updn_pvaladj else null end)");
 
             String having;
+            String score;
             switch(c.getExpression())
             {
-                case UP: having = n_up.toString() + " > 0"; break;
-                case DOWN: having = n_dn.toString() + " > 0"; break;
-                case NOT_UP: having = n_up.toString() + " = 0"; break;
-                case NOT_DOWN: having = n_dn.toString() + " = 0"; break;
-                case UP_DOWN: having = "(" + n_up.toString() + " > 0 OR " + n_dn.toString() + " > 0)"; break;
-                case NOT_EXPRESSED: having = "(" + n_up.toString() + " = 0 AND " + n_dn.toString() + " = 0)"; break;
+                case UP:
+                    having = n_up + " > 0";
+                    score = n_up + " - " + n_dn;
+                    break;
+                case DOWN:
+                    having = n_dn + " > 0";
+                    score = n_dn + " - " + n_up;
+                    break;
+                case NOT_UP:
+                    having = n_up + " = 0";
+                    score = "0 - " + n_up;
+                    break;
+                case NOT_DOWN:
+                    having = n_dn + " = 0";
+                    score = "0 - " + n_dn;
+                    break;
+                case UP_DOWN:
+                    having = "(" + n_up + " > 0 OR " + n_dn + " > 0)";
+                    score = "0 - " + n_up + " - " + n_dn;
+                    break;
+                case NOT_EXPRESSED:
+                    having = "(" + n_up + " = 0 AND " + n_dn + " = 0)";
+                    score = n_up + " + " + n_dn;
+                    break;
                 default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
             }
 
             conditionsField.append(n_up).append(" as n_up").append(number)
-                    .append(",").append(n_dn).append(" as n_dn").append(number);
+                    .append(",").append(n_dn).append(" as n_dn").append(number)
+                    .append(",").append("avg(case when ").append(condition).append(" and updn = 1 then updn_pvaladj else null end) as mpvup").append(number)
+                    .append(",").append("avg(case when ").append(condition).append(" and updn = -1 then updn_pvaladj else null end) as mpvdn").append(number)
+                    ;
             conditionsWhere.append('(').append(condition).append(')');
             conditionsHaving.append(having);
+            conditionsScore.append(score);
             if(i.hasNext())
             {
                 conditionsField.append(", ");
                 conditionsWhere.append(" OR ");
                 conditionsHaving.append(" AND ");
+                conditionsScore.append(" + ");
             }
 
             for(String key : map.keySet())
@@ -738,15 +775,16 @@ private TreeSet<String> autoCompleteGene(String query) {
 
         String querySql =
                 " SELECT\n" +
-                "         atlas.gene_id_key, \n" +
-                conditionsField.toString() +
+                "         gene_id_key, \n" +
+                conditionsField + ", " +
+                conditionsScore + " as score" +
                 "        from aemart.atlas atlas \n" +
-                "        where atlas.gene_id_key is not null and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
-                (inGeneIds.length() != 0 ? "and atlas.gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
-                " and " + conditionsWhere.toString() +
-                " GROUP BY atlas.gene_id_key " +
-                " HAVING " + conditionsHaving.toString() +
-                " ORDER by gene_id_key desc";
+                "        where gene_id_key is not null and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
+                (inGeneIds.length() != 0 ? "and gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
+                " and " + conditionsWhere +
+                " GROUP BY gene_id_key " +
+                " HAVING " + conditionsHaving +
+                " ORDER by score desc";
 
         log.info(querySql);
 
@@ -778,8 +816,12 @@ private TreeSet<String> autoCompleteGene(String query) {
                             for(AtlasStructuredQueryResult.Condition c : processedCondtions)
                             {
                                 int number = c.getPosition();
-                                counters.add(new AtlasStructuredQueryResult.UpdownCounter(rs.getInt("n_up" + number),
-                                        rs.getInt("n_dn" + number)));
+                                counters.add(new AtlasStructuredQueryResult.UpdownCounter(
+                                        rs.getInt("n_up" + number),
+                                        rs.getInt("n_dn" + number),
+                                        rs.getDouble("mpvup" + number),
+                                        rs.getDouble("mpvdn" + number),
+                                        c));
                             }
 
                             result.addResult(new AtlasStructuredQueryResult.GeneResult(gene, counters));
@@ -796,6 +838,50 @@ private TreeSet<String> autoCompleteGene(String query) {
         }
 
         return result;
+    }
+
+    public List<AtlasExperimentRow> getExperiments(String gene_id_key, String factor, String[] factorValues, String updn)
+    {
+        final List<AtlasExperimentRow> results = new ArrayList<AtlasExperimentRow>();
+        try {
+            List<Object> params = new ArrayList<Object>();
+//            params.add(Integer.valueOf(gene_id_key));
+            params.add(factor);
+            StringBuffer questions = new StringBuffer();
+            for(String fv : factorValues) {
+                questions.append(questions.length() == 0 ? "?" : ",?");
+                params.add(fv);
+            }
+            //params.add(updn.toCharArray());
+            String sql = "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj FROM aemart.atlas" +
+                    " WHERE gene_id_key = " + gene_id_key +" AND ef = ? AND efv in (" + questions + ") AND updn = " + updn +
+                    " GROUP BY experiment_id_key";
+            log.info(sql);
+            theAEQueryRunner.query(sql,
+                    params.toArray(),
+                    new ResultSetHandler() {
+                        public Object handle(ResultSet rs) throws SQLException {
+                            while(rs.next()) {
+                                try {
+                                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
+                                    if(experiment != null)
+                                        results.add(new AtlasExperimentRow(
+                                                experiment.getAerExpId(),
+                                                experiment.getAerExpName(),
+                                                experiment.getAerExpAccession(),
+                                                experiment.getAerExpDescription(),
+                                                rs.getDouble("updn_pvaladj")));
+                                } catch (AtlasObjectNotFoundException e) {
+                                    log.error(e);
+                                }
+                            }
+                            return results;
+                        }
+                    });
+         } catch (SQLException e) {
+            log.error(e);
+         }
+        return results;
     }
 
     public ArrayList getAtlasResults(String query){
