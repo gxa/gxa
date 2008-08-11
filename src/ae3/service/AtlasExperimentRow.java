@@ -10,8 +10,6 @@ public class AtlasExperimentRow {
     private String experimentAccessment;
     private String experimentDescription;
     private String experimentName;
-    private String ef;
-    private String efv;
     private double pvalue;
 
     public AtlasExperimentRow(long experimentId, String experimentName, String experimentAccessment, String experimentDescription, double pvalue) {

@@ -172,21 +172,17 @@ ArrayExpress Atlas Preview
                 </td>
                 <td style="vertical-align:top"><c:out value="${f:join(f:split(row.gene.geneName,';'), ' ')}" escapeXml="true"/></td>
                 <c:forEach var="ud" items="${row.counters}">
-                    <c:url var="urlExperiments" value="/sexpt">
-                        <c:param name="gene" value="${row.gene.geneId}"/>
-                        <c:param name="ef" value="${ud.condition.factor}"/>
-                        <c:forEach var="v" items="${ud.condition.factorValues}"><c:param name="efv" value="${v}"/></c:forEach>
-                    </c:url>
+                    <c:set var="efv">[<c:forEach var="v" items="${ud.condition.factorValues}" varStatus="s">'<c:out value="${u:escapeJS(v)}"/>'<c:if test="${!s.last}">,</c:if></c:forEach>]</c:set>
                     <td style="padding-left:20px;vertical-align:top">
                         <div class="countup" style="background-color:${ud.ups != 0 ? u:heatColor(ud.mpvUp, '100') : '#ffffff'}">
                             <c:if test="${ud.ups != 0}">
-                                <a class="countexp" onclick="loadExperiments(this, '${u:escapeJS(urlExperiments)}&updn=1');">▶</a>
+                                <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'1');">▶</a>
                                 <c:out value="${ud.ups}"/>
                             </c:if>
                         </div>
                         <div class="countdn" style="background-color:${ud.downs != 0 ? u:heatColor(ud.mpvDn, '001') : '#ffffff'}">
                             <c:if test="${ud.ups != 0}">
-                                <a class="countexp" onclick="loadExperiments(this, '${u:escapeJS(urlExperiments)}&updn=-1');">▶</a>
+                                <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'-1');">▶</a>
                                 <c:out value="${ud.downs}"/>
                             </c:if>
                         </div>

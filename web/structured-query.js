@@ -206,25 +206,30 @@ var counter = 0;
                                   });
      };
 
-     window.loadExperiments = function(where, url) {
+     window.loadExperiments = function(where, gene_id, factor, values, up_down) {
          var w = $(where);
+         console.dir(values);
          $.ajax({
              // try to leverage ajaxQueue plugin to abort previous requests
              mode: "queue",
-             port: "expt",
-             url: url,
-             success: function(data) {
-                 var o = eval(data);
+             port: "sexpt",
+             url: "sexpt",
+             dataType: "json",
+             data: { gene: gene_id, ef: factor, efv: values, updn: up_down },
+             success: function(o) {
                  if(o.empty)
                     return;
                  for(var i = 0; i < o.length; ++i) {
                      w.parents("div.countup:first,div.countdn:first")
-                             .append('<div class="expref"><a href="http://www.ebi.ac.uk/arrayexpress/experiments/' +
-                                     encodeURI(o[i].experimentAccessment) + '" title="' + escape(o[i].experimentName) + '">'
-                             + o[i].experimentAccessment + '</a></div>');
+                             .append('<div class="expref">'
+                                     + '<a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query='
+                                     + encodeURI(gene_id)
+                                     + '&species=&displayInsitu=on&exp_query=' + encodeURI(o[i].experimentAccessment)
+                                     + ' title="' + escape(o[i].experimentName) + '">'
+                                     + o[i].experimentAccessment + '</a></div>');
                      w.text('\u25bc');
                      w.get(0).onclick = function () {
-                         this.onclick = function() { loadExperiments(where, url); }
+                         this.onclick = function() { loadExperiments(where, gene_id, factor, values, up_down); }
                          $(this).text('\u25b6').siblings('div.expref').remove();
                      };
                  }
