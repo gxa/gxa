@@ -75,7 +75,7 @@ var counter = 0;
              var tr = $('<tr/>');
              var fval = $('<td class="factorvalue"/>');
 
-             var factor = createSelect("fact_" + andid, options['factors'], false, condition && condition.factor);
+             var factor = createSelect("fact_" + andid, options['factors'], true, condition && condition.factor);
 
              factor.className = 'factor';
              factor.onchange = function() {

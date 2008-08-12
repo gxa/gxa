@@ -17,7 +17,6 @@ public class AtlasStructuredQueryResult {
     public static class Condition {
         private AtlasStructuredQuery.Condition queryCondition;
         private List<String> expandedFactorValues;
-        private int position;
 
         public AtlasStructuredQuery.Expression getExpression() {
             return queryCondition.getExpression();
@@ -27,18 +26,13 @@ public class AtlasStructuredQueryResult {
             return queryCondition.getFactor();
         }
 
-        public Condition(int position, AtlasStructuredQuery.Condition queryCondition, Collection<String> expandedFactorValues) {
-            this.position = position;
+        public Condition(AtlasStructuredQuery.Condition queryCondition, Collection<String> expandedFactorValues) {
             this.queryCondition = queryCondition;
             this.expandedFactorValues = new ArrayList<String>(expandedFactorValues);
         }
 
         public List<String> getFactorValues() {
             return expandedFactorValues;
-        }
-
-        public int getPosition() {
-            return position;
         }
     }
 
@@ -47,14 +41,16 @@ public class AtlasStructuredQueryResult {
         private int downs;
         private double mpvup;
         private double mpvdn;
-        private Condition condition;
+        private String factor;
+        private String factorValue;
 
-        public UpdownCounter(int ups, int downs, double mpvup, double mpvdn, final Condition condition) {
+        public UpdownCounter(int ups, int downs, double mpvup, double mpvdn, final String factor, final String factorValue) {
             this.ups = ups;
             this.downs = downs;
             this.mpvup = mpvup;
             this.mpvdn = mpvdn;
-            this.condition = condition;
+            this.factor = factor;
+            this.factorValue = factorValue;
         }
 
         public int getUps() {
@@ -73,8 +69,12 @@ public class AtlasStructuredQueryResult {
             return mpvdn;
         }
 
-        public Condition getCondition() {
-            return condition;
+        public String getFactor() {
+            return factor;
+        }
+
+        public String getFactorValue() {
+            return factorValue;
         }
     }
 

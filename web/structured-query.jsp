@@ -55,7 +55,6 @@ ArrayExpress Atlas Preview
                         extraParams: {type:"gene"},
                         formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
                 });
-                initQuery();
             }
         );
 
@@ -102,6 +101,27 @@ ArrayExpress Atlas Preview
             display: none;
         }
 
+        /* tables */
+        table.squery {
+            font-family:arial;
+            background-color: #CDCDCD;
+            margin:10px 0pt 15px;
+            font-size: 8pt;
+            text-align: left;
+        }
+        table.squery thead tr th, table.squery tfoot tr th {
+            background-color: #e6EEEE;
+            border: 1px solid #FFF;
+            font-size: 8pt;
+            padding: 4px;
+        }
+        table.squery tbody td {
+            color: #3D3D3D;
+            padding: 4px;
+            background-color: #FFF;
+            vertical-align: top;
+        }
+
         div.value select, div.value input.value { width :200px; }
         div.value div.buttons { float: right; }
         div.value div.input { float: left; }
@@ -109,10 +129,14 @@ ArrayExpress Atlas Preview
         #conditions td { vertical-align: top; padding: 2px; }
         #conditions td.factorvalue { padding-bottom: 10px }
         #conditions td.andbuttons { vertical-align: bottom; padding-bottom:10px; }
-        div.countup, div.countdn { width:50%;float:left;text-align:center; }
+        div.countup, div.countdn { width:15%;float:left;text-align:center; }
+        div.gradel { width:7%;float:left; }
         a.countexp { float:right;display:block; }
         div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-
+        td.counter, th.counter {text-align:center;width:80px; }
+        th.factor { text-align:center;font-weight:normal; }
+        th.factor em { font-weight:bold;font-style:normal;}
+        th.gene { vertical-align:middle;text-align:center; }
     </style>
 
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
@@ -140,6 +164,9 @@ ArrayExpress Atlas Preview
         <input type="submit">        
 </form>
 
+<script type="text/javascript">
+    initQuery();   
+</script>
 
 <c:if test="${!empty query}">
     <div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
@@ -151,46 +178,58 @@ ArrayExpress Atlas Preview
     <script type="text/javascript">$("#loading_display").hide()</script>
 
     <c:if test="${result.size > 0}">
-    <table>
-        <tr>
-            <th colspan="2">Gene</th>
-            <c:forEach var="c" items="${result.conditions}">
-                <th style="padding-left:20px;">
-                    <c:out value="${c.expression.description}" escapeXml="true"/> in <c:out value="${c.factor}" escapeXml="true"/>
-                    <c:forEach var="v" varStatus="s" items="${c.factorValues}"><c:out value="${v}" escapeXml="true"/><c:if test="${!s.last}"> or </c:if></c:forEach>
-                </th>
-            </c:forEach>
-        </tr>
-        <c:forEach var="row" items="${result.results}">
-            <tr>
-                <td style="vertical-align:top">
-                    <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
-                        <c:param name="db" value="genomes"/>
-                        <c:param name="t" value="${row.gene.geneIdentifier}"/>
-                    </c:url>
-                    <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
-                </td>
-                <td style="vertical-align:top"><c:out value="${f:join(f:split(row.gene.geneName,';'), ' ')}" escapeXml="true"/></td>
-                <c:forEach var="ud" items="${row.counters}">
-                    <c:set var="efv">[<c:forEach var="v" items="${ud.condition.factorValues}" varStatus="s">'<c:out value="${u:escapeJS(v)}"/>'<c:if test="${!s.last}">,</c:if></c:forEach>]</c:set>
-                    <td style="padding-left:20px;vertical-align:top">
-                        <div class="countup" style="background-color:${ud.ups != 0 ? u:heatColor(ud.mpvUp, '100') : '#ffffff'}">
-                            <c:if test="${ud.ups != 0}">
-                                <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'1');">▶</a>
-                                <c:out value="${ud.ups}"/>
-                            </c:if>
-                        </div>
-                        <div class="countdn" style="background-color:${ud.downs != 0 ? u:heatColor(ud.mpvDn, '001') : '#ffffff'}">
-                            <c:if test="${ud.ups != 0}">
-                                <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'-1');">▶</a>
-                                <c:out value="${ud.downs}"/>
-                            </c:if>
-                        </div>
-                    </td>
+        <table class="squery">
+            <thead>
+                <tr>
+                    <th colspan="2" rowspan="2" class="gene">Gene</th>
+                    <c:forEach var="c" items="${result.conditions}">
+                        <th colspan="${f:length(c.factorValues)}" class="factor">
+                            <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
+                        </th>
+                    </c:forEach>
+                </tr>
+                <tr>
+                    <c:forEach var="c" items="${result.conditions}">
+                        <c:forEach var="v" items="${c.factorValues}">
+                            <th class="counter"><c:out value="${v}" escapeXml="true"/></th>
+                        </c:forEach>
+                    </c:forEach>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="row" items="${result.results}">
+                    <tr>
+                        <td style="vertical-align:top">
+                            <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
+                                <c:param name="db" value="genomes"/>
+                                <c:param name="t" value="${row.gene.geneIdentifier}"/>
+                            </c:url>
+                            <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
+                        </td>
+                        <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
+                        <td style="vertical-align:top"><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/></a></td>
+                        <c:forEach var="ud" items="${row.counters}">
+                            <td class="counter">
+                                <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 255 / 0.05 : 255}"/>
+                                <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 255 / 0.05 : 255}"/>
+                                <div>
+                                    <c:forEach var="g" items="${u:gradient(255,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
+                                        <c:if test="${s.first}"><div class="countup" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '&nbsp;' : ud.ups}</div></c:if>
+                                        <c:if test="${s.last}"><div class="countdn" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '&nbsp;' : ud.downs}</div></c:if>
+                                        <c:if test="${!s.first && !s.last}"><div class="gradel" style="background-color:${g};color:${g}">.</div></c:if>
+                                    </c:forEach>
+                                </div>
+                            </td>
+                        </c:forEach>
+                            <%--
+                            <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'1');">▶</a>
+                            <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'-1');">▶</a>
+                            <c:set var="efv">[<c:forEach var="v" items="${ud.condition.factorValues}" varStatus="s">'<c:out value="${u:escapeJS(v)}"/>'<c:if test="${!s.last}">,</c:if></c:forEach>]</c:set>
+                            --%>
+                    </tr>
                 </c:forEach>
-            </tr>
-        </c:forEach>
-    </table>
+            </tbody>
+        </table>
     </c:if>
 
     <jsp:include page="end_body.jsp"></jsp:include>

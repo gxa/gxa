@@ -71,7 +71,7 @@ public class StructuredQueryHelper {
                 condition.setExpression(AtlasStructuredQuery.Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);
-                if(factor == null || factor.length() == 0)
+                if(factor == null)
                     throw new IllegalArgumentException("Empty factor name rowid:" + id);
 
                 condition.setFactor(factor);
@@ -127,12 +127,15 @@ public class StructuredQueryHelper {
     static public String heatColor(String mpv, String mask)
     {
         String color = "#";
+        double v = Double.valueOf(mpv);
+        if(v > 0.05D)
+            v = 0.05D;
         for(int i = 0; i < 3; ++i)
             switch(mask.charAt(i)) {
                 case '1':
                     color += "ff"; break;
                 default:
-                    color += String.format("%02x", 255 - Math.round(Double.valueOf(mpv) * (-255D / 0.05D) + 255)); break;
+                    color += String.format("%02x", 255 - Math.round(v * (-255D / 0.05D) + 255)); break;
             }
         return color;
     }
@@ -152,6 +155,33 @@ public class StructuredQueryHelper {
         {
             return "";
         }
+    }
+
+    public static String[] gradient(int r1, int g1, int b1, int r2, int g2, int b2, int n, int up, int down)
+    {
+        String[] result = new String[n];
+
+        double x = 0;
+        if(up + down > 0)
+            x = (double)up / (double)(up+down);
+
+        int k = 3 + (int)(x * (double)(n - 7));
+        for(int i = 0; i < n; ++i)
+        {
+            int r, g, b;
+            if(i < k)
+            {
+                r = r1 + (r2-r1) * i / 2 / k;
+                g = g1 + (g2-g1) * i / 2 / k;
+                b = b1 + (b2-b1) * i / 2 / k;
+            } else {
+                r = (r1 + r2 + (r2-r1) * (i - k) / (n - 1 - k)) / 2;
+                g = (g1 + g2 + (g2-g1) * (i - k) / (n - 1 - k)) / 2;
+                b = (b1 + b2 + (b2-b1) * (i - k) / (n - 1 - k)) / 2;
+            }
+            result[i] = String.format("#%02x%02x%02x", r, g, b);
+        }
+        return result;
     }
 
 }

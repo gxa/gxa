@@ -79,6 +79,14 @@ public class ArrayExpressSearchService {
     //       well (see the remove method on AtlasResultSetCache).
     private AtlasResultSetCache arsCache = new AtlasResultSetCache();
 
+    private static final String FIELD_NUP = "nup";
+    private static final String FIELD_NDN = "ndn";
+    private static final String FIELD_MPVUP = "mpvup";
+    private static final String FIELD_MPVDN = "mpvdn";
+    private static final String FIELD_SUP = "sup";
+    private static final String FIELD_SDN = "sdn";
+    private static final int MAX_STRUCTURED_CONDITIONS = 20;
+
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
 
@@ -272,7 +280,7 @@ public class ArrayExpressSearchService {
 
         try {
             StringBuffer query = new StringBuffer(Constants.FIELD_FACTOR_PREFIX);
-            query.append(factor).append(":(").append(StringUtils.join(values, " ")).append(")");
+            query.append(factor).append(":(").append(StringUtils.join(values, " ").replace("*","?*")).append(")");
             SolrQuery q = new SolrQuery(query.toString());
             q.setHighlight(true);
             q.addHighlightField(Constants.FIELD_FACTOR_PREFIX + factor);
@@ -669,23 +677,22 @@ private TreeSet<String> autoCompleteGene(String query) {
         final Map<String, QueryResponse> solrExptResponseMap = new HashMap<String, QueryResponse>();
         final List<AtlasStructuredQueryResult.Condition> processedCondtions = new ArrayList<AtlasStructuredQueryResult.Condition>();
 
-        final StringBuffer conditionsField = new StringBuffer();
-        final StringBuffer conditionsWhere = new StringBuffer();
-        final StringBuffer conditionsHaving = new StringBuffer();
-        final StringBuffer conditionsScore = new StringBuffer();
+        final StringBuffer innerFields = new StringBuffer();
+        final StringBuffer outerFields = new StringBuffer();
+        final StringBuffer innerWheres = new StringBuffer();
+        final StringBuffer outerWheres = new StringBuffer();
+        final StringBuffer scores = new StringBuffer();
 
-        Iterator<AtlasStructuredQuery.Condition> i = query.getConditions().iterator();
-        int number = 1;
-        while(i.hasNext())
+        int number = 0;
+        for(AtlasStructuredQuery.Condition c : query.getConditions())
         {
-            AtlasStructuredQuery.Condition c = i.next();
-
-            QueryResponse response = ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
+            QueryResponse response =
+                    c.getFactor().length() == 0 ?
+                            ArrayExpressSearchService.instance().fullTextQueryExpts(StringUtils.join(c.getFactorValues().toArray(), ' ').replace("*","?*"))
+                            :
+                            ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
             if (response == null || response.getResults().getNumFound() == 0)
-                break;
-
-            StringBuffer condition = new StringBuffer();
-            condition.append("ef = '").append(StringEscapeUtils.escapeSql(c.getFactor())).append("'");
+                continue;
 
             final Map<String, SolrDocument> map = convertSolrDocumentListToMap(response, Constants.FIELD_DWEXP_ID);
 
@@ -693,97 +700,138 @@ private TreeSet<String> autoCompleteGene(String query) {
             for (Map<String, List<String>> vals : response.getHighlighting().values()) {
                 if (vals == null || vals.size() == 0)
                     continue;
-                for(String s : vals.get(Constants.FIELD_FACTOR_PREFIX + c.getFactor())) {
+                for(String s : vals.get(c.getFactor().length() == 0 ?
+                        "exp_factor_values" : Constants.FIELD_FACTOR_PREFIX + c.getFactor())) {
                     factorValues.add(s.replaceAll("</{0,1}em>",""));
                 }
             }
 
-            condition.append(" AND efv IN (");
-            int j = 0;
-            for(String s : factorValues)
-                condition.append(j++ > 0 ? "," : "").append("'").append(StringEscapeUtils.escapeSql(s)).append("'");
-            condition.append(")");
+            if(factorValues.size() == 0)
+                continue;
 
-            StringBuffer n_up = new StringBuffer();
-            n_up.append("count(case when ").append(condition).append(" and updn = 1 then 1 else null end)");
-            StringBuffer n_dn = new StringBuffer();
-            n_dn.append("count(case when ").append(condition).append(" and updn = -1 then 1 else null end)");
+            if(number > 0)
+                outerWheres.append(" AND ");
+            outerWheres.append("(");
 
-            StringBuffer s_up = new StringBuffer();
-            s_up.append("sum(case when ").append(condition).append(" and updn = 1 then updn_pvaladj else null end)");
-            StringBuffer s_dn = new StringBuffer();
-            s_dn.append("sum(case when ").append(condition).append(" and updn = -1 then updn_pvaladj else null end)");
-
-            String having;
-            String score;
-            switch(c.getExpression())
+            boolean first = true;
+            for(String factorValue : factorValues)
             {
-                case UP:
-                    having = n_up + " > 0";
-                    score = n_up + " - " + n_dn;
-                    break;
-                case DOWN:
-                    having = n_dn + " > 0";
-                    score = n_dn + " - " + n_up;
-                    break;
-                case NOT_UP:
-                    having = n_up + " = 0";
-                    score = "0 - " + n_up;
-                    break;
-                case NOT_DOWN:
-                    having = n_dn + " = 0";
-                    score = "0 - " + n_dn;
-                    break;
-                case UP_DOWN:
-                    having = "(" + n_up + " > 0 OR " + n_dn + " > 0)";
-                    score = "0 - " + n_up + " - " + n_dn;
-                    break;
-                case NOT_EXPRESSED:
-                    having = "(" + n_up + " = 0 AND " + n_dn + " = 0)";
-                    score = n_up + " + " + n_dn;
-                    break;
-                default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
-            }
+                if(number > 0)
+                {
+                    innerFields.append(", ");
+                    outerFields.append(", ");
+                    innerWheres.append(" OR ");
+                    scores.append(" + ");
+                }
 
-            conditionsField.append(n_up).append(" as n_up").append(number)
-                    .append(",").append(n_dn).append(" as n_dn").append(number)
-                    .append(",").append("avg(case when ").append(condition).append(" and updn = 1 then updn_pvaladj else null end) as mpvup").append(number)
-                    .append(",").append("avg(case when ").append(condition).append(" and updn = -1 then updn_pvaladj else null end) as mpvdn").append(number)
-                    ;
-            conditionsWhere.append('(').append(condition).append(')');
-            conditionsHaving.append(having);
-            conditionsScore.append(score);
-            if(i.hasNext())
-            {
-                conditionsField.append(", ");
-                conditionsWhere.append(" OR ");
-                conditionsHaving.append(" AND ");
-                conditionsScore.append(" + ");
+                if(first)
+                    first = false;
+                else
+                    outerWheres.append(" OR ");
+
+                StringBuffer condition = new StringBuffer();
+                if(c.getFactor().length() > 0)
+                        condition.append("ef = '").append(StringEscapeUtils.escapeSql(c.getFactor())).append("' and ");
+                condition.append("efv = '").append(StringEscapeUtils.escapeSql(factorValue)).append("'");
+
+                String nUp = FIELD_NUP + number;
+                String nDn = FIELD_NDN + number;
+                String sUp = FIELD_SUP + number;
+                String sDn = FIELD_SDN + number;
+
+                innerFields
+                        .append("count(case when ").append(condition)
+                        .append(" and updn = 1 then 1 else null end) as ").append(nUp).append(",")
+                        .append("count(case when ").append(condition)
+                        .append(" and updn = -1 then 1 else null end) as ").append(nDn).append(",")
+                        .append("sum(case when ").append(condition)
+                        .append(" and updn = 1 then updn_pvaladj else null end) as ").append(sUp).append(",")
+                        .append("sum(case when ").append(condition)
+                        .append(" and updn = -1 then updn_pvaladj else null end) as ").append(sDn)
+                        ;
+
+                String having;
+                String score;
+
+                switch(c.getExpression())
+                {
+                    case UP:
+                        having = "nup > 0";
+                        score = "(nup - ndn - sup + sdn)/(nup + ndn + 0.00001)";
+                        break;
+                    case DOWN:
+                        having = "ndn > 0";
+                        score = "(ndn - nup - sdn + sup)/(nup + ndn + 0.00001)";
+                        break;
+                    case NOT_UP:
+                        having = "nup = 0";
+                        score = "(-ndn + sdn) / (ndn + 0.0001)";
+                        break;
+                    case NOT_DOWN:
+                        having = "ndn = 0";
+                        score = "(-nup + sup) / (nup + 0.0001)";
+                        break;
+                    case UP_DOWN:
+                        having = "(nup > 0 OR ndn > 0)";
+                        score = "(sup + sdn) / (nup + ndn + 0.0001)";
+                        break;
+                    case NOT_EXPRESSED:
+                        having = "(nup = 0 AND ndn = 0)";
+                        score = "0";
+                        break;
+                    default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
+                }
+
+                score = score.replace(FIELD_NUP, nUp).replace(FIELD_NDN, nDn).replace(FIELD_SUP, sUp).replace(FIELD_SDN, sDn);
+                having = having.replace(FIELD_NUP, nUp).replace(FIELD_NDN, nDn).replace(FIELD_SUP, sUp).replace(FIELD_SDN, sDn);
+
+                outerFields
+                        .append(nUp).append(",")
+                        .append(nDn).append(",")
+                        .append(sUp).append("/").append(nUp).append(" as ").append(FIELD_MPVUP).append(number).append(",")
+                        .append(sDn).append("/").append(nDn).append(" as ").append(FIELD_MPVDN).append(number);
+
+                innerWheres.append('(').append(condition).append(')');
+                outerWheres.append(having);
+                scores.append(score);
+
+                ++number;
+
+                if(number >= MAX_STRUCTURED_CONDITIONS)
+                    break;
             }
+            outerWheres.append(")");
 
             for(String key : map.keySet())
                 solrExptResponseMap.put(key, response);
             solrExptMap.putAll(map);
 
-            processedCondtions.add(new AtlasStructuredQueryResult.Condition(number, c, factorValues));
-            
-            ++number;
+            processedCondtions.add(new AtlasStructuredQueryResult.Condition(c, factorValues));
         }
 
-        if(geneHitsResponse == null && conditionsWhere.length() == 0)
+        // add up total number experiments to weight
+        scores.insert(0, "(");
+        scores.append(") * (");
+        for(int j = 0; j < number; ++j)
+        {
+            if(j > 0)
+                scores.append(" + ");
+            scores.append(FIELD_NUP).append(j).append(" + ").append(FIELD_NDN).append(j);
+        }
+        scores.append(")");
+
+        if(geneHitsResponse == null && innerWheres.length() == 0)
             return null;
 
-        String querySql =
-                " SELECT\n" +
-                "         gene_id_key, \n" +
-                conditionsField + ", " +
-                conditionsScore + " as score" +
-                "        from aemart.atlas atlas \n" +
-                "        where gene_id_key is not null and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
-                (inGeneIds.length() != 0 ? "and gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
-                " and " + conditionsWhere +
-                " GROUP BY gene_id_key " +
-                " HAVING " + conditionsHaving +
+        String querySql = " SELECT gene_id_key,\n" + outerFields + ",\n" +
+                scores + " as score\n FROM (SELECT gene_id_key," +
+                innerFields +
+                "\nfrom aemart.atlas atlas where gene_id_key is not null" +
+                " and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)\n" + // ignore E-TABM-145a,b,c
+                (inGeneIds.length() != 0 ? "and gene_id_key IN (" + inGeneIds + ") \n" : "" ) +
+                " and " + innerWheres +
+                " GROUP BY gene_id_key)" +
+                " WHERE rownum < 100 AND " + outerWheres +
                 " ORDER by score desc";
 
         log.info(querySql);
@@ -813,15 +861,20 @@ private TreeSet<String> autoCompleteGene(String query) {
                                 && ( query.getSpecies().isEmpty() || query.getSpecies().contains(gene.getGeneSpecies())) ) {
                             List<AtlasStructuredQueryResult.UpdownCounter> counters
                                     = new ArrayList<AtlasStructuredQueryResult.UpdownCounter>();
+
+                            int i = 0;
                             for(AtlasStructuredQueryResult.Condition c : processedCondtions)
                             {
-                                int number = c.getPosition();
-                                counters.add(new AtlasStructuredQueryResult.UpdownCounter(
-                                        rs.getInt("n_up" + number),
-                                        rs.getInt("n_dn" + number),
-                                        rs.getDouble("mpvup" + number),
-                                        rs.getDouble("mpvdn" + number),
-                                        c));
+                                for(String fv : c.getFactorValues()) {
+                                    counters.add(new AtlasStructuredQueryResult.UpdownCounter(
+                                            rs.getInt(FIELD_NUP + i),
+                                            rs.getInt(FIELD_NDN + i),
+                                            rs.getDouble(FIELD_MPVUP + i),
+                                            rs.getDouble(FIELD_MPVDN + i),
+                                            c.getFactor(),
+                                            fv));
+                                    ++i;
+                                }
                             }
 
                             result.addResult(new AtlasStructuredQueryResult.GeneResult(gene, counters));
