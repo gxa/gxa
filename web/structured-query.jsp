@@ -185,6 +185,9 @@ ArrayExpress Atlas Preview
     <script type="text/javascript">$("#loading_display").hide()</script>
 
     <c:if test="${result.size > 0}">
+        <p>
+            <c:if test="${result.size} > 200">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
+        </p>
         <table class="squery">
             <thead>
                 <tr>
@@ -222,8 +225,8 @@ ArrayExpress Atlas Preview
                                 <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/>
                                 <div>
                                     <c:forEach var="g" items="${u:gradient(240,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
-                                        <c:if test="${s.first}"><div class="countup" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '-' : ud.ups}</div></c:if>
-                                        <c:if test="${s.last}"><div class="countdn" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '-' : ud.downs}</div></c:if>
+                                        <c:if test="${s.first}"><div class="countup" title="${ud.ups != 0 ? 'p-value is ' : ''}${ud.ups != 0 ? ud.mpvUp : ''}" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '-' : ud.ups}</div></c:if>
+                                        <c:if test="${s.last}"><div class="countdn" title="${ud.downs != 0 ? 'p-value is ' : ''}${ud.downs != 0 ? ud.mpvDn : ''}" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '-' : ud.downs}</div></c:if>
                                         <c:if test="${!s.first && !s.last}"><div class="gradel" style="background-color:${g};color:${g}">.</div></c:if>
                                     </c:forEach>
                                 </div>

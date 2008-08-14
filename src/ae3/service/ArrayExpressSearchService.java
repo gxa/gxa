@@ -79,12 +79,6 @@ public class ArrayExpressSearchService {
     //       well (see the remove method on AtlasResultSetCache).
     private AtlasResultSetCache arsCache = new AtlasResultSetCache();
 
-    private static final String FIELD_NUP = "nup";
-    private static final String FIELD_NDN = "ndn";
-    private static final String FIELD_MPVUP = "mpvup";
-    private static final String FIELD_MPVDN = "mpvdn";
-    private static final String FIELD_SUP = "sup";
-    private static final String FIELD_SDN = "sdn";
     private static final int MAX_STRUCTURED_CONDITIONS = 20;
 
     private ArrayExpressSearchService() {};
@@ -709,9 +703,14 @@ private TreeSet<String> autoCompleteGene(String query) {
             if(factorValues.size() == 0)
                 continue;
 
-            if(number > 0)
+            if(number > 0) {
                 outerWheres.append(" AND ");
+                scores.append(" + ");
+            }
             outerWheres.append("(");
+            if(factorValues.size() > 1)
+                scores.append("greatest");
+            scores.append("(");
 
             boolean first = true;
             for(String factorValue : factorValues)
@@ -721,33 +720,29 @@ private TreeSet<String> autoCompleteGene(String query) {
                     innerFields.append(", ");
                     outerFields.append(", ");
                     innerWheres.append(" OR ");
-                    scores.append(" + ");
                 }
 
-                if(first)
+                if(first) {
                     first = false;
-                else
+                } else {
                     outerWheres.append(" OR ");
+                    scores.append(",");
+                }
 
                 StringBuffer condition = new StringBuffer();
                 if(c.getFactor().length() > 0)
                         condition.append("ef = '").append(StringEscapeUtils.escapeSql(c.getFactor())).append("' and ");
                 condition.append("efv = '").append(StringEscapeUtils.escapeSql(factorValue)).append("'");
 
-                String nUp = FIELD_NUP + number;
-                String nDn = FIELD_NDN + number;
-                String sUp = FIELD_SUP + number;
-                String sDn = FIELD_SDN + number;
-
                 innerFields
-                        .append("count(case when ").append(condition)
-                        .append(" and updn = 1 then 1 else null end) as ").append(nUp).append(",")
-                        .append("count(case when ").append(condition)
-                        .append(" and updn = -1 then 1 else null end) as ").append(nDn).append(",")
-                        .append("sum(case when ").append(condition)
-                        .append(" and updn = 1 then updn_pvaladj else null end) as ").append(sUp).append(",")
-                        .append("sum(case when ").append(condition)
-                        .append(" and updn = -1 then updn_pvaladj else null end) as ").append(sDn)
+                        .append("count(distinct case when ").append(condition)
+                        .append(" and updn = 1 then experiment_id_key else null end) as nup").append(number).append(",")
+                        .append("count(distinct case when ").append(condition)
+                        .append(" and updn = -1 then experiment_id_key else null end) as ndn").append(number).append(",")
+                        .append("1.0 - nvl(avg(case when ").append(condition)
+                        .append(" and updn = 1 then updn_pvaladj else null end),0) as pup").append(number).append(",")
+                        .append("1.0 - nvl(avg(case when ").append(condition)
+                        .append(" and updn = -1 then updn_pvaladj else null end),0) as pdn").append(number)
                         ;
 
                 String having;
@@ -757,23 +752,23 @@ private TreeSet<String> autoCompleteGene(String query) {
                 {
                     case UP:
                         having = "nup > 0";
-                        score = "(nup - ndn - sup + sdn)/(nup + ndn + 0.00001)";
+                        score = "(pup * nup - pdn * ndn)/(nup + ndn + 0.00001)";
                         break;
                     case DOWN:
                         having = "ndn > 0";
-                        score = "(ndn - nup - sdn + sup)/(nup + ndn + 0.00001)";
+                        score = "(pdn * ndn - pup * nup)/(nup + ndn + 0.00001)";
                         break;
                     case NOT_UP:
                         having = "nup = 0";
-                        score = "(-ndn + sdn) / (ndn + 0.0001)";
+                        score = "(- ndn * pdn) / (ndn + 0.0001)";
                         break;
                     case NOT_DOWN:
                         having = "ndn = 0";
-                        score = "(-nup + sup) / (nup + 0.0001)";
+                        score = "(- nup * pup) / (nup + 0.0001)";
                         break;
                     case UP_DOWN:
                         having = "(nup > 0 OR ndn > 0)";
-                        score = "(sup + sdn) / (nup + ndn + 0.0001)";
+                        score = "(pup * nup + pdn * ndn) / (nup + ndn + 0.0001)";
                         break;
                     case NOT_EXPRESSED:
                         having = "(nup = 0 AND ndn = 0)";
@@ -782,14 +777,14 @@ private TreeSet<String> autoCompleteGene(String query) {
                     default: throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
                 }
 
-                score = score.replace(FIELD_NUP, nUp).replace(FIELD_NDN, nDn).replace(FIELD_SUP, sUp).replace(FIELD_SDN, sDn);
-                having = having.replace(FIELD_NUP, nUp).replace(FIELD_NDN, nDn).replace(FIELD_SUP, sUp).replace(FIELD_SDN, sDn);
+                score = score.replaceAll("([np])(up|dn)", "$1$2" + number);
+                having = having.replaceAll("([np])(up|dn)", "$1$2" + number);
 
                 outerFields
-                        .append(nUp).append(",")
-                        .append(nDn).append(",")
-                        .append(sUp).append("/").append(nUp).append(" as ").append(FIELD_MPVUP).append(number).append(",")
-                        .append(sDn).append("/").append(nDn).append(" as ").append(FIELD_MPVDN).append(number);
+                        .append("nup").append(number).append(",")
+                        .append("ndn").append(number).append(",")
+                        .append("1.0 - pup").append(number).append(" as mpvup").append(number).append(",")
+                        .append("1.0 - pdn").append(number).append(" as mpvdn").append(number);
 
                 innerWheres.append('(').append(condition).append(')');
                 outerWheres.append(having);
@@ -801,6 +796,7 @@ private TreeSet<String> autoCompleteGene(String query) {
                     break;
             }
             outerWheres.append(")");
+            scores.append(")");
 
             for(String key : map.keySet())
                 solrExptResponseMap.put(key, response);
@@ -809,16 +805,6 @@ private TreeSet<String> autoCompleteGene(String query) {
             processedCondtions.add(new AtlasStructuredQueryResult.Condition(c, factorValues));
         }
 
-        // add up total number experiments to weight
-        scores.insert(0, "(");
-        scores.append(") * (");
-        for(int j = 0; j < number; ++j)
-        {
-            if(j > 0)
-                scores.append(" + ");
-            scores.append(FIELD_NUP).append(j).append(" + ").append(FIELD_NDN).append(j);
-        }
-        scores.append(")");
 
         if(geneHitsResponse == null && innerWheres.length() == 0)
             return null;
@@ -829,9 +815,9 @@ private TreeSet<String> autoCompleteGene(String query) {
                 "\nfrom aemart.atlas atlas where gene_id_key is not null" +
                 " and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)\n" + // ignore E-TABM-145a,b,c
                 (inGeneIds.length() != 0 ? "and gene_id_key IN (" + inGeneIds + ") \n" : "" ) +
-                " and " + innerWheres +
+                " and (" + innerWheres + ")" +
                 " GROUP BY gene_id_key)" +
-                " WHERE rownum < 100 AND " + outerWheres +
+                " WHERE rownum < 200 AND " + outerWheres +
                 " ORDER by score desc";
 
         log.info(querySql);
@@ -867,10 +853,10 @@ private TreeSet<String> autoCompleteGene(String query) {
                             {
                                 for(String fv : c.getFactorValues()) {
                                     counters.add(new AtlasStructuredQueryResult.UpdownCounter(
-                                            rs.getInt(FIELD_NUP + i),
-                                            rs.getInt(FIELD_NDN + i),
-                                            rs.getDouble(FIELD_MPVUP + i),
-                                            rs.getDouble(FIELD_MPVDN + i),
+                                            rs.getInt("nup" + i),
+                                            rs.getInt("ndn" + i),
+                                            rs.getDouble("mpvup" + i),
+                                            rs.getDouble("mpvdn" + i),
                                             c.getFactor(),
                                             fv));
                                     ++i;

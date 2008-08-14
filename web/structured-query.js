@@ -237,8 +237,9 @@ var counter = 0;
                      }
 
 
-                     $(this).append($('<div class="exps"/>')
-                             .append(makeExps(o[i].ups, "upexp")).append(makeExps(o[i].downs, "dnexp")));
+                     if(o[i].ups.length > 0 || o[i].downs.length > 0)
+                         $(this).append($('<div class="exps"/>')
+                                 .append(makeExps(o[i].ups, "upexp")).append(makeExps(o[i].downs, "dnexp")));
                      ++i;
                  });
                  w.find('img').attr('src','expandclose.gif');
