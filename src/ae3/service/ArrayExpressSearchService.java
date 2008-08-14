@@ -893,25 +893,18 @@ private TreeSet<String> autoCompleteGene(String query) {
         return result;
     }
 
-    public List<AtlasExperimentRow> getExperiments(String gene_id_key, String factor, String[] factorValues, String updn)
+    public List<AtlasExperimentRow> getExperiments(String gene_id_key, String factor, String factorValue, String updn)
     {
         final List<AtlasExperimentRow> results = new ArrayList<AtlasExperimentRow>();
         try {
-            List<Object> params = new ArrayList<Object>();
-//            params.add(Integer.valueOf(gene_id_key));
-            params.add(factor);
-            StringBuffer questions = new StringBuffer();
-            for(String fv : factorValues) {
-                questions.append(questions.length() == 0 ? "?" : ",?");
-                params.add(fv);
-            }
-            //params.add(updn.toCharArray());
             String sql = "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj FROM aemart.atlas" +
-                    " WHERE gene_id_key = " + gene_id_key +" AND ef = ? AND efv in (" + questions + ") AND updn = " + updn +
-                    " GROUP BY experiment_id_key";
+                    " WHERE gene_id_key = " + gene_id_key.replaceAll("[^0-9]","") +
+                    (factor.length() > 0 ? " AND ef = '" + StringEscapeUtils.escapeSql(factor) + "'" : "") +
+                    " AND efv = '" + StringEscapeUtils.escapeSql(factorValue) + "'" +
+                    " AND updn = " + ("1".equals(updn) ? "1" : "-1") +
+                    " and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) GROUP BY experiment_id_key";
             log.info(sql);
             theAEQueryRunner.query(sql,
-                    params.toArray(),
                     new ResultSetHandler() {
                         public Object handle(ResultSet rs) throws SQLException {
                             while(rs.next()) {

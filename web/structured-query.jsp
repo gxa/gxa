@@ -133,10 +133,17 @@ ArrayExpress Atlas Preview
         div.gradel { width:7%;float:left; }
         a.countexp { float:right;display:block; }
         div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-        td.counter, th.counter {text-align:center;width:80px; }
+        table.squery td.counter, th.counter {text-align:center;width:120px; }
         th.factor { text-align:center;font-weight:normal; }
         th.factor em { font-weight:bold;font-style:normal;}
         th.gene { vertical-align:middle;text-align:center; }
+        div.exps { clear:both;margin-top:2px; }
+        ul.upexp, ul.dnexp { list-style:none; float: left;width:50%; padding:0px; margin:0px;list-style-position:outside;  }
+        ul.upexp li, ul.dnexp li { padding:0px; margin:0px;font-size:7pt; }
+        ul.upexp li { text-align:left; }
+        ul.dnexp li { text-align:right; }
+        ul.upexp li { background-color: #fff0f0; }
+        ul.dnexp li { background-color: #f0f0ff; }
     </style>
 
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
@@ -187,6 +194,7 @@ ArrayExpress Atlas Preview
                             <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
                         </th>
                     </c:forEach>
+                    <th rowspan="2">&nbsp;</th>
                 </tr>
                 <tr>
                     <c:forEach var="c" items="${result.conditions}">
@@ -199,7 +207,7 @@ ArrayExpress Atlas Preview
             <tbody>
                 <c:forEach var="row" items="${result.results}">
                     <tr>
-                        <td style="vertical-align:top">
+                        <td>
                             <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
                                 <c:param name="db" value="genomes"/>
                                 <c:param name="t" value="${row.gene.geneIdentifier}"/>
@@ -207,25 +215,30 @@ ArrayExpress Atlas Preview
                             <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
                         </td>
                         <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                        <td style="vertical-align:top"><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/></a></td>
+                        <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/></a></td>
                         <c:forEach var="ud" items="${row.counters}">
                             <td class="counter">
-                                <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 255 / 0.05 : 255}"/>
-                                <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 255 / 0.05 : 255}"/>
+                                <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
+                                <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/>
                                 <div>
-                                    <c:forEach var="g" items="${u:gradient(255,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
-                                        <c:if test="${s.first}"><div class="countup" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '&nbsp;' : ud.ups}</div></c:if>
-                                        <c:if test="${s.last}"><div class="countdn" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '&nbsp;' : ud.downs}</div></c:if>
+                                    <c:forEach var="g" items="${u:gradient(240,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
+                                        <c:if test="${s.first}"><div class="countup" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '-' : ud.ups}</div></c:if>
+                                        <c:if test="${s.last}"><div class="countdn" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '-' : ud.downs}</div></c:if>
                                         <c:if test="${!s.first && !s.last}"><div class="gradel" style="background-color:${g};color:${g}">.</div></c:if>
                                     </c:forEach>
                                 </div>
                             </td>
                         </c:forEach>
-                            <%--
-                            <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'1');">▶</a>
-                            <a class="countexp" onclick="loadExperiments(this,'${u:escapeJS(row.gene.geneId)}','${u:escapeJS(ud.condition.factor)}',${efv},'-1');">▶</a>
-                            <c:set var="efv">[<c:forEach var="v" items="${ud.condition.factorValues}" varStatus="s">'<c:out value="${u:escapeJS(v)}"/>'<c:if test="${!s.last}">,</c:if></c:forEach>]</c:set>
-                            --%>
+                        <td>
+                            <c:url var="urlExps" value="/sexpt">
+                                <c:param name="gene" value="${row.gene.geneId}"/>
+                                <c:forEach var="c" varStatus="s" items="${result.conditions}">
+                                    <c:param name="ef${s.index}" value="${c.factor}"/>
+                                    <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
+                                </c:forEach>
+                            </c:url>
+                            <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneId)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
+                        </td>
                     </tr>
                 </c:forEach>
             </tbody>

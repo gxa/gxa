@@ -2,6 +2,7 @@ package ae3.servlet.structuredquery;
 
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasExperimentRow;
+import ae3.util.StructuredQueryHelper;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -9,12 +10,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.json.JSONObject;
 import org.json.JSONException;
 import org.json.JSONArray;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  * Serve experiments list for AJAX support in structured query page
@@ -30,22 +32,50 @@ import org.apache.commons.logging.LogFactory;
 public class Experiments extends HttpServlet {
     private Log log = LogFactory.getLog(getClass());
 
-    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException
+    {
         doPost(httpServletRequest, httpServletResponse);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String factor = request.getParameter("ef");
-        String[] factorValues = request.getParameterValues("efv");
+    static public class UpDownPair {
+        private List<AtlasExperimentRow> ups;
+        private List<AtlasExperimentRow> downs;
+
+        private UpDownPair(List<AtlasExperimentRow> ups, List<AtlasExperimentRow> downs) {
+            this.ups = ups;
+            this.downs = downs;
+        }
+
+        public List<AtlasExperimentRow> getUps() {
+            return ups;
+        }
+
+        public List<AtlasExperimentRow> getDowns() {
+            return downs;
+        }
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
         String geneIdKey = request.getParameter("gene");
-        String updn = request.getParameter("updn");
+        if(geneIdKey == null || "".equals(geneIdKey))
+            return;
 
-        List<AtlasExperimentRow> experiments = ArrayExpressSearchService.instance().
-                getExperiments(geneIdKey, factor, factorValues, updn);
+        // Don't know how to make it with real types, not Object
+        List<UpDownPair> experiments = new ArrayList<UpDownPair>();
+        for(String p : StructuredQueryHelper.findPrefixParamsSuffixes(request, "ef")) {
+            String factor = request.getParameter("ef" + p);
+            String[] factorValues = request.getParameterValues("fv" + p);
+            if(factor != null && factorValues != null)
+                for(String factorValue : factorValues)
+                    experiments.add(new UpDownPair(
+                            ArrayExpressSearchService.instance().getExperiments(geneIdKey, factor, factorValue, "1"),
+                            ArrayExpressSearchService.instance().getExperiments(geneIdKey, factor, factorValue, "-1")
+                    ));
+        }
 
-        JSONArray json = new JSONArray(experiments, false);
         try {
-            json.write(response.getWriter());
+            new JSONArray(experiments, false).write(response.getWriter());
         } catch (JSONException e) {
             log.error("Can't serialize to JSON", e);
         }

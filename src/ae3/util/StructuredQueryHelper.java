@@ -23,7 +23,7 @@ public class StructuredQueryHelper {
     private static String PARAM_GENE = "gene";
     private static String PARAM_SPECIE = "specie_";
 
-    private static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
+    public static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
     {
         List<String> result = new ArrayList<String>();
         @SuppressWarnings("unchecked")

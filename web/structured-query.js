@@ -206,33 +206,46 @@ var counter = 0;
                                   });
      };
 
-     window.loadExperiments = function(where, gene_id, factor, values, up_down) {
+
+     window.loadExperiments = function(where,url,gene) {
          var w = $(where);
-         console.dir(values);
+         w.find('img').attr('src','expandwait.gif');
          $.ajax({
              // try to leverage ajaxQueue plugin to abort previous requests
              mode: "queue",
              port: "sexpt",
-             url: "sexpt",
+             url: url,
              dataType: "json",
-             data: { gene: gene_id, ef: factor, efv: values, updn: up_down },
              success: function(o) {
                  if(o.empty)
                     return;
-                 for(var i = 0; i < o.length; ++i) {
-                     w.parents("div.countup:first,div.countdn:first")
-                             .append('<div class="expref">'
-                                     + '<a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query='
-                                     + encodeURI(gene_id)
-                                     + '&species=&displayInsitu=on&exp_query=' + encodeURI(o[i].experimentAccessment)
-                                     + ' title="' + escape(o[i].experimentName) + '">'
-                                     + o[i].experimentAccessment + '</a></div>');
-                     w.text('\u25bc');
-                     w.get(0).onclick = function () {
-                         this.onclick = function() { loadExperiments(where, gene_id, factor, values, up_down); }
-                         $(this).text('\u25b6').siblings('div.expref').remove();
-                     };
-                 }
+
+                 var i = 0;
+                 w.parents('tr:first').find('td.counter').each(function () {
+
+                     var makeExps = function (exp, clas) {
+                         var c = $('<ul/>').addClass(clas);
+                         if(exp.length == 0)
+                            c.append('<li>&nbsp;</li>')
+                         for(var i = 0; i < exp.length; ++i)
+                            c.append('<li><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query='
+                                     + encodeURI(gene)
+                                     + '&species=&displayInsitu=on&exp_query=' + encodeURI(exp[i].experimentAccessment)
+                                     + '" title="' + escape(exp[i].experimentName) + '">'
+                                     + exp[i].experimentAccessment + '</a></li>');
+                         return c;
+                     }
+
+
+                     $(this).append($('<div class="exps"/>')
+                             .append(makeExps(o[i].ups, "upexp")).append(makeExps(o[i].downs, "dnexp")));
+                     ++i;
+                 });
+                 w.find('img').attr('src','expandclose.gif');
+                 w.get(0).onclick = function () {
+                     $(this).find('img').attr('src','expandopen.gif').parents('tr:first').find('td.counter div.exps').remove();
+                     this.onclick = function() { loadExperiments(where,url,gene); }
+                 };
              }
          });
      }
