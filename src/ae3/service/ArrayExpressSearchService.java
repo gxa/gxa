@@ -546,7 +546,7 @@ private TreeSet<String> autoCompleteGene(String query) {
 //                "         count(case when updn = -1 then null else 1 end) over (partition by atlas.gene_id_key) as countup_PER_GENE,\n" +
 //                "         count(case when updn =  1 then null else 1 end) over (partition by atlas.gene_id_key) as countdn_PER_GENE\n" +
                 "        from aemart.atlas atlas \n" + //, aemart.ae2__designelement__main gene , aemart.ae1__experiment__main expt, aemart.AE2__GENE_SPECIES__DM gene_species \n" +
-                "        where 1 = 1" + // atlas.designelement_id_key=gene.designelement_id_key \n" +
+                "        where gene_id_key <> 0 " + // atlas.designelement_id_key=gene.designelement_id_key \n" +
 //                " and atlas.experiment_id_key=expt.experiment_id_key\n" +
 //                " and gene.gene_identifier is not null\n" +
                 " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
@@ -812,12 +812,12 @@ private TreeSet<String> autoCompleteGene(String query) {
         String querySql = " SELECT gene_id_key,\n" + outerFields + ",\n" +
                 scores + " as score\n FROM (SELECT gene_id_key," +
                 innerFields +
-                "\nfrom aemart.atlas atlas where gene_id_key is not null" +
+                "\nfrom aemart.atlas atlas where gene_id_key is not null and gene_id_key <> 0" +
                 " and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)\n" + // ignore E-TABM-145a,b,c
-                (inGeneIds.length() != 0 ? "and gene_id_key IN (" + inGeneIds + ") \n" : "" ) +
+                (inGeneIds.length() != 0 ? "and gene_id_key IN (" + inGeneIds + ")\n" : "" ) +
                 " and (" + innerWheres + ")" +
                 " GROUP BY gene_id_key)" +
-                " WHERE rownum < 200 AND " + outerWheres +
+                " WHERE rownum <= 200 AND " + outerWheres +
                 " ORDER by score desc";
 
         log.info(querySql);

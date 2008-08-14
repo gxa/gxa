@@ -186,7 +186,7 @@ ArrayExpress Atlas Preview
 
     <c:if test="${result.size > 0}">
         <p>
-            <c:if test="${result.size} > 200">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
+            <c:if test="${result.size == 200}">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
         </p>
         <table class="squery">
             <thead>
@@ -218,7 +218,7 @@ ArrayExpress Atlas Preview
                             <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
                         </td>
                         <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                        <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/></a></td>
+                        <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
                         <c:forEach var="ud" items="${row.counters}">
                             <td class="counter">
                                 <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
@@ -240,7 +240,7 @@ ArrayExpress Atlas Preview
                                     <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
                                 </c:forEach>
                             </c:url>
-                            <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneId)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
+                            <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
                         </td>
                     </tr>
                 </c:forEach>

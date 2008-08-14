@@ -118,6 +118,8 @@ var counter = 0;
                              .append(input)
                              .append($('<input type="button" value="V"/>')
                                      .bind('click', function () {
+                                               if(factor.options[factor.selectedIndex].value == "")
+                                                   return;
                                                var vbutt = $(this);
                                                $.ajax({
                                                           // try to leverage ajaxQueue plugin to abort previous requests
@@ -136,7 +138,7 @@ var counter = 0;
                                                                       list[list.length] = row[0];
                                                                   }
                                                               }
-                                                              input.replaceWith(createSelect(input.name, list));
+                                                              input.replaceWith(createSelect(input.attr('name'), list));
                                                               vbutt.remove();
                                                           }
                                                       });
