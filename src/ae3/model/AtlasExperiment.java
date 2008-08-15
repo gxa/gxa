@@ -254,8 +254,16 @@ public class AtlasExperiment implements java.io.Serializable {
 
 	public String getAerExpDescription()
 	{
+		String desc="";
+		Iterator iter = aerDescText.iterator();
+		while(iter.hasNext()){
+			desc = iter.next().toString();
+			if(desc.equals("") || desc.contains("Generated description"))
+				continue;
+			break;
+		}
 		
-		return aerDescText.toArray()[0].toString();
+		return desc;
 	}
 
 	public void setAerExpDescription(String aerExpDescription)
@@ -291,6 +299,14 @@ public class AtlasExperiment implements java.io.Serializable {
 	public Collection getAerFactOe()
 	{
 		return aerFactOe;
+	}
+	
+	public String getTitle(){
+		String title = "";
+		if(aerBiTitle != null)
+			title = aerBiTitle.toArray()[0].toString();
+		return title;
+		
 	}
 	
 	public Vector<Collection<String>> getAerSampleAttributes()

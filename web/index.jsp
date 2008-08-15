@@ -141,7 +141,7 @@ ArrayExpress Atlas Preview
                     </tr>
                     <tr>
                         <td>
-                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
+                            <input type="text" name="q_gene" id="q_gene" style="width:280px" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
                         </td>
                         <td>
                             <select name="q_updn">
@@ -165,7 +165,7 @@ ArrayExpress Atlas Preview
                             </select>
                         </td>
                         <td>
-                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
+                            <input type="text" name="q_expt" id="q_expt" style="width:280px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
                         </td>
                     </tr>
                     <tr>

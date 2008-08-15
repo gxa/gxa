@@ -402,33 +402,66 @@ public class ArrayExpressSearchService {
 private TreeSet<String> autoCompleteGene(String query) {
 
         try {
-            SolrQuery q = new SolrQuery("gene_id:[0 TO *]");
+        	SolrQuery q = new SolrQuery("suggest_token:"+query+" suggest_full:"+query);
+        	SolrQuery q_name = new SolrQuery("gene_name:"+query+" gene_synonym:"+query);
+        	q_name.setFields("gene_name");
             q.setRows(0);
             q.setFacet(true);
-            q.addFacetField("gene_ids");
-            q.addFacetField("gene_desc");
+//            q.addFacetField("gene_ids");
+//            q.addFacetField("gene_name_exact");
+            q.addFacetField("gene_disease_exact");
+            q.addFacetField("gene_goterm_exact");
+//            q.addFacetField("gene_protein_exact");
             q.setFacetLimit(20);
-            q.setFacetPrefix(query);
+//            q.setFacetSort(false);
+//            q.setFacetPrefix(query);
+            q.setFacetMinCount(1);
 
             QueryResponse qr = solr_gene.query(q);
-
-            if (null == qr.getFacetFields().get(0).getValues() &&
-                null == qr.getFacetFields().get(1).getValues())
+            QueryResponse qr_name = solr_gene.query(q_name);
+            
+            if (qr.getResults().getNumFound()==0 && qr_name.getResults().getNumFound()==0)
                 return null;
-
             TreeSet<String> s = new TreeSet<String>();
-
-            if (null != qr.getFacetFields().get(0).getValues()) {
-                for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                    s.add(ffc.getName() + "|" + ffc.getCount());
-                }
+            SolrDocumentList docList = qr_name.getResults();
+            for(SolrDocument doc:docList){
+            	s.add(doc.getFieldValue("gene_name").toString() + "|" +"1");
             }
+            
 
-            if (null != qr.getFacetFields().get(1).getValues()) {
-                for (FacetField.Count ffc : qr.getFacetFields().get(1).getValues()) {
-                    s.add(ffc.getName() + "|" + ffc.getCount());
-                }
+            if (null != qr.getFacetFields().get(0).getValues())
+            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                if(ffc.getName().toLowerCase().contains(query.toLowerCase()) || query.toLowerCase().contains(ffc.getName().toLowerCase()))
+            	s.add(ffc.getName() + "|" + ffc.getCount());
             }
+            if (null != qr.getFacetFields().get(1).getValues())
+            for (FacetField.Count ffc : qr.getFacetFields().get(1).getValues()) {
+                if(ffc.getName().toLowerCase().contains(query.toLowerCase()) || query.toLowerCase().contains(ffc.getName().toLowerCase()))
+            	s.add(ffc.getName() + "|" + ffc.getCount());
+            }
+//            if (null != qr.getFacetFields().get(2).getValues())
+//            for (FacetField.Count ffc : qr.getFacetFields().get(2).getValues()) {
+//                if(ffc.getName().toLowerCase().contains(query.toLowerCase()) || query.toLowerCase().contains(ffc.getName().toLowerCase()))
+//            	s.add(ffc.getName() + "|" + ffc.getCount());
+//            }
+
+//            if (null == qr.getFacetFields().get(0).getValues() &&
+//                null == qr.getFacetFields().get(1).getValues())
+//                return null;
+//
+//            TreeSet<String> s = new TreeSet<String>();
+//
+//            if (null != qr.getFacetFields().get(0).getValues()) {
+//                for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+//                    s.add(ffc.getName() + "|" + ffc.getCount());
+//                }
+//            }
+//
+//            if (null != qr.getFacetFields().get(1).getValues()) {
+//                for (FacetField.Count ffc : qr.getFacetFields().get(1).getValues()) {
+//                    s.add(ffc.getName() + "|" + ffc.getCount());
+//                }
+//            }
 
             return s;
         } catch (SolrServerException e) {
@@ -947,7 +980,7 @@ private TreeSet<String> autoCompleteGene(String query) {
     
     public ArrayList getRankedGeneExperiments(String gene_id_key){
    	 ArrayList<AtlasExperiment> atlasExps = null;
-   	 String query = "select experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
+   	 String query = "select distinct experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
    	 		"from ATLAS " +
    	 		"where gene_id_key = "+gene_id_key +
    	 	    " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)"+

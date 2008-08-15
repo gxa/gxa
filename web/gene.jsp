@@ -9,8 +9,17 @@
 <%@page import="ae3.service.AtlasGeneService"%>
 <%@page import="ae3.model.AtlasTuple"%>
 <%@page import="ae3.model.AtlasExperiment"%>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%
+	AtlasGene atlasGene = null;
+	String geneId = request.getParameter("gene");
+	if (geneId != null) {
+		atlasGene = AtlasDao.getGene(geneId);
+		atlasGene.getGeneName();
+	}
+%>
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas Gene View
+ArrayExpress Gene Atlas : <%=atlasGene.getGeneName() %> 
 <jsp:include page="end_head.jsp"></jsp:include>
 <style>
 <!--
@@ -35,9 +44,10 @@ table.heatmap {
 	border-spacing: 0px;
 }
 
-.foo {
+.pagecontainer {
 	padding-left: 15px;
-	padding-top: 20px;
+	padding-top: 0px;
+	padding-right: 15px;
 }
 
 .exp_summary {
@@ -63,12 +73,15 @@ table.heatmap {
 	font-family: helvetica, arial, sans-serif;
 	text-align: right;
 	width: 10%;
+	vertical-align: middle;
 }
 
 .moreLink {
 	cursor: pointer;
 	color: #408c8c;
 	text-align: right;
+	font-size: x-small;
+	font-family: Verdana;
 }
 
 .sectionHeader {
@@ -78,7 +91,7 @@ table.heatmap {
 }
 
 .titleHeader {
-	color: #9e9e9e;
+	color: #1f1f1f;
 	font-size: 16pt;
 	text-align: left;
 }
@@ -100,12 +113,50 @@ table.heatmap {
 	height: 100%;
 	background: #99ccff;
 	overflow: hidden
+}	
+#panel {
+	
+	height: 50px;
+}
+.slide {
+	margin: 0;
+	padding: 0;
+	background: url(images/searchAtlas.png) no-repeat center top;
+}
+.btn-slide {
+	background: url(images/white-arrow.gif) no-repeat right -50px;
+	text-align: center;
+	width: 144px;
+	height: 20px;
+	padding: 8px 8px 0 0;
+	margin: 0 auto;
+	display: block;
+	cursor: pointer;
+	font-size:small;
+	color: #000000;
+	
+}
+.active {
+	background-position: right 12px;
+}
+a:focus {
+	outline: none;
+}
+.ac_over {
+	background-color: #1f1f1f;
+	color: white;
+}
 }
 -->
 </style>
 <script src="scripts/jquery-1.2.3.js" type="text/javascript"></script>
 <script src="scripts/jsdeferred.jquery.js" type="text/javascript"></script>
 <script src="scripts/jquery.query-1.2.3.js" type="text/javascript"></script>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
+<script type="text/javascript" src="jquery.autocomplete.js"></script>
+<script type="text/javascript" src="jquerydefaultvalue.js"></script>
 
 <!-- add header scripts here -->
 <script type="text/javascript">
@@ -117,6 +168,7 @@ viewMore( id )
     id = String(id);
     var mainElt = $("#" + id);
     var extElt = $("#" + id.replace("_main", "_ext"));
+    var lnkElt = $("#"+ id.replace("_main", "_atls_lnk"))
     if ( mainElt.hasClass("tr_main_expanded")) {
         // collapse now
         mainElt.removeClass("tr_main_expanded");
@@ -126,44 +178,191 @@ viewMore( id )
         mainElt.addClass("tr_main_expanded");
         mainElt.hide();
         extElt.show();
+        lnkElt.hide();
         
     }
     onWindowResize();
 }
+function showStudyDetails(id){
+	 id = String(id);
+	 var divElt = $("#"+id+"_desc_ext");
+	 var lnkElt = $("#"+id+"_std_lnk");
+	 divElt.slideToggle("fast");
+	 if(lnkElt.hasClass("expanded")){
+	 lnkElt.removeClass("expanded");
+	 lnkElt.attr("src","images/plus.gif");
+	 }else{
+	 	lnkElt.addClass("expanded");
+	 lnkElt.attr("src","images/minus.gif");
+	 }
+}
 //-->
 </script>
+<script type="text/javascript">
+    $(document).ready(function()
+        {
+            $("#q_gene").defaultvalue("(all genes)");
+            $("#q_expt").defaultvalue("(all conditions)");
+            
+            $("#searchSlider").click(function(){
+				$("#panel").slideToggle("slow");
+				$(this).toggleClass("active"); return false;
+			});
+
+
+            $("#q_expt").autocomplete("autocomplete.jsp", {
+                    minChars:1,
+                    width:300,
+                    matchSubset: false,
+                    multiple: true,
+                    multipleSeparator: " ",
+                    extraParams: {type:"expt"},
+                    formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
+            });
+
+            $("#q_gene").autocomplete("autocomplete.jsp", {
+                    minChars:1,
+                    width:300,
+                    matchCase: true,
+                    matchSubset: false,
+                    multiple: true,
+                    multipleSeparator: " ",
+                    extraParams: {type:"gene"},
+                    formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
+            });
+        }
+    );
+    </script>
 
 <link rel="stylesheet" href="stylesheets/ae_browse.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_index.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_common.css" type="text/css" />
-<link rel="stylesheet" href="blue/style.css" type="text/css"
-	media="print, projection, screen" />
+<link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
-<div class="foo">
-<%
-	AtlasGene atlasGene = null;
-	String geneId = request.getParameter("gene");
-	if (geneId != null) {
-		atlasGene = AtlasDao.getGene(geneId);
-		atlasGene.getGeneName();
-	}
-%>
-<table class="" width="900">
-	<tr>
-		<td class="titleHeader">ArrayExpress Atlas Gene View</td>
-		<td align="right">
+<div class="pagecontainer">
+<table width="100%" style="border-bottom:thin solid lightgray" cellpadding="0" cellspacing="0" height="30px">
+    <tr>
+    <td valign="bottom" width="25px">
+       <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
+    </td>
+        
+    
+        <td align="middle" width="25%" valign="center" style="padding-top: 5px">
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+        </td>
+        
+        
+    <td align="left" valign="bottom"><img style="cursor: pointer" id="searchSlider" alt="" src="images/searchAtlas.png"/></td>
+        <td align="right" valign="center" width="50px">
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
+        </td>
+        
+    </tr>
+</table>
+
+<div id="panel" style="display: none">
+	<form name="atlasform" action="qr" target="_blank">
+    <%
+        String q_gene = request.getParameter("q_gene");
+        String q_expt = request.getParameter("q_expt");
+        String q_updn = request.getParameter("q_updn");
+        String q_orgn = request.getParameter("q_orgn");
+
+        if (q_updn == null) q_updn = "";
+        if (q_expt == null || q_expt.equals("(all conditions)")) q_expt = "";
+        if (q_gene == null || q_gene.equals("(all genes)"))      q_gene = "";
+        if (q_orgn == null) q_orgn = "";
+    %>
+
+<table width="100%" style="background-color: #bdd7d7">
+    
+    
+    <tr valign="middle" align="left">
+            
+            <td align="left">
+                <table>
+                   <tr>
+                   		
+                        <td>
+                            <input type="text" name="q_gene" id="q_gene" style="width:150px; font-size: small" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
+                        </td>
+                        <td>
+                            <select name="q_updn">
+                                <option value="updn" <%=q_updn.equals("updn") ? "selected" : ""%>>up/down in</option>
+                                <option value="up"   <%=q_updn.equals("up") ? "selected" : ""%>>up in</option>
+                                <option value="down" <%=q_updn.equals("down") ? "selected" : ""%>>down in</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
+                        </td>
+                        <td>
+                            <select id="q_orgn" name="q_orgn" style="width:130px">
+                                <option value="any" <%=q_orgn.equals("") ? "selected" : ""%>>Any species</option>
+                                <%
+                                    SortedSet<String> species = ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies();
+                                    for (String s : species) {
+                                %>
+                                <option value="<%=s.toUpperCase()%>" <%=q_orgn.equals(s.toUpperCase()) ? "selected" : ""%>><%=s%>
+                                </option>
+                                <%
+                                    }
+                                %>
+                            </select>
+                        </td>
+                        <td align="left">
+                           
+
+                            <label>View results as:</label>
+                            <input type="radio" name="view" id="view_table" value="table"
+                                <%=request.getParameter("view") == null || request.getParameter("view").equals("table") ? "checked" : ""%>>
+                            <label for="view_table">table</label>
+
+                            <input type="radio" name="view" id="view_heatmap" value="heatmap"
+                                <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
+                            <label for="view_heatmap">heatmap</label>
+							 <input  type="submit" value="Search Atlas">
+                            <%--<input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"--%>
+                                <%--<%=null == request.getParameter("expand_efo") ? "checked" : ""%> --%>
+                                <%--<%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>--%>
+                            <%--<label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>--%>
+                            <input type="hidden" name="expand_efo" id="expand_efo" value="on"/>                            
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+         
+    </table>
+
+    <input type="hidden" name="view"/>
+</form>
+</div>
+
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0" >
+	<tr> 
+	
+		<td class="titleHeader" valign="top">ArrayExpress Atlas Gene View</td>
+		<td align="right" valign="top">
 		<div
-			style="color: #e33e3e; text-align: right; font-size: 26pt; font-weight: bold">
+			style="color: #e33e3e; text-align: right; font-size: 26pt; margin-top: 15px; font-weight: bold;vertical-align: top" >
 		<%=atlasGene.getGeneName()%></div>
 		<span
-			style="border-bottom: thin; margin-top: 0; color: #1f7979; font-size: 9pt; font-weight: bold">
+			style="margin-top: 0; text-align: right; color: #1f7979; font-size: 9pt; font-weight: bold">
 		<%=atlasGene.getGeneSpecies()%> </span></td>
 	</tr>
 
 </table>
 
-<table width="900">
+<table width="100%">
 <!--
 	<tr>
 		<td class="geneAnnotHeader">Description:</td>
@@ -180,10 +379,29 @@ viewMore( id )
 	<tr>
 		<td class="geneAnnotHeader">Synonyms:</td>
 		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-							"gene_synonym").toString().substring(1).replace(
-							']', ' ')%></td>
+							"gene_synonym").toString().replace(
+							']', ' ').replace('[',' ')%></td>
 
 	</tr>
+	<%
+		if (atlasGene.getGeneSolrDocument().getFieldValue("gene_interproterm") != null) {
+	%>
+	<tr>
+		<td></td>
+		<td>
+		<div class="separator"></div>
+		</td>
+	</tr>
+	<tr>
+		<td class="geneAnnotHeader">InterPro Term:</td>
+		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
+								"gene_interproterm").toString().replace(
+								']', ' ').replace('[',' ')%></td>
+
+	</tr>
+	<%
+		}
+	%>
 	<%
 		if (atlasGene.getGeneSolrDocument().getFieldValue("gene_disease") != null) {
 	%>
@@ -194,9 +412,11 @@ viewMore( id )
 		</td>
 	</tr>
 	<tr>
-		<td class="geneAnnotHeader">Disease:</td>
+		<td class="geneAnnotHeader">Diseases:</td>
 		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_disease")%></td>
+								"gene_disease").toString().replace(
+								']', ' ').replace('[',' ')%></td>
+								<td></td>
 
 	</tr>
 	<%
@@ -214,12 +434,27 @@ viewMore( id )
 	<tr>
 		<td class="geneAnnotHeader">GO Terms:</td>
 		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_goterm").toString().substring(1).replace(
+								"gene_goterm").toString().replace(
 								']', ' ')%></td>
 	</tr>
 	<%
 		}
 	%>
+	<tr>
+		<td></td>
+		<td>
+		<div class="separator"></div>
+		</td><td></td>
+	</tr>
+	<tr>
+		<td class="geneAnnotHeader">Cross Ref:</td>
+		<td align="left"><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=atlasGene.getGeneSolrDocument().getFieldValue(
+								"gene_identifier").toString()%>"><%=atlasGene.getGeneSolrDocument().getFieldValue(
+								"gene_identifier").toString()%></a>
+		</td>
+		<td width="8%">&nbsp;</td>
+
+	</tr>
 
 	<tr>
 		<td colspan="2">
@@ -227,42 +462,168 @@ viewMore( id )
 		</td>
 	</tr>
 </table>
-<table width="900" style="margin-left: 100">
+<%
+	ArrayList<AtlasExperiment> exps = ArrayExpressSearchService
+			.instance().getRankedGeneExperiments(atlasGene.getGeneId());
+%>
+<table width="100%" cellspacing="5" cellpadding="10"  >
 	<tr>
-		<td class="sectionHeader">Expression Summary</td>
+		<td>
+		
+ 
+<table align="left">
+	<tr>
+		<td colspan="3" class="sectionHeader">Studies (<%=exps.size()%>)</td>
 	</tr>
+	<%	int c=0;
+		for (AtlasExperiment exp : exps) {
+			c++;
+	%>
 	<tr>
-		<td colspan="2">
+		<td colspan="3">
 		<div class="separator"></div>
 		</td>
 	</tr>
+	<tr align="left" >
+		<td align="left" width="10px" valign="top">
+			<h3><%=exp.getDwExpAccession().toString().trim()%>:</h3>
+		</td>
+		<td>
+			<h3><%=exp.getAerExpName()%></h3>
+		</td>
+		<td width="70px">
+		 
+		 <img style="cursor: pointer" title="Show study details" id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/plus.gif"  onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)"  />
+		</td>
+	</tr>
+	<%if(exp.hasAerFactorAttributes()){ %>
+	<tr>
+		<td colspan="2" align="left">
+			<div style="color: #5e5e5e; padding-top: 5px; padding-bottom: 5px" >
+				<span>Atlas Results for <%=atlasGene.getGeneName()%> studied in <%=exp.getAerFactorAttributes().get(1)%></span>
+			</div>
+			
+		</td>
+	</tr>
+	<%} %>
+	<tr>
+		<td colspan="2">
+			<div style="display: none" id="<%=exp.getDwExpId().toString()%>_desc_ext">
+			<table cellpadding="2" cellspacing="2" >
+				<tr >
+					<td align="right">Title:</td>
+					<td align="left"><%=exp.getTitle()%></td>
+				</tr>
+				<tr >
+					<td align="right" valign="top">Summary:</td>
+					<td align="left"><%=exp.getAerExpDescription()%></td>
+					
+				</tr>
+			</table>
+			</div>
+		</td>
+	</tr>
+	
+	
+	<tr>
+		<td align="left" class="exp_text" colspan="2">
+		
+		<!-- div class="exp_summary"-->
+		<table class="heatmap" cellpadding="2" width="100%" border="1" bordercolor="#ffffff" style="border-style: dotted">
+
+			<tr>
+				<th class="subheading">Factor Value</th>
+				<th class="subheading">P-value</th>
+				<th class="subheading">Text Summary</th>
+			</tr>
+			<%
+				List<AtlasTuple> atlusTuples = AtlasGeneService.getAtlasResult(atlasGene.getGeneId(), exp.getDwExpId().toString());
+				int i=0;	
+				for (AtlasTuple atuple : atlusTuples) {
+						if (!atuple.getEfv().startsWith("V1")) {
+							i++;
+							if(i<6){
+			%>				<tr>
+								<td width="20%"><%=atuple.getEfv()%></td>
+								<td valign="middle" width="11%">
+									<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif" align="top">
+									<%} else if (atuple.getUpdn().equals(-1)) {%><img	src="images/dn_arrow.gif" align="top"><%}%>
+									<%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
+								</td>
+								<td><%=atlasGene.getGeneName() + " "+ atuple.getTxtSummary()%></td>
+							</tr>
+					<%
+							}else{ 
+								if(i==6){%>
+								<tr><td id="<%=exp.getDwExpId().toString()%>_atls_lnk" colspan="3" align="center"><span class="moreLink" onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">View  more results</span></td></tr>
+								</table>
+								<div id="<%=exp.getDwExpId().toString()%>_ext" class="fullSectionView" style="display: none">
+								<table class="heatmap" cellpadding="2" width="100%">
+								<%} %>
+									<tr>
+										<td width="20%"><%=atuple.getEfv()%></td>
+										<td valign="middle" width="11%">
+											<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif" align="top">
+											<%} else if (atuple.getUpdn().equals(-1)) {%><img	src="images/dn_arrow.gif" align="top"><%}%>
+											<%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
+										</td>
+										<td><%=atlasGene.getGeneName() + " "+ atuple.getTxtSummary()%></td>
+									</tr>
+								
+					<%		}
+							}
+							}
+				if(i>=6){%></table></div>
+					<%}else{%>
+		</table>
+		<%} %>
+		<!-- /div-->
+			
+		</td>
+	</tr>
+	<%
+		}
+	%>
+
+
+</table>
+</td>
+<td valign="top">
+			<table >
+				<tr>
+					<td class="sectionHeader">Expression Summary</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+					<div class="separator"></div>
+					</td>
+				</tr>
 
 	<%
 		AtlasResultSet atlasResultSet = AtlasGeneService.getExprSummary(atlasGene.getGeneId());
 	%>
 
 	<tr>
-		<td>
-		<div
-			style="height: 250px; width: 100%; overflow: auto; overflow-x: hidden">
-		<table border="1" class="heatmap" cellpadding="3" cellspacing="0">
+		<td >
+		<div>
+		<table border="1" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff" style="border-style: dotted" >
 			<tr>
 				<th rowspan="2">Factor Value</th>
-				<th rowspan="2" style="border-right: thick solid; border-left: thin">Studies</th>
+				<th rowspan="2" style="border-right: medium solid; border-left: thin">Studies</th>
 				<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
 				<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
 				<%
 					List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
 					for (HashMap<String, String> gene : genes) {
 				%>
-				<th colspan="2" align="center"><%=gene.get("gene_name")%></th>
+				<th style="border-right: medium solid" colspan="2" align="center"><%=gene.get("gene_name")%></th>
 				<%
 					}
 				%>
 			</tr>
 			<tr>
-				<th style="border-left: thick solid">UP</th>
-				<th>DN</th>
+				<th style="border-left: medium solid">UP</th>
+				<th style="border-right: medium solid">DN</th>
 			</tr>
 
 			<%
@@ -272,12 +633,10 @@ viewMore( id )
 			%>
 			<tr>
 				<td nowrap="true"><span style="font-weight: bold"
-					title="Matched in experiment(s) <%=ar.get("experiments")%>">
-				<%=ar.get("efv").startsWith("V1") ? "--" : ar.get("efv")%> </span></td>
-				<td style="border-right: thick solid" align="right"><b><%=ar.get("experiment_count")%></b></td>
-				<%--<td align="right"><b><%=ar.get("up_count")%></b></td>--%>
-				<%--<td style="border-right: thick solid" align="right"><b><%=ar.get("dn_count")%></b></td>--%>
-
+					title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>">
+				<%=ar.get("efv").length()>50 ? ar.get("efv").substring(0,50)+"..." : ar.get("efv")%> </span></td>
+				<td style="border-right: medium solid" align="right"><b><%=ar.get("experiment_count")%></b></td>
+				
 				<%
 					for (HashMap<String, String> gene : genes) {
 								HashMap<String, String> gar = gars.get(gene.get("gene_identifier")	+ ar.get("efv"));
@@ -336,20 +695,15 @@ viewMore( id )
 												* (-255D / 0.05D) + 255);
 										display_up = countup;
 										display_dn = "0";
-									} //else {
-									//  g = 0L;
-									//  r = Math.round(Double.valueOf(mpvup) * (-255D/0.05D) + 255);
-									//  b = Math.round(Double.valueOf(mpvdn) * (-255D/0.05D) + 255);
-									//  display = sumup + "/" + sumdn;
-									// }
+									}
 				%>
 				<td align="center"
 					style="background-color: rgb(<%=   r_up %>, <%=   g_up %>, <%=   b_up %>)"><span
 					title="<%=title%>"
 					style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
 				</td>
-				<td align="center"
-					style="background-color: rgb(<%=   r_dn %>, <%=   g_dn %>, <%=   b_dn %>)"><span
+				<td align="center" 
+					style="background-color: rgb(<%=   r_dn %>, <%=   g_dn %>, <%=   b_dn %>);border-right: medium solid"><span
 					title="<%=title%>"
 					style="text-decoration: none; font-weight: bold; color: lightgray"><%=countdn == "" ? " " : countdn%></span>
 				</td>
@@ -380,98 +734,20 @@ viewMore( id )
 		</td>
 	</tr>
 </table>
-<%
-	ArrayList<AtlasExperiment> exps = ArrayExpressSearchService
-			.instance().getRankedGeneExperiments(atlasGene.getGeneId());
-%>
-
-<table width="900" cellpadding="2">
-	<tr>
-		<td class="sectionHeader">Studies(<%=exps.size()%>)</td>
-	</tr>
-	<%
-		for (AtlasExperiment exp : exps) {
-	%>
-	<tr>
-		<td colspan="2">
-		<div class="separator"></div>
 		</td>
 	</tr>
-	<tr>
-		<td align="left">
-		<h3><%=exp.getDwExpAccession()%>: <%=exp.getAerExpName()%></h3>
-		</td>
-		<td>
-		</td>
-	</tr>
-	<tr>
-		<td align="left" class="exp_text">
-		<div id="<%=exp.getDwExpId().toString()%>_main"
-			class="fullSectionView"><span><%=exp.getAerExpDescription().length() <= 250 ? exp
-						.getAerExpDescription() : exp.getAerExpDescription()
-						.substring(0, 250)%>
-		</span><span class="moreLink"
-			onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">...more</span>
-
-
-		</div>
-		<div id="<%=exp.getDwExpId().toString()%>_ext" class="fullSectionView"
-			style="display: none"><span><%=exp.getAerExpDescription()%>
-		</span><span class="moreLink"
-			onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">...close</span>
-		<br>
-		<br>
-		<div style="color: #9e9e9e; padding-left: 15px;">Atlas Results
-		for <%=atlasGene.getGeneName()%> studied in <%=exp.getAerFactorAttributes().get(1)%></div>
-		<div class="exp_summary">
-		<table class="heatmap" cellpadding="2">
-
-			<tr>
-				<th class="subheading">Factor Value</th>
-				<th class="subheading">P-value</th>
-				<th class="subheading">Text Summary</th>
-			</tr>
-			<%
-				List<AtlasTuple> atlusTuples = AtlasGeneService.getAtlasResult(
-							atlasGene.getGeneId(), exp.getDwExpId().toString());
-					for (AtlasTuple atuple : atlusTuples) {
-						if (!atuple.getEfv().startsWith("V1")) {
-			%>
-			<tr>
-				<td><%=atuple.getEfv()%></td>
-				<td valign="top">
-				<%
-					if (atuple.getUpdn().equals(1)) {
-				%><img src="images/up_arrow.gif">
-				<%
-					} else if (atuple.getUpdn().equals(-1)) {
-				%><img
-					src="images/dn_arrow.gif">
-				<%
-					}
-				%><%=atuple.getPval() > 1e-16D ? String
-								.format("%.3g", atuple.getPval()) : "< 1e-16"%></td>
-				<td><%=atlasGene.getGeneName() + " "
-								+ atuple.getTxtSummary()%></td>
-			</tr>
-
-			<%
-				}
-					}
-			%>
-		</table>
-		</div>
-
-		</div>
-
-		</td>
-	</tr>
-	<%
-		}
-	%>
-
-
 </table>
+
+
+
+
+
+
+
+
+
+
+
 </div>
 <!-- end page contents  here -->
 <jsp:include page='end_body.jsp' />
