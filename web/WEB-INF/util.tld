@@ -28,18 +28,19 @@
     </function>
 
     <function>
-      <name>heatColor</name>
-      <function-class>ae3.util.StructuredQueryHelper</function-class>
-      <function-signature>
-        java.lang.String heatColor(java.lang.String,java.lang.String)
-      </function-signature>
-    </function>
-
-    <function>
       <name>gradient</name>
       <function-class>ae3.util.StructuredQueryHelper</function-class>
       <function-signature>
          java.lang.String[] gradient(int , int , int , int , int , int , int , int, int )
       </function-signature>
     </function>
+
+    <function>
+      <name>currentTime</name>
+      <function-class>ae3.util.StructuredQueryHelper</function-class>
+      <function-signature>
+        long currentTime()
+      </function-signature>
+    </function>
+
 </taglib>

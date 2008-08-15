@@ -115,32 +115,6 @@ public class StructuredQueryHelper {
     }
 
     /**
-     * Make an HTML/CSS-style hex color value according to p-value adjusted up/down average value and color mask
-     * Mask is a string of 3 characters corresponding to r, g, and b components.
-     * '1' - means that component should be interpolated by value
-     * any other - component stays 255
-     * So, example: "110" - interpolate between white and yellow
-     * @param mpv value
-     * @param mask mask, see method description
-     * @return hex color string
-     */
-    static public String heatColor(String mpv, String mask)
-    {
-        String color = "#";
-        double v = Double.valueOf(mpv);
-        if(v > 0.05D)
-            v = 0.05D;
-        for(int i = 0; i < 3; ++i)
-            switch(mask.charAt(i)) {
-                case '1':
-                    color += "ff"; break;
-                default:
-                    color += String.format("%02x", 255 - Math.round(v * (-255D / 0.05D) + 255)); break;
-            }
-        return color;
-    }
-
-    /**
      * Encode staring with URL encdoing (%xx's)
      * @param str url
      * @return encoded str
@@ -157,6 +131,20 @@ public class StructuredQueryHelper {
         }
     }
 
+    /**
+     * Returns array of gradually spread colors from rgb1 to rgb2,
+     * the gradient is proportionally split according to up:down ratio
+     * @param r1 red component of color 1
+     * @param g1 green component of color 1
+     * @param b1 blue component of color 1
+     * @param r2 red component of color 2
+     * @param g2 green component of color 2
+     * @param b2 blue component of color 2
+     * @param n number of steps
+     * @param up number of ups
+     * @param down number of downs
+     * @return array of hex html colors
+     */
     public static String[] gradient(int r1, int g1, int b1, int r2, int g2, int b2, int n, int up, int down)
     {
         String[] result = new String[n];
@@ -184,4 +172,12 @@ public class StructuredQueryHelper {
         return result;
     }
 
+    /**
+     * Returns current system time, for util.tld
+     * @return time in milliseconds
+     */
+    public static long currentTime()
+    {
+        return System.currentTimeMillis();
+    }
 }

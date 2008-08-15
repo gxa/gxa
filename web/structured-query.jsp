@@ -150,104 +150,111 @@ ArrayExpress Atlas Preview
 
 <jsp:include page="end_menu.jsp"></jsp:include>
 
+<div align="center" style="margin-bottom:50px">
 
-<form name="atlasform" action="qrs" onsubmit="renumberAll();">
-    Search for genes 
-    <input type="text" name="gene" id="gene" style="width:150px" value=""/>
+    <form name="atlasform" action="qrs" onsubmit="renumberAll();">
+        Search for genes
+        <input type="text" name="gene" id="gene" style="width:150px" value=""/>
 
-    in
-    
-    <table id="species">
-        <tbody></tbody> 
-    </table>
-    
-    which are 
+        in
 
-    <table id="conditions">
-        <tbody></tbody>
-    </table>
-
-
-        <input type="submit">        
-</form>
-
-<script type="text/javascript">
-    initQuery();   
-</script>
-
-<c:if test="${!empty query}">
-    <div style="margin:0px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
-    <%
-        response.flushBuffer();
-        AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
-        request.setAttribute("result", atlasResult);
-    %>
-    <script type="text/javascript">$("#loading_display").hide()</script>
-
-    <c:if test="${result.size > 0}">
-        <p>
-            <c:if test="${result.size == 200}">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
-        </p>
-        <table class="squery">
-            <thead>
-                <tr>
-                    <th colspan="2" rowspan="2" class="gene">Gene</th>
-                    <c:forEach var="c" items="${result.conditions}">
-                        <th colspan="${f:length(c.factorValues)}" class="factor">
-                            <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
-                        </th>
-                    </c:forEach>
-                    <th rowspan="2">&nbsp;</th>
-                </tr>
-                <tr>
-                    <c:forEach var="c" items="${result.conditions}">
-                        <c:forEach var="v" items="${c.factorValues}">
-                            <th class="counter"><c:out value="${v}" escapeXml="true"/></th>
-                        </c:forEach>
-                    </c:forEach>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="row" items="${result.results}">
-                    <tr>
-                        <td>
-                            <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
-                                <c:param name="db" value="genomes"/>
-                                <c:param name="t" value="${row.gene.geneIdentifier}"/>
-                            </c:url>
-                            <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
-                        </td>
-                        <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                        <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
-                        <c:forEach var="ud" items="${row.counters}">
-                            <td class="counter">
-                                <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
-                                <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/>
-                                <div>
-                                    <c:forEach var="g" items="${u:gradient(240,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
-                                        <c:if test="${s.first}"><div class="countup" title="${ud.ups != 0 ? 'p-value is ' : ''}${ud.ups != 0 ? ud.mpvUp : ''}" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '-' : ud.ups}</div></c:if>
-                                        <c:if test="${s.last}"><div class="countdn" title="${ud.downs != 0 ? 'p-value is ' : ''}${ud.downs != 0 ? ud.mpvDn : ''}" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '-' : ud.downs}</div></c:if>
-                                        <c:if test="${!s.first && !s.last}"><div class="gradel" style="background-color:${g};color:${g}">.</div></c:if>
-                                    </c:forEach>
-                                </div>
-                            </td>
-                        </c:forEach>
-                        <td>
-                            <c:url var="urlExps" value="/sexpt">
-                                <c:param name="gene" value="${row.gene.geneId}"/>
-                                <c:forEach var="c" varStatus="s" items="${result.conditions}">
-                                    <c:param name="ef${s.index}" value="${c.factor}"/>
-                                    <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
-                                </c:forEach>
-                            </c:url>
-                            <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
-                        </td>
-                    </tr>
-                </c:forEach>
-            </tbody>
+        <table id="species">
+            <tbody></tbody>
         </table>
-    </c:if>
 
-    <jsp:include page="end_body.jsp"></jsp:include>
-</c:if>
+        which are
+
+        <table id="conditions">
+            <tbody></tbody>
+        </table>
+
+
+        <input type="submit">
+    </form>
+
+    <script type="text/javascript">
+        initQuery();
+    </script>
+
+    <c:if test="${!empty query}">
+        <div style="margin:10px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
+        <c:set var="timeStart" value="${u:currentTime()}"/>
+        <%
+            response.flushBuffer();
+            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
+            request.setAttribute("result", atlasResult);
+        %>
+        <script type="text/javascript">$("#loading_display").hide()</script>
+
+        <c:if test="${result.size > 0}">
+            <p>
+                <c:if test="${result.size == 200}">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
+            </p>
+            <table class="squery">
+                <thead>
+                    <tr>
+                        <th colspan="2" rowspan="2" class="gene">Gene</th>
+                        <c:forEach var="c" items="${result.conditions}">
+                            <th colspan="${f:length(c.factorValues)}" class="factor">
+                                <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
+                            </th>
+                        </c:forEach>
+                        <th rowspan="2">&nbsp;</th>
+                    </tr>
+                    <tr>
+                        <c:forEach var="c" items="${result.conditions}">
+                            <c:forEach var="v" items="${c.factorValues}">
+                                <th class="counter"><c:out value="${v}" escapeXml="true"/></th>
+                            </c:forEach>
+                        </c:forEach>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="row" items="${result.results}">
+                        <tr>
+                            <td>
+                                <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
+                                    <c:param name="db" value="genomes"/>
+                                    <c:param name="t" value="${row.gene.geneIdentifier}"/>
+                                </c:url>
+                                <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
+                            </td>
+                            <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
+                            <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
+                            <c:forEach var="ud" items="${row.counters}">
+                                <td class="counter">
+                                    <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
+                                    <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/>
+                                    <div>
+                                        <c:forEach var="g" items="${u:gradient(240,upc,upc,dnc,dnc,255,12,ud.ups,ud.downs)}" varStatus="s">
+                                            <c:if test="${s.first}"><div class="countup" title="${ud.ups != 0 ? 'p-value is ' : ''}${ud.ups != 0 ? ud.mpvUp : ''}" style="background-color:${g};color:${upc > 200 ? 'black' : 'white'}">${ud.ups == 0 ? '-' : ud.ups}</div></c:if>
+                                            <c:if test="${s.last}"><div class="countdn" title="${ud.downs != 0 ? 'p-value is ' : ''}${ud.downs != 0 ? ud.mpvDn : ''}" style="background-color:${g};color:${dnc > 200 ? 'black' : 'white'}">${ud.downs == 0 ? '-' : ud.downs}</div></c:if>
+                                            <c:if test="${!s.first && !s.last}"><div class="gradel" style="background-color:${g};color:${g}">.</div></c:if>
+                                        </c:forEach>
+                                    </div>
+                                </td>
+                            </c:forEach>
+                            <td>
+                                <c:url var="urlExps" value="/sexpt">
+                                    <c:param name="gene" value="${row.gene.geneId}"/>
+                                    <c:forEach var="c" varStatus="s" items="${result.conditions}">
+                                        <c:param name="ef${s.index}" value="${c.factor}"/>
+                                        <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
+                                    </c:forEach>
+                                </c:url>
+                                <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+            <c:set var="timeFinish" value="${u:currentTime()}"/>
+            <div align="center">
+                Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+            </div>
+        </c:if>
+    </c:if>
+</div>
+
+<jsp:include page="end_body.jsp"></jsp:include>
 
