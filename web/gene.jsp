@@ -96,8 +96,8 @@ table.heatmap {
 	text-align: left;
 }
 
-.fullSectionView {
-	color: #404040
+.fullSectionView .fullSectionViewExt{
+	color: #404040;
 }
 
 .RankInfoBar {
@@ -166,19 +166,19 @@ viewMore( id )
 {
 
     id = String(id);
-    var mainElt = $("#" + id);
-    var extElt = $("#" + id.replace("_main", "_ext"));
-    var lnkElt = $("#"+ id.replace("_main", "_atls_lnk"))
-    if ( mainElt.hasClass("tr_main_expanded")) {
+    var extElt = $("#" + id+"_ext");
+    var lnkEltLess = $("#"+ id+ "_atls_lnk_less");
+    var lnkEltMore = $("#"+ id+ "_atls_lnk_more");
+    if ( extElt.hasClass("fullSectionViewExt")) {
         // collapse now
-        mainElt.removeClass("tr_main_expanded");
-        extElt.hide();
-        mainElt.show();
+        extElt.removeClass("fullSectionViewExt");
+        extElt.addClass("fullSectionView");
+        extElt.toggle("fast");
+        lnkEltMore.show();
     } else {
-        mainElt.addClass("tr_main_expanded");
-        mainElt.hide();
-        extElt.show();
-        lnkElt.hide();
+        extElt.addClass("fullSectionViewExt");
+        extElt.toggle("fast");
+        lnkEltMore.hide();
         
     }
     onWindowResize();
@@ -350,7 +350,7 @@ function showStudyDetails(id){
 <table width="100%" border="0" cellpadding="0" cellspacing="0" >
 	<tr> 
 	
-		<td class="titleHeader" valign="top">ArrayExpress Atlas Gene View</td>
+		<td class="titleHeader" valign="middle">ArrayExpress Atlas Gene View</td>
 		<td align="right" valign="top">
 		<div
 			style="color: #e33e3e; text-align: right; font-size: 26pt; margin-top: 15px; font-weight: bold;vertical-align: top" >
@@ -555,10 +555,10 @@ function showStudyDetails(id){
 					<%
 							}else{ 
 								if(i==6){%>
-								<tr><td id="<%=exp.getDwExpId().toString()%>_atls_lnk" colspan="3" align="center"><span class="moreLink" onclick="viewMore('<%=exp.getDwExpId().toString() %>_main')">View  more results</span></td></tr>
+								<tr><td id="<%=exp.getDwExpId().toString()%>_atls_lnk_more" colspan="3" align="center"><span class="moreLink" onclick="viewMore('<%=exp.getDwExpId().toString() %>')">View  more results</span></td></tr>
 								</table>
 								<div id="<%=exp.getDwExpId().toString()%>_ext" class="fullSectionView" style="display: none">
-								<table class="heatmap" cellpadding="2" width="100%">
+								<table class="heatmap" cellpadding="2" width="100%" border="1" bordercolor="#ffffff" style="border-style: dotted">
 								<%} %>
 									<tr>
 										<td width="20%"><%=atuple.getEfv()%></td>
@@ -573,7 +573,9 @@ function showStudyDetails(id){
 					<%		}
 							}
 							}
-				if(i>=6){%></table></div>
+				if(i>=6){%><tr><td colspan="3" id="<%=exp.getDwExpId().toString()%>_atls_lnk_less" align="right">
+				<img style="cursor: pointer" title="Collapse" id="<%=exp.getDwExpId().toString()%>_atls_lnk_less" src="images/minus_up.gif"  onclick="viewMore(<%=exp.getDwExpId().toString()%>)"  />
+				</td></tr></table></div>
 					<%}else{%>
 		</table>
 		<%} %>
@@ -606,7 +608,7 @@ function showStudyDetails(id){
 	<tr>
 		<td >
 		<div>
-		<table border="1" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff" style="border-style: dotted" >
+		<table border="1" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff" >
 			<tr>
 				<th rowspan="2">Factor Value</th>
 				<th rowspan="2" style="border-right: medium solid; border-left: thin">Studies</th>

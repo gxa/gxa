@@ -66,9 +66,9 @@ public class AtlasTuple {
     public String getTxtSummary(){
     	String text="";
     	if(updn.intValue() == 1)
-    		text= "is overexpressed in "+efv+" vs other "+ef+"s in this study";
+    		text= "is over-expressed in "+efv+" vs other "+ef+"s in this study";
     	else if(updn.intValue() == -1)
-    		text= "is underexpressed in "+efv+" vs other "+ef+"s in this study";
+    		text= "is under-expressed in "+efv+" vs other "+ef+"s in this study";
     	return text;
     }
 }
