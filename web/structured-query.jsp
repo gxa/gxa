@@ -131,7 +131,6 @@ ArrayExpress Atlas Preview
         #conditions td.andbuttons { vertical-align: bottom; padding-bottom:10px; }
         div.countup, div.countdn { width:15%;float:left;text-align:center; }
         div.gradel { width:7%;float:left; }
-        a.countexp { float:right;display:block; }
         div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
         table.squery td.counter, th.counter {text-align:center;width:120px; }
         th.factor { text-align:center;font-weight:normal; }
@@ -242,7 +241,7 @@ ArrayExpress Atlas Preview
                                         <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
                                     </c:forEach>
                                 </c:url>
-                                <a class="countexp" onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11"/></a>
+                                <span onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11" style="border:0px;"/></span>
                             </td>
                         </tr>
                     </c:forEach>
