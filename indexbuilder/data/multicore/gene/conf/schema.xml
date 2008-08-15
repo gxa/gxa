@@ -215,6 +215,33 @@
       </analyzer>
     </fieldtype>
 
+	<fieldType name="prefix_full" class="solr.TextField" positionIncrementGap="1">
+			<analyzer type="index">
+				<tokenizer class="solr.KeywordTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.EdgeNGramFilterFactory"
+					minGramSize="1" maxGramSize="50" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.KeywordTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<fieldType name="prefix_token" class="solr.TextField" positionIncrementGap="1">
+			<analyzer type="index">
+				<tokenizer class="solr.WhitespaceTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.EdgeNGramFilterFactory"
+					minGramSize="1" maxGramSize="50" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.WhitespaceTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+
  </types>
 
 
@@ -237,6 +264,7 @@
   <field name="gene_id" type="string" indexed="true" stored="true"/>
   <field name="gene_name" type="text" indexed="true" stored="true"/>
   <field name="gene_disease" type="text" indexed="true" stored="true" multiValued="true"/>
+  <field name="gene_dbxref" type="string" indexed="true" stored="true" multiValued="true"/>
   <field name="gene_embl" type="string" indexed="true" stored="true" multiValued="true"/>
   <field name="gene_ensfamily" type="text" indexed="true" stored="true" multiValued="true"/> 
   <field name="gene_ensgene" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -272,6 +300,8 @@
   <field name="manu_exact" type="string" indexed="true" stored="false"/>
   <!-- Here, default is used to create a "timestamp" field indicating When each document was indexed.-->
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
+	<field name="suggest_full" type="prefix_full" indexed="true" stored="false"  multiValued="true"/>
+		<field name="suggest_token" type="prefix_token" indexed="true" stored="false"  multiValued="true"/>
    
 
 
@@ -293,6 +323,7 @@
 
    
    <copyField source="gene_id" dest="gene_ids"/>
+   <copyField source="gene_dbxref" dest="gene_ids"/>
    <copyField source="gene_embl" dest="gene_ids"/>
    <copyField source="gene_ensfamily" dest="gene_ids"/>
    <copyField source="gene_ensgene" dest="gene_ids"/>
@@ -321,6 +352,8 @@
    <copyField source="gene_protein" dest="gene_desc"/>
    <copyField source="gene_synonym" dest="gene_desc"/>
    
+	<copyField source="gene_desc" dest="suggest_full"/>
+	<copyField source="gene_desc" dest="suggest_token"/>
 
 
  <!-- Similarity is the scoring routine for each document vs. a query.
