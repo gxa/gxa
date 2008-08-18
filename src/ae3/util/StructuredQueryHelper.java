@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Helper functions for parsing and managing structured query
@@ -81,7 +82,7 @@ public class StructuredQueryHelper {
                 for(String jd : findPrefixParamsSuffixes(httpRequest, pfx)) {
                     String value = httpRequest.getParameter(pfx + jd);
                     if(value.length() > 0)
-                        values.add(value);
+                        values.add(StringUtils.trim(value));
                 }
 
                 if(values.size() == 0)

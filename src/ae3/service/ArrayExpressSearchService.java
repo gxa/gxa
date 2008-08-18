@@ -269,19 +269,21 @@ public class ArrayExpressSearchService {
 
     public QueryResponse factorQueryExpts(String factor, Collection<String> values)
     {
-        if (factor == null || factor.equals(""))
-            return null;
-
         try {
-            StringBuffer query = new StringBuffer(Constants.FIELD_FACTOR_PREFIX);
+            if (factor == null || factor.equals(""))
+                factor = "exp_factor_values";
+            else
+                factor = Constants.FIELD_FACTOR_PREFIX;
+
             ArrayList<String> vals = new ArrayList<String>();
             for(String v : values) {
                 vals.add(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");                
             }
-            query.append(factor).append(":(").append(StringUtils.join(vals, " ")).append(")");
+            StringBuffer query = new StringBuffer()
+                    .append(factor).append(":(").append(StringUtils.join(vals, " ")).append(")");
             SolrQuery q = new SolrQuery(query.toString());
             q.setHighlight(true);
-            q.addHighlightField(Constants.FIELD_FACTOR_PREFIX + factor);
+            q.addHighlightField(factor);
             q.setHighlightSnippets(100);
             q.setRows(50);
             q.setStart(0);
@@ -365,7 +367,7 @@ public class ArrayExpressSearchService {
     }
 
 
-    public List<String> autoCompleteFactorValues(String factor, String query, String limit) {
+    public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
         try {
             SolrQuery q = new SolrQuery("exp_in_dw:true");
             q.setRows(0);
@@ -373,26 +375,17 @@ public class ArrayExpressSearchService {
             q.addFacetField(Constants.FIELD_FACTOR_PREFIX + factor);
             q.setFacetPrefix(query);
 
-            int nlimit = 100;
-            try {
-                nlimit = Integer.parseInt(limit);
-                if(nlimit > 1000)
-                    nlimit = 1000;
-            } catch(NumberFormatException e) {
-                // just ignore
-            }
- 
-            q.setFacetLimit(nlimit);
+            q.setFacetLimit(limit);
             q.setFacetSort(false);
             QueryResponse qr = solr_expt.query(q);
 
             if (null == qr.getFacetFields().get(0).getValues())
                 return null;
 
-            ArrayList<String> s = new ArrayList<String>();
+            Map<String,Long> s = new HashMap<String,Long>();
             int i = 0;            
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.add(ffc.getName() + "|" + ffc.getCount());
+                s.put(ffc.getName(), ffc.getCount());
             }
 
             return s;
@@ -717,25 +710,39 @@ private TreeSet<String> autoCompleteGene(String query) {
         int number = 0;
         for(AtlasStructuredQuery.Condition c : query.getConditions())
         {
-            QueryResponse response =
-                    c.getFactor().length() == 0 ?
-                            ArrayExpressSearchService.instance().fullTextQueryExpts(StringUtils.join(c.getFactorValues().toArray(), ' ').replace("*","?*"))
-                            :
-                            ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
-            if (response == null || response.getResults().getNumFound() == 0)
-                continue;
+            boolean anyFactorValue = false;
+            for(String s : c.getFactorValues())
+                if("*".equals(s))
+                    anyFactorValue = true;
 
-            final Map<String, SolrDocument> map = convertSolrDocumentListToMap(response, Constants.FIELD_DWEXP_ID);
+            boolean anyFactor = c.getFactor().length() == 0;
 
-            Set<String> factorValues = new HashSet<String>();
-            for (Map<String, List<String>> vals : response.getHighlighting().values()) {
-                if (vals == null || vals.size() == 0)
+            Set<String> factorValues;
+            if(anyFactor && anyFactorValue)
+                continue; // don't do this, it's too much!
+            else if(anyFactorValue) {
+                factorValues = autoCompleteFactorValues(c.getFactor(), "", 20).keySet();
+            } else {
+                QueryResponse response = ArrayExpressSearchService.instance().factorQueryExpts(c.getFactor(), c.getFactorValues());
+                if (response == null || response.getResults().getNumFound() == 0)
                     continue;
-                for(String s : vals.get(c.getFactor().length() == 0 ?
-                        "exp_factor_values" : Constants.FIELD_FACTOR_PREFIX + c.getFactor())) {
-                    factorValues.add(s.replaceAll("</{0,1}em>",""));
+
+                final Map<String, SolrDocument> map = convertSolrDocumentListToMap(response, Constants.FIELD_DWEXP_ID);
+                for(String key : map.keySet())
+                    solrExptResponseMap.put(key, response);
+                solrExptMap.putAll(map);
+
+                factorValues = new HashSet<String>();
+                for (Map<String, List<String>> vals : response.getHighlighting().values()) {
+                    if (vals == null || vals.size() == 0)
+                        continue;
+                    for(String s : vals.get(c.getFactor().length() == 0 ?
+                            "exp_factor_values" : Constants.FIELD_FACTOR_PREFIX + c.getFactor())) {
+                        factorValues.add(s.replaceAll("</{0,1}em>",""));
+                    }
                 }
             }
+
 
             if(factorValues.size() == 0)
                 continue;
@@ -834,10 +841,6 @@ private TreeSet<String> autoCompleteGene(String query) {
             }
             outerWheres.append(")");
             scores.append(")");
-
-            for(String key : map.keySet())
-                solrExptResponseMap.put(key, response);
-            solrExptMap.putAll(map);
 
             processedCondtions.add(new AtlasStructuredQueryResult.Condition(c, factorValues));
         }
