@@ -211,9 +211,12 @@ ArrayExpress Atlas Preview
                     </tr>
                 </table>
             </td>
-            <td valign="top" style="padding-left:15px">
-                <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
-                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a>
+            <td valign="top">
+                <div style="position:relative;padding-left:15px;top:10px">
+                    <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
+                    <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
+                    <a class="smallgreen" href="qrs">advanced query</a>
+                </div>
             </td>
         </tr>
         <tr>

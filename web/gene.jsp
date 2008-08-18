@@ -244,12 +244,12 @@ function showStudyDetails(id){
 <div class="pagecontainer">
 <table width="100%" style="border-bottom:thin solid lightgray" cellpadding="0" cellspacing="0" height="30px">
     <tr>
-    <td valign="bottom" width="30px">
-       <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
-    </td>
+        <td align="left" valign="bottom" width="55">
+           <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
+        </td>
         
     
-        <td align="middle" width="30%" valign="center" style="padding-top: 5px">
+        <td align="left" valign="center" style="padding-top: 5px">
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
@@ -485,29 +485,18 @@ function showStudyDetails(id){
 		</td>
 	</tr>
 	<tr align="left" >
-		<td align="left" width="10px" valign="top">
-			<h3><%=exp.getDwExpAccession().toString().trim()%>:</h3>
+		<td align="left" width="100" nowrap="true" valign="top">
+			<h3><%=exp.getDwExpAccession().trim()%>:</h3>
 		</td>
 		<td>
 			<h3><%=exp.getAerExpName()%></h3>
 		</td>
-		<td width="70px">
-		 
-		 <img style="cursor: pointer" title="Show study details" id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/plus.gif"  onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)"  />
+		<td width="20px">
+		    <img style="cursor: pointer" title="Show study details" id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/plus.gif"  onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)"  />
 		</td>
 	</tr>
-	<%if(exp.hasAerFactorAttributes()){ %>
 	<tr>
-		<td colspan="2" align="left">
-			<div style="color: #5e5e5e; padding-top: 5px; padding-bottom: 5px" >
-				<span>Atlas Results for <%=atlasGene.getGeneName()%> studied in <%=exp.getAerFactorAttributes().get(1)%></span>
-			</div>
-			
-		</td>
-	</tr>
-	<%} %>
-	<tr>
-		<td colspan="2">
+		<td colspan="3">
 			<div style="display: none" id="<%=exp.getDwExpId().toString()%>_desc_ext">
 			<table cellpadding="2" cellspacing="2" >
 				<tr >
@@ -524,9 +513,19 @@ function showStudyDetails(id){
 		</td>
 	</tr>
 	
+    <%if(exp.hasAerFactorAttributes()){ %>
+    <tr>
+        <td colspan="3" align="left">
+            <div style="color: #5e5e5e; padding-top: 5px; padding-bottom: 5px" >
+                <span style="text-align:justify;">Atlas Results for <%=atlasGene.getGeneName()%> studied in <%=exp.getAerFactorAttributes().get(1)%></span>
+            </div>
+
+        </td>
+    </tr>
+    <%} %>
 	
 	<tr>
-		<td align="left" class="exp_text" colspan="2">
+		<td align="left" class="exp_text" colspan="3">
 		
 		<!-- div class="exp_summary"-->
 		<table class="heatmap" cellpadding="2" width="100%" border="1" bordercolor="#ffffff" style="border-style: dotted">
@@ -545,7 +544,7 @@ function showStudyDetails(id){
 							if(i<6){
 			%>				<tr>
 								<td width="20%"><%=atuple.getEfv()%></td>
-								<td valign="middle" width="11%">
+								<td valign="top" width="11%" nowrap="true">
 									<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif" align="top">
 									<%} else if (atuple.getUpdn().equals(-1)) {%><img	src="images/dn_arrow.gif" align="top"><%}%>
 									<%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
@@ -562,7 +561,7 @@ function showStudyDetails(id){
 								<%} %>
 									<tr>
 										<td width="20%"><%=atuple.getEfv()%></td>
-										<td valign="middle" width="11%">
+                                        <td valign="top" width="11%" nowrap="true">
 											<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif" align="top">
 											<%} else if (atuple.getUpdn().equals(-1)) {%><img	src="images/dn_arrow.gif" align="top"><%}%>
 											<%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
