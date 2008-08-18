@@ -244,12 +244,12 @@ function showStudyDetails(id){
 <div class="pagecontainer">
 <table width="100%" style="border-bottom:thin solid lightgray" cellpadding="0" cellspacing="0" height="30px">
     <tr>
-    <td valign="bottom" width="25px">
+    <td valign="bottom" width="30px">
        <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
     </td>
         
     
-        <td align="middle" width="25%" valign="center" style="padding-top: 5px">
+        <td align="middle" width="30%" valign="center" style="padding-top: 5px">
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |

@@ -272,7 +272,7 @@ ArrayExpress Atlas Preview
                     List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
                     for(HashMap<String,String> gene : genes ) {
                         %>
-                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" target="_blank" href="/atlas/gene.jsp?gene=<%=gene.get("gene_id")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
+                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" target="_blank" href="gene.jsp?gene=<%=gene.get("gene_id")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
                         <%
                     }
                 %>
@@ -430,7 +430,7 @@ ArrayExpress Atlas Preview
                         <td><a title="Show experiment annotation in repository" target="_blank" href="http://www.ebi.ac.uk/arrayexpress/experiments/<%=ar.get("experiment_accession")%>"><%=ar.get("experiment_accession")%></a></td>
                         <td><%=ar.get("experiment_description")%></td>
                         <td><%=efv + " (" + ar.get("ef") + ")"%></td>
-                        <td><a target="_blank" href="/atlas/gene.jsp?gene=<%=ar.get("gene_id")%>" title="Show Atlas Gene Info"><%=ar.get("gene_name")%></a></td>
+                        <td><a target="_blank" href="gene.jsp?gene=<%=ar.get("gene_id")%>" title="Show Atlas Gene Info"><%=ar.get("gene_name")%></a></td>
                         <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
                         <td><%=gene_species.substring(0,1).toUpperCase() + gene_species.substring(1).toLowerCase()%></td>
                         <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><span style="float:left"><%=updn == 1 ? "&uarr;" : "&darr;" %></span><span style="float:right"><%=updn_pvaladj > 1e-16D ? String.format("%.3g", updn_pvaladj) : "< 1e-16" %></span></td>
