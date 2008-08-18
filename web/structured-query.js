@@ -77,6 +77,33 @@ var counter = 0;
 
              var factor = createSelect("fact_" + andid, options['factors'], true, condition && condition.factor);
 
+
+             var loadValues = function (what,callback) {
+                                               if(factor.options[factor.selectedIndex].value == "")
+                                                   return;
+                                               $.ajax({
+                                                          // try to leverage ajaxQueue plugin to abort previous requests
+                                                          mode: "abort",
+                                                          // limit abortion to this input
+                                                          port: "fvalues",
+                                                          url: "fval",
+                                                          data: { q: '', limit: 1000, factor: factor.options[factor.selectedIndex].value },
+                                                          success: function(data) {
+                                                              var rows = data.split("\n");
+                                                              var list = [];
+                                                              for (var i=0; i < rows.length; i++) {
+                                                                  var row = $.trim(rows[i]);
+                                                                  if (row) {
+                                                                      row = row.split("|");
+                                                                      list[list.length] = row[0];
+                                                                  }
+                                                              }
+                                                              what.replaceWith(createSelect(what.attr('name'), list));
+                                                              callback();
+                                                          }
+                                                      });
+                                           }
+
              factor.className = 'factor';
              factor.onchange = function() {
                  if (this.selectedIndex < 1) return; // TODO: why this?
@@ -84,6 +111,7 @@ var counter = 0;
                  var newv = this.options[this.selectedIndex].value;
                  fval.find('input.value').focus().attr('value', '').blur()
                      .setOptions({ extraParams: { factor : newv } }).flushCache();
+                 loadValues(fval.find('select'), function() { });
              };
 
 
@@ -117,32 +145,10 @@ var counter = 0;
                      .append($('<div class="input" />')
                              .append(input)
                              .append($('<input type="button" value="V"/>')
-                                     .bind('click', function () {
-                                               if(factor.options[factor.selectedIndex].value == "")
-                                                   return;
-                                               var vbutt = $(this);
-                                               $.ajax({
-                                                          // try to leverage ajaxQueue plugin to abort previous requests
-                                                          mode: "abort",
-                                                          // limit abortion to this input
-                                                          port: "fvalues" + andid + orid,
-                                                          url: "fval",
-                                                          data: { q: '', limit: 1000, factor: factor.options[factor.selectedIndex].value },
-                                                          success: function(data) {
-                                                              var rows = data.split("\n");
-                                                              var list = [];
-                                                              for (var i=0; i < rows.length; i++) {
-                                                                  var row = $.trim(rows[i]);
-                                                                  if (row) {
-                                                                      row = row.split("|");
-                                                                      list[list.length] = row[0];
-                                                                  }
-                                                              }
-                                                              input.replaceWith(createSelect(input.attr('name'), list));
-                                                              vbutt.remove();
-                                                          }
-                                                      });
-                                           })))
+                                     .bind('click', function() {
+                                                                 var vbutt = $(this);
+                                                                 loadValues(input, function() { vbutt.remove(); });
+                                                               })))
                      .append($('<div class="buttons" />')
                              .append(createRemoveButton(function (where) {
                                                             if(fval.find('div.value').length == 1)
