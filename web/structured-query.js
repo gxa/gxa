@@ -98,8 +98,9 @@ var counter = 0;
                                                                       list[list.length] = row[0];
                                                                   }
                                                               }
-                                                              what.replaceWith(createSelect(what.attr('name'), list));
-                                                              callback();
+                                                              var sel = createSelect(what.attr('name'), list);
+                                                              what.replaceWith(sel);
+                                                              callback(sel);
                                                           }
                                                       });
                                            }
@@ -147,7 +148,17 @@ var counter = 0;
                              .append($('<input type="button" value="V"/>')
                                      .bind('click', function() {
                                                                  var vbutt = $(this);
-                                                                 loadValues(input, function() { vbutt.remove(); });
+                                                                 var oldval = input.val();
+                                                                 loadValues(input, function(sel) {
+                                                                      //
+                                                                      for(var i = 0; i < sel.options.length; ++i)
+                                                                          if(sel.options[i].value.indexOf(oldval) >= 0)
+                                                                          {
+                                                                               sel.selectedIndex = i;
+                                                                               break;
+                                                                          }
+                                                                      vbutt.remove();
+                                                                 });
                                                                })))
                      .append($('<div class="buttons" />')
                              .append(createRemoveButton(function (where) {
