@@ -274,7 +274,11 @@ public class ArrayExpressSearchService {
 
         try {
             StringBuffer query = new StringBuffer(Constants.FIELD_FACTOR_PREFIX);
-            query.append(factor).append(":(").append(StringUtils.join(values, " ").replace("*","?*")).append(")");
+            ArrayList<String> vals = new ArrayList<String>();
+            for(String v : values) {
+                vals.add(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");                
+            }
+            query.append(factor).append(":(").append(StringUtils.join(vals, " ")).append(")");
             SolrQuery q = new SolrQuery(query.toString());
             q.setHighlight(true);
             q.addHighlightField(Constants.FIELD_FACTOR_PREFIX + factor);
