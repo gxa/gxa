@@ -45,8 +45,8 @@ ArrayExpress Atlas Preview
 
         $(document).ready(function()
             {
-                $("#q_gene").defaultvalue("(all genes)");
-                $("#q_gene").autocomplete("autocomplete.jsp", {
+                $("#gene").defaultvalue("(all genes)");
+                $("#gene").autocomplete("autocomplete.jsp", {
                         minChars:1,
                         matchCase: true,
                         matchSubset: false,
@@ -153,7 +153,7 @@ ArrayExpress Atlas Preview
 
     <form name="atlasform" action="qrs" onsubmit="renumberAll();">
         Search for genes
-        <input type="text" name="gene" id="gene" style="width:150px" value=""/>
+        <input type="text" name="gene" id="gene" style="width:150px" value="${query.gene}"/>
 
         in
 
