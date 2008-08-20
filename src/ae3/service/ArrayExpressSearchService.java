@@ -273,7 +273,7 @@ public class ArrayExpressSearchService {
             if (factor == null || factor.equals(""))
                 factor = "exp_factor_values";
             else
-                factor = Constants.FIELD_FACTOR_PREFIX;
+                factor = Constants.FIELD_FACTOR_PREFIX  + factor;
 
             ArrayList<String> vals = new ArrayList<String>();
             for(String v : values) {
@@ -1071,9 +1071,9 @@ private TreeSet<String> autoCompleteGene(String query) {
         return AtlasStructuredQuery.Expression.getOptionsList();
     }
 
-    public List<String> getExperimentalFactorOptions() {
+    public Set<String> getExperimentalFactorOptions() {
         @SuppressWarnings("unchecked")
-        List<String> names = new ArrayList<String>();
+        Set<String> names = new TreeSet<String>();
         for(String i : (Collection<String>)multiCore.getCore("expt").getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL)) {
             if(i.startsWith(Constants.FIELD_FACTOR_PREFIX)) {
                 names.add(i.substring(Constants.FIELD_FACTOR_PREFIX.length()));
@@ -1153,11 +1153,11 @@ private TreeSet<String> autoCompleteGene(String query) {
             Query olsQuery = new QueryServiceLocator().getOntologyQuery();
             HashMap<String,String> terms = olsQuery.getTermsByExactName(q_expt, "EFO");
 
-            Set<String> ontologyExpansion = new HashSet<String>();
+            Set<String> ontologyExpansion = new TreeSet<String>();
             StringBuffer s = new StringBuffer(q_expt);
 
             for (String term : terms.keySet()) {
-                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, null);
+                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
                 ontologyExpansion.addAll(termChildren.values());
             }
 
@@ -1171,7 +1171,10 @@ private TreeSet<String> autoCompleteGene(String query) {
 
             QueryResponse qr = fullTextQueryExpts(expanded_q_expt);
 
-            if(null != qr) qr.getHeader().add("expanded_efo", expanded_q_expt.replaceAll(" exp_factor_values_exact:", " "));
+            if(null != qr) {
+                qr.getHeader().add("expanded_efo", expanded_q_expt.replaceAll(" exp_factor_values_exact:", " "));
+                qr.getHeader().add("expanded_efo_src", ontologyExpansion);
+            }
             return qr;
         } catch (Exception e) {
             log.error("Failed to expand query with EFO, proceeding with normal query", e);
