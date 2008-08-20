@@ -382,7 +382,7 @@ public class ArrayExpressSearchService {
             if (null == qr.getFacetFields().get(0).getValues())
                 return null;
 
-            Map<String,Long> s = new HashMap<String,Long>();
+            Map<String,Long> s = new TreeMap<String,Long>();
             int i = 0;            
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                 s.put(ffc.getName(), ffc.getCount());
