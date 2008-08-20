@@ -1,8 +1,9 @@
 package ae3.model;
 
 import java.util.Collection;
+import java.io.Serializable;
 
-public class AtlasDwAssay
+public class AtlasDwAssay implements Serializable
 {
 	private String name;
 	private Collection<String> values;
