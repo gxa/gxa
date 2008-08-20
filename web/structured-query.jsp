@@ -203,7 +203,7 @@ ArrayExpress Atlas Preview
                 </td>
             </tr>
             <tr>
-                <td colspan="3" align="center">
+                <td colspan="3" align="left">
                     <input type="submit" value="Search Atlas">
                 </td>
             </tr>
@@ -258,7 +258,7 @@ ArrayExpress Atlas Preview
                                 <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
                             </td>
                             <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                            <td><a target="_blank" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
+                            <td><a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
                             <c:forEach var="ud" items="${row.counters}">
                                 <td class="counter">
                                     <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>

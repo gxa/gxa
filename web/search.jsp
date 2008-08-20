@@ -180,11 +180,10 @@ ArrayExpress Atlas Preview
                                 <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                             <label for="view_heatmap">heatmap</label>
 
-                            <%--<input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"--%>
-                                <%--<%=null == request.getParameter("expand_efo") ? "checked" : ""%> --%>
-                                <%--<%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>--%>
-                            <%--<label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>--%>
-                            <input type="hidden" name="expand_efo" id="expand_efo" value="on"/>                            
+                            <input type="checkbox" name="expand_efo" id="expand_efo" value="on"
+                                <%=null == request.getParameter("expand_efo") ? "checked" : ""%>
+                                <%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("on") ? "checked" : ""%>>
+                            <label for="expand_efo">expand conditions search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a></label>
                         </td>
                     </tr>
                 </table>
@@ -218,8 +217,8 @@ ArrayExpress Atlas Preview
             %>
             <div>
                 Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology" target="_blank">EFO</a>,
-                an ontology of experimental variables developed by ArrayExpress Curation Team (below). You can rerun the query without the expansion: <input type="button" style="font:small" value="Search" onclick="atlasform.expand_efo.value='off';atlasform.submit()"/>
-                <div style="border:1px inset; font-family: monospace; font-size: x-small; padding: 5px; margin: 5px">
+                an ontology of experimental variables developed by ArrayExpress Production Team. You can rerun the query without the expansion: <input type="button" style="font:small" value="Search" onclick="atlasform.expand_efo.value='off';atlasform.submit()"/>
+                <div style="border:1px inset; font-family: monospace; font-size: x-small; padding: 5px; margin: 5px; width:1000px">
                     <%=expanded_efo%>
                 </div>
             </div><%
@@ -254,15 +253,16 @@ ArrayExpress Atlas Preview
     <script type="text/javascript">$("#loading_display").hide()</script>
 
     <%if(recs>0 && viewParam.equals("table")){
-        %><div style="text-align:right; padding:5px">Displaying results 1-<%=recs>1000 ? 1000 : recs%> of ~<%=recs%> found in the atlas</div><%
+        %><div style="float:right; padding:5px">Displaying results 1-<%=recs>1000 ? 1000 : recs%> of ~<%=recs%> found in the atlas</div><%
     } else if(recs>0 && viewParam.equals("heatmap")) {
-        %><div style="text-align:right; padding:5px">Found ~<%=recs%> records in the atlas</div><%
+        %><div style="float:right; padding:5px">Found ~<%=recs%> records in the atlas</div><%
     }%>
 
     <%
     if(recs > 0 && viewParam == null || viewParam.equals("heatmap")) {
         %>
-        <table style="position:relative;top:-10px" border="1" class="heatmap" cellpadding="3" cellspacing="0">
+        <input type="button" style="font:small" value="View as table" onclick="$('#view_table').click();atlasform.submit()"/>
+        <table style="position:relative;margin-bottom:50px" border="1" class="heatmap" cellpadding="3" cellspacing="0">
             <tr>
                 <th <%if(q_updn.equals("updn")){ %>rowspan="2"<%}%>>Factor Value</th>
                 <th <%if(q_updn.equals("updn")){ %>rowspan="2"<%}%> style="border-right: thick solid; border-left: thin"><img src="vtext?<%=response.encodeURL("Number of studies")%>" title="Number of studies"/></th>
@@ -272,7 +272,7 @@ ArrayExpress Atlas Preview
                     List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
                     for(HashMap<String,String> gene : genes ) {
                         %>
-                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" target="_blank" href="gene?gid=<%=gene.get("gene_identifer")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
+                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" href="gene?gid=<%=gene.get("gene_identifer")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
                         <%
                     }
                 %>
@@ -391,6 +391,7 @@ ArrayExpress Atlas Preview
         if (recs>1000) atlasResults = atlasResults.subList(0,1000);
 
         %>
+        <input type="button" style="font:small" value="View as heatmap" onclick="$('#view_heatmap').click();atlasform.submit()"/>
         <table style="position:relative; top:-10px;" class="tablesorter" id="atlasTable">
              <thead>
                  <tr>
@@ -430,7 +431,7 @@ ArrayExpress Atlas Preview
                         <td><a title="Show experiment annotation in repository" target="_blank" href="http://www.ebi.ac.uk/arrayexpress/experiments/<%=ar.get("experiment_accession")%>"><%=ar.get("experiment_accession")%></a></td>
                         <td><%=ar.get("experiment_description")%></td>
                         <td><%=efv + " (" + ar.get("ef") + ")"%></td>
-                        <td><a target="_blank" href="gene?gid=<%=ar.get("gene_identifier")%>" title="Show Atlas Gene Info"><%=ar.get("gene_name")%></a></td>
+                        <td><a href="gene?gid=<%=ar.get("gene_identifier")%>" title="Show Atlas Gene Info"><%=ar.get("gene_name")%></a></td>
                         <td><a title="Show gene annotation" target="_blank" href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=ar.get("gene_identifier")%>"><%=ar.get("gene_identifier")%></a></td>
                         <td><%=gene_species.substring(0,1).toUpperCase() + gene_species.substring(1).toLowerCase()%></td>
                         <td align="right" style="background-color: <%=rgb%>; font-size:14px; font-weight:bold; color:<%=color%>"><span style="float:left"><%=updn == 1 ? "&uarr;" : "&darr;" %></span><span style="float:right"><%=updn_pvaladj > 1e-16D ? String.format("%.3g", updn_pvaladj) : "< 1e-16" %></span></td>

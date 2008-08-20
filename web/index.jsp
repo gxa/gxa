@@ -191,13 +191,12 @@ ArrayExpress Atlas Preview
                                     <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
                                 <label for="view_heatmap">heatmap</label>
 
-                                <%--<br/>--%>
-                                <%--<i><input type="checkbox" name="expand_efo" id="expand_efo" value="expand_efo"--%>
-                                    <%--<%=null == request.getParameter("expand_efo") ? "checked" : ""%>--%>
-                                    <%--<%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>--%>
-                                <%--<label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>--%>
-                                <%--</i>--%>
-                                <input type="hidden" name="expand_efo" id="expand_efo" value="on"/>                            
+                                <br/>
+                                <i><input type="checkbox" name="expand_efo" id="expand_efo" value="on"
+                                    <%=null == request.getParameter("expand_efo") ? "checked" : ""%>
+                                    <%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
+                                <label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>
+                                </i>
                             </div>
                         </td>
                         <td valign="top" align="center" style="width:150px">
