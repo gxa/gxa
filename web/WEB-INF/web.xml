@@ -2,14 +2,19 @@
 <web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-    <display-name>Apache-Axis</display-name>
+    <display-name>ArrayExpress Atlas</display-name>
 
     <listener>
         <listener-class>ae3.servlet.ArrayExpressApplicationListener</listener-class>
     </listener>
 
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/error.jsp</location>
+    </error-page>
+
     <servlet>
-        <display-name>AE3 Query Servlet</display-name>
+        <display-name>Atlas Query Servlet</display-name>
         <servlet-name>query</servlet-name>
         <servlet-class>ae3.servlet.QueryServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
@@ -34,6 +39,13 @@
         <servlet-name>sexpt</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.Experiments</servlet-class>
         <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>Gene View</display-name>
+        <servlet-name>gene</servlet-name>
+        <jsp-file>/gene.jsp</jsp-file>
+        <load-on-startup>1</load-on-startup>        
     </servlet>
 
     <servlet>
@@ -99,6 +111,11 @@
         <servlet-name>sexpt</servlet-name>
         <url-pattern>/sexpt</url-pattern>
     </servlet-mapping>
+
+   <servlet-mapping>
+       <servlet-name>gene</servlet-name>
+       <url-pattern>/gene</url-pattern>
+   </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>AxisServlet</servlet-name>

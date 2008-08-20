@@ -122,13 +122,16 @@ ArrayExpress Atlas Preview
             vertical-align: top;
         }
 
-        div.value select, div.value input.value { width :200px; }
+        .prefix { padding-right:5px;}
+        .speciesSelect { width: 120px; margin-right:5px; }
+        
+        div.value select, div.value input.value { width:150px; }
         div.value div.buttons { float: right; }
         div.value div.input { float: left; }
-        div.value { width: 300px; margin-bottom:2px; }
-        #conditions td { vertical-align: top; padding: 2px; }
-        #conditions td.factorvalue { padding-bottom: 10px }
-        #conditions td.andbuttons { vertical-align: bottom; padding-bottom:10px; }
+        div.value { width: 250px; margin-bottom:2px; }
+        #conditions td { vertical-align: top; }
+        #conditions td.factorvalue { padding-bottom: 10px; padding-left: 5px; }
+        #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
         div.countup, div.countdn { width:15%;float:left;text-align:center; }
         div.gradel { width:7%;float:left; }
         div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
@@ -148,27 +151,63 @@ ArrayExpress Atlas Preview
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
 <jsp:include page="end_menu.jsp"></jsp:include>
+<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
+    <tr>
+        <td align="left" valign="bottom" width="55">
+            <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25"/></a>
+        </td>
 
-<div align="center" style="margin-bottom:50px">
+        <td align="left">
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+        </td>
+        <td align="right">
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
+        </td>
+    </tr>
+</table>
+<div style="margin-bottom:50px">
 
     <form name="atlasform" action="qrs" onsubmit="renumberAll();">
-        Search for genes
-        <input type="text" name="gene" id="gene" style="width:150px" value="${query.gene}"/>
+        <table>
+            <tr valign="top">
+                <td>
+                    <label class="label" for="gene">Genes</label>
+                </td>
 
-        in
+                <td>
+                    <label class="label" for="species">Organisms</label>
+                </td>
 
-        <table id="species">
-            <tbody></tbody>
+                <td style="padding-left:5px">
+                    <label class="label" for="conditions">Conditions</label>
+                </td>
+            </tr>
+            <tr valign="top">
+                <td>
+                    <input type="text" name="gene" id="gene" style="width:150px" value="${query.gene}"/>
+                </td>
+                <td>
+                    <table id="species" cellpadding="0" cellspacing="0">
+                        <tbody></tbody>
+                    </table>
+                </td>
+                <td style="padding-left:5px">
+                    <table id="conditions" cellpadding="0" cellspacing="0">
+                        <tbody></tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" align="center">
+                    <input type="submit" value="Search Atlas">
+                </td>
+            </tr>
         </table>
-
-        which are
-
-        <table id="conditions">
-            <tbody></tbody>
-        </table>
-
-
-        <input type="submit">
     </form>
 
     <script type="text/javascript">
@@ -219,7 +258,7 @@ ArrayExpress Atlas Preview
                                 <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}" escapeXml="true"/></a>
                             </td>
                             <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                            <td><a target="_blank" href="gene.jsp?gene=${f:escapeXml(row.gene.geneId)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
+                            <td><a target="_blank" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}" escapeXml="true"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
                             <c:forEach var="ud" items="${row.counters}">
                                 <td class="counter">
                                     <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
@@ -247,12 +286,16 @@ ArrayExpress Atlas Preview
                     </c:forEach>
                 </tbody>
             </table>
-            <c:set var="timeFinish" value="${u:currentTime()}"/>
-            <div align="center">
-                Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-            </div>
         </c:if>
+        <c:if test="${empty result}">
+            No results found!
+        </c:if>
+        <c:set var="timeFinish" value="${u:currentTime()}"/>
+        <div>
+            Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+        </div>        
     </c:if>
+
 </div>
 
 <jsp:include page="end_body.jsp"></jsp:include>

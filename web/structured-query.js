@@ -13,7 +13,7 @@ var counter = 0;
 
          function createSelect(name, options, optional, value) {
              var e = document.createElement("select");
-             if (name) e.name = name;
+             if (name) {e.name = name;e.id=name;}
              if (optional) e.options[0] = new Option("(any)", "");
              if (options) {
                  var selected = 0;
@@ -39,8 +39,11 @@ var counter = 0;
          function addSpecieOr(value) {
              var numrow = tbody.get(0).rows.length;
 
-             var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : 'specie') + '</td></tr>')
-                 .append($('<td />').append(createSelect('specie_' + (++counter), options['species'], true, value)))
+             var selects = createSelect('specie_' + (++counter), options['species'], true, value)
+             selects.setAttribute("class","speciesSelect"); 
+
+             var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : '') + '</td></tr>')
+                 .append($('<td/>').append(selects))
                  .append($('<td class="removebutton" />')
                          .append(createRemoveButton(function (where) {
                                                         var tr = where.parents('tr:first');
@@ -54,7 +57,7 @@ var counter = 0;
                                                                              .append($('<input type="button" value=" or ">')
                                                                                      .bind('click', addSpecieOr)));
                                                         } else if(tr.get(0).sectionRowIndex == 0) {
-                                                            $('td.prefix', tr.next()).html('specie');
+                                                            $('td.prefix', tr.next()).html('');
                                                         }
                                                         tbody.deleteRow(tr.get(0).sectionRowIndex);
                                                     })));
