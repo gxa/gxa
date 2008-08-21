@@ -102,20 +102,20 @@ ArrayExpress Atlas Preview
         }
 
         /* tables */
-        table.squery {
+        #squery {
             font-family:arial;
             background-color: #CDCDCD;
             margin:10px 0pt 15px;
             font-size: 8pt;
             text-align: left;
         }
-        table.squery thead tr th, table.squery tfoot tr th {
+        #squery thead tr th, table.squery tfoot tr th {
             background-color: #e6EEEE;
             border: 1px solid #FFF;
             font-size: 8pt;
             padding: 4px;
         }
-        table.squery tbody td {
+        #squery tbody td {
             color: #3D3D3D;
             padding: 4px;
             background-color: #FFF;
@@ -135,7 +135,7 @@ ArrayExpress Atlas Preview
         div.countup, div.countdn { width:15%;float:left;text-align:center; }
         div.gradel { width:7%;float:left; }
         div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-        table.squery td.counter, th.counter {text-align:center;width:120px; }
+        #squery td.counter, th.counter {text-align:center;width:120px; }
         th.factor { text-align:center;font-weight:normal; }
         th.factor em { font-weight:bold;font-style:normal;}
         th.gene { vertical-align:middle;text-align:center; }
@@ -205,6 +205,7 @@ ArrayExpress Atlas Preview
             <tr>
                 <td colspan="3" align="left">
                     <input type="submit" value="Search Atlas">
+                    <div style="margin:10px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
                 </td>
             </tr>
         </table>
@@ -215,20 +216,32 @@ ArrayExpress Atlas Preview
     </script>
 
     <c:if test="${!empty query}">
-        <div style="margin:10px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
         <c:set var="timeStart" value="${u:currentTime()}"/>
         <%
             response.flushBuffer();
             AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
             request.setAttribute("result", atlasResult);
         %>
-        <script type="text/javascript">$("#loading_display").hide()</script>
+        <script type="text/javascript">
+            $("#loading_display").hide();
+            var resultGenes = [
+            <c:forEach var="row" items="${result.results}">{ geneDWId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' },</c:forEach>
+            ];
+
+            <c:url var="urlExps" value="/sexpt">
+                <c:forEach var="c" varStatus="s" items="${result.conditions}">
+                    <c:param name="ef${s.index}" value="${c.factor}"/>
+                    <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
+                </c:forEach>
+            </c:url>
+            var exptUrlBase = '${u:escapeJS(urlExps)}';
+        </script>
 
         <c:if test="${result.size > 0}">
             <p>
                 <c:if test="${result.size == 200}">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
             </p>
-            <table class="squery">
+            <table id="squery">
                 <thead>
                     <tr>
                         <th colspan="2" rowspan="2" class="gene">Gene</th>
@@ -237,7 +250,7 @@ ArrayExpress Atlas Preview
                                 <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
                             </th>
                         </c:forEach>
-                        <th rowspan="2">&nbsp;</th>
+                        <th rowspan="2" valign="top"><img class="expexp" onclick="loadExperiments();" src="expandopen.gif" alt="&gt;" title="Toggle all experiments" width="11" height="11" style="border:0px;"/></th>
                     </tr>
                     <tr>
                         <c:forEach var="c" items="${result.conditions}">
@@ -248,8 +261,8 @@ ArrayExpress Atlas Preview
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach var="row" items="${result.results}">
-                        <tr>
+                    <c:forEach var="row" items="${result.results}" varStatus="i">
+                        <tr id="squeryrow${i.index}">
                             <td>
                                 <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
                                     <c:param name="db" value="genomes"/>
@@ -272,16 +285,7 @@ ArrayExpress Atlas Preview
                                     </div>
                                 </td>
                             </c:forEach>
-                            <td>
-                                <c:url var="urlExps" value="/sexpt">
-                                    <c:param name="gene" value="${row.gene.geneId}"/>
-                                    <c:forEach var="c" varStatus="s" items="${result.conditions}">
-                                        <c:param name="ef${s.index}" value="${c.factor}"/>
-                                        <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
-                                    </c:forEach>
-                                </c:url>
-                                <span class="expexp" onclick="loadExperiments(this,'${u:escapeJS(urlExps)}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11" style="border:0px;"/></span>
-                            </td>
+                            <td><img class="expexp" onclick="loadExperiments(${i.index});" src="expandopen.gif" alt="&gt;" title="Toggle experiments for this gene" width="11" height="11" style="border:0px;"/></td>
                         </tr>
                     </c:forEach>
                 </tbody>
