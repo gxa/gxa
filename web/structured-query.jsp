@@ -61,17 +61,17 @@ ArrayExpress Atlas Preview
         var options = {
             expressions : [
                     <c:forEach var="i" items="${service.geneExpressionOptions}">
-                    [ '<c:out value="${u:escapeJS(i[0])}"/>', '<c:out value="${u:escapeJS(i[1])}"/>' ],
+                    [ '<c:out escapeXml="false" value="${u:escapeJS(i[0])}"/>', '<c:out escapeXml="false" value="${u:escapeJS(i[1])}"/>' ],
                     </c:forEach>
             ],
             factors : [
                 <c:forEach var="i" items="${service.experimentalFactorOptions}">
-                '<c:out value="${u:escapeJS(i)}"/>',
+                '<c:out escapeXml="false" value="${u:escapeJS(i)}"/>',
                 </c:forEach>
             ],
             species : [
                 <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
-                '<c:out value="${u:escapeJS(i)}"/>',
+                '<c:out escapeXml="false" value="${u:escapeJS(i)}"/>',
                 </c:forEach>
             ]
         };
@@ -80,12 +80,12 @@ ArrayExpress Atlas Preview
         <c:if test="${!empty query}">
         lastquery = {
             gene : '<c:out value="${u:escapeJS(query.gene)}"/>',
-            species : [<c:forEach var="i" items="${query.species}">'<c:out value="${u:escapeJS(i)}"/>',</c:forEach>],
+            species : [<c:forEach var="i" items="${query.species}">'<c:out escapeXml="false" value="${u:escapeJS(i)}"/>',</c:forEach>],
             conditions : [
                 <c:forEach var="c" items="${query.conditions}">
-                { factor: '<c:out value="${u:escapeJS(c.factor)}"/>',
-                  expression: '<c:out value="${u:escapeJS(c.expression)}"/>',
-                  values: [<c:forEach var="v" items="${c.factorValues}">'<c:out value="${u:escapeJS(v)}"/>',</c:forEach>]
+                { factor: '<c:out escapeXml="false" value="${u:escapeJS(c.factor)}"/>',
+                  expression: '<c:out escapeXml="false" value="${u:escapeJS(c.expression)}"/>',
+                  values: [<c:forEach var="v" items="${c.factorValues}">'<c:out escapeXml="false" value="${u:escapeJS(v)}"/>',</c:forEach>]
                 },</c:forEach>
             ]
         };
