@@ -280,7 +280,7 @@ ArrayExpress Atlas Preview
                                         <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
                                     </c:forEach>
                                 </c:url>
-                                <span onclick="loadExperiments(this,'${urlExps}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11" style="border:0px;"/></span>
+                                <span class="expexp" onclick="loadExperiments(this,'${u:escapeJS(urlExps)}','${u:escapeJS(row.gene.geneIdentifier)}');"><img src="expandopen.gif" alt="&gt;" title="Show experiments" width="11" height="11" style="border:0px;"/></span>
                             </td>
                         </tr>
                     </c:forEach>
