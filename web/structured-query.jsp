@@ -79,7 +79,7 @@ ArrayExpress Atlas Preview
         var lastquery;
         <c:if test="${!empty query}">
         lastquery = {
-            gene : '<c:out value="${u:escapeJS(query.gene)}"/>',
+            gene : '<c:out  escapeXml="false" value="${u:escapeJS(query.gene)}"/>',
             species : [<c:forEach var="i" items="${query.species}">'<c:out escapeXml="false" value="${u:escapeJS(i)}"/>',</c:forEach>],
             conditions : [
                 <c:forEach var="c" items="${query.conditions}">
