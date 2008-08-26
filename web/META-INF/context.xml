@@ -8,7 +8,7 @@
       driverClassName="oracle.jdbc.driver.OracleDriver"
       maxIdle="2"
       maxWait="5000"
-      url="jdbc:oracle:thin:@progression:1521:AEDWDEV"
+      url="jdbc:oracle:thin:@moe:1521:AEDWDEV"
       maxActive="50"
       />
 
@@ -23,5 +23,5 @@
               url="jdbc:h2:${java.io.tmpdir}/ATLAS;DB_CLOSE_ON_EXIT=FALSE"/>
     <!--/ebi/work/ae3/testdb/ae3;FILE_LOCK=NO;DB_CLOSE_ON_EXIT=FALSE-->
 
-    <Parameter name="solr_index_location" description="SOLR Multicore Index Location" value="/ebi/work/solr_idxs/multicore"/>
+    <Parameter name="solr_index_location" description="SOLR Multicore Index Location" value="/Users/pashky/Projects/arrayexpress-3/indexbuilder/data/multicore"/>
 </Context>
