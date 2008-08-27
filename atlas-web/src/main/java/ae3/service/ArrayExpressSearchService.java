@@ -372,7 +372,11 @@ public class ArrayExpressSearchService {
             SolrQuery q = new SolrQuery("exp_in_dw:true");
             q.setRows(0);
             q.setFacet(true);
-            q.addFacetField(Constants.FIELD_FACTOR_PREFIX + factor);
+            if (factor == null || factor.equals(""))
+                factor = "exp_factor_values";
+            else
+                factor = Constants.FIELD_FACTOR_PREFIX  + factor;
+            q.addFacetField(factor);
             q.setFacetPrefix(query);
 
             q.setFacetLimit(limit);

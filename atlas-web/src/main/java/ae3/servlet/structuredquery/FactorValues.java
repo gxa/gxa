@@ -23,30 +23,27 @@ public class FactorValues extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html");
         response.setCharacterEncoding("utf-8");
-        if(!"".equals(request.getParameter("factor")))
-        {
-            int nlimit = 100;
-            try {
-                nlimit = Integer.parseInt(request.getParameter("limit"));
-                if(nlimit > 1000)
-                    nlimit = 1000;
-            } catch(Exception e) {
-                // just ignore
-            }
+        int nlimit = 100;
+        try {
+            nlimit = Integer.parseInt(request.getParameter("limit"));
+            if(nlimit > 1000)
+                nlimit = 1000;
+        } catch(Exception e) {
+            // just ignore
+        }
 
-            Map<String,Long> ac = ae3.service.ArrayExpressSearchService.instance()
-                    .autoCompleteFactorValues(
-                            request.getParameter("factor"),
-                            request.getParameter("q"),
-                            nlimit
-                    );
-            if (ac != null) {
-                for(Map.Entry<String,Long> s : ac.entrySet()) {
-                    response.getWriter().println(s.getKey() + "|" + s.getValue());
-                }
-            } else {
-                log.info("No completions found");
+        Map<String,Long> ac = ae3.service.ArrayExpressSearchService.instance()
+                .autoCompleteFactorValues(
+                        request.getParameter("factor"),
+                        request.getParameter("q"),
+                        nlimit
+                );
+        if (ac != null) {
+            for(Map.Entry<String,Long> s : ac.entrySet()) {
+                response.getWriter().println(s.getKey() + "|" + s.getValue());
             }
+        } else {
+            log.info("No completions found");
         }
     }
 }
