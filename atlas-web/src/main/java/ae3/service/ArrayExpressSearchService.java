@@ -376,7 +376,7 @@ public class ArrayExpressSearchService {
             q.setFacetPrefix(query);
 
             q.setFacetLimit(limit);
-            q.setFacetSort(false);
+            q.setFacetSort(true);
             QueryResponse qr = solr_expt.query(q);
 
             if (null == qr.getFacetFields().get(0).getValues())
