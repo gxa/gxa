@@ -8,7 +8,7 @@
       driverClassName="oracle.jdbc.OracleDriver"
       maxIdle="2"
       maxWait="5000"
-      url="jdbc:oracle:thin:@localhost:10002:AEDWDEV"
+      url="jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWDEV"
       maxActive="50"
     />
 
