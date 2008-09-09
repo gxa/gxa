@@ -6,7 +6,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas Preview
+ArrayExpress Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
