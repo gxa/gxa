@@ -11,12 +11,13 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.rmi.RemoteException;
 
 public class AtlasWebServiceImpl implements AtlasWebService {
     private Log log = LogFactory.getLog(getClass());
 
-    public HashMap[] query(String q_gene, String q_expt, String q_orgn, String q_updn) {
+    public List<HashMap> query(String q_gene, String q_expt, String q_orgn, String q_updn) {
         if(null != q_expt && q_expt.endsWith("*")) q_expt = q_expt.replaceAll("[*]$","?*");
 
         QueryResponse exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
@@ -33,10 +34,10 @@ public class AtlasWebServiceImpl implements AtlasWebService {
 
         if(null == arset) return null;
 
-        return arset.getAllAtlasResults(null).toArray(new HashMap[]{});
+        return arset.getAllAtlasResults(null);
     }
 
-    public HashMap[] batchQuery(String[] q_genes, String[] q_expts, String q_orgn, String q_updn) throws RemoteException {
+    public List<HashMap> batchQuery(String[] q_genes, String[] q_expts, String q_orgn, String q_updn) throws RemoteException {
         String q_gene = null;
         if (q_genes.length > 500) throw new RemoteException("Too many genes in query; must be under 500.");
         if (q_genes.length > 0 && !q_genes[0].equals("")) q_gene = "gene_ids:(" + StringUtils.join(q_genes, " ") + ")";

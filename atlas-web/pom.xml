@@ -132,6 +132,27 @@
             <artifactId>utils</artifactId>
             <version>1.07.00</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <version>2.0.7</version>
+          </dependency>
+          <dependency>
+             <groupId>org.apache.cxf</groupId>
+             <artifactId>cxf-rt-transports-http</artifactId>
+             <version>2.0.7</version>
+          </dependency>
+          <dependency>
+             <groupId>org.apache.cxf</groupId>
+             <artifactId>cxf-rt-databinding-aegis</artifactId>
+             <version>2.0.7</version>
+          </dependency>
+          <!--<dependency>-->
+             <!--<groupId>org.apache.cxf</groupId>-->
+             <!--<artifactId>cxf-rt-transports-http-jetty</artifactId>-->
+             <!--<version>2.0.4-incubator</version>-->
+             <!--<scope>test</scope>-->
+          <!--</dependency>        -->
     </dependencies>
 
     <build>
@@ -141,19 +162,5 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <directory>src/main/webresources</directory>
-                            <filtering>true</filtering>
-                        </resource>
-                    </webResources>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>

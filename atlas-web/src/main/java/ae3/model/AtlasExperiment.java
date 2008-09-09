@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.solr.common.SolrDocument;
+import org.apache.commons.lang.StringUtils;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
@@ -372,7 +373,8 @@ public class AtlasExperiment implements java.io.Serializable {
         if(expt != null){
             Map m = expt.getFieldValuesMap();
             for (Object key : m.keySet()) {
-                h.put(key, m.get(key));
+		Collection<String> s = (Collection<String>) m.get(key);
+		h.put(key, StringUtils.join(s, "\t"));
             }
         }
         return h;

@@ -94,10 +94,15 @@ public class AtlasGene {
 
     public HashMap serializeForWebServices() {
         HashMap h = new HashMap();
-        Map m = this.getGeneSolrDocument().getFieldValuesMap();
-        for (Object key : m.keySet()) {
-            h.put(key, m.get(key));
-        }
+	SolrDocument gene = this.getGeneSolrDocument();
+
+        if(gene != null) {
+	    Map m = gene.getFieldValuesMap();
+	    for (Object key : m.keySet()) {
+		Collection<String> s = (Collection<String>) m.get(key);
+		h.put(key, StringUtils.join(s, "\t"));
+	    }
+	}
 
         return h;
     }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context swallowOutput="true">
+    <Resource
+      name="jdbc/AEDWDEV_MOE"
+      type="javax.sql.DataSource"
+      username="aemart"
+      password="marte"
+      driverClassName="oracle.jdbc.OracleDriver"
+      maxIdle="2"
+      maxWait="5000"
+      url="jdbc:oracle:thin:@localhost:10002:AEDWDEV"
+      maxActive="50"
+    />
+
+    <Resource
+      name="jdbc/AEDWP_OTTO"
+      type="javax.sql.DataSource"
+      username="aemart"
+      password="marte"
+      driverClassName="oracle.jdbc.OracleDriver"
+      maxIdle="2"
+      maxWait="5000"
+      url="jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEDWP"
+      maxActive="50"
+    />
+
+    <Resource
+      name="jdbc/AEDWP_SMITHERS"
+      type="javax.sql.DataSource"
+      username="aemart"
+      password="marte"
+      driverClassName="oracle.jdbc.OracleDriver"
+      maxIdle="2"
+      maxWait="5000"
+      url="jdbc:oracle:thin:@smithers.ebi.ac.uk:1521:AEDWP"
+      maxActive="50"
+    />
+
+    <Resource name="jdbc/ATLAS"
+              type="javax.sql.DataSource"
+              username="sa"
+              password=""
+              driverClassName="org.h2.Driver"
+              maxIdle="2"
+              maxWait="5000"
+              maxActive="50"
+              url="jdbc:h2:${java.io.tmpdir}/ATLAS;DB_CLOSE_ON_EXIT=FALSE"/>
+</Context>

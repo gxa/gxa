@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas</artifactId>
@@ -9,13 +9,6 @@
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <repositories>
-        <repository>
-            <id>local-repo</id>
-            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
         <repository>
             <id>local-repo</id>
             <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
@@ -43,17 +36,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>2.0-beta-5</version>
+                <version>2.0-beta-6</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.2</version>
+                <version>2.4.2</version>
                 <configuration>
-                    <testFailureIgnore>true</testFailureIgnore>    
+                    <testFailureIgnore>true</testFailureIgnore>
                 </configuration>
-            </plugin>     
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -70,15 +63,16 @@
     </modules>
 
     <properties>
-        <solr.data.directory>/Users/pashky/Projects/arrayexpress-3/indexbuilder/data/multicore</solr.data.directory>
+        <solr.data.directory>d:\\work\\ae3\\indexbuilder\\data\\multicore</solr.data.directory>
         <indexbuilder.ftp>nowhere</indexbuilder.ftp>
         <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
         <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
         <jdbc.ae.username>aequery</jdbc.ae.username>
         <jdbc.ae.password>aeq007tt</jdbc.ae.password>
-        <jdbc.dw.url>jdbc:oracle:thin:@moe:1521:AEDWDEV</jdbc.dw.url>
+        <jdbc.dw.url>jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWDEV</jdbc.dw.url>
         <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
         <jdbc.dw.username>aemart</jdbc.dw.username>
-        <jdbc.dw.password>marte</jdbc.dw.password>        
+        <jdbc.dw.password>marte</jdbc.dw.password>
+        <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
     </properties>
 </project>

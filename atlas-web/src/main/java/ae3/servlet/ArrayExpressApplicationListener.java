@@ -23,6 +23,7 @@ import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasResultSet;
 
 import java.util.HashSet;
+import java.util.Properties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
@@ -37,20 +38,26 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     // ServletContextListener implementation
     // -------------------------------------------------------
     public void contextInitialized(ServletContextEvent sce) {
-        /* This method is called when the servlet context is
-           initialized(when the Web application is deployed).
-           You can initialize servlet context related data here.
-        */
-
-        ServletContext sc = sce.getServletContext();
-
-        ArrayExpressSearchService as = ArrayExpressSearchService.instance();
-        as.setSolrIndexLocation(sc.getInitParameter("solr_index_location"));
 
         try {
+            Properties atlasProps = new Properties();
+            atlasProps.load(getClass().getResourceAsStream("/atlas.properties"));
+
+//            ServletContext sc = sce.getServletContext();
+
+            ArrayExpressSearchService as = ArrayExpressSearchService.instance();
+            final String solrIndexLocation = atlasProps.getProperty("atlas.solrIndexLocation");
+            final String dbName            = atlasProps.getProperty("atlas.dbName");
+
+            log.info("Initializing Atlas...");
+            log.info("  Solr index location: " + solrIndexLocation);
+            log.info("  database name: " + dbName );
+
+            as.setSolrIndexLocation(solrIndexLocation);
+
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
-            DataSource ds = (DataSource) envContext.lookup("jdbc/AEDWDEV");
+            DataSource ds = (DataSource) envContext.lookup("jdbc/" + dbName);
             DataSource memds = (DataSource) envContext.lookup("jdbc/ATLAS");
 
             as.setMEMDataSource(memds);
