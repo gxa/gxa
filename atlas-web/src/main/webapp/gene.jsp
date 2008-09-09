@@ -9,15 +9,39 @@
 <%@page import="ae3.model.AtlasTuple" %>
 <%@page import="ae3.model.AtlasExperiment" %>
 <%@page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="ae3.service.ArrayExpressSearchService" %>
-<%@ page import="ae3.dao.AtlasObjectNotFoundException" %>
+<%@page import="ae3.service.ArrayExpressSearchService" %>
 <c:set var="timeStart" value="${u:currentTime()}"/>
 <%
     AtlasGene atlasGene = null;
     String geneId = request.getParameter("gid");
     if (geneId != null) {
         atlasGene = AtlasDao.getGeneByIdentifier(geneId);
-        atlasGene.getGeneName();
+    }
+
+    if (request.getParameter("format") != null && request.getParameter("format").equals("xml")) {
+        //TODO: set this right (via REST WS perhaps)
+        response.setContentType("text/xml");
+        response.setCharacterEncoding("UTF-8");
+        Map<String, Collection<Object>> props = atlasGene.getGeneSolrDocument().getFieldValuesMap();
+        %>
+            <atlasGene>
+                <% for (String prop : props.keySet()) {
+                    %>
+                    <geneProperty name="<%=prop%>">
+                       <%
+                           Collection propVals = props.get(prop);
+                           for (Object propVal : propVals) {
+                               %><value><%=propVal%></value><%
+                           }
+                       %>
+                    </geneProperty>
+                    <%
+                }
+                %>
+            </atlasGene>
+        <%
+        response.flushBuffer();
+        return;
     }
 %>
 <jsp:include page="start_head.jsp"/>
@@ -405,6 +429,24 @@ a:focus {
     <td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
             "gene_synonym").toString().replace(
             ']', ' ').replace('[', ' ')%>
+    </td>
+</tr>
+<tr>
+    <td></td>
+    <td>
+        <div class="separator"></div>
+    </td>
+</tr>
+<tr>
+    <td class="geneAnnotHeader">Uniprot:</td>
+    <%
+        Collection<String> uniprots = (Collection<String>)atlasGene.getGeneSolrDocument().getFieldValue(
+            "gene_uniprot");
+    %>
+    <td align="left">
+        <%for (String uniprot : uniprots) { %>
+            <a href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
+        <%}%>
     </td>
 
 </tr>
