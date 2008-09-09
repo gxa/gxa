@@ -271,8 +271,10 @@ ArrayExpress Atlas Preview
                 <%
                     List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
                     for(HashMap<String,String> gene : genes ) {
+                            String gid = gene.get("gene_identifier");
+                            String gn = gene.get("gene_name");
                         %>
-                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" href="gene?gid=<%=gene.get("gene_identifer")%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gene.get("gene_name").equals("") ? gene.get("gene_identifier") : gene.get("gene_name"))%>"/></a></th>
+                            <th <%if(q_updn.equals("updn")){ %>colspan="2"<%}%> align="center"><a style="color: #404040;" href="gene?gid=<%=gid%>" title="Show Atlas Gene Info"><img border="0" src="vtext?<%=response.encodeURL(gn.equals("") ? gid : gn)%>"/></a></th>
                         <%
                     }
                 %>
