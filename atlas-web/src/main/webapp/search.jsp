@@ -394,7 +394,7 @@ ArrayExpress Atlas Preview
 
         %>
         <input type="button" style="font:small" value="View as heatmap" onclick="$('#view_heatmap').click();atlasform.submit()"/>
-        <table style="position:relative; top:-10px;" class="tablesorter" id="atlasTable">
+        <table class="tablesorter" style="clear:both; position: relative; top: -10px;" width="100%" id="atlasTable">
              <thead>
                  <tr>
                      <th width="100">Experiment</th>
