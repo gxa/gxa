@@ -440,11 +440,10 @@ a:focus {
 <tr>
     <td class="geneAnnotHeader">Uniprot:</td>
     <%
-        Collection<String> uniprots = (Collection<String>)atlasGene.getGeneSolrDocument().getFieldValue(
-            "gene_uniprot");
+        Collection uniprots = atlasGene.getGeneSolrDocument().getFieldValues("gene_uniprot");
     %>
     <td align="left">
-        <%for (String uniprot : uniprots) { %>
+        <%for (Object uniprot : uniprots) { %>
             <a href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
         <%}%>
     </td>
