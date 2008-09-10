@@ -431,6 +431,10 @@ a:focus {
             ']', ' ').replace('[', ' ')%>
     </td>
 </tr>
+<%
+    Collection uniprots = atlasGene.getGeneSolrDocument().getFieldValues("gene_uniprot");
+    if(uniprots != null && uniprots.size()>0) {
+        %>
 <tr>
     <td></td>
     <td>
@@ -440,15 +444,17 @@ a:focus {
 <tr>
     <td class="geneAnnotHeader">Uniprot:</td>
     <%
-        Collection uniprots = atlasGene.getGeneSolrDocument().getFieldValues("gene_uniprot");
     %>
     <td align="left">
         <%for (Object uniprot : uniprots) { %>
             <a href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
         <%}%>
     </td>
-
 </tr>
+<%
+    }
+%>
+
 <%
     if (atlasGene.getGeneSolrDocument().getFieldValue("gene_interproterm") != null) {
 %>
