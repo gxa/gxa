@@ -87,13 +87,13 @@ public abstract class IndexBuilderService
 		    solrEmbeddedIndex.init();
 		    createIndexDocs();		
 		}
-		catch (Exception e)
+		catch (Throwable e)
 		{
 			throw new IndexBuilderException(e);
 		}		
 		finally
 		{
-		    dispose();			
+		    dispose();
 		}
 	}
 	
