@@ -47,11 +47,9 @@ public class App
 															   .withLongName(
 																	   Constants.KEY_PROPERTY)
 															   .withRequired(
-																	   true)
+																	   false)
 															   .withArgument(
 																	   pathArgument)
-															   .withRequired(
-																	   true)
 															   .withDescription(
 																	   "Property file")
 															   .create();
@@ -88,7 +86,8 @@ public class App
 	protected void startContext()
 	{
 		PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
-		conf.setLocation(new FileSystemResource(propertyFile));
+		conf.setLocation(propertyFile == null ? new ClassPathResource("indexbuilder.properties")
+                : new FileSystemResource(propertyFile));
 		
 		appContext = new XmlBeanFactory(new ClassPathResource(
 				"app-context.xml"));
@@ -118,14 +117,14 @@ public class App
 		parser.setHelpFormatter(helpFormatter);
 		parser.setHelpTrigger("--help");
 		CommandLine cl = parser.parseAndHelp(args);
-		if (cl == null || !cl.hasOption(optionProperty))
+		if (cl == null)
 		{
 			helpFormatter.printException();
 			return false;
 		}
 		else 
 		{
-			propertyFile = (String) cl.getValue(optionProperty);
+			propertyFile = cl.hasOption(optionProperty) ? (String) cl.getValue(optionProperty) : null;
 			return true;
 			
 		}
