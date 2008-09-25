@@ -8,46 +8,47 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.Element;
+import net.sf.ehcache.*;
+import net.sf.ehcache.event.CacheEventListener;
 
 public class AtlasResultSetCache {
     private final Log log = LogFactory.getLog(getClass());
     private Cache arsCache;
-    private Cache arsSearchKeyCache;
 
     public AtlasResultSetCache() {
-        arsCache            = CacheManager.getInstance().getCache("AtlasResultSetCache");
-        arsSearchKeyCache   = CacheManager.getInstance().getCache("AtlasResultSetSearchKeyCache");
+        arsCache = CacheManager.getInstance().getCache("AtlasResultSetCache");
+
+        arsCache.getCacheEventNotificationService().registerListener(new CacheEventListener() {
+            public void notifyElementRemoved(Ehcache ehcache, Element element) throws CacheException { }
+            public void notifyElementPut(Ehcache ehcache, Element element) throws CacheException { }
+            public void notifyElementUpdated(Ehcache ehcache, Element element) throws CacheException { }
+            public void notifyElementExpired(Ehcache ehcache, Element element) { }
+            public void notifyRemoveAll(Ehcache ehcache) {}
+            public void dispose() {}
+            public void notifyElementEvicted(Ehcache ehcache, Element element) {
+                 ((AtlasResultSet)element.getValue()).cleanup();
+            }
+            public Object clone() throws java.lang.CloneNotSupportedException { return super.clone(); }
+        });
     }
 
     public boolean containsKey(String searchKey) {
-        if(arsSearchKeyCache.isKeyInCache(searchKey)) {
-            return arsCache.isKeyInCache(arsSearchKeyCache.get(searchKey).getValue());
-        }
-
-        return false;
+        return arsCache.isKeyInCache(searchKey);
     }
 
     public AtlasResultSet get(String searchKey) {
-        String arsIdKey = (String) arsSearchKeyCache.get(searchKey).getValue();
-
-        if (null == arsIdKey)
-            return null;
-
-        return (AtlasResultSet) arsCache.get(arsIdKey).getValue();
+        Element element = arsCache.get(searchKey);
+        return (AtlasResultSet) element.getValue();
     }
 
     public void put(AtlasResultSet ars) {
-        arsSearchKeyCache.put(new Element(ars.getSearchKey(), ars.getIdkey()));
-        arsCache.put(new Element(ars.getIdkey(), ars));
+        arsCache.put(new Element(ars.getSearchKey(), ars));
     }
 
     public int size() {
-        assert (arsSearchKeyCache.getSize() == arsCache.getSize()) : "AtlasResultSetSearchKey Cache and AtlasResultSet Cache sizes not equal!";
-
         return arsCache.getSize();
     }
 
@@ -59,13 +60,15 @@ public class AtlasResultSetCache {
         int outOfSyncCount = 0;
         int notInCacheCount = 0;
 
+        Set<String> existingUUIDs = new HashSet<String>();
         for(String key : (List<String>) arsCache.getKeys()) {
             AtlasResultSet ars = (AtlasResultSet) arsCache.get(key).getValue();
 
             if(!ars.isAvailableInDB()) {
                 arsCache.remove(key);
-                arsSearchKeyCache.remove(ars.getSearchKey());
                 outOfSyncCount++;
+            } else {
+                existingUUIDs.add(ars.getIdkey());
             }
         }
 
@@ -79,7 +82,7 @@ public class AtlasResultSetCache {
             while(rs.next()) {
                 String idkey = rs.getString(1);
 
-                if(!arsCache.isKeyInCache(idkey)) {
+                if(!existingUUIDs.contains(idkey)) {
                     AtlasResultSet ars = new AtlasResultSet(idkey);
                     ars.setIdkey(idkey);
                     ars.cleanup();
@@ -96,6 +99,5 @@ public class AtlasResultSetCache {
                                                 + notInCacheCount + " result sets cleaned up from DB, "
                                                 + arsCache.getSize() + " result sets total in cache.");
 
-        assert (arsSearchKeyCache.getSize() == arsCache.getSize()) : "AtlasResultSetSearchKey Cache and AtlasResultSet Cache sizes not equal!";
     }
 }
