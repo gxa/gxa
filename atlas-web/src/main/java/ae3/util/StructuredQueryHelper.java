@@ -23,6 +23,8 @@ public class StructuredQueryHelper {
     private static String PARAM_FACTORVALUE = "fval_";
     private static String PARAM_GENE = "gene";
     private static String PARAM_SPECIE = "specie_";
+    private static int DEFAULT_ROWS = 100;
+    private static String PARAM_START = "p";
 
     public static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
     {
@@ -99,19 +101,28 @@ public class StructuredQueryHelper {
         return result;
     }
 
-   /**
-    * Parse HTTP request parameters and build AtlasExtendedRequest structure
-    * @param httpRequest HTTP servlet request
-    * @return extended request made of succesfully parsed conditions
-    */
+    /**
+     * Parse HTTP request parameters and build AtlasExtendedRequest structure
+     * @param httpRequest HTTP servlet request
+     * @return extended request made of succesfully parsed conditions
+     */
     static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
         String gene = httpRequest.getParameter(PARAM_GENE);
         if(gene == null)
             return null;
         request.setGene(gene.equals("(all genes)") ? "" : gene);
+
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseConditions(httpRequest));
+        request.setRows(DEFAULT_ROWS);
+
+        String start = httpRequest.getParameter(PARAM_START);
+        try {
+            request.setStart(Integer.valueOf(start));
+        } catch(Exception e) {
+            request.setStart(0);
+        }
         return request;
     }
 
@@ -181,4 +192,23 @@ public class StructuredQueryHelper {
     {
         return System.currentTimeMillis();
     }
+
+    public static String encodeEfv(String v) {
+        try {
+            StringBuffer r = new StringBuffer();
+            for(char x : v.toCharArray())
+            {
+                if(Character.isJavaIdentifierPart(x))
+                    r.append(x);
+                else
+                    for(byte b : Character.toString(x).getBytes("UTF-8"))
+                        r.append("_").append(String.format("%x", b));
+            }
+            return r.toString();
+        } catch(UnsupportedEncodingException e){
+            throw new IllegalArgumentException("Unable to encode EFV in UTF-8", e);
+        }
+    }
+
+
 }

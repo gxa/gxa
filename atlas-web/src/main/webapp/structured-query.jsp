@@ -1,6 +1,7 @@
 <%String svnBuildString = "$Rev: 4866 $ $Date: 2008-06-20 11:57:28 +0100 (Fri, 20 Jun 2008) $";%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ page import="ae3.service.AtlasStructuredQuery" %>
@@ -34,15 +35,6 @@ ArrayExpress Atlas Preview
     <script type="text/javascript" src="structured-query.js"></script>
 
     <script type="text/javascript">
-        $("#atlasTable").tablesorter({
-            sortAppend: [[6,0]],
-            headers: {
-                6: { sorter : 'digit' },
-                7: { sorter : false },
-                8: { sorter : false }
-            }
-        });
-
         $(document).ready(function()
             {
                 $("#gene").defaultvalue("(all genes)");
@@ -146,6 +138,11 @@ ArrayExpress Atlas Preview
         ul.dnexp li { text-align:right; }
         ul.upexp li { background-color: #fff0f0; }
         ul.dnexp li { background-color: #f0f0ff; }
+
+        a.fup, a.fup:active, a.fup:hover, a.fup:visited { color: #000033; }
+        a.fdn, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #330000; }
+        a.ftot, aftot:active, a.ftot:hover, a.ftot:visited { color: #333333; }
+
     </style>
 
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
@@ -224,6 +221,8 @@ ArrayExpress Atlas Preview
             AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
             request.setAttribute("result", atlasResult);
         %>
+        <c:set var="queryEfvs" value="${result.queryEfvs.nameSortedTree}"/>
+        <c:set var="cn" value="${result.queryEfvs.size}"/>
         <script type="text/javascript">
             $("#loading_display").hide();
             var resultGenes = [
@@ -231,33 +230,53 @@ ArrayExpress Atlas Preview
             ];
 
             <c:url var="urlExps" value="/sexpt">
-                <c:forEach var="c" varStatus="s" items="${result.conditions}">
-                    <c:param name="ef${s.index}" value="${c.factor}"/>
-                    <c:forEach var="v" items="${c.factorValues}"><c:param name="fv${s.index}" value="${v}"/></c:forEach>
+                <c:forEach var="c" varStatus="s" items="${queryEfvs}">
+                    <c:param name="ef${s.index}" value="${c.ef}"/>
+                    <c:forEach var="v" items="${c.efvs}"><c:param name="fv${s.index}" value="${v.efv}"/></c:forEach>
                 </c:forEach>
             </c:url>
             var exptUrlBase = '${u:escapeJS(urlExps)}';
         </script>
 
         <c:if test="${result.size > 0}">
+            <c:url var="pageUrl" value="/qrs">
+                <c:param name="gene" value="${u:escapeJS(query.gene)}"/>
+                <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
+                <c:forEach varStatus="cs" var="c" items="${query.conditions}">
+                    <c:param name="fact_${cs.index}" value="${c.factor}"/>
+                    <c:param name="gexp_${cs.index}" value="${c.expression}"/>
+                    <c:forEach varStatus="vs" var="v" items="${c.factorValues}"><c:param name="fval_${cs.index}_${vs.index}" value="${v}"/></c:forEach>
+                </c:forEach>
+            </c:url>
+
+
             <p>
-                <c:if test="${result.size == 200}">More than </c:if><c:out value="${result.size}" /> matching gene(s) found:
+                <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start} - ${result.start + result.size}"/>:
             </p>
+            <ul><c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
+                <li>
+                    <b><c:out value="${ef.ef}"/></b>:
+                    <c:forEach var="efv" items="${ef.efvs}" varStatus="s">
+                        <c:out value="${efv.efv}"/>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;+&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}"> = <a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP_DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="ftot"><c:out value="${efv.payload.up + efv.payload.down}"/></a></c:if>)<c:if test="${!s.last}">,</c:if>
+                    </c:forEach>
+                </li>
+            </c:forEach></ul>
+            <div style="clear:both;"/>
             <table id="squery">
                 <thead>
                     <tr>
                         <th colspan="2" rowspan="2" class="gene">Gene</th>
-                        <c:forEach var="c" items="${result.conditions}">
-                            <th colspan="${f:length(c.factorValues)}" class="factor">
-                                <c:out value="${c.expression.description}" escapeXml="true"/> in<br/> <em><c:out value="${c.factor}" escapeXml="true"/></em>
+                        <c:forEach var="c" items="${queryEfvs}">
+                            <th colspan="${f:length(c.efvs)}" class="factor">
+                                <em><c:out value="${c.ef}" escapeXml="true"/></em>
                             </th>
                         </c:forEach>
                         <th rowspan="2" valign="top"><img class="expexp" onclick="loadExperiments();" src="expandopen.gif" alt="&gt;" title="Toggle all experiments" width="11" height="11" style="border:0px;"/></th>
                     </tr>
                     <tr>
-                        <c:forEach var="c" items="${result.conditions}">
-                            <c:forEach var="v" items="${c.factorValues}">
-                                <th class="counter"><c:out value="${v}" escapeXml="true"/></th>
+                        <c:forEach var="c" items="${queryEfvs}">
+                            <c:forEach var="v" items="${c.efvs}">
+                                <th class="counter"><c:out value="${v.efv}" escapeXml="true"/></th>
                             </c:forEach>
                         </c:forEach>
                     </tr>
@@ -292,14 +311,31 @@ ArrayExpress Atlas Preview
                     </c:forEach>
                 </tbody>
             </table>
+
+            <c:if test="${result.size < result.total}">
+                <c:if test="${result.start >= result.rows}">
+                    <a href="${pageUrl}&p=${result.start - result.rows}">prev</a>
+                </c:if>
+                <c:forEach var="p" begin="0" end="${result.total}" step="${result.rows}">
+                    <c:if test="${result.start == p}">
+                       <b><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></b>
+                    </c:if>
+                    <c:if test="${result.start != p}">
+                       <a href="${pageUrl}&p=${p}"><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></a>
+                    </c:if>
+                </c:forEach>
+                <c:if test="${result.total - result.start > result.rows}">
+                    <a href="${pageUrl}&p=${result.start + result.rows}">next</a>
+                </c:if>
+            </c:if>
         </c:if>
         <c:if test="${empty result}">
             No results found!
         </c:if>
         <c:set var="timeFinish" value="${u:currentTime()}"/>
-        <div>
+        <p>
             Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-        </div>        
+        </p>        
     </c:if>
 
 </div>

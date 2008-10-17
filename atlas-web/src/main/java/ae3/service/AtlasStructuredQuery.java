@@ -11,9 +11,6 @@ public class AtlasStructuredQuery {
     static public enum Expression {
         UP("up"),
         DOWN("down"),
-        NOT_UP("not up"),
-        NOT_DOWN("not down"),
-        NOT_EXPRESSED("not expressed"),
         UP_DOWN("up or down");
 
         private String description;
@@ -78,9 +75,13 @@ public class AtlasStructuredQuery {
     private String gene;
     private List<String> species;
     private List<Condition> conditions;
+    private int start;
+    private int rows;
 
     public AtlasStructuredQuery() {
         conditions = new ArrayList<Condition>();
+        start = 0;
+        rows = 100;
     }
 
     public String getGene() {
@@ -109,5 +110,21 @@ public class AtlasStructuredQuery {
 
     public void addCondition(Condition condition) {
         this.conditions.add(condition);
+    }
+
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
     }
 }

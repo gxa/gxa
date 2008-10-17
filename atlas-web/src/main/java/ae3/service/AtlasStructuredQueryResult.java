@@ -7,34 +7,13 @@ import ae3.model.AtlasGene;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author pashky
  */
 public class AtlasStructuredQueryResult {
     protected final Log log = LogFactory.getLog(getClass());
-
-    public static class Condition {
-        private AtlasStructuredQuery.Condition queryCondition;
-        private List<String> expandedFactorValues;
-
-        public AtlasStructuredQuery.Expression getExpression() {
-            return queryCondition.getExpression();
-        }
-
-        public String getFactor() {
-            return queryCondition.getFactor();
-        }
-
-        public Condition(AtlasStructuredQuery.Condition queryCondition, Collection<String> expandedFactorValues) {
-            this.queryCondition = queryCondition;
-            this.expandedFactorValues = new ArrayList<String>(expandedFactorValues);
-        }
-
-        public List<String> getFactorValues() {
-            return expandedFactorValues;
-        }
-    }
 
     static public class UpdownCounter {
         private int ups;
@@ -78,6 +57,45 @@ public class AtlasStructuredQueryResult {
         }
     }
 
+
+    static public class FacetUpDn implements Comparable<FacetUpDn> {
+        private int up;
+        private int down;
+
+        public FacetUpDn() {
+            up = down = 0;
+        }
+
+        public void setUp(int up) {
+            this.up = up;
+        }
+
+        public void setDown(int down) {
+            this.down = down;
+        }
+
+        public void addUp(int up) {
+            this.up += up;
+        }
+
+        public void addDown(int down) {
+            this.down += down;
+        }
+
+        public int getUp() {
+            return up;
+        }
+
+        public int getDown() {
+            return down;
+        }
+
+        public int compareTo(FacetUpDn o) {
+            // descending order
+            return - Integer.valueOf(getDown() + getUp()).compareTo(o.getUp() + o.getDown());
+        }
+    }
+
     static public class GeneResult {
         private AtlasGene gene;
         private List<UpdownCounter> updownCounters;
@@ -104,12 +122,20 @@ public class AtlasStructuredQueryResult {
         }
     }
 
-    List<Condition> conditions;
-    List<GeneResult> results;
+    private EfvTree<Boolean> queryEfvs;
+    private List<GeneResult> results;
 
-    public AtlasStructuredQueryResult(List<Condition> conditions) {
-        this.conditions = conditions;
+    private long total;
+    private long start;
+    private long rows;
+
+    private EfvTree<FacetUpDn> efvFacet;
+
+    public AtlasStructuredQueryResult(EfvTree<Boolean> queryEfvs, long start, long rows) {
+        this.queryEfvs = queryEfvs;
         this.results = new ArrayList<GeneResult>();
+        this.start = start;
+        this.rows = rows;
     }
 
     public void addResult(GeneResult result) {
@@ -124,8 +150,33 @@ public class AtlasStructuredQueryResult {
         return results;
     }
 
-    public List<Condition> getConditions() {
-        return conditions;
+    public EfvTree<Boolean> getQueryEfvs() {
+        return queryEfvs;
     }
 
+    public long getStart() {
+        return start;
+    }
+
+    public long getTotal() {
+        return total;
+    }
+
+    public long getRows() {
+        return rows;
+    }
+
+    public void setTotal(long total) {
+        this.total = total;
+    }
+
+    public void setEfvFacet(EfvTree<FacetUpDn> efvFacet)
+    {
+        this.efvFacet = efvFacet;
+    }
+
+    public EfvTree<FacetUpDn> getEfvFacet()
+    {
+        return efvFacet;
+    }
 }
