@@ -50,9 +50,10 @@ public abstract class IndexBuilderService
 	private static final String FILE_FILTER_BIOSAMPLES_PNG = "biosamples.png";
 	/** The extension of the biosamples svg files*/
 	private static final String FILE_FILTER_BIOSAMPLES_SVG = "biosamples.svg";
-	
-	
-	/**
+
+    private boolean updateMode = false;
+
+    /**
 	 * Default constructor 
 	 * @param confService
 	 * @throws ParserConfigurationException
@@ -62,9 +63,17 @@ public abstract class IndexBuilderService
 	public IndexBuilderService() throws ParserConfigurationException, IOException, SAXException
 	{
 	}
-	
 
-	/**
+
+    public boolean isUpdateMode() {
+        return updateMode;
+    }
+
+    public void setUpdateMode(boolean updateMode) {
+        this.updateMode = updateMode;
+    }
+
+    /**
 	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbeddedIndex instance.
 	 * @throws SolrServerException
 	 * @throws IOException

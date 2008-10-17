@@ -57,7 +57,9 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         Connection sql = getDataSource().getConnection();
 
         PreparedStatement listAtlasGenesStmt = sql.prepareStatement("select agenes.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
-                "from (select distinct gene_id_key from atlas where gene_id_key<>0 and updn<>0) agenes, gene_xml xml where agenes.gene_id_key = xml.gene_id_key");
+                "from (select distinct gene_id_key from atlas where gene_id_key<>0 and updn<>0) agenes, gene_xml xml " +
+                "where agenes.gene_id_key = xml.gene_id_key" +
+                (isUpdateMode() ? " and xml.status<>'fresh' and xml.status is not null" : ""));
         PreparedStatement countGeneEfvStmt = sql.prepareStatement("select ef,efv,updn," +
                 "avg(round(updn_pvaladj,100)) as avgpval," +
                 "count(distinct experiment_id_key) as cnt " +

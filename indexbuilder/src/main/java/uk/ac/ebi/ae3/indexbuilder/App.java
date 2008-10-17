@@ -71,6 +71,12 @@ public class App
             .withDescription("Indexes to build")
             .create();
 
+    private final DefaultOption     optionUpdate = optionBuilder
+            .withLongName("update")
+            .withRequired(false)
+            .withDescription("Update mode")
+            .create();
+
     private String					 propertyFile;
 	private XmlBeanFactory appContext; 	
 	
@@ -80,16 +86,19 @@ public class App
     private boolean buildExpt = false;
     private boolean buildGene = false;
 
+    private boolean updateMode = false;
+
     public static void main(String[] args)
 	{
 		try
 		{
 			App app = new App();
 			//TODO: Add exception to parse method
-			app.parse(args);
-			app.startContext();		
-			app.run();
-		}
+            if(app.parse(args)) {
+                app.startContext();
+                app.run();
+            }
+        }
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -125,12 +134,14 @@ public class App
 	{
         IndexBuilderService indexBuilderService;
 
-        log.info("Will build indexes: " + (buildExpt ? "experiments " : "") + (buildGene ? "atlas gene" : ""));
+        log.info("Will build indexes: " + (buildExpt ? "experiments " : "") + (buildGene ? "gene" : "")
+                + (updateMode ? " (update mode)" : ""));
 
         if(buildExpt) {
             log.info("Building experiments index");
             indexBuilderService = (IndexBuilderService) appContext
                     .getBean(Constants.exptIndexBuilderServiceID);
+            indexBuilderService.setUpdateMode(updateMode);
             indexBuilderService.buildIndex();
         }
 
@@ -138,13 +149,17 @@ public class App
             log.info("Building atlas gene index");
             indexBuilderService = (IndexBuilderService) appContext
                     .getBean(Constants.geneIndexBuilderServiceID);
+            indexBuilderService.setUpdateMode(updateMode);
             indexBuilderService.buildIndex();
         }
 	}
 	
 	protected boolean parse(String[] args)
 	{
-		Group groupOptions = groupBuilder.withOption(optionProperty).withOption(optionBuild).create();
+		Group groupOptions = groupBuilder.withOption(optionProperty)
+                .withOption(optionBuild)
+                .withOption(optionUpdate)
+                .create();
 		Parser parser = new Parser();
 		
 		parser.setGroup(groupOptions);
@@ -160,6 +175,8 @@ public class App
 		else 
 		{
 			propertyFile = cl.hasOption(optionProperty) ? (String) cl.getValue(optionProperty) : null;
+            updateMode = cl.hasOption(optionUpdate);
+
             if(cl.hasOption(optionBuild)) {
                 for(Object s: cl.getValues(optionBuild)) {
                     if("expt".equals(s))
