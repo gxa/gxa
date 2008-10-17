@@ -27,21 +27,32 @@
 	</bean>
 	
 	
-	<bean id="solrEmbeddedIndex" class="uk.ac.ebi.ae3.indexbuilder.service.SolrEmbeddedIndex">
-	    <constructor-arg index="0" value="${indexbuilder.indexdir}"></constructor-arg>
+	<bean id="solrEmbeddedIndexExpt" class="uk.ac.ebi.ae3.indexbuilder.service.SolrEmbeddedIndex">
+        <constructor-arg index="0" value="${indexbuilder.indexdir}"></constructor-arg>
+        <constructor-arg index="1" value="expt"></constructor-arg>
 	</bean>
 	
 	<!-- <bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromMageTab">
 	   <constructor-arg index="0" ref="configurationService"></constructor-arg>
 	</bean>
     -->
-	<bean id ="indexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromDb">
+	<bean id ="exptIndexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderFromDb">
 	   <property name="experimentDao" ref="experimentJdbcDao"></property>
 	   <property name="experimentDwDao" ref="experimentDwJdbcDao"></property>
-	   <property name="solrEmbeddedIndex" ref="solrEmbeddedIndex"></property>
+	   <property name="solrEmbeddedIndex" ref="solrEmbeddedIndexExpt"></property>
 	   <property name="ftpDir" value="${indexbuilder.ftp}"></property>
 	</bean>
 	
+
+    <bean id="solrEmbeddedIndexGene" class="uk.ac.ebi.ae3.indexbuilder.service.SolrEmbeddedIndex">
+        <constructor-arg index="0" value="${indexbuilder.indexdir}"></constructor-arg>
+        <constructor-arg index="1" value="atlas"></constructor-arg>
+    </bean>
+
+    <bean id ="geneIndexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder">
+       <property name="dataSource" ref="dataSourceDW"></property>
+       <property name="solrEmbeddedIndex" ref="solrEmbeddedIndexGene"></property>
+    </bean>
 
 
 

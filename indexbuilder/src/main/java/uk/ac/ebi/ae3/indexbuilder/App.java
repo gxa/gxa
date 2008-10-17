@@ -14,12 +14,14 @@ import org.apache.commons.cli2.option.DefaultOption;
 import org.apache.commons.cli2.util.HelpFormatter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
+import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
 
 /**
  * The main class which contains main method. Create expt lucene index.
@@ -40,7 +42,6 @@ public class App
 	private final Argument			 pathArgument	= argumentBuilder
 															   .withName("path")
 															   .withMaximum(1)
-															   .withMaximum(1)
 															   .create();
 	
 	private final DefaultOption		optionProperty  = optionBuilder
@@ -53,13 +54,33 @@ public class App
 															   .withDescription(
 																	   "Property file")
 															   .create();
-	private String					 propertyFile;
+
+    private final Argument			 modeArgument	= argumentBuilder
+            .withName("mode")
+            .withMinimum(1)
+            .withMaximum(2)
+            .withDefault("expt")
+            .withSubsequentSeparator(',')
+            .create();
+
+
+    private final DefaultOption     optionBuild = optionBuilder
+            .withLongName("build")
+            .withRequired(false)
+            .withArgument(modeArgument)
+            .withDescription("Indexes to build")
+            .create();
+
+    private String					 propertyFile;
 	private XmlBeanFactory appContext; 	
 	
 	private static final Log		   log			 = LogFactory
 															   .getLog(App.class);
-	
-	public static void main(String[] args)
+
+    private boolean buildExpt = false;
+    private boolean buildGene = false;
+
+    public static void main(String[] args)
 	{
 		try
 		{
@@ -102,22 +123,36 @@ public class App
 	
 	protected void run() throws Exception, IndexException
 	{
-		IndexBuilderService indexBuilderService = (IndexBuilderService) appContext
-				.getBean(Constants.indexBuilderServiceID);
-		indexBuilderService.buildIndex();
-		
+        IndexBuilderService indexBuilderService;
+
+        log.info("Will build indexes: " + (buildExpt ? "experiments " : "") + (buildGene ? "atlas gene" : ""));
+
+        if(buildExpt) {
+            log.info("Building experiments index");
+            indexBuilderService = (IndexBuilderService) appContext
+                    .getBean(Constants.exptIndexBuilderServiceID);
+            indexBuilderService.buildIndex();
+        }
+
+        if(buildGene) {
+            log.info("Building atlas gene index");
+            indexBuilderService = (IndexBuilderService) appContext
+                    .getBean(Constants.geneIndexBuilderServiceID);
+            indexBuilderService.buildIndex();
+        }
 	}
 	
 	protected boolean parse(String[] args)
 	{
-		Group groupOptions = groupBuilder.withOption(optionProperty).create();
+		Group groupOptions = groupBuilder.withOption(optionProperty).withOption(optionBuild).create();
 		Parser parser = new Parser();
 		
 		parser.setGroup(groupOptions);
 		parser.setHelpFormatter(helpFormatter);
 		parser.setHelpTrigger("--help");
 		CommandLine cl = parser.parseAndHelp(args);
-		if (cl == null)
+
+        if (cl == null)
 		{
 			helpFormatter.printException();
 			return false;
@@ -125,8 +160,15 @@ public class App
 		else 
 		{
 			propertyFile = cl.hasOption(optionProperty) ? (String) cl.getValue(optionProperty) : null;
-			return true;
-			
+            if(cl.hasOption(optionBuild)) {
+                for(Object s: cl.getValues(optionBuild)) {
+                    if("expt".equals(s))
+                        buildExpt = true;
+                    else if("gene".equals(s))
+                        buildGene = true;
+                }
+            }
+            return true;
 		}
 		
 	}

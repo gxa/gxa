@@ -5,17 +5,11 @@ package uk.ac.ebi.ae3.indexbuilder.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.search.PhraseQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -25,12 +19,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.MultiCore;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.request.LocalSolrQueryRequest;
-import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrQueryResponse;
-import org.apache.solr.request.SolrRequestHandler;
-import org.apache.solr.search.DocIterator;
-import org.apache.solr.search.DocList;
 import org.xml.sax.SAXException;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
@@ -52,15 +40,19 @@ public class SolrEmbeddedIndex {
     private MultiCore multiCore;
     /** The directory to the "multicore.xml" file */
     private String indexDir;
+    /** The core name */
+    private String coreName;
     /** Status of initialization SolrServer*/
     private boolean init = false;
     /**
      * Constructs a new instance of this class.
-     * @param indexDir - a directory to where is the file multicore.xml 
+     * @param indexDir - a directory to where is the file multicore.xml
+     * @param coreName
      */
-    public SolrEmbeddedIndex(String indexDir)
+    public SolrEmbeddedIndex(String indexDir, String coreName)
     {
-	this.indexDir = indexDir;
+        this.indexDir = indexDir;
+        this.coreName = coreName;
     }
     
     /**
@@ -75,7 +67,7 @@ public class SolrEmbeddedIndex {
      if (!init)
      {
        this.multiCore = new MultiCore(indexDir, new File(indexDir, Constants.VAL_INDEXFILE));
-       this.exptSolrCore = multiCore.getCore(Constants.SOLR_CORE_NAME_EXPT);		
+       this.exptSolrCore = multiCore.getCore(coreName);
        this.solrServer = new EmbeddedSolrServer(exptSolrCore);
        init = true;
      }

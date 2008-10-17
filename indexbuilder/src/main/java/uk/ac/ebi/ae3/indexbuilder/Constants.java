@@ -19,7 +19,8 @@ public class Constants
 	public static final String SDRF_EXTENSION=".sdrf.txt";
 	public static final String IDF_EXTENSION=".idf.txt";
 	public static final String SOLR_CORE_NAME_EXPT="expt";
-	public static final String indexBuilderServiceID="indexBuilderService";
+    public static final String exptIndexBuilderServiceID ="exptIndexBuilderService";
+    public static final String geneIndexBuilderServiceID ="geneIndexBuilderService";
 	//XML Elements which are the same for AE and DW XML
 	public static final String EL_experiment = "experiment";
 	//XML Attributes and elements for DW
