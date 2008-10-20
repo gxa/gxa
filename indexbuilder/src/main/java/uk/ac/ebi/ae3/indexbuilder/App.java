@@ -185,6 +185,10 @@ public class App
                         buildGene = true;
                 }
             }
+
+            if(!buildGene && !buildExpt)
+                buildExpt = true;
+
             return true;
 		}
 		
