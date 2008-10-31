@@ -1,4 +1,12 @@
 var counter = 0;
+
+function escapeHtml(s) {
+    return s.replace(/"/g,"&quot;")
+            .replace(/</g,"&lt;")
+            .replace(/>/g,"&gt;")
+            .replace(/&/g,"&amp;");
+}
+
 (function($){
      window.initQuery = function() {
 
@@ -116,6 +124,7 @@ var counter = 0;
                  fval.find('input.value').focus().attr('value', '').blur()
                      .setOptions({ extraParams: { factor : newv } }).flushCache();
                  loadValues(fval.find('select'), function() { });
+                 tr.find("td.expansion").text('');
              };
 
 
@@ -124,7 +133,8 @@ var counter = 0;
                  .append(fval)
                  .append($('<td class="andbuttons" />')
                          .append($('<div/>').append($('<input type="button" value=" and ">')
-                                                    .bind('click', function() { addConditionAnd($(this)); } ))));
+                                                    .bind('click', function() { addConditionAnd($(this)); } ))))
+                     .append($('<td class="expansion" />').text(condition != null ? condition.expansion : ''));
 
              function addConditionOr(where, value) {
                  var orid = ++counter;
@@ -141,7 +151,7 @@ var counter = 0;
                                        max: 10,
                                        extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
                                        formatItem:function(row) {return row[0];}
-                                   }).flushCache();
+                                   }).flushCache().keydown(function () {tr.find("td.expansion").text('');});
                  if(value != null)
                      input.val(value);
 
@@ -153,6 +163,7 @@ var counter = 0;
                                                                  var vbutt = $(this);
                                                                  var oldval = input.val();
                                                                  loadValues(input, function(sel) {
+                                                                      tr.find("td.expansion").text('');
                                                                       //
                                                                       for(var i = 0; i < sel.options.length; ++i)
                                                                           if(sel.options[i].value.indexOf(oldval) >= 0)
@@ -165,6 +176,7 @@ var counter = 0;
                                                                })))
                      .append($('<div class="buttons" />')
                              .append(createRemoveButton(function (where) {
+                                                            tr.find("td.expansion").text('');
                                                             if(fval.find('div.value').length == 1)
                                                             {
                                                                 if(tbody.find('tr').length != 1)
@@ -278,7 +290,7 @@ var counter = 0;
                                  c.append('<li><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query='
                                          + encodeURI(geneDwId)
                                          + '&species=&displayInsitu=on&exp_query=' + encodeURI(exp[j].experimentAccessment)
-                                         + '" title="' + escape(exp[j].experimentName) + '">'
+                                         + '" title="' + exp[j].experimentAccessment + ': ' + escapeHtml(exp[j].experimentName) + '">'
                                          + exp[j].experimentAccessment + '</a></li>');
                              return c;
                          }

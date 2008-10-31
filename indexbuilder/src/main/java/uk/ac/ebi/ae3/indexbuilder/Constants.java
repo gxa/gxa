@@ -15,7 +15,7 @@ public class Constants
 	public static final String KEY_MAGETABDIR="magedir";
 	public static final String KEY_INDEXFILE="indexfile";
 	public static final String KEY_PROPERTY="property";
-	public static final String VAL_INDEXFILE="multicore.xml";
+	public static final String VAL_INDEXFILE="solr.xml";
 	public static final String SDRF_EXTENSION=".sdrf.txt";
 	public static final String IDF_EXTENSION=".idf.txt";
 	public static final String SOLR_CORE_NAME_EXPT="expt";
@@ -241,6 +241,4 @@ public class Constants
 	public static final String SUFFIX_ASSAY_ID = "assay_id";
 	public static final String SUFFIX_SAMPLE_ID = "sample_id";
 
-    public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
-	
 }

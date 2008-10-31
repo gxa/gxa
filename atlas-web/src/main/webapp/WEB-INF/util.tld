@@ -21,7 +21,7 @@
 
     <function>
       <name>escapeURL</name>
-      <function-class>ae3.util.StructuredQueryHelper</function-class>
+      <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
         java.lang.String escapeURL( java.lang.String )
       </function-signature>
@@ -29,7 +29,7 @@
 
     <function>
       <name>gradient</name>
-      <function-class>ae3.util.StructuredQueryHelper</function-class>
+      <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
          java.lang.String[] gradient(int , int , int , int , int , int , int , int, int )
       </function-signature>
@@ -37,7 +37,7 @@
 
     <function>
       <name>currentTime</name>
-      <function-class>ae3.util.StructuredQueryHelper</function-class>
+      <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
         long currentTime()
       </function-signature>

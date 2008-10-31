@@ -263,7 +263,9 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <field name="gene_id" type="string" indexed="true" stored="true"/>
         <field name="gene_name" type="text" indexed="true" stored="true"/>
+        <field name="gene_name_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_disease" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_disease_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_dbxref" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_embl" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_ensfamily" type="text" indexed="true" stored="true" multiValued="true"/> 
@@ -272,17 +274,22 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="gene_enstranscript" type="string" indexed="true" stored="true" multiValued="true"/> 
         <field name="gene_goid" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_goterm" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_goterm_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_image" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_interproid" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_interproterm" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_interproterm_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_keyword" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_keyword_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_locuslink" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_omimid" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_orf" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_ortholog" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_protein" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_protein_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_refseq" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_species" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="gene_species_exact" type="string" indexed="true" stored="false" multiValued="true"/>
         <field name="gene_synonym" type="text" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_unigene" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="gene_uniprot" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -357,8 +364,31 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
     <copyField source="gene_protein" dest="gene_desc"/>
     <copyField source="gene_synonym" dest="gene_desc"/>
     
-    <copyField source="gene_desc" dest="suggest_full"/>
-    <copyField source="gene_desc" dest="suggest_token"/>
+    <copyField source="gene_name" dest="gene_name_exact"/>
+    <copyField source="gene_disease" dest="gene_disease_exact"/>
+    <copyField source="gene_goterm" dest="gene_goterm_exact"/>
+    <copyField source="gene_interproterm" dest="gene_interproterm_exact"/>
+    <copyField source="gene_keyword" dest="gene_keyword_exact"/>
+    <copyField source="gene_protein" dest="gene_protein_exact"/>
+    <copyField source="gene_synonym" dest="gene_name_exact"/>
+
+    <copyField source="gene_name" dest="suggest_full"/>
+    <copyField source="gene_disease" dest="suggest_full"/>
+    <copyField source="gene_goterm" dest="suggest_full"/>
+    <copyField source="gene_interproterm" dest="suggest_full"/>
+    <copyField source="gene_keyword" dest="suggest_full"/>
+    <copyField source="gene_protein" dest="suggest_full"/>
+    <copyField source="gene_synonym" dest="suggest_full"/>
+
+    <copyField source="gene_name" dest="suggest_token"/>
+    <copyField source="gene_disease" dest="suggest_token"/>
+    <copyField source="gene_goterm" dest="suggest_token"/>
+    <copyField source="gene_interproterm" dest="suggest_token"/>
+    <copyField source="gene_keyword" dest="suggest_token"/>
+    <copyField source="gene_protein" dest="suggest_token"/>
+    <copyField source="gene_synonym" dest="suggest_token"/>
+   
+    <copyField source="gene_species" dest="gene_species_exact"/>
 
 
     <!-- <![CDATA[ Similarity is the scoring routine for each document vs. a query.

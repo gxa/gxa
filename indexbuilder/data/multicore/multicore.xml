@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<multicore adminPath="/admin/multicore" persistent="true">
- <core name="gene" instanceDir="gene" default="true"/>
- <core name="expt" instanceDir="expt"/>
-</multicore>

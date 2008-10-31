@@ -2,7 +2,7 @@ package ae3.servlet.structuredquery;
 
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasExperimentRow;
-import ae3.util.StructuredQueryHelper;
+import ae3.service.structuredquery.AtlasStructuredQueryParser;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONArray;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.lang.ArrayUtils;
 
 /**
  * Serve experiments list for AJAX support in structured query page
@@ -63,7 +62,7 @@ public class Experiments extends HttpServlet {
 
         // Don't know how to make it with real types, not Object
         List<UpDownPair> experiments = new ArrayList<UpDownPair>();
-        for(String p : StructuredQueryHelper.findPrefixParamsSuffixes(request, "ef")) {
+        for(String p : AtlasStructuredQueryParser.findPrefixParamsSuffixes(request, "ef")) {
             String factor = request.getParameter("ef" + p);
             String[] factorValues = request.getParameterValues("fv" + p);
             if(factor != null && factorValues != null)

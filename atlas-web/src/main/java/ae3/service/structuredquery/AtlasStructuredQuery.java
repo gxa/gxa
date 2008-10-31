@@ -1,4 +1,4 @@
-package ae3.service;
+package ae3.service.structuredquery;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -15,13 +15,12 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.core.MultiCore;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.schema.SchemaField;
 import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
-import javax.xml.rpc.ServiceException;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -35,7 +34,10 @@ import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.ols.webservice.axis.Query;
-import static ae3.util.StructuredQueryHelper.encodeEfv;
+import ae3.util.QueryHelper;
+import ae3.service.structuredquery.AtlasStructuredQuery;
+import ae3.service.structuredquery.AtlasStructuredQueryResult;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 import net.sf.ehcache.CacheManager;
 
 /**
@@ -54,7 +56,7 @@ public class ArrayExpressSearchService {
 
     //// Full-text Search Index Instances
 
-    private MultiCore  multiCore;
+    private CoreContainer multiCore;
     private SolrServer solr_expt;
     private SolrServer solr_atlas;
     private String solrIndexLocation;
@@ -68,7 +70,8 @@ public class ArrayExpressSearchService {
     private DataSource memAEDS;
 
     private QueryRunner theAEQueryRunner;
-    private QueryRunner memAEQueryRunner;
+
+    private AtlasStructuredQueryService squeryService;
 
     //// DataServer Instance(s)
 
@@ -80,8 +83,6 @@ public class ArrayExpressSearchService {
     //       When an element is removed from the cache, it needs to get removed from the in-memory DB as
     //       well (see the remove method on AtlasResultSetCache).
     private AtlasResultSetCache arsCache = new AtlasResultSetCache();
-
-    private static final int MAX_STRUCTURED_CONDITIONS = 20;
 
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
@@ -103,7 +104,7 @@ public class ArrayExpressSearchService {
         Connection conn = null;
 
         try {
-	        multiCore = new MultiCore(solrIndexLocation, new File(solrIndexLocation, "multicore.xml"));
+	        multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
             solr_expt = new EmbeddedSolrServer(multiCore,"expt");
             solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
 
@@ -135,7 +136,7 @@ public class ArrayExpressSearchService {
         }
 
         theAEQueryRunner = new QueryRunner(theAEDS);
-        memAEQueryRunner = new QueryRunner(memAEDS);
+        squeryService = new AtlasStructuredQueryService(multiCore);
 
         Map<String, SchemaField> fieldMap = multiCore.getCore("expt").getSchema().getFields();
         log.info(fieldMap);
@@ -268,37 +269,6 @@ public class ArrayExpressSearchService {
 
     }
 
-    public QueryResponse factorQueryExpts(String factor, Collection<String> values)
-    {
-        try {
-            if (factor == null || factor.equals(""))
-                factor = "exp_factor_values";
-            else
-                factor = Constants.FIELD_FACTOR_PREFIX  + factor;
-
-            ArrayList<String> vals = new ArrayList<String>();
-            for(String v : values) {
-                vals.add(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");                
-            }
-            StringBuffer query = new StringBuffer()
-                    .append(factor).append(":(").append(StringUtils.join(vals, " ")).append(")");
-            SolrQuery q = new SolrQuery(query.toString());
-            q.setHighlight(true);
-            q.addHighlightField(factor);
-            q.setHighlightSnippets(100);
-            q.setRows(50);
-            q.setStart(0);
-            q.setFilterQueries("exp_in_dw:true");
-
-            return solr_expt.query(q);
-        } catch (SolrServerException e) {
-            log.error(e);
-        }
-
-        return null;
-
-    }
-  
     public QueryResponse queryExptsByField(String value, String field, int start, int rows){
     	 if (value == null || value.equals("") || field == null)
              return null;
@@ -369,44 +339,19 @@ public class ArrayExpressSearchService {
 
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
-        try {
-            SolrQuery q = new SolrQuery("exp_in_dw:true");
-            q.setRows(0);
-            q.setFacet(true);
-            if (factor == null || factor.equals(""))
-                factor = "exp_factor_values";
-            else
-                factor = Constants.FIELD_FACTOR_PREFIX  + factor;
-            q.addFacetField(factor);
-            q.setFacetPrefix(query);
-
-            q.setFacetLimit(limit);
-            q.setFacetSort(true);
-            QueryResponse qr = solr_expt.query(q);
-
-            if (null == qr.getFacetFields().get(0).getValues())
-                return null;
-
-            Map<String,Long> s = new TreeMap<String,Long>();
-            int i = 0;            
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.put(ffc.getName(), ffc.getCount());
-            }
-
-            return s;
-        } catch (SolrServerException e) {
-            log.error(e);
-        }
-
-        return null;
+        return squeryService.autoCompleteFactorValues(factor,  query, limit);
     }
 
-private TreeSet<String> autoCompleteGene(String query) {
+    public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
+        return squeryService.doStructuredAtlasQuery(query);
+    }
+
+    private TreeSet<String> autoCompleteGene(String query) {
 
         try {
-        	SolrQuery q = new SolrQuery("suggest_token:"+query+" suggest_full:"+query);
-        	SolrQuery q_name = new SolrQuery("gene_name:"+query+" gene_synonym:"+query);
-        	q_name.setFields("gene_name");
+            SolrQuery q = new SolrQuery("suggest_token:"+query+" suggest_full:"+query);
+            SolrQuery q_name = new SolrQuery("gene_name:"+query+" gene_synonym:"+query);
+            q_name.setFields("gene_name");
             q.setRows(0);
             q.setFacet(true);
 //            q.addFacetField("gene_ids");
@@ -521,8 +466,8 @@ private TreeSet<String> autoCompleteGene(String query) {
 //        if (geneSpeciesFilter != null)
 //            gene_species_filter = " and UPPER(ad_species.value)='" + geneSpeciesFilter + "'";
 
-        final Map<String, SolrDocument> solrExptMap = convertSolrDocumentListToMap(exptHitsResponse, Constants.FIELD_DWEXP_ID);
-        final Map<String, SolrDocument> solrGeneMap = convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
+        final Map<String, SolrDocument> solrExptMap = QueryHelper.convertSolrDocumentListToMap(exptHitsResponse, Constants.FIELD_DWEXP_ID);
+        final Map<String, SolrDocument> solrGeneMap = QueryHelper.convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
 
         String inGeneIds = (solrGeneMap == null ? "" : StringUtils.join(solrGeneMap.keySet(), ","));
         String inExptIds = (solrExptMap == null ? "" : StringUtils.join(solrExptMap.keySet(), ","));
@@ -684,331 +629,6 @@ private TreeSet<String> autoCompleteGene(String query) {
         return arset;
     }
 
-    private static int nullzero(Integer i)
-    {
-        return i == null ? 0 : i;
-    }
-
-    private static double nullzero(Double d)
-    {
-        return d == null ? 0.0d : d;
-    }
-
-    /**
-     * Process structured Atlas query
-     * @param query parsed query
-     * @return matching results
-     * @throws IOException
-     */
-    public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) throws IOException {
-        final StringBuffer solrq = new StringBuffer();
-        final StringBuffer scores = new StringBuffer();
-
-        final List<String> fields = new ArrayList<String>();
-
-        scores.append("sum(");
-
-        EfvTree<Boolean> queryEfvs = new EfvTree<Boolean>();
-
-        Set<String> allFactors = getExperimentalFactorOptions();
-
-        int number = 0;
-        for(AtlasStructuredQuery.Condition c : query.getConditions())
-        {
-            if(number > 0) {
-                solrq.append(" AND ");
-            }
-
-            solrq.append("(");
-
-            try {
-
-                StringBuffer expQuery = new StringBuffer();
-                if(c.getFactor().length() > 0) {
-                    expQuery.append(Constants.FIELD_FACTOR_PREFIX).append(c.getFactor())
-                            .append(":(");
-                    boolean anyVal = false;
-                    for(String v : c.getFactorValues())
-                        if(v.equals("*")) {
-                            anyVal = true;
-                            break;
-                        }
-                    if(anyVal) {
-                        for(String v : autoCompleteFactorValues(c.getFactor(), "", 20).keySet()) {
-                            expQuery.append(" ").append("\"").append(v).append("\"");
-                        }
-                    } else {
-                        for(String v : c.getFactorValues()) {
-                            expQuery.append(" ").append(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");
-                        }
-                    }                    
-                    expQuery.append(")");
-                } else {
-                    Query olsQuery = null;
-                    try {
-                        olsQuery = new QueryServiceLocator().getOntologyQuery();
-                    } catch(ServiceException e) {
-                        log.error(e);
-                    }
-                    for(String fv : c.getFactorValues()) {
-                        expQuery.append(" ").append(fv.replace("*", "?*"));
-                        if(olsQuery != null) {
-                            HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
-                            Set<String> ontologyExpansion = new TreeSet<String>();
-
-                            for (String term : terms.keySet()) {
-                                HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
-                                ontologyExpansion.addAll(termChildren.values());
-                            }
-
-                            for (String term : ontologyExpansion) {
-                                expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
-                            }
-                        }
-                    }
-                }
-
-
-                SolrQuery q = new SolrQuery(expQuery.toString());
-                q.setHighlight(true);
-                if(c.getFactor().length() > 0) {
-                    q.addHighlightField(Constants.FIELD_FACTOR_PREFIX + c.getFactor());
-                } else {
-                    q.addHighlightField("exp_factor_values_exact");
-                    q.addHighlightField("exp_factor_values");
-                }
-                q.setHighlightSnippets(100);
-                q.setRows(50);
-                q.setStart(0);
-                q.setFilterQueries("exp_in_dw:true");
-
-                QueryResponse response = solr_expt.query(q);
-                if (response == null || response.getResults().getNumFound() == 0)
-                    continue;
-
-                EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-                if(c.getFactor().length() > 0)
-                {
-                    for(Map<String, List<String>> vals : response.getHighlighting().values())
-                    {
-                        for(String s : vals.values().iterator().next()) {
-                           condEfvs.getOrCreate(c.getFactor(), s.replaceAll("</?em>", ""), true);
-                        }
-                    }
-                } else {
-                    Map<String,SolrDocument> docmap = convertSolrDocumentListToMap(response,
-                            multiCore.getCore("expt").getSearcher().get().getSchema().getUniqueKeyField().getName());
-
-                    for (Map.Entry<String,Map<String, List<String>>> hdoc : response.getHighlighting().entrySet()) {
-                        if (hdoc.getValue() == null || hdoc.getValue().size() == 0)
-                            continue;
-                        for(List<String> efvs : hdoc.getValue().values()) {
-                            for(String efv : efvs) {
-                                efv = efv.replaceAll("</{0,1}em>","");
-                                String ef = null;
-                                SolrDocument doc = docmap.get(hdoc.getKey());
-                                for(String f : allFactors)
-                                {
-                                    Collection fvs = doc.getFieldValues(Constants.FIELD_FACTOR_PREFIX + f);
-                                    if(fvs != null && fvs.contains(efv)) {
-                                        ef = f;
-                                        break;
-                                    }
-                                }
-                                if(ef != null)
-                                    condEfvs.getOrCreate(ef, efv, true);
-                            }
-                        }
-                    }
-
-                }
-
-                for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
-                {
-                    solrq.append(" ");
-                    if(number > 0)
-                        scores.append(",");
-
-                    queryEfvs.getOrCreate(condEfv.getEf(), condEfv.getEfv(), true);
-
-                    String efefvId = condEfv.getEfEfvId();
-                    String cnt = "cnt_efv_" + efefvId;
-                    String pvl = "avgpval_efv_" + efefvId;
-
-                    fields.add(cnt + "_up");
-                    fields.add(cnt + "_dn");
-                    fields.add(pvl + "_up");
-                    fields.add(pvl + "_dn");
-
-                    switch(c.getExpression())
-                    {
-                        case UP:
-                            solrq.append(cnt).append("_up:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,-1,1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,1,-1))");
-                            break;
-
-                        case DOWN:
-                            solrq.append(cnt).append("_dn:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,1,-1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,-1,1))");
-                            break;
-
-                        case UP_DOWN:
-                            solrq.append(cnt).append("_up:[1 TO *] ")
-                                    .append(cnt).append("_dn:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,-1,1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,-1,1))");
-                            break;
-
-                        default:
-                            throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
-                    }
-
-                    ++number;
-
-                    if(number >= MAX_STRUCTURED_CONDITIONS)
-                        break;
-
-                }
-
-            } catch (SolrServerException e) {
-                log.error(e);
-            }
-
-            solrq.append(")");
-        }
-        scores.append(")");
-
-
-        if(number == 0)
-            return null;
-
-        if(query.getGene().matches(".*\\S.*"))
-            solrq.append(" AND gene_desc:(").append(query.getGene()).append(")");
-
-        if(!query.getSpecies().isEmpty())
-        {
-            solrq.append(" AND gene_species:(");
-            for(String s : query.getSpecies())
-            {
-                solrq.append(" \"").append(s).append("\"");
-            }
-            solrq.append(")");
-        }
-
-        solrq.append(" AND _val_:\"").append(scores).append("\"");
-
-        fields.add("score");
-        fields.add("gene_id");
-        fields.add("gene_name");
-        fields.add("gene_identifier");
-        fields.add("gene_species");
-
-        log.info("Solr query is: " + solrq);
-
-        try {
-            AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(queryEfvs,
-                    query.getStart(),
-                    query.getRows());
-
-            SolrQuery q = new SolrQuery(solrq.toString());
-
-            q.setRows(query.getRows());
-            q.setStart(query.getStart());
-            q.setSortField("score", SolrQuery.ORDER.desc);
-            q.setFields(fields.toArray(new String[fields.size()]));
-
-            q.setFacet(true);
-
-            int max = 0;
-            for(EfvTree.Ef<Boolean> s : queryEfvs.getNameSortedTree())
-                  if(max < s.getEfvs().size())
-                    max = s.getEfvs().size();
-            q.setFacetLimit(5 + max);
-
-            q.setFacetMinCount(1);
-            q.setFacetSort(true);
-            q.addFacetField("gene_keyword");
-            q.addFacetField("gene_goterm");
-            q.addFacetField("gene_species");
-            q.addFacetField("exp_up_ids");
-            q.addFacetField("exp_dn_ids");
-
-            Collection<String> efs = getExperimentalFactorOptions();
-            for(String ef : efs)
-            {
-                q.addFacetField("efvs_up_" + ef);
-                q.addFacetField("efvs_dn_" + ef);
-            }
-
-            QueryResponse response = solr_atlas.query(q);
-            SolrDocumentList docs = response.getResults();
-            result.setTotal(response.getResults().getNumFound());
-            for(SolrDocument doc : docs) {
-                AtlasGene gene = new AtlasGene(doc);
-                List<AtlasStructuredQueryResult.UpdownCounter> counters
-                        = new ArrayList<AtlasStructuredQueryResult.UpdownCounter>();
-
-                for(EfvTree.EfEfv<Boolean> efefv : queryEfvs.getNameSortedList())
-                {
-                    String efefvId = efefv.getEfEfvId();
-                    counters.add(new AtlasStructuredQueryResult.UpdownCounter(
-                            nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_up")),
-                            nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_dn")),
-                            nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_up")),
-                            nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_dn")),
-                            efefv.getEf(),
-                            efefv.getEfv()));
-                }
-
-                result.addResult(new AtlasStructuredQueryResult.GeneResult(gene, counters));
-            }
-
-            log.info("Retrieved query completely: " + result.getSize() + " records of " +
-                    result.getTotal() + " total starting from " + result.getStart() );
-
-            EfvTree<AtlasStructuredQueryResult.FacetUpDn> efvFacet = new EfvTree<AtlasStructuredQueryResult.FacetUpDn>();
-            for (FacetField ff : response.getFacetFields())
-            {
-                if(ff.getValueCount() > 1) {
-                    if(ff.getName().startsWith("efvs_")) {
-                        String ef = ff.getName().substring(8);
-                        for (FacetField.Count ffc : ff.getValues())
-                        {
-                            if(!queryEfvs.has(ef, ffc.getName()))
-                            {
-                                if(ff.getName().substring(5,7).equals("up"))
-                                    efvFacet.getOrCreate(ef, ffc.getName(), new AtlasStructuredQueryResult.FacetUpDn()).addUp((int)ffc.getCount());
-                                else
-                                    efvFacet.getOrCreate(ef, ffc.getName(), new AtlasStructuredQueryResult.FacetUpDn()).addDown((int)ffc.getCount());
-                            }
-                        }
-
-                    } else if(ff.getName().startsWith("exp_")) {
-
-                    } else if(ff.getName().startsWith("gene_")) {
-
-                    }
-                }
-            }
-
-            result.setEfvFacet(efvFacet);
-            
-            return result;
-        } catch (Exception e) {
-            log.error(e);
-        }
-
-        return null;
-    }
-
     public List<AtlasExperimentRow> getExperiments(String gene_id_key, String factor, String factorValue, String updn)
     {
         final List<AtlasExperimentRow> results = new ArrayList<AtlasExperimentRow>();
@@ -1139,41 +759,18 @@ private TreeSet<String> autoCompleteGene(String query) {
 //    }
 
 
-    private static Map<String, SolrDocument> convertSolrDocumentListToMap (QueryResponse queryResponse, String idField ) {
-        if (queryResponse == null)
-            return null;
-
-        SolrDocumentList hits = queryResponse.getResults();
-        Map<String, SolrDocument> idMap = new HashMap<String, SolrDocument>();
-
-        for (SolrDocument doc : hits) {
-            String id = String.valueOf(doc.getFieldValue(idField));
-            if(id != null) idMap.put(id, doc);
-        }
-
-        return idMap;
-    }
-
     protected void finalize() throws Throwable {
         shutdown();
     }
 
-    public List<String[]> getGeneExpressionOptions() {
-        return AtlasStructuredQuery.Expression.getOptionsList();
+    public Iterable<String[]> getGeneExpressionOptions() {
+        return squeryService.getGeneExpressionOptions();
     }
 
-    public Set<String> getExperimentalFactorOptions() {
-        @SuppressWarnings("unchecked")
-        Set<String> names = new TreeSet<String>();
-        for(String i : (Collection<String>)multiCore.getCore("expt").getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL)) {
-            if(i.startsWith(Constants.FIELD_FACTOR_PREFIX)) {
-                names.add(i.substring(Constants.FIELD_FACTOR_PREFIX.length()));
-            }
-        }
-                
-        return names;
-    }        
-    
+    public Iterable<String> getExperimentalFactorOptions() {
+        return squeryService.getExperimentalFactorOptions();
+    }
+
     public SortedSet<String> getAllAvailableAtlasSpecies() {
         SortedSet<String> species = null;
 

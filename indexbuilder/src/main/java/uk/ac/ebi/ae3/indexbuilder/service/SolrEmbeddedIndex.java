@@ -17,7 +17,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.MultiCore;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
@@ -36,8 +36,8 @@ public class SolrEmbeddedIndex {
     private SolrServer solrServer;
     /** The handle to the SolrCore. The core name is "expt" */
     private SolrCore exptSolrCore;
-    /** The handle to the {@link MultiCore} */
-    private MultiCore multiCore;
+    /** The handle to the {@link CoreContainer} */
+    private CoreContainer multiCore;
     /** The directory to the "multicore.xml" file */
     private String indexDir;
     /** The core name */
@@ -66,9 +66,9 @@ public class SolrEmbeddedIndex {
     {
      if (!init)
      {
-       this.multiCore = new MultiCore(indexDir, new File(indexDir, Constants.VAL_INDEXFILE));
+       this.multiCore = new CoreContainer(indexDir, new File(indexDir, Constants.VAL_INDEXFILE));
        this.exptSolrCore = multiCore.getCore(coreName);
-       this.solrServer = new EmbeddedSolrServer(exptSolrCore);
+       this.solrServer = new EmbeddedSolrServer(multiCore, coreName);
        init = true;
      }
      else

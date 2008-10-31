@@ -18,7 +18,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.MultiCore;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
 
@@ -38,7 +38,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 											  "Factor Value [EF1](genotype)","Publication Title","Publication Author List","Publication Status","Publication Status Term Source REF"};
 	protected SolrServer solr;
 	private SolrCore exptCore;
-	private MultiCore multiCore;
+	private CoreContainer multiCore;
 	private String indexDir;
 	/** */
 	
@@ -61,7 +61,7 @@ public class IndexBuilderFromMageTab extends IndexBuilderService
 	protected void createIndexDocs() throws IOException, SolrServerException, ParserConfigurationException, SAXException, IndexBuilderException
 	{
 		//String fileAndPath=FilenameUtils.concat(confService.getIndexDir(), "multicore.xml");
-	this.multiCore = new MultiCore(this.indexDir, new File(this.indexDir, Constants.VAL_INDEXFILE));
+	this.multiCore = new CoreContainer(this.indexDir, new File(this.indexDir, Constants.VAL_INDEXFILE));
 	this.exptCore = multiCore.getCore(Constants.SOLR_CORE_NAME_EXPT);		
 	this.solr = new EmbeddedSolrServer(exptCore);
 	    

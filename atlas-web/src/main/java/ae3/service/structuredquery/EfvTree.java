@@ -1,8 +1,7 @@
-package ae3.service;
-
-import ae3.util.StructuredQueryHelper;
+package ae3.service.structuredquery;
 
 import java.util.*;
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author pashky
@@ -84,7 +83,7 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         }
 
         public String getEfEfvId() {
-            return StructuredQueryHelper.encodeEfv(getEf()) + "_" + StructuredQueryHelper.encodeEfv(getEfv());
+            return EfvTree.getEfEfvId(getEf(), getEfv());
         }
     }
 
@@ -94,6 +93,11 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
     public EfvTree() {
         efLimit = efvLimit = 5;
+    }
+
+    public EfvTree(EfvTree<PayLoad> other) {
+        super();
+        add(other);
     }
 
     public void add(EfvTree<PayLoad> other)
@@ -127,13 +131,18 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         return get(ef, efv);
     }
 
-    public int getSize()
+    public int getNumEfvs()
     {
         int n = 0;
-        for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
-            n += i.getValue().size();
+        for(SortedMap<String,PayLoad> i : efvs.values()) {
+            n += i.size();
         }
         return n;
+    }
+    
+    public int getNumEfs()
+    {
+        return efvs.size();
     }
 
     public List<Ef<PayLoad>> getNameSortedTree()
@@ -205,5 +214,45 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         }
         Collections.sort(efs);
         return efs.subList(0, Math.min(efLimit, efs.size()));
+    }
+
+    public static String getEfEfvId(String ef, String efv)
+    {
+        return encodeEfv(ef) + "_" + encodeEfv(efv);
+    }
+
+    public static String getEfEfvId(Ef<?> ef, Efv<?> efv)
+    {
+        return getEfEfvId(ef.getEf(), efv.getEfv());
+    }
+
+    public static String encodeEfv(String v) {
+        try {
+            StringBuffer r = new StringBuffer();
+            for(char x : v.toCharArray())
+            {
+                if(Character.isJavaIdentifierPart(x))
+                    r.append(x);
+                else
+                    for(byte b : Character.toString(x).getBytes("UTF-8"))
+                        r.append("_").append(String.format("%x", b));
+            }
+            return r.toString();
+        } catch(UnsupportedEncodingException e){
+            throw new IllegalArgumentException("Unable to encode EFV in UTF-8", e);
+        }
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for(EfEfv<PayLoad> efefv : getNameSortedList())
+        {
+            if(sb.length() > 0)
+                sb.append(", ");
+            sb.append(efefv.getEf()).append(":").append(efefv.getEfv())
+                    .append("(").append(efefv.getEfEfvId()).append(")")
+                    .append("=").append(efefv.getPayload());
+        }
+        return sb.toString();
     }
 }
