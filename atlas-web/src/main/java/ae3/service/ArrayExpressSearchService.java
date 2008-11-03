@@ -322,7 +322,6 @@ public class ArrayExpressSearchService {
             if (qr.getResults().getNumFound()==0)
                 return null;
             TreeSet<String> s = new TreeSet<String>();
-            SolrDocumentList docList = qr.getResults();
 
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                 if(ffc.getName().toLowerCase().contains(query))
