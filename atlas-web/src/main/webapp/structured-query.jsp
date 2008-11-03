@@ -323,7 +323,7 @@ ArrayExpress Atlas Preview
                             <div class="name"><c:out value="${f:toUpperCase(f:substring(facet.key, 0, 1))}${f:toLowerCase(f:substring(facet.key, 1, -1))}"/>:</div>
                             <ul>
                                 <c:forEach var="sp" items="${facet.value}" varStatus="s">
-                                    <li><a href="${pageUrl}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
+                                    <li><a href="javascript:alert('sorry, not implemented yet')" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
                                 </c:forEach>
                             </ul>
                         </div>
@@ -402,11 +402,11 @@ ArrayExpress Atlas Preview
                             <a href="${pageUrl}&specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a>
                             <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">
                                 <span class="label">&nbsp;&nbsp;GO Term:</span>
-                                <a href="javascript:void"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
+                                <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
                             </c:if>
                             <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">
                                 <span class="label">&nbsp;&nbsp;InterPro Term:</span>
-                                <a href="javascript:void"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
+                                <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
                             </c:if></div>
                             <div class="efvs">
                                 <c:forEach var="ef" items="${queryEfvsTree}">
