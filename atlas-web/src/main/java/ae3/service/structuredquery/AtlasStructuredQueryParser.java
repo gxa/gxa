@@ -77,7 +77,7 @@ public class AtlasStructuredQueryParser {
                 String pfx = PARAM_FACTORVALUE + id + "_";
                 for(String jd : findPrefixParamsSuffixes(httpRequest, pfx)) {
                     String value = httpRequest.getParameter(pfx + jd);
-                    if(value.length() > 0)
+                    if(value != null)
                         values.add(StringUtils.trim(value));
                 }
 

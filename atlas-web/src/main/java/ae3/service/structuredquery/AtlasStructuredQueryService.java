@@ -216,15 +216,16 @@ public class AtlasStructuredQueryService {
             q.addHighlightField("exp_factor_values");
         }
         q.setHighlightSnippets(100);
-        q.setRows(50);
+        q.setRows(500);
         q.setStart(0);
         q.setFilterQueries("exp_in_dw:true");
 
+        EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
+
         QueryResponse response = solrExpt.query(q);
         if (response == null || response.getResults().getNumFound() == 0)
-            return null;
+            return condEfvs;
 
-        EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
         if(c.getFactor().length() > 0)
         {
             for(Map<String, List<String>> vals : response.getHighlighting().values())
@@ -269,14 +270,16 @@ public class AtlasStructuredQueryService {
         if(c.getFactor().length() > 0) {
             expQuery.append(FIELD_FACTOR_PREFIX).append(c.getFactor())
                     .append(":(");
-            boolean anyVal = false;
+            
+            boolean anyVal = true;
             for(String v : c.getFactorValues())
-                if(v.equals("*")) {
-                    anyVal = true;
+                if(!v.equals("") && !v.equals("*")) {
+                    anyVal = false;
                     break;
                 }
+
             if(anyVal) {
-                for(String v : autoCompleteFactorValues(c.getFactor(), "", 20).keySet()) {
+                for(String v : autoCompleteFactorValues(c.getFactor(), null, MAX_CONDITION_EFVS).keySet()) {
                     expQuery.append(" ").append("\"").append(v).append("\"");
                 }
             } else {
@@ -292,24 +295,25 @@ public class AtlasStructuredQueryService {
             } catch(ServiceException e) {
                 log.error(e);
             }
-            for(String fv : c.getFactorValues()) {
-                expQuery.append(" ").append(fv.replace("*", "?*"));
-                if(olsQuery != null) {
-                    @SuppressWarnings("unchecked")
-                    HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
-                    Set<String> ontologyExpansion = new TreeSet<String>();
-
-                    for (String term : terms.keySet()) {
+            for(String fv : c.getFactorValues())
+                if(fv.length() > 0) {
+                    expQuery.append(" ").append(fv.replace("*", "?*"));
+                    if(olsQuery != null) {
                         @SuppressWarnings("unchecked")
-                        HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
-                        ontologyExpansion.addAll(termChildren.values());
-                    }
+                        HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
+                        Set<String> ontologyExpansion = new TreeSet<String>();
 
-                    for (String term : ontologyExpansion) {
-                        expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
+                        for (String term : terms.keySet()) {
+                            @SuppressWarnings("unchecked")
+                            HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
+                            ontologyExpansion.addAll(termChildren.values());
+                        }
+
+                        for (String term : ontologyExpansion) {
+                            expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
+                        }
                     }
                 }
-            }
         }
         return expQuery.toString();
     }
@@ -507,17 +511,25 @@ public class AtlasStructuredQueryService {
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
         try {
-            SolrQuery q = new SolrQuery("exp_in_dw:true");
+            String solrq = "exp_in_dw:true";
+            if(query != null && query.length() > 0) {
+                query = query.replaceAll("[:()\"]", "").toLowerCase();
+                solrq = "(suggest_token:"+query+" suggest_full:"+query+") AND " + solrq;
+            }
+
+            SolrQuery q = new SolrQuery(solrq);
+            
             q.setRows(0);
             q.setFacet(true);
+            q.setFacetMinCount(1);
+
             if (factor == null || factor.equals(""))
-                factor = "exp_factor_values";
+                factor = "exp_factor_values_exact";
             else
                 factor = AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor;
             q.addFacetField(factor);
-            q.setFacetPrefix(query);
 
-            q.setFacetLimit(limit);
+            q.setFacetLimit(-1);
             q.setFacetSort(true);
             QueryResponse qr = solrExpt.query(q);
 
@@ -525,10 +537,12 @@ public class AtlasStructuredQueryService {
                 return null;
 
             Map<String,Long> s = new TreeMap<String,Long>();
-            int i = 0;
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.put(ffc.getName(), ffc.getCount());
-            }
+            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
+                if(query == null || query.length() == 0 || ffc.getName().toLowerCase().contains(query)) {
+                    s.put(ffc.getName(), ffc.getCount());
+                    if(s.size() >= limit)
+                        break;
+                }
 
             return s;
         } catch (SolrServerException e) {
