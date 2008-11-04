@@ -102,11 +102,10 @@ public class AtlasStructuredQueryService {
         int number = 0;
         out: for(AtlasStructuredQuery.Condition c : query.getConditions())
         {
-            if(efvq.length() > 0) {
-                efvq.append(" AND ");
-            }
-
             if(c.isAnything()) {
+                if(efvq.length() > 0) {
+                    efvq.append(" AND ");
+                }
                 switch(c.getExpression())
                 {
                     case UP:
@@ -128,6 +127,9 @@ public class AtlasStructuredQueryService {
                     EfvTree<Boolean> condEfvs = getConditionEfvs(c);
                     if(condEfvs.getNumEfvs() > 0)
                     {
+                        if(efvq.length() > 0) {
+                            efvq.append(" AND ");
+                        }
                         efvq.append("(");
                         for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
                         {
