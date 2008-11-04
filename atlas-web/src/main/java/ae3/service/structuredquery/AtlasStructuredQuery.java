@@ -9,9 +9,9 @@ import java.util.ArrayList;
  */
 public class AtlasStructuredQuery {
     static public enum Expression {
+        UP_DOWN("up or down"),
         UP("up"),
-        DOWN("down"),
-        UP_DOWN("up or down");
+        DOWN("down");
 
         private String description;
         Expression(String description) { this.description = description; }
@@ -70,6 +70,22 @@ public class AtlasStructuredQuery {
         public void setFactorValues(List<String> factorValues) {
             this.factorValues = factorValues;
         }
+
+        public boolean isAnyFactor() {
+            return getFactor().length() == 0;
+        }
+
+        public boolean isAnyValue() {
+            for(String v : getFactorValues())
+                if(!v.equals("") && !v.equals("*"))
+                    return false;
+            return true;
+        }
+
+        public boolean isAnything() {
+            return isAnyValue() && isAnyFactor();
+        }
+
     }
 
     private String gene;

@@ -116,6 +116,7 @@ ArrayExpress Atlas Preview
     .speciesSelect { width: 120px; margin-right:5px; }
 
     .expansion { padding-left: 10px;font-size: smaller;color:gray; }
+    .expansion .ignored { color: #cc0000; }
     div.value select, div.value input.value { width:150px; }
     div.value div.buttons { float: right; }
     div.value div.input { float: left; }
@@ -245,7 +246,14 @@ ArrayExpress Atlas Preview
                 <c:forEach var="c" items="${result.conditions}">
                 { factor: '${u:escapeJS(c.factor)}',
                     expression: '${u:escapeJS(c.expression)}',
-                    expansion: '<c:forEach var="e" items="${c.expansion.valueSortedList}" varStatus="i"><c:if test="${c.expansion.numEfs > 1 || (i.first && empty c.factor)}">${u:escapeJS(e.ef)}: </c:if> ${u:escapeJS(e.efv)}<c:if test="${!i.last}">, </c:if></c:forEach>',
+                    expansion: <c:choose>
+                            <c:when test="${!c.anything && c.expansion.numEfvs == 0}">
+                            '<span class="ignored">no matching factor values found, ignored</span>'
+                            </c:when>
+                            <c:otherwise>
+                            '<c:forEach var="e" items="${c.expansion.valueSortedList}" varStatus="i"><c:if test="${c.expansion.numEfs > 1 || (i.first && empty c.factor)}">${u:escapeJS(f:escapeXml(e.ef))}: </c:if> ${u:escapeJS(f:escapeXml(e.efv))}<c:if test="${!i.last}">, </c:if></c:forEach>'
+                            </c:otherwise>
+                    </c:choose>,
                     values: [<c:forEach var="v" items="${c.factorValues}">'${u:escapeJS(v)}',</c:forEach>]
                 },</c:forEach>
             ]

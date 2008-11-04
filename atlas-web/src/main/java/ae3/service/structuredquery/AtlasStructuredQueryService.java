@@ -102,74 +102,94 @@ public class AtlasStructuredQueryService {
         int number = 0;
         out: for(AtlasStructuredQuery.Condition c : query.getConditions())
         {
-            if(number > 0) {
+            if(efvq.length() > 0) {
                 efvq.append(" AND ");
             }
 
-            efvq.append("(");
-
-            try {
-                EfvTree<Boolean> condEfvs = getConditionEfvs(c);
-                for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
+            if(c.isAnything()) {
+                switch(c.getExpression())
                 {
-                    efvq.append(" ");
-                    if(number > 0)
-                        scores.append(",");
-
-                    queryEfvs.getOrCreate(condEfv.getEf(), condEfv.getEfv(), number);
-
-                    String efefvId = condEfv.getEfEfvId();
-                    String cnt = "cnt_efv_" + efefvId;
-                    String pvl = "avgpval_efv_" + efefvId;
-
-                    switch(c.getExpression())
-                    {
-                        case UP:
-                            efvq.append(cnt).append("_up:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,-1,1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,1,-1))");
-                            break;
-
-                        case DOWN:
-                            efvq.append(cnt).append("_dn:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,1,-1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,-1,1))");
-                            break;
-
-                        case UP_DOWN:
-                            efvq.append(cnt).append("_up:[1 TO *] ")
-                                    .append(cnt).append("_dn:[1 TO *]");
-                            scores.append("product(").append(cnt).append("_up,linear(")
-                                    .append(pvl).append("_up,-1,1)),")
-                                    .append("product(").append(cnt).append("_dn,linear(")
-                                    .append(pvl).append("_dn,-1,1))");
-                            break;
-
-                        default:
-                            throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
-                    }
-
-                    ++number;
-
-                    if(number > MAX_CONDITION_EFVS)
-                        break out;
+                    case UP:
+                        efvq.append("exp_up_ids:[1 TO *]");
+                        scores.append("exp_up_ids");
+                        break;
+                    case DOWN:
+                        efvq.append("exp_dn_ids:[1 TO *]");
+                        scores.append("exp_dn_ids");
+                        break;
+                    case UP_DOWN:
+                        // nothing special, just match the gene
+                        break;
                 }
-                conds.add(new AtlasStructuredQueryResult.Condition(c, condEfvs));
-            } catch (SolrServerException e) {
-                log.error(e);
-            } catch (RemoteException e) {
-                log.error(e);
-            }
 
-            efvq.append(")");
+                // conds.add(new AtlasStructuredQueryResult.Condition(c, new EfvTree<Boolean>()));
+            } else {
+                try {
+                    EfvTree<Boolean> condEfvs = getConditionEfvs(c);
+                    if(condEfvs.getNumEfvs() > 0)
+                    {
+                        efvq.append("(");
+                        for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
+                        {
+                            efvq.append(" ");
+                            if(number > 0)
+                                scores.append(",");
+
+                            queryEfvs.getOrCreate(condEfv.getEf(), condEfv.getEfv(), number);
+
+                            String efefvId = condEfv.getEfEfvId();
+                            String cnt = "cnt_efv_" + efefvId;
+                            String pvl = "avgpval_efv_" + efefvId;
+
+                            switch(c.getExpression())
+                            {
+                                case UP:
+                                    efvq.append(cnt).append("_up:[1 TO *]");
+                                    scores.append("product(").append(cnt).append("_up,linear(")
+                                            .append(pvl).append("_up,-1,1)),")
+                                            .append("product(").append(cnt).append("_dn,linear(")
+                                            .append(pvl).append("_dn,1,-1))");
+                                    break;
+
+                                case DOWN:
+                                    efvq.append(cnt).append("_dn:[1 TO *]");
+                                    scores.append("product(").append(cnt).append("_up,linear(")
+                                            .append(pvl).append("_up,1,-1)),")
+                                            .append("product(").append(cnt).append("_dn,linear(")
+                                            .append(pvl).append("_dn,-1,1))");
+                                    break;
+
+                                case UP_DOWN:
+                                    efvq.append(cnt).append("_up:[1 TO *] ")
+                                            .append(cnt).append("_dn:[1 TO *]");
+                                    scores.append("product(").append(cnt).append("_up,linear(")
+                                            .append(pvl).append("_up,-1,1)),")
+                                            .append("product(").append(cnt).append("_dn,linear(")
+                                            .append(pvl).append("_dn,-1,1))");
+                                    break;
+
+                                default:
+                                    throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
+                            }
+
+                            ++number;
+
+                            if(number > MAX_CONDITION_EFVS)
+                                break out;
+                        }
+                        efvq.append(")");
+                    }
+                    conds.add(new AtlasStructuredQueryResult.Condition(c, condEfvs));
+                } catch (SolrServerException e) {
+                    log.error(e);
+                } catch (RemoteException e) {
+                    log.error(e);
+                }
+            }
         }
         scores.append(")");
 
-        if(number > 0) {
+        if(efvq.length() > 0) {
             if(solrq.length() > 0)
                 solrq.append(" AND ");
             solrq.append(efvq);
@@ -206,116 +226,124 @@ public class AtlasStructuredQueryService {
     }
 
     private EfvTree<Boolean> getConditionEfvs(AtlasStructuredQuery.Condition c) throws RemoteException, SolrServerException {
+        if(c.isAnyValue())
+            return getCondEfvsAllForFactor(c.getFactor());
 
-        SolrQuery q = new SolrQuery(getConditionSolrQuery(c));
-        q.setHighlight(true);
-        if(c.getFactor().length() > 0) {
-            q.addHighlightField(FIELD_FACTOR_PREFIX + c.getFactor());
-        } else {
-            q.addHighlightField("exp_factor_values_exact");
-            q.addHighlightField("exp_factor_values");
+        if(c.isAnyFactor())
+            return getCondEfvsForAnyFactor(c.getFactorValues());
+
+        return getCondEfvsForFactor(c.getFactor(), c.getFactorValues());
+    }
+
+    private EfvTree<Boolean> getCondEfvsAllForFactor(String factor) {
+        EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
+        for(String v : autoCompleteFactorValues(factor, null, MAX_CONDITION_EFVS).keySet()) {
+            condEfvs.getOrCreate(factor, v, true);
         }
+        return condEfvs;
+    }
+
+    private EfvTree<Boolean> getCondEfvsForFactor(String factor, Iterable<String> values) throws RemoteException, SolrServerException {
+        StringBuffer expQuery = new StringBuffer();
+        expQuery.append(FIELD_FACTOR_PREFIX).append(factor)
+                .append(":(");
+        for(String v : values) {
+            expQuery.append(" ").append(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");
+        }
+        expQuery.append(")");
+
+        SolrQuery q = new SolrQuery(expQuery.toString());
+        q.setHighlight(true);
+        q.addHighlightField(FIELD_FACTOR_PREFIX + factor);
         q.setHighlightSnippets(100);
         q.setRows(500);
         q.setStart(0);
         q.setFilterQueries("exp_in_dw:true");
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-
         QueryResponse response = solrExpt.query(q);
         if (response == null || response.getResults().getNumFound() == 0)
             return condEfvs;
 
-        if(c.getFactor().length() > 0)
+        for(Map<String, List<String>> vals : response.getHighlighting().values())
         {
-            for(Map<String, List<String>> vals : response.getHighlighting().values())
-            {
-                for(String s : vals.values().iterator().next()) {
-                    condEfvs.getOrCreate(c.getFactor(), s.replaceAll("</?em>", ""), true);
-                }
+            for(String s : vals.values().iterator().next()) {
+                condEfvs.getOrCreate(factor, s.replaceAll("</?em>", ""), true);
             }
-        } else {
-            Map<String, SolrDocument> docmap = QueryHelper.convertSolrDocumentListToMap(response,
-                    coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName());
-
-            for (Map.Entry<String,Map<String, List<String>>> hdoc : response.getHighlighting().entrySet()) {
-                if (hdoc.getValue() == null || hdoc.getValue().size() == 0)
-                    continue;
-                for(List<String> efvs : hdoc.getValue().values()) {
-                    for(String efv : efvs) {
-                        efv = efv.replaceAll("</{0,1}em>","");
-                        String ef = null;
-                        SolrDocument doc = docmap.get(hdoc.getKey());
-                        for(String f : allFactors)
-                        {
-                            Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
-                            if(fvs != null && fvs.contains(efv)) {
-                                ef = f;
-                                break;
-                            }
-                        }
-                        if(ef != null)
-                            condEfvs.getOrCreate(ef, efv, true);
-                    }
-                }
-            }
-
         }
 
         return condEfvs;
     }
 
-    private String getConditionSolrQuery(AtlasStructuredQuery.Condition c) throws RemoteException {
+    private EfvTree<Boolean> getCondEfvsForAnyFactor(Iterable<String> values) throws RemoteException, SolrServerException {
         StringBuffer expQuery = new StringBuffer();
-        if(c.getFactor().length() > 0) {
-            expQuery.append(FIELD_FACTOR_PREFIX).append(c.getFactor())
-                    .append(":(");
-            
-            boolean anyVal = true;
-            for(String v : c.getFactorValues())
-                if(!v.equals("") && !v.equals("*")) {
-                    anyVal = false;
-                    break;
-                }
+        Query olsQuery = null;
+        try {
+            olsQuery = new QueryServiceLocator().getOntologyQuery();
+        } catch(ServiceException e) {
+            log.error(e);
+        }
 
-            if(anyVal) {
-                for(String v : autoCompleteFactorValues(c.getFactor(), null, MAX_CONDITION_EFVS).keySet()) {
-                    expQuery.append(" ").append("\"").append(v).append("\"");
-                }
-            } else {
-                for(String v : c.getFactorValues()) {
-                    expQuery.append(" ").append(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");
-                }
-            }
-            expQuery.append(")");
-        } else {
-            Query olsQuery = null;
-            try {
-                olsQuery = new QueryServiceLocator().getOntologyQuery();
-            } catch(ServiceException e) {
-                log.error(e);
-            }
-            for(String fv : c.getFactorValues())
-                if(fv.length() > 0) {
-                    expQuery.append(" ").append(fv.replace("*", "?*"));
-                    if(olsQuery != null) {
+        EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
+        for(String fv : values) {
+            if(fv.length() > 0) {
+                expQuery.append(" ").append(fv.replace("*", "?*"));
+                if(olsQuery != null) {
+                    @SuppressWarnings("unchecked")
+                    HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
+                    Set<String> ontologyExpansion = new TreeSet<String>();
+
+                    for (String term : terms.keySet()) {
                         @SuppressWarnings("unchecked")
-                        HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
-                        Set<String> ontologyExpansion = new TreeSet<String>();
+                        HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
+                        ontologyExpansion.addAll(termChildren.values());
+                    }
 
-                        for (String term : terms.keySet()) {
-                            @SuppressWarnings("unchecked")
-                            HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
-                            ontologyExpansion.addAll(termChildren.values());
-                        }
-
-                        for (String term : ontologyExpansion) {
-                            expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
-                        }
+                    for (String term : ontologyExpansion) {
+                        expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
                     }
                 }
+            }
         }
-        return expQuery.toString();
+
+        SolrQuery q = new SolrQuery(expQuery.toString());
+        q.setHighlight(true);
+        q.addHighlightField("exp_factor_values");
+        q.addHighlightField("exp_factor_values_exact");
+        q.setHighlightSnippets(100);
+        q.setRows(500);
+        q.setStart(0);
+        q.setFilterQueries("exp_in_dw:true");
+
+        QueryResponse response = solrExpt.query(q);
+        if (response == null || response.getResults().getNumFound() == 0)
+            return condEfvs;
+
+        Map<String, SolrDocument> docmap = QueryHelper.convertSolrDocumentListToMap(response,
+                coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName());
+
+        for (Map.Entry<String,Map<String, List<String>>> hdoc : response.getHighlighting().entrySet()) {
+            if (hdoc.getValue() == null || hdoc.getValue().size() == 0)
+                continue;
+            for(List<String> efvs : hdoc.getValue().values()) {
+                for(String efv : efvs) {
+                    efv = efv.replaceAll("</{0,1}em>","");
+                    String ef = null;
+                    SolrDocument doc = docmap.get(hdoc.getKey());
+                    for(String f : allFactors)
+                    {
+                        Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
+                        if(fvs != null && fvs.contains(efv)) {
+                            ef = f;
+                            break;
+                        }
+                    }
+                    if(ef != null)
+                        condEfvs.getOrCreate(ef, efv, true);
+                }
+            }
+        }
+        return condEfvs;
     }
 
     private void processResultGenes(QueryResponse response,

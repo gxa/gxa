@@ -35,6 +35,18 @@ public class AtlasStructuredQueryResult {
         public EfvTree<Boolean> getExpansion() {
             return expansion;
         }
+
+        public boolean isAnyFactor() {
+            return condition.isAnyFactor();
+        }
+
+        public boolean isAnyValue() {
+            return condition.isAnyValue();
+        }
+
+        public boolean isAnything() {
+            return condition.isAnything();
+        }
     }
 
     private EfvTree<Integer> queryEfvs;

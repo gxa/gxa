@@ -118,23 +118,23 @@ function escapeHtml(s) {
 
              factor.className = 'factor';
              factor.onchange = function() {
-                 if (this.selectedIndex < 1) return; // TODO: why this?
+                 if (this.selectedIndex < 0) return;
 
                  var newv = this.options[this.selectedIndex].value;
                  fval.find('input.value').focus().attr('value', '').blur()
                      .setOptions({ extraParams: { factor : newv } }).flushCache();
                  loadValues(fval.find('select'), function() { });
-                 tr.find("td.expansion").text('');
+                 tr.find("td.expansion").empty();
              };
 
 
-             tr.append($('<td class="common"/>').append(createSelect("gexp_" + andid, options['expressions'], false, condition && condition.expression))
-                       .append(' in ').append(factor))
+             var expr = createSelect("gexp_" + andid, options['expressions'], false, condition && condition.expression);
+             tr.append($('<td class="common"/>').append(expr).append(' in ').append(factor))
                  .append(fval)
                  .append($('<td class="andbuttons" />')
                          .append($('<div/>').append($('<input type="button" value=" and ">')
                                                     .bind('click', function() { addConditionAnd($(this)); } ))))
-                     .append($('<td class="expansion" />').text(condition != null ? condition.expansion : ''));
+                     .append($('<td class="expansion" />').html(condition != null ? condition.expansion : ''));
 
              function addConditionOr(where, value) {
                  var orid = ++counter;
@@ -181,6 +181,12 @@ function escapeHtml(s) {
                                                             {
                                                                 if(tbody.find('tr').length != 1)
                                                                     tr.remove();
+                                                                else {
+                                                                    factor.selectedIndex = 0;
+                                                                    expr.selectedIndex = 0;
+                                                                    input.focus().attr('value', '').blur()
+                                                                            .setOptions({ extraParams: { factor : '' } }).flushCache();
+                                                                }
                                                             } else {
                                                                 newval.remove();
                                                             }
