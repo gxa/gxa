@@ -354,7 +354,9 @@ public class AtlasStructuredQueryService {
         result.setTotal(docs.getNumFound());
 
         boolean hasQueryEfvs = queryEfvs.getNumEfvs() > 0;
-        EfvTree<Integer> resultEfvs = new EfvTree<Integer>(queryEfvs);
+        EfvTree<Integer> resultEfvs = new EfvTree<Integer>();
+
+        Iterable<EfvTree.EfEfv<Integer>> efvList = queryEfvs.getValueSortedList();
 
         int number = 0;
         for(SolrDocument doc : docs) {
@@ -382,22 +384,28 @@ public class AtlasStructuredQueryService {
                         for(Object efv : efvs)
                             resultEfvs.getOrCreate(ef, (String)efv, number++);
                 }
+                efvList = resultEfvs.getValueSortedList();
             }
 
-            for(EfvTree.EfEfv<Integer> efefv : resultEfvs.getValueSortedList())
+            for(EfvTree.EfEfv<Integer> efefv : efvList)
             {
                 String efefvId = efefv.getEfEfvId();
-                counters.add(new UpdownCounter(
+                UpdownCounter counter = new UpdownCounter(
                         nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_up")),
                         nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_dn")),
                         nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_up")),
                         nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_dn"))
-                ));
+                );
+                counters.add(counter);
+
+                if(hasQueryEfvs && counter.getUps() + counter.getDowns() > 0)
+                    resultEfvs.getOrCreate(efefv);
             }
+            
             result.addResult(new StructuredResultRow(gene, counters));
         }
 
-        result.setQueryEfvs(resultEfvs);
+        result.setResultEfvs(resultEfvs);
 
         log.info("Retrieved query completely: " + result.getSize() + " records of " +
                 result.getTotal() + " total starting from " + result.getStart() );

@@ -104,7 +104,7 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
     {
         for(EfEfv<PayLoad> i : other.getNameSortedList())
         {
-            getOrCreate(i.getEf(), i.getEfv(), i.getPayload());
+            getOrCreate(i);
         }
     }
 
@@ -120,6 +120,11 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         if(!efvs.containsKey(ef))
             return false;
         return efvs.get(ef).containsKey(efv);
+    }
+
+    public PayLoad getOrCreate(EfEfv<PayLoad> efEfv)
+    {
+        return getOrCreate(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
     }
 
     public PayLoad getOrCreate(String ef, String efv, PayLoad payLoad)

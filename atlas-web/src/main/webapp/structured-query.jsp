@@ -225,6 +225,7 @@ ArrayExpress Atlas Preview
                 </td>
             </tr>
         </table>
+        <c:if test="${heatmap}"><input type="hidden" name="view" value="hm" /></c:if>
     </form>
 
     <c:if test="${!empty query}">
@@ -263,8 +264,8 @@ ArrayExpress Atlas Preview
     </script>
 
     <c:if test="${!empty query}">
-        <c:set var="queryEfvsTree" value="${result.queryEfvs.nameSortedTree}"/>
-        <c:set var="cn" value="${result.queryEfvs.numEfvs}"/>
+        <c:set var="resultEfvsTree" value="${result.resultEfvs.nameSortedTree}"/>
+        <c:set var="cn" value="${result.resultEfvs.numEfvs}"/>
         <c:set var="sn" value="${f:length(query.species)}"/>
         <script type="text/javascript">
 
@@ -274,7 +275,7 @@ ArrayExpress Atlas Preview
             ];
 
             <c:url var="urlExps" value="/sexpt">
-                <c:forEach var="c" varStatus="s" items="${queryEfvsTree}">
+                <c:forEach var="c" varStatus="s" items="${resultEfvsTree}">
                     <c:param name="ef${s.index}" value="${c.ef}"/>
                     <c:forEach var="v" items="${c.efvs}"><c:param name="fv${s.index}" value="${v.efv}"/></c:forEach>
                 </c:forEach>
@@ -345,7 +346,7 @@ ArrayExpress Atlas Preview
                     <thead>
                         <tr>
                             <th colspan="2" rowspan="2" class="gene">Gene</th>
-                            <c:forEach var="c" items="${queryEfvsTree}">
+                            <c:forEach var="c" items="${resultEfvsTree}">
                                 <th colspan="${f:length(c.efvs)}" class="factor">
                                     <em><c:out value="${c.ef}"/></em>
                                 </th>
@@ -353,7 +354,7 @@ ArrayExpress Atlas Preview
                             <th rowspan="2" valign="top"><img class="expexp" onclick="loadExperiments();" src="expandopen.gif" alt="&gt;" title="Toggle all experiments" width="11" height="11" style="border:0px;"/></th>
                         </tr>
                         <tr>
-                            <c:forEach var="c" items="${queryEfvsTree}">
+                            <c:forEach var="c" items="${resultEfvsTree}">
                                 <c:forEach var="v" items="${c.efvs}">
                                     <th class="counter"><c:out value="${v.efv}"/></th>
                                 </c:forEach>
@@ -372,7 +373,7 @@ ArrayExpress Atlas Preview
                                 </td>
                                 <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
                                 <td><a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
-                                <c:forEach var="e" items="${result.queryEfvs.nameSortedList}">
+                                <c:forEach var="e" items="${result.resultEfvs.nameSortedList}">
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <td class="counter">
                                         <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
@@ -417,7 +418,7 @@ ArrayExpress Atlas Preview
                                 <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
                             </c:if></div>
                             <div class="efvs">
-                                <c:forEach var="ef" items="${queryEfvsTree}">
+                                <c:forEach var="ef" items="${resultEfvsTree}">
                                     <c:set var="xx" value="" />
                                     <c:forEach var="efv" items="${ef.efvs}">
                                         <c:set var="ud" value="${row.counters[efv.payload]}"/>

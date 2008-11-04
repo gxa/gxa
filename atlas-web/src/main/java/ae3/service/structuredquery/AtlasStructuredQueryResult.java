@@ -49,7 +49,7 @@ public class AtlasStructuredQueryResult {
         }
     }
 
-    private EfvTree<Integer> queryEfvs;
+    private EfvTree<Integer> resultEfvs;
     private Collection<StructuredResultRow> results;
     private Iterable<Condition> conditions;
 
@@ -79,12 +79,12 @@ public class AtlasStructuredQueryResult {
         return results;
     }
 
-    public void setQueryEfvs(EfvTree<Integer> queryEfvs) {
-        this.queryEfvs = queryEfvs;
+    public void setResultEfvs(EfvTree<Integer> resultEfvs) {
+        this.resultEfvs = resultEfvs;
     }
 
-    public EfvTree<Integer> getQueryEfvs() {
-        return queryEfvs;
+    public EfvTree<Integer> getResultEfvs() {
+        return resultEfvs;
     }
 
     public long getStart() {
