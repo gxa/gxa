@@ -126,7 +126,7 @@ ArrayExpress Atlas Preview
     #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
     div.countup, div.countdn { width:50%;float:left;text-align:center; }
     div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-    #squery td.counter, th.counter {text-align:center;width:80px; }
+    #squery td.counter, th.counter {text-align:center;width:80px;min-width:60px; }
     td.common { white-space:nowrap; }
     th.factor { text-align:center;font-weight:normal; }
     th.factor em { font-weight:bold;font-style:normal;}
@@ -271,7 +271,7 @@ ArrayExpress Atlas Preview
 
             $("#loading_display").hide();
             var resultGenes = [
-            <c:forEach var="row" items="${result.results}">{ geneDWId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' },</c:forEach>
+            <c:forEach var="row" items="${result.results}">{ geneDwId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' },</c:forEach>
             ];
 
             <c:url var="urlExps" value="/sexpt">
