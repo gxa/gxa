@@ -125,6 +125,10 @@ function escapeHtml(s) {
                      .setOptions({ extraParams: { factor : newv } }).flushCache();
                  loadValues(fval.find('select'), function() { });
                  tr.find("td.expansion").empty();
+                 if(this.selectedIndex == 0)
+                    fval.find('input.choose').attr('disabled', 'disabled');
+                 else
+                     fval.find('input.choose').removeAttr('disabled');
              };
 
 
@@ -158,7 +162,8 @@ function escapeHtml(s) {
                  var newval = $('<div class="value" />')
                      .append($('<div class="input" />')
                              .append(input)
-                             .append($('<input type="button" value="V"/>')
+                             .append($('<input type="button" value="..." title="choose from list..." class="choose" />')
+                                     .attr('disabled', 'disabled')
                                      .bind('click', function() {
                                                                  var vbutt = $(this);
                                                                  var oldval = input.val();

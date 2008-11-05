@@ -296,7 +296,7 @@ ArrayExpress Atlas Preview
 
 
             <div class="summary">
-                <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start} - ${result.start + result.size}"/> as
+                <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start + 1} - ${result.start + result.size}"/> as
                 <c:choose>
                     <c:when test="${heatmap}">
                         heatmap (<a href="${pageUrl}&p=${query.start}">show as list</a>)
