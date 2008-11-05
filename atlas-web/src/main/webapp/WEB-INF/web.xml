@@ -138,4 +138,16 @@
             <el-ignored>false</el-ignored>
         </jsp-property-group>
     </jsp-config>
+
+    <servlet>
+        <!-- overriding site-wide JSP configuration to trim whitespace in JSP output -->
+        <servlet-name>jsp</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+        <init-param>
+            <param-name>trimSpaces</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </servlet>
+
+    
 </web-app>
