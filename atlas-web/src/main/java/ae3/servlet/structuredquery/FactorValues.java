@@ -38,12 +38,11 @@ public class FactorValues extends HttpServlet {
                         request.getParameter("q"),
                         nlimit
                 );
-        if (ac != null) {
-            for(Map.Entry<String,Long> s : ac.entrySet()) {
-                response.getWriter().println(s.getKey() + "|" + s.getValue());
-            }
-        } else {
+        if (ac.size() == 0) {
             log.info("No completions found");
+        }
+        for(Map.Entry<String,Long> s : ac.entrySet()) {
+            response.getWriter().println(s.getKey() + "|" + s.getValue());
         }
     }
 }

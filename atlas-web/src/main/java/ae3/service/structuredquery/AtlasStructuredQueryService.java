@@ -531,11 +531,14 @@ public class AtlasStructuredQueryService {
     }
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
+        query = query.toLowerCase();
+
+        Map<String,Long> s = new TreeMap<String,Long>();
         try {
             String solrq = "exp_in_dw:true";
             if(query != null && query.length() > 0) {
-                query = query.replaceAll("[:()\"]", "").toLowerCase();
-                solrq = "(suggest_token:"+query+" suggest_full:"+query+") AND " + solrq;
+                String qquery = "\"" + query.replaceAll("\"", "\\\"") + "\"";
+                solrq = "(suggest_token:"+qquery+" suggest_full:"+qquery+") AND " + solrq;
             }
 
             SolrQuery q = new SolrQuery(solrq);
@@ -555,21 +558,20 @@ public class AtlasStructuredQueryService {
             QueryResponse qr = solrExpt.query(q);
 
             if (null == qr.getFacetFields().get(0).getValues())
-                return null;
+                return s;
 
-            Map<String,Long> s = new TreeMap<String,Long>();
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
+            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                 if(query == null || query.length() == 0 || ffc.getName().toLowerCase().contains(query)) {
                     s.put(ffc.getName(), ffc.getCount());
                     if(s.size() >= limit)
                         break;
                 }
+            }
 
-            return s;
         } catch (SolrServerException e) {
             log.error(e);
         }
 
-        return null;
+        return s;
     }
 }
