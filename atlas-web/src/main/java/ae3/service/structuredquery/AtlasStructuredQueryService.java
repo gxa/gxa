@@ -531,12 +531,11 @@ public class AtlasStructuredQueryService {
     }
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
-        query = query.toLowerCase();
-
         Map<String,Long> s = new TreeMap<String,Long>();
         try {
             String solrq = "exp_in_dw:true";
             if(query != null && query.length() > 0) {
+                query = query.toLowerCase();
                 String qquery = "\"" + query.replaceAll("\"", "\\\"") + "\"";
                 solrq = "(suggest_token:"+qquery+" suggest_full:"+qquery+") AND " + solrq;
             }
