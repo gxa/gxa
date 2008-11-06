@@ -69,25 +69,27 @@ public class AtlasStructuredQueryService {
 
         log.info("Solr query is: " + solrq + " calling for EFVs: " + (hasQueryEfvs ? queryEfvs : "(none)"));
 
-        try {
-            SolrQuery q = setupSolrQuery(query, solrq.toString(), queryEfvs);
-            QueryResponse response = solrAtlas.query(q);
+        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRows());
+        result.setConditions(conditions);
 
-            AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRows());
+        if(solrq.length() > 0)
+        {
+            try {
+                SolrQuery q = setupSolrQuery(query, solrq.toString(), queryEfvs);
+                QueryResponse response = solrAtlas.query(q);
 
-            processResultGenes(response, result, queryEfvs);
+                processResultGenes(response, result, queryEfvs);
 
-            result.setConditions(conditions);
-            result.setEfvFacet(getEfvFacet(response, queryEfvs));
-            for(String s : GENE_FACETS) {
-                result.setGeneFacet(s, getGeneFacet(response, "gene_" + s + "_exact"));
-            }
-            return result;
-        } catch (SolrServerException e) {
-            log.error(e);
+                result.setEfvFacet(getEfvFacet(response, queryEfvs));
+                for(String s : GENE_FACETS) {
+                    result.setGeneFacet(s, getGeneFacet(response, "gene_" + s + "_exact"));
+                }
+            } catch (SolrServerException e) {
+                log.error(e);
+            }            
         }
 
-        return null;
+        return result;
     }
 
     private Iterable<AtlasStructuredQueryResult.Condition> appendEfvsQuery(AtlasStructuredQuery query,
@@ -246,34 +248,15 @@ public class AtlasStructuredQueryService {
     }
 
     private EfvTree<Boolean> getCondEfvsForFactor(String factor, Iterable<String> values) throws RemoteException, SolrServerException {
-        StringBuffer expQuery = new StringBuffer();
-        expQuery.append(FIELD_FACTOR_PREFIX).append(factor)
-                .append(":(");
-        for(String v : values) {
-            expQuery.append(" ").append(v.matches("^.*[\"*?].*$") ? v.replace("*", "?*") : "\"" + v + "\"");
-        }
-        expQuery.append(")");
-
-        SolrQuery q = new SolrQuery(expQuery.toString());
-        q.setHighlight(true);
-        q.addHighlightField(FIELD_FACTOR_PREFIX + factor);
-        q.setHighlightSnippets(100);
-        q.setRows(500);
-        q.setStart(0);
-        q.setFilterQueries("exp_in_dw:true");
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-        QueryResponse response = solrExpt.query(q);
-        if (response == null || response.getResults().getNumFound() == 0)
-            return condEfvs;
-
-        for(Map<String, List<String>> vals : response.getHighlighting().values())
-        {
-            for(String s : vals.values().iterator().next()) {
-                condEfvs.getOrCreate(factor, s.replaceAll("</?em>", ""), true);
+        for(String val : values) {
+            if(val.length() > 0) {
+                for(String v : autoCompleteFactorValues(factor, val, MAX_CONDITION_EFVS).keySet()) {
+                    condEfvs.getOrCreate(factor, v, true);
+                }
             }
         }
-
         return condEfvs;
     }
 
@@ -289,7 +272,7 @@ public class AtlasStructuredQueryService {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
         for(String fv : values) {
             if(fv.length() > 0) {
-                expQuery.append(" ").append(fv.replace("*", "?*"));
+                expQuery.append(" exp_factor_values:").append("\"").append(fv).append("\"");
                 if(olsQuery != null) {
                     @SuppressWarnings("unchecked")
                     HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");

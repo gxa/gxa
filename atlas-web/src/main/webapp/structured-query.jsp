@@ -186,6 +186,16 @@ ArrayExpress Atlas Preview
 </table>
 <div style="margin-bottom:50px">
 
+    <c:if test="${!empty query}">
+        <div style="margin-top:20px;mragin-bottom:20px" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
+        <c:set var="timeStart" value="${u:currentTime()}"/>
+        <%
+            response.flushBuffer();
+            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
+            request.setAttribute("result", atlasResult);
+        %>
+    </c:if>
+
     <form name="atlasform" action="qrs" onsubmit="renumberAll();">
         <table>
             <tr valign="top">
@@ -219,23 +229,11 @@ ArrayExpress Atlas Preview
             <tr>
                 <td colspan="3" align="left">
                     <input type="submit" value="Search Atlas">
-                    <c:if test="${!empty query}">
-                        <div style="margin:10px auto;width:150px;text-align:center;clear:both" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
-                    </c:if>    
                 </td>
             </tr>
         </table>
         <c:if test="${heatmap}"><input type="hidden" name="view" value="hm" /></c:if>
     </form>
-
-    <c:if test="${!empty query}">
-        <c:set var="timeStart" value="${u:currentTime()}"/>
-        <%
-            response.flushBuffer();
-            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
-            request.setAttribute("result", atlasResult);
-        %>
-    </c:if>
 
     <script type="text/javascript">
         var lastquery;
@@ -469,8 +467,8 @@ ArrayExpress Atlas Preview
                 </div>
             </c:if>
         </c:if>
-        <c:if test="${empty result}">
-            No results found!
+        <c:if test="${result.size == 0}">
+            <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">No matching results found.</div>
         </c:if>
         <c:set var="timeFinish" value="${u:currentTime()}"/>
         <p>
