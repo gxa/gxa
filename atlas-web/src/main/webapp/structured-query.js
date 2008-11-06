@@ -159,11 +159,7 @@ function escapeHtml(s) {
                  if(value != null)
                      input.val(value);
 
-                 var newval = $('<div class="value" />')
-                     .append($('<div class="input" />')
-                             .append(input)
-                             .append($('<input type="button" value="..." title="choose from list..." class="choose" />')
-                                     .attr('disabled', 'disabled')
+                 var choose = $('<input type="button" value="..." title="choose from list..." class="choose" />')
                                      .bind('click', function() {
                                                                  var vbutt = $(this);
                                                                  var oldval = input.val();
@@ -178,7 +174,14 @@ function escapeHtml(s) {
                                                                           }
                                                                       vbutt.remove();
                                                                  });
-                                                               })))
+                                                               });
+                 if(factor.selectedIndex == 0)
+                     choose.attr('disabled', 'disabled');
+                 
+                 var newval = $('<div class="value" />')
+                     .append($('<div class="input" />')
+                             .append(input)
+                             .append(choose))
                      .append($('<div class="buttons" />')
                              .append(createRemoveButton(function (where) {
                                                             tr.find("td.expansion").text('');
