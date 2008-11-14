@@ -255,72 +255,47 @@ function escapeHtml(s) {
      };
 
 
-     $.fn.extend({
-         setonclick: function(callback) {
-             return this.each(function() { this.onclick = callback; })
-         }
-     });
+     window.hmc = function (igene, iefv, tdd) {
+         $("div.expopup .closebox").click();
 
-     function adjustExpandAll()
-     {
-         if($('#squery > tbody > tr.loaded').length == 0)
-             $('#squery > thead img.expexp').setonclick(function(){loadExperiments()}).attr('src','expandopen.gif');
-         else
-             $('#squery > thead img.expexp').setonclick(function(){hideExperiments()}).attr('src','expandclose.gif');
-     }
+         var td = $(tdd);
 
-     window.hideExperiments = function(index) {
-         var i = index;
-         var tr = $(index == null ? '#squery > tbody > tr' : 'tr#squeryrow' + index).filter('.loaded').removeClass('loaded');
-         tr.find('img.expexp').setonclick(function(){loadExperiments(i)}).attr('src','expandopen.gif');
-         tr.find('td.counter div.exps').remove();
-         adjustExpandAll();
-     };
+         var gene = resultGenes[igene];
+         var efv = resultEfvs[iefv];
 
-     window.loadExperiments = function(index) {
-         var tr = $(index == null ? '#squery > tbody > tr' : 'tr#squeryrow' + index).not('.loaded').addClass('loaded');
-         tr.find('img.expexp').attr('src','expandwait.gif');
-         tr.each(function() {
-             var tr = $(this);
-             var i = this.id.substr(9);
-             var geneDwId = resultGenes[i].geneDwId;
-             $.ajax({
-                 mode: "queue",
-                 port: "sexpt",
-                 url: exptUrlBase + '&gene=' + encodeURI(resultGenes[i].geneAtlasId),
-                 dataType: "json",
-                 success: function(o) {
-                     if(o.empty)
-                         return;
+         var waiter = $('<div/>').addClass('waiter').append($('<img/>').attr('src','expandwait.gif'));
 
-                     var k = 0;
-                     tr.find('td.counter').each(function () {
+         td.prepend(waiter);
+         td.addClass('counter').removeClass('acounter');
+         td.unbind('click');
 
-                         var makeExps = function (exp, clas) {
-                             var c = $('<ul/>').addClass(clas);
-                             if(exp.length == 0)
-                                 c.append('<li>&nbsp;</li>')
-                             for(var j = 0; j < exp.length; ++j)
-                                 c.append('<li><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query='
-                                         + encodeURI(geneDwId)
-                                         + '&species=&displayInsitu=on&exp_query=' + encodeURI(exp[j].experimentAccessment)
-                                         + '" title="' + exp[j].experimentAccessment + ': ' + escapeHtml(exp[j].experimentName) + '">'
-                                         + exp[j].experimentAccessment + '</a></li>');
-                             return c;
-                         }
+         $.ajax({
+             mode: "queue",
+             port: "sexpt",
+             url: 'experiments.jsp',
+             dataType: "html",
+             data: { gene:gene.geneAtlasId, ef: efv.ef, efv: efv.efv },
+             complete: function(resp) {
+                 waiter.remove();
 
+                 var popup = $("<div/>").addClass('expopup')
+                         .html(resp.responseText)
+                         .prepend($("<div/>").addClass('closebox')
+                         .click(
+                         function(e) {
+                             td.click(function() { hmc(igene, iefv, tdd); });
+                             td.addClass('acounter').removeClass('counter');
+                             popup.hide('normal',function() { popup.remove(); });
+                             e.stopPropagation();
+                             return false;
+                         }).text('X'))
+                         .click(function(e){e.stopPropagation();})
+                         .hide();
 
-                         if(o[k].ups.length > 0 || o[k].downs.length > 0)
-                             $(this).append($('<div class="exps"/>')
-                                     .append(makeExps(o[k].ups, "upexp")).append(makeExps(o[k].downs, "dnexp")));
-                         ++k;
-                     });
-                     tr.find('img.expexp').setonclick(function(){hideExperiments(i)}).attr('src','expandclose.gif');
-
-                 }
-             });
+                 td.prepend(popup);
+                 popup.show('normal');
+             }
          });
-         adjustExpandAll();
-     }
+     };
 
  })(jQuery);

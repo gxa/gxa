@@ -1,24 +1,15 @@
 package ae3.util;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.Query;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-
-
-import com.Ostermiller.util.StringTokenizer;
-
 import uk.ac.ebi.ae3.indexbuilder.Constants;
-import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The helper methods for working with lucene query.

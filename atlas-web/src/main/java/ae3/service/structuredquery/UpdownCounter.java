@@ -31,4 +31,8 @@ public class UpdownCounter {
     public double getMpvDn() {
         return mpvdn;
     }
+
+    public boolean isZero() {
+        return getUps() + getDowns() == 0;
+    }
 }

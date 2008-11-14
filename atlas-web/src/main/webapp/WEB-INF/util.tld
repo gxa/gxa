@@ -28,10 +28,18 @@
     </function>
 
     <function>
-      <name>gradient</name>
+      <name>expressionBack</name>
       <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
-         java.lang.String[] gradient(int , int , int , int , int , int , int , int, int )
+         java.lang.String expressionBack(ae3.service.structuredquery.UpdownCounter)
+      </function-signature>
+    </function>
+
+    <function>
+      <name>expressionText</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+         java.lang.String expressionText(ae3.service.structuredquery.UpdownCounter)
       </function-signature>
     </function>
 

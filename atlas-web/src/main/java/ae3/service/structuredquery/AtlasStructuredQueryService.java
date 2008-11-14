@@ -2,11 +2,19 @@ package ae3.service.structuredquery;
 
 import java.util.*;
 import java.rmi.RemoteException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.model.AtlasGene;
+import ae3.model.AtlasExperiment;
 import ae3.util.QueryHelper;
+import ae3.service.structuredquery.ExperimentRow;
+import ae3.dao.AtlasDao;
+import ae3.dao.AtlasObjectNotFoundException;
 
 import javax.xml.rpc.ServiceException;
 
@@ -42,12 +50,25 @@ public class AtlasStructuredQueryService {
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
     private Set<String> allFactors;
+    private Connection sql;
+    private PreparedStatement sqlGetExperiments;
+    private PreparedStatement sqlGetAllGeneExperiments;
 
-    public AtlasStructuredQueryService(CoreContainer coreContainer) {
+    public AtlasStructuredQueryService(CoreContainer coreContainer, Connection sql) throws SQLException {
         this.coreExpt = coreContainer.getCore(CORE_EXPT);
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
         this.allFactors = getExperimentalFactorOptions();
+        this.sql = sql;
+
+        sqlGetExperiments = sql.prepareStatement(
+                "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj,updn FROM aemart.atlas" +
+                " WHERE gene_id_key = ? AND ef = ? AND efv = ? GROUP BY experiment_id_key,updn");
+
+        sqlGetAllGeneExperiments = sql.prepareStatement(
+                "select experiment_id_key, ef, efv, avg(round(updn_pvaladj,100)) as updn_pvaladj from atlas " +
+                        "where gene_id_key = ? group by ef,efv,experiment_id_key"
+        );
     }
 
     /**
@@ -139,7 +160,7 @@ public class AtlasStructuredQueryService {
                             if(number > 0)
                                 scores.append(",");
 
-                            queryEfvs.getOrCreate(condEfv.getEf(), condEfv.getEfv(), number);
+                            queryEfvs.put(condEfv.getEf(), condEfv.getEfv(), number);
 
                             String efefvId = condEfv.getEfEfvId();
                             String cnt = "cnt_efv_" + efefvId;
@@ -242,7 +263,7 @@ public class AtlasStructuredQueryService {
     private EfvTree<Boolean> getCondEfvsAllForFactor(String factor) {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
         for(String v : autoCompleteFactorValues(factor, null, MAX_CONDITION_EFVS).keySet()) {
-            condEfvs.getOrCreate(factor, v, true);
+            condEfvs.put(factor, v, true);
         }
         return condEfvs;
     }
@@ -253,7 +274,7 @@ public class AtlasStructuredQueryService {
         for(String val : values) {
             if(val.length() > 0) {
                 for(String v : autoCompleteFactorValues(factor, val, MAX_CONDITION_EFVS).keySet()) {
-                    condEfvs.getOrCreate(factor, v, true);
+                    condEfvs.put(factor, v, true);
                 }
             }
         }
@@ -324,7 +345,7 @@ public class AtlasStructuredQueryService {
                         }
                     }
                     if(ef != null)
-                        condEfvs.getOrCreate(ef, efv, true);
+                        condEfvs.put(ef, efv, true);
                 }
             }
         }
@@ -343,7 +364,10 @@ public class AtlasStructuredQueryService {
 
         Iterable<EfvTree.EfEfv<Integer>> efvList = queryEfvs.getValueSortedList();
 
-        int number = 0;
+        EfvTree.Creator<Integer> numberer = new EfvTree.Creator<Integer>() {
+            private int num = 0;
+            public Integer make() { return num++; }
+        };
         for(SolrDocument doc : docs) {
             AtlasGene gene = new AtlasGene(doc);
             List<UpdownCounter> counters = new ArrayList<UpdownCounter>() {
@@ -361,13 +385,15 @@ public class AtlasStructuredQueryService {
 
                     efvs = doc.getFieldValues("efvs_up_" + EfvTree.encodeEfv(ef));
                     if(efvs != null)
-                        for(Object efv : efvs)
-                            resultEfvs.getOrCreate(ef, (String)efv, number++);
+                        for(Object efv : efvs) {
+                            resultEfvs.getOrCreate(ef, (String)efv, numberer);
+                        }
 
                     efvs = doc.getFieldValues("efvs_dn_" + EfvTree.encodeEfv(ef));
                     if(efvs != null)
-                        for(Object efv : efvs)
-                            resultEfvs.getOrCreate(ef, (String)efv, number++);
+                        for(Object efv : efvs) {
+                            resultEfvs.getOrCreate(ef, (String)efv, numberer);
+                        }
                 }
                 efvList = resultEfvs.getValueSortedList();
             }
@@ -384,7 +410,7 @@ public class AtlasStructuredQueryService {
                 counters.add(counter);
 
                 if(hasQueryEfvs && counter.getUps() + counter.getDowns() > 0)
-                    resultEfvs.getOrCreate(efefv);
+                    resultEfvs.put(efefv);
             }
             
             result.addResult(new StructuredResultRow(gene, counters));
@@ -473,6 +499,9 @@ public class AtlasStructuredQueryService {
 
     private EfvTree<FacetUpDn> getEfvFacet(QueryResponse response, EfvTree<Integer> queryEfvs) {
         EfvTree<FacetUpDn> efvFacet = new EfvTree<FacetUpDn>();
+        EfvTree.Creator<FacetUpDn> creator = new EfvTree.Creator<FacetUpDn>() {
+            public FacetUpDn make() { return new FacetUpDn(); }
+        };
         for (FacetField ff : response.getFacetFields())
         {
             if(ff.getValueCount() > 1) {
@@ -483,12 +512,8 @@ public class AtlasStructuredQueryService {
                         if(!queryEfvs.has(ef, ffc.getName()))
                         {
                             int count = (int)ffc.getCount();
-                            if(ff.getName().substring(5,7).equals("up"))
-                                efvFacet.getOrCreate(ef, ffc.getName(),
-                                        new FacetUpDn()).addUp(count);
-                            else
-                                efvFacet.getOrCreate(ef, ffc.getName(),
-                                        new FacetUpDn()).addDown(count);
+                            efvFacet.getOrCreate(ef, ffc.getName(), creator)
+                                    .add(count, ff.getName().substring(5,7).equals("up"));
                         }
                     }
 
@@ -573,4 +598,73 @@ public class AtlasStructuredQueryService {
 
         return s;
     }
+
+    private void addExperimentToList(ExperimentList list, ResultSet rs)
+    {
+    }
+
+    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
+    {
+        final ExperimentList results = new ExperimentList();
+        try {
+            log.info("Listing experiments for gene:" + gene_id_key + " ef:" + factor + " efv:" + factorValue);
+            sqlGetExperiments.setString(1, gene_id_key);
+            sqlGetExperiments.setString(2, factor);
+            sqlGetExperiments.setString(3, factorValue);
+            ResultSet rs = sqlGetExperiments.executeQuery();
+            while(rs.next()) {
+                try {
+                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
+                    if(experiment != null) {
+                        addExperimentsToList(results, rs, experiment);
+                    }
+                } catch (AtlasObjectNotFoundException e) {
+                    log.error(e);
+                }
+            }
+         } catch (SQLException e) {
+            log.error(e);
+         }
+        return results;
+    }
+
+    private void addExperimentsToList(ExperimentList list, ResultSet rs, AtlasExperiment experiment) throws SQLException {
+        boolean isUp = !rs.getString("updn").contains("-");
+        list.add(new ExperimentRow(
+                experiment.getAerExpId(),
+                experiment.getAerExpName(),
+                experiment.getAerExpAccession(),
+                experiment.getAerExpDescription(),
+                rs.getDouble("updn_pvaladj"),
+                (isUp ? ExperimentRow.UpDn.UP : ExperimentRow.UpDn.DOWN)));
+    }
+
+    public EfvTree<ExperimentList> getGeneExperiments(String gene_id_key)
+    {
+        final EfvTree<ExperimentList> results = new EfvTree<ExperimentList>();
+        try {
+            log.info("Listing experiments for gene:" + gene_id_key);
+            sqlGetAllGeneExperiments.setString(1, gene_id_key);
+            ResultSet rs = sqlGetAllGeneExperiments.executeQuery();
+            EfvTree.Creator<ExperimentList> creator = new EfvTree.Creator<ExperimentList>() {
+                public ExperimentList make() { return new ExperimentList(); }
+            };
+            while(rs.next()) {
+                try {
+                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
+                    if(experiment != null) {
+                        addExperimentsToList(results.getOrCreate(rs.getString("ef"), rs.getString("efv"), creator),
+                                rs, experiment);
+                    }
+                } catch (AtlasObjectNotFoundException e) {
+                    log.error(e);
+                }
+            }
+            return results;
+         } catch (SQLException e) {
+            log.error(e);
+         }
+        return results;
+    }
+
 }

@@ -11,20 +11,12 @@ public class FacetUpDn implements Comparable<FacetUpDn> {
         up = down = 0;
     }
 
-    public void setUp(int up) {
-        this.up = up;
-    }
-
-    public void setDown(int down) {
-        this.down = down;
-    }
-
-    public void addUp(int up) {
-        this.up += up;
-    }
-
-    public void addDown(int down) {
-        this.down += down;
+    void add(int v, boolean doUp)
+    {
+        if(doUp)
+            up += v;
+        else
+            down += v;
     }
 
     public int getUp() {
@@ -39,4 +31,5 @@ public class FacetUpDn implements Comparable<FacetUpDn> {
         // descending order
         return - Integer.valueOf(getDown() + getUp()).compareTo(o.getUp() + o.getDown());
     }
+
 }

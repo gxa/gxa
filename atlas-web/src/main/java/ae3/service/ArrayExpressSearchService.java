@@ -1,7 +1,6 @@
 package ae3.service;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.dbutils.QueryRunner;
@@ -35,9 +34,7 @@ import ae3.dao.AtlasObjectNotFoundException;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.ols.webservice.axis.Query;
 import ae3.util.QueryHelper;
-import ae3.service.structuredquery.AtlasStructuredQuery;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.*;
 import net.sf.ehcache.CacheManager;
 
 /**
@@ -125,8 +122,16 @@ public class ArrayExpressSearchService {
                             "updn_pvaladj double," +
                             "gene_highlights varchar(4000) )"
             );
-            stmt.execute();
+
+            try {
+                stmt.execute();
+            } catch(SQLException e) {
+                // it's ok, probably table already exists
+            }
             stmt.close();
+
+            squeryService = new AtlasStructuredQueryService(multiCore, theAEDS.getConnection());
+
         } catch (Exception e) {
             log.error(e);
         } finally {
@@ -136,7 +141,6 @@ public class ArrayExpressSearchService {
         }
 
         theAEQueryRunner = new QueryRunner(theAEDS);
-        squeryService = new AtlasStructuredQueryService(multiCore);
 
         Map<String, SchemaField> fieldMap = multiCore.getCore("expt").getSchema().getFields();
         log.info(fieldMap);
@@ -628,42 +632,9 @@ public class ArrayExpressSearchService {
         return arset;
     }
 
-    public List<AtlasExperimentRow> getExperiments(String gene_id_key, String factor, String factorValue, String updn)
+    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
     {
-        final List<AtlasExperimentRow> results = new ArrayList<AtlasExperimentRow>();
-        try {
-            String sql = "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj FROM aemart.atlas" +
-                    " WHERE gene_id_key = " + gene_id_key.replaceAll("[^0-9]","") +
-                    (factor.length() > 0 ? " AND ef = '" + StringEscapeUtils.escapeSql(factor) + "'" : "") +
-                    " AND efv = '" + StringEscapeUtils.escapeSql(factorValue) + "'" +
-                    " AND updn = " + ("1".equals(updn) ? "1" : "-1") +
-                    //" and experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)" +
-                    " GROUP BY experiment_id_key";
-            log.info(sql);
-            theAEQueryRunner.query(sql,
-                    new ResultSetHandler() {
-                        public Object handle(ResultSet rs) throws SQLException {
-                            while(rs.next()) {
-                                try {
-                                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
-                                    if(experiment != null)
-                                        results.add(new AtlasExperimentRow(
-                                                experiment.getAerExpId(),
-                                                experiment.getAerExpName(),
-                                                experiment.getAerExpAccession(),
-                                                experiment.getAerExpDescription(),
-                                                rs.getDouble("updn_pvaladj")));
-                                } catch (AtlasObjectNotFoundException e) {
-                                    log.error(e);
-                                }
-                            }
-                            return results;
-                        }
-                    });
-         } catch (SQLException e) {
-            log.error(e);
-         }
-        return results;
+        return squeryService.getExperiments(gene_id_key, factor, factorValue);
     }
 
     public ArrayList getAtlasResults(String query){

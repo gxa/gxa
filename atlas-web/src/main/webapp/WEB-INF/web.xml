@@ -62,13 +62,6 @@
     </servlet>
 
     <servlet>
-        <display-name>Experiments lister</display-name>
-        <servlet-name>sexpt</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.Experiments</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-
-    <servlet>
         <display-name>Gene View</display-name>
         <servlet-name>gene</servlet-name>
         <jsp-file>/gene.jsp</jsp-file>
@@ -111,11 +104,6 @@
     <servlet-mapping>
         <servlet-name>fval</servlet-name>
         <url-pattern>/fval</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>sexpt</servlet-name>
-        <url-pattern>/sexpt</url-pattern>
     </servlet-mapping>
 
    <servlet-mapping>

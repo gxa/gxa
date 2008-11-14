@@ -126,24 +126,18 @@ ArrayExpress Atlas Preview
     #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
     div.countup, div.countdn { width:50%;float:left;text-align:center; }
     div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-    #squery td.counter, th.counter {text-align:center;width:80px;min-width:60px; }
+    td.counter,td.acounter, th.counter {text-align:center;width:80px;min-width:60px; }
+    td.acounter:hover { cursor: pointer; }
     td.common { white-space:nowrap; }
     th.factor { text-align:center;font-weight:normal; }
     th.factor em { font-weight:bold;font-style:normal;}
     th.gene { vertical-align:middle;text-align:center; }
-    div.exps { clear:both;margin-top:2px; }
-    ul.upexp, ul.dnexp { list-style:none; float: left;width:50%; padding:0px; margin:0px;list-style-position:outside;overflow:hidden;  }
-    ul.upexp li, ul.dnexp li { padding:0px; margin:0px;font-size:7pt; }
-    ul.upexp li { text-align:left; }
-    ul.dnexp li { text-align:right; }
-    ul.upexp li { background-color: #fff0f0; }
-    ul.dnexp li { background-color: #f0f0ff; }
 
     a.fup:link, a.fup:active, a.fup:hover, a.fup:visited { color: #660000;text-decoration: underline; }
     a.fdn:link, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #000066;text-decoration: underline; }
     a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-decoration: underline; }
 
-    .pagination { margin-top: 20px; text-align: center; }
+    .pagination { margin-top: 20px; text-align: left; }
 
     .genelist { width: 90%; }
     .genelist .item { margin-top: 10px;margin-bottom: 20px; }
@@ -163,6 +157,69 @@ ArrayExpress Atlas Preview
     .drillsect { float:left;padding: 5px; border-left:1px solid #cccccc; }
     .drillsect ul { padding-left: 15px; }
     .drillsect .name { font-weight: bold; }
+
+    .expopup {
+        position: absolute;
+        width: 500px;
+        height: 300px;
+        overflow: auto;
+        margin-top: -5px;
+        margin-left: -5px;
+        background-color: #ffffe0;
+        border: 1px solid black;
+        padding: 10px;
+        color: black;
+        text-align:left;
+    }
+    .waiter {
+        position: absolute;
+        overflow: auto;
+        margin-top: -5px;
+        margin-left: -5px;
+        border: 1px solid black;
+        padding: 3px;
+        background-color: white;
+    }
+
+    .expopup h1 {
+        font-weight:bold;
+        font-size:larger;
+    }
+    .expopup td {
+        vertical-align:top;
+        text-align: left;
+    }
+    .expopup th {
+        vertical-align:top;
+        text-align: left;
+        font-weight: bold;
+    }
+    .expopup th.expup {
+        background-color: #660000;
+        color: #ff6666;
+        font-weight: bold;
+    }
+    .expopup th.expdn {
+        background-color: #000066;
+        color: #6666ff;
+        font-weight: bold;
+    }
+    .expopup td.expup {
+        color: #990000;
+    }
+    .expopup td.expdn {
+        color: #000099;
+    }
+    .expopup em { font-weight: bold; }
+    .closebox {
+        float: right;
+        color: black;
+        font: bold 16px sans-serif;
+        background-color:white;
+        padding: 4px;
+        border: 1px solid black; 
+        cursor: pointer;
+    }
 </style>
 
 <table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
@@ -272,13 +329,9 @@ ArrayExpress Atlas Preview
             <c:forEach var="row" items="${result.results}">{ geneDwId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' },</c:forEach>
             ];
 
-            <c:url var="urlExps" value="/sexpt">
-                <c:forEach var="c" varStatus="s" items="${resultEfvsTree}">
-                    <c:param name="ef${s.index}" value="${c.ef}"/>
-                    <c:forEach var="v" items="${c.efvs}"><c:param name="fv${s.index}" value="${v.efv}"/></c:forEach>
-                </c:forEach>
-            </c:url>
-            var exptUrlBase = '${u:escapeJS(urlExps)}';
+            var resultEfvs = [
+            <c:forEach var="e" items="${result.resultEfvs.nameSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' },</c:forEach>
+            ];
         </script>
 
         <c:if test="${result.size > 0}">
@@ -290,6 +343,7 @@ ArrayExpress Atlas Preview
                     <c:param name="gexp_${cs.index}" value="${c.expression}"/>
                     <c:forEach varStatus="vs" var="v" items="${c.factorValues}"><c:param name="fval_${cs.index}_${vs.index}" value="${v}"/></c:forEach>
                 </c:forEach>
+                <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
             </c:url>
 
 
@@ -297,7 +351,7 @@ ArrayExpress Atlas Preview
                 <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start + 1} - ${result.start + result.size}"/> as
                 <c:choose>
                     <c:when test="${heatmap}">
-                        heatmap (<a href="${pageUrl}&p=${query.start}">show as list</a>)
+                        heatmap (<a href="${f:replace(pageUrl,'&view=hm','')}&p=${query.start}">show as list</a>)
                     </c:when>
                     <c:otherwise>
                         list (<a href="${pageUrl}&p=${query.start}&view=hm">show as heatmap</a>)
@@ -349,7 +403,6 @@ ArrayExpress Atlas Preview
                                     <em><c:out value="${c.ef}"/></em>
                                 </th>
                             </c:forEach>
-                            <th rowspan="2" valign="top"><img class="expexp" onclick="loadExperiments();" src="expandopen.gif" alt="&gt;" title="Toggle all experiments" width="11" height="11" style="border:0px;"/></th>
                         </tr>
                         <tr>
                             <c:forEach var="c" items="${resultEfvsTree}">
@@ -371,20 +424,21 @@ ArrayExpress Atlas Preview
                                 </td>
                                 <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
                                 <td><a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
-                                <c:forEach var="e" items="${result.resultEfvs.nameSortedList}">
+                                <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
-                                    <td class="counter">
-                                        <c:set var="upc" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/>
-                                        <c:set var="dnc" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/>
-                                        <div>
-                                            <c:set var="upc"><fmt:formatNumber maxFractionDigits="0" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/></c:set>
-                                            <c:set var="dnc"><fmt:formatNumber maxFractionDigits="0" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/></c:set>
-                                            <div class="countup" title="${ud.ups != 0 ? 'p-value is ' : ''}${ud.ups != 0 ? ud.mpvUp : ''}" style="background-color:rgb(255,${upc},${upc});color:${upc > 200 ? 'black' : 'white'}">&nbsp;${ud.ups == 0 ? '-' : ud.ups}&nbsp;</div>
-                                            <div class="countdn" title="${ud.downs != 0 ? 'p-value is ' : ''}${ud.downs != 0 ? ud.mpvDn : ''}" style="background-color:rgb(${dnc},${dnc},255);color:${dnc > 200 ? 'black' : 'white'}">&nbsp;${ud.downs == 0 ? '-' : ud.downs}&nbsp;</div>
-                                        </div>
-                                    </td>
+                                    <c:choose>
+                                        <c:when test="${ud.zero}">
+                                            <td class="counter"></td>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <td class="acounter" style="background-color:${u:expressionBack(ud)};color:${u:expressionText(ud)}"
+                                                title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
+                                                onclick="hmc(${i.index},${j.index},this)">
+                                                <b>${ud.ups == 0 ? '-' : ud.ups}</b>&nbsp;/&nbsp;<b>${ud.downs == 0 ? '-' : ud.downs}</b>
+                                            </td>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:forEach>
-                                <td><img class="expexp" onclick="loadExperiments(${i.index});" src="expandopen.gif" alt="&gt;" title="Toggle experiments for this gene" width="11" height="11" style="border:0px;"/></td>
                             </tr>
                         </c:forEach>
                     </tbody>
@@ -420,25 +474,26 @@ ArrayExpress Atlas Preview
                                     <c:set var="xx" value="" />
                                     <c:forEach var="efv" items="${ef.efvs}">
                                         <c:set var="ud" value="${row.counters[efv.payload]}"/>
-                                        <c:if test="${(ud.ups > 0 || ud.downs > 0)}">
+                                        <c:if test="${!ud.zero}">
                                             <c:set var="xx" value="1" />
                                         </c:if>
                                     </c:forEach>
                                     <c:if test="${!empty xx}"><table class="factab">
                                         <tr><th class="factor" rowspan="2"><c:out value="${ef.ef}"/></th><c:forEach var="efv" items="${ef.efvs}">
                                             <c:set var="ud" value="${row.counters[efv.payload]}"/>
-                                            <c:if test="${ud.ups > 0 || ud.downs > 0}">
+                                            <c:if test="${!ud.zero}">
                                                 <th align="center" class="counter"><c:out value="${efv.efv}"/></th>
                                             </c:if>
                                         </c:forEach></tr>
                                         <tr><c:forEach var="efv" items="${ef.efvs}">
                                             <c:set var="ud" value="${row.counters[efv.payload]}"/>
-                                            <c:if test="${ud.ups > 0 || ud.downs > 0}"><td class="counter">
-                                                <c:set var="upc"><fmt:formatNumber maxFractionDigits="0" value="${ud.ups != 0 ? (ud.mpvUp > 0.05 ? 0.05 : ud.mpvUp) * 240 / 0.05 : 240}"/></c:set>
-                                                <c:set var="dnc"><fmt:formatNumber maxFractionDigits="0" value="${ud.downs != 0 ? (ud.mpvDn > 0.05 ? 0.05 : ud.mpvDn) * 240 / 0.05 : 240}"/></c:set>
-                                                <div class="countup" title="${ud.ups != 0 ? 'p-value is ' : ''}${ud.ups != 0 ? ud.mpvUp : ''}" style="background-color:rgb(255,${upc},${upc});color:${upc > 200 ? 'black' : 'white'}">&nbsp;${ud.ups == 0 ? '-' : ud.ups}&nbsp;</div>
-                                                <div class="countdn" title="${ud.downs != 0 ? 'p-value is ' : ''}${ud.downs != 0 ? ud.mpvDn : ''}" style="background-color:rgb(${dnc},${dnc},255);color:${dnc > 200 ? 'black' : 'white'}">&nbsp;${ud.downs == 0 ? '-' : ud.downs}&nbsp;</div>
-                                            </td></c:if>
+                                            <c:if test="${!ud.zero}">
+                                                        <td class="acounter" style="background-color:${u:expressionBack(ud)};color:${u:expressionText(ud)}"
+                                                            title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
+                                                            onclick="hmc(${i.index},${efv.number},this);">
+                                                            <b>${ud.ups == 0 ? '-' : ud.ups}</b>&nbsp;/&nbsp;<b>${ud.downs == 0 ? '-' : ud.downs}</b>
+                                                        </td>
+                                            </c:if>
                                         </c:forEach></tr>
                                     </table></c:if>
                                 </c:forEach>

@@ -11,10 +11,12 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
     public static class Efv<PayLoad extends Comparable<PayLoad>> implements Comparable<Efv<PayLoad>> {
         private String efv;
         private PayLoad payload;
+        private int number;
 
-        public Efv(final String efv, final PayLoad payload) {
+        public Efv(final String efv, final PayLoad payload, final int number) {
             this.efv = efv;
             this.payload = payload;
+            this.number = number;
         }
 
         public String getEfv() {
@@ -23,6 +25,10 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
         public PayLoad getPayload() {
             return payload;
+        }
+
+        public int getNumber() {
+            return number;
         }
 
         public int compareTo(Efv<PayLoad> o) {
@@ -85,6 +91,15 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         public String getEfEfvId() {
             return EfvTree.getEfEfvId(getEf(), getEfv());
         }
+
+        @Override
+        public String toString() {
+            return "EfEfv{" +
+                    "ef='" + ef + '\'' +
+                    ", efv='" + efv + '\'' +
+                    ", pl=" + payload +
+                    '}';
+        }
     }
 
     private SortedMap<String,SortedMap<String, PayLoad>> efvs = new TreeMap<String,SortedMap<String, PayLoad>>();
@@ -97,15 +112,13 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
     public EfvTree(EfvTree<PayLoad> other) {
         super();
-        add(other);
+        put(other);
     }
 
-    public void add(EfvTree<PayLoad> other)
+    public void put(EfvTree<PayLoad> other)
     {
         for(EfEfv<PayLoad> i : other.getNameSortedList())
-        {
-            getOrCreate(i);
-        }
+            put(i);
     }
 
     public PayLoad get(String ef, String efv)
@@ -117,23 +130,34 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
     public boolean has(String ef, String efv)
     {
-        if(!efvs.containsKey(ef))
-            return false;
-        return efvs.get(ef).containsKey(efv);
+        return efvs.containsKey(ef) && efvs.get(ef).containsKey(efv);
     }
 
-    public PayLoad getOrCreate(EfEfv<PayLoad> efEfv)
-    {
-        return getOrCreate(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
-    }
+    public interface Creator<T> { T make(); }
 
-    public PayLoad getOrCreate(String ef, String efv, PayLoad payLoad)
+    public PayLoad getOrCreate(String ef, String efv, Creator<PayLoad> plCreator)
     {
         if(!efvs.containsKey(ef))
             efvs.put(ef, new TreeMap<String,PayLoad>());
-        if(!efvs.get(ef).containsKey(efv))
-            efvs.get(ef).put(efv, payLoad);
-        return get(ef, efv);
+
+        if(efvs.get(ef).containsKey(efv))
+            return efvs.get(ef).get(efv);
+        
+        PayLoad pl = plCreator.make();
+        efvs.get(ef).put(efv, pl);
+        return pl;
+    }
+
+    public void put(EfEfv<PayLoad> efEfv)
+    {
+        put(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
+    }
+
+    public void put(String ef, String efv, PayLoad payLoad)
+    {
+        if(!efvs.containsKey(ef))
+            efvs.put(ef, new TreeMap<String,PayLoad>());
+        efvs.get(ef).put(efv, payLoad);
     }
 
     public int getNumEfvs()
@@ -153,10 +177,11 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
     public List<Ef<PayLoad>> getNameSortedTree()
     {
         List<Ef<PayLoad>> efs = new ArrayList<Ef<PayLoad>>();
+        int number = 0;
         for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
             List<Efv<PayLoad>> efvs = new ArrayList<Efv<PayLoad>>();
             for(Map.Entry<String,PayLoad> j : i.getValue().entrySet()) {
-                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue()));
+                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue(), number++));
             }
             efs.add(new Ef<PayLoad>(i.getKey(), efvs));
         }
@@ -209,10 +234,11 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
      */
     public List<Ef<PayLoad>> getValueSortedTrimmedTree() {
         List<Ef<PayLoad>> efs = new ArrayList<Ef<PayLoad>>();
+        int number = 0;
         for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
             List<Efv<PayLoad>> efvs = new ArrayList<Efv<PayLoad>>();
             for(Map.Entry<String,PayLoad> j : i.getValue().entrySet()) {
-                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue()));
+                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue(), number++));
             }
             Collections.sort(efvs);
             efs.add(new Ef<PayLoad>(i.getKey(), efvs.subList(0, Math.min(efvLimit, efvs.size()))));
