@@ -103,37 +103,8 @@ public class QueryHelper
 			return false;
 		return true;
 	}
-	
-	public static String convParamSortToFieldName(String name)
-	{
-		String _convert = Constants.FIELD_AER_RELEASEDATE;
-		if (StringUtils.isEmpty(name))
-		    return _convert;
-		
-		if (name.equalsIgnoreCase(XmlHelper.XML_EL_ACCESSION))
-		{
-			_convert = Constants.FIELD_AER_EXPACCESSION;
-		}
-		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_NAME))
-		{
-			_convert = Constants.FIELD_AER_EXPNAME;
-		}
-		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_SPECIES))
-		{
-			_convert = Constants.FIELD_AER_SAAT_VALUE;
-		}
-		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_FGEM))
-		{
-			_convert = Constants.FIELD_AER_FGEM_COUNT;
-		}
-		else if (name.equalsIgnoreCase(XmlHelper.XML_EL_RAW))
-		{
-			_convert = Constants.FIELD_AER_RAW_COUNT;
-		}
-		return _convert;
-	}
 
-	public static ORDER convParamOrderToOrder(String name)
+    public static ORDER convParamOrderToOrder(String name)
 	{
 		ORDER _convert = ORDER.asc;
 		if (StringUtils.isEmpty(name))

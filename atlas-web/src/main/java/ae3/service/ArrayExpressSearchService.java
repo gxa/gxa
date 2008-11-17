@@ -728,11 +728,6 @@ public class ArrayExpressSearchService {
 //        return writeAtlasQuery(inGeneIds, inExptIds, exptHitsResponse, geneHitsResponse, updn_filter, tw);
 //    }
 
-
-    protected void finalize() throws Throwable {
-        shutdown();
-    }
-
     public Iterable<String[]> getGeneExpressionOptions() {
         return squeryService.getGeneExpressionOptions();
     }

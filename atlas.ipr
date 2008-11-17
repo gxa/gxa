@@ -271,6 +271,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/atlas.iml" filepath="$PROJECT_DIR$/atlas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/atlas-index-api.iml" filepath="$PROJECT_DIR$/atlas-index-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/atlas-web.iml" filepath="$PROJECT_DIR$/atlas-web.iml" />
       <module fileurl="file://$PROJECT_DIR$/indexbuilder.iml" filepath="$PROJECT_DIR$/indexbuilder.iml" />
     </modules>
@@ -1317,6 +1318,50 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/jaxen/jaxen/1.1/jaxen-1.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: uk.ac.ebi.microarray.atlas:atlas-index-api:1.0-SNAPSHOT">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: uk.ac.ebi.microarray:atlas-index-api:1.0-SNAPSHOT">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/uk/ac/ebi/microarray/atlas-index-api/1.0-SNAPSHOT/atlas-index-api-1.0-SNAPSHOT-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: javax.servlet:servlet-api:2.4">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/javax/servlet/servlet-api/2.4/servlet-api-2.4-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/javax/servlet/servlet-api/2.4/servlet-api-2.4-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: xml-apis:xml-apis:1.3.02">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/xml-apis/xml-apis/1.3.02/xml-apis-1.3.02.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/xml-apis/xml-apis/1.3.02/xml-apis-1.3.02-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/xml-apis/xml-apis/1.3.02/xml-apis-1.3.02-sources.jar!/" />
       </SOURCES>
     </library>
   </component>
