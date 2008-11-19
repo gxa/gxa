@@ -1,4 +1,3 @@
-<%String svnBuildString = "$Rev: 4866 $ $Date: 2008-06-20 11:57:28 +0100 (Fri, 20 Jun 2008) $";%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -87,25 +86,25 @@ ArrayExpress Atlas Preview
     }
 
     /* tables */
-    #squery, .factab {
+    .squery, .factab {
         font-family: arial, sans-serif;
         background-color: #CDCDCD;
         font-size: 8pt;
         text-align: left;
     }
-    #squery {
+    .squery {
         margin:10px 0pt 15px;
     }
     .factab {
         margin-bottom:3px;
     }
-    #squery th, .factab th {
+    .squery th, .factab th {
         background-color: #e6EEEE;
         border: 1px solid #FFF;
         font-size: 8pt;
         padding: 4px;
     }
-    #squery td, .factab td {
+    .squery td, .factab td {
         color: #3D3D3D;
         padding: 4px;
         background-color: #FFF;
@@ -126,7 +125,7 @@ ArrayExpress Atlas Preview
     #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
     div.countup, div.countdn { width:50%;float:left;text-align:center; }
     div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-    td.counter,td.acounter, th.counter {text-align:center;width:80px;min-width:60px; }
+    td.counter,td.acounter, th.counter {text-align:center;width:80px;min-width:60px;vertical-align:middle; }
     td.acounter:hover { cursor: pointer; }
     td.common { white-space:nowrap; }
     th.factor { text-align:center;font-weight:normal; }
@@ -141,9 +140,9 @@ ArrayExpress Atlas Preview
 
     .genelist { width: 90%; }
     .genelist .item { margin-top: 10px;margin-bottom: 20px; }
-    .genelist .item .genename { font-size: 20px }
-    .genelist .item .ensname { font-size: smaller; }
-    .genelist .item .label { color: #666666;font-size: smaller; }
+    .genename { font-size: 20px }
+    .ensname { font-size: smaller; }
+    .label { color: #666666;font-size: smaller; }
     .genelist .item .efvs { margin-left: 30px; background:#f7f7f7;
 /*        border-bottom: 1px solid #cccccc;
         border-left: 1px solid #cccccc;
@@ -290,6 +289,7 @@ ArrayExpress Atlas Preview
             </tr>
         </table>
         <c:if test="${heatmap}"><input type="hidden" name="view" value="hm" /></c:if>
+        <input type="hidden" name="view" value="hm"/>
     </form>
 
     <script type="text/javascript">
@@ -394,10 +394,10 @@ ArrayExpress Atlas Preview
             </div>
 
             <c:if test="${heatmap}">
-                <table id="squery">
+                <table id="squery" class="squery">
                     <thead>
                         <tr>
-                            <th colspan="2" rowspan="2" class="gene">Gene</th>
+                            <th rowspan="2" class="gene">Gene</th>
                             <c:forEach var="c" items="${resultEfvsTree}">
                                 <th colspan="${f:length(c.efvs)}" class="factor">
                                     <em><c:out value="${c.ef}"/></em>
@@ -416,14 +416,32 @@ ArrayExpress Atlas Preview
                         <c:forEach var="row" items="${result.results}" varStatus="i">
                             <tr id="squeryrow${i.index}">
                                 <td>
-                                    <c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
-                                        <c:param name="db" value="genomes"/>
-                                        <c:param name="t" value="${row.gene.geneIdentifier}"/>
-                                    </c:url>
-                                    <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}"/></a>
+                                    <nobr>
+                                        <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
+                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
+                                        <span class="ensname">
+                                            &nbsp;<c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
+                                            <c:param name="db" value="genomes"/>
+                                            <c:param name="t" value="${row.gene.geneIdentifier}"/>
+                                        </c:url>
+                                            <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}"/></a>
+                                        </span>
+                                    </nobr><br />
+                                    <nobr>
+                                        <span class="label">GO:</span>
+                                        <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">
+                                            <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
+                                        </c:if>
+                                        <c:if test="${empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">(none)</c:if>
+                                    </nobr><br />
+                                    <nobr>
+                                        <span class="label">InterPro:</span>
+                                        <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">
+                                            <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
+                                        </c:if>
+                                        <c:if test="${empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">(none)</c:if>
+                                    </nobr>
                                 </td>
-                                <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                                <td><a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a></td>
                                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:choose>
