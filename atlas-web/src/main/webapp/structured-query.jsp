@@ -35,6 +35,7 @@ ArrayExpress Atlas Preview
     <script type="text/javascript" src="jquery.autocomplete.js"></script>
     <script type="text/javascript" src="jquerydefaultvalue.js"></script>
     <script type="text/javascript" src="structured-query.js"></script>
+    <script type="text/javascript" src="raphael-packed.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function()
@@ -44,8 +45,8 @@ ArrayExpress Atlas Preview
                         minChars:1,
                         matchCase: true,
                         matchSubset: false,
-                        multiple: true,
-                        multipleSeparator: " ",                    
+                        multiple: false,
+                        selectFirst: false,
                         extraParams: {type:"gene"},
                         formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
                 });
@@ -93,7 +94,7 @@ ArrayExpress Atlas Preview
         text-align: left;
     }
     .squery {
-        margin:10px 0pt 15px;
+        margin:0px 0pt 15px;
     }
     .factab {
         margin-bottom:3px;
@@ -125,7 +126,7 @@ ArrayExpress Atlas Preview
     #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
     div.countup, div.countdn { width:50%;float:left;text-align:center; }
     div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-    td.counter,td.acounter, th.counter {text-align:center;width:80px;min-width:60px;vertical-align:middle; }
+    td.counter,td.acounter, th.counter {text-align:center;width:25px;min-width:25px;vertical-align:middle; }
     td.acounter:hover { cursor: pointer; }
     td.common { white-space:nowrap; }
     th.factor { text-align:center;font-weight:normal; }
@@ -394,21 +395,15 @@ ArrayExpress Atlas Preview
             </div>
 
             <c:if test="${heatmap}">
+                <div id="fortyfive"></div>
                 <table id="squery" class="squery">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="gene">Gene</th>
-                            <c:forEach var="c" items="${resultEfvsTree}">
+                            <th class="gene">Gene</th>
+                            <c:forEach var="c" items="${resultEfvsTree}" varStatus="i">
                                 <th colspan="${f:length(c.efvs)}" class="factor">
-                                    <em><c:out value="${c.ef}"/></em>
+                                    <em style="color:#${i.index % 2 == 0 ? '000000':'999999'}"><c:out value="${c.ef}"/></em>
                                 </th>
-                            </c:forEach>
-                        </tr>
-                        <tr>
-                            <c:forEach var="c" items="${resultEfvsTree}">
-                                <c:forEach var="v" items="${c.efvs}">
-                                    <th class="counter"><c:out value="${v.efv}"/></th>
-                                </c:forEach>
                             </c:forEach>
                         </tr>
                     </thead>
@@ -418,7 +413,7 @@ ArrayExpress Atlas Preview
                                 <td>
                                     <nobr>
                                         <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
+                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><b><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/></b><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
                                         <span class="ensname">
                                             &nbsp;<c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
                                             <c:param name="db" value="genomes"/>
@@ -433,9 +428,7 @@ ArrayExpress Atlas Preview
                                             <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
                                         </c:if>
                                         <c:if test="${empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">(none)</c:if>
-                                    </nobr><br />
-                                    <nobr>
-                                        <span class="label">InterPro:</span>
+                                        <span class="label"> InterPro:</span>
                                         <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">
                                             <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
                                         </c:if>
@@ -461,6 +454,49 @@ ArrayExpress Atlas Preview
                         </c:forEach>
                     </tbody>
                 </table>
+                <script type="text/javascript">
+                    var cs = 0.707106781186548;
+                    var attr = {"font": '12px Tahoma', 'text-anchor': 'start'};
+
+                    var testR = Raphael(0,0,10,10);
+                    var maxH = 0;
+                    var lastW = 0;
+                    for(var k = 0; k < resultEfvs.length; ++k)
+                    {
+                        var txt = testR.text(0, 0, resultEfvs[k].efv).attr(attr);
+                        var bw = txt.getBBox().width * cs;
+                        if(maxH < bw)
+                            maxH = bw;
+                        if(k == resultEfvs.length - 1)
+                            lastW = bw;
+                    }
+                    testR.remove();
+
+                    var ff = document.getElementById("fortyfive");
+                    var sq = document.getElementById("squery");
+                    
+                    var R = Raphael("fortyfive", sq.offsetWidth + Math.round(lastW) + 20, Math.round(maxH) + 20);
+
+                    var colors = ['#000000','#999999'];
+                    var k = 0;
+                    var cp = -1;
+                    var curef = null;
+                    $("#squery tbody tr:first td:gt(0)").each(function () {
+                        if(curef == null || curef != resultEfvs[k].ef)
+                        {
+                            if(++cp == colors.length)
+                                cp = 0;
+                            curef = resultEfvs[k].ef;
+                        }
+                        var x = this.offsetLeft;
+                        var txt = R.text(x + 5, R.height - 5, resultEfvs[k].efv).attr(attr).attr({fill: colors[cp]});
+                        var bb = txt.getBBox();
+                        txt.matrix(cs, cs, -cs, cs, bb.x - cs * bb.x - cs * bb.y, bb.y + cs * bb.x - cs * bb.y);
+                        R.path({stroke: "#cdcdcd", 'stroke-width': 2}).moveTo(x - 1, R.height).lineTo(x - 1, R.height - 20);
+                        ++k;
+                    });
+                </script>
+
             </c:if>
             <c:if test="${!heatmap}">
                 <div class="genelist">

@@ -736,6 +736,11 @@ public class ArrayExpressSearchService {
         return squeryService.getExperimentalFactorOptions();
     }
 
+    public Iterable<String> getExperimentalFactorValueOptions(String factor)
+    {
+        return squeryService.getAllFactorValues(factor);
+    }
+
     public SortedSet<String> getAllAvailableAtlasSpecies() {
         SortedSet<String> species = null;
 

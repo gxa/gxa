@@ -98,23 +98,15 @@ function escapeHtml(s) {
                                                           // limit abortion to this input
                                                           port: "fvalues",
                                                           url: "fval",
-                                                          data: { q: '', limit: 1000, factor: factor.options[factor.selectedIndex].value },
+                                                          data: { mode: 'all', factor: factor.options[factor.selectedIndex].value },
                                                           success: function(data) {
                                                               var rows = data.split("\n");
-                                                              var list = [];
-                                                              for (var i=0; i < rows.length; i++) {
-                                                                  var row = $.trim(rows[i]);
-                                                                  if (row) {
-                                                                      row = row.split("|");
-                                                                      list[list.length] = row[0];
-                                                                  }
-                                                              }
-                                                              var sel = createSelect(what.attr('name'), list);
+                                                              var sel = createSelect(what.attr('name'), rows);
                                                               what.replaceWith(sel);
                                                               callback(sel);
                                                           }
                                                       });
-                                           }
+                                           };
 
              factor.className = 'factor';
              factor.onchange = function() {
@@ -148,7 +140,8 @@ function escapeHtml(s) {
                                        minChars:1,
                                        matchCase: true,
                                        matchSubset: false,
-                                       multiple: true,
+                                       multiple: false,
+                                       selectFirst: false,
                                        multipleSeparator: " ",
                                        scroll: false,
                                        scrollHeight: 180,

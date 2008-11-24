@@ -1,36 +1,33 @@
 package ae3.service.structuredquery;
 
-import java.util.*;
-import java.rmi.RemoteException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-
-import ae3.ols.webservice.axis.Query;
-import ae3.ols.webservice.axis.QueryServiceLocator;
-import ae3.model.AtlasGene;
-import ae3.model.AtlasExperiment;
-import ae3.util.QueryHelper;
-import ae3.service.structuredquery.ExperimentRow;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
-
-import javax.xml.rpc.ServiceException;
-
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.ols.webservice.axis.Query;
+import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.util.QueryHelper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.index.IndexReader;
+
+import javax.xml.rpc.ServiceException;
+import java.rmi.RemoteException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * @author pashky
@@ -262,7 +259,7 @@ public class AtlasStructuredQueryService {
 
     private EfvTree<Boolean> getCondEfvsAllForFactor(String factor) {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-        for(String v : autoCompleteFactorValues(factor, null, MAX_CONDITION_EFVS).keySet()) {
+        for(String v : getFactorValues(factor, null, MAX_CONDITION_EFVS)) {
             condEfvs.put(factor, v, true);
         }
         return condEfvs;
@@ -271,11 +268,39 @@ public class AtlasStructuredQueryService {
     private EfvTree<Boolean> getCondEfvsForFactor(String factor, Iterable<String> values) throws RemoteException, SolrServerException {
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
+
+        StringBuffer sb = new StringBuffer("exp_in_dw:true AND exp_factor_values:(");
         for(String val : values) {
             if(val.length() > 0) {
-                for(String v : autoCompleteFactorValues(factor, val, MAX_CONDITION_EFVS).keySet()) {
-                    condEfvs.put(factor, v, true);
-                }
+                sb.append("\"").append(val.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\" ");
+            }
+        }
+        sb.append(")");
+        String idField = coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName();
+        SolrQuery q = new SolrQuery(sb.toString());
+        q.setHighlight(true);
+        q.addHighlightField("exp_factor_values");
+        q.setHighlightSnippets(1000);
+        q.setHighlightSimplePre("");
+        q.setHighlightSimplePost("");
+        q.setHighlightRequireFieldMatch(true);
+        q.setParam("hl.usePhraseHighlighter", "true");
+        q.setFields(FIELD_FACTOR_PREFIX + factor, idField);
+        q.setRows(1000);
+        q.setStart(0);
+        QueryResponse qr = solrExpt.query(q);
+
+        for(SolrDocument doc : qr.getResults())
+        {
+            try {
+                List<String> hls = qr.getHighlighting().get((String)doc.getFieldValue(idField)).get("exp_factor_values");
+                Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + factor);
+                for(String efv1 : hls)
+                    for(Object efv2 : fvs)
+                        if(efv1.equalsIgnoreCase((String)efv2))
+                            condEfvs.put(factor, (String)efv2, true);
+            } catch(NullPointerException e) {
+                // that's ok
             }
         }
         return condEfvs;
@@ -556,20 +581,28 @@ public class AtlasStructuredQueryService {
     }
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
-        Map<String,Long> s = new TreeMap<String,Long>();
-        try {
-            String solrq = "exp_in_dw:true";
-            if(query != null && query.length() > 0) {
-                query = query.toLowerCase();
-                String qquery = "\"" + query.replaceAll("\"", "\\\"") + "\"";
-                solrq = "(suggest_token:"+qquery+" suggest_full:"+qquery+") AND " + solrq;
-            }
+        Map<String,Long> map = new TreeMap<String,Long>();
+        for(String fv : getFactorValues(factor, query, limit))
+        {
+            SolrQuery q = new SolrQuery("");
+            q.setRows(0);
+            map.put(fv, 123L);
+        }
+        return map;
+    }
 
-            SolrQuery q = new SolrQuery(solrq);
-            
+    public Iterable<String> getAllFactorValues(String factor) {
+        return getFactorValues(factor, null, -1);
+    }
+
+    private SortedSet<String> getFactorValues(String factor, String query, int limit) {
+        SortedSet<String> s = new TreeSet<String>();
+        try {
+            SolrQuery q = new SolrQuery("exp_in_dw:true");
             q.setRows(0);
             q.setFacet(true);
             q.setFacetMinCount(1);
+            q.setFacetPrefix(query != null ? query : "");
 
             if (factor == null || factor.equals(""))
                 factor = "exp_factor_values_exact";
@@ -577,7 +610,7 @@ public class AtlasStructuredQueryService {
                 factor = AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor;
             q.addFacetField(factor);
 
-            q.setFacetLimit(-1);
+            q.setFacetLimit(limit);
             q.setFacetSort(true);
             QueryResponse qr = solrExpt.query(q);
 
@@ -585,11 +618,7 @@ public class AtlasStructuredQueryService {
                 return s;
 
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                if(query == null || query.length() == 0 || ffc.getName().toLowerCase().contains(query)) {
-                    s.put(ffc.getName(), ffc.getCount());
-                    if(s.size() >= limit)
-                        break;
-                }
+                s.add(ffc.getName());
             }
 
         } catch (SolrServerException e) {
@@ -597,10 +626,6 @@ public class AtlasStructuredQueryService {
         }
 
         return s;
-    }
-
-    private void addExperimentToList(ExperimentList list, ResultSet rs)
-    {
     }
 
     public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
