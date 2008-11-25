@@ -120,7 +120,7 @@ public class AtlasStructuredQueryService {
         scores.append("sum(");
 
         int number = 0;
-        out: for(AtlasStructuredQuery.Condition c : query.getConditions())
+        for(AtlasStructuredQuery.Condition c : query.getConditions())
         {
             if(c.isAnything()) {
                 if(efvq.length() > 0) {
@@ -197,11 +197,13 @@ public class AtlasStructuredQueryService {
                             ++number;
 
                             if(number > MAX_CONDITION_EFVS)
-                                break out;
+                                break;
                         }
                         efvq.append(")");
                     }
                     conds.add(new AtlasStructuredQueryResult.Condition(c, condEfvs));
+                    if(number > MAX_CONDITION_EFVS)
+                        break;
                 } catch (SolrServerException e) {
                     log.error(e);
                 } catch (RemoteException e) {
@@ -252,7 +254,7 @@ public class AtlasStructuredQueryService {
             return getCondEfvsAllForFactor(c.getFactor());
 
         if(c.isAnyFactor())
-            return getCondEfvsForAnyFactor(c.getFactorValues());
+            return getCondEfvsForFactor(null, c.getFactorValues());
 
         return getCondEfvsForFactor(c.getFactor(), c.getFactorValues());
     }
@@ -265,7 +267,7 @@ public class AtlasStructuredQueryService {
         return condEfvs;
     }
 
-    private EfvTree<Boolean> getCondEfvsForFactor(String factor, Iterable<String> values) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getCondEfvsForFactor(final String factor, final Iterable<String> values) throws RemoteException, SolrServerException {
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
 
@@ -276,101 +278,75 @@ public class AtlasStructuredQueryService {
             }
         }
         sb.append(")");
+
+
+        if(factor == null)
+        {
+            try {
+                Query olsQuery = new QueryServiceLocator().getOntologyQuery();
+                for(String val : values) {
+                    if(val.length() > 0) {
+                        @SuppressWarnings("unchecked")
+                        HashMap<String,String> terms = olsQuery.getTermsByExactName(val, "EFO");
+                        Set<String> ontologyExpansion = new TreeSet<String>();
+
+                        for (String term : terms.keySet()) {
+                            @SuppressWarnings("unchecked")
+                            HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
+                            ontologyExpansion.addAll(termChildren.values());
+                        }
+                        for(String oval : ontologyExpansion) {
+                            sb.append(" exp_factor_values_exact:");
+                            sb.append("\"").append(oval.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\"");
+                        }
+                    }
+                }
+            } catch(ServiceException e) {
+                log.error(e);
+            }
+        }
+
+        Iterable<String> factors;
+        if(factor == null || "".equals(factor)) {
+            factors = allFactors;
+        } else {
+            factors = new ArrayList<String>(1);
+            ((List<String>)factors).add(factor);
+        }
+
         String idField = coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName();
         SolrQuery q = new SolrQuery(sb.toString());
         q.setHighlight(true);
         q.addHighlightField("exp_factor_values");
+        q.addHighlightField("exp_factor_values_exact");
         q.setHighlightSnippets(1000);
         q.setHighlightSimplePre("");
         q.setHighlightSimplePost("");
         q.setHighlightRequireFieldMatch(true);
         q.setParam("hl.usePhraseHighlighter", "true");
-        q.setFields(FIELD_FACTOR_PREFIX + factor, idField);
+        for(String f : factors)
+            q.addField(FIELD_FACTOR_PREFIX + f);
+        q.addField(idField);
         q.setRows(1000);
         q.setStart(0);
         QueryResponse qr = solrExpt.query(q);
 
         for(SolrDocument doc : qr.getResults())
         {
-            try {
-                List<String> hls = qr.getHighlighting().get((String)doc.getFieldValue(idField)).get("exp_factor_values");
-                Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + factor);
-                for(String efv1 : hls)
-                    for(Object efv2 : fvs)
-                        if(efv1.equalsIgnoreCase((String)efv2))
-                            condEfvs.put(factor, (String)efv2, true);
-            } catch(NullPointerException e) {
-                // that's ok
-            }
-        }
-        return condEfvs;
-    }
-
-    private EfvTree<Boolean> getCondEfvsForAnyFactor(Iterable<String> values) throws RemoteException, SolrServerException {
-        StringBuffer expQuery = new StringBuffer();
-        Query olsQuery = null;
-        try {
-            olsQuery = new QueryServiceLocator().getOntologyQuery();
-        } catch(ServiceException e) {
-            log.error(e);
-        }
-
-        EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-        for(String fv : values) {
-            if(fv.length() > 0) {
-                expQuery.append(" exp_factor_values:").append("\"").append(fv).append("\"");
-                if(olsQuery != null) {
-                    @SuppressWarnings("unchecked")
-                    HashMap<String,String> terms = olsQuery.getTermsByExactName(fv, "EFO");
-                    Set<String> ontologyExpansion = new TreeSet<String>();
-
-                    for (String term : terms.keySet()) {
-                        @SuppressWarnings("unchecked")
-                        HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
-                        ontologyExpansion.addAll(termChildren.values());
+            String id = (String)doc.getFieldValue(idField);
+            if(id != null) {
+                for(String f : factors) {
+                    Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
+                    if(fvs != null) {
+                        Map<String,List<String>> hl = qr.getHighlighting().get(id);
+                        if(hl != null)
+                            for(Collection<String> hls : hl.values())
+                                if(hls != null)
+                                    for(String efv1 : hls)
+                                        for(Object efv2 : fvs)
+                                            if(efv1.equalsIgnoreCase((String)efv2))
+                                                condEfvs.put(f, (String)efv2, true);
                     }
-
-                    for (String term : ontologyExpansion) {
-                        expQuery.append(" exp_factor_values_exact:").append("\"").append(term).append("\"");
-                    }
-                }
-            }
-        }
-
-        SolrQuery q = new SolrQuery(expQuery.toString());
-        q.setHighlight(true);
-        q.addHighlightField("exp_factor_values");
-        q.addHighlightField("exp_factor_values_exact");
-        q.setHighlightSnippets(100);
-        q.setRows(500);
-        q.setStart(0);
-        q.setFilterQueries("exp_in_dw:true");
-
-        QueryResponse response = solrExpt.query(q);
-        if (response == null || response.getResults().getNumFound() == 0)
-            return condEfvs;
-
-        Map<String, SolrDocument> docmap = QueryHelper.convertSolrDocumentListToMap(response,
-                coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName());
-
-        for (Map.Entry<String,Map<String, List<String>>> hdoc : response.getHighlighting().entrySet()) {
-            if (hdoc.getValue() == null || hdoc.getValue().size() == 0)
-                continue;
-            for(List<String> efvs : hdoc.getValue().values()) {
-                for(String efv : efvs) {
-                    efv = efv.replaceAll("</{0,1}em>","");
-                    String ef = null;
-                    SolrDocument doc = docmap.get(hdoc.getKey());
-                    for(String f : allFactors)
-                    {
-                        Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
-                        if(fvs != null && fvs.contains(efv)) {
-                            ef = f;
-                            break;
-                        }
-                    }
-                    if(ef != null)
-                        condEfvs.put(ef, efv, true);
                 }
             }
         }
