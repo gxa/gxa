@@ -185,8 +185,16 @@ function escapeHtml(s) {
                                                                 else {
                                                                     factor.selectedIndex = 0;
                                                                     expr.selectedIndex = 0;
-                                                                    input.focus().attr('value', '').blur()
-                                                                            .setOptions({ extraParams: { factor : '' } }).flushCache();
+                                                                    choose.attr('disabled', 'disabled');
+                                                                    var havesel = newval.find('div.input select');
+                                                                    if(havesel.length != 0)
+                                                                    {
+                                                                        havesel.replaceWith(input);
+                                                                        input.after(choose);
+                                                                    } else {
+                                                                        input.focus().attr('value', '').blur()
+                                                                                .setOptions({ extraParams: { factor : '' } }).flushCache();
+                                                                    }
                                                                 }
                                                             } else {
                                                                 newval.remove();
