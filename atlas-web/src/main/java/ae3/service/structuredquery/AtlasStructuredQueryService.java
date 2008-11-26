@@ -44,6 +44,7 @@ public class AtlasStructuredQueryService {
     private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
 
     private SolrCore coreExpt;
+    private SolrCore coreAtlas;
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
     private Set<String> allFactors;
@@ -53,6 +54,7 @@ public class AtlasStructuredQueryService {
 
     public AtlasStructuredQueryService(CoreContainer coreContainer, Connection sql) throws SQLException {
         this.coreExpt = coreContainer.getCore(CORE_EXPT);
+        this.coreAtlas = coreContainer.getCore(CORE_ATLAS);
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
         this.allFactors = getExperimentalFactorOptions();
@@ -229,6 +231,7 @@ public class AtlasStructuredQueryService {
             if(solrq.length() > 0)
                 solrq.append(" AND ");
             solrq.append("gene_desc:(").append(query.getGene()).append(")");
+            solrq.append(" gene_ids:(").append(query.getGene()).append(")");
         }
 
         return solrq;
@@ -369,8 +372,18 @@ public class AtlasStructuredQueryService {
             private int num = 0;
             public Integer make() { return num++; }
         };
+
+        String idField = coreAtlas.getSearcher().get().getSchema().getUniqueKeyField().getName();
+
         for(SolrDocument doc : docs) {
+            String id = (String)doc.getFieldValue(idField);
+            if(id == null)
+                continue;
+
             AtlasGene gene = new AtlasGene(doc);
+            if(response.getHighlighting() != null)
+                gene.setGeneHighlights(response.getHighlighting().get(id));
+
             List<UpdownCounter> counters = new ArrayList<UpdownCounter>() {
                 public UpdownCounter get(int index) {
                     if(index < size())
@@ -478,6 +491,16 @@ public class AtlasStructuredQueryService {
         {
             q.addFacetField("efvs_up_" + ef);
             q.addFacetField("efvs_dn_" + ef);
+        }
+
+        q.setHighlight(true);
+        q.setHighlightSnippets(100);
+        q.setHighlightRequireFieldMatch(false);
+        q.addHighlightField("gene_id");
+        q.addHighlightField("gene_name");
+        q.addHighlightField("gene_identifier");
+        for(String s : GENE_FACETS) {
+            q.addHighlightField("gene_" + s);
         }
         return q;
     }

@@ -33,6 +33,7 @@ ArrayExpress Atlas Preview
     <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
     <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="jquery.truncator.js"></script>
     <script type="text/javascript" src="jquerydefaultvalue.js"></script>
     <script type="text/javascript" src="structured-query.js"></script>
     <script type="text/javascript" src="raphael-packed.js"></script>
@@ -132,6 +133,7 @@ ArrayExpress Atlas Preview
     th.factor { text-align:center;font-weight:normal; }
     th.factor em { font-weight:bold;font-style:normal;}
     th.gene { vertical-align:middle;text-align:center; }
+    td.geneinfo em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
 
     a.fup:link, a.fup:active, a.fup:hover, a.fup:visited { color: #660000;text-decoration: underline; }
     a.fdn:link, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #000066;text-decoration: underline; }
@@ -363,7 +365,7 @@ ArrayExpress Atlas Preview
             <div class="drilldowns">
                 <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                     <div class="drillsect">
-                        <div class="name"><c:out value="${f:toUpperCase(f:substring(ef.ef, 0, 1))}${f:toLowerCase(f:substring(ef.ef, 1, -1))}"/>:</div>
+                        <div class="name"><fmt:message key="head.ef.${ef.ef}"/>:</div>
                         <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
                             <li><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP_DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="ftot"><c:out value="${efv.efv}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</li>
                         </c:forEach></ul>
@@ -371,7 +373,7 @@ ArrayExpress Atlas Preview
                 </c:forEach>
                 <c:if test="${!empty result.geneFacets['species']}">
                     <div class="drillsect">
-                        <div class="name">Specie:</div>
+                        <div class="name">Species:</div>
                         <ul>
                             <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
                                 <li><a href="${pageUrl}&specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
@@ -382,7 +384,7 @@ ArrayExpress Atlas Preview
                 <c:forEach var="facet" items="${result.geneFacets}">
                     <c:if test="${!empty facet.key && facet.key!='species'}">
                         <div class="drillsect">
-                            <div class="name"><c:out value="${f:toUpperCase(f:substring(facet.key, 0, 1))}${f:toLowerCase(f:substring(facet.key, 1, -1))}"/>:</div>
+                            <div class="name"><fmt:message key="head.gene.${facet.key}"/>:</div>
                             <ul>
                                 <c:forEach var="sp" items="${facet.value}" varStatus="s">
                                     <li><a href="javascript:alert('sorry, not implemented yet')" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
@@ -410,10 +412,10 @@ ArrayExpress Atlas Preview
                     <tbody>
                         <c:forEach var="row" items="${result.results}" varStatus="i">
                             <tr id="squeryrow${i.index}">
-                                <td>
+                                <td class="geneinfo">
                                     <nobr>
                                         <c:set var="geneName" value="${f:split(row.gene.geneName,';')}"/>
-                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><b><c:out value="${f:substring(geneName[0],0,20)}${f:length(geneName[0]) > 20 || f:length(geneName) > 1 ? '...' : ''}"/></b><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
+                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><b>${row.gene.hilitGeneName}</b><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
                                         <span class="ensname">
                                             &nbsp;<c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
                                             <c:param name="db" value="genomes"/>
@@ -424,18 +426,23 @@ ArrayExpress Atlas Preview
                                     </nobr><br />
                                     <nobr>
                                         <span class="label">GO:</span>
-                                        <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">
-                                            <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
-                                        </c:if>
-                                        <c:if test="${empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">(none)</c:if>
+                                        <c:choose>
+                                            <c:when test="${!empty row.gene.goTerm}">
+                                                <span class="hitrunc" title="${f:escapeXml(row.gene.goTerm)}"><a href="javascript:alert('sorry, not implemented yet')">${row.gene.hilitGoTerm}</a></span>
+                                            </c:when>
+                                            <c:otherwise>(none)</c:otherwise>
+                                        </c:choose>
                                         <span class="label"> InterPro:</span>
-                                        <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">
-                                            <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
-                                        </c:if>
-                                        <c:if test="${empty row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}">(none)</c:if>
+                                        <c:choose>
+                                            <c:when test="${!empty row.gene.interProTerm}">
+                                                <span class="hitrunc" title="${f:escapeXml(row.gene.interProTerm)}"><a href="javascript:alert('sorry, not implemented yet')">${row.gene.hilitInterProTerm}</a></span>
+                                            </c:when>
+                                            <c:otherwise>(none)</c:otherwise>
+                                        </c:choose>
                                     </nobr>
                                 </td>
                                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
+                                    <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:choose>
                                         <c:when test="${ud.zero}">
@@ -455,6 +462,8 @@ ArrayExpress Atlas Preview
                     </tbody>
                 </table>
                 <script type="text/javascript">
+                    $('.hitrunc').truncate({max_length: 60, more: '...»', less: '«'});
+
                     var cs = 0.707106781186548;
                     var attr = {"font": '12px Tahoma', 'text-anchor': 'start'};
 

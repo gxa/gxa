@@ -10,6 +10,11 @@
         <param-value>/WEB-INF/beans.xml</param-value>
     </context-param>
 
+    <context-param>
+        <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+        <param-value>Curated</param-value>
+    </context-param>
+
     <listener>
         <listener-class>
             org.springframework.web.context.ContextLoaderListener

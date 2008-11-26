@@ -2,76 +2,86 @@ package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.util.*;
 
+import ae3.util.HtmlHelper;
+import ae3.util.QueryHelper;
+
 public class AtlasGene {
-    private String geneId;
-    private String geneName;
-    private String geneIdentifier;
-    private String geneSpecies;
-
     private SolrDocument geneSolrDocument;
-
     private Map<String, List<String>> geneHighlights;
 
-    private AtlasGene() {};
-
     public AtlasGene(SolrDocument geneDoc) {
-        this.setGeneId((String) geneDoc.getFieldValue("gene_id"));
-        this.setGeneName((String) geneDoc.getFieldValue("gene_name"));
-        this.setGeneIdentifier((String) geneDoc.getFieldValue("gene_identifier"));
-        this.setGeneSpecies(geneDoc.getFieldValues("gene_species"));
-
-        this.setGeneSolrDocument(geneDoc);
-    }
-
-    public void setGeneId(String geneId) {
-        this.geneId = geneId;
-    }
-
-    public void setGeneName(String geneName) {
-        this.geneName = geneName;
-    }
-
-    public void setGeneIdentifier(String geneIdentifier) {
-        this.geneIdentifier = geneIdentifier;
-    }
-
-    public void setGeneSpecies(Collection geneSpecies) {
-        this.geneSpecies = (String) geneSpecies.toArray()[0];
-        this.geneSpecies = this.geneSpecies.substring(0, 1)+this.geneSpecies.substring(1, this.geneSpecies.length()).toLowerCase();
+        this.geneSolrDocument = geneDoc;
     }
 
     public String getGeneSpecies() {
-        return geneSpecies;
+        String species = (String) geneSolrDocument.getFieldValues("gene_species").toArray()[0];
+        return species.substring(0, 1).toUpperCase() + species.substring(1, species.length()).toLowerCase();
+    }
+
+    private String getValue(String name)
+    {
+        return StringUtils.join(geneSolrDocument.getFieldValues(name), ", ");
     }
 
     public String getGeneId() {
-        return geneId;
+        return getValue("gene_id");
     }
 
     public String getGeneName() {
-        return geneName;
+        return getValue("gene_name");
     }
 
     public String getGeneIdentifier() {
-        return geneIdentifier;
+        return getValue("gene_identifier");
+    }
+
+    public String getGoTerm() {
+        return getValue("gene_goterm");
+    }
+
+    public String getInterProTerm() {
+        return getValue("gene_interproterm");
+    }
+
+    private String getHilitValue(String name) {
+        List<String> val = geneHighlights.get(name);
+        if(val == null || val.size() == 0)
+            return StringEscapeUtils.escapeHtml(getValue(name));
+        return StringUtils.join(val, ", ");
+    }
+
+    public String getHilitInterProTerm() {
+        return getHilitValue("gene_interproterm");
+    }
+
+    public String getHilitGoTerm() {
+        return getHilitValue("gene_goterm");
+    }
+
+    public String getHilitGeneName() {
+        return getHilitValue("gene_name");
     }
 
     public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
         this.geneHighlights = geneHighlights;
     }
 
-    public String getGeneHighlightStringForHtml() {
-        Map<String, List<String>> hilites = this.getGeneHighlights();
+    public SolrDocument getGeneSolrDocument() {
+        return geneSolrDocument;
+    }
 
-        if(hilites == null)
+    public String getGeneHighlightStringForHtml() {
+
+        if(geneHighlights == null)
             return "";
 
         Set<String> hls = new HashSet<String>();
-        for (String hlf : hilites.keySet()) {
-            hls.add(hlf + ": " + StringUtils.join(hilites.get(hlf), ";"));
+        for (String hlf : geneHighlights.keySet()) {
+            hls.add(hlf + ": " + StringUtils.join(geneHighlights.get(hlf), ";"));
         }
 
         if(hls.size() > 0)
@@ -80,29 +90,17 @@ public class AtlasGene {
         return "";
     }
 
-    public Map<String, List<String>> getGeneHighlights() {
-        return geneHighlights;
-    }
-
-    public SolrDocument getGeneSolrDocument() {
-        return geneSolrDocument;
-    }
-
-    public void setGeneSolrDocument(SolrDocument geneSolrDocument) {
-        this.geneSolrDocument = geneSolrDocument;
-    }
-
     public HashMap serializeForWebServices() {
         HashMap h = new HashMap();
-	SolrDocument gene = this.getGeneSolrDocument();
+        SolrDocument gene = this.getGeneSolrDocument();
 
         if(gene != null) {
-	    Map m = gene.getFieldValuesMap();
-	    for (Object key : m.keySet()) {
-		Collection<String> s = (Collection<String>) m.get(key);
-		h.put(key, StringUtils.join(s, "\t"));
-	    }
-	}
+            Map m = gene.getFieldValuesMap();
+            for (Object key : m.keySet()) {
+                Collection<String> s = (Collection<String>) m.get(key);
+                h.put(key, StringUtils.join(s, "\t"));
+            }
+        }
 
         return h;
     }
