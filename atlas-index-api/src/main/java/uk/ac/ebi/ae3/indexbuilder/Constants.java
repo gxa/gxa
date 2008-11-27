@@ -224,11 +224,7 @@ public class Constants
 	public static final String FIELD_AER_RAW_CELCOUNT="aer_raw_celcount";
 	public static final String FIELD_AER_RAW_COUNT="aer_raw_count";
 
-	//DW
-	public static final String FIELD_DWEXP_ID ="dwe_id";
-	public static final String FIELD_DWEXP_ACCESSION = "dwe_txt_accession";
-	public static final String FIELD_DWEXP_EXPDESC= "dwe_txt_expdescription";
-	public static final String FIELD_DWEXP_EXPTYPE = "dwe_txt_exptype";
+	
 
 	//INDEX FIELDS
 	/** Constant that represents the index fields for DW*/
@@ -240,5 +236,13 @@ public class Constants
 	public static final String PREFIX_DWE="dwe_";
 	public static final String SUFFIX_ASSAY_ID = "assay_id";
 	public static final String SUFFIX_SAMPLE_ID = "sample_id";
+	
+	//DW
+	public static final String FIELD_DWEXP_ID = PREFIX_DWE+"exp_id";
+	public static final String FIELD_DWEXP_ACCESSION = PREFIX_DWE+"exp_accession";
+	public static final String FIELD_DWEXP_EXPDESC= PREFIX_DWE+"exp_description";
+	public static final String FIELD_DWEXP_EXPTYPE = PREFIX_DWE+"exp_type";
+	public static final String FIELD_DWEXP_FV = "exp_factor_values";
+	public static final String FIELD_DWEXP_EF = PREFIX_DWE+"exp_factor";
 
 }

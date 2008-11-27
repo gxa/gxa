@@ -290,11 +290,19 @@
 
   <field name="exp_in_dw" type="boolean" indexed="true" stored="true"/>
 
-  <!-- dwexp -->
+  <!-- dwexp 
   <field name="dwe_id" type="long" indexed="true" stored="true" multiValued="true"/>  
   <field name="dwe_txt_accession" type="string" indexed="true" stored="true" multiValued="true"/>  
-  <field name="dwe_txt_expdescription" type="string" indexed="false" stored="true" multiValued="true"/>  
+  <field name="dwe_txt_expdescription" type="text" indexed="false" stored="true" multiValued="true"/>  
   <field name="dwe_txt_exptype" type="string" indexed="false" stored="true" multiValued="true"/>  
+    -->
+   
+   	<field name="dwe_exp_id" type="long" indexed="true" stored="true" multiValued="false"/>  
+  	<field name="dwe_exp_accession" type="string" indexed="true" stored="true" multiValued="false"/>  
+  	<field name="dwe_exp_description" type="text" indexed="true" stored="true" multiValued="false"/>  
+  	<field name="dwe_exp_type" type="string" indexed="true" stored="true" multiValued="true"/>
+  	<field name="dwe_bs_attribute" type="text" indexed="true" stored="true" multiValued="true"/> 
+  	<field name="dwe_exp_factor" type="string" indexed="true" stored="true" multiValued="true"/> 
     
    <!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema)  -->
    <field name="aer_text" type="text" indexed="true" stored="false" multiValued="true"/>
@@ -303,6 +311,8 @@
    <field name="exp_factor_values" type="text" indexed="true" stored="true" multiValued="true"/>
    <field name="exp_factor_values_exact" type="string"  indexed="true" stored="true" multiValued="true"/>
    <field name="exp_factor_values_facet" type="text_ws" indexed="true" stored="true" multiValued="true"/>
+   
+   <!-- <field name="sample_attributes" type="string"  indexed="true" stored="true" multiValued="true"/> -->
 
    <field name="suggest_full" type="prefix_full" indexed="true" stored="false"  multiValued="true"/>
    <field name="suggest_token" type="prefix_token" indexed="true" stored="false"  multiValued="true"/>
@@ -325,13 +335,15 @@
  <solrQueryParser defaultOperator="OR"/>
 
  <copyField source="dwe_ba_*" dest="exp_factor_values"/>
- <copyField source="dwe_bs_*" dest="exp_factor_values"/>
+ <!-- <copyField source="dwe_bs_*" dest="exp_factor_values"/> -->
 
  <copyField source="dwe_ba_*" dest="exp_factor_values_exact"/>
- <copyField source="dwe_bs_*" dest="exp_factor_values_exact"/>
+ <!-- <copyField source="dwe_bs_*" dest="exp_factor_values_exact"/> -->
 
  <copyField source="dwe_ba_*" dest="exp_factor_values_facet"/>
- <copyField source="dwe_bs_*" dest="exp_factor_values_facet"/>
+ <!-- <copyField source="dwe_bs_*" dest="exp_factor_values_facet"/> -->
+ 
+ <!-- <copyField source="dwe_bs_*" dest="sample_attributes"/> -->
 
  <copyField source="aer_txt*" dest="aer_text"/>
  <copyField source="dwe_txt*" dest="dwe_text"/>

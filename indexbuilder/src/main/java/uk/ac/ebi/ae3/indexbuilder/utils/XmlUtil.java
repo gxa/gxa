@@ -100,75 +100,84 @@ public class XmlUtil
 		//Parse xml String		
         xmlDoc = DocumentHelper.parseText(xmlDw);
         Element elExperiment=xmlDoc.getRootElement();
-        addFieldFromAttr(elExperiment, "EXPERIMENT_ID_KEY", doc, Constants.FIELD_DWEXP_ID);
-        addFieldFromAttr(elExperiment, "EXPERIMENT_IDENTIFIER", doc, Constants.FIELD_DWEXP_ACCESSION);
-        addFieldFromAttr(elExperiment, "EXPERIMENT_DESCRIPTION", doc, Constants.FIELD_DWEXP_EXPDESC);
-        addFieldFromEl(elExperiment, doc, Constants.FIELD_DWEXP_EXPTYPE);
-        //  
-        //get bioassays
-        for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
-        {
-        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
-        	Iterator<Element> elementIt =assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
-    		String assId=null;
-    		String value=null;    		
-        	while (elementIt.hasNext())
-        	{
-        		Element element=elementIt.next();
-        		value = element.getText();
-    			Attribute attr=element.attribute(Constants.AT_ASSAY_ID);
-    			if (attr!=null)
-    			{
-    			
-    				assId=attr.getStringValue();
-    			}
-        		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
-        		{
-            		//Add data to index
-            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
-        		}
-    			
-        		
-        	}
-       	}
-        //process samples
-        for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
-        {
-        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
-        	
-        	Iterator<Element> elementIt = assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
-    		String assId=null;
-    		String sampleId=null;    		
-    		String value=null;    		
-        	
-    		while (elementIt.hasNext())
-        	{
-    			Element element = elementIt.next();
-        		value = element.getText();
-        		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
-        		{
-        			Attribute attr1=element.attribute(Constants.AT_ASSAY_ID);
-        			Attribute attr2=element.attribute(Constants.AT_SAMPLE_ID);
-        			
-        			if (attr1!=null)
-        			{
-        			
-        				assId=attr1.getStringValue();
-        			}
-        			if (attr2!=null)
-        			{
-        			
-        				sampleId=attr2.getStringValue();
-        			}
-            		//Add data to index
-            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
-            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
-            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID, sampleId);        			
-            		
-        		}
-        	}
+        
+        @SuppressWarnings("unchecked")
+        List<Element> fields = xmlDoc.getRootElement().elements("field");
+        for(Element field : fields) {
+        	doc.addField(Constants.PREFIX_DWE+field.attribute("name").getValue(), field.getText());
         }
+        
+//        addFieldFromAttr(elExperiment, "EXPERIMENT_ID_KEY", doc, Constants.FIELD_DWEXP_ID);
+//        addFieldFromAttr(elExperiment, "EXPERIMENT_IDENTIFIER", doc, Constants.FIELD_DWEXP_ACCESSION);
+//        addFieldFromAttr(elExperiment, "EXPERIMENT_DESCRIPTION", doc, Constants.FIELD_DWEXP_EXPDESC);
+//        addFieldFromEl(elExperiment, doc, Constants.FIELD_DWEXP_EXPTYPE);
+        
+        
+        //Uncommented for now until DB XML is updated to include inidividual biosamples. Currently all BS attributes will be all in one field bs_attribute  
+        //get bioassays
+//        for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
+//        {
+//        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
+//        	Iterator<Element> elementIt =assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
+//    		String assId=null;
+//    		String value=null;    		
+//        	while (elementIt.hasNext())
+//        	{
+//        		Element element=elementIt.next();
+//        		value = element.getText();
+//    			Attribute attr=element.attribute(Constants.AT_ASSAY_ID);
+//    			if (attr!=null)
+//    			{
+//    			
+//    				assId=attr.getStringValue();
+//    			}
+//        		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
+//        		{
+//            		//Add data to index
+////            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_ASSAY_ELEMENTS[i], value);
+//            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_ASSAY_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
+//        		}
+//    			
+//        		
+//        	}
+//       	}
+        //process samples
+//        for (int i=0; i<Constants.ARRAY_SAMPLE_ELEMENTS.length; i++)
+//        {
+//        	Element assElement = elExperiment.element(Constants.EL_assay_attributes);
+//        	
+//        	Iterator<Element> elementIt = assElement.elementIterator(Constants.ARRAY_ASSAY_ELEMENTS[i]);
+//    		String assId=null;
+//    		String sampleId=null;    		
+//    		String value=null;    		
+//        	
+//    		while (elementIt.hasNext())
+//        	{
+//    			Element element = elementIt.next();
+//        		value = element.getText();
+//        		if (!org.apache.commons.lang.StringUtils.isEmpty(value))
+//        		{
+//        			Attribute attr1=element.attribute(Constants.AT_ASSAY_ID);
+//        			Attribute attr2=element.attribute(Constants.AT_SAMPLE_ID);
+//        			
+//        			if (attr1!=null)
+//        			{
+//        			
+//        				assId=attr1.getStringValue();
+//        			}
+//        			if (attr2!=null)
+//        			{
+//        			
+//        				sampleId=attr2.getStringValue();
+//        			}
+//            		//Add data to index
+//            		doc.addField(Constants.PREFIX_DWE + Constants.ARRAY_SAMPLE_ELEMENTS[i], value);
+//            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_ASSAY_ID, assId);
+//            		doc.addField(Constants.PREFIX_DWE  + "ids_" + Constants.ARRAY_SAMPLE_ELEMENTS[i] + "_" + Constants.SUFFIX_SAMPLE_ID, sampleId);        			
+//            		
+//        		}
+//        	}
+//        }
         
 	}
 	

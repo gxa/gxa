@@ -1,11 +1,16 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import oracle.sql.CLOB;
+
+import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
@@ -110,7 +115,7 @@ public class ExperimentDwJdbcDao
 	/** An instance of JDBC RowMapper for SQL_ASXML**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
 	private RowMapper rowMapperExp = new RowMapperExperiments();
-
+	private DataSource _dataSource;
 	/**
 	 * Set the default DataSource to be used by the ExperimentDwJdbcDao.
 	 * @param dataSource -an instance of DataSource class
@@ -118,15 +123,20 @@ public class ExperimentDwJdbcDao
 	public void setDataSource(DataSource dataSource)
 	{
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		_dataSource = dataSource;
 	}
+	public DataSource getDataSource() {
+        return _dataSource;
+    }
 	
 	/**
 	 * 
 	 * @param identifier
 	 * @return
 	 */
-	public String getExperimentAsXml(Experiment experiment)
+	public String getExperimentAsXml(Experiment experiment) throws Exception
 	{
+		/*
 		//String xml = (String)this.jdbcTemplate.queryForObject(SQL_ASXML, new Object[] {experiment.getAccession()},rowMapper);
 		List<String> l= this.jdbcTemplate.query(SQL_ASXML, new Object[] {experiment.getAccession()},rowMapper);
 		String xml = null;
@@ -135,6 +145,22 @@ public class ExperimentDwJdbcDao
 		//String xml = (String)this.jdbcTemplate.queryForObject(SQL_ASXML, new Object[] {experiment.getAccession()},rowMapper);
 		
 		return xml;
+		*/
+		Connection sql = getDataSource().getConnection();
+		String expXML="";
+        PreparedStatement expXMLstmt = sql.prepareStatement("select e.solr_xml.getClobVal() "+
+				"FROM experiment_xml e, ae1__experiment__main m " +
+				"WHERE e.experiment_id_key = m.experiment_id_key " +
+				"AND m.experiment_accession = '"+experiment.getAccession()+"'");
+        ResultSet expRS =  expXMLstmt.executeQuery();
+        while(expRS.next()){
+        	CLOB doc_clob = (CLOB)expRS.getObject(1);
+        	expXML = doc_clob.getSubString(1, (int)doc_clob.length());
+        }
+        expRS.close();
+        expXMLstmt.close();
+        
+        return expXML;
 	}
 	
 	public boolean experimentExists(Experiment experiment)
