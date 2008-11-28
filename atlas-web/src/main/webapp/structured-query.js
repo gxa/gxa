@@ -1,7 +1,7 @@
 var counter = 0;
 
 function escapeHtml(s) {
-    return s.replace(/"/g,"&quot;")
+    return s.replace(/\"/g,"&quot;")
             .replace(/</g,"&lt;")
             .replace(/>/g,"&gt;")
             .replace(/&/g,"&amp;");
@@ -47,7 +47,7 @@ function escapeHtml(s) {
          function addSpecieOr(value) {
              var numrow = tbody.get(0).rows.length;
 
-             var selects = createSelect('specie_' + (++counter), options['species'], true, value)
+             var selects = createSelect('specie_' + (++counter), options['species'], true, value);
              selects.setAttribute("class","speciesSelect");
 
              var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : '') + '</td></tr>')
@@ -135,42 +135,55 @@ function escapeHtml(s) {
              function addConditionOr(where, value) {
                  var orid = ++counter;
 
-                 var input = $('<input type="text" class="value"/>').attr('name', "fval_" + andid + '_' + orid)
-                     .autocomplete("fval", {
-                                       minChars:1,
-                                       matchCase: true,
-                                       matchSubset: false,
-                                       multiple: false,
-                                       selectFirst: false,
-                                       multipleSeparator: " ",
-                                       scroll: false,
-                                       scrollHeight: 180,
-                                       max: 10,
-                                       extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
-                                       formatItem:function(row) {return row[0];}
-                                   }).flushCache().keydown(function () {tr.find("td.expansion").text('');});
+                 var makeinput = function () {
+                     return $('<input type="text" class="value"/>')
+                        .attr('name', "fval_" + andid + '_' + orid)
+                        .autocomplete("fval", {
+                            minChars:1,
+                            matchCase: true,
+                            matchSubset: false,
+                            multiple: false,
+                            selectFirst: false,
+                            multipleSeparator: " ",
+                            scroll: false,
+                            scrollHeight: 180,
+                            max: 10,
+                            extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
+                            formatItem: function(row) { return row[0]; }
+                        })
+                        .flushCache().keydown(function () {tr.find("td.expansion").text('');});
+                 };
+
+                 var input = makeinput();
+
+                 var makechoose = function () {
+                     var c = $('<input type="button" value="..." title="choose from list..." class="choose" />')
+                        .bind('click', function() {
+                            var vbutt = $(this);
+                            var oldval = input.val();
+                            loadValues(input, function(sel) {
+                                tr.find("td.expansion").text('');
+                                //
+                                for(var i = 0; i < sel.options.length; ++i)
+                                if(sel.options[i].value.indexOf(oldval) >= 0)
+                                {
+                                    sel.selectedIndex = i;
+                                    break;
+                                }
+                                vbutt.remove();
+                            });
+                        });
+                     if(factor.selectedIndex == 0)
+                        c.attr('disabled', 'disabled');
+
+                     return c;
+                 };
+
+                 var choose = makechoose();
+
                  if(value != null)
                      input.val(value);
 
-                 var choose = $('<input type="button" value="..." title="choose from list..." class="choose" />')
-                                     .bind('click', function() {
-                                                                 var vbutt = $(this);
-                                                                 var oldval = input.val();
-                                                                 loadValues(input, function(sel) {
-                                                                      tr.find("td.expansion").text('');
-                                                                      //
-                                                                      for(var i = 0; i < sel.options.length; ++i)
-                                                                          if(sel.options[i].value.indexOf(oldval) >= 0)
-                                                                          {
-                                                                               sel.selectedIndex = i;
-                                                                               break;
-                                                                          }
-                                                                      vbutt.remove();
-                                                                 });
-                                                               });
-                 if(factor.selectedIndex == 0)
-                     choose.attr('disabled', 'disabled');
-                 
                  var newval = $('<div class="value" />')
                      .append($('<div class="input" />')
                              .append(input)
@@ -185,12 +198,11 @@ function escapeHtml(s) {
                                                                 else {
                                                                     factor.selectedIndex = 0;
                                                                     expr.selectedIndex = 0;
-                                                                    choose.attr('disabled', 'disabled');
                                                                     var havesel = newval.find('div.input select');
                                                                     if(havesel.length != 0)
                                                                     {
-                                                                        havesel.replaceWith(input);
-                                                                        input.after(choose);
+                                                                        havesel.replaceWith(input = makeinput());
+                                                                        input.after(choose = makechoose());
                                                                     } else {
                                                                         input.focus().attr('value', '').blur()
                                                                                 .setOptions({ extraParams: { factor : '' } }).flushCache();
