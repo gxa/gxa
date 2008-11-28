@@ -354,10 +354,10 @@ ArrayExpress Atlas Preview
                 <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start + 1} - ${result.start + result.size}"/> as
                 <c:choose>
                     <c:when test="${heatmap}">
-                        heatmap (<a href="${f:replace(pageUrl,'&view=hm','')}&p=${query.start}">show as list</a>)
+                        heatmap (<a href="${f:replace(pageUrl,'&amp;view=hm','')}&amp;p=${query.start}">show as list</a>)
                     </c:when>
                     <c:otherwise>
-                        list (<a href="${pageUrl}&p=${query.start}&view=hm">show as heatmap</a>)
+                        list (<a href="${pageUrl}&amp;p=${query.start}&amp;view=hm">show as heatmap</a>)
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -367,7 +367,7 @@ ArrayExpress Atlas Preview
                     <div class="drillsect">
                         <div class="name"><fmt:message key="head.ef.${ef.ef}"/>:</div>
                         <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                            <li><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP_DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="ftot"><c:out value="${efv.efv}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=UP&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&fact_${cn}=${u:escapeURL(ef.ef)}&gexp_${cn}=DOWN&fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</li>
+                            <li><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;gexp_${cn}=UP_DOWN&amp;fval_${cn}_0=${u:escapeURL(efv.efv)}" class="ftot"><c:out value="${efv.efv}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;gexp_${cn}=UP&amp;fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;gexp_${cn}=DOWN&amp;fval_${cn}_0=${u:escapeURL(efv.efv)}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</li>
                         </c:forEach></ul>
                     </div>
                 </c:forEach>
@@ -376,7 +376,7 @@ ArrayExpress Atlas Preview
                         <div class="name">Species:</div>
                         <ul>
                             <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                                <li><a href="${pageUrl}&specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
+                                <li><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
                             </c:forEach>
                         </ul>
                     </div>
@@ -523,7 +523,7 @@ ArrayExpress Atlas Preview
                                 <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}"/></a>
                             </span>
                             <span class="label">&nbsp;&nbsp;Specie:</span>
-                            <a href="${pageUrl}&specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a>
+                            <a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a>
                             <c:if test="${!empty row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}">
                                 <span class="label">&nbsp;&nbsp;GO Term:</span>
                                 <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_goterm']}"/></a>
@@ -569,18 +569,18 @@ ArrayExpress Atlas Preview
             <c:if test="${result.size < result.total}">
                 <div class="pagination">
                     <c:if test="${result.start >= result.rows}">
-                        <a href="${pageUrl}&p=${result.start - result.rows}">prev</a>
+                        <a href="${pageUrl}&amp;p=${result.start - result.rows}">prev</a>
                     </c:if>
                     <c:forEach var="p" begin="0" end="${result.total}" step="${result.rows}">
                         <c:if test="${result.start == p}">
                             <b><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></b>
                         </c:if>
                         <c:if test="${result.start != p}">
-                            <a href="${pageUrl}&p=${p}"><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></a>
+                            <a href="${pageUrl}&amp;p=${p}"><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></a>
                         </c:if>
                     </c:forEach>
                     <c:if test="${result.total - result.start > result.rows}">
-                        <a href="${pageUrl}&p=${result.start + result.rows}">next</a>
+                        <a href="${pageUrl}&amp;p=${result.start + result.rows}">next</a>
                     </c:if>
                 </div>
             </c:if>
