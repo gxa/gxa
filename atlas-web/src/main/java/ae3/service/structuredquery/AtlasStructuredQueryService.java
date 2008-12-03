@@ -581,6 +581,12 @@ public class AtlasStructuredQueryService {
 
     public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
         Map<String,Long> map = new TreeMap<String,Long>();
+        
+        if(query.startsWith("\""))
+            query = query.substring(1);
+        if(query.endsWith("\""))
+            query = query.substring(0, query.length() - 1);
+        
         for(String fv : getFactorValues(factor, query, limit))
         {
             SolrQuery q = new SolrQuery("");

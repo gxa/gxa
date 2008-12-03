@@ -6,6 +6,9 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.IOException;
 
 /**
  * @author pashky
@@ -13,10 +16,13 @@ import java.util.*;
 public class AtlasStructuredQueryParser {
     private static final Log log = LogFactory.getLog("AtlasStructuredQueryParser");
     private static String PARAM_EXPRESSION = "gexp_";
+    private static String PARAM_EXPRESSION_SIMPLE = "gexp";
     private static String PARAM_FACTOR = "fact_";
     private static String PARAM_FACTORVALUE = "fval_";
+    private static String PARAM_FACTORVALUE_SIMPLE = "fval";
     private static String PARAM_GENE = "gene";
     private static String PARAM_SPECIE = "specie_";
+    private static String PARAM_SPECIE_SIMPLE = "specie";
     private static int DEFAULT_ROWS = 100;
     private static String PARAM_START = "p";
 
@@ -55,10 +61,25 @@ public class AtlasStructuredQueryParser {
             else
                 result.add(value);
         }
+
+        String specieSimple = httpRequest.getParameter(PARAM_SPECIE_SIMPLE);
+        if("".equals(specieSimple))
+            return new ArrayList<String>();
+        if(specieSimple != null)
+            result.add(specieSimple);
+        
         return result;
     }
 
     private static List<AtlasStructuredQuery.Condition> parseConditions(final HttpServletRequest httpRequest)
+    {
+        if(httpRequest.getParameter(PARAM_FACTORVALUE_SIMPLE) != null)
+            return parseConditionsSimple(httpRequest);
+        else
+            return parseConditionsStruct(httpRequest);
+    }
+    
+    private static List<AtlasStructuredQuery.Condition> parseConditionsStruct(final HttpServletRequest httpRequest)
     {
         List<AtlasStructuredQuery.Condition> result = new ArrayList<AtlasStructuredQuery.Condition>();
 
@@ -90,6 +111,74 @@ public class AtlasStructuredQueryParser {
                 // Ignore this one, may be better stop future handling
                 log.error("Unable to parse and condition. Ignoring it.", e);
             }
+        }
+
+        return result;
+    }
+
+    private static List<AtlasStructuredQuery.Condition> parseConditionsSimple(final HttpServletRequest httpRequest)
+    {
+        List<AtlasStructuredQuery.Condition> result = new ArrayList<AtlasStructuredQuery.Condition>(1);
+        AtlasStructuredQuery.Condition cond = new AtlasStructuredQuery.Condition();
+
+        try {
+            String fval = httpRequest.getParameter(PARAM_FACTORVALUE_SIMPLE);
+            if("(all conditions)".equals(fval))
+                return result;
+            
+            Reader r = new StringReader(fval);
+            List<String> values = new ArrayList<String>();
+            StringBuffer curVal = new StringBuffer();
+            boolean inQuotes = false;
+            while(true) {
+                int c = r.read();
+                if(inQuotes)
+                {
+                    if(c < 0)
+                        return result; // skip last incorrect condition
+
+                    if(c == '\\') {
+                        c = r.read();
+                        if(c < 0)
+                            return result; // skip last incorrect condition
+                            
+                        curVal.appendCodePoint(c);
+                    } else if(c == '"') {
+                        inQuotes = false;
+                    } else {
+                        curVal.appendCodePoint(c);
+                    }
+                } else {
+                    if(c < 0  || Character.isSpaceChar(c))
+                    {
+                        if(curVal.length() > 0) {
+                            values.add(curVal.toString());
+                            curVal.setLength(0);
+                        }
+                    } else if(c == '"') {
+                        inQuotes = true;
+                    } else {
+                        curVal.appendCodePoint(c);
+                    }
+                    
+                    if(c < 0)
+                        break;
+                }
+            }
+            cond.setFactorValues(values);
+
+            AtlasStructuredQuery.Expression expression = AtlasStructuredQuery.Expression.UP_DOWN;
+            try {
+                expression = AtlasStructuredQuery.Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION_SIMPLE));
+            } catch(Exception e) {
+                // ignore
+            }
+            cond.setExpression(expression);
+            cond.setFactor("");
+
+            result.add(cond);
+        } catch (IOException e) {
+            throw new RuntimeException("Shouldn't be", e);
         }
 
         return result;

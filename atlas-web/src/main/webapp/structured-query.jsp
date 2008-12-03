@@ -25,35 +25,146 @@
 ArrayExpress Atlas Preview
 <jsp:include page="end_head.jsp"></jsp:include>
 
-    <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-    <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
+<link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
+<link rel="stylesheet" href="structured-query.css" type="text/css" />
 
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.cookie.js"></script>
-    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
-    <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
-    <script type="text/javascript" src="jquery.autocomplete.js"></script>
-    <script type="text/javascript" src="jquery.truncator.js"></script>
-    <script type="text/javascript" src="jquerydefaultvalue.js"></script>
-    <script type="text/javascript" src="structured-query.js"></script>
-    <script type="text/javascript" src="raphael-packed.js"></script>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery.cookie.js"></script>
+<script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
+<script type="text/javascript" src="jquery.autocomplete.js"></script>
+<script type="text/javascript" src="jquery.truncator.js"></script>
+<script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="structured-query.js"></script>
+<script type="text/javascript" src="raphael-packed.js"></script>
+
+<jsp:include page="start_body_no_menus.jsp"></jsp:include>
+
+<jsp:include page="end_menu.jsp"></jsp:include>
+
+
+<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
+    <tr>
+        <td align="left" valign="bottom" width="55">
+            <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
+        </td>
+
+        <td align="left">
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+        </td>
+        <td align="right">
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png" /></a>
+        </td>
+    </tr>
+</table>
+<div style="margin-bottom:50px">
+
+    <c:if test="${!empty query}">
+        <div style="margin-top:20px;mragin-bottom:20px" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..." /></div>
+        <c:set var="timeStart" value="${u:currentTime()}"/>
+        <%
+            response.flushBuffer();
+            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
+            request.setAttribute("result", atlasResult);
+        %>
+    </c:if>
+
+    <form id="simpleform" action="qrs">
+        <table>
+            <tr valign="top">
+                <td>
+                    <label class="label" for="gene">Genes</label>
+                </td>
+
+                <td>
+                    <label class="label" for="species">Organisms</label>
+                </td>
+
+                <td style="padding-left:5px">
+                    <label class="label" for="conditions">Conditions</label>
+                </td>
+
+                <td colspan="2"></td>
+            </tr>
+            <tr valign="top">
+                <td>
+                    <input type="text" name="gene" id="gene0" style="width:150px" value="${f:escapeXml(query.gene)}" />
+                </td>
+                <td>
+                    <select name="specie">
+                        <option value="">(any)</option>
+                        <c:forEach var="s"
+                                   items="${service.allAvailableAtlasSpecies}">
+                            <option ${!empty query.species && s == query.species[0] ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                        </c:forEach>
+                    </select>   
+                </td>
+                <td style="padding-left:5px">
+                    <input type="text" name="fval" id="fval0" style="width:150px" value="${!empty query && query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                </td>
+                <td align="left">
+                    <input type="submit" value="Search Atlas">
+                </td>
+                <td>
+                    <a href="javascript:structuredMode();">advanced mode</a>
+                </td>
+            </tr>
+        </table>
+        <c:if test="${query.simple && !empty result.conditions && result.conditions[0].expansion.numEfvs > 0}">
+            <p class="expansion"><c:forEach var="e" items="${result.conditions[0].expansion.valueSortedList}" varStatus="i"><c:if test="${result.conditions[0].expansion.numEfs > 1 || (i.first && empty c.factor)}">${f:escapeXml(e.ef)}: </c:if> ${f:escapeXml(e.efv)}<c:if test="${!i.last}">, </c:if></c:forEach></p>
+        </c:if>
+        <input type="hidden" name="view" value="hm" />
+    </form>
+    
+    <form id="structform" name="atlasform" action="qrs" onsubmit="renumberAll();">
+        <table>
+            <tr valign="top">
+                <td>
+                    <label class="label" for="gene">Genes</label>
+                </td>
+
+                <td>
+                    <label class="label" for="species">Organisms</label>
+                </td>
+
+                <td style="padding-left:5px">
+                    <label class="label" for="conditions">Conditions</label>
+                </td>
+            </tr>
+            <tr valign="top">
+                <td>
+                    <input type="text" name="gene" id="gene" style="width:150px" value="${f:escapeXml(query.gene)}" />
+                </td>
+                <td>
+                    <table id="species" cellpadding="0" cellspacing="0">
+                        <tbody></tbody>
+                    </table>
+                </td>
+                <td style="padding-left:5px">
+                    <table id="conditions" cellpadding="0" cellspacing="0">
+                        <tbody></tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="left">
+                    <input type="submit" value="Search Atlas">
+                </td>
+                <td align="right">
+                    <a href="javascript:simpleMode();">simple mode</a>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="view" value="hm" />
+    </form>
 
     <script type="text/javascript">
-        $(document).ready(function()
-            {
-                $("#gene").defaultvalue("(all genes)");
-                $("#gene").autocomplete("autocomplete.jsp", {
-                        minChars:1,
-                        matchCase: true,
-                        matchSubset: false,
-                        multiple: false,
-                        selectFirst: false,
-                        extraParams: {type:"gene"},
-                        formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
-                });
-            }
-        );
-
         var options = {
             expressions : [
                     <c:forEach var="i" items="${service.geneExpressionOptions}">
@@ -71,231 +182,7 @@ ArrayExpress Atlas Preview
                 </c:forEach>
             ]
         };
-    </script>
 
-<jsp:include page="start_body_no_menus.jsp"></jsp:include>
-
-<jsp:include page="end_menu.jsp"></jsp:include>
-
-
-<style type="text/css">
-    .label {
-        font-size: 10px;
-    }
-
-    .atlasHelp {
-        display: none;
-    }
-
-    /* tables */
-    .squery, .factab {
-        font-family: arial, sans-serif;
-        background-color: #CDCDCD;
-        font-size: 8pt;
-        text-align: left;
-    }
-    .squery {
-        margin:0px 0pt 15px;
-    }
-    .factab {
-        margin-bottom:3px;
-    }
-    .squery th, .factab th {
-        background-color: #e6EEEE;
-        border: 1px solid #FFF;
-        font-size: 8pt;
-        padding: 4px;
-    }
-    .squery td, .factab td {
-        color: #3D3D3D;
-        padding: 4px;
-        background-color: #FFF;
-        vertical-align: top;
-    }
-
-    .prefix { padding-right:5px;}
-    .speciesSelect { width: 120px; margin-right:5px; }
-
-    .expansion { padding-left: 10px;font-size: smaller;color:gray; }
-    .expansion .ignored { color: #cc0000; }
-    div.value select, div.value input.value { width:150px; }
-    div.value div.buttons { float: right; }
-    div.value div.input { float: left; }
-    div.value { width: 250px; margin-bottom:2px; }
-    #conditions td { vertical-align: top; }
-    #conditions td.factorvalue { padding-bottom: 10px; padding-left: 5px; }
-    #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
-    div.countup, div.countdn { width:50%;float:left;text-align:center; }
-    div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-    td.counter,td.acounter, th.counter {text-align:center;width:25px;min-width:25px;vertical-align:middle; }
-    td.acounter:hover { cursor: pointer; }
-    td.common { white-space:nowrap; }
-    th.factor { text-align:center;font-weight:normal; }
-    th.factor em { font-weight:bold;font-style:normal;}
-    th.gene { vertical-align:middle;text-align:center; }
-    td.geneinfo em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
-
-    a.fup:link, a.fup:active, a.fup:hover, a.fup:visited { color: #660000;text-decoration: underline; }
-    a.fdn:link, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #000066;text-decoration: underline; }
-    a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-decoration: underline; }
-
-    .pagination { margin-top: 20px; text-align: left; }
-
-    .genelist { width: 90%; }
-    .genelist .item { margin-top: 10px;margin-bottom: 20px; }
-    .genename { font-size: 20px }
-    .ensname { font-size: smaller; }
-    .label { color: #666666;font-size: smaller; }
-    .genelist .item .efvs { margin-left: 30px; background:#f7f7f7;
-/*        border-bottom: 1px solid #cccccc;
-        border-left: 1px solid #cccccc;
-        border-right: 1px solid #cccccc;*/
-        padding: 10px; }
-
-    .genelist .itemhead { padding: 5px; background: #f0f0f0;border: 2px solid #cccccc; }
-
-    .summary { margin-top: 10px; margin-bottom: 10px; }
-    .drilldowns { margin-bottom: 10px; margin-top: 10px; padding: 10px; }
-    .drillsect { float:left;padding: 5px; border-left:1px solid #cccccc; }
-    .drillsect ul { padding-left: 15px; }
-    .drillsect .name { font-weight: bold; }
-
-    .expopup {
-        position: absolute;
-        width: 500px;
-        height: 300px;
-        overflow: auto;
-        margin-top: -5px;
-        margin-left: -5px;
-        background-color: #ffffe0;
-        border: 1px solid black;
-        padding: 10px;
-        color: black;
-        text-align:left;
-    }
-    .waiter {
-        position: absolute;
-        overflow: auto;
-        margin-top: -5px;
-        margin-left: -5px;
-        border: 1px solid black;
-        padding: 3px;
-        background-color: white;
-    }
-
-    .expopup h1 {
-        font-weight:bold;
-        font-size:larger;
-    }
-    .expopup td {
-        vertical-align:top;
-        text-align: left;
-    }
-    .expopup th {
-        vertical-align:top;
-        text-align: left;
-        font-weight: bold;
-    }
-    .expopup th.expup {
-        background-color: #660000;
-        color: #ff6666;
-        font-weight: bold;
-    }
-    .expopup th.expdn {
-        background-color: #000066;
-        color: #6666ff;
-        font-weight: bold;
-    }
-    .expopup td.expup {
-        color: #990000;
-    }
-    .expopup td.expdn {
-        color: #000099;
-    }
-    .expopup em { font-weight: bold; }
-    .closebox {
-        float: right;
-        color: black;
-        font: bold 16px sans-serif;
-        background-color:white;
-        padding: 4px;
-        border: 1px solid black; 
-        cursor: pointer;
-    }
-</style>
-
-<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
-    <tr>
-        <td align="left" valign="bottom" width="55">
-            <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25"/></a>
-        </td>
-
-        <td align="left">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
-        </td>
-        <td align="right">
-            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
-        </td>
-    </tr>
-</table>
-<div style="margin-bottom:50px">
-
-    <c:if test="${!empty query}">
-        <div style="margin-top:20px;mragin-bottom:20px" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..."/></div>
-        <c:set var="timeStart" value="${u:currentTime()}"/>
-        <%
-            response.flushBuffer();
-            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
-            request.setAttribute("result", atlasResult);
-        %>
-    </c:if>
-
-    <form name="atlasform" action="qrs" onsubmit="renumberAll();">
-        <table>
-            <tr valign="top">
-                <td>
-                    <label class="label" for="gene">Genes</label>
-                </td>
-
-                <td>
-                    <label class="label" for="species">Organisms</label>
-                </td>
-
-                <td style="padding-left:5px">
-                    <label class="label" for="conditions">Conditions</label>
-                </td>
-            </tr>
-            <tr valign="top">
-                <td>
-                    <input type="text" name="gene" id="gene" style="width:150px" value="${query.gene}"/>
-                </td>
-                <td>
-                    <table id="species" cellpadding="0" cellspacing="0">
-                        <tbody></tbody>
-                    </table>
-                </td>
-                <td style="padding-left:5px">
-                    <table id="conditions" cellpadding="0" cellspacing="0">
-                        <tbody></tbody>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3" align="left">
-                    <input type="submit" value="Search Atlas">
-                </td>
-            </tr>
-        </table>
-        <c:if test="${heatmap}"><input type="hidden" name="view" value="hm" /></c:if>
-        <input type="hidden" name="view" value="hm"/>
-    </form>
-
-    <script type="text/javascript">
         var lastquery;
         <c:if test="${!empty query}">
         lastquery = {
@@ -319,6 +206,7 @@ ArrayExpress Atlas Preview
         };
         </c:if>
         initQuery();
+        $("#${empty query || query.simple ? 'struct' : 'simple'}form").hide();
     </script>
 
     <c:if test="${!empty query}">
@@ -418,10 +306,12 @@ ArrayExpress Atlas Preview
                                         <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}" title="${f:join(geneName, ', ')}"><b>${row.gene.hilitGeneName}</b><c:if test="${empty row.gene.geneName}">(none)</c:if></a>
                                         <span class="ensname">
                                             &nbsp;<c:url var="urlGeneAnnotation" value="http://www.ebi.ac.uk/ebisearch/search.ebi">
-                                            <c:param name="db" value="genomes"/>
-                                            <c:param name="t" value="${row.gene.geneIdentifier}"/>
-                                        </c:url>
+                                                <c:param name="db" value="genomes"/>
+                                                <c:param name="t" value="${row.gene.geneIdentifier}"/>
+                                            </c:url>
                                             <a title="Show gene annotation" target="_blank" href="${urlGeneAnnotation}"><c:out value="${row.gene.geneIdentifier}"/></a>
+                                            <span class="label">&nbsp;Specie:</span>
+                                            <a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a>
                                         </span>
                                     </nobr><br />
                                     <nobr>
@@ -461,51 +351,7 @@ ArrayExpress Atlas Preview
                         </c:forEach>
                     </tbody>
                 </table>
-                <script type="text/javascript">
-                    $('.hitrunc').truncate({max_length: 60, more: '...»', less: '«'});
-
-                    var cs = 0.707106781186548;
-                    var attr = {"font": '12px Tahoma', 'text-anchor': 'start'};
-
-                    var testR = Raphael(0,0,10,10);
-                    var maxH = 0;
-                    var lastW = 0;
-                    for(var k = 0; k < resultEfvs.length; ++k)
-                    {
-                        var txt = testR.text(0, 0, resultEfvs[k].efv).attr(attr);
-                        var bw = txt.getBBox().width * cs;
-                        if(maxH < bw)
-                            maxH = bw;
-                        if(k == resultEfvs.length - 1)
-                            lastW = bw;
-                    }
-                    testR.remove();
-
-                    var ff = document.getElementById("fortyfive");
-                    var sq = document.getElementById("squery");
-                    
-                    var R = Raphael("fortyfive", sq.offsetWidth + Math.round(lastW) + 20, Math.round(maxH) + 20);
-
-                    var colors = ['#000000','#999999'];
-                    var k = 0;
-                    var cp = -1;
-                    var curef = null;
-                    $("#squery tbody tr:first td:gt(0)").each(function () {
-                        if(curef == null || curef != resultEfvs[k].ef)
-                        {
-                            if(++cp == colors.length)
-                                cp = 0;
-                            curef = resultEfvs[k].ef;
-                        }
-                        var x = this.offsetLeft;
-                        var txt = R.text(x + 5, R.height - 5, resultEfvs[k].efv).attr(attr).attr({fill: colors[cp]});
-                        var bb = txt.getBBox();
-                        txt.matrix(cs, cs, -cs, cs, bb.x - cs * bb.x - cs * bb.y, bb.y + cs * bb.x - cs * bb.y);
-                        R.path({stroke: "#cdcdcd", 'stroke-width': 2}).moveTo(x - 1, R.height).lineTo(x - 1, R.height - 20);
-                        ++k;
-                    });
-                </script>
-
+                <script type="text/javascript">drawEfvNames();</script>
             </c:if>
             <c:if test="${!heatmap}">
                 <div class="genelist">

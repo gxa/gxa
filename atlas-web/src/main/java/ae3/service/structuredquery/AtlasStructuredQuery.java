@@ -67,6 +67,20 @@ public class AtlasStructuredQuery {
             return factorValues;
         }
 
+        public String getJointFactorValues() {
+            StringBuffer sb = new StringBuffer();
+            for (String v : factorValues)
+            {
+                if(sb.length() > 0)
+                    sb.append(" ");
+                if(v.indexOf(' ') >= 0)
+                    sb.append('"').append(v).append('"');
+                else
+                    sb.append(v);
+            }
+            return sb.toString();
+        }
+
         public void setFactorValues(List<String> factorValues) {
             this.factorValues = factorValues;
         }
@@ -142,5 +156,9 @@ public class AtlasStructuredQuery {
 
     public void setRows(int rows) {
         this.rows = rows;
+    }
+
+    public boolean isSimple() {
+        return conditions.size() == 0 || (conditions.size() == 1 && "".equals(conditions.get(0).getFactor()));
     }
 }
