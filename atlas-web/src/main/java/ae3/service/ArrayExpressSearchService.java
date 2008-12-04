@@ -16,6 +16,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.schema.SchemaField;
+
 import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
@@ -102,6 +103,7 @@ public class ArrayExpressSearchService {
 
         try {
 	        multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
+
             solr_expt = new EmbeddedSolrServer(multiCore,"expt");
             solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
 
@@ -666,14 +668,56 @@ public class ArrayExpressSearchService {
     	
     }
     
-    public ArrayList getRankedGeneExperiments(String gene_id_key){
+    public String getNumOfAtlasExps(String gene_id_key){
+  	 String query = "select count(*) cc from (select distinct experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
+		"from ATLAS " +
+		"where gene_id_key = "+gene_id_key +
+	    " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)"+
+		" group by experiment_id_key " +
+		"order by minp asc)";
+  	String count="";
+  	try {
+    	count  =  theAEQueryRunner.query(query, new ResultSetHandler() {
+            public String handle(ResultSet rs) throws SQLException {
+               String count="";
+
+               
+					rs.next();
+					    
+
+					    count = rs.getString("cc");
+					    
+					    
+					
+				
+
+                return count;
+            }
+        } ).toString();
+
+    } catch (SQLException e) {
+        log.error(e);
+    }
+    return count;
+    }
+    
+    public ArrayList getRankedGeneExperiments(String gene_id_key, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
-   	 String query = "select distinct experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
-   	 		"from ATLAS " +
-   	 		"where gene_id_key = "+gene_id_key +
-   	 	    " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559)"+
-   	 		" group by experiment_id_key " +
-   	 		"order by minp asc";
+
+   	 String query = "select * " +
+   	 				"from ( select /*+ FIRST_ROWS(n) */ a.*, ROWNUM rnum" +
+   	 				"	    from ( " +
+   	 				"				select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
+   	 				"               from ATLAS, ae1__experiment__main exp " +
+   	 				"               where gene_id_key = "+gene_id_key+
+   	 				"               and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) " +
+   	 				"               and exp.experiment_id_key = atlas.experiment_id_key "+
+   	 				"               group by atlas.experiment_id_key" +
+   	 				"               order by minp asc" +
+   	 				"			) a " +
+   	 				"		where ROWNUM <= "+MAX_ROW_TO_FETCH +
+   	 				" ) " +
+   	 				"where rnum  >= "+MIN_ROW_TO_FETCH;
         try {
         	atlasExps =  (ArrayList<AtlasExperiment>)theAEQueryRunner.query(query, new ResultSetHandler() {
                 public ArrayList<AtlasExperiment> handle(ResultSet rs) throws SQLException {
@@ -697,8 +741,7 @@ public class ArrayExpressSearchService {
                 }
             } );
 
-//            log.info("Retrieved query completely: " + arset.size() + " records" );
-//            arsCache.put(arset);
+
         } catch (SQLException e) {
             log.error(e);
         }

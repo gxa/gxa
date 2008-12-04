@@ -58,20 +58,23 @@ public class IndexBuilderFromDb extends IndexBuilderService
 			{
 				Experiment exp=it.next();
 				String xml=experimentDao.getExperimentAsXml(exp);
-				//System.out.println("DW xml: " + xmlDw);
+				
 				SolrInputDocument doc = null;
 				doc = XmlUtil.createSolrInputDoc(xml);
 				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
 				//Add information about ftp files to SolrDocument
 				getInfoFromFtp(exp.getAccession(), doc);
-				if (experimentDwDao.experimentExists(exp))
+//				if (experimentDwDao.experimentExists(exp))
+				if(xmlDw!="")
 				{
+				  log.info("exists in DW");
 				  doc.addField(Constants.FIELD_EXP_IN_DW, true);
 				  XmlUtil.addExperimentFromDW(xmlDw, doc);
 				}
 				else
 				{
-					  doc.addField(Constants.FIELD_EXP_IN_DW, false);					
+					log.info("does not exist in DW");
+					doc.addField(Constants.FIELD_EXP_IN_DW, false);					
 				}
 				if (doc!=null)
 				{

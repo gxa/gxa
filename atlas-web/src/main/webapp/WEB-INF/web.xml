@@ -70,7 +70,7 @@
         <display-name>Gene View</display-name>
         <servlet-name>gene</servlet-name>
         <jsp-file>/gene.jsp</jsp-file>
-        <load-on-startup>1</load-on-startup>        
+        <load-on-startup>0</load-on-startup>        
     </servlet>
 
     <servlet>

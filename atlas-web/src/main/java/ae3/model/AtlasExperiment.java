@@ -68,7 +68,7 @@ public class AtlasExperiment implements java.io.Serializable {
     //samples
     
     private Collection<String> experimentFactorValues;
-    private Collection<String> experimentFactors;
+    private HashSet<String> experimentFactors;
     private Map<String, List<String>> experimentHighlights;
 
     private SolrDocument exptSolrDocument;
@@ -131,7 +131,7 @@ public class AtlasExperiment implements java.io.Serializable {
             this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
             this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
 	}
-        this.setDwExpId((Long) exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID));
+        this.setDwExpId((Long)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID));
         if (loadDwe)
         {
             this.dwExpAccession = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ACCESSION);
@@ -139,7 +139,7 @@ public class AtlasExperiment implements java.io.Serializable {
             this.dwExpType = (Collection)exptDoc.getFieldValues(Constants.FIELD_DWEXP_EXPTYPE);
     
         	atlasDwAsList = new ArrayList<AtlasDwAssay>();
-    
+    /*
         	//Bioassay DW
             for (int i=0; i<Constants.ARRAY_ASSAY_ELEMENTS.length; i++)
             {
@@ -160,10 +160,10 @@ public class AtlasExperiment implements java.io.Serializable {
         		
     
             }
-            //uncomment
+      */      //uncomment
             //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
-            //this.setExperimentFactorValues(exptDoc.getFieldValues("exp_factor_value"));
-            //this.setExperimentFactors(exptDoc.getFieldValues("exp_factor"));
+            this.setExperimentFactorValues(exptDoc.getFieldValues(Constants.FIELD_DWEXP_FV));
+            this.setExperimentFactors(exptDoc.getFieldValues(Constants.FIELD_DWEXP_EF));
         }
     }
 
@@ -188,7 +188,8 @@ public class AtlasExperiment implements java.io.Serializable {
     }
 
     public void setExperimentFactors(Collection experimentFactors) {
-        this.experimentFactors = experimentFactors;
+    	
+        this.experimentFactors = new HashSet<String>(experimentFactors);
     }
 
     public Long getAerExpId () {
@@ -211,7 +212,7 @@ public class AtlasExperiment implements java.io.Serializable {
         return experimentFactorValues;
     }
 
-    public Collection<String> getExperimentFactors() {
+    public HashSet<String> getExperimentFactors() {
         return experimentFactors;
     }
 

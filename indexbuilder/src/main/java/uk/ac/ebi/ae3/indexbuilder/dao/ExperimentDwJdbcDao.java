@@ -146,9 +146,9 @@ public class ExperimentDwJdbcDao
 		
 		return xml;
 		*/
-		Connection sql = getDataSource().getConnection();
+		Connection conn = getDataSource().getConnection();
 		String expXML="";
-        PreparedStatement expXMLstmt = sql.prepareStatement("select e.solr_xml.getClobVal() "+
+        PreparedStatement expXMLstmt = conn.prepareStatement("select e.solr_xml.getClobVal() "+
 				"FROM experiment_xml e, ae1__experiment__main m " +
 				"WHERE e.experiment_id_key = m.experiment_id_key " +
 				"AND m.experiment_accession = '"+experiment.getAccession()+"'");
@@ -159,12 +159,13 @@ public class ExperimentDwJdbcDao
         }
         expRS.close();
         expXMLstmt.close();
-        
+        conn.close();
         return expXML;
 	}
 	
 	public boolean experimentExists(Experiment experiment)
 	{
+		try{
 		List<String> l= this.jdbcTemplate.query(SQL_EXPERIMENT, new Object[] {experiment.getAccession()}, rowMapperExp);
 	
 		if (l.size()!= 0)
@@ -172,6 +173,10 @@ public class ExperimentDwJdbcDao
 			return true;
 		}
 		return false;
+		}catch (Exception e){
+			System.out.println(e);
+			return false;
+		}
 	}
 	class RowMapperExperiments implements ParameterizedRowMapper<Experiment>
 	{

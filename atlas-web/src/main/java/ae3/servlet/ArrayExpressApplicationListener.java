@@ -19,8 +19,12 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import ds.server.DataServerAPI;
+import ds.utils.DS_DBconnection;
+
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasResultSet;
+import ae3.util.DBhandler;
 
 import java.util.HashSet;
 import java.util.Properties;
@@ -46,12 +50,15 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
 //            ServletContext sc = sce.getServletContext();
 
             ArrayExpressSearchService as = ArrayExpressSearchService.instance();
+            DBhandler dbHandler = DBhandler.instance(); 
             final String solrIndexLocation = atlasProps.getProperty("atlas.solrIndexLocation");
             final String dbName            = atlasProps.getProperty("atlas.dbName");
+            final String netCDFlocation = atlasProps.getProperty("atlas.netCDFlocation");
 
             log.info("Initializing Atlas...");
             log.info("  Solr index location: " + solrIndexLocation);
             log.info("  database name: " + dbName );
+            log.info("  netCDF location: " + netCDFlocation );
 
             as.setSolrIndexLocation(solrIndexLocation);
 
@@ -60,9 +67,13 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
             DataSource ds = (DataSource) envContext.lookup("jdbc/" + dbName);
             DataSource memds = (DataSource) envContext.lookup("jdbc/ATLAS");
 
+            dbHandler.setMEMDataSource(memds);
+            dbHandler.setAEDataSource(ds);
+            DS_DBconnection.instance().setAEDataSource(ds);
             as.setMEMDataSource(memds);
             as.setAEDataSource(ds);
             as.initialize();
+            DataServerAPI.setNetCDFPath(netCDFlocation);
 
         } catch (Exception e) {
             log.error(e);
