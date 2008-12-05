@@ -106,6 +106,13 @@ ArrayExpress Atlas Preview
                     </select>   
                 </td>
                 <td style="padding-left:5px">
+                    <select name="gexp">
+                        <c:forEach var="s"
+                                   items="${service.geneExpressionOptions}">
+                            <option ${!empty query && query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])}</option>
+                        </c:forEach>
+                    </select>
+                    in
                     <input type="text" name="fval" id="fval0" style="width:150px" value="${!empty query && query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                 </td>
                 <td align="left">
