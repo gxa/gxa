@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas</artifactId>
@@ -9,9 +9,9 @@
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <scm>
-	    <connection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</connection>
-	    <developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</developerConnection>
-	    <url>svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</url>
+        <connection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</connection>
+        <developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</developerConnection>
+        <url>svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</url>
     </scm>
 
     <dependencies>
@@ -63,14 +63,14 @@
         <repository>
             <id>codehaus.org</id>
             <url>http://repository.codehaus.org/org/codehaus</url>
-             <releases>
-                 <checksumPolicy>ignore</checksumPolicy>
-             </releases>
+            <releases>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
         </repository>
         <repository>
-			<id>geotools</id>
-			<url>http://maven.geotools.fr/repository</url>
-		</repository>        
+            <id>geotools</id>
+            <url>http://maven.geotools.fr/repository</url>
+        </repository>        
     </repositories>
 
     <build>
@@ -125,12 +125,12 @@
         </extensions>
     </build>
 
-     <modules>
-     	<module>atlas-index-api</module>
-    	<module>indexbuilder</module>
-    	<module>dataserver</module>
-    	<module>atlas-web</module>
-  	</modules>
+    <modules>
+        <module>atlas-index-api</module>
+        <module>indexbuilder</module>
+        <module>dataserver</module>
+        <module>atlas-web</module>
+    </modules>
 
     <profiles>
         <profile>
@@ -152,30 +152,10 @@
                 <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.smithers/</atlas.netCDFlocation>
             </properties>
         </profile>
-         <profile>
-		    <id>prod-otto</id>
-		    <properties>
-			    <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR</solr.data.directory>
-			    <indexbuilder.ftp>nowhere</indexbuilder.ftp>
-			    <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
-			    <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
-			    <jdbc.ae.username>aequery</jdbc.ae.username>
-			    <jdbc.ae.password>aeq007tt</jdbc.ae.password>
-			    <jdbc.dw.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEDWP</jdbc.dw.url>
-			    <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
-			    <jdbc.dw.username>aemart</jdbc.dw.username>
-			    <jdbc.dw.password>marte</jdbc.dw.password>
-			    <atlas.dbName>AEDWP_OTTO</atlas.dbName>
-			    <atlas.log.priority>INFO</atlas.log.priority>
-                <atlas.log.appender>atlas-log</atlas.log.appender>
-			    <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.otto/</atlas.netCDFlocation>
-		    </properties>
-	    </profile>
-    
         <profile>
-            <id>tctest1</id>
+            <id>prod-otto</id>
             <properties>
-                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR.STAGING</solr.data.directory>
+                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR</solr.data.directory>
                 <indexbuilder.ftp>nowhere</indexbuilder.ftp>
                 <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
                 <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
@@ -188,15 +168,55 @@
                 <atlas.dbName>AEDWP_OTTO</atlas.dbName>
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
+                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.otto/</atlas.netCDFlocation>
+            </properties>
+        </profile>
+        
+        <profile>
+            <id>tctest1</id>
+            <properties>
+                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR.STAGING</solr.data.directory>
+                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWDEV/</atlas.netCDFlocation>
+                <indexbuilder.ftp>nowhere</indexbuilder.ftp>
+                <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
+                <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
+                <jdbc.ae.username>aequery</jdbc.ae.username>
+                <jdbc.ae.password>aeq007tt</jdbc.ae.password>
+                <jdbc.dw.url>jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWP</jdbc.dw.url>
+                <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
+                <jdbc.dw.username>aemart</jdbc.dw.username>
+                <jdbc.dw.password>marte</jdbc.dw.password>
+                <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
+                <atlas.log.priority>INFO</atlas.log.priority>
+                <atlas.log.appender>atlas-log</atlas.log.appender>
             </properties>
         </profile>
         <profile>
-    		<id>iemam</id>
-    		<properties>
-    			 <solr.data.directory>/Volumes/Workspace/Projects/DWfiles/atlasIndex/data/multicore</solr.data.directory>
-    			 <atlas.netCDFlocation>/Volumes/Workspace/Projects/DWfiles/NetCDFs.DWDEV/</atlas.netCDFlocation>
-    		</properties>
-    </profile>
+            <id>iemam</id>
+            <properties>
+                <solr.data.directory>/Volumes/Workspace/Projects/DWfiles/atlasIndex/data/multicore</solr.data.directory>
+                <atlas.netCDFlocation>/Volumes/Workspace/Projects/DWfiles/NetCDFs.DWDEV/</atlas.netCDFlocation>
+            </properties>
+        </profile>
+        <profile>
+            <id>pashky</id>
+            <properties>
+                <solr.data.directory>/Users/pashky/projects/solrindex</solr.data.directory>
+                <atlas.netCDFlocation>/Users/pashky/projects/NetCDFs.DWDEV/</atlas.netCDFlocation>
+                <indexbuilder.ftp>nowhere</indexbuilder.ftp>
+                <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
+                <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
+                <jdbc.ae.username>aequery</jdbc.ae.username>
+                <jdbc.ae.password>aeq007tt</jdbc.ae.password>
+                <jdbc.dw.url>jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWDEV</jdbc.dw.url>
+                <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
+                <jdbc.dw.username>aemart</jdbc.dw.username>
+                <jdbc.dw.password>marte</jdbc.dw.password>
+                <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
+                <atlas.log.priority>INFO</atlas.log.priority>
+                <atlas.log.appender>console</atlas.log.appender>
+            </properties>
+        </profile>
     </profiles>
     
 
