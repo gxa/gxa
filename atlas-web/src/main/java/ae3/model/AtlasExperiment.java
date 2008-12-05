@@ -189,7 +189,7 @@ public class AtlasExperiment implements java.io.Serializable {
 
     public void setExperimentFactors(Collection experimentFactors) {
     	
-        this.experimentFactors = new HashSet<String>(experimentFactors);
+        this.experimentFactors = experimentFactors != null ? new HashSet<String>(experimentFactors) : new HashSet<String>();
     }
 
     public Long getAerExpId () {
