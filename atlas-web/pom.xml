@@ -122,6 +122,11 @@
              <artifactId>cxf-rt-databinding-aegis</artifactId>
              <version>2.0.7</version>
           </dependency>
+          <dependency>
+             <groupId>org.json</groupId>
+             <artifactId>jsonJavaToolKit</artifactId>
+             <version>1.0</version>
+          </dependency>
     </dependencies>
 
     <build>
