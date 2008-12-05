@@ -291,7 +291,7 @@ ArrayExpress Atlas Preview
                         <tr>
                             <th class="gene">Gene</th>
                             <c:forEach var="c" items="${resultEfvsTree}" varStatus="i">
-                                <th colspan="${f:length(c.efvs)}" class="factor">
+                                <th colspan="${f:length(c.efvs) * 2}" class="factor">
                                     <em style="color:#${i.index % 2 == 0 ? '000000':'999999'}"><c:out value="${c.ef}"/></em>
                                 </th>
                             </c:forEach>
@@ -336,14 +336,25 @@ ArrayExpress Atlas Preview
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:choose>
                                         <c:when test="${ud.zero}">
-                                            <td class="counter"></td>
+                                            <td class="counter" colspan="2"></td>
+                                        </c:when>
+                                        <c:when test="${ud.ups == 0 && ud.downs > 0}">
+                                            <td class="acounter" colspan="2" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+                                                title="Click to view experiments. Average p-value is ${ud.mpvDn}"
+                                                onclick="hmc(${i.index},${j.index},this)">${ud.downs}</td>
+                                        </c:when>
+                                        <c:when test="${ud.downs == 0 && ud.ups > 0}">
+                                            <td class="acounter" colspan="2" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
+                                                title="Click to view experiments. Average p-value is ${ud.mpvUp}"
+                                                onclick="hmc(${i.index},${j.index},this)">${ud.ups}</td>
                                         </c:when>
                                         <c:otherwise>
-                                            <td class="acounter" style="background-color:${u:expressionBack(ud)};color:${u:expressionText(ud)}"
+                                            <td class="ucounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
                                                 title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
-                                                onclick="hmc(${i.index},${j.index},this)">
-                                                <b>${ud.ups == 0 ? '-' : ud.ups}</b>&nbsp;/&nbsp;<b>${ud.downs == 0 ? '-' : ud.downs}</b>
-                                            </td>
+                                                onclick="hmc(${i.index},${j.index},this)">${ud.ups}</td>
+                                            <td class="dcounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+                                                title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
+                                                onclick="hmc(${i.index},${j.index},$(this).prev())">${ud.downs}</td>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>

@@ -46,7 +46,16 @@ div.value { width: 250px; margin-bottom:2px; }
 #conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
 div.countup, div.countdn { width:50%;float:left;text-align:center; }
 div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-td.counter,td.acounter, th.counter {text-align:center;width:25px;min-width:25px;vertical-align:middle; }
+td.counter, td.acounter, td.dcounter,td.ucounter,  th.counter { 
+    text-align:center;
+    vertical-align:middle;
+    font-weight:bold; }
+
+td.acounter, td.counter, th.counter { min-width:26px; width:26px; }
+td.dcounter,td.ucounter { min-width:16px; width:16px; }
+td.ucounter { padding-left:1px;padding-right:1px; }
+td.dcounter { padding-right:1px;padding-left:1px; }
+
 td.acounter:hover { cursor: pointer; }
 td.common { white-space:nowrap; }
 th.factor { text-align:center;font-weight:normal; }

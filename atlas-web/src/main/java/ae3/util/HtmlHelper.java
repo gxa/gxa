@@ -43,27 +43,30 @@ public class HtmlHelper {
         return Math.min(255, Math.max(0, (int)v));
     }
 
-    public static String expressionBack(UpdownCounter ud)
-    {
+    public static String expressionBack(UpdownCounter ud, int updn) {
         if(ud.isZero())
             return "#ffffff";
-        double uc = ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255;
-        double dc = ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255;
-        double k = (double)ud.getUps() / (double)(ud.getUps() + ud.getDowns());
-        return String.format("#%02x%02x%02x",
-                coltrim(dc + (255.0 - dc) * k),
-                coltrim(dc + (uc - dc) * k),
-                coltrim(255.0 + (uc - 255.0) * k));
+        if(updn > 0) {
+            int uc = coltrim(ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255);            
+            return String.format("#ff%02x%02x", uc, uc);
+        } else {
+            int dc = coltrim(ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255);
+            return String.format("#%02x%02xff", dc, dc);
+        }
     }
 
-    public static String expressionText(UpdownCounter ud)
+    public static String expressionText(UpdownCounter ud, int updn)
     {
         if(ud.isZero())
             return "#000000";
-        double uc = ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255;
-        double dc = ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255;
-        double k = (double)ud.getUps() / (double)(ud.getUps() + ud.getDowns());
-        return (dc + (uc - dc) * k) > 127 ? "#000000" : "#ffffff";
+        
+        double c;
+        if(updn > 0) {
+            c = ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255;
+        } else {
+            c = ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255;
+        }
+        return c > 127 ? "#000000" : "#ffffff";
     }
 
 }
