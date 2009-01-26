@@ -38,9 +38,7 @@ function escapeHtml(s) {
                             formatItem: function(row) { return row[0]; },
                             formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
-             .keyup(function (e) { console.log(this.value); if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
-
-         console.log(fval0old);
+             .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
 
          function createRemoveButton(callback)
          {
@@ -171,7 +169,7 @@ function escapeHtml(s) {
                      return $('<input type="text" class="value"/>')
                         .attr('name', "fval_" + andid + '_' + orid)
                         .autocomplete("fval", {
-                            minChars:1,
+                            minChars:0,
                             matchCase: true,
                             matchSubset: false,
                             multiple: false,
@@ -375,7 +373,15 @@ function escapeHtml(s) {
          k = 0;
          var cp = -1;
          var curef = null;
+         var skipNext = false;
          $("#squery tbody tr:first td:gt(0)").each(function () {
+                                                       if(this.colSpan != 2)
+                                                       {
+                                                           skipNext = !skipNext;
+                                                           if(!skipNext)
+                                                                return;
+                                                       }
+
                                                        if(curef == null || curef != resultEfvs[k].ef)
                                                        {
                                                            if(++cp == colors.length)
