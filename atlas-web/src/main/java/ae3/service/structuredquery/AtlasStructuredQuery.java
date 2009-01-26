@@ -2,6 +2,7 @@ package ae3.service.structuredquery;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * A class, representing gene expression options for extended Atlas query
@@ -107,6 +108,7 @@ public class AtlasStructuredQuery {
     private List<Condition> conditions;
     private int start;
     private int rows;
+    private Set<String> expandColumns;
 
     public AtlasStructuredQuery() {
         conditions = new ArrayList<Condition>();
@@ -160,5 +162,14 @@ public class AtlasStructuredQuery {
 
     public boolean isSimple() {
         return conditions.size() == 0 || (conditions.size() == 1 && "".equals(conditions.get(0).getFactor()));
+    }
+
+    public Set<String> getExpandColumns()
+    {
+        return expandColumns;
+    }
+
+    public void setExpandColumns(Set<String> expandColumns) {
+        this.expandColumns = expandColumns;
     }
 }

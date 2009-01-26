@@ -217,7 +217,6 @@ ArrayExpress Atlas Preview
     </script>
 
     <c:if test="${!empty query}">
-        <c:set var="resultEfvsTree" value="${result.resultEfvs.nameSortedTree}"/>
         <c:set var="cn" value="${result.resultEfvs.numEfvs}"/>
         <c:set var="sn" value="${f:length(query.species)}"/>
         <script type="text/javascript">
@@ -249,7 +248,7 @@ ArrayExpress Atlas Preview
                 <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start + 1} - ${result.start + result.size}"/> as
                 <c:choose>
                     <c:when test="${heatmap}">
-                        heatmap (<a href="${f:replace(pageUrl,'&amp;view=hm','')}&amp;p=${query.start}">show as list</a>)
+                        heatmap (<a href="${f:replace(pageUrl,'&view=hm','')}&amp;p=${query.start}">show as list</a>)
                     </c:when>
                     <c:otherwise>
                         list (<a href="${pageUrl}&amp;p=${query.start}&amp;view=hm">show as heatmap</a>)
@@ -297,8 +296,16 @@ ArrayExpress Atlas Preview
                     <thead>
                         <tr>
                             <th class="gene">Gene</th>
-                            <c:forEach var="c" items="${resultEfvsTree}" varStatus="i">
+                            <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
                                 <th colspan="${f:length(c.efvs) * 2}" class="factor">
+                                    <c:choose>
+                                       <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
+                                          <a style="float:right;display:block;text-decoration:none;" title="Collapse factor values" href="${pageUrl}&amp;p=${result.start}">&nbsp;«««</a>
+                                       </c:when>
+                                       <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
+                                          <a style="float:right;display:block;text-decoration:none;" title="Show more factor values..." href="${pageUrl}&amp;p=${result.start}&amp;fexp=${c.ef}">&nbsp;»»»</a>
+                                       </c:when>
+                                    </c:choose>
                                     <em style="color:#${i.index % 2 == 0 ? '000000':'999999'}"><c:out value="${c.ef}"/></em>
                                 </th>
                             </c:forEach>
@@ -339,7 +346,6 @@ ArrayExpress Atlas Preview
                                     </nobr>
                                 </td>
                                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
-                                    <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:choose>
                                         <c:when test="${ud.zero}">
@@ -397,7 +403,7 @@ ArrayExpress Atlas Preview
                                 <a href="javascript:alert('sorry, not implemented yet')"><c:out value="${row.gene.geneSolrDocument.fieldValueMap['gene_interproterm']}"/></a>
                             </c:if></div>
                             <div class="efvs">
-                                <c:forEach var="ef" items="${resultEfvsTree}">
+                                <c:forEach var="ef" items="${result.resultEfvs.nameSortedTree}">
                                     <c:set var="xx" value="" />
                                     <c:forEach var="efv" items="${ef.efvs}">
                                         <c:set var="ud" value="${row.counters[efv.payload]}"/>
@@ -409,17 +415,32 @@ ArrayExpress Atlas Preview
                                         <tr><th class="factor" rowspan="2"><c:out value="${ef.ef}"/></th><c:forEach var="efv" items="${ef.efvs}">
                                             <c:set var="ud" value="${row.counters[efv.payload]}"/>
                                             <c:if test="${!ud.zero}">
-                                                <th align="center" class="counter"><c:out value="${efv.efv}"/></th>
+                                                <th align="center" class="counter" colspan="2"><c:out value="${efv.efv}"/></th>
                                             </c:if>
                                         </c:forEach></tr>
                                         <tr><c:forEach var="efv" items="${ef.efvs}">
                                             <c:set var="ud" value="${row.counters[efv.payload]}"/>
                                             <c:if test="${!ud.zero}">
-                                                        <td class="acounter" style="background-color:${u:expressionBack(ud)};color:${u:expressionText(ud)}"
+                                                <c:choose>
+                                                    <c:when test="${ud.ups == 0 && ud.downs > 0}">
+                                                        <td class="acounter" colspan="2" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+                                                            title="Click to view experiments. Average p-value is ${ud.mpvDn}"
+                                                            onclick="hmc(${i.index},${j.index},this)">${ud.downs}</td>
+                                                    </c:when>
+                                                    <c:when test="${ud.downs == 0 && ud.ups > 0}">
+                                                        <td class="acounter" colspan="2" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
+                                                            title="Click to view experiments. Average p-value is ${ud.mpvUp}"
+                                                            onclick="hmc(${i.index},${j.index},this)">${ud.ups}</td>
+                                                    </c:when>
+                                                    <c:when test="${!ud.zero}">
+                                                        <td class="ucounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
                                                             title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
-                                                            onclick="hmc(${i.index},${efv.number},this);">
-                                                            <b>${ud.ups == 0 ? '-' : ud.ups}</b>&nbsp;/&nbsp;<b>${ud.downs == 0 ? '-' : ud.downs}</b>
-                                                        </td>
+                                                            onclick="hmc(${i.index},${j.index},this)">${ud.ups}</td>
+                                                        <td class="dcounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+                                                            title="Click to view experiments. Average p-value is ${ud.ups != 0 ? ud.mpvUp : '-'} / ${ud.downs != 0 ? ud.mpvDn : '-'}"
+                                                            onclick="hmc(${i.index},${j.index},$(this).prev())">${ud.downs}</td>
+                                                    </c:when>
+                                                </c:choose>
                                             </c:if>
                                         </c:forEach></tr>
                                     </table></c:if>

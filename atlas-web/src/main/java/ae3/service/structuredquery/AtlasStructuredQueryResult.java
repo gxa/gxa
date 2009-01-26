@@ -52,6 +52,7 @@ public class AtlasStructuredQueryResult {
     private EfvTree<Integer> resultEfvs;
     private Collection<StructuredResultRow> results;
     private Iterable<Condition> conditions;
+    private Set<String> expandableEfs;
 
     private long total;
     private long start;
@@ -133,4 +134,12 @@ public class AtlasStructuredQueryResult {
         this.conditions = conditions;
     }
 
+    public Set<String> getExpandableEfs() {
+        return expandableEfs;
+    }
+
+    public void setExpandableEfs(Collection<String> expandableEfs) {
+        this.expandableEfs = new HashSet<String>();
+        this.expandableEfs.addAll(expandableEfs);
+    }
 }

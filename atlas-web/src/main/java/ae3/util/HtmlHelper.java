@@ -4,6 +4,7 @@ import ae3.service.structuredquery.UpdownCounter;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Set;
 
 /**
  * Helper functions for parsing and managing structured query
@@ -69,4 +70,9 @@ public class HtmlHelper {
         return c > 127 ? "#000000" : "#ffffff";
     }
 
+
+    public static boolean isInSet(Set set, Object element)
+    {
+        return set.contains(element);
+    }
 }

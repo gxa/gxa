@@ -286,4 +286,15 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         }
         return sb.toString();
     }
+
+    public void removeEf(String ef)
+    {
+        efvs.remove(ef);
+    }
+
+    public void removeEfv(String ef, String efv)
+    {
+        if(efvs.containsKey(ef))
+            efvs.get(ef).remove(efv);
+    }
 }

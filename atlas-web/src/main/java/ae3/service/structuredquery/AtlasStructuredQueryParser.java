@@ -25,6 +25,7 @@ public class AtlasStructuredQueryParser {
     private static String PARAM_SPECIE_SIMPLE = "specie";
     private static int DEFAULT_ROWS = 100;
     private static String PARAM_START = "p";
+    private static String PARAM_EXPAND = "fexp";
 
     public static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
     {
@@ -184,6 +185,17 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    static private Set<String> parseExpandColumns(final HttpServletRequest httpRequest)
+    {
+        String[] values = httpRequest.getParameterValues(PARAM_EXPAND);
+        Set<String> result = new HashSet<String>();
+        if(values != null && values.length > 0)
+        {
+            result.addAll(Arrays.asList(values));
+        }
+        return result;
+    }
+
     /**
      * Parse HTTP request parameters and build AtlasExtendedRequest structure
      * @param httpRequest HTTP servlet request
@@ -206,6 +218,10 @@ public class AtlasStructuredQueryParser {
         } catch(Exception e) {
             request.setStart(0);
         }
+
+        request.setExpandColumns(parseExpandColumns(httpRequest));
+
         return request;
     }
+
 }

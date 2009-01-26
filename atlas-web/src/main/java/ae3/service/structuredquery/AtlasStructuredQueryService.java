@@ -6,7 +6,6 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
-import ae3.util.QueryHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.IndexReader;
@@ -38,6 +37,7 @@ public class AtlasStructuredQueryService {
     private static final String CORE_ATLAS = "atlas";
     private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
+    private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
 
     public static final String[] GENE_FACETS = { "species", "goterm", "interproterm" };
 
@@ -100,6 +100,11 @@ public class AtlasStructuredQueryService {
 
                 processResultGenes(response, result, queryEfvs);
 
+                Set<String> expandableEfs = new HashSet<String>();
+                EfvTree<Integer> trimmedEfvs = trimColumns(query, result, expandableEfs);
+                result.setResultEfvs(trimmedEfvs);
+                result.setExpandableEfs(expandableEfs);
+
                 result.setEfvFacet(getEfvFacet(response, queryEfvs));
                 for(String s : GENE_FACETS) {
                     result.setGeneFacet(s, getGeneFacet(response, "gene_" + s + "_exact"));
@@ -110,6 +115,51 @@ public class AtlasStructuredQueryService {
         }
 
         return result;
+    }
+
+    private EfvTree<Integer> trimColumns(final AtlasStructuredQuery query,
+                                         final AtlasStructuredQueryResult result,
+                                         Collection<String> expandableEfs)
+    {
+        final Set<String> expand = query.getExpandColumns();
+        EfvTree<Integer> trimmedEfvs = new EfvTree<Integer>(result.getResultEfvs());
+        if(expand.contains("*"))
+            return trimmedEfvs; 
+
+        for(EfvTree.Ef<Integer> ef : trimmedEfvs.getNameSortedTree())
+        {
+            if(expand.contains(ef.getEf()) || ef.getEfvs().size() < COLUMN_COLLAPSE_THRESHOLD)
+                continue;
+
+            Map<EfvTree.Efv<Integer>,Double> scores = new HashMap<EfvTree.Efv<Integer>,Double>();
+            for(EfvTree.Efv<Integer> efv : ef.getEfvs())
+                scores.put(efv, 0.0);
+
+            for(StructuredResultRow row : result.getResults())
+            {
+                for(EfvTree.Efv<Integer> efv : ef.getEfvs())
+                {
+                    UpdownCounter c = row.getCounters().get(efv.getPayload());
+                    scores.put(efv, scores.get(efv) + c.getDowns() * (1.0 - c.getMpvDn()) + c.getUps() * (1.0 - c.getMpvUp()));
+                }
+            }
+
+            @SuppressWarnings("unchecked")
+            Map.Entry<EfvTree.Efv<Integer>,Double>[] scoreset = scores.entrySet().toArray(new Map.Entry[1]);
+            Arrays.sort(scoreset, new Comparator<Map.Entry<EfvTree.Efv<Integer>,Double>>() {
+                public int compare(Map.Entry<EfvTree.Efv<Integer>, Double> o1, Map.Entry<EfvTree.Efv<Integer>, Double> o2) {
+                    return o2.getValue().compareTo(o1.getValue());
+                }
+            });
+
+            for(int i = COLUMN_COLLAPSE_THRESHOLD; i < scoreset.length; ++i)
+            {
+                trimmedEfvs.removeEfv(ef.getEf(), scoreset[i].getKey().getEfv());
+                expandableEfs.add(ef.getEf());
+            }
+        }
+
+        return trimmedEfvs;
     }
 
     private Iterable<AtlasStructuredQueryResult.Condition> appendEfvsQuery(AtlasStructuredQuery query,

@@ -51,4 +51,12 @@
       </function-signature>
     </function>
 
+    <function>
+      <name>isInSet</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        boolean isInSet(java.util.Set,java.lang.Object)
+      </function-signature>
+    </function>
+
 </taglib>
