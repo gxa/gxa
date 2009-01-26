@@ -245,11 +245,54 @@ $.Autocompleter = function(input, options) {
 		}
 	};
 
+    function splitQuotes(value, sep) {
+        var result = [];
+        var curVal = '';
+        var p = 0;
+        var inQuotes = false;
+        while(p < value.length) {
+            var c = value[p++];
+            if(inQuotes)
+            {
+                if(c == '\\') {
+                    if(p >= value.length)
+                        break;
+
+                    curVal += value[p++];
+                } else if(c == '"') {
+                    curVal += c;
+                    inQuotes = false;
+                } else {
+                    curVal += c;
+                }
+            } else {
+                if(c == sep)
+                {
+                    if(curVal.length > 0) {
+                        result[result.length] = curVal;
+                        curVal = '';
+                    }
+                } else if(c == '"') {
+                    curVal += c;
+                    inQuotes = true;
+                } else {
+                    curVal += c;
+                }
+            }
+        }
+        if(curVal.length > 0)
+            result[result.length] = curVal;
+        console.dir(result);
+        return result;
+    }
+
 	function trimWords(value) {
 		if ( !value ) {
 			return [""];
 		}
-		var words = value.split( options.multipleSeparator );
+
+
+		var words = options.multipleQuotes ? splitQuotes(value, options.multipleSeparator) : value.split( options.multipleSeparator );
 		var result = [];
 		$.each(words, function(i, value) {
 			if ( $.trim(value) )
@@ -405,6 +448,7 @@ $.Autocompleter.defaults = {
 	width: 0,
 	multiple: false,
 	multipleSeparator: ", ",
+    multipleQuotes: false,
 	highlight: function(value, term) {
 		return value.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
 	},
