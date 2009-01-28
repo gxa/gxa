@@ -12,6 +12,9 @@ import java.io.Writer;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import ae3.service.structuredquery.IValueListHelper;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
+
 /**
  * @author pashky
  */
@@ -26,19 +29,22 @@ public class FactorValues extends HttpServlet {
         doIt(httpServletRequest, httpServletResponse);
     }
 
-    private void listAll(String factor, PrintWriter out) {
-        for(String fv : ae3.service.ArrayExpressSearchService.instance().getExperimentalFactorValueOptions(factor))
-        {
-            out.println(fv);
-        }
-    }
-
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html");
         response.setCharacterEncoding("utf-8");
+
+        AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance()
+                .getStructQueryService();
+        
+        IValueListHelper lister = "gene".equals(request.getParameter("type")) ?
+                service.getGeneListHelper() : service.getEfvListHelper();
+        
         if("all".equals(request.getParameter("mode")))
         {
-            listAll(request.getParameter("factor"), response.getWriter());
+            for(String fv : lister.listAllValues(request.getParameter("factor")))
+            {
+                response.getWriter().println(fv);
+            }
         } else {
             int nlimit = 100;
             try {
@@ -48,8 +54,8 @@ public class FactorValues extends HttpServlet {
             } catch(Exception e) {
                 // just ignore
             }
-            Map<String,Long> ac = ae3.service.ArrayExpressSearchService.instance()
-                    .autoCompleteFactorValues(
+            Map<String,Long> ac =
+                    lister.autoCompleteValues(
                             request.getParameter("factor"),
                             request.getParameter("q"),
                             nlimit

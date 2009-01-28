@@ -70,7 +70,7 @@ ArrayExpress Atlas Preview
         <c:set var="timeStart" value="${u:currentTime()}"/>
         <%
             response.flushBuffer();
-            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().doStructuredAtlasQuery(atlasQuery);
+            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(atlasQuery);
             request.setAttribute("result", atlasResult);
         %>
     </c:if>
@@ -97,7 +97,7 @@ ArrayExpress Atlas Preview
                     <input type="text" name="gene" id="gene0" style="width:150px" value="${f:escapeXml(query.gene)}" />
                 </td>
                 <td>
-                    <select name="specie">
+                    <select name="specie_0">
                         <option value="">(any)</option>
                         <c:forEach var="s"
                                    items="${service.allAvailableAtlasSpecies}">
@@ -108,7 +108,7 @@ ArrayExpress Atlas Preview
                 <td style="padding-left:5px">
                     <select name="gexp">
                         <c:forEach var="s"
-                                   items="${service.geneExpressionOptions}">
+                                   items="${service.structQueryService.geneExpressionOptions}">
                             <option ${!empty query && query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])}</option>
                         </c:forEach>
                     </select>
@@ -174,12 +174,12 @@ ArrayExpress Atlas Preview
     <script type="text/javascript">
         var options = {
             expressions : [
-                    <c:forEach var="i" items="${service.geneExpressionOptions}">
+                    <c:forEach var="i" items="${service.structQueryService.geneExpressionOptions}">
                     [ '${u:escapeJS(i[0])}', '${u:escapeJS(i[1])}' ],
                     </c:forEach>
             ],
             factors : [
-                <c:forEach var="i" items="${service.experimentalFactorOptions}">
+                <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
                 '${u:escapeJS(i)}',
                 </c:forEach>
             ],

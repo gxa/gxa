@@ -129,7 +129,7 @@ function escapeHtml(s) {
                                                           // limit abortion to this input
                                                           port: "fvalues",
                                                           url: "fval",
-                                                          data: { mode: 'all', factor: factor.options[factor.selectedIndex].value },
+                                                          data: { mode: 'all', type: 'efv', factor: factor.options[factor.selectedIndex].value },
                                                           success: function(data) {
                                                               var rows = data.split("\n");
                                                               var sel = createSelect(what.attr('name'), rows);
@@ -180,7 +180,7 @@ function escapeHtml(s) {
                             scroll: false,
                             scrollHeight: 180,
                             max: 10,
-                            extraParams: { 'factor' : factor.options[factor.selectedIndex].value },
+                            extraParams: { type: 'efv', 'factor' : factor.options[factor.selectedIndex].value },
                             formatItem: function(row) { return row[0]; }
                         })
                         .flushCache();

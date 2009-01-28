@@ -1,8 +1,5 @@
 package ae3.service.structuredquery;
 
-import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
@@ -23,8 +20,6 @@ import org.apache.solr.core.SolrCore;
 import javax.xml.rpc.ServiceException;
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -48,26 +43,17 @@ public class AtlasStructuredQueryService {
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
     private Set<String> allFactors;
-    private Connection sql;
-    private PreparedStatement sqlGetExperiments;
-    private PreparedStatement sqlGetAllGeneExperiments;
+    private final IValueListHelper efvListHelper;
+    private final IValueListHelper geneListHelper;
 
     public AtlasStructuredQueryService(CoreContainer coreContainer, Connection sql) throws SQLException {
         this.coreExpt = coreContainer.getCore(CORE_EXPT);
         this.coreAtlas = coreContainer.getCore(CORE_ATLAS);
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
-        this.allFactors = getExperimentalFactorOptions();
-        this.sql = sql;
 
-        sqlGetExperiments = sql.prepareStatement(
-                "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj,updn FROM aemart.atlas" +
-                " WHERE gene_id_key = ? AND ef = ? AND efv = ? GROUP BY experiment_id_key,updn");
-
-        sqlGetAllGeneExperiments = sql.prepareStatement(
-                "select experiment_id_key, ef, efv, avg(round(updn_pvaladj,100)) as updn_pvaladj from atlas " +
-                        "where gene_id_key = ? group by ef,efv,experiment_id_key"
-        );
+        this.efvListHelper = new ExpFactorValueListHelper(solrExpt);
+        this.geneListHelper = new GenePropValueListHelper(solrAtlas);
     }
 
     /**
@@ -314,8 +300,11 @@ public class AtlasStructuredQueryService {
 
     private EfvTree<Boolean> getCondEfvsAllForFactor(String factor) {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
-        for(String v : getFactorValues(factor, null, MAX_CONDITION_EFVS)) {
+        int i = 0;
+        for(String v : getEfvListHelper().listAllValues(factor)) {
             condEfvs.put(factor, v, true);
+            if(++i >= MAX_CONDITION_EFVS)
+                break;
         }
         return condEfvs;
     }
@@ -361,7 +350,7 @@ public class AtlasStructuredQueryService {
 
         Iterable<String> factors;
         if(factor == null || "".equals(factor)) {
-            factors = allFactors;
+            factors = getExperimentalFactorOptions();
         } else {
             factors = new ArrayList<String>(1);
             ((List<String>)factors).add(factor);
@@ -444,7 +433,7 @@ public class AtlasStructuredQueryService {
             };
 
             if(!hasQueryEfvs) {
-                for(String ef : allFactors) {
+                for(String ef : getExperimentalFactorOptions()) {
                     Collection<Object> efvs;
 
                     efvs = doc.getFieldValues("efvs_up_" + EfvTree.encodeEfv(ef));
@@ -617,134 +606,29 @@ public class AtlasStructuredQueryService {
     }
 
     public Set<String> getExperimentalFactorOptions() {
-        @SuppressWarnings("unchecked")
-        Collection<String> fields = (Collection<String>)coreExpt.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-        Set<String> names = new TreeSet<String>();
-        for(String i : fields) {
-            if(i.startsWith(FIELD_FACTOR_PREFIX)) {
-                names.add(i.substring(FIELD_FACTOR_PREFIX.length()));
-            }
-        }
-
-        return names;
-    }
-
-    public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
-        Map<String,Long> map = new TreeMap<String,Long>();
-        
-        if(query.startsWith("\""))
-            query = query.substring(1);
-        if(query.endsWith("\""))
-            query = query.substring(0, query.length() - 1);
-        
-        for(String fv : getFactorValues(factor, query, limit))
+        // lazy caching
+        if(allFactors == null)
         {
-            SolrQuery q = new SolrQuery("");
-            q.setRows(0);
-            map.put(fv, 123L);
-        }
-        return map;
-    }
-
-    public Iterable<String> getAllFactorValues(String factor) {
-        return getFactorValues(factor, null, -1);
-    }
-
-    private SortedSet<String> getFactorValues(String factor, String query, int limit) {
-        SortedSet<String> s = new TreeSet<String>();
-        try {
-            SolrQuery q = new SolrQuery("exp_in_dw:true");
-            q.setRows(0);
-            q.setFacet(true);
-            q.setFacetMinCount(1);
-            q.setFacetPrefix(query != null ? query : "");
-
-            if (factor == null || factor.equals(""))
-                factor = "exp_factor_values_exact";
-            else
-                factor = AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor;
-            q.addFacetField(factor);
-
-            q.setFacetLimit(limit);
-            q.setFacetSort(true);
-            QueryResponse qr = solrExpt.query(q);
-
-            if (null == qr.getFacetFields().get(0).getValues())
-                return s;
-
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.add(ffc.getName());
-            }
-
-        } catch (SolrServerException e) {
-            log.error(e);
-        }
-
-        return s;
-    }
-
-    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
-    {
-        final ExperimentList results = new ExperimentList();
-        try {
-            log.info("Listing experiments for gene:" + gene_id_key + " ef:" + factor + " efv:" + factorValue);
-            sqlGetExperiments.setString(1, gene_id_key);
-            sqlGetExperiments.setString(2, factor);
-            sqlGetExperiments.setString(3, factorValue);
-            ResultSet rs = sqlGetExperiments.executeQuery();
-            while(rs.next()) {
-                try {
-                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
-                    if(experiment != null) {
-                        addExperimentsToList(results, rs, experiment);
-                    }
-                } catch (AtlasObjectNotFoundException e) {
-                    log.error(e);
+            @SuppressWarnings("unchecked")
+            Collection<String> fields = (Collection<String>)coreExpt.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+            Set<String> names = new TreeSet<String>();
+            for(String i : fields) {
+                if(i.startsWith(FIELD_FACTOR_PREFIX)) {
+                    names.add(i.substring(FIELD_FACTOR_PREFIX.length()));
                 }
             }
-         } catch (SQLException e) {
-            log.error(e);
-         }
-        return results;
+
+            allFactors = names;
+        }
+        
+        return allFactors;
     }
 
-    private void addExperimentsToList(ExperimentList list, ResultSet rs, AtlasExperiment experiment) throws SQLException {
-        boolean isUp = !rs.getString("updn").contains("-");
-        list.add(new ExperimentRow(
-                experiment.getAerExpId(),
-                experiment.getAerExpName(),
-                experiment.getAerExpAccession(),
-                experiment.getAerExpDescription(),
-                rs.getDouble("updn_pvaladj"),
-                (isUp ? ExperimentRow.UpDn.UP : ExperimentRow.UpDn.DOWN)));
+    public IValueListHelper getEfvListHelper() {
+        return efvListHelper;
     }
 
-    public EfvTree<ExperimentList> getGeneExperiments(String gene_id_key)
-    {
-        final EfvTree<ExperimentList> results = new EfvTree<ExperimentList>();
-        try {
-            log.info("Listing experiments for gene:" + gene_id_key);
-            sqlGetAllGeneExperiments.setString(1, gene_id_key);
-            ResultSet rs = sqlGetAllGeneExperiments.executeQuery();
-            EfvTree.Creator<ExperimentList> creator = new EfvTree.Creator<ExperimentList>() {
-                public ExperimentList make() { return new ExperimentList(); }
-            };
-            while(rs.next()) {
-                try {
-                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
-                    if(experiment != null) {
-                        addExperimentsToList(results.getOrCreate(rs.getString("ef"), rs.getString("efv"), creator),
-                                rs, experiment);
-                    }
-                } catch (AtlasObjectNotFoundException e) {
-                    log.error(e);
-                }
-            }
-            return results;
-         } catch (SQLException e) {
-            log.error(e);
-         }
-        return results;
+    public IValueListHelper getGeneListHelper() {
+        return geneListHelper;
     }
-
 }

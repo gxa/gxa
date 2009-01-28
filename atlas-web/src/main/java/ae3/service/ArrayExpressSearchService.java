@@ -70,6 +70,7 @@ public class ArrayExpressSearchService {
     private QueryRunner theAEQueryRunner;
 
     private AtlasStructuredQueryService squeryService;
+    private ExperimentsService experimentsService;
 
     //// DataServer Instance(s)
 
@@ -133,6 +134,7 @@ public class ArrayExpressSearchService {
             stmt.close();
 
             squeryService = new AtlasStructuredQueryService(multiCore, theAEDS.getConnection());
+            experimentsService = new ExperimentsService(theAEDS.getConnection());
 
         } catch (Exception e) {
             log.error(e);
@@ -342,14 +344,6 @@ public class ArrayExpressSearchService {
         return null;
     }
 
-
-    public Map<String, Long> autoCompleteFactorValues(String factor, String query, int limit) {
-        return squeryService.autoCompleteFactorValues(factor,  query, limit);
-    }
-
-    public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
-        return squeryService.doStructuredAtlasQuery(query);
-    }
 
     private TreeSet<String> autoCompleteGene(String query) {
 
@@ -634,11 +628,6 @@ public class ArrayExpressSearchService {
         return arset;
     }
 
-    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
-    {
-        return squeryService.getExperiments(gene_id_key, factor, factorValue);
-    }
-
     public ArrayList getAtlasResults(String query){
     	 ArrayList<AtlasTuple> atlasTuples = null;
          try {
@@ -771,17 +760,13 @@ public class ArrayExpressSearchService {
 //        return writeAtlasQuery(inGeneIds, inExptIds, exptHitsResponse, geneHitsResponse, updn_filter, tw);
 //    }
 
-    public Iterable<String[]> getGeneExpressionOptions() {
-        return squeryService.getGeneExpressionOptions();
+    public AtlasStructuredQueryService getStructQueryService() {
+        return squeryService;
     }
 
-    public Iterable<String> getExperimentalFactorOptions() {
-        return squeryService.getExperimentalFactorOptions();
-    }
-
-    public Iterable<String> getExperimentalFactorValueOptions(String factor)
+    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
     {
-        return squeryService.getAllFactorValues(factor);
+        return experimentsService.getExperiments(gene_id_key, factor, factorValue);
     }
 
     public SortedSet<String> getAllAvailableAtlasSpecies() {
