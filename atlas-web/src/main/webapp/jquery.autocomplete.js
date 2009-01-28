@@ -282,7 +282,6 @@ $.Autocompleter = function(input, options) {
         }
         if(curVal.length > 0)
             result[result.length] = curVal;
-        console.dir(result);
         return result;
     }
 
