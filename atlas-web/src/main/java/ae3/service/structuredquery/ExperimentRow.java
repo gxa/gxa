@@ -1,6 +1,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Experiment list's row container
  * @author pashky
  */
 public class ExperimentRow implements Comparable<ExperimentRow> {
@@ -9,9 +10,22 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
     private String experimentDescription;
     private String experimentName;
     private double pvalue;
+
+    /**
+     * Expression - up or down
+     */
     public enum UpDn { UP, DOWN };
     private UpDn updn;
 
+    /**
+     * Constructor
+     * @param experimentId experiment id
+     * @param experimentName experimnet name
+     * @param experimentAccessment experiment accessment
+     * @param experimentDescription experimnet description
+     * @param pvalue p-value
+     * @param updn up or down
+     */
     public ExperimentRow(long experimentId, String experimentName, String experimentAccessment, String experimentDescription, double pvalue, UpDn updn) {
         this.experimentId = experimentId;
         this.experimentAccessment = experimentAccessment;
@@ -21,26 +35,50 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
         this.updn = updn;
     }
 
+    /**
+     * Returns p-value
+     * @return p-value
+     */
     public double getPvalue() {
         return pvalue;
     }
 
+    /**
+     * Returns experiment id
+     * @return experiment id
+     */
     public long getExperimentId() {
         return experimentId;
     }
 
+    /**
+     * Return experiment accessment
+     * @return experiment accessment
+     */
     public String getExperimentAccessment() {
         return experimentAccessment;
     }
 
+    /**
+     * Returns experiment description
+     * @return experiment description
+     */
     public String getExperimentDescription() {
         return experimentDescription;
     }
 
+    /**
+     * Returns experiment name
+     * @return experiment name
+     */
     public String getExperimentName() {
         return experimentName;
     }
 
+    /**
+     * Returns up or down
+     * @return UP or DOWN
+     */
     public UpDn getUpdn() {
         return updn;
     }

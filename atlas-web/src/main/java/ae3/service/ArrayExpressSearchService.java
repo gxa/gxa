@@ -133,7 +133,7 @@ public class ArrayExpressSearchService {
             }
             stmt.close();
 
-            squeryService = new AtlasStructuredQueryService(multiCore, theAEDS.getConnection());
+            squeryService = new AtlasStructuredQueryService(multiCore);
             experimentsService = new ExperimentsService(theAEDS.getConnection());
 
         } catch (Exception e) {

@@ -3,6 +3,7 @@ package ae3.service.structuredquery;
 import java.util.*;
 
 /**
+ * Experiments list container class
  * @author pashky
  */
 public class ExperimentList implements Iterable<ExperimentRow>, Comparable<ExperimentList> {
@@ -44,18 +45,34 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
         public void remove() { }
     }
 
+    /**
+     * Returns iterator merge soring experiments by their significance (p-value)
+     * @return iterator of merged experiments rows
+     */
     public Iterator<ExperimentRow> iterator() {
         return new BothIterator();
     }
 
+    /**
+     * Returns iterable list of UP experiments
+     * @return iterable list of experiments
+     */
     public Iterable<ExperimentRow> getUps() {
         return ups;
     }
 
+    /**
+     * Returns iterable list of DOWNS experiments
+     * @return iterable list of experiments
+     */
     public Iterable<ExperimentRow> getDowns() {
         return downs;
     }
 
+    /**
+     * Returns total number of experiments
+     * @return total number of experiments
+     */
     private int getNum()
     {
         return ups.size() + downs.size();
@@ -65,7 +82,11 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
         return Integer.valueOf(getNum()).compareTo(o.getNum());
     }
 
-    void add(ExperimentRow row)
+    /**
+     * Adds experiment row to the list
+     * @param row experiment row
+     */
+    public void add(ExperimentRow row)
     {
         (row.getUpdn() == ExperimentRow.UpDn.UP ? ups : downs).add(row);
     }

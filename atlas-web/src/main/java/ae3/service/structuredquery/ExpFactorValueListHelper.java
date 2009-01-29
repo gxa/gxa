@@ -14,7 +14,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
+ * EFVs listing and autocompletion helper implementation
  * @author pashky
+ * @see ae3.service.structuredquery.IValueListHelper
  */
 public class ExpFactorValueListHelper implements IValueListHelper {
 

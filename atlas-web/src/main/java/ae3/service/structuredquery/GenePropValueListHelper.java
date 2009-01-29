@@ -13,11 +13,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
+ * Gene properties values listing and autocompletion helper implementation
  * @author pashky
+ * @see ae3.service.structuredquery.IValueListHelper
  */
 public class GenePropValueListHelper implements IValueListHelper {
     private SolrServer solrAtlas;
-    private Log log = LogFactory.getLog(GenePropValueListHelper.class);
+    private Log log = LogFactory.getLog(getClass());
 
     public GenePropValueListHelper(SolrServer solrAtlas)
     {

@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
+ * Structured query support class
  * @author pashky
  */
 public class AtlasStructuredQueryService {
@@ -34,6 +35,9 @@ public class AtlasStructuredQueryService {
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
     private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
 
+    /**
+     * Supported gene properties facets
+     */
     public static final String[] GENE_FACETS = { "species", "goterm", "interproterm" };
 
     private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
@@ -46,7 +50,12 @@ public class AtlasStructuredQueryService {
     private final IValueListHelper efvListHelper;
     private final IValueListHelper geneListHelper;
 
-    public AtlasStructuredQueryService(CoreContainer coreContainer, Connection sql) throws SQLException {
+    /**
+     * Constructor. Requires SOLR core container reference to work.
+     * @param coreContainer reference to core container with cores "expt" and "atlas"
+     * @throws SQLException
+     */
+    public AtlasStructuredQueryService(CoreContainer coreContainer) throws SQLException {
         this.coreExpt = coreContainer.getCore(CORE_EXPT);
         this.coreAtlas = coreContainer.getCore(CORE_ATLAS);
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
@@ -601,10 +610,18 @@ public class AtlasStructuredQueryService {
     }
 
 
+    /**
+     * Returns list of gene expression options
+     * @return list of arrays of two strings, first - id, second - human-readable description
+     */
     public List<String[]> getGeneExpressionOptions() {
         return AtlasStructuredQuery.Expression.getOptionsList();
     }
 
+    /**
+     * Returns set of experimental factors
+     * @return set of strings representing experimental factors
+     */
     public Set<String> getExperimentalFactorOptions() {
         // lazy caching
         if(allFactors == null)
@@ -624,10 +641,18 @@ public class AtlasStructuredQueryService {
         return allFactors;
     }
 
+    /**
+     * Returns reference to EFV autocompletion and listing helper
+     * @return IValueListHelper interface of the EFV helper
+     */
     public IValueListHelper getEfvListHelper() {
         return efvListHelper;
     }
 
+    /**
+     * Returns reference to gene properties autocompletion and listing helper
+     * @return IValueListHelper interface of the gene properties helper
+     */
     public IValueListHelper getGeneListHelper() {
         return geneListHelper;
     }

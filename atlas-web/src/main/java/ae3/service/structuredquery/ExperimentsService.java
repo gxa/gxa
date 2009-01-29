@@ -12,11 +12,19 @@ import java.sql.Connection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Experiments listing service class
+ */
 public class ExperimentsService {
     private PreparedStatement sqlGetExperiments;
     private PreparedStatement sqlGetAllGeneExperiments;
     private Log log = LogFactory.getLog(ExperimentsService.class);
 
+    /**
+     * Constructor. Needs refernce to SQL connection containing ATLAS table.
+     * @param sql reference to SQL connection to be used for queries
+     * @throws SQLException
+     */
     public ExperimentsService(Connection sql) throws SQLException  {
         sqlGetExperiments = sql.prepareStatement(
                 "SELECT experiment_id_key, avg(updn_pvaladj) as updn_pvaladj,updn FROM aemart.atlas" +
@@ -39,6 +47,13 @@ public class ExperimentsService {
                 (isUp ? ExperimentRow.UpDn.UP : ExperimentRow.UpDn.DOWN)));
     }
 
+    /**
+     * Returns list of experiments by gene id, factor and factorvalue
+     * @param gene_id_key gene id
+     * @param factor factor name
+     * @param factorValue factor value
+     * @return {@link ae3.service.structuredquery.ExperimentList} container class
+     */
     public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue) {
         final ExperimentList results = new ExperimentList();
         try {
@@ -63,6 +78,11 @@ public class ExperimentsService {
         return results;
     }
 
+    /**
+     * Returns list of all experiments for specific gene
+     * @param gene_id_key gene id
+     * @return {@link ae3.service.structuredquery.ExperimentList}
+     */
     public EfvTree<ExperimentList> getExperiments(String gene_id_key) {
         final EfvTree<ExperimentList> results = new EfvTree<ExperimentList>();
         try {
