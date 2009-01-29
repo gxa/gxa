@@ -79,7 +79,7 @@ ArrayExpress Atlas Preview
         <table>
             <tr valign="top">
                 <td>
-                    <label class="label" for="gene">Genes</label>
+                    <label class="label" for="gene">Find Genes</label>
                 </td>
 
                 <td>
@@ -94,7 +94,7 @@ ArrayExpress Atlas Preview
             </tr>
             <tr valign="top">
                 <td>
-                    <input type="text" name="gene" id="gene0" style="width:150px" value="${f:escapeXml(query.gene)}" />
+                    <input type="text" name="gene_0" class="geneqry" id="gene0" style="width:150px" value="${f:escapeXml(query.gene)}" />
                 </td>
                 <td>
                     <select name="specie_0">
@@ -124,7 +124,15 @@ ArrayExpress Atlas Preview
             </tr>
         </table>
         <c:if test="${query.simple && !empty result.conditions && result.conditions[0].expansion.numEfvs > 0}">
-            <p class="expansion"><c:forEach var="e" items="${result.conditions[0].expansion.valueSortedList}" varStatus="i"><c:if test="${result.conditions[0].expansion.numEfs > 1 || (i.first && empty c.factor)}">${f:escapeXml(e.ef)}: </c:if> ${f:escapeXml(e.efv)}<c:if test="${!i.last}">, </c:if></c:forEach></p>
+            <p class="expansion">
+            	<c:forEach var="e" items="${result.conditions[0].expansion.valueSortedList}" varStatus="i">
+            		<c:if test="${result.conditions[0].expansion.numEfs > 1 || (i.first && empty c.factor)}">
+            			${f:escapeXml(e.ef)}: 
+            		</c:if> 
+            		${f:escapeXml(e.efv)}
+            		<c:if test="${!i.last}">, </c:if>
+            	</c:forEach>
+            </p>
         </c:if>
         <input type="hidden" name="view" value="hm" />
     </form>
@@ -132,10 +140,14 @@ ArrayExpress Atlas Preview
     <form id="structform" name="atlasform" action="qrs" onsubmit="renumberAll();">
         <table>
             <tr valign="top">
-                <td>
-                    <label class="label" for="gene">Genes</label>
+                <td colspan="1">
+                    <label class="label" for="gene">Find Genes</label>
                 </td>
-
+                <!-- 
+				<td>
+                    <label class="label" for="geneProps">Gene Properties</label>
+                </td>
+                 -->
                 <td>
                     <label class="label" for="species">Organisms</label>
                 </td>
@@ -145,9 +157,18 @@ ArrayExpress Atlas Preview
                 </td>
             </tr>
             <tr valign="top">
+                <!-- 
                 <td>
+                
                     <input type="text" name="gene" id="gene" style="width:150px" value="${f:escapeXml(query.gene)}" />
                 </td>
+                -->
+                <td align="left">
+                    <table id="geneprops" cellpadding="0" cellspacing="0">
+                        <tbody></tbody>
+                    </table>
+                </td>
+                
                 <td>
                     <table id="species" cellpadding="0" cellspacing="0">
                         <tbody></tbody>
@@ -187,13 +208,27 @@ ArrayExpress Atlas Preview
                 <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
                 '${u:escapeJS(i)}',
                 </c:forEach>
+            ],
+            geneProps :[
+            	<c:forEach var="i" items="${service.geneProperties}">
+            	'${u:escapeJS(i)}',
+            	</c:forEach>
+            ],
+            geneOperators :['','OR','AND','NOT'
             ]
         };
 
         var lastquery;
         <c:if test="${!empty query}">
         lastquery = {
-            gene : '${u:escapeJS(query.gene)}',
+            
+            genes: [ <c:forEach var="g" items="${query.geneQueries}">
+            			{ qry:     '${g.qry}',
+            			  property:'${g.property}',
+            			  operator: '${g.operator}'
+            			},
+            		</c:forEach>
+            	   ],
             species : [<c:forEach var="i" items="${query.species}">'${u:escapeJS(i)}',</c:forEach>],
             conditions : [
                 <c:forEach var="c" items="${result.conditions}">
@@ -219,6 +254,7 @@ ArrayExpress Atlas Preview
     <c:if test="${!empty query}">
         <c:set var="cn" value="${result.resultEfvs.numEfvs}"/>
         <c:set var="sn" value="${f:length(query.species)}"/>
+        <c:set var="gn" value="${f:length(query.geneQueries)}"/>
         <script type="text/javascript">
 
             $("#loading_display").hide();
@@ -233,7 +269,12 @@ ArrayExpress Atlas Preview
 
         <c:if test="${result.size > 0}">
             <c:url var="pageUrl" value="/qrs">
-                <c:param name="gene" value="${u:escapeJS(query.gene)}"/>
+               
+                <c:forEach var="g" varStatus="gs"items="${query.geneQueries}">
+                	<c:param name="gene_${gs.index}" value="${u:escapeJS(g.qry)}"></c:param>
+                	<c:param name="geneprop_${gs.index}" value="${g.property}"></c:param>
+                	<c:if test="${gs.index != 0}"><c:param name="geneoperator_${gs.index}" value="${g.operator}"></c:param></c:if>
+                </c:forEach> 
                 <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
                 <c:forEach varStatus="cs" var="c" items="${result.conditions}">
                     <c:param name="fact_${cs.index}" value="${c.factor}"/>
@@ -281,7 +322,7 @@ ArrayExpress Atlas Preview
                             <div class="name"><fmt:message key="head.gene.${facet.key}"/>:</div>
                             <ul>
                                 <c:forEach var="sp" items="${facet.value}" varStatus="s">
-                                    <li><a href="javascript:alert('sorry, not implemented yet')" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
+                                    <li><a href="${pageUrl}&amp;gene_${gn}=${u:escapeURL(sp.name)}&amp;geneprop_${gn}=${u:escapeURL(facet.key)}&amp;geneoperator_${gn}=AND" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
                                 </c:forEach>
                             </ul>
                         </div>

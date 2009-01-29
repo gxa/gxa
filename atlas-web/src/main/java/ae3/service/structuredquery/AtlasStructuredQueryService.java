@@ -34,6 +34,7 @@ public class AtlasStructuredQueryService {
     private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
     private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
+    public static final String FIELD_GENE_PROP_PREFIX = "gene_";
 
     /**
      * Supported gene properties facets
@@ -271,13 +272,21 @@ public class AtlasStructuredQueryService {
     }
 
     private StringBuffer appendGeneQuery(AtlasStructuredQuery query, StringBuffer solrq) {
-        if(query.getGene().matches(".*\\S.*"))
-        {
-            if(solrq.length() > 0)
-                solrq.append(" AND ");
-            solrq.append("gene_desc:(").append(query.getGene()).append(")");
-            solrq.append(" gene_ids:(").append(query.getGene()).append(")");
-        }
+    	if(solrq.length() > 0)
+			solrq.append(" AND ");
+    	for(AtlasStructuredQuery.GeneQuery geneQuery: query.getGeneQueries()){
+    		
+    		if(geneQuery.getOperator()!=null)
+    			solrq.append(geneQuery.getOperator());
+    		
+    		if(geneQuery.getProperty()!=null && !geneQuery.getProperty().equals("")){
+    			solrq.append(" (gene_").append(geneQuery.getProperty()).append(":(").append(geneQuery.getQry()).append(")) ");
+    		}
+    		else{
+    			solrq.append(" gene_ids:(").append(geneQuery.getQry()).append(") ");
+    			solrq.append(" gene_desc:(").append(geneQuery.getQry()).append(") ");
+    		}	
+    	}
 
         return solrq;
     }
@@ -655,5 +664,17 @@ public class AtlasStructuredQueryService {
      */
     public IValueListHelper getGeneListHelper() {
         return geneListHelper;
+    }
+    
+    public Set<String> getGeneProperties(){
+    	Collection<String> fields = (Collection<String>)coreAtlas.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+        Set<String> names = new TreeSet<String>();
+        for(String i : fields) {
+            if(i.startsWith(FIELD_GENE_PROP_PREFIX)) {
+            	names.add(i.split("_")[1]);
+            }
+        }
+
+        return names;
     }
 }

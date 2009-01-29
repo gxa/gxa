@@ -637,10 +637,10 @@ public class ArrayExpressSearchService {
 
                      while(rs.next()) {
                          
-
-                         AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
-                         atlasTuples.add(atuple);
-                        
+                    	 if(rs.getString("TopN").equals("1")){
+                    		 AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
+                    		 atlasTuples.add(atuple);
+                    	 }
                          
                      }
 
@@ -690,7 +690,7 @@ public class ArrayExpressSearchService {
     return count;
     }
     
-    public ArrayList getRankedGeneExperiments(String gene_id_key, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
+    public ArrayList getRankedGeneExperiments(final String gene_id_key, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
 
    	 String query = "select * " +
@@ -711,12 +711,14 @@ public class ArrayExpressSearchService {
         	atlasExps =  (ArrayList<AtlasExperiment>)theAEQueryRunner.query(query, new ResultSetHandler() {
                 public ArrayList<AtlasExperiment> handle(ResultSet rs) throws SQLException {
                    ArrayList<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
-
+                   AtlasRanker ranker = new AtlasRanker();
                     try {
 						while(rs.next()) {
-						    
-
-						    AtlasExperiment atlasExp = AtlasDao.getExperimentByIdDw(String.valueOf((rs.getInt("experiment_id_key"))));
+						    String expIdKey = String.valueOf((rs.getInt("experiment_id_key")));
+							HashMap rankInfo =  ranker.getHighestRankEF(expIdKey, gene_id_key);
+							
+						    AtlasExperiment atlasExp = AtlasDao.getExperimentByIdDw(expIdKey);
+						    atlasExp.addHighestRankEF(gene_id_key, rankInfo.get("expfactor").toString());
 						    if(atlasExp != null)
 						    atlasExps.add(atlasExp);
 						   
@@ -769,6 +771,9 @@ public class ArrayExpressSearchService {
         return experimentsService.getExperiments(gene_id_key, factor, factorValue);
     }
 
+    public Iterable<String> getGeneProperties(){
+    	return squeryService.getGeneProperties();
+    }
     public SortedSet<String> getAllAvailableAtlasSpecies() {
         SortedSet<String> species = null;
 

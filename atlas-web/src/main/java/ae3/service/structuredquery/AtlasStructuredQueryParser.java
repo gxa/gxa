@@ -20,7 +20,9 @@ public class AtlasStructuredQueryParser {
     private static String PARAM_FACTOR = "fact_";
     private static String PARAM_FACTORVALUE = "fval_";
     private static String PARAM_FACTORVALUE_SIMPLE = "fval";
-    private static String PARAM_GENE = "gene";
+    private static String PARAM_GENE = "gene_";
+    private static String PARAM_GENEPROP = "geneprop_";
+    private static String PARAM_GENEOPERTOR = "geneoperator_";
     private static String PARAM_SPECIE = "specie_";
     private static String PARAM_SPECIE_SIMPLE = "specie";
     private static int DEFAULT_ROWS = 100;
@@ -184,6 +186,40 @@ public class AtlasStructuredQueryParser {
 
         return result;
     }
+    
+   
+    private static List<AtlasStructuredQuery.GeneQuery> parseGeneQuery(final HttpServletRequest httpRequest){
+    	List<AtlasStructuredQuery.GeneQuery> result = new ArrayList<AtlasStructuredQuery.GeneQuery>();
+    	int geneCount = findPrefixParamsSuffixes(httpRequest,PARAM_GENE).size();
+    	for(int id=0; id<geneCount; id++){
+    		AtlasStructuredQuery.GeneQuery geneQuery = new AtlasStructuredQuery.GeneQuery();
+    		try {
+    			String qry = httpRequest.getParameter(PARAM_GENE + id);
+    			if(qry==null){
+    				throw new IllegalArgumentException("Empty gene query:" + id);
+    			}
+    			if(qry.contains(" ") && !qry.startsWith("\\\""))
+    				qry="\""+qry+"\"";
+    			geneQuery.setQry(qry);
+    			String property = httpRequest.getParameter(PARAM_GENEPROP + id);
+   				geneQuery.setProperty(property);
+    			
+    			String operator = httpRequest.getParameter(PARAM_GENEOPERTOR + id);
+    			if(operator==null){
+    				if(id!=0 && id!=geneCount)
+    					throw new IllegalArgumentException("Empty logical operator:" + id);
+    				else
+    					operator="";
+    			}
+    			else
+    				geneQuery.setOperator(operator);
+    			result.add(geneQuery);
+    		}catch(IllegalArgumentException e){
+    			log.error("Unable to parse gene query.",e);
+    		}
+    	}
+    	return result;
+    }
 
     static private Set<String> parseExpandColumns(final HttpServletRequest httpRequest)
     {
@@ -203,10 +239,12 @@ public class AtlasStructuredQueryParser {
      */
     static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
-        String gene = httpRequest.getParameter(PARAM_GENE);
-        if(gene == null)
-            return null;
-        request.setGene(gene.equals("(all genes)") ? "" : gene);
+        
+        List<AtlasStructuredQuery.GeneQuery> geneQueries = parseGeneQuery(httpRequest);
+        if(geneQueries.isEmpty())
+        	return null;
+        
+        request.setGeneQueries(geneQueries);
 
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseConditions(httpRequest));

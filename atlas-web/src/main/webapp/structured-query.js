@@ -1,4 +1,5 @@
 var counter = 0;
+var geneCounter = 0;
 
 function escapeHtml(s) {
     return s.replace(/\"/g,"&quot;")
@@ -10,7 +11,7 @@ function escapeHtml(s) {
 (function($){
      window.initQuery = function() {
 
-         $("#gene0,#gene")
+         $(".geneqry")
              .defaultvalue("(all genes)","(all genes)")
              .autocomplete("autocomplete.jsp", {
                                minChars:2,
@@ -45,7 +46,7 @@ function escapeHtml(s) {
          {
              var removeButton = document.createElement("input");
              removeButton.type = "button";
-             removeButton.value = "-";
+             removeButton.value = "x";
              removeButton.onclick = function() { callback($(this)); };
              return removeButton;
          }
@@ -63,8 +64,9 @@ function escapeHtml(s) {
                      } else {
                          option = new Option(options[i], options[i]);
                      }
-                     if(value == option.value)
+                     if(value == option.value){
                          selected = e.options.length;
+                     }
                      e.options[e.options.length] = option;
                  }
                  e.selectedIndex = selected;
@@ -80,7 +82,7 @@ function escapeHtml(s) {
 
              var selects = createSelect('specie_' + (++counter), options['species'], true, value);
              selects.setAttribute("class","speciesSelect");
-
+			
              var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : '') + '</td></tr>')
                  .append($('<td/>').append(selects))
                  .append($('<td class="removebutton" />')
@@ -108,6 +110,58 @@ function escapeHtml(s) {
              tr.append($('<td class="addbuttons" />').append($('<input type="button" value=" or ">').bind('click', addSpecieOr)));
              tbody.append(tr);
          };
+         
+                
+         function addGeneProps(geneQuery,nxtGeneQuery){
+         	//var geneCounter = ++counter;
+         	
+         	var geneInput = $('<input type="text" class="geneqry"/>').attr('name', "gene_" + geneCounter );
+         	if(geneQuery)
+         		geneInput.val(geneQuery.qry);
+         	var selects = createSelect('geneprop_'+geneCounter,options['geneProps'], true, geneQuery?geneQuery.property:"");
+            selects.setAttribute("class","genePropSelect");
+            
+         
+            //create logical operators
+            var logicalOp = createSelect('geneoperator_'+geneCounter,options['geneOperators'],false, nxtGeneQuery?nxtGeneQuery.operator:"");
+            logicalOp.onchange = function(){ if(this.name == "geneoperator_"+(geneCounter-1))
+            									addGeneProps();
+            								};
+            logicalOp.className = "operator";
+            
+            var tbodyGene = $('#geneprops > tbody');
+            var numrow = tbodyGene.get(0).rows.length;
+           
+            var tr = $('<tr>');
+            tr.append($('<td class="genesearch" />').append('by ').append(selects).append(' for ').append(geneInput));
+            
+            /*     
+
+             if(numrow > 0) {
+                 $('tr:last > td.addbuttons', tbodyGene).empty();
+             }
+*/
+             tr.append($('<td class="addbuttons" />').append(logicalOp)).append($('<td class="removebutton" />')
+                         .append(createRemoveButton(function (where) {
+                                                        var tr = where.parents('tr:first');
+                                                        var tbody = tr.parents('tbody:first').get(0);
+                                                        if(tbody.rows.length == 1)
+                                                            return;
+
+                                                        if(tr.get(0).sectionRowIndex == tbody.rows.length - 1) {
+                                                        	
+                                                            $('td.addbuttons', tr.prev()).find('select.operator').attr("selectedIndex","0");
+                                                        } 
+                                                        
+                                                        tbody.deleteRow(tr.get(0).sectionRowIndex);
+                                                    })));
+             tbodyGene.append(tr.append('</tr>'));
+             //tbodyGene.append($('<tr><td>&nbsp;</td></tr>'));
+             geneCounter++;
+         }
+         
+         
+         
 
          function addConditionAnd(where, condition) {
              var tbody = $('#conditions > tbody');
@@ -282,6 +336,14 @@ function escapeHtml(s) {
          } else {
              addConditionAnd();
          }
+         
+         if(lastquery && lastquery.genes.length) {
+         	for(var i=0; i<lastquery.genes.length; i++)
+         		addGeneProps(lastquery.genes[i],(i+1 != lastquery.genes.length)?lastquery.genes[i+1]:"");
+         } else {
+            addGeneProps();
+         }
+         //addGeneProps();
      };
 
      window.renumberAll = function() {
@@ -299,6 +361,21 @@ function escapeHtml(s) {
                                                 });
                                       ++i;
                                   });
+         i=0;
+         var op=0;
+         $('#geneprops tr').each(function(){
+         						//renumber operators
+         						op=i+1;
+         						$('td.addbuttons select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + op); });
+         						
+         						//i=0;
+         						//renumber geneInput
+         						$('td.genesearch input', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
+         						
+         						//renumber geneProperty
+         						$('td.genesearch select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
+         						i++
+         						 });
      };
 
 

@@ -146,33 +146,80 @@ public class AtlasStructuredQuery {
 
     }
 
-    private String gene;
+    /**
+     *Class representing one gene query 
+     */
+    static public class GeneQuery{
+    	private String qry;
+    	private String property;
+    	private String operator;
+    	
+    	public GeneQuery(){
+    		
+    	}
+
+		public String getQry() {
+			return qry;
+		}
+
+		public void setQry(String qry) {
+			this.qry = qry;
+		}
+
+		public String getProperty() {
+			return property;
+		}
+
+		public void setProperty(String property) {
+			this.property = property;
+		}
+
+		public String getOperator() {
+			return operator;
+		}
+
+		public void setOperator(String operator) {
+			this.operator = operator;
+		}
+    	
+    }
+    
     private List<String> species;
     private List<Condition> conditions;
+    private List<GeneQuery> geneQueries;
     private int start;
     private int rows;
     private Set<String> expandColumns;
 
     public AtlasStructuredQuery() {
         conditions = new ArrayList<Condition>();
+        geneQueries = new ArrayList<GeneQuery>();
         start = 0;
         rows = 100;
     }
 
     /**
-     * Returns gene query
+     * sets lists of gene queries represented by each row added to the query
+     * @param geneQueries
+     */
+    public void setGeneQueries(List<GeneQuery> geneQueries){
+    	this.geneQueries = geneQueries;
+    }
+    
+    /**
+     * Returns gene queries for the current query. Includes for each query (query, query operator and gene property)
+     * @return geneQueries
+     */
+    public List<GeneQuery> getGeneQueries(){
+    	return geneQueries;
+    }
+    
+    /**
+     * Returns gene query for the first gene query row (case of simple query)
      * @return gene query
      */
     public String getGene() {
-        return gene;
-    }
-
-    /**
-     * Sets gene query
-     * @param gene gene query
-     */
-    public void setGene(String gene) {
-        this.gene = gene;
+        return geneQueries.get(0).qry;
     }
 
     /**
@@ -254,7 +301,7 @@ public class AtlasStructuredQuery {
      * @return
      */
     public boolean isSimple() {
-        return conditions.size() == 0 || (conditions.size() == 1 && "".equals(conditions.get(0).getFactor()));
+        return (conditions.size() == 0 || (conditions.size() == 1 && "".equals(conditions.get(0).getFactor()))) && (geneQueries.size() ==1 && geneQueries.get(0).property==null);
     }
 
     /**
