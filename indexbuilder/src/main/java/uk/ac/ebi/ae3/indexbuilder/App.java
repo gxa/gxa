@@ -76,6 +76,12 @@ public class App
             .withRequired(false)
             .withDescription("Update mode")
             .create();
+    
+    private final DefaultOption     optionPending = optionBuilder
+    		.withLongName("pendingOnly")
+    		.withRequired(false)
+    		.withDescription("pending exps only")
+    		.create();
 
     private String					 propertyFile;
 	private XmlBeanFactory appContext; 	
@@ -87,6 +93,7 @@ public class App
     private boolean buildGene = false;
 
     private boolean updateMode = false;
+    private boolean pendingExps = false;
 
     public static void main(String[] args)
 	{
@@ -135,13 +142,14 @@ public class App
         IndexBuilderService indexBuilderService;
 
         log.info("Will build indexes: " + (buildExpt ? "experiments " : "") + (buildGene ? "gene" : "")
-                + (updateMode ? " (update mode)" : ""));
+                + (updateMode ? " (update mode)" : "") + (pendingExps ? "(only pending experiments)":""));
 
         if(buildExpt) {
             log.info("Building experiments index");
             indexBuilderService = (IndexBuilderService) appContext
                     .getBean(Constants.exptIndexBuilderServiceID);
             indexBuilderService.setUpdateMode(updateMode);
+            indexBuilderService.setCreateOnlyPendingExps(pendingExps);
             indexBuilderService.buildIndex();
         }
 
@@ -159,6 +167,7 @@ public class App
 		Group groupOptions = groupBuilder.withOption(optionProperty)
                 .withOption(optionBuild)
                 .withOption(optionUpdate)
+                .withOption(optionPending)
                 .create();
 		Parser parser = new Parser();
 		
@@ -185,7 +194,9 @@ public class App
                         buildGene = true;
                 }
             }
-
+            
+            pendingExps = cl.hasOption(optionPending);
+            
             if(!buildGene && !buildExpt)
                 buildExpt = true;
 

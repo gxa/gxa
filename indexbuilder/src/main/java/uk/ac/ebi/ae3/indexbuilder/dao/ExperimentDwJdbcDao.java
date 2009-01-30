@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -11,11 +13,14 @@ import javax.sql.DataSource;
 import oracle.sql.CLOB;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
+
 
 /**
  * The class prepares the sql statement and gets data for experiments from DW database.
@@ -112,9 +117,17 @@ public class ExperimentDwJdbcDao
 			" ))).getClobVal() as xml FROM ae1__experiment__main experiment WHERE experiment.experiment_accession=?";
 
 	private static final String SQL_EXPERIMENT="select Experiment_id_key, experiment_identifier  FROM ae1__experiment__main experiment WHERE experiment.experiment_accession=?";
+	private static String sqlPendingExperiments = "select accession from load_monitor " +
+												  "where searchindex='pending' " +
+												  "and load_type='experiment' " +
+												  "and status = 'loaded'";
+	protected static final Log log = LogFactory.getLog(ExperimentDwJdbcDao.class);
+	
 	/** An instance of JDBC RowMapper for SQL_ASXML**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
 	private RowMapper rowMapperExp = new RowMapperExperiments();
+	/** An instance of JDBC RowMapper for sqlExperiments from load monitor**/
+	private RowMapper rowExpLoadMonitorMapper = new RowMapperExpLoadMonitor();
 	private DataSource _dataSource;
 	/**
 	 * Set the default DataSource to be used by the ExperimentDwJdbcDao.
@@ -163,6 +176,26 @@ public class ExperimentDwJdbcDao
         return expXML;
 	}
 	
+	public Collection<Experiment> getPendingExperiments() throws Exception{
+		Collection<Experiment> colection=this.jdbcTemplate.query(sqlPendingExperiments, rowExpLoadMonitorMapper);
+		return colection;
+//		ArrayList<Experiment> exps = new ArrayList<Experiment>();
+//		Connection conn = getDataSource().getConnection();
+//		String expXML="";
+//        PreparedStatement expXMLstmt = conn.prepareStatement(sqlPendingExperiments);
+//        ResultSet expRS =  expXMLstmt.executeQuery();
+//        while(expRS.next()){
+//        	Experiment exp = new Experiment();
+//			//exp.setId(rst.getLong(1));
+//			exp.setAccession(expRS.getString(1));
+//			exps.add(exp);
+//        }
+//        expRS.close();
+//        expXMLstmt.close();
+//        conn.close();
+//        return exps;
+	}
+	
 	public boolean experimentExists(Experiment experiment)
 	{
 		try{
@@ -189,6 +222,19 @@ public class ExperimentDwJdbcDao
 			Experiment exp = new Experiment();
 			exp.setId(rst.getLong(1));
 			exp.setAccession(rst.getString(2));
+			return exp;
+		}
+		
+	}
+	class RowMapperExpLoadMonitor implements ParameterizedRowMapper<Experiment>
+	{
+			
+		public Experiment mapRow(ResultSet rst, int arg1) throws SQLException
+		{
+			Experiment exp = new Experiment();
+
+			exp.setAccession(rst.getString(1));
+
 			return exp;
 		}
 		

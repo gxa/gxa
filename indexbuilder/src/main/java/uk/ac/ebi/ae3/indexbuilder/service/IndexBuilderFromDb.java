@@ -52,8 +52,14 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	@Override
 	protected void createIndexDocs() throws Exception
 	{
-			Collection<Experiment> colExp=experimentDao.getExperiments(null);		
-			Iterator<Experiment> it=colExp.iterator();
+		Collection<Experiment> exps;
+		if(createOnlyPendingExps()){
+			exps=experimentDwDao.getPendingExperiments();
+			
+		}else
+			exps=experimentDao.getExperiments(null);		
+		Iterator<Experiment> it=exps.iterator();
+			
 			while (it.hasNext())
 			{
 				Experiment exp=it.next();
@@ -62,6 +68,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				SolrInputDocument doc = null;
 				doc = XmlUtil.createSolrInputDoc(xml);
 				String xmlDw=experimentDwDao.getExperimentAsXml(exp);
+				
 				//Add information about ftp files to SolrDocument
 				getInfoFromFtp(exp.getAccession(), doc);
 //				if (experimentDwDao.experimentExists(exp))

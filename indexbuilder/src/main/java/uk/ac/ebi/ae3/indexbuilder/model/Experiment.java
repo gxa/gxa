@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class Experiment
 {
-	private long id;
+	private Long id;
 	private String accession;
 	private boolean pub;
 	private String name;
@@ -24,7 +24,7 @@ public class Experiment
 	
 	public Experiment()
 	{
-		
+		id=new Long(-1);
 	}
 	public Experiment(long id, String accession)
 	{
@@ -39,7 +39,7 @@ public class Experiment
 		this.pub = pub;
 	}
 	
-	public long getId()
+	public Long getId()
 	{
 		return id;
 	}

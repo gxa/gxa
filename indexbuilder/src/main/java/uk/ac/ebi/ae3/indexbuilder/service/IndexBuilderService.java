@@ -52,6 +52,7 @@ public abstract class IndexBuilderService
 	private static final String FILE_FILTER_BIOSAMPLES_SVG = "biosamples.svg";
 
     private boolean updateMode = false;
+    private boolean pendingExps = false;
 
     /**
 	 * Default constructor 
@@ -73,6 +74,13 @@ public abstract class IndexBuilderService
         this.updateMode = updateMode;
     }
 
+    public void setCreateOnlyPendingExps(boolean pending){
+    	this.pendingExps = pending;
+    }
+    public boolean createOnlyPendingExps(){
+    	return this.pendingExps;
+    }
+    
     /**
 	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbeddedIndex instance.
 	 * @throws SolrServerException

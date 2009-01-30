@@ -63,6 +63,7 @@ public class ExperimentJdbcDao
 	        "  left outer join tt_namevaluetype nvt_miamegold on ( nvt_miamegold.t_extendable_id=e.id and nvt_miamegold.name='AEMIAMEGOLD' )" +
 	        " where" +
 	        "  e.id = ?" +
+	        " or i.identifier = ?"+
 	        " group by" +
 	        "  e.id" +
 	        "  , i.identifier" +
@@ -73,6 +74,7 @@ public class ExperimentJdbcDao
 	private RowMapper rowMapperExperiments = new RowMapperExperiments();
 	/** An instance of JDBC RowMapper for sqlExperimentXml**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
+
 	
 	/**
 	 * Set DataSource instance.
@@ -89,7 +91,8 @@ public class ExperimentJdbcDao
 	 */
 	public String getExperimentAsXml(Experiment experiment)
 	{
-		String xml = (String)this.jdbcTemplate.queryForObject(sqlExperimentXml, new Object[] {experiment.getId()},rowMapper);
+		
+		String xml = (String)this.jdbcTemplate.queryForObject(sqlExperimentXml, new Object[] {experiment.getId(),experiment.getAccession()},rowMapper);
 		return xml;
 	}
 	
@@ -114,6 +117,7 @@ public class ExperimentJdbcDao
 		
 	}
 	
+	
 	/**
 	 * Inner class
 	 * TODO: Document ME
@@ -135,4 +139,6 @@ public class ExperimentJdbcDao
 		}
 		
 	}
+	
+	
 }
