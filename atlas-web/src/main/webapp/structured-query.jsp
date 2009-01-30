@@ -248,7 +248,7 @@ ArrayExpress Atlas Preview
         };
         </c:if>
         initQuery();
-        $("#${empty query || query.simple ? 'struct' : 'simple'}form").hide();
+        $("#${query.simple ? 'struct' : 'simple'}form").hide();
     </script>
 
     <c:if test="${!empty query}">

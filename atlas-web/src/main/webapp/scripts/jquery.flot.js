@@ -14,7 +14,7 @@
         var series = [],
             options = {
             // the color theme used for graphs
-            colors: ["#edc240", "#3A75C4", "#cb4b4b", "#4da74d", "#72166B"],
+            colors: ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
                 legend: {
                     show: true,
                     noColumns: 1, // number of colums in legend table
@@ -1477,8 +1477,9 @@
             var shortFragments = [];
             var fullFragments = [];
             var rowStarted = false;
+            var visibleLegends=0;
             for (i = 0; i < series.length; ++i) {
-                if (!series[i].label)
+                if (!series[i].label || !series[i].legend.show)
                     continue;
                 
                 if (i % options.legend.noColumns == 0) {
@@ -1492,10 +1493,12 @@
                 }
 
                 var label = series[i].label;
+                visibleLegends++;
                 if (options.legend.labelFormatter != null)
                     label = options.legend.labelFormatter(label);
+                    
                 
-                if(i<5)
+                if(visibleLegends<5)
                 	shortFragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:14px;height:10px;background-color:' + series[i].color + ';overflow:hidden"></div></div></td>' +
                     '<td class="legendLabel">' + label + '</td>');
@@ -1510,8 +1513,8 @@
                 shortFragments.push('</tr>');
             }
             
-            if (fullFragments.length == 0)
-                return;
+            //if (fullFragments.length == 0)
+             //   return;
 
             //if (series.length>=5 && options.legend.extContainer != null){
             	//shortFragments.push('<td class="legendLabel"> <a id="">Show extended legend</a');

@@ -1,16 +1,19 @@
 .pagination_ie {
-            font-size: 80%;
+            font-size: 90%;
+            text-transform : capitalize;
         }
         
 .pagination_ie a {
     text-decoration: none;
 	border: solid 1px #AAE;
-	color: #15B;
+	color: #408c8c;
+	text-decoration: underline;
+	cursor: pointer;
 }
 
 .pagination_ie a, .pagination_ie span {
-    display: block;
-    float: left;
+    
+    
     padding: 0.3em 0.5em;
     margin-right: 5px;
 	margin-bottom: 5px;

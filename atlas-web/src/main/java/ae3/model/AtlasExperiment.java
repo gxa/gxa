@@ -73,6 +73,7 @@ public class AtlasExperiment implements java.io.Serializable {
 
     private SolrDocument exptSolrDocument;
 
+    private HashMap<String, String> highestRankEF = new HashMap<String, String>();
     /**
      * A Constructor with 2 parameters 
      * @param loadaer - loading AER data into model
@@ -388,4 +389,13 @@ public class AtlasExperiment implements java.io.Serializable {
     public void setExptSolrDocument(SolrDocument exptSolrDocument) {
         this.exptSolrDocument = exptSolrDocument;
     }
+
+	
+    public String getHighestRankEF(String geneIdentifier) {
+		return highestRankEF.get(geneIdentifier);
+	}
+
+	public void addHighestRankEF(String geneIdentifier, String highestRankEF) {
+		this.highestRankEF.put(geneIdentifier, highestRankEF);
+	}
 }

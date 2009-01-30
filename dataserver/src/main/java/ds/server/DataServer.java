@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -20,6 +22,8 @@ import org.apache.commons.logging.LogFactory;
 
 
 import ucar.ma2.Array;
+import ucar.ma2.ArrayChar;
+import ucar.ma2.ArrayObject;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.microarray.pools.TimeoutException;
@@ -212,9 +216,15 @@ public class DataServer implements DataServerMonitor {
 	
 	public ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String expIdentifier, String factor) throws Exception{
 		
-		String netCDF = getNetCDF(geneIdentifier, expIdentifier);
-		String ADid = netCDF.substring(netCDF.indexOf("_")+1, netCDF.indexOf(".nc"));
-		Vector<String> deIds = getDEforGene(geneIdentifier,ADid);
+		
+		//String ADid = netCDF.substring(netCDF.indexOf("_")+1, netCDF.indexOf(".nc"));
+		String deId_ADid = getDEforGene(geneIdentifier,expIdentifier,factor);
+		String[] ids = deId_ADid.split("_");
+		String deId = ids[0];
+		String adId = ids[1];
+		//String netCDF = getNetCDF(geneIdentifier, expIdentifier);
+		String netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
+		Vector deIds = new Vector<String>(); deIds.add(deId);
 		ExpressionDataSet eds = getDataFromNetCDF(netCDF,deIds,factor);
 //		DataProcessing dp = new DataProcessing();
 //		dpProcess = new DataProcessing[] {dp};
@@ -237,14 +247,15 @@ public class DataServer implements DataServerMonitor {
 		    
 
 		    //Get index of current EF
-		    String[] EFarr = ef.read().toString().split(","); //there should be a better way to read array of strings from netcdf
+		    Object[] EFarr = (Object[])((ArrayChar)ef.read()).make1DStringArray().get1DJavaArray(String.class); //there should be a better way to read array of strings from netcdf
 		    int EFindex = Arrays.asList(EFarr).indexOf(factor);
 		    
 		    //Get FVs for the current EF
 		    int[] shapeEFV = efv.getShape();      int[] originEFV = new int[ efv.getRank()];
 		    originEFV[0] = EFindex; 
 		    shapeEFV[0] = 1;   
-		    String[] EFVarr= efv.read(originEFV,shapeEFV).toString().split(",");  // same here
+		    Object[] EFVarr= (Object[])((ArrayChar)efv.read(originEFV,shapeEFV)).make1DStringArray().get1DJavaArray(String.class); 
+		    
 		    
 		    //Get index of DE(s)
 		    Array deArray = de.read();
@@ -252,7 +263,7 @@ public class DataServer implements DataServerMonitor {
 		    List DElist = Arrays.asList(ArrayUtils.toObject(des));
 		    ArrayList<Integer> DEindices = new ArrayList<Integer>();
 		    for(String DEid : deIds){
-		    	int DEindex = DElist.indexOf(Integer.parseInt(deIds.get(0)));
+		    	int DEindex = DElist.indexOf(Integer.parseInt(DEid));
 		    	DEindices.add(DEindex);
 		    }
 		    
@@ -268,7 +279,7 @@ public class DataServer implements DataServerMonitor {
 		      
 		    TreeMap<String, ArrayList[] > dataPerFV_map = new TreeMap<String, ArrayList[]>();
 		    for(int i=0; i<EFVarr.length; i++){
-		    	String fv = EFVarr[i];
+		    	String fv = EFVarr[i].toString();
 		    	ArrayList[] dataPerFV;
 		    	if(dataPerFV_map.containsKey(fv)){
 		    		dataPerFV  = dataPerFV_map.get(fv);
@@ -1088,22 +1099,61 @@ public class DataServer implements DataServerMonitor {
 		return netCDFFiles.get(0);
 	}
 
-	private Vector<String> getDEforGene(String geneIdent, String ADid){
+	private String getDEforGene(String gene_id_key, String exp_id_key, String factor){
 
-		String sql = "SELECT designelement_id_key " +
-					 "FROM AE2__DESIGNELEMENT__MAIN "+
-					 "WHERE GENE_ID_KEY = "+ geneIdent+" "+
-					 "AND arraydesign_id = "+ADid;
+//		String sql = "SELECT designelement_id_key " +
+//					 "FROM AE2__DESIGNELEMENT__MAIN "+
+//					 "WHERE GENE_ID_KEY = "+ geneIdent+" "+
+//					 "AND arraydesign_id = "+ADid;
+		
+		String sql = "select * from( " +
+				"select atlas.EF, atlas.EFV, atlas.UPDN, atlas.UPDN_PVALADJ, atlas.UPDN_TSTAT, atlas.DESIGNELEMENT_ID_KEY, atlas.ARRAYDESIGN_ID_KEY, " +
+				"row_number() OVER(" +
+				"PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.GENE_ID_KEY, atlas.ef,  atlas.EFV " +
+				"ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc) TopN " +
+				"from ATLAS " +
+				"where gene_id_key = "+gene_id_key + " "+
+				"and experiment_id_key = "+exp_id_key +" )" +
+//				"and EF= '"+factor.substring(3)+"') " +
+				"order by updn_pvaladj asc";
 		Vector<String> deIds= new Vector<String>();
 		Connection connection=null;
+		String selectedId="";
 		try {
 			connection = DS_DBconnection.instance().getConnection();
 			Statement stmt = connection.createStatement();
-			 ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery(sql);
 
+//			while(rs.next()){
+//				deIds.add(Integer.toString((rs.getInt(1))));
+//			}
+			String deId,adId;
+			HashMap<String, Integer> deTopCounts = new HashMap<String, Integer>(); 
 			while(rs.next()){
-				deIds.add(Integer.toString((rs.getInt(1))));
+				
+				if(rs.getInt("TopN") != 1)
+					continue;
+				else{
+					deId = rs.getString(6);
+					adId = rs.getString(7);
+					if(deTopCounts.containsKey(deId+"_"+adId))
+						deTopCounts.put(deId+"_"+adId,deTopCounts.get(deId+"_"+adId)+1);
+					else
+						deTopCounts.put(deId+"_"+adId, 1);
+					
+					//deIds.add(rs.getString(6));
+					//break;
+				}
 			}
+			int count=0;int maxCount=0;
+			
+			for(String deId_ADid:deTopCounts.keySet()){
+				count= deTopCounts.get(deId_ADid);
+				if(count>maxCount)
+					maxCount = count;
+					selectedId = deId_ADid;
+			}
+			
 			rs.close();
 			stmt.close();
 			connection.close();
@@ -1111,10 +1161,11 @@ public class DataServer implements DataServerMonitor {
 			e.printStackTrace();
 		}
 
-		if(!deIds.isEmpty())
-			return deIds;
-		else
-			return null;
+		return selectedId;
+//		if(!deIds.isEmpty())
+//			return deIds;
+//		else
+//			return null;
 	}
 	
 	

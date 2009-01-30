@@ -17,8 +17,10 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 <%@page import="ae3.service.AtlasGeneService"%>
 <%@page import="ae3.model.AtlasTuple"%>
 <%@page import="java.util.List"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <%@page import="java.util.HashSet"%>
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
 <script type="text/javascript">
 <!--
     function viewMore(id)
@@ -50,10 +52,10 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
         divElt.slideToggle("fast");
         if (lnkElt.hasClass("expanded")) {
             lnkElt.removeClass("expanded");
-            lnkElt.attr("src", "images/plus.gif");
+            lnkElt.attr("src", "images/minus.gif");
         } else {
             lnkElt.addClass("expanded");
-            lnkElt.attr("src", "images/minus.gif");
+            lnkElt.attr("src", "images/plus.gif");
         }
     }
     
@@ -81,106 +83,47 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
         var ef = "ba_"+tokens[2];
         ef = ef.toLowerCase();
         var plot_id = eid+"_"+gid+"_plot";
-        //$('#'+plot_id).html("<div style=\"margin:0px auto;width:150px;text-align:center;clear:both\" id=\"loading_display\">Loading... <img src=\"indicator.gif\" alt=\"Loading...\"/></div>");
-        $('#'+plot_id+'_thm').html("");
-        $('#'+gid+'_'+eid+'_legend').html("");
+
+       //$('#'+eid+'_'+gid+'_legend').empty();
             $.ajax({
    			type: "POST",
    			url:"plot.jsp",
    			data:"gid="+gid+"&eid="+eid+"&ef="+ef,
-   			
    			dataType:"json",
-   			
    			success: function(o){
-   				if(o.series){
-					var plot = $.plot($('#'+plot_id), o.series,o.options); 
-					var overview = $.plot($('#'+plot_id+'_thm'), o.series,o.options); 
-					
-					$('#'+plot_id).bind("plotselected", function (event, ranges) {
-        				// do the zooming
-        				plot = $.plot($('#'+plot_id), o.series,	$.extend(true, {}, o.options, {
-                          				xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
-                      					}));
-
-			        // don't fire event on the overview to prevent eternal loop
-			         overview.setSelection(ranges, true);
-    				});
-    
-				    $('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
-				        plot.setSelection(ranges);
-				    });
-				    
-				    $("#"+eid+'_'+gid+'_tbl').find("input").click(function(){
-				    
-				    if(this.checked){
-						
-						var tokens = this.name.split('_');
-						var EFV=tokens[0];
-						var EF=tokens[1];
-						var allSeries = plot.getData();
-						var series;
-      					for (var i = 0; i < allSeries.length; ++i){
-       						 if(allSeries[i].label.toLowerCase()==EFV.toLowerCase()){
-       						 	series = allSeries[i];
-       						 	break;
-       						 	}
-						}
-						if(series==null){
-							redrawPlotForFactor(eid+'_'+gid+'_'+EF,true,EFV)
-							}
-						var data = series.data;
-						var x= data[0][0]
-						var y= data[data.length-1][0]
-						
-						
-						plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: x-1, to: y+1 }, color: '#E3E4FA' }]}
-                      					}));
-					}
-						else{
-							
-						plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1}
-                      					}));
-						}
-				    
-				    });
-				    
-				    if(mark){
-				    	//var tokens = this.name.split('_');
-						//var EFV=tokens[0];
-						//var EF=tokens[1];
-						var allSeries = plot.getData();
-						var series;
-      					for (var i = 0; i < allSeries.length; ++i){
-       						 if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
-       						 	
-       						 	series = allSeries[i];
-       						 	break;
-       						 	}
-						}
-						var data = series.data;
-						var x= data[0][0]
-						var y= data[data.length-1][0]
-						
-						
-						if(allSeries.length>10 && data.length<4){
-							plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: x, to: y }, color: 'lightgray' }]},
-                          				xaxis: { min: x-10, max: y+10 }
-                      					}));
-						}
-						else{
-						plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: x, to: y }, color: 'lightgray' }]}
-                      					}));
-                      	}
-				    }
-				    					
-					
-					
-				}}, error: function(p,q,r){alert(q)}
+   				var plot = drawPlot(o,plot_id);
+				bindMarkings(o,plot,plot_id);
+				if(mark){
+					markClicked(eid,gid,ef,efv,plot,o);
+				}
+			}
  			});
+ 			drawEFpagination(eid,gid,tokens[2]);
+    }
+    
+    function drawEFpagination(eid,gid,currentEF){
+    	var panelContent = [];
+    	
+    	var EFs = $("#"+eid+"_EFpagination *").each(function(){
+    		var ef = $(this).html().toString();
+    		ef = jQuery.trim(ef);
+    					if(ef == currentEF){
+    						panelContent.push("<span class='current'>"+ef+"</span>")
+    					}
+    					else{
+    						panelContent.push('<a id="'+eid+'_'+gid+'_'+ef+ '" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ ef +' </a>');
+    					}
+    					
+    					});
+    				
+    					
+    	$("#"+eid+"_EFpagination").empty();
+    	$("#"+eid+"_EFpagination").html(panelContent.join(""));
+
+
+    	
+    	
+    	
     }
     
 //-->
@@ -194,14 +137,10 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
         legend_ext.show();
 	}
 
-	function markFVClick(plot,plot_id){
-						
-						
-					}
 	
 </script>
 
-<table align="left">
+<table align="left" >
 
 	<% int c = 0;
                     for (AtlasExperiment exp : exps) {
@@ -214,7 +153,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 	</tr>
 
 	<tr align="left">
-		<td align="left" width="100" nowrap="true" valign="top">
+		<td align="left" nowrap="true" valign="top">
 		<h3><%=exp.getDwExpAccession().trim()%>:</h3>
 		</td>
 		<td align="left">
@@ -222,12 +161,12 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 		</td>
 		<td width="20px"><img style="cursor: pointer"
 			title="Show study details"
-			id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/plus.gif"
+			id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/minus.gif"
 			onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)" /></td>
 	</tr>
 	<tr>
 		<td colspan="3">
-		<div style="display: none"
+		<div style="display: block"
 			id="<%=exp.getDwExpId().toString()%>_desc_ext">
 		<table cellpadding="2" cellspacing="2">
 			<tr>
@@ -239,25 +178,30 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 				<td align="left"><%=exp.getAerExpDescription()%></td>
 
 			</tr>
+			<tr>
+				<td colspan="3">
+					<div class="separator"></div>
+				</td>
+			</tr>
 		</table>
 		</div>
 		</td>
 	</tr>
 
 	<%if (!exp.getExperimentFactors().isEmpty()) { %>
-	<tr>
-		<td colspan="3" align="left">
-		<div style="color: #5e5e5e; padding-top: 5px; padding-bottom: 5px">
-			<span style="text-align: justify;">Atlas Results for <%=atlasGene.getGeneName()%>
-				studied in </span>
-				<%HashSet<String> EFset = exp.getExperimentFactors();
-                	for(String EF: EFset){
-                 %>
-                 	<span > <a id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>" class="moreLink"
-								onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)">
-							&nbsp;<%=EF%>&nbsp; </a>
-					</span> 
-				<%}%>
+	<tr align="left">
+		<td colspan="3" >
+		<div style="color: #5e5e5e; padding-top: 3px;padding-bottom: 3px;" >
+			<span>Experimental Factors:</span>
+				<span id="<%=exp.getDwExpId().toString()%>_EFpagination" class="pagination_ie" style="padding-top: 5px; "><%HashSet<String> EFset = exp.getExperimentFactors();
+                	for(String EF: EFset){if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%><span class="current"><%=EF%></span>
+                 		<%}else{%>
+                 	<a id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>" 
+								onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
+							<%=EF%> </a>						
+					 
+				<%}}%>
+		</span>
 		</div>
 
 		</td>
@@ -276,15 +220,14 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 					<!-- div style="position:relative"-->
 					<tr>
 						<td>
-							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot" class="plot" style="width: 300px; height: 150px;">
-							
-							</div>
+							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot" class="plot" style="width: 300px; height: 150px;"></div>
+							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot_thm"> </div>
 						</td>
 					</tr>
 
 					<tr>
 						<td>
-						<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot_thm"	class="plot1" style="width: 300px; height: 50px; display: none"></div>
+						
 						</td>
 					</tr>
 					<tr>
@@ -297,11 +240,12 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 						<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_legend_ext" style=" left: 30px; display: none"></div>
 						</td>
 					</tr>
+					<!--
 					<span class="moreLink" style="top: 5px;"
 						onclick="showThumbnail('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>')">Click
 					here to zoom</span>
 					</td>
-					</tr>
+					</tr> -->
 					<!--/div-->
 				</table>
 				</td>
@@ -322,10 +266,10 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 										                for (AtlasTuple atuple : atlusTuples) {
 										                    if (!atuple.getEfv().startsWith("V1")) {
 										                        i++;
-										                        if (i < 6) {
+										                        if (i < 11) {
 										            %>
 					<tr>
-						<td align="center" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv().toLowerCase().replaceAll(" ","")%>_td" ><input type="checkbox" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv()%>_chk" name="<%=atuple.getEfv()%>_<%=atuple.getEf()%>" class="markBox"></input></td>
+						<td align="center" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv().toLowerCase().replaceAll(" ","")%>_td" ><input type="radio" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv()%>_chk" name="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>" value="<%=atuple.getEfv()%>_<%=atuple.getEf()%>" class="markBox"></input></td>
 						<td><%=atuple.getEfv()%></td>
 						<td valign="top" nowrap="true">
 						<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif"
@@ -337,14 +281,14 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 					</tr>
 					<%
 										            } else {
-										                if (i == 6) {%>
-
+										                if (i == 11) {%>
+				<!--
 					<tr>
 						<td id="<%=exp.getDwExpId().toString()%>_atls_lnk_more"
 							colspan="3" align="center"><span class="moreLink"
 							onclick="viewMore('<%=exp.getDwExpId().toString() %>')">View
 						more results</span></td>
-					</tr>
+					</tr> -->
 				</table>
 				<div id="<%=exp.getDwExpId().toString()%>_ext"
 					class="fullSectionView" style="display: none"">
@@ -365,7 +309,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 					<%  }
 										                }
 										            }
-										            if (i >= 6) {%>
+										            if (i >= 11) {%>
 					<tr>
 						<td colspan="3"
 							id="<%=exp.getDwExpId().toString()%>_atls_lnk_less" align="right">

@@ -190,7 +190,7 @@ a:focus {
 -->
 </style>
 <script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 
 <script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="jquery.autocomplete.js"></script>
@@ -243,18 +243,183 @@ a:focus {
 </script>
 <script type="text/javascript">
 
-function pageselectCallback(page_id, jq){
-	var fromPage = (page_id*5) +1;
-	var toPage = (page_id*5) + 5;
-	$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,from:fromPage, to: toPage},drawPlots);
-	$('#pagingSummary').text("Showing search results "+fromPage+"-"+toPage+" out of "+<%=noAtlasExps%>);
-}
+	function pageselectCallback(page_id, jq){
+		var fromPage = (page_id*5) +1;
+		var toPage = (page_id*5) + 5;
+		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,from:fromPage, to: toPage},drawPlots);
+		$('#pagingSummary').text("Showing search results "+fromPage+"-"+toPage+" out of "+<%=noAtlasExps%>);
+	}
 
+
+	function drawPlot(jsonObj, plot_id){
+	   	if(jsonObj.series){
+   			//alert('start of draw plot');
+			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
+			var overview;
+			var allSeries = plot.getData();
+			if(allSeries.length >10){
+				var divElt = $('#'+plot_id+'_thm');
+				divElt.width(300);divElt.height(50);
+				overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
+				//overview.setSelection({ xaxis: { from: 0, to: allSeries.length } });
+				
+			}
+				
+			
+			
+					
+			$('#'+plot_id).bind("plotselected", function (event, ranges) {
+        		// do the zooming
+        		plot = $.plot($('#'+plot_id), jsonObj.series,	$.extend(true, {}, jsonObj.options, {
+           					xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
+                    	 	}));
+
+				// don't fire event on the overview to prevent eternal loop
+				//overview.setSelection(ranges, true);
+    		});
+    
+				    $('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
+				        plot.setSelection(ranges);
+				    });
+				    
+				    
+			//Tooltip
+			var previousPoint = null;
+			$('#'+plot_id).bind("plothover", function (event, pos, item) {
+
+        		if (item) {
+          			if (previousPoint != item.datapoint) {
+				          previousPoint = item.datapoint;
+				                $("#tooltip").remove();
+				                 var x = item.datapoint[0].toFixed(2),
+				                     y = item.datapoint[1].toFixed(2);
+				                 showTooltip(pos.pageX, pos.pageY,item.series.label,plot_id);
+				                    
+				                }
+        		}else {
+				          $("#tooltip").remove();
+				           previousPoint = null;            
+				       }
+			});
+        				
+        			/*	
+        			//Legend Colors
+        			var allSeries = plot.getData();
+        			var tokens = plot_id.split('_');
+        			var eid = tokens[0];
+        			var gid = tokens[1];
+        			for (var i = 0; i < allSeries.length; ++i){
+        				var color = allSeries[i].color;
+        				var label = allSeries[i].label.toLowerCase().replace(/ /g,'');
+        				
+        				$("#"+eid+'_'+gid+'_'+label+'_td').css('background-color',color);
+        			}*/	
+   					 
+
+				return plot;	
+				}// if(o.series)
+	}
  
 
+	function bindMarkings(jsonObj,plot, plot_id){
+	
+					//Markings 
+					var tokens = plot_id.split('_');
+        			var eid = tokens[0];
+        			var gid = tokens[1];
+        			
+        			//unbind from previous events bound to previous plots (different EFs) otherwise they keep adding up.
+        			$("#"+eid+'_'+gid+'_tbl').find("input").unbind();
+        			
+					$("#"+eid+'_'+gid+'_tbl').find("input").click(function(){
+						var tokens = this.value.split('_');
+						var EFV=tokens[0];
+						var EF=tokens[1];
+						if(this.checked){
+							markClicked(eid,gid,EF,EFV,plot,jsonObj);
+						}
+						else{
+						
+						plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1}
+                      					}));
+                      	overview.clearSelection();
+                      	
+						}
+					});
+	
+	}
 
+	function markClicked(eid,gid,ef,efv,plot,jsonObj){
+								
+						
+		//alert($("#"+eid+'_'+gid+'_'+EFV+'_chk').checked);
+		var plot_id = eid+'_'+gid+'_plot';
+		var allSeries = plot.getData();
+		var series;
+		var markColor;
+      	for (var i = 0; i < allSeries.length; ++i){
+      		if(allSeries[i].label){
+       		 	if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
+       		 		series = allSeries[i];
+       		 		markColor = series.color
+       		 		break;
+       	 		}
+       	 	}
+		}
+						//alert('inside clicked ');
+						if(series==null){
+						//alert('series is null')
+							redrawPlotForFactor(eid+'_'+gid+'_'+ef,true,efv);
+							
+							return null;
+							}
+						var data = series.data;
+						var xMin= data[0][0]
+						var xMax= data[data.length-1][0]
+						
+						//var seriesoptions = $.extend(true,{},series.lines,{show:true,lineWidth:1, fill:true})
+						
+						//var testSeries=[];
+						
+						//testSeries.push(series);
+						////allSeries.push(testSeries);
+						//var modSeries = $.extend(true,{},series,{lines:{show:true,lineWidth:1, fill:true}})
+						//alert(testSeries);
+						
+						//plot = $.plot($('#'+plot_id), allSeries,o.options);
+						var overviewDiv = $('#'+plot_id+'_thm');
+						if(allSeries.length>10 && data.length<5){
+						
+						
+							
+                      		//showThumbnail(eid+'_'+gid);
+                      		
+                      		
+                      		if(overviewDiv.height()!=0){
+                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,jsonObj.options);
+				
+                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+                      		}
+                      		plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#e8cfac' }]},
+                          				xaxis: { min: xMin-10, max: xMax+10 }
+                      					}));
+						}
+						else{
+						
+						plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#e8cfac' }]}
+                      					}));
+                      					if(overviewDiv.height()!=0){
+                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
+				
+                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+                      		}
+                      	}
+	}
 
-function drawPlots(){
+	function drawPlots(){
 
 			$(".plot").each(function(){
         	var plot_id = this.id;
@@ -269,132 +434,18 @@ function drawPlots(){
    			dataType:"json",
    			
    			success: function(o){
-   				if(o.series){
-   					
-					var plot = $.plot($('#'+plot_id), o.series,o.options); 
-					var overview = $.plot($('#'+plot_id+'_thm'), o.series,o.options); 
-					
-					$('#'+plot_id).bind("plotselected", function (event, ranges) {
-        				// do the zooming
-        				plot = $.plot($('#'+plot_id), o.series,	$.extend(true, {}, o.options, {
-                          				xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
-                      					}));
-
-			        // don't fire event on the overview to prevent eternal loop
-			         overview.setSelection(ranges, true);
-    				});
-    
-				    $('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
-				        plot.setSelection(ranges);
-				    });
-				    
-				    
-				    //Tooltip
-				    var previousPoint = null;
-				    $('#'+plot_id).bind("plothover", function (event, pos, item) {
-        				//alert("You clicked at " + pos.x + ", " + pos.y);
-        				// secondary axis coordinates if present are in pos.x2, pos.y2,
-        				// if you need global screen coordinates, they are pos.pageX, pos.pageY
-
-        			if (item) {
-          				
-          					if (previousPoint != item.datapoint) {
-				                previousPoint = item.datapoint;
-				                    
-				                    $("#tooltip").remove();
-				                    var x = item.datapoint[0].toFixed(2),
-				                        y = item.datapoint[1].toFixed(2);
-				                    
-				                    
-				                    showTooltip(pos.pageX, pos.pageY,item.series.label,plot_id);
-				                    
-				                }
-
-
-        			}else {
-				                $("#tooltip").remove();
-				                previousPoint = null;            
-				           }
-				         });
-        				
-        				/*
-        			//Legend Colors
-        			var allSeries = plot.getData();
-        			for (var i = 0; i < allSeries.length; ++i){
-        				var color = allSeries[i].color;
-        				var label = allSeries[i].label.toLowerCase().replace(/ /g,'');
-        				
-        				$("#"+eid+'_'+gid+'_'+label+'_td').css('background-color',color);
-        			}	
-   					 */
-				    
-					//Markings 
-					$("#"+eid+'_'+gid+'_tbl').find("input").click(function(){
-						
-						if(this.checked){
-						
-						var tokens = this.name.split('_');
-						var EFV=tokens[0];
-						var EF=tokens[1];
-						var allSeries = plot.getData();
-						var series;
-						var markColor;
-      					for (var i = 0; i < allSeries.length; ++i){
-       						 if(allSeries[i].label.toLowerCase()==EFV.toLowerCase()){
-       						 	series = allSeries[i];
-       						 	markColor = series.color
-       						 	break;
-       						 	}
-						}
-						if(series==null){
-							redrawPlotForFactor(eid+'_'+gid+'_'+EF,true,EFV)
-							}
-						var data = series.data;
-						var x= data[0][0]
-						var y= data[data.length-1][0]
-						
-						//var seriesoptions = $.extend(true,{},series.lines,{show:true,lineWidth:1, fill:true})
-						
-						//var testSeries=[];
-						
-						//testSeries.push(series);
-						////allSeries.push(testSeries);
-						//var modSeries = $.extend(true,{},series,{lines:{show:true,lineWidth:1, fill:true}})
-						//alert(testSeries);
-						
-						//plot = $.plot($('#'+plot_id), allSeries,o.options);
-						
-						if(allSeries.length>10 && data.length<4){
-							plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: x-1, to: y+1 }, color: 'lightgray' }]},
-                          				xaxis: { min: x-10, max: y+10 }
-                      					}));
-						}
-						else{
-						plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: x-1, to: y+1 }, color: 'lightgray' }]}
-                      					}));
-                      	}
-					}
-						else{
-							
-						plot = $.plot($('#'+plot_id), o.series,$.extend(true, {}, o.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1}
-                      					}));
-						}
-					});
-					
-					
-					
-				}// if(o.series)
-				}//success
+   				var plot = drawPlot(o,plot_id);//success
+   				bindMarkings(o,plot,plot_id);
+   				}
  			});//ajax
         	
         }); //each
 
 
 
-		}//drawPlots
+	}//drawPlots
+		
+		
     jQuery(document).ready(function()
     {
        				
@@ -460,14 +511,13 @@ function drawPlots(){
 <link rel="stylesheet" href="stylesheets/ae_index.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_common.css" type="text/css" />
 <link rel="stylesheet" href="scripts/pagination.css" />
-<link rel="stylesheet" href="blue/style.css" type="text/css"
-	media="print, projection, screen" />
+<link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
 <div class="pagecontainer">
 <table width="100%" style="border-bottom: thin solid lightgray"
-	cellpadding="0" cellspacing="0" height="30px">
+	cellpadding="0" cellspacing="0">
 	<tr>
 		<td align="left" valign="bottom" width="55"><a href="index.jsp"><img
 			border="0" src="atlasbeta.jpg" width="50" height="25" /></a></td>
@@ -486,7 +536,7 @@ function drawPlots(){
 			href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a></td>
 
 
-		<td align="left" valign="bottom"><img style="cursor: pointer"
+		<td align="left" valign="bottom"><img style="cursor: pointer;" 
 			id="searchSlider" alt="" src="images/searchAtlas.png" /></td>
 		<td align="right" valign="center" width="50px"><a
 			href="http://www.ebi.ac.uk/microarray"><img border="0"
@@ -513,7 +563,7 @@ function drawPlots(){
 		q_orgn = "";
 %>
 
-<table width="100%" style="background-color: #bdd7d7">
+<table width="100%" style="background-color: #bdd7d7;">
 
 
 	<tr valign="middle" align="left">
@@ -626,11 +676,9 @@ function drawPlots(){
 	<tr>
 		<td class="geneAnnotHeader">Uniprot:</td>
 		<td align="left">
-		
 		<%
 			for (Object uniprot : uniprots) {
-		%> <a
-			href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
+		%> <a href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
 		<%
 			}
 		%>
@@ -693,8 +741,7 @@ function drawPlots(){
 		<td class="geneAnnotHeader">GO Terms:</td>
 		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
 								"gene_goterm").toString().replace(']', ' ')
-								.replace('[', ' ')%>
-		</td>
+								.replace('[', ' ')%></td>
 	</tr>
 	<%
 		}
@@ -730,171 +777,171 @@ function drawPlots(){
 
 <table width="100%" cellspacing="5" cellpadding="10">
 	<tr>
+
 		<td valign="top">
-		<div id="pagingSummary" align="right"></div>
-		<div id="Pagination" class="pagination_ie"></div>
-		<div id="ExperimentResult"></div>
+			<table>
+				<tr>
+					<td class="sectionHeader">Expression Summary</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+					<div class="separator"></div>
+					</td>
+				</tr>
+	
+				<%
+					AtlasResultSet atlasResultSet = AtlasGeneService
+							.getExprSummary(atlasGene.getGeneId());
+				%>
+	
+				<tr>
+					<td>
+					<div>
+					<table border="1" class="heatmap" cellpadding="3" cellspacing="0"
+						bordercolor="#ffffff">
+						<tr>
+							<th rowspan="2">Factor Value</th>
+							<th rowspan="2"
+								style="border-right: medium solid; border-left: thin">Studies</th>
+							<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
+							<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
+							<%
+								List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
+								for (HashMap<String, String> gene : genes) {
+							%>
+							<th style="border-right: medium solid" colspan="2" align="center"><%=gene.get("gene_name")%>
+							</th>
+							<%
+								}
+							%>
+						</tr>
+						<tr>
+							<th style="border-left: medium solid">UP</th>
+							<th style="border-right: medium solid">DN</th>
+						</tr>
+	
+						<%
+							HashMap<String, HashMap<String, String>> gars = atlasResultSet
+									.getAtlasResultAllGenesByEfv();
+							for (HashMap<String, String> ar : atlasResultSet
+									.getAtlasEfvCounts()) {
+								if (!ar.get("efv").startsWith("V1") && !ar.get("efv").contains("(time)") && !ar.get("efv").contains("(dose)") && !ar.get("efv").contains("(age)")) {
+						%>
+						<tr>
+							<td nowrap="true"><span style="font-weight: bold"
+								title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>">
+							<%=ar.get("efv").length() > 50 ? ar.get("efv")
+								.substring(0, 50)
+								+ "..." : ar.get("efv")%> </span></td>
+							<td style="border-right: medium solid" align="right"><b><%=ar.get("experiment_count")%>
+							</b></td>
+	
+							<%
+								for (HashMap<String, String> gene : genes) {
+											HashMap<String, String> gar = gars.get(gene
+													.get("gene_identifier")
+													+ ar.get("efv"));
+	
+											if (gar != null && gar.size() != 0) {
+												Long r_dn = 255L;
+												Long b_dn = 255L;
+												Long g_dn = 255L;
+	
+												Long r_up = 255L;
+												Long b_up = 255L;
+												Long g_up = 255L;
+												String mpvup = gar.get("mpvup");
+												String mpvdn = gar.get("mpvdn");
+	
+												String countup = gar.get("countup").equals("0") ? " "
+														: gar.get("countup");
+												String countdn = gar.get("countdn").equals("0") ? " "
+														: gar.get("countdn");
+	
+												String display = "";
+												String display_up = "";
+												String display_dn = "";
+												String title = "Probes for "
+														+ gene.get("gene_identifier")
+														+ " found in experiment(s) "
+														+ gar.get("experiment_count")
+														+ ", observed up "
+														+ (countup == null ? 0 : countup)
+														+ " times (mean p="
+														+ (mpvup == null ? "N/A" : String.format(
+																"%.3g", Double.valueOf(mpvup)))
+														+ ")"
+														+ ", observed down "
+														+ (countdn == null ? 0 : countdn)
+														+ " times (mean p="
+														+ (mpvdn == null ? "N/A" : String.format(
+																"%.3g", Double.valueOf(mpvdn)))
+														+ ")";
+	
+												if (mpvup == null && mpvdn == null) {
+													r_up = g_up = b_up = g_dn = r_dn = b_dn = 255L;
+												}
+												if (mpvdn != null) {
+													b_dn = 255L;
+													g_dn = 255 - Math.round(Double.valueOf(mpvdn)
+															* (-255D / 0.05D) + 255);
+													r_dn = 255 - Math.round(Double.valueOf(mpvdn)
+															* (-255D / 0.05D) + 255);
+													display_up = "0";
+													display_dn = countdn;
+												}
+												if (mpvup != null) {
+													r_up = 255L;
+													g_up = 255 - Math.round(Double.valueOf(mpvup)
+															* (-255D / 0.05D) + 255);
+													b_up = 255 - Math.round(Double.valueOf(mpvup)
+															* (-255D / 0.05D) + 255);
+													display_up = countup;
+													display_dn = "0";
+												}
+							%>
+							<td align="center"
+								style="background-color: rgb(<%=         r_up %>, <%=         g_up %>, <%=         b_up %>)"><span
+								title="<%=title%>"
+								style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
+							</td>
+							<td align="center"
+								style="background-color: rgb(<%=         r_dn %>, <%=         g_dn %>, <%=         b_dn %>); border-right: medium solid"><span
+								title="<%=title%>"
+								style="text-decoration: none; font-weight: bold; color: lightgray;"><%=countdn == "" ? " " : countdn%></span>
+							</td>
+							<%
+								} else {
+							%>
+							<td>&nbsp;</td>
+							<%
+								}
+							%>
+							<%
+								}
+							%>
+	
+						</tr>
+						<%
+							}
+							}
+						%>
+					</table>
+					</div>
+					</td>
+				</tr>
+	
+				<tr>
+					<td colspan="2">
+					<div class="separator"></div>
+					</td>
+				</tr>
+			</table>
 		</td>
-		<td valign="top">
-		<table>
-			<tr>
-				<td class="sectionHeader">Expression Summary</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-				<div class="separator"></div>
-				</td>
-			</tr>
-
-			<%
-				AtlasResultSet atlasResultSet = AtlasGeneService
-						.getExprSummary(atlasGene.getGeneId());
-			%>
-
-			<tr>
-				<td>
-				<div>
-				<table border="1" class="heatmap" cellpadding="3" cellspacing="0"
-					bordercolor="#ffffff">
-					<tr>
-						<th rowspan="2">Factor Value</th>
-						<th rowspan="2"
-							style="border-right: medium solid; border-left: thin">Studies</th>
-						<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
-						<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
-						<%
-							List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
-							for (HashMap<String, String> gene : genes) {
-						%>
-						<th style="border-right: medium solid" colspan="2" align="center"><%=gene.get("gene_name")%>
-						</th>
-						<%
-							}
-						%>
-					</tr>
-					<tr>
-						<th style="border-left: medium solid">UP</th>
-						<th style="border-right: medium solid">DN</th>
-					</tr>
-
-					<%
-						HashMap<String, HashMap<String, String>> gars = atlasResultSet
-								.getAtlasResultAllGenesByEfv();
-						for (HashMap<String, String> ar : atlasResultSet
-								.getAtlasEfvCounts()) {
-							if (!ar.get("efv").startsWith("V1") && !ar.get("efv").contains("(time)") && !ar.get("efv").contains("(dose)") && !ar.get("efv").contains("(age)")) {
-					%>
-					<tr>
-						<td nowrap="true"><span style="font-weight: bold"
-							title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>">
-						<%=ar.get("efv").length() > 50 ? ar.get("efv")
-							.substring(0, 50)
-							+ "..." : ar.get("efv")%>
-						</span></td>
-						<td style="border-right: medium solid" align="right"><b><%=ar.get("experiment_count")%>
-						</b></td>
-
-						<%
-							for (HashMap<String, String> gene : genes) {
-										HashMap<String, String> gar = gars.get(gene
-												.get("gene_identifier")
-												+ ar.get("efv"));
-
-										if (gar != null && gar.size() != 0) {
-											Long r_dn = 255L;
-											Long b_dn = 255L;
-											Long g_dn = 255L;
-
-											Long r_up = 255L;
-											Long b_up = 255L;
-											Long g_up = 255L;
-											String mpvup = gar.get("mpvup");
-											String mpvdn = gar.get("mpvdn");
-
-											String countup = gar.get("countup").equals("0") ? " "
-													: gar.get("countup");
-											String countdn = gar.get("countdn").equals("0") ? " "
-													: gar.get("countdn");
-
-											String display = "";
-											String display_up = "";
-											String display_dn = "";
-											String title = "Probes for "
-													+ gene.get("gene_identifier")
-													+ " found in experiment(s) "
-													+ gar.get("experiment_count")
-													+ ", observed up "
-													+ (countup == null ? 0 : countup)
-													+ " times (mean p="
-													+ (mpvup == null ? "N/A" : String.format(
-															"%.3g", Double.valueOf(mpvup)))
-													+ ")"
-													+ ", observed down "
-													+ (countdn == null ? 0 : countdn)
-													+ " times (mean p="
-													+ (mpvdn == null ? "N/A" : String.format(
-															"%.3g", Double.valueOf(mpvdn)))
-													+ ")";
-
-											if (mpvup == null && mpvdn == null) {
-												r_up = g_up = b_up = g_dn = r_dn = b_dn = 255L;
-											}
-											if (mpvdn != null) {
-												b_dn = 255L;
-												g_dn = 255 - Math.round(Double.valueOf(mpvdn)
-														* (-255D / 0.05D) + 255);
-												r_dn = 255 - Math.round(Double.valueOf(mpvdn)
-														* (-255D / 0.05D) + 255);
-												display_up = "0";
-												display_dn = countdn;
-											}
-											if (mpvup != null) {
-												r_up = 255L;
-												g_up = 255 - Math.round(Double.valueOf(mpvup)
-														* (-255D / 0.05D) + 255);
-												b_up = 255 - Math.round(Double.valueOf(mpvup)
-														* (-255D / 0.05D) + 255);
-												display_up = countup;
-												display_dn = "0";
-											}
-						%>
-						<td align="center"
-							style="background-color: rgb(<%=       r_up %>, <%=       g_up %>, <%=       b_up %>)"><span
-							title="<%=title%>"
-							style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
-						</td>
-						<td align="center" 
-							style="background-color: rgb(<%=       r_dn %>, <%=       g_dn %>, <%=       b_dn %>); border-right: medium solid"><span
-							title="<%=title%>"
-							style="text-decoration: none; font-weight: bold; color: lightgray;"><%=countdn == "" ? " " : countdn%></span>
-						</td>
-						<%
-							} else {
-						%>
-						<td>&nbsp;</td>
-						<%
-							}
-						%>
-						<%
-							}
-						%>
-
-					</tr>
-					<%
-						}
-						}
-					%>
-				</table>
-				</div>
-				</td>
-			</tr>
-
-			<tr>
-				<td colspan="2">
-				<div class="separator"></div>
-				</td>
-			</tr>
-		</table>
+		<td valign="top" align="left">
+			<div id="pagingSummary" align="right"></div>
+			<div id="Pagination" class="pagination_ie"></div>
+			<div id="ExperimentResult"></div>
 		</td>
 	</tr>
 </table>

@@ -427,11 +427,16 @@ public class ExpressionDataSet implements Serializable {
 	}
 
 	public String[] getFactors() {
+
 		return factors;
 	}
 
-	public void setFactors(String[] factors) {
-		this.factors = factors;
+	public void setFactors(Object[] factors) {
+		String[] factorsStr = new String[factors.length];
+		for(int i=0; i<factors.length; i++){
+			factorsStr[i] = factors[i].toString();
+		}
+		this.factors = factorsStr;
 	}
 
 	public HashMap<String, Set<String>> getAllFactorValues() {
