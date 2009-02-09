@@ -30,6 +30,17 @@ public class HtmlHelper {
     }
 
     /**
+     * Quote string if it contains spaces
+     * @param str url
+     * @return quoted str
+     */
+    public static String optionalQuote(String str)
+    {
+        if(str.indexOf(' ') >= 0 || str.indexOf("\"") >= 0)
+            return '"' + str.replaceAll("\"", "\\\"") + '"';
+        return str;
+    }
+    /**
      * Returns current system time, for util.tld
      * @return time in milliseconds
      */

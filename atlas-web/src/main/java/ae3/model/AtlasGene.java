@@ -18,13 +18,20 @@ public class AtlasGene {
     }
 
     public String getGeneSpecies() {
-        String species = (String) geneSolrDocument.getFieldValues("gene_species").toArray()[0];
-        return species.substring(0, 1).toUpperCase() + species.substring(1, species.length()).toLowerCase();
+        Collection fval = geneSolrDocument.getFieldValues("gene_species");
+        if(fval != null && fval.size() > 0) {
+            String species = (String)fval.iterator().next();
+            return species.substring(0, 1).toUpperCase() + species.substring(1, species.length()).toLowerCase();
+        }
+        return "";
     }
 
     private String getValue(String name)
     {
-        return StringUtils.join(geneSolrDocument.getFieldValues(name), ", ");
+        Collection fval = geneSolrDocument.getFieldValues(name);
+        if(fval != null)
+            return StringUtils.join(fval, ", ");
+        return "";
     }
 
     public String getGeneId() {

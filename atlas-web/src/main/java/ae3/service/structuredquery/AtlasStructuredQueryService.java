@@ -19,8 +19,6 @@ import org.apache.solr.core.SolrCore;
 
 import javax.xml.rpc.ServiceException;
 import java.rmi.RemoteException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -36,11 +34,6 @@ public class AtlasStructuredQueryService {
     private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
     public static final String FIELD_GENE_PROP_PREFIX = "gene_";
 
-    /**
-     * Supported gene properties facets
-     */
-    public static final String[] GENE_FACETS = { "species", "goterm", "interproterm" };
-
     private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
 
     private SolrCore coreExpt;
@@ -54,9 +47,8 @@ public class AtlasStructuredQueryService {
     /**
      * Constructor. Requires SOLR core container reference to work.
      * @param coreContainer reference to core container with cores "expt" and "atlas"
-     * @throws SQLException
      */
-    public AtlasStructuredQueryService(CoreContainer coreContainer) throws SQLException {
+    public AtlasStructuredQueryService(CoreContainer coreContainer) {
         this.coreExpt = coreContainer.getCore(CORE_EXPT);
         this.coreAtlas = coreContainer.getCore(CORE_ATLAS);
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
@@ -77,7 +69,7 @@ public class AtlasStructuredQueryService {
         final StringBuffer solrq = new StringBuffer();
         final EfvTree<Integer> queryEfvs = new EfvTree<Integer>();
 
-        final Iterable<AtlasStructuredQueryResult.Condition> conditions = appendEfvsQuery(query, solrq, queryEfvs);
+        final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, solrq, queryEfvs);
         appendGeneQuery(query, solrq);
         appendSpeciesQuery(query, solrq);
 
@@ -102,9 +94,19 @@ public class AtlasStructuredQueryService {
                 result.setExpandableEfs(expandableEfs);
 
                 result.setEfvFacet(getEfvFacet(response, queryEfvs));
-                for(String s : GENE_FACETS) {
-                    result.setGeneFacet(s, getGeneFacet(response, "gene_" + s + "_exact"));
+                for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+                    Set<String> hasVals = new HashSet<String>();
+                    for(GeneQueryCondition qc : query.getGeneQueries())
+                        if(qc.getFactor().equals(p.id))
+                            hasVals.addAll(qc.getFactorValues());
+
+                    Iterable<FacetCounter> facet = getGeneFacet(response, p.facetField, hasVals);
+                    if(facet.iterator().hasNext())                    
+                        result.setGeneFacet(p.id, facet);
                 }
+                if(!query.getSpecies().iterator().hasNext())
+                    result.setGeneFacet("species", getGeneFacet(response, "gene_species_exact", new HashSet<String>()));
+
             } catch (SolrServerException e) {
                 log.error(e);
             }            
@@ -158,17 +160,17 @@ public class AtlasStructuredQueryService {
         return trimmedEfvs;
     }
 
-    private Iterable<AtlasStructuredQueryResult.Condition> appendEfvsQuery(AtlasStructuredQuery query,
-                                                                           StringBuffer solrq,
-                                                                           EfvTree<Integer> queryEfvs) {
-        final List<AtlasStructuredQueryResult.Condition> conds = new ArrayList<AtlasStructuredQueryResult.Condition>();
+    private Iterable<ExpFactorResultCondition> appendEfvsQuery(AtlasStructuredQuery query,
+                                                               StringBuffer solrq,
+                                                               EfvTree<Integer> queryEfvs) {
+        final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
         final StringBuffer efvq = new StringBuffer();
         final StringBuffer scores = new StringBuffer();
 
         scores.append("sum(");
 
         int number = 0;
-        for(AtlasStructuredQuery.Condition c : query.getConditions())
+        for(ExpFactorQueryCondition c : query.getConditions())
         {
             if(c.isAnything()) {
                 if(efvq.length() > 0) {
@@ -189,7 +191,7 @@ public class AtlasStructuredQueryService {
                         break;
                 }
 
-                // conds.add(new AtlasStructuredQueryResult.Condition(c, new EfvTree<Boolean>()));
+                // conds.add(new AtlasStructuredQueryResult.ExpFactorResultCondition(c, new EfvTree<Boolean>()));
             } else {
                 try {
                     EfvTree<Boolean> condEfvs = getConditionEfvs(c);
@@ -249,7 +251,7 @@ public class AtlasStructuredQueryService {
                         }
                         efvq.append(")");
                     }
-                    conds.add(new AtlasStructuredQueryResult.Condition(c, condEfvs));
+                    conds.add(new ExpFactorResultCondition(c, condEfvs));
                     if(number > MAX_CONDITION_EFVS)
                         break;
                 } catch (SolrServerException e) {
@@ -272,41 +274,50 @@ public class AtlasStructuredQueryService {
     }
 
     private StringBuffer appendGeneQuery(AtlasStructuredQuery query, StringBuffer solrq) {
-    	if(solrq.length() > 0)
-			solrq.append(" AND ");
-    	for(AtlasStructuredQuery.GeneQuery geneQuery: query.getGeneQueries()){
-    		
-    		if(geneQuery.getOperator()!=null)
-    			solrq.append(geneQuery.getOperator());
-    		
-    		if(geneQuery.getProperty()!=null && !geneQuery.getProperty().equals("")){
-    			solrq.append(" (gene_").append(geneQuery.getProperty()).append(":(").append(geneQuery.getQry()).append(")) ");
+    	for(GeneQueryCondition geneQuery : query.getGeneQueries()) {
+            if(solrq.length() > 0)
+                solrq.append(geneQuery.isNegated() ? " NOT " : " AND ");
+
+    		if(geneQuery.isAnyFactor()) {
+                solrq.append("gene_ids:(").append(geneQuery.getJointFactorValues()).append(") ");
+                solrq.append("gene_desc:(").append(geneQuery.getJointFactorValues()).append(") ");
+    		} else {
+                String field = GeneProperties.convertPropertyToSearchField(geneQuery.getFactor());
+                if(field == null)
+                    field = "gene_desc";
+
+                solrq.append(field).append(":(").append(geneQuery.getJointFactorValues()).append(")");
+                
+                // Ugly hack!!!
+                // SOLR doesn't do highlighting if there's no search in text field occured, so we need to do a fake search
+                // if only string fields are matched in the query
+                if(field.contains("_exact"))
+                    solrq.append(" AND ")
+                            .append(field.replace("_exact","")).append(":(")
+                            .append(geneQuery.getJointFactorValues())
+                            .append(")");
     		}
-    		else{
-    			solrq.append(" gene_ids:(").append(geneQuery.getQry()).append(") ");
-    			solrq.append(" gene_desc:(").append(geneQuery.getQry()).append(") ");
-    		}	
     	}
 
         return solrq;
     }
 
     private StringBuffer appendSpeciesQuery(AtlasStructuredQuery query, StringBuffer solrq) {
-        if(!query.getSpecies().isEmpty())
+        if(query.getSpecies().iterator().hasNext())
         {
             if(solrq.length() > 0)
                 solrq.append(" AND ");
             solrq.append("gene_species:(");
             for(String s : query.getSpecies())
             {
-                solrq.append(" \"").append(s).append("\"");
+                solrq.append(" \"").append(s.replaceAll("[^ a-zA-Z]", "")).append("\"");
             }
             solrq.append(")");
         }
         return solrq;
     }
 
-    private EfvTree<Boolean> getConditionEfvs(AtlasStructuredQuery.Condition c) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getConditionEfvs(QueryCondition c) throws RemoteException, SolrServerException {
         if(c.isAnyValue())
             return getCondEfvsAllForFactor(c.getFactor());
 
@@ -526,20 +537,22 @@ public class AtlasStructuredQueryService {
             q.addField("gene_id");
             q.addField("gene_name");
             q.addField("gene_identifier");
-            for(String s : GENE_FACETS) {
-                q.addField("gene_" + s);
+            q.addField("gene_species");
+            for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+                q.addField(p.searchField.replace("_exact", ""));
             }
         } else {
             q.addField("*");
         }
         q.setFacetLimit(5 + max);
 
-        q.setFacetMinCount(1);
+        q.setFacetMinCount(2);
         q.setFacetSort(true);
 
-        for(String s : GENE_FACETS) {
-            q.addFacetField("gene_" + s + "_exact");
+        for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+            q.addFacetField(p.facetField);
         }
+        q.addFacetField("gene_species_exact");
         q.addFacetField("exp_up_ids");
         q.addFacetField("exp_dn_ids");
 
@@ -556,23 +569,24 @@ public class AtlasStructuredQueryService {
         q.addHighlightField("gene_id");
         q.addHighlightField("gene_name");
         q.addHighlightField("gene_identifier");
-        for(String s : GENE_FACETS) {
-            q.addHighlightField("gene_" + s);
+        for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+            q.addHighlightField(p.searchField.replace("_exact", ""));
         }
         return q;
     }
 
-    private Iterable<FacetCounter> getGeneFacet(QueryResponse response, final String name) {
+    private Iterable<FacetCounter> getGeneFacet(QueryResponse response, final String name, Set<String> values) {
         List<FacetCounter> facet = new ArrayList<FacetCounter>();
         FacetField ff = response.getFacetField(name);
         if(ff == null || ff.getValueCount() < 2)
             return new ArrayList<FacetCounter>();
+
         for (FacetField.Count ffc : ff.getValues())
-        {
-            facet.add(new FacetCounter(
-                    ffc.getName().substring(0,1).toUpperCase() + ffc.getName().substring(1).toLowerCase(),
-                    (int)ffc.getCount()));
-        }
+            if(!values.contains(ffc.getName()))
+                facet.add(new FacetCounter(ffc.getName(), (int)ffc.getCount()));
+        if(facet.size() < 2)
+            return new ArrayList<FacetCounter>();
+
         Collections.sort(facet);
         return facet.subList(0, Math.min(facet.size(), 5));
 
@@ -597,11 +611,6 @@ public class AtlasStructuredQueryService {
                                     .add(count, ff.getName().substring(5,7).equals("up"));
                         }
                     }
-
-                } else if(ff.getName().startsWith("exp_")) {
-
-                } else if(ff.getName().startsWith("gene_")) {
-
                 }
             }
         }
@@ -624,7 +633,7 @@ public class AtlasStructuredQueryService {
      * @return list of arrays of two strings, first - id, second - human-readable description
      */
     public List<String[]> getGeneExpressionOptions() {
-        return AtlasStructuredQuery.Expression.getOptionsList();
+        return Expression.getOptionsList();
     }
 
     /**
@@ -666,15 +675,7 @@ public class AtlasStructuredQueryService {
         return geneListHelper;
     }
     
-    public Set<String> getGeneProperties(){
-    	Collection<String> fields = (Collection<String>)coreAtlas.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-        Set<String> names = new TreeSet<String>();
-        for(String i : fields) {
-            if(i.startsWith(FIELD_GENE_PROP_PREFIX)) {
-            	names.add(i.split("_")[1]);
-            }
-        }
-
-        return names;
+    public Iterable<String> getGeneProperties() {
+        return GeneProperties.allPropertyIds();
     }
 }

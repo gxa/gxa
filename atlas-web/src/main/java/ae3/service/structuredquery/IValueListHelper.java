@@ -14,7 +14,7 @@ public interface IValueListHelper {
      * @param limit maximum number of values to find
      * @return map of values and counters
      */
-    public Map<String, Long> autoCompleteValues(String property, String query, int limit);
+    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit);
 
     /**
      * Returns list of all values for specific factor or property

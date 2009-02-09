@@ -9,373 +9,308 @@ function escapeHtml(s) {
 }
 
 (function($){
+
+     function createRemoveButton(callback)
+     {
+         return $('<td />').append($('<input type="button" value="-" />').click(callback));
+     }
+
+     function createNotButton(name,checked)
+     {
+         return $('<td><select name="' + name + '"><option ' + (checked ? '' : 'selected="selected"') + 'value="">has</option><option'
+                  + (checked ? ' selected="selected"' : '') + ' value="1">has not</option></select></td>');
+     }
+
+     function createSelect(name, options, optional, value) {
+         var e = document.createElement("select");
+         if (name) {e.name = name;e.id=name;}
+         if (optional) e.options[0] = new Option("(any)", "");
+         if (options) {
+             var selected = 0;
+             for (var i = 0; i < options.length; i++) {
+                 var option;
+                 if (typeof(options[i]) == "object") {
+                     option = new Option(options[i][1], options[i][0]);
+                 } else {
+                     option = new Option(options[i], options[i]);
+                 }
+                 if(value == option.value){
+                     selected = e.options.length;
+                 }
+                 e.options[e.options.length] = option;
+             }
+             e.selectedIndex = selected;
+         }
+         return e;
+     }
+
+     function addSpecie(specie) {
+         ++counter;
+         var sel = $('#species').get(0);
+         var found = false;
+         for(var i = 0; i < sel.options.length; ++i)
+             if(sel.options[i].value.toLowerCase() == specie.toLowerCase()) {
+                 specie = sel.options[i].value;
+                 sel.options[i] = null;
+                 found = true;
+                 break;
+             }
+
+         if(!found)
+            return;         
+
+         var value = $('<td class="specval">' + specie + '<input class="specval" type="hidden" name="specie_' + counter + '" value="' + specie + '"></td>');
+         var remove = createRemoveButton(function () {
+                                             var tr = $(this).parents('tr:first');
+                                             var rmvalue = $('input.specval', tr).val();
+                                             var tbody = tr.parents('tbody:first');
+                                             var specs = $('tr.speccond', tbody);
+                                             if(specs.length > 1 && specs.index(tr.get(0)) == 0) {
+                                                 var nextr = tr.next('tr');
+                                                 $('td.specval', tr).replaceWith($('td.specval', nextr));
+                                                 nextr.remove();
+                                             } else {
+                                                 tr.remove();
+                                             }
+                                             var i;
+                                             var sel = $('#species').get(0);
+                                             for(i = 0; i < sel.options.length; ++i)
+                                                 if(sel.options[i].value >= rmvalue)
+                                                     break;
+                                             sel.options.add(new Option(rmvalue,rmvalue), i);
+                                         });
+
+         var tbody = $('#conditions');
+         var tr = $('tr.speccond:last', tbody);
+         if(tr.length > 0) {
+             tr.after($('<tr class="speccond"><td colspan="2">or</td></tr>').append(value).append(remove).append($('<td />')));
+         } else {
+             tbody.prepend($('<tr class="speccond"><td colspan="2">species is</td></tr>')
+                     .append(value).append(remove).append($('<td />')));
+         }
+     }
+
+     function addExpFactor(factor,expression,values,expansion) {
+         var selopt = $('#factors').get(0).options;
+         var factorLabel = factor;
+         for(var i = 0; i < selopt.length; ++i)
+             if(selopt[i].value == factor) {
+                 factorLabel = selopt[i].text;
+             }
+
+         if(factor == "")
+             factorLabel = "";
+
+         ++counter;
+
+
+         var input = $('<input type="text" class="value"/>')
+             .attr('name', "fval_" + counter)
+             .autocomplete("fval", {
+                               minChars:0,
+                               matchCase: false,
+                               matchSubset: false,
+                               selectFirst: false,
+                               multiple: false,
+                               multipleSeparator: " ",
+                               multipleQuotes: true,
+                               scroll: false,
+                               scrollHeight: 180,
+                               max: 20,
+                               extraParams: { type: 'efv', 'factor' : factor },
+                               formatItem: function(row) { return row[0]; },
+                               formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
+                           })
+             .flushCache();
+
+         var tr = $('<tr class="efvcond" />')
+             .append($('<td />').append(createSelect("fexp_" + counter, options['expressions'], false, expression)))
+             .append($('<td />').text('in ' + factorLabel).append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
+             .append($('<td />').append(input))
+             .append(createRemoveButton(function () {
+                                            var tr = $(this).parents('tr:first');
+                                            var tbody = tr.parents('tbody:first').get(0);
+                                            tr.remove();
+                                        }))
+             .append($('<td class="expansion" />').html(expansion != null ? expansion : ""));
+
+         if(values != null) {
+             input.val(values);
+             input.keyup(function () { if(values != this.value) tr.find("td.expansion").text(''); });
+         }
+
+         var t = $('tr.efvcond:last,tr.speccond:last', $('#conditions'));
+         if(t.length)
+             t.eq(0).after(tr);
+         else
+             $('#conditions').append(tr);
+     }
+
+     function getPropLabel(property)
+     {
+         var selopt = $('#geneprops').get(0).options;
+         var propertyLabel = property;
+         for(var i = 0; i < selopt.length; ++i)
+             if(selopt[i].value == property) {
+                 propertyLabel = selopt[i].text;
+             }
+
+         if(property == "")
+             propertyLabel = "property";
+
+         return 'gene ' + propertyLabel;
+     }
+
+     function addGeneQuery(property,values,not) {
+
+         ++counter;
+
+         var input = $('<input type="text" class="value"/>')
+             .attr('name', "gval_" + counter)
+             .val(values != null ? values : "")
+             .autocomplete("fval", {
+                               minChars:0,
+                               matchCase: false,
+                               matchSubset: false,
+                               selectFirst: false,
+                               multiple: false,
+                               multipleSeparator: " ",
+                               multipleQuotes: true,
+                               scroll: false,
+                               scrollHeight: 180,
+                               max: 20,
+                               extraParams: { type: 'gene', 'factor' : property },
+                               formatItem: property=="" ? function(row) { return row[0] + ': ' + row[1] + ' (' + row[2] + ')'; } : function(row) { return row[1] + ' (' + row[2] + ')'; } ,
+                               formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
+                           })
+             .flushCache()
+             .result(function (unused, res) {
+                         var newprop = res[0];
+                         var tr = $(this).parents('tr:first');
+                         tr.find('input[type=hidden]').val(newprop);
+                         tr.find('td.gprop').text(getPropLabel(newprop));
+                         $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
+                     });
+
+         var tr = $('<tr class="genecond" />')
+             .append(createNotButton('gnot_' + counter, not))
+             .append($('<td class="gprop" />').text(getPropLabel(property)))
+             .append($('<td />').append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')).append(input))
+             .append(createRemoveButton(function () {
+                                            var tr = $(this).parents('tr:first');
+                                            var tbody = tr.parents('tbody:first').get(0);
+                                            tr.remove();
+                                        }))
+             .append($('<td />'));
+
+         $('#conditions').append(tr);
+     }
+
      window.initQuery = function() {
 
-         $(".geneqry")
+         var oldval = $('#gene0').val();
+         $("#gene0")
              .defaultvalue("(all genes)","(all genes)")
-             .autocomplete("autocomplete.jsp", {
-                               minChars:2,
-                               matchCase: true,
+             .autocomplete("fval", {
+                               minChars:1,
+                               matchCase: false,
                                matchSubset: false,
                                multiple: false,
                                selectFirst: false,
-                               extraParams: {type:"gene"},
-                               formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
-                           });
+                               extraParams: { type: 'gene' },
+                               formatItem: function(row) { return row[0] + ': ' + row[1] + ' (' + row[2] + ')'; },
+                               formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
+                           })
+             .result(function (unused, res) {
+                         var newprop = res[0];
+                         $('#gprop0').val(newprop);
+                         var oldval = $(this).val();
+                         this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
+                       //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
+                     }).get(0).onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
+
 
          var fval0old  = $("#fval0")
              .defaultvalue("(all conditions)")
              .autocomplete("fval", {
-                            minChars:2,
-                            matchCase: true,
-                            matchSubset: false,
-                            multiple: true,
-                            selectFirst: false,
-                            multipleQuotes: true,
-                            multipleSeparator: " ",
-                            scroll: false,
-                            scrollHeight: 180,
-                            max: 10,
-                            extraParams: { 'factor' : '' },
-                            formatItem: function(row) { return row[0]; },
-                            formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
+                               minChars:1,
+                               matchCase: false,
+                               matchSubset: false,
+                               multiple: false,
+                               selectFirst: false,
+                               multipleQuotes: true,
+                               multipleSeparator: " ",
+                               scroll: false,
+                               scrollHeight: 180,
+                               max: 10,
+                               extraParams: { type: 'efv', factor: '' },
+                               formatItem: function(row) { return row[0]; },
+                               formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
              .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
 
-         function createRemoveButton(callback)
-         {
-             var removeButton = document.createElement("input");
-             removeButton.type = "button";
-             removeButton.value = "x";
-             removeButton.onclick = function() { callback($(this)); };
-             return removeButton;
-         }
 
-         function createSelect(name, options, optional, value) {
-             var e = document.createElement("select");
-             if (name) {e.name = name;e.id=name;}
-             if (optional) e.options[0] = new Option("(any)", "");
-             if (options) {
-                 var selected = 0;
-                 for (var i = 0; i < options.length; i++) {
-                     var option;
-                     if (typeof(options[i]) == "object") {
-                         option = new Option(options[i][1], options[i][0]);
-                     } else {
-                         option = new Option(options[i], options[i]);
-                     }
-                     if(value == option.value){
-                         selected = e.options.length;
-                     }
-                     e.options[e.options.length] = option;
-                 }
-                 e.selectedIndex = selected;
-             }
-             return e;
-         }
+         $('#geneprops').change(function () {
+                                    if(this.selectedIndex == 0)
+                                        return;
+
+                                    var property = this.options[this.selectedIndex].value;
+                                    addGeneQuery(property);
+                                    this.selectedIndex = 0;
+                                });
 
 
-         var tbody = $("#species > tbody");
+         $('#species').change(function () {
+                                  if(this.selectedIndex == 0)
+                                      return;
 
-         function addSpecieOr(value) {
-             var numrow = tbody.get(0).rows.length;
+                                  var specie = this.options[this.selectedIndex].value;
+                                  addSpecie(specie);
 
-             var selects = createSelect('specie_' + (++counter), options['species'], true, value);
-             selects.setAttribute("class","speciesSelect");
-			
-             var tr = $('<tr><td class="prefix">' + (numrow > 0 ? 'or' : '') + '</td></tr>')
-                 .append($('<td/>').append(selects))
-                 .append($('<td class="removebutton" />')
-                         .append(createRemoveButton(function (where) {
-                                                        var tr = where.parents('tr:first');
-                                                        var tbody = tr.parents('tbody:first').get(0);
-                                                        if(tbody.rows.length == 1)
-                                                            return;
+                                  this.selectedIndex = 0;
+                              });
 
-                                                        if(tr.get(0).sectionRowIndex == tbody.rows.length - 1) {
-                                                            $('td.addbuttons', tr.prev())
-                                                                .replaceWith($('<td class="addbuttons" />')
-                                                                             .append($('<input type="button" value=" or ">')
-                                                                                     .bind('click', addSpecieOr)));
-                                                        } else if(tr.get(0).sectionRowIndex == 0) {
-                                                            $('td.prefix', tr.next()).html('');
-                                                        }
-                                                        tbody.deleteRow(tr.get(0).sectionRowIndex);
-                                                    })));
+         $('#factors').change(function () {
+                                  if(this.selectedIndex == 0)
+                                      return;
 
-             if(numrow > 0) {
-                 $('tr:last > td.addbuttons', tbody).empty();
-             }
+                                  var factor = this.options[this.selectedIndex].value;
+                                  addExpFactor(factor);
+                                  this.selectedIndex = 0;
+                              });
 
-             tr.append($('<td class="addbuttons" />').append($('<input type="button" value=" or ">').bind('click', addSpecieOr)));
-             tbody.append(tr);
-         };
-         
-                
-         function addGeneProps(geneQuery,nxtGeneQuery){
-         	//var geneCounter = ++counter;
-         	
-         	var geneInput = $('<input type="text" class="geneqry"/>').attr('name', "gene_" + geneCounter );
-         	if(geneQuery)
-         		geneInput.val(geneQuery.qry);
-         	var selects = createSelect('geneprop_'+geneCounter,options['geneProps'], true, geneQuery?geneQuery.property:"");
-            selects.setAttribute("class","genePropSelect");
-            
-         
-            //create logical operators
-            var logicalOp = createSelect('geneoperator_'+geneCounter,options['geneOperators'],false, nxtGeneQuery?nxtGeneQuery.operator:"");
-            logicalOp.onchange = function(){ if(this.name == "geneoperator_"+(geneCounter-1))
-            									addGeneProps();
-            								};
-            logicalOp.className = "operator";
-            
-            var tbodyGene = $('#geneprops > tbody');
-            var numrow = tbodyGene.get(0).rows.length;
-           
-            var tr = $('<tr>');
-            tr.append($('<td class="genesearch" />').append('by ').append(selects).append(' for ').append(geneInput));
-            
-            /*     
-
-             if(numrow > 0) {
-                 $('tr:last > td.addbuttons', tbodyGene).empty();
-             }
-*/
-             tr.append($('<td class="addbuttons" />').append(logicalOp)).append($('<td class="removebutton" />')
-                         .append(createRemoveButton(function (where) {
-                                                        var tr = where.parents('tr:first');
-                                                        var tbody = tr.parents('tbody:first').get(0);
-                                                        if(tbody.rows.length == 1)
-                                                            return;
-
-                                                        if(tr.get(0).sectionRowIndex == tbody.rows.length - 1) {
-                                                        	
-                                                            $('td.addbuttons', tr.prev()).find('select.operator').attr("selectedIndex","0");
-                                                        } 
-                                                        
-                                                        tbody.deleteRow(tr.get(0).sectionRowIndex);
-                                                    })));
-             tbodyGene.append(tr.append('</tr>'));
-             //tbodyGene.append($('<tr><td>&nbsp;</td></tr>'));
-             geneCounter++;
-         }
-         
-         
-         
-
-         function addConditionAnd(where, condition) {
-             var tbody = $('#conditions > tbody');
-
-             var andid = ++counter;
-
-             var tr = $('<tr/>');
-             var fval = $('<td class="factorvalue"/>');
-
-             var factor = createSelect("fact_" + andid, options['factors'], true, condition && condition.factor);
-
-
-             var loadValues = function (what,callback) {
-                                               if(factor.options[factor.selectedIndex].value == "")
-                                                   return;
-                                               $.ajax({
-                                                          // try to leverage ajaxQueue plugin to abort previous requests
-                                                          mode: "abort",
-                                                          // limit abortion to this input
-                                                          port: "fvalues",
-                                                          url: "fval",
-                                                          data: { mode: 'all', type: 'efv', factor: factor.options[factor.selectedIndex].value },
-                                                          success: function(data) {
-                                                              var rows = data.split("\n");
-                                                              var sel = createSelect(what.attr('name'), rows);
-                                                              what.replaceWith(sel);
-                                                              callback(sel);
-                                                          }
-                                                      });
-                                           };
-
-             factor.className = 'factor';
-             factor.onchange = function() {
-                 if (this.selectedIndex < 0) return;
-
-                 var newv = this.options[this.selectedIndex].value;
-                 fval.find('input.value').focus().attr('value', '').blur()
-                     .setOptions({ extraParams: { factor : newv } }).flushCache();
-                 loadValues(fval.find('select'), function() { });
-                 tr.find("td.expansion").empty();
-                 if(this.selectedIndex == 0)
-                    fval.find('input.choose').attr('disabled', 'disabled');
-                 else
-                     fval.find('input.choose').removeAttr('disabled');
-             };
-
-
-             var expr = createSelect("gexp_" + andid, options['expressions'], false, condition && condition.expression);
-             tr.append($('<td class="common"/>').append(expr).append(' in ').append(factor))
-                 .append(fval)
-                 .append($('<td class="andbuttons" />')
-                         .append($('<div/>').append($('<input type="button" value=" and ">')
-                                                    .bind('click', function() { addConditionAnd($(this)); } ))))
-                     .append($('<td class="expansion" />').html(condition != null ? condition.expansion : ''));
-
-             function addConditionOr(where, value) {
-                 var orid = ++counter;
-
-                 var makeinput = function () {
-                     return $('<input type="text" class="value"/>')
-                        .attr('name', "fval_" + andid + '_' + orid)
-                        .autocomplete("fval", {
-                            minChars:0,
-                            matchCase: true,
-                            matchSubset: false,
-                            selectFirst: false,
-                            multiple: false,
-                            multipleSeparator: " ",
-                            multipleQuotes: true,
-                            scroll: false,
-                            scrollHeight: 180,
-                            max: 10,
-                            extraParams: { type: 'efv', 'factor' : factor.options[factor.selectedIndex].value },
-                            formatItem: function(row) { return row[0]; }
-                        })
-                        .flushCache();
-                 };
-
-                 var input = makeinput();
-
-                 var makechoose = function () {
-                     var c = $('<input type="button" value="..." title="choose from list..." class="choose" />')
-                        .bind('click', function() {
-                            var vbutt = $(this);
-                            var oldval = input.val();
-                            loadValues(input, function(sel) {
-                                tr.find("td.expansion").text('');
-                                //
-                                for(var i = 0; i < sel.options.length; ++i)
-                                if(sel.options[i].value.indexOf(oldval) >= 0)
-                                {
-                                    sel.selectedIndex = i;
-                                    break;
-                                }
-                                vbutt.remove();
-                            });
-                        });
-                     if(factor.selectedIndex == 0)
-                        c.attr('disabled', 'disabled');
-
-                     return c;
-                 };
-
-                 var choose = makechoose();
-
-                 if(value != null) {
-                     input.keyup(function () { if(value != this.value) tr.find("td.expansion").text('');});
-                     input.val(value);
-                 }
-
-                 var newval = $('<div class="value" />')
-                     .append($('<div class="input" />')
-                             .append(input)
-                             .append(choose))
-                     .append($('<div class="buttons" />')
-                             .append(createRemoveButton(function (where) {
-                                                            tr.find("td.expansion").text('');
-                                                            if(fval.find('div.value').length == 1)
-                                                            {
-                                                                if(tbody.find('tr').length != 1)
-                                                                    tr.remove();
-                                                                else {
-                                                                    factor.selectedIndex = 0;
-                                                                    expr.selectedIndex = 0;
-                                                                    var havesel = newval.find('div.input select');
-                                                                    if(havesel.length != 0)
-                                                                    {
-                                                                        havesel.replaceWith(input = makeinput());
-                                                                        input.after(choose = makechoose());
-                                                                    } else {
-                                                                        input.focus().attr('value', '').blur()
-                                                                                .setOptions({ extraParams: { factor : '' } }).flushCache();
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                newval.remove();
-                                                            }
-                                                        }))
-                             .append($('<input type="button" value=" or ">')
-                                     .bind('click', function() { addConditionOr($(this)); } )))
-                     .append('<div style="clear:both;"/>');
-
-                 if(where)
-                     where.parents('div.value:first').after(newval);
-                 else
-                     fval.append(newval);
-             }
-
-             if(condition && condition.values.length) {
-                 for(var i = 0; i < condition.values.length; ++i)
-                     addConditionOr(null, condition.values[i]);
-             } else {
-                 addConditionOr();
-             }
-
-             if(where)
-                 where.parents('tr:first').after(tr);
-             else
-                 tbody.append(tr);
-         }
 
          if(lastquery && lastquery.species.length) {
              for(var i = 0; i < lastquery.species.length; ++i)
-                 addSpecieOr(lastquery.species[i]);
-         } else {
-             addSpecieOr();
+                 addSpecie(lastquery.species[i]);
          }
 
          if(lastquery && lastquery.conditions.length) {
              for(var i = 0; i < lastquery.conditions.length; ++i)
-                 addConditionAnd(null, lastquery.conditions[i]);
-         } else {
-             addConditionAnd();
+                 addExpFactor(lastquery.conditions[i].factor,
+                              lastquery.conditions[i].expression,
+                              lastquery.conditions[i].values,
+                              lastquery.conditions[i].expansion);
          }
-         
+
          if(lastquery && lastquery.genes.length) {
-         	for(var i=0; i<lastquery.genes.length; i++)
-         		addGeneProps(lastquery.genes[i],(i+1 != lastquery.genes.length)?lastquery.genes[i+1]:"");
-         } else {
-            addGeneProps();
+             for(var i = 0; i < lastquery.genes.length; ++i)
+         	 addGeneQuery(lastquery.genes[i].property,
+                              lastquery.genes[i].query,
+                              lastquery.genes[i].not);
          }
-         //addGeneProps();
      };
 
      window.renumberAll = function() {
          var i = 0;
-         $('#species select').each(function(){ this.name = this.name.replace(/_\d+/, '_' + (++i)); });
+         $('input.specval').each(function(){ this.name = this.name.replace(/_\d+/, '_' + (++i)); });
+
          i = 0;
-         $('#conditions tr').each(function(){
-                                      $('td.common select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
-                                      var j = 0;
-                                      $('td.factorvalue div.value', this)
-                                          .each(function(){
-                                                    $('input,select', this)
-                                                        .each(function(){ this.name = this.name.replace(/_\d+_\d+/, '_' + i + '_' + j); });
-                                                    ++j;
-                                                });
+         $('#conditions tr.efvcond,#conditions tr.genecond').each(function(){
+                                      $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
                                       ++i;
                                   });
-         i=0;
-         var op=0;
-         $('#geneprops tr').each(function(){
-         						//renumber operators
-         						op=i+1;
-         						$('td.addbuttons select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + op); });
-         						
-         						//i=0;
-         						//renumber geneInput
-         						$('td.genesearch input', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
-         						
-         						//renumber geneProperty
-         						$('td.genesearch select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
-         						i++
-         						 });
+         $('#species,#geneprops,#factors').remove();
      };
 
 

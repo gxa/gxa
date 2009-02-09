@@ -12,83 +12,9 @@ import java.util.*;
 public class AtlasStructuredQueryResult {
     protected final Log log = LogFactory.getLog(getClass());
 
-    /**
-     * Structured query condition expanded by query service
-     */
-    public static class Condition  {
-        private AtlasStructuredQuery.Condition condition;
-        private EfvTree<Boolean> expansion;
-
-        /**
-         * Constructor for condition
-         * @param condition original query condition
-         * @param expansion EFV expansion tree
-         */
-        public Condition(AtlasStructuredQuery.Condition condition, EfvTree<Boolean> expansion) {
-            this.condition = condition;
-            this.expansion = expansion;
-        }
-
-        /**
-         * Returns gene expression type
-         * @return gene expression type
-         */
-        public AtlasStructuredQuery.Expression getExpression() {
-            return condition.getExpression();
-        }
-
-        /**
-         * Returns factor
-         * @return factor name
-         */
-        public String getFactor() {
-            return condition.getFactor();
-        }
-
-        /**
-         * Returns factor values
-         * @return iterable factor values
-         */
-        public Iterable<String> getFactorValues() {
-            return condition.getFactorValues();
-        }
-
-        /**
-         * Return EFV expansion tree
-         * @return EFV expansion tree
-         */
-        public EfvTree<Boolean> getExpansion() {
-            return expansion;
-        }
-
-        /**
-         * Convenience method to check whether conditions is for any factor
-         * @return true if any factor
-         */
-        public boolean isAnyFactor() {
-            return condition.isAnyFactor();
-        }
-
-        /**
-         * Convenience method to check whether conditions is for any value
-         * @return true if any value contains '*' or all values are empty
-         */
-        public boolean isAnyValue() {
-            return condition.isAnyValue();
-        }
-
-        /**
-         * Convenience method to check whether condition is for anything (any value and any factor)
-         * @return
-         */
-        public boolean isAnything() {
-            return condition.isAnything();
-        }
-    }
-
     private EfvTree<Integer> resultEfvs;
     private Collection<StructuredResultRow> results;
-    private Iterable<Condition> conditions;
+    private Iterable<ExpFactorResultCondition> conditions;
     private Set<String> expandableEfs;
 
     private long total;
@@ -230,7 +156,7 @@ public class AtlasStructuredQueryResult {
      * Returns query result condition
      * @return iterable list of conditions
      */
-    public Iterable<Condition> getConditions() {
+    public Iterable<ExpFactorResultCondition> getConditions() {
         return conditions;
     }
 
@@ -238,7 +164,7 @@ public class AtlasStructuredQueryResult {
      * Sets list of query result conditions
      * @param conditions iterable list of conditions
      */
-    public void setConditions(Iterable<Condition> conditions) {
+    public void setConditions(Iterable<ExpFactorResultCondition> conditions) {
         this.conditions = conditions;
     }
 

@@ -14,6 +14,7 @@ import java.util.Map;
 
 import ae3.service.structuredquery.IValueListHelper;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.AutoCompleteItem;
 
 /**
  * @author pashky
@@ -54,17 +55,16 @@ public class FactorValues extends HttpServlet {
             } catch(Exception e) {
                 // just ignore
             }
-            Map<String,Long> ac =
+            Iterable<AutoCompleteItem> ac =
                     lister.autoCompleteValues(
                             request.getParameter("factor"),
                             request.getParameter("q"),
                             nlimit
                     );
-            if (ac.size() == 0) {
-                log.info("No completions found");
-            }
-            for(Map.Entry<String,Long> s : ac.entrySet()) {
-                response.getWriter().println(s.getKey() + "|" + s.getValue());
+            for(AutoCompleteItem s : ac) {
+                response.getWriter().println(
+                        (s.getProperty() == null ? "" : s.getProperty() + "|") +
+                        s.getValue() + "|" + s.getCount());
             }
         }
     }

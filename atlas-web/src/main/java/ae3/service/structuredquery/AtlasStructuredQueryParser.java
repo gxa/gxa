@@ -2,7 +2,6 @@ package ae3.service.structuredquery;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -15,16 +14,13 @@ import java.io.IOException;
  */
 public class AtlasStructuredQueryParser {
     private static final Log log = LogFactory.getLog("AtlasStructuredQueryParser");
-    private static String PARAM_EXPRESSION = "gexp_";
-    private static String PARAM_EXPRESSION_SIMPLE = "gexp";
+    private static String PARAM_EXPRESSION = "fexp_";
     private static String PARAM_FACTOR = "fact_";
     private static String PARAM_FACTORVALUE = "fval_";
-    private static String PARAM_FACTORVALUE_SIMPLE = "fval";
-    private static String PARAM_GENE = "gene_";
-    private static String PARAM_GENEPROP = "geneprop_";
-    private static String PARAM_GENEOPERTOR = "geneoperator_";
+    private static String PARAM_GENE = "gval_";
+    private static String PARAM_GENENOT = "gnot_";
+    private static String PARAM_GENEPROP = "gprop_";
     private static String PARAM_SPECIE = "specie_";
-    private static String PARAM_SPECIE_SIMPLE = "specie";
     private static int DEFAULT_ROWS = 100;
     private static String PARAM_START = "p";
     private static String PARAM_EXPAND = "fexp";
@@ -65,31 +61,17 @@ public class AtlasStructuredQueryParser {
                 result.add(value);
         }
 
-        String specieSimple = httpRequest.getParameter(PARAM_SPECIE_SIMPLE);
-        if("".equals(specieSimple))
-            return new ArrayList<String>();
-        if(specieSimple != null)
-            result.add(specieSimple);
-        
         return result;
     }
 
-    private static List<AtlasStructuredQuery.Condition> parseConditions(final HttpServletRequest httpRequest)
+    private static List<ExpFactorQueryCondition> parseExpFactorConditions(final HttpServletRequest httpRequest)
     {
-        if(httpRequest.getParameter(PARAM_FACTORVALUE_SIMPLE) != null)
-            return parseConditionsSimple(httpRequest);
-        else
-            return parseConditionsStruct(httpRequest);
-    }
-    
-    private static List<AtlasStructuredQuery.Condition> parseConditionsStruct(final HttpServletRequest httpRequest)
-    {
-        List<AtlasStructuredQuery.Condition> result = new ArrayList<AtlasStructuredQuery.Condition>();
+        List<ExpFactorQueryCondition> result = new ArrayList<ExpFactorQueryCondition>();
 
         for(String id : findPrefixParamsSuffixes(httpRequest, PARAM_FACTOR)) {
-            AtlasStructuredQuery.Condition condition = new AtlasStructuredQuery.Condition();
+            ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             try {
-                condition.setExpression(AtlasStructuredQuery.Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                condition.setExpression(Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);
                 if(factor == null)
@@ -97,19 +79,42 @@ public class AtlasStructuredQueryParser {
 
                 condition.setFactor(factor);
 
-                List<String> values = new ArrayList<String>();
-                String pfx = PARAM_FACTORVALUE + id + "_";
-                for(String jd : findPrefixParamsSuffixes(httpRequest, pfx)) {
-                    String value = httpRequest.getParameter(pfx + jd);
-                    if(value != null)
-                        values.add(StringUtils.trim(value));
-                }
-
-                if(values.size() == 0)
-                    throw new IllegalArgumentException("No values specified for factor " + factor + " rowid:" + id);
+                String value = httpRequest.getParameter(PARAM_FACTORVALUE + id);
+                List<String> values = value != null ? parseQuotedList(value) : new ArrayList<String>();
 
                 condition.setFactorValues(values);
                 result.add(condition);
+            } catch (IllegalArgumentException e) {
+                // Ignore this one, may be better stop future handling
+                log.error("Unable to parse and condition. Ignoring it.", e);
+            }
+        }
+        return result;
+    }
+
+    private static List<GeneQueryCondition> parseGeneConditions(final HttpServletRequest httpRequest)
+    {
+        List<GeneQueryCondition> result = new ArrayList<GeneQueryCondition>();
+
+        for(String id : findPrefixParamsSuffixes(httpRequest, PARAM_GENEPROP)) {
+            GeneQueryCondition condition = new GeneQueryCondition();
+            try {
+                String not = httpRequest.getParameter(PARAM_GENENOT + id);
+                condition.setNegated(not != null && !"".equals(not) && !"0".equals(not));
+
+                String factor = httpRequest.getParameter(PARAM_GENEPROP + id);
+                if(factor == null)
+                    throw new IllegalArgumentException("Empty gene property name rowid:" + id);
+
+                condition.setFactor(factor);
+
+                String value = httpRequest.getParameter(PARAM_GENE + id);
+                List<String> values = value != null ? parseQuotedList(value) : new ArrayList<String>();
+                if(values.size() > 0)
+                {
+                    condition.setFactorValues(values);
+                    result.add(condition);
+                }
             } catch (IllegalArgumentException e) {
                 // Ignore this one, may be better stop future handling
                 log.error("Unable to parse and condition. Ignoring it.", e);
@@ -119,18 +124,14 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
-    private static List<AtlasStructuredQuery.Condition> parseConditionsSimple(final HttpServletRequest httpRequest)
+    private static List<String> parseQuotedList(final String value)
     {
-        List<AtlasStructuredQuery.Condition> result = new ArrayList<AtlasStructuredQuery.Condition>(1);
-        AtlasStructuredQuery.Condition cond = new AtlasStructuredQuery.Condition();
+        List<String> values = new ArrayList<String>();
+        if("(all conditions)".equals(value))
+            return values;
 
         try {
-            String fval = httpRequest.getParameter(PARAM_FACTORVALUE_SIMPLE);
-            if("(all conditions)".equals(fval))
-                return result;
-            
-            Reader r = new StringReader(fval);
-            List<String> values = new ArrayList<String>();
+            Reader r = new StringReader(value);
             StringBuffer curVal = new StringBuffer();
             boolean inQuotes = false;
             while(true) {
@@ -138,13 +139,13 @@ public class AtlasStructuredQueryParser {
                 if(inQuotes)
                 {
                     if(c < 0)
-                        return result; // skip last incorrect condition
+                        return values; // skip last incorrect condition
 
                     if(c == '\\') {
                         c = r.read();
                         if(c < 0)
-                            return result; // skip last incorrect condition
-                            
+                            return values; // skip last incorrect condition
+
                         curVal.appendCodePoint(c);
                     } else if(c == '"') {
                         inQuotes = false;
@@ -163,62 +164,15 @@ public class AtlasStructuredQueryParser {
                     } else {
                         curVal.appendCodePoint(c);
                     }
-                    
+
                     if(c < 0)
                         break;
                 }
             }
-            cond.setFactorValues(values);
-
-            AtlasStructuredQuery.Expression expression = AtlasStructuredQuery.Expression.UP_DOWN;
-            try {
-                expression = AtlasStructuredQuery.Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION_SIMPLE));
-            } catch(Exception e) {
-                // ignore
-            }
-            cond.setExpression(expression);
-            cond.setFactor("");
-
-            result.add(cond);
-        } catch (IOException e) {
+        } catch(IOException e) {
             throw new RuntimeException("Shouldn't be", e);
         }
-
-        return result;
-    }
-    
-   
-    private static List<AtlasStructuredQuery.GeneQuery> parseGeneQuery(final HttpServletRequest httpRequest){
-    	List<AtlasStructuredQuery.GeneQuery> result = new ArrayList<AtlasStructuredQuery.GeneQuery>();
-    	int geneCount = findPrefixParamsSuffixes(httpRequest,PARAM_GENE).size();
-    	for(int id=0; id<geneCount; id++){
-    		AtlasStructuredQuery.GeneQuery geneQuery = new AtlasStructuredQuery.GeneQuery();
-    		try {
-    			String qry = httpRequest.getParameter(PARAM_GENE + id);
-    			if(qry==null){
-    				throw new IllegalArgumentException("Empty gene query:" + id);
-    			}
-    			if(qry.contains(" ") && !qry.startsWith("\\\""))
-    				qry="\""+qry+"\"";
-    			geneQuery.setQry(qry);
-    			String property = httpRequest.getParameter(PARAM_GENEPROP + id);
-   				geneQuery.setProperty(property);
-    			
-    			String operator = httpRequest.getParameter(PARAM_GENEOPERTOR + id);
-    			if(operator==null){
-    				if(id!=0 && id!=geneCount)
-    					throw new IllegalArgumentException("Empty logical operator:" + id);
-    				else
-    					operator="";
-    			}
-    			else
-    				geneQuery.setOperator(operator);
-    			result.add(geneQuery);
-    		}catch(IllegalArgumentException e){
-    			log.error("Unable to parse gene query.",e);
-    		}
-    	}
-    	return result;
+        return values;
     }
 
     static private Set<String> parseExpandColumns(final HttpServletRequest httpRequest)
@@ -240,14 +194,10 @@ public class AtlasStructuredQueryParser {
     static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
         
-        List<AtlasStructuredQuery.GeneQuery> geneQueries = parseGeneQuery(httpRequest);
-        if(geneQueries.isEmpty())
-        	return null;
-        
-        request.setGeneQueries(geneQueries);
+        request.setGeneQueries(parseGeneConditions(httpRequest));
 
         request.setSpecies(parseSpecies(httpRequest));
-        request.setConditions(parseConditions(httpRequest));
+        request.setConditions(parseExpFactorConditions(httpRequest));
         request.setRows(DEFAULT_ROWS);
 
         String start = httpRequest.getParameter(PARAM_START);

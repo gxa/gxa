@@ -1,0 +1,83 @@
+package ae3.service.structuredquery;
+
+/**
+     * Structured query condition expanded by query service
+ */
+public class ExpFactorResultCondition {
+    private ExpFactorQueryCondition condition;
+    private EfvTree<Boolean> expansion;
+
+    /**
+     * Constructor for condition
+     * @param condition original query condition
+     * @param expansion EFV expansion tree
+     */
+    public ExpFactorResultCondition(ExpFactorQueryCondition condition, EfvTree<Boolean> expansion) {
+        this.condition = condition;
+        this.expansion = expansion;
+    }
+
+    /**
+     * Returns gene expression type
+     * @return gene expression type
+     */
+    public Expression getExpression() {
+        return condition.getExpression();
+    }
+
+    /**
+     * Returns factor
+     * @return factor name
+     */
+    public String getFactor() {
+        return condition.getFactor();
+    }
+
+    /**
+     * Returns factor values
+     * @return iterable factor values
+     */
+    public Iterable<String> getFactorValues() {
+        return condition.getFactorValues();
+    }
+
+    /**
+     * Returns concatenated quoted factor values
+     * @return string factor values
+     */
+    public String getJointFactorValues() {
+        return condition.getJointFactorValues();
+    }
+
+    /**
+     * Return EFV expansion tree
+     * @return EFV expansion tree
+     */
+    public EfvTree<Boolean> getExpansion() {
+        return expansion;
+    }
+
+    /**
+     * Convenience method to check whether conditions is for any factor
+     * @return true if any factor
+     */
+    public boolean isAnyFactor() {
+        return condition.isAnyFactor();
+    }
+
+    /**
+     * Convenience method to check whether conditions is for any value
+     * @return true if any value contains '*' or all values are empty
+     */
+    public boolean isAnyValue() {
+        return condition.isAnyValue();
+    }
+
+    /**
+     * Convenience method to check whether condition is for anything (any value and any factor)
+     * @return
+     */
+    public boolean isAnything() {
+        return condition.isAnything();
+    }
+}

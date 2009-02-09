@@ -8,10 +8,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * EFVs listing and autocompletion helper implementation
@@ -28,8 +25,8 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         this.solrExpt = solrExpt;
     }
 
-    public Map<String, Long> autoCompleteValues(String factor, String query, int limit) {
-        Map<String,Long> map = new TreeMap<String,Long>();
+    public Iterable<AutoCompleteItem> autoCompleteValues(String factor, String query, int limit) {
+        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
         if(query.startsWith("\""))
             query = query.substring(1);
@@ -38,9 +35,9 @@ public class ExpFactorValueListHelper implements IValueListHelper {
 
         for(String fv : getFactorValues(factor, query, limit))
         {
-            map.put(fv, 123L);
+            result.add(new AutoCompleteItem(null, fv, 1L));
         }
-        return map;
+        return result;
     }
 
     public Iterable<String> listAllValues(String factor) {
@@ -48,13 +45,17 @@ public class ExpFactorValueListHelper implements IValueListHelper {
     }
 
     private SortedSet<String> getFactorValues(String factor, String query, int limit) {
+
+        boolean hasPrefix = query != null && !"".equals(query);
+        if(hasPrefix)
+            query = query.toLowerCase();
+
         SortedSet<String> s = new TreeSet<String>();
         try {
             SolrQuery q = new SolrQuery("exp_in_dw:true");
             q.setRows(0);
             q.setFacet(true);
             q.setFacetMinCount(1);
-            q.setFacetPrefix(query != null ? query : "");
 
             if (factor == null || factor.equals(""))
                 factor = "exp_factor_values_exact";
@@ -62,16 +63,20 @@ public class ExpFactorValueListHelper implements IValueListHelper {
                 factor = AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor;
             q.addFacetField(factor);
 
-            q.setFacetLimit(limit);
+            q.setFacetLimit(hasPrefix ? -1 : limit);
             q.setFacetSort(true);
             QueryResponse qr = solrExpt.query(q);
 
             if (null == qr.getFacetFields().get(0).getValues())
                 return s;
 
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                s.add(ffc.getName());
-            }
+            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
+                if(ffc.getName().length() > 0 && (!hasPrefix || ffc.getName().toLowerCase().startsWith(query)))
+                {
+                    s.add(ffc.getName());
+                    if(s.size() == limit && limit > 0)
+                        break;
+                }
 
         } catch (SolrServerException e) {
             log.error(e);
