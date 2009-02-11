@@ -361,7 +361,7 @@ function escapeHtml(s) {
          $('.hitrunc').truncate({max_length: 60, more: '...»', less: '«'});
 
          var cs = 0.707106781186548;
-         var attr = {"font": '12px Tahoma', 'text-anchor': 'start'};
+         var attr = {"font": '12px sans-serif', 'text-anchor': 'start'};
 
          var testR = Raphael(0,0,10,10);
          var maxH = 0;
@@ -376,6 +376,7 @@ function escapeHtml(s) {
                  lastW = bw;
          }
          testR.remove();
+         alert("lastw=" + lastW + " maxh=" + maxH);
 
          var ff = document.getElementById("fortyfive");
          var sq = document.getElementById("squery");

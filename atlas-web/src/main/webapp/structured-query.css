@@ -37,13 +37,9 @@
 
 .expansion { padding-left: 10px;font-size: smaller;color:gray; }
 .expansion .ignored { color: #cc0000; }
-div.value select, div.value input.value { width:150px; }
-div.value div.buttons { float: right; }
-div.value div.input { float: left; }
-div.value { width: 250px; margin-bottom:2px; }
-#conditions td { vertical-align: top; }
-#conditions td.factorvalue { padding-bottom: 10px; padding-left: 5px; }
-#conditions td.andbuttons {  padding-bottom:10px; padding-left: 10px}
+#conditions td { vertical-align: middle; white-space:nowrap;padding-left:10px;padding-right:10px;padding-top:3px; }
+#conditions input.value { width:30em; }
+
 div.countup, div.countdn { width:50%;float:left;text-align:center; }
 div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
 td.counter, td.acounter, td.dcounter,td.ucounter,  th.counter { 

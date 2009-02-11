@@ -127,7 +127,7 @@ public class AtlasStructuredQueryParser {
     private static List<String> parseQuotedList(final String value)
     {
         List<String> values = new ArrayList<String>();
-        if("(all conditions)".equals(value))
+        if("(all genes)".equals(value) || "(all conditions)".equals(value))
             return values;
 
         try {

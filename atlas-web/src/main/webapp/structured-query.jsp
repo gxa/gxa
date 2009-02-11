@@ -153,7 +153,7 @@ ArrayExpress Atlas Preview
                 </c:forEach>
             </select>
             <select id="species">
-                <option value="">-&gt; Add specie condition</option>
+                <option value="">-&gt; Add species</option>
                 <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
                     <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
                 </c:forEach>
@@ -166,7 +166,7 @@ ArrayExpress Atlas Preview
                 </c:forEach>
             </select>
         </div>
-        <div style="margin-top: 30px">
+        <div style="margin-top: 30px;margin-bottom:30px;">
             <input type="submit" value="Search Atlas">
             <a href="javascript:simpleMode();"> simple mode</a>
         </div>
@@ -175,13 +175,13 @@ ArrayExpress Atlas Preview
     <script type="text/javascript">
         var options = {
             expressions : [
-                    <c:forEach var="i" items="${service.structQueryService.geneExpressionOptions}">
-                    [ '${u:escapeJS(i[0])}', '${u:escapeJS(i[1])}' ],
+                    <c:forEach var="i" varStatus="s" items="${service.structQueryService.geneExpressionOptions}">
+                    [ '${u:escapeJS(i[0])}', '${u:escapeJS(i[1])}' ]<c:if test="${!s.last}">,</c:if>
                     </c:forEach>
             ],
             species : [
-                <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
-                '${u:escapeJS(i)}',
+                <c:forEach var="i" varStatus="s" items="${service.allAvailableAtlasSpecies}">
+                '${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if>
                 </c:forEach>
             ]
         };
@@ -189,13 +189,13 @@ ArrayExpress Atlas Preview
         var lastquery;
         <c:if test="${!empty query}">
         lastquery = {
-            genes: [ <c:forEach var="g" items="${query.geneQueries}">
-            			{ query: '${g.jointFactorValues}', property:'${g.factor}', not: ${g.negated ? 1 : 0} },
+            genes: [ <c:forEach var="g" varStatus="s" items="${query.geneQueries}">
+            			{ query: '${g.jointFactorValues}', property:'${g.factor}', not: ${g.negated ? 1 : 0} }<c:if test="${!s.last}">,</c:if>
             		</c:forEach>
             	   ],
-            species : [<c:forEach var="i" items="${query.species}">'${u:escapeJS(i)}',</c:forEach>],
+            species : [<c:forEach var="i" varStatus="s" items="${query.species}">'${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if></c:forEach>],
             conditions : [
-                <c:forEach var="c" items="${result.conditions}">
+                <c:forEach var="c" varStatus="s" items="${result.conditions}">
                 { factor: '${u:escapeJS(c.factor)}',
                     expression: '${u:escapeJS(c.expression)}',
                     expansion: <c:choose>
@@ -207,7 +207,7 @@ ArrayExpress Atlas Preview
                             </c:otherwise>
                     </c:choose>,
                     values: '${u:escapeJS(c.jointFactorValues)}'
-                },</c:forEach>
+                }<c:if test="${!s.last}">,</c:if></c:forEach>
             ]
         };
         </c:if>
@@ -223,11 +223,11 @@ ArrayExpress Atlas Preview
 
             $("#loading_display").hide();
             var resultGenes = [
-            <c:forEach var="row" items="${result.results}">{ geneDwId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' },</c:forEach>
+            <c:forEach var="row" varStatus="s" items="${result.results}">{ geneDwId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
             ];
 
             var resultEfvs = [
-            <c:forEach var="e" items="${result.resultEfvs.nameSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' },</c:forEach>
+            <c:forEach var="e" varStatus="s" items="${result.resultEfvs.nameSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
             ];
         </script>
 
