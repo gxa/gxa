@@ -347,9 +347,10 @@ function escapeHtml(s) {
                              popup.hide('normal',function() { popup.remove(); });
                              e.stopPropagation();
                              return false;
-                         }).text('X'))
+                         }).text('close'))
                          .click(function(e){e.stopPropagation();})
-                         .hide();
+                         .hide()
+                         .attr('title','');
 
                  td.prepend(popup);
                  popup.show('normal');
@@ -358,7 +359,12 @@ function escapeHtml(s) {
      };
 
      window.drawEfvNames = function () {
-         $('.hitrunc').truncate({max_length: 60, more: '...»', less: '«'});
+         $(".genename a").tooltip({
+             bodyHandler: function () {
+                 return $(this).next('.gtooltip').html();
+             },
+             showURL: false
+         });
 
          var cs = 0.707106781186548;
          var attr = {"font": '12px sans-serif', 'text-anchor': 'start'};
@@ -376,7 +382,6 @@ function escapeHtml(s) {
                  lastW = bw;
          }
          testR.remove();
-         alert("lastw=" + lastW + " maxh=" + maxH);
 
          var ff = document.getElementById("fortyfive");
          var sq = document.getElementById("squery");
@@ -388,15 +393,9 @@ function escapeHtml(s) {
          k = 0;
          var cp = -1;
          var curef = null;
-         var skipNext = false;
-         $("#squery tbody tr:first td:gt(0)").each(function () {
-                                                       if(this.colSpan != 2)
-                                                       {
-                                                           skipNext = !skipNext;
-                                                           if(!skipNext)
-                                                                return;
-                                                       }
-
+         $("#squery tbody tr:first td:gt(1)").each(function () {
+                                                       if(this.className != 'counter' && this.className != 'acounter')
+                                                           return;
                                                        if(curef == null || curef != resultEfvs[k].ef)
                                                        {
                                                            if(++cp == colors.length)

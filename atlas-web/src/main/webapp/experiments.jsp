@@ -31,9 +31,9 @@
 %>
 <c:if test="${!empty gene && !empty exps}">
     <h1>
-        <c:out value="${gene.geneName}"/> in <c:out value="${ef}"/>&nbsp;<c:out value="${efv}"/>:
-        <c:out value="${f:length(exps.ups)}"/> up, <c:out value="${f:length(exps.downs)}"/> down
+        Gene <b>${f:escapeXml(empty gene.geneName ? gene.geneIdentifier : gene.geneName)}</b> in <b>${f:escapeXml(efv)}</b> (<fmt:message key="head.ef.${ef}"/>)<br>is overexpressed in <b>${f:length(exps.ups)}</b> and underexpressed in <b>${f:length(exps.downs)}</b> experiments
     </h1>
+    <div class="exptable">
     <table>
         <c:forEach var="e" items="${expsi}">
             <tr>
@@ -52,5 +52,6 @@
             </tr>
         </c:forEach>       
     </table>
+    </div>
 </c:if>
 

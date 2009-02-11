@@ -23,41 +23,57 @@
     background-color: #e6EEEE;
     border: 1px solid #FFF;
     font-size: 8pt;
-    padding: 4px;
+    padding: 4px 1px 4px 1px;
+    vertical-align: top;
 }
+.squery tbody tr { min-height:26px;height:26px; }
 .squery td, .factab td {
     color: #3D3D3D;
     padding: 4px;
     background-color: #FFF;
-    vertical-align: top;
+    vertical-align: middle;
+    white-space: nowrap;
 }
-
-.prefix { padding-right:5px;}
-.speciesSelect { width: 120px; margin-right:5px; }
 
 .expansion { padding-left: 10px;font-size: smaller;color:gray; }
 .expansion .ignored { color: #cc0000; }
 #conditions td { vertical-align: middle; white-space:nowrap;padding-left:10px;padding-right:10px;padding-top:3px; }
 #conditions input.value { width:30em; }
 
-div.countup, div.countdn { width:50%;float:left;text-align:center; }
-div.expref { clear:both;text-align:left;width:100%;background-color:#f0f0f0; }
-td.counter, td.acounter, td.dcounter,td.ucounter,  th.counter { 
+td.counter, td.acounter {
     text-align:center;
     vertical-align:middle;
-    font-weight:bold; }
-
-td.acounter, td.counter, th.counter { min-width:26px; width:26px; }
-td.dcounter,td.ucounter { min-width:16px; width:16px; }
-td.ucounter { padding-left:1px;padding-right:1px; }
-td.dcounter { padding-right:1px;padding-left:1px; }
+    font-weight:bold;
+    padding:0px;
+    width:26px; min-width:26px;
+}
 
 td.acounter:hover { cursor: pointer; }
-td.common { white-space:nowrap; }
+
+.sq {
+    width:26px; height:26px; position:relative;
+}
+.tri {
+    width:0; height:0; font-size: 0;line-height: 0%;
+    border-right: none;
+    border-bottom: none;
+    border-top: 26px solid; border-right:26px solid;
+}
+
+.upval {
+    position: absolute; top: 0px; left: 0px; z-index: 5; width: 13px; height: 13px; text-align: center;
+}
+
+.dnval {
+    position: absolute; bottom: 0px; right: 0px; z-index: 5; width: 13px; height: 13px; text-align: center;
+}
+
 th.factor { text-align:center;font-weight:normal; }
-th.factor em { font-weight:bold;font-style:normal;}
-th.gene { vertical-align:middle;text-align:center; }
-td.geneinfo em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
+th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold; }
+th.gene { text-align:center; }
+td.genename { font-size: 14px; font-weight: bold;min-height:26px;height:26px;  }
+td.genename em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
+.gtooltip { display: none; }
 
 a.fup:link, a.fup:active, a.fup:hover, a.fup:visited { color: #660000;text-decoration: underline; }
 a.fdn:link, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #000066;text-decoration: underline; }
@@ -67,7 +83,7 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
 
 .genelist { width: 90%; }
 .genelist .item { margin-top: 10px;margin-bottom: 20px; }
-.genename { font-size: 20px }
+.genelist .genename { font-size: 20px }
 .ensname { font-size: smaller; }
 .label { color: #666666;font-size: smaller; }
 .genelist .item .efvs { margin-left: 30px; background:#f7f7f7;
@@ -88,30 +104,41 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
     position: absolute;
     width: 500px;
     height: 300px;
-    overflow: auto;
-    margin-top: -5px;
-    margin-left: -5px;
+    margin-top: 0px;
+    margin-left: 0px;
     background-color: #ffffe0;
     border: 1px solid black;
     padding: 10px;
     color: black;
     text-align:left;
+    opacity: 0.95;
+    z-index:2000;
 }
 .waiter {
     position: absolute;
     overflow: auto;
-    margin-top: -5px;
-    margin-left: -5px;
+    margin-top: 0px;
+    margin-left: 0px;
     border: 1px solid black;
     padding: 3px;
     background-color: white;
+    z-index:2000;
+}
+
+.expopup .exptable {
+    position: absolute;
+    height: 250px;
+    width: 490px;
+    overflow: auto;
+    opacity: 1;
 }
 
 .expopup h1 {
-    font-weight:bold;
-    font-size:larger;
+    font-weight:normal;
+    font-size:12px;
 }
 .expopup td {
+    white-space: normal;
     vertical-align:top;
     text-align: left;
 }
@@ -137,12 +164,32 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
     color: #000099;
 }
 .expopup em { font-weight: bold; }
+
 .closebox {
-    float: right;
+    position: absolute;
+    right: 0;
+    top: 0;
     color: black;
-    font: bold 16px sans-serif;
+    font: bold 10px sans-serif;
     background-color:white;
-    padding: 4px;
-    border: 1px solid black; 
+    padding: 4px 8px 4px 8px;
+    text-align: center;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black; 
     cursor: pointer;
+    z-index: 2500;
 }
+
+#tooltip {
+	position: absolute;
+	z-index: 3000;
+    background-color: #ffffe0;
+    border: 1px solid black;
+    padding: 10px;
+	opacity: 0.95;
+}
+
+#tooltip em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
+#tooltip .genename { margin-bottom: 10px;font-size:10px; }
+#tooltip .genename b { font-weight: bold; font-size: 14px; }
+

@@ -54,6 +54,10 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
+    public String getKeyword() {
+        return getValue("gene_keyword");
+    }
+
     private String getHilitValue(String name) {
         List<String> val = geneHighlights.get(name);
         if(val == null || val.size() == 0)
@@ -71,6 +75,10 @@ public class AtlasGene {
 
     public String getHilitGeneName() {
         return getHilitValue("gene_name");
+    }
+
+    public String getHilitKeyword() {
+        return getHilitValue("gene_keyword");
     }
 
     public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
