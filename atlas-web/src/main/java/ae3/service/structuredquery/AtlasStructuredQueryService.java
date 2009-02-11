@@ -279,8 +279,8 @@ public class AtlasStructuredQueryService {
                 solrq.append(geneQuery.isNegated() ? " NOT " : " AND ");
 
     		if(geneQuery.isAnyFactor()) {
-                solrq.append("gene_ids:(").append(geneQuery.getJointFactorValues()).append(") ");
-                solrq.append("gene_desc:(").append(geneQuery.getJointFactorValues()).append(") ");
+                solrq.append("(gene_ids:(").append(geneQuery.getJointFactorValues()).append(") ");
+                solrq.append("gene_desc:(").append(geneQuery.getJointFactorValues()).append("))");
     		} else {
                 String field = GeneProperties.convertPropertyToSearchField(geneQuery.getFactor());
                 if(field == null)
