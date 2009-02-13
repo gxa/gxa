@@ -60,6 +60,13 @@
     </servlet>
 
     <servlet>
+        <display-name>Table Heaedr Servlet</display-name>
+        <servlet-name>thead</servlet-name>
+        <servlet-class>ae3.servlet.TableHeaderServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
         <display-name>Factor Values completion helper</display-name>
         <servlet-name>fval</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.FactorValues</servlet-class>
@@ -99,6 +106,11 @@
     <servlet-mapping>
         <servlet-name>vtext</servlet-name>
         <url-pattern>/vtext</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>thead</servlet-name>
+        <url-pattern>/thead</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

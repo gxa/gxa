@@ -297,4 +297,15 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         if(efvs.containsKey(ef))
             efvs.get(ef).remove(efv);
     }
+
+    public String[] getEfvArray()
+    {
+        List<EfEfv<PayLoad>> list = getNameSortedList();
+        String[] result = new String[list.size()];
+        int k = 0;
+        for(EfEfv<PayLoad> e : list) {
+            result[k++] = e.getEfv();
+        }
+        return result;
+    }
 }

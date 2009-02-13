@@ -1,54 +1,45 @@
-.label {
-    font-size: 10px;
-}
-
-.atlasHelp {
-    display: none;
-}
-
 /* tables */
-.squery, .factab {
+.squery {
     font-family: arial, sans-serif;
-    background-color: #CDCDCD;
     font-size: 8pt;
     text-align: left;
+    margin: 0px 0pt 15px;
+    border-collapse: collapse;
 }
-.squery {
-    margin:0px 0pt 15px;
-}
-.factab {
-    margin-bottom:3px;
-}
-.squery th, .factab th {
+
+.squery th {
     background-color: #e6EEEE;
-    border: 1px solid #FFF;
+    border: 1px solid #cdcdcd;
     font-size: 8pt;
-    padding: 4px 1px 4px 1px;
     vertical-align: top;
+    padding: 0px 0px 0px 0px;
 }
-.squery tbody tr { min-height:26px;height:26px; }
-.squery td, .factab td {
+.squery .padded { padding: 1px 4px 1px 4px; }
+.squery th.padded { vertical-align: middle; }
+
+.squery th.factor { text-align:center;font-weight:normal; }
+.squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold; }
+.squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
+
+.squery td {
     color: #3D3D3D;
-    padding: 4px;
     background-color: #FFF;
     vertical-align: middle;
+    padding: 0px 0px 0px 0px;
     white-space: nowrap;
+    border: 1px solid #cdcdcd;
 }
 
-.expansion { padding-left: 10px;font-size: smaller;color:gray; }
-.expansion .ignored { color: #cc0000; }
-#conditions td { vertical-align: middle; white-space:nowrap;padding-left:10px;padding-right:10px;padding-top:3px; }
-#conditions input.value { width:30em; }
-
-td.counter, td.acounter {
+.squery td.counter, .squery td.acounter {
     text-align:center;
-    vertical-align:middle;
-    font-weight:bold;
-    padding:0px;
-    width:26px; min-width:26px;
+    width:26px; min-width:26px; max-width:26px;
 }
 
-td.acounter:hover { cursor: pointer; }
+.squery td.acounter:hover { cursor: pointer; }
+
+.squery td.genename { font-size: 12px; font-weight: bold; }
+
+.squery em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
 
 .sq {
     width:26px; height:26px; position:relative;
@@ -68,13 +59,34 @@ td.acounter:hover { cursor: pointer; }
     position: absolute; bottom: 0px; right: 0px; z-index: 5; width: 13px; height: 13px; text-align: center;
 }
 
-th.factor { text-align:center;font-weight:normal; }
-th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold; }
-th.gene { text-align:center; }
-td.genename { font-size: 14px; font-weight: bold;min-height:26px;height:26px;  }
-td.genename em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
 .gtooltip { display: none; }
 
+.squery .fakerow td { border-bottom-color: white; border-left-color: white; border-right-color: white; }
+.squery .fakerow div { position: relative; width: 26px; height:26px; }
+.squery .fakecell { border-bottom-color: white; border-top-color: white; border-right-color: white; }
+.squery .fakecell div { position: relative; width: 26px; height:26px; }
+
+.squery .header td { border-bottom: none; border-top-color: white; border-left-color: white; border-right-color: white; } 
+.squery img, .squery img:hover, map, area, map:hover, area:hover { border: none; cursor:default; }
+
+/* form */
+
+.expansion { padding-left: 10px;font-size: smaller;color:gray; }
+.expansion .ignored { color: #cc0000; }
+#conditions td { vertical-align: middle; white-space:nowrap;padding-left:10px;padding-right:10px;padding-top:3px; }
+#conditions input.value { width:30em; }
+
+.label {
+    font-size: 10px;
+}
+
+
+/* drilldown filters */
+
+.drilldowns { margin-bottom: 10px; margin-top: 10px; padding: 10px; }
+.drillsect { float:left;padding: 5px; border-left:1px solid #cccccc; }
+.drillsect ul { padding-left: 15px; }
+.drillsect .name { font-weight: bold; }
 a.fup:link, a.fup:active, a.fup:hover, a.fup:visited { color: #660000;text-decoration: underline; }
 a.fdn:link, a.fdn:active, a.fdn:hover, a.fdn:visited { color: #000066;text-decoration: underline; }
 a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-decoration: underline; }
@@ -95,10 +107,8 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
 .genelist .itemhead { padding: 5px; background: #f0f0f0;border: 2px solid #cccccc; }
 
 .summary { margin-top: 10px; margin-bottom: 10px; }
-.drilldowns { margin-bottom: 10px; margin-top: 10px; padding: 10px; }
-.drillsect { float:left;padding: 5px; border-left:1px solid #cccccc; }
-.drillsect ul { padding-left: 15px; }
-.drillsect .name { font-weight: bold; }
+
+/* experiments popup */
 
 .expopup {
     position: absolute;

@@ -249,6 +249,12 @@ function escapeHtml(s) {
                            })
              .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
 
+         $(".genename a").tooltip({
+             bodyHandler: function () {
+                 return $(this).next('.gtooltip').html();
+             },
+             showURL: false
+         });
 
          $('#geneprops').change(function () {
                                     if(this.selectedIndex == 0)
@@ -358,61 +364,7 @@ function escapeHtml(s) {
          });
      };
 
-     window.drawEfvNames = function () {
-         $(".genename a").tooltip({
-             bodyHandler: function () {
-                 return $(this).next('.gtooltip').html();
-             },
-             showURL: false
-         });
-
-         var cs = 0.707106781186548;
-         var attr = {"font": '12px sans-serif', 'text-anchor': 'start'};
-
-         var testR = Raphael(0,0,10,10);
-         var maxH = 0;
-         var lastW = 0;
-         for(var k = 0; k < resultEfvs.length; ++k)
-         {
-             var txt = testR.text(0, 0, resultEfvs[k].efv).attr(attr);
-             var bw = txt.getBBox().width * cs;
-             if(maxH < bw)
-                 maxH = bw;
-             if(k == resultEfvs.length - 1)
-                 lastW = bw;
-         }
-         testR.remove();
-
-         var ff = document.getElementById("fortyfive");
-         var sq = document.getElementById("squery");
-
-         var R = Raphael("fortyfive", sq.offsetWidth + Math.round(lastW) + 20, Math.round(maxH) + 20);
-
-         var colors = ['#000000','#999999'];
-
-         k = 0;
-         var cp = -1;
-         var curef = null;
-         $("#squery tbody tr:first td:gt(1)").each(function () {
-                                                       if(this.className != 'counter' && this.className != 'acounter')
-                                                           return;
-                                                       if(curef == null || curef != resultEfvs[k].ef)
-                                                       {
-                                                           if(++cp == colors.length)
-                                                               cp = 0;
-                                                           curef = resultEfvs[k].ef;
-                                                       }
-                                                       var x = this.offsetLeft;
-                                                       var txt = R.text(x + 5, R.height - 5, resultEfvs[k].efv).attr(attr).attr({fill: colors[cp]});
-                                                       var bb = txt.getBBox();
-                                                       txt.matrix(cs, cs, -cs, cs, bb.x - cs * bb.x - cs * bb.y, bb.y + cs * bb.x - cs * bb.y);
-                                                       R.path({stroke: "#cdcdcd", 'stroke-width': 2}).moveTo(x - 1, R.height).lineTo(x - 1, R.height - 20);
-                                                       ++k;
-                                                   });
-
-     };
-
-     window.structuredMode = function() {
+     window.structMode = function() {
          $("#simpleform").hide('fast');
          $("#structform").show('fast');
      };
