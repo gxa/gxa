@@ -4,10 +4,11 @@ AtlasGene atlasGene = null;
 String geneId = request.getParameter("gid");
 String fromRow = request.getParameter("from");
 String toRow = request.getParameter("to");
+String exp_ids = request.getParameter("exp_ids");
 if (geneId != null) {
     atlasGene = AtlasDao.getGeneByIdentifier(geneId);
 }    
-ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId,fromRow, toRow);
+ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, exp_ids, fromRow, toRow);
 %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
@@ -146,11 +147,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
                     for (AtlasExperiment exp : exps) {
                         c++;
                 %>
-	<tr>
-		<td colspan="3">
-		<div class="separator"></div>
-		</td>
-	</tr>
+	
 
 	<tr align="left">
 		<td align="left" nowrap="true" valign="top">
@@ -159,23 +156,27 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 		<td align="left">
 		<h3><%=exp.getAerExpName()%></h3>
 		</td>
+		<!--
 		<td width="20px"><img style="cursor: pointer"
 			title="Show study details"
 			id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/minus.gif"
 			onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)" /></td>
+		-->
 	</tr>
 	<tr>
 		<td colspan="3">
 		<div style="display: block"
 			id="<%=exp.getDwExpId().toString()%>_desc_ext">
 		<table cellpadding="2" cellspacing="2">
+			<!--
 			<tr>
 				<td align="right">Title:</td>
 				<td align="left"><%=exp.getTitle()%></td>
 			</tr>
+			-->
 			<tr>
 				<td align="right" valign="top">Summary:</td>
-				<td align="left"><%=exp.getAerExpDescription()%></td>
+				<td align="left"><%=exp.getTitle()%></td>
 
 			</tr>
 			<tr>
@@ -328,6 +329,11 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 </table>
 </td>
 </tr>
+<tr>
+		<td colspan="3">
+		<div class="separator"></div>
+		</td>
+	</tr>
 <%
     }
 %>

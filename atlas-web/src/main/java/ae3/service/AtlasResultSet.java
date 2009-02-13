@@ -58,7 +58,8 @@ public class AtlasResultSet implements Serializable {
             PreparedStatement stmt = conn.prepareStatement(
                     "SELECT efv || ' (' || ef || ')' as efvef, " +
                             "count(distinct experiment_id) AS ce, " +
-                            "group_concat(distinct experiment_accession separator ', ') AS experiments, " +                            
+                            "group_concat(distinct experiment_accession separator ', ') AS experiments, " + 
+                            "group_concat(distinct experiment_id separator ', ' ) AS exp_ids, "+
                             "ifnull(abs(sum(nullif(updn,-1))),0) AS sumup, " +
                             "ifnull(abs(sum(nullif(updn,1))) ,0) AS sumdn, " +
                             "avg(updn_pvaladj) as mpv " +
@@ -76,6 +77,7 @@ public class AtlasResultSet implements Serializable {
                 h.put("efv", rs.getString("efvef"));
                 h.put("experiment_count", rs.getString("ce"));
                 h.put("experiments", rs.getString("experiments"));
+                h.put("exp_ids", rs.getString("exp_ids"));
                 h.put("up_count", rs.getString("sumup"));
                 h.put("dn_count", rs.getString("sumdn"));
 

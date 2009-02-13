@@ -690,23 +690,27 @@ public class ArrayExpressSearchService {
     return count;
     }
     
-    public ArrayList getRankedGeneExperiments(final String gene_id_key, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
+    public ArrayList getRankedGeneExperiments(final String gene_id_key, String exp_ids, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
+   	 
+   	 String query = "select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
+				   	 " from ATLAS, ae1__experiment__main exp " +
+				   	 " where gene_id_key = "+gene_id_key+
+				   	 " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) " +
+				   	 " and exp.experiment_id_key = atlas.experiment_id_key ";
+   	 if(exp_ids != null)
+   		 query+= "and exp.experiment_id_key IN ("+exp_ids+")";
+   	 query+=	   	 " group by atlas.experiment_id_key" +
+				   	 " order by minp asc";
 
-   	 String query = "select * " +
-   	 				"from ( select /*+ FIRST_ROWS(n) */ a.*, ROWNUM rnum" +
-   	 				"	    from ( " +
-   	 				"				select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
-   	 				"               from ATLAS, ae1__experiment__main exp " +
-   	 				"               where gene_id_key = "+gene_id_key+
-   	 				"               and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) " +
-   	 				"               and exp.experiment_id_key = atlas.experiment_id_key "+
-   	 				"               group by atlas.experiment_id_key" +
-   	 				"               order by minp asc" +
-   	 				"			) a " +
-   	 				"		where ROWNUM <= "+MAX_ROW_TO_FETCH +
-   	 				" ) " +
-   	 				"where rnum  >= "+MIN_ROW_TO_FETCH;
+   	 if (MIN_ROW_TO_FETCH != null && MAX_ROW_TO_FETCH!=null)
+   		 query = "select * " +
+		   		 "from ( select /*+ FIRST_ROWS(n) */ a.*, ROWNUM rnum" +
+		   		 "	    from ( " + query +
+		   		 "			) a " +
+		   		 "		where ROWNUM <= "+MAX_ROW_TO_FETCH +
+		   		 " ) " +
+		   		 "where rnum  >= "+MIN_ROW_TO_FETCH;
         try {
         	atlasExps =  (ArrayList<AtlasExperiment>)theAEQueryRunner.query(query, new ResultSetHandler() {
                 public ArrayList<AtlasExperiment> handle(ResultSet rs) throws SQLException {
@@ -739,6 +743,7 @@ public class ArrayExpressSearchService {
         return atlasExps;
    	
    }
+    
 
     public void setAEDataSource(DataSource aeds) {
         this.theAEDS = aeds;

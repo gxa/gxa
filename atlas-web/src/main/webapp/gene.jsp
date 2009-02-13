@@ -251,6 +251,13 @@ a:focus {
 	}
 
 
+	function FilterExps(ids,fv){
+		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,exp_ids:ids},drawPlots);
+		//$('#pagingSummary').text("Showing filtered results");
+		$("#expHeader_td").text("Experiments showing differential expression for <%=atlasGene.getGeneName()%> in "+ fv);
+		$("#Pagination").text("Return to all experiments");
+	}
+
 	function drawPlot(jsonObj, plot_id){
 	   	if(jsonObj.series){
    			//alert('start of draw plot');
@@ -739,9 +746,7 @@ a:focus {
 	</tr>
 	<tr>
 		<td class="geneAnnotHeader">GO Terms:</td>
-		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_goterm").toString().replace(']', ' ')
-								.replace('[', ' ')%></td>
+		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue("gene_goterm").toString().replace(']', ' ').replace('[', ' ')%></td>
 	</tr>
 	<%
 		}
@@ -790,8 +795,7 @@ a:focus {
 				</tr>
 	
 				<%
-					AtlasResultSet atlasResultSet = AtlasGeneService
-							.getExprSummary(atlasGene.getGeneId());
+					AtlasResultSet atlasResultSet = AtlasGeneService.getExprSummary(atlasGene.getGeneId());
 				%>
 	
 				<tr>
@@ -801,8 +805,7 @@ a:focus {
 						bordercolor="#ffffff">
 						<tr>
 							<th rowspan="2">Factor Value</th>
-							<th rowspan="2"
-								style="border-right: medium solid; border-left: thin">Studies</th>
+							<th rowspan="2"	style="border-right: medium solid; border-left: thin">Studies</th>
 							<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
 							<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
 							<%
@@ -821,26 +824,22 @@ a:focus {
 						</tr>
 	
 						<%
-							HashMap<String, HashMap<String, String>> gars = atlasResultSet
-									.getAtlasResultAllGenesByEfv();
-							for (HashMap<String, String> ar : atlasResultSet
-									.getAtlasEfvCounts()) {
+							HashMap<String, HashMap<String, String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
+							for (HashMap<String, String> ar : atlasResultSet.getAtlasEfvCounts()) {
 								if (!ar.get("efv").startsWith("V1") && !ar.get("efv").contains("(time)") && !ar.get("efv").contains("(dose)") && !ar.get("efv").contains("(age)")) {
 						%>
 						<tr>
-							<td nowrap="true"><span style="font-weight: bold"
-								title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>">
-							<%=ar.get("efv").length() > 50 ? ar.get("efv")
-								.substring(0, 50)
-								+ "..." : ar.get("efv")%> </span></td>
+							<td nowrap="true">
+								<span style="font-weight: bold"	title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>" >
+									<a class="pagination_ie" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')"> <%=ar.get("efv").length() > 50 ? ar.get("efv").substring(0, 50) + "..." : ar.get("efv")%> </a> 
+								</span>
+							</td>
 							<td style="border-right: medium solid" align="right"><b><%=ar.get("experiment_count")%>
 							</b></td>
 	
 							<%
 								for (HashMap<String, String> gene : genes) {
-											HashMap<String, String> gar = gars.get(gene
-													.get("gene_identifier")
-													+ ar.get("efv"));
+											HashMap<String, String> gar = gars.get(gene.get("gene_identifier") + ar.get("efv"));
 	
 											if (gar != null && gar.size() != 0) {
 												Long r_dn = 255L;
@@ -939,9 +938,28 @@ a:focus {
 			</table>
 		</td>
 		<td valign="top" align="left">
-			<div id="pagingSummary" align="right"></div>
-			<div id="Pagination" class="pagination_ie"></div>
-			<div id="ExperimentResult"></div>
+			<table>
+			<tr>
+				<td id="expHeader_td" class="sectionHeader">Experiments showing Differential expression for <%=atlasGene.getGeneName()%>
+				</td>
+				<td>
+				<div id="Pagination" class="pagination_ie"></div>
+				</td>
+			</tr>
+			<tr>
+					<td colspan="2">
+					<div class="separator"></div>
+					</td>
+				</tr>
+			<tr>
+				<td colspan="2">
+					
+					
+					<div id="ExperimentResult"></div>
+				</td>
+			</tr>
+			
+			</table>
 		</td>
 	</tr>
 </table>
