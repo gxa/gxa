@@ -25,6 +25,7 @@ import ds.utils.DS_DBconnection;
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasResultSet;
 import ae3.util.DBhandler;
+import ae3.util.AtlasProperties;
 
 import java.util.HashSet;
 import java.util.Properties;
@@ -44,16 +45,13 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
-            Properties atlasProps = new Properties();
-            atlasProps.load(getClass().getResourceAsStream("/atlas.properties"));
-
 //            ServletContext sc = sce.getServletContext();
 
             ArrayExpressSearchService as = ArrayExpressSearchService.instance();
             DBhandler dbHandler = DBhandler.instance(); 
-            final String solrIndexLocation = atlasProps.getProperty("atlas.solrIndexLocation");
-            final String dbName            = atlasProps.getProperty("atlas.dbName");
-            final String netCDFlocation = atlasProps.getProperty("atlas.netCDFlocation");
+            final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
+            final String dbName            = AtlasProperties.getProperty("atlas.dbName");
+            final String netCDFlocation = AtlasProperties.getProperty("atlas.netCDFlocation");
 
             log.info("Initializing Atlas...");
             log.info("  Solr index location: " + solrIndexLocation);

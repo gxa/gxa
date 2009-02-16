@@ -1,3 +1,8 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+
     </title>
 
     <link rel="stylesheet"  href="http://www.ebi.ac.uk/inc/css/contents.css"     type="text/css" />
@@ -46,6 +51,7 @@
         }
     </script>
 
+<c:if test="${u:hasProp('atlas.has.googleanalytics')}">
     <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -55,3 +61,4 @@
     pageTracker._initData();
     pageTracker._trackPageview();
     </script>
+</c:if>

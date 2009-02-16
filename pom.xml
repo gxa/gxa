@@ -150,6 +150,7 @@
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
                 <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.smithers/</atlas.netCDFlocation>
+                <atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
             </properties>
         </profile>
         <profile>
@@ -169,6 +170,7 @@
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
                 <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.otto/</atlas.netCDFlocation>
+                <atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
             </properties>
         </profile>
         
@@ -189,6 +191,7 @@
                 <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
+                <atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
             </properties>
         </profile>
         <profile>
@@ -215,6 +218,7 @@
                 <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>console</atlas.log.appender>
+                <atlas.has.googleanalytics>no</atlas.has.googleanalytics>
             </properties>
         </profile>
     </profiles>
@@ -235,5 +239,6 @@
         <atlas.netCDFlocation>/ebi/ArrayExpressfiles/NetCDFs.DWDEV/</atlas.netCDFlocation>
         <atlas.log.priority>INFO</atlas.log.priority>
         <atlas.log.appender>atlas-log</atlas.log.appender>
+        <atlas.has.googleanalytics>no</atlas.has.googleanalytics>
     </properties>
 </project>
