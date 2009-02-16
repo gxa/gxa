@@ -25,7 +25,7 @@ public class AtlasResultSet implements Serializable {
     private String idkey;
     private String searchkey;
     private int eltCount = 0;
-
+    private static final String omittedEFs = "age,individual,time,dose,V1";
     public AtlasResultSet(final String searchkey) {
         if(null== searchkey || searchkey.equals("")) {
             throw new IllegalArgumentException ("Must be constructed with a non-empty cache string key");	
@@ -56,7 +56,7 @@ public class AtlasResultSet implements Serializable {
         try {
             conn = ArrayExpressSearchService.instance().getMEMConnection();
             PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT efv || ' (' || ef || ')' as efvef, " +
+                    "SELECT efv || ' (' || ef || ')' as efvef, efv, ef," +
                             "count(distinct experiment_id) AS ce, " +
                             "group_concat(distinct experiment_accession separator ', ') AS experiments, " + 
                             "group_concat(distinct experiment_id separator ', ' ) AS exp_ids, "+
@@ -73,15 +73,24 @@ public class AtlasResultSet implements Serializable {
             ResultSet rs = stmt.executeQuery();
 
             while(rs.next()) {
-                HashMap<String,String> h = new HashMap<String,String>();
-                h.put("efv", rs.getString("efvef"));
-                h.put("experiment_count", rs.getString("ce"));
-                h.put("experiments", rs.getString("experiments"));
-                h.put("exp_ids", rs.getString("exp_ids"));
-                h.put("up_count", rs.getString("sumup"));
-                h.put("dn_count", rs.getString("sumdn"));
+            	String efv = rs.getString("efv");
+            	String ef = rs.getString("ef");
+            	if(!omittedEFs.contains(efv) && !omittedEFs.contains(ef)){
+            		HashMap<String,String> h = new HashMap<String,String>();
+                    String efvShort = efv.length() > 30 ? efv.substring(0,30)+"..." : efv;
+                    h.put("efv_short",efvShort );
+                    h.put("efv",efv);
+                    h.put("ef", rs.getString("ef"));
+                    h.put("efvef", rs.getString("efvef"));
+                    h.put("experiment_count", rs.getString("ce"));
+                    h.put("experiments", rs.getString("experiments"));
+                    h.put("exp_ids", rs.getString("exp_ids"));
+                    h.put("up_count", rs.getString("sumup"));
+                    h.put("dn_count", rs.getString("sumdn"));
 
-                ars.add(h);
+                    ars.add(h);
+            	}
+                
             }
 
             rs.close();

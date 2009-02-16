@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f"%>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@page import="ae3.model.AtlasGene"%>
 <%@page import="ae3.dao.AtlasDao"%>
 <%@page import="java.util.*"%>
@@ -18,17 +19,16 @@
 	String noAtlasExps = null;
 	if (geneId != null) {
 		atlasGene = AtlasDao.getGeneByIdentifier(geneId);
-		noAtlasExps = ArrayExpressSearchService.instance()
-				.getNumOfAtlasExps(atlasGene.getGeneId());
+		noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
+		request.setAttribute("atlasGene",atlasGene);
+		request.setAttribute("noAtlasExps",noAtlasExps);
 	}
 
-	if (request.getParameter("format") != null
-			&& request.getParameter("format").equals("xml")) {
+	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
 		//TODO: set this right (via REST WS perhaps)
 		response.setContentType("text/xml");
 		response.setCharacterEncoding("UTF-8");
-		Map<String, Collection<Object>> props = atlasGene
-				.getGeneSolrDocument().getFieldValuesMap();
+		Map<String, Collection<Object>> props = atlasGene.getGeneSolrDocument().getFieldValuesMap();
 %>
 <atlasGene>
 <%
@@ -53,8 +53,7 @@
 	}
 %>
 <jsp:include page="start_head.jsp" />
-ArrayExpress Atlas Gene View -
-<%=atlasGene.getGeneName()%>
+ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 <jsp:include page="end_head.jsp" />
 <style>
 <!--
@@ -122,12 +121,12 @@ table.heatmap {
 
 .sectionHeader {
 	color: #9e9e9e;
-	font-size: 14pt;
+	font-size: 11pt;
 	text-align: left;
 }
 
 .titleHeader {
-	color: #1f1f1f;
+	color: #9e9e9e;
 	font-size: 16pt;
 	text-align: left;
 }
@@ -182,9 +181,15 @@ a:focus {
 	outline: none;
 }
 
-.ac_over {
-	background-color: #1f1f1f;
-	color: white;
+.heatmap_over {
+	background-color: #bdd7d7;
+	color: #404040;
+	cursor: pointer;
+}
+
+.heatmap_out{
+	background-color: #fafafa;
+	color: #404040;
 }
 }
 -->
@@ -195,15 +200,13 @@ a:focus {
 <script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="jquery.autocomplete.js"></script>
 <script type="text/javascript" src="jquerydefaultvalue.js"></script>
-<script type="text/javascript" src="scripts/jquery.pagination.js">
+<script type="text/javascript" src="scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="scripts/plots.js"></script>
 
 
-
-<!-- add header scripts here -->
 <script type="text/javascript">
 <!--
-    function
-            viewMore(id)
+    function  viewMore(id)
     {
 
         id = String(id);
@@ -237,230 +240,45 @@ a:focus {
         }
     }
     
-    
-    
 //-->
 </script>
 <script type="text/javascript">
 
+	function loadExps(){
+		 $('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,from:"1", to:"5"},drawPlots);
+         $('#pagingSummary').text("Showing search results "+((0*5)+1)+"-"+((0*5)+5)+" out of "+<%=noAtlasExps%>);
+         // Create pagination element
+        $("#Pagination").pagination(<%=noAtlasExps%>, {
+			num_edge_entries: 2,
+			num_display_entries: 5,
+			items_per_page:5,
+            callback: pageselectCallback
+         });
+         $("#expHeader_td").text("Experiments showing differential expression for <%=atlasGene.getGeneName()%>");
+	}
+	
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id*5) +1;
 		var toPage = (page_id*5) + 5;
 		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,from:fromPage, to: toPage},drawPlots);
 		$('#pagingSummary').text("Showing search results "+fromPage+"-"+toPage+" out of "+<%=noAtlasExps%>);
 	}
-
+	
 
 	function FilterExps(ids,fv){
 		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,exp_ids:ids},drawPlots);
-		//$('#pagingSummary').text("Showing filtered results");
 		$("#expHeader_td").text("Experiments showing differential expression for <%=atlasGene.getGeneName()%> in "+ fv);
-		$("#Pagination").text("Return to all experiments");
+		var lnk = $("<a> Return to all experiments </a>")
+						.bind("click", loadExps);
+						
+		$("#Pagination").empty().append(lnk);
 	}
-
-	function drawPlot(jsonObj, plot_id){
-	   	if(jsonObj.series){
-   			//alert('start of draw plot');
-			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
-			var overview;
-			var allSeries = plot.getData();
-			if(allSeries.length >10){
-				var divElt = $('#'+plot_id+'_thm');
-				divElt.width(300);divElt.height(50);
-				overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
-				//overview.setSelection({ xaxis: { from: 0, to: allSeries.length } });
-				
-			}
-				
-			
-			
-					
-			$('#'+plot_id).bind("plotselected", function (event, ranges) {
-        		// do the zooming
-        		plot = $.plot($('#'+plot_id), jsonObj.series,	$.extend(true, {}, jsonObj.options, {
-           					xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
-                    	 	}));
-
-				// don't fire event on the overview to prevent eternal loop
-				//overview.setSelection(ranges, true);
-    		});
-    
-				    $('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
-				        plot.setSelection(ranges);
-				    });
-				    
-				    
-			//Tooltip
-			var previousPoint = null;
-			$('#'+plot_id).bind("plothover", function (event, pos, item) {
-
-        		if (item) {
-          			if (previousPoint != item.datapoint) {
-				          previousPoint = item.datapoint;
-				                $("#tooltip").remove();
-				                 var x = item.datapoint[0].toFixed(2),
-				                     y = item.datapoint[1].toFixed(2);
-				                 showTooltip(pos.pageX, pos.pageY,item.series.label,plot_id);
-				                    
-				                }
-        		}else {
-				          $("#tooltip").remove();
-				           previousPoint = null;            
-				       }
-			});
-        				
-        			/*	
-        			//Legend Colors
-        			var allSeries = plot.getData();
-        			var tokens = plot_id.split('_');
-        			var eid = tokens[0];
-        			var gid = tokens[1];
-        			for (var i = 0; i < allSeries.length; ++i){
-        				var color = allSeries[i].color;
-        				var label = allSeries[i].label.toLowerCase().replace(/ /g,'');
-        				
-        				$("#"+eid+'_'+gid+'_'+label+'_td').css('background-color',color);
-        			}*/	
-   					 
-
-				return plot;	
-				}// if(o.series)
-	}
- 
-
-	function bindMarkings(jsonObj,plot, plot_id){
-	
-					//Markings 
-					var tokens = plot_id.split('_');
-        			var eid = tokens[0];
-        			var gid = tokens[1];
-        			
-        			//unbind from previous events bound to previous plots (different EFs) otherwise they keep adding up.
-        			$("#"+eid+'_'+gid+'_tbl').find("input").unbind();
-        			
-					$("#"+eid+'_'+gid+'_tbl').find("input").click(function(){
-						var tokens = this.value.split('_');
-						var EFV=tokens[0];
-						var EF=tokens[1];
-						if(this.checked){
-							markClicked(eid,gid,EF,EFV,plot,jsonObj);
-						}
-						else{
-						
-						plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1}
-                      					}));
-                      	overview.clearSelection();
-                      	
-						}
-					});
-	
-	}
-
-	function markClicked(eid,gid,ef,efv,plot,jsonObj){
-								
-						
-		//alert($("#"+eid+'_'+gid+'_'+EFV+'_chk').checked);
-		var plot_id = eid+'_'+gid+'_plot';
-		var allSeries = plot.getData();
-		var series;
-		var markColor;
-      	for (var i = 0; i < allSeries.length; ++i){
-      		if(allSeries[i].label){
-       		 	if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
-       		 		series = allSeries[i];
-       		 		markColor = series.color
-       		 		break;
-       	 		}
-       	 	}
-		}
-						//alert('inside clicked ');
-						if(series==null){
-						//alert('series is null')
-							redrawPlotForFactor(eid+'_'+gid+'_'+ef,true,efv);
-							
-							return null;
-							}
-						var data = series.data;
-						var xMin= data[0][0]
-						var xMax= data[data.length-1][0]
-						
-						//var seriesoptions = $.extend(true,{},series.lines,{show:true,lineWidth:1, fill:true})
-						
-						//var testSeries=[];
-						
-						//testSeries.push(series);
-						////allSeries.push(testSeries);
-						//var modSeries = $.extend(true,{},series,{lines:{show:true,lineWidth:1, fill:true}})
-						//alert(testSeries);
-						
-						//plot = $.plot($('#'+plot_id), allSeries,o.options);
-						var overviewDiv = $('#'+plot_id+'_thm');
-						if(allSeries.length>10 && data.length<5){
-						
-						
-							
-                      		//showThumbnail(eid+'_'+gid);
-                      		
-                      		
-                      		if(overviewDiv.height()!=0){
-                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,jsonObj.options);
-				
-                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
-                      		}
-                      		plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#e8cfac' }]},
-                          				xaxis: { min: xMin-10, max: xMax+10 }
-                      					}));
-						}
-						else{
-						
-						plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#e8cfac' }]}
-                      					}));
-                      					if(overviewDiv.height()!=0){
-                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
-				
-                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
-                      		}
-                      	}
-	}
-
-	function drawPlots(){
-
-			$(".plot").each(function(){
-        	var plot_id = this.id;
-        	var tokens = plot_id.split('_');
-        	var eid = tokens[0];
-        	var gid = tokens[1]; 
-        	$.ajax({
-   			type: "POST",
-   			url:"plot.jsp",
-   			data:"gid="+gid+"&eid="+eid,
-   			
-   			dataType:"json",
-   			
-   			success: function(o){
-   				var plot = drawPlot(o,plot_id);//success
-   				bindMarkings(o,plot,plot_id);
-   				}
- 			});//ajax
-        	
-        }); //each
-
-
-
-	}//drawPlots
 		
 		
     jQuery(document).ready(function()
     {
        				
-        $('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,from:"1", to:"5"},drawPlots);
-        
-        
-        
-        $('#pagingSummary').text("Showing search results "+((0*5)+1)+"-"+((0*5)+5)+" out of "+<%=noAtlasExps%>);
+       loadExps();
         
         
         $("#q_gene").defaultvalue("(all genes)");
@@ -471,17 +289,6 @@ a:focus {
             $(this).toggleClass("active");
             return false;
         });
-
-
-		// Create pagination element
-        $("#Pagination").pagination(<%=noAtlasExps%>, {
-			num_edge_entries: 2,
-			num_display_entries: 5,
-			items_per_page:5,
-            callback: pageselectCallback
-         });
-		
-		
 
         $("#q_expt").autocomplete("autocomplete.jsp", {
             minChars:1,
@@ -523,8 +330,7 @@ a:focus {
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
 <div class="pagecontainer">
-<table width="100%" style="border-bottom: thin solid lightgray"
-	cellpadding="0" cellspacing="0">
+<table width="100%" style="border-bottom: thin solid lightgray"	cellpadding="0" cellspacing="0">
 	<tr>
 		<td align="left" valign="bottom" width="55"><a href="index.jsp"><img
 			border="0" src="atlasbeta.jpg" width="50" height="25" /></a></td>
@@ -634,137 +440,93 @@ a:focus {
 
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
 	<tr>
-
-		<td class="titleHeader" valign="middle">ArrayExpress Atlas Gene
-		View</td>
+		<td class="titleHeader" valign="middle">ArrayExpress Atlas Gene	View</td>
 		<td align="right" valign="top">
-		<div
-			style="color: #e33e3e; text-align: right; font-size: 26pt; margin-top: 15px; font-weight: bold; vertical-align: top">
-		<%=atlasGene.getGeneName()%></div>
-		<span
-			style="margin-top: 0; text-align: right; color: #1f7979; font-size: 9pt; font-weight: bold;">
-		<%=atlasGene.getGeneSpecies()%> </span></td>
+		<div style="color: #e33e3e; text-align: right; font-size: 26pt; margin-top: 15px; font-weight: bold; vertical-align: top">
+			${atlasGene.geneName}
+		</div>
+		<span style="margin-top: 0; text-align: right; color: #1f7979; font-size: 9pt; font-weight: bold;">
+			${atlasGene.geneSpecies}
+		</span>
+		</td>
 	</tr>
-
 </table>
 
 <table width="100%">
 
-	<!--
-    <tr>
-        <td class="geneAnnotHeader">Description:</td>
-        <td align="left">NF-kapp-B inhibitor alpha</td>
-
-    </tr>
-    <tr>
-        <td></td>
-        <td>
-        <div class="separator"></div>
-        </td>
-    </tr>
--->
 	<tr>
 		<td class="geneAnnotHeader">Synonyms:</td>
-		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-							"gene_synonym").toString().replace(']', ' ')
-							.replace('[', ' ')%></td>
+		<td align="left">${atlasGene.synonyms}</td>
 	</tr>
-	<%
-		Collection uniprots = atlasGene.getGeneSolrDocument()
-				.getFieldValues("gene_uniprot");
-		if (uniprots != null && uniprots.size() > 0) {
-	%>
+	
+	<c:if test="${!empty atlasGene.interProTerm}">
+		<tr>
+			<td></td>
+			<td>
+			<div class="separator"></div>
+			</td>
+		</tr>
+		<tr>
+			<td class="geneAnnotHeader">InterPro Term:</td>
+			<td align="left">${atlasGene.shortInterProTerms}</td>
+		</tr>
+	</c:if>
+	
+	<c:if test="${!empty atlasGene.disease}">
+		<tr>
+			<td></td>
+			<td>
+			<div class="separator"></div>
+			</td>
+		</tr>
+		<tr>
+			<td class="geneAnnotHeader">Diseases:</td>
+			<td align="left">${atlasGene.shortDiseases}</td>
+		</tr>
+	</c:if>
+	
+	<c:if test="${!empty atlasGene.goTerm}">
+		<tr>
+			<td></td>
+			<td>
+			<div class="separator"></div>
+			</td>
+		</tr>
+		<tr>
+			<td class="geneAnnotHeader">GO Terms:</td>
+			<td align="left">${atlasGene.shortGOTerms}</td>
+		</tr>
+	</c:if>
+	
+	<c:if test="${!empty atlasGene.uniprotIds}">
+		<tr>
+			<td></td>
+			<td><div class="separator"></div></td>
+		</tr>
+		<tr>
+			<td class="geneAnnotHeader">Uniprot:</td>
+			<td align="left">
+				<c:forEach var="uniprot" items="${atlasGene.geneSolrDocument.fieldValuesMap['gene_uniprot']}">
+				 <a href="http://www.uniprot.org/uniprot/${uniprot}" target="_blank">${uniprot}</a>&nbsp;
+				</c:forEach>
+			</td>
+		</tr>
+	</c:if>
+	
 	<tr>
 		<td></td>
-		<td>
-		<div class="separator"></div>
-		</td>
+		<td><div class="separator"></div></td>
 	</tr>
-	<tr>
-		<td class="geneAnnotHeader">Uniprot:</td>
-		<td align="left">
-		<%
-			for (Object uniprot : uniprots) {
-		%> <a href="http://www.uniprot.org/uniprot/<%=uniprot%>"><%=uniprot%></a>&nbsp;
-		<%
-			}
-		%>
-		</td>
-	</tr>
-	<%
-		}
-	%>
-
-	<%
-		if (atlasGene.getGeneSolrDocument().getFieldValue(
-				"gene_interproterm") != null) {
-	%>
-	<tr>
-		<td></td>
-		<td>
-		<div class="separator"></div>
-		</td>
-	</tr>
-	<tr>
-		<td class="geneAnnotHeader">InterPro Term:</td>
-		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_interproterm").toString().replace(']',
-								' ').replace('[', ' ')%></td>
-
-	</tr>
-	<%
-		}
-	%>
-	<%
-		if (atlasGene.getGeneSolrDocument().getFieldValue("gene_disease") != null) {
-	%>
-	<tr>
-		<td></td>
-		<td>
-		<div class="separator"></div>
-		</td>
-	</tr>
-	<tr>
-		<td class="geneAnnotHeader">Diseases:</td>
-		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_disease").toString().replace(']', ' ')
-								.replace('[', ' ')%></td>
-		<td></td>
-
-	</tr>
-	<%
-		}
-	%>
-	<%
-		if (atlasGene.getGeneSolrDocument().getFieldValue("gene_goterm") != null) {
-	%>
-	<tr>
-		<td></td>
-		<td>
-		<div class="separator"></div>
-		</td>
-	</tr>
-	<tr>
-		<td class="geneAnnotHeader">GO Terms:</td>
-		<td align="left"><%=atlasGene.getGeneSolrDocument().getFieldValue("gene_goterm").toString().replace(']', ' ').replace('[', ' ')%></td>
-	</tr>
-	<%
-		}
-	%>
-	<tr>
-		<td></td>
-		<td>
-		<div class="separator"></div>
-		</td>
-		<td></td>
-	</tr>
+	
 	<tr>
 		<td class="geneAnnotHeader">Cross Refs:</td>
-		<td align="left"><a title="Show gene annotation" target="_blank"
-			href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=<%=atlasGene.getGeneSolrDocument().getFieldValue(
-								"gene_identifier").toString()%>"><%=atlasGene.getGeneSolrDocument().getFieldValue(
-							"gene_identifier").toString()%> </a></td>
-		<td width="8%">&nbsp;</td>
+		<td align="left">
+			<a title="Show gene annotation" target="_blank"	href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
+				${atlasGene.geneIdentifier} 
+			</a>
+		</td>
+		
+		<!-- td width="8%">&nbsp;</td-->
 
 	</tr>
 
@@ -796,15 +558,17 @@ a:focus {
 	
 				<%
 					AtlasResultSet atlasResultSet = AtlasGeneService.getExprSummary(atlasGene.getGeneId());
+					request.setAttribute("atlasResult", atlasResultSet);
 				%>
+				
 	
 				<tr>
 					<td>
 					<div>
-					<table border="1" class="heatmap" cellpadding="3" cellspacing="0"
-						bordercolor="#ffffff">
+					<table border="1" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff">
 						<tr>
 							<th rowspan="2">Factor Value</th>
+							<th rowspan="2">Factor</th>
 							<th rowspan="2"	style="border-right: medium solid; border-left: thin">Studies</th>
 							<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
 							<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
@@ -826,20 +590,26 @@ a:focus {
 						<%
 							HashMap<String, HashMap<String, String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
 							for (HashMap<String, String> ar : atlasResultSet.getAtlasEfvCounts()) {
-								if (!ar.get("efv").startsWith("V1") && !ar.get("efv").contains("(time)") && !ar.get("efv").contains("(dose)") && !ar.get("efv").contains("(age)")) {
+								request.setAttribute("ef", ar.get("ef"));
 						%>
 						<tr>
-							<td nowrap="true">
+							<td nowrap="true"  onmouseover="this.className='heatmap_over'" onmouseout="this.className='heatmap_out'" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')">
 								<span style="font-weight: bold"	title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>" >
-									<a class="pagination_ie" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')"> <%=ar.get("efv").length() > 50 ? ar.get("efv").substring(0, 50) + "..." : ar.get("efv")%> </a> 
+									<%=ar.get("efv_short")%>
+									
 								</span>
 							</td>
-							<td style="border-right: medium solid" align="right"><b><%=ar.get("experiment_count")%>
-							</b></td>
+								
+							<td>
+								<fmt:message key="head.ef.${ef}"/>
+							</td>
+							<td style="border-right: medium solid" align="right">
+								<b><%=ar.get("experiment_count")%></b>
+							</td>
 	
 							<%
 								for (HashMap<String, String> gene : genes) {
-											HashMap<String, String> gar = gars.get(gene.get("gene_identifier") + ar.get("efv"));
+											HashMap<String, String> gar = gars.get(gene.get("gene_identifier") + ar.get("efvef"));
 	
 											if (gar != null && gar.size() != 0) {
 												Long r_dn = 255L;
@@ -923,7 +693,6 @@ a:focus {
 						</tr>
 						<%
 							}
-							}
 						%>
 					</table>
 					</div>
@@ -936,31 +705,30 @@ a:focus {
 					</td>
 				</tr>
 			</table>
-		</td>
+		</td> 
 		<td valign="top" align="left">
 			<table>
 			<tr>
 				<td id="expHeader_td" class="sectionHeader">Experiments showing Differential expression for <%=atlasGene.getGeneName()%>
-				</td>
-				<td>
-				<div id="Pagination" class="pagination_ie"></div>
+				</td>	
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="separator"></div>
 				</td>
 			</tr>
 			<tr>
-					<td colspan="2">
-					<div class="separator"></div>
-					</td>
-				</tr>
+				<td align="right">
+					<div id="Pagination" class="pagination_ie"></div>
+				</td>
+			</tr>
 			<tr>
 				<td colspan="2">
-					
-					
 					<div id="ExperimentResult"></div>
 				</td>
 			</tr>
-			
 			</table>
-		</td>
+		</td> 
 	</tr>
 </table>
 

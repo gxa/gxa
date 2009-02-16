@@ -67,7 +67,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
             position: 'absolute',
             display: 'none',
             top: 70,
-            left: x-40,
+            left: x,
             border: '1px solid #fdd',
             padding: '2px',
             'background-color': '#fee',
@@ -141,7 +141,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 	
 </script>
 
-<table align="left" >
+<table align="left" cellpadding="1">
 
 	<% int c = 0;
                     for (AtlasExperiment exp : exps) {
@@ -150,11 +150,11 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 	
 
 	<tr align="left">
-		<td align="left" nowrap="true" valign="top">
-		<h3><%=exp.getDwExpAccession().trim()%>:</h3>
+		<td align="right" nowrap="true" valign="top">
+			<h3><%=exp.getDwExpAccession().trim()%>:</h3>
 		</td>
 		<td align="left">
-		<h3><%=exp.getAerExpName()%></h3>
+			<h3><%=exp.getTitle()%></h3>
 		</td>
 		<!--
 		<td width="20px"><img style="cursor: pointer"
@@ -164,45 +164,57 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 		-->
 	</tr>
 	<tr>
-		<td colspan="3">
-		<div style="display: block"
-			id="<%=exp.getDwExpId().toString()%>_desc_ext">
-		<table cellpadding="2" cellspacing="2">
-			<!--
-			<tr>
-				<td align="right">Title:</td>
-				<td align="left"><%=exp.getTitle()%></td>
-			</tr>
-			-->
-			<tr>
-				<td align="right" valign="top">Summary:</td>
-				<td align="left"><%=exp.getTitle()%></td>
-
-			</tr>
-			<tr>
+		<!--
 				<td colspan="3">
-					<div class="separator"></div>
+				<div style="display: block"	id="<%=exp.getDwExpId().toString()%>_desc_ext">
+				<table cellpadding="2" cellspacing="2">
+					
+					<tr>
+						<td align="right">Title:</td>
+						<td align="left"><%=exp.getTitle()%></td>
+					</tr>
+					
+					<tr>
+						<td align="right" valign="top">Summary:</td>
+						<td align="left"><%=exp.getTitle()%></td>
+		
+					</tr>
+					<tr>
+						<td colspan="3">
+							<div class="separator"></div>
+						</td>
+					</tr>
+				</table>
+				</div>
 				</td>
-			</tr>
-		</table>
-		</div>
+				
+		 -->
+		 <td align="right">Summary:</td>
+		 <td align="left"><%=exp.getAerExpName()%></td>
+	</tr>
+	<tr>
+		<td colspan="3">
+		<div class="separator"></div>
 		</td>
 	</tr>
 
 	<%if (!exp.getExperimentFactors().isEmpty()) { %>
 	<tr align="left">
 		<td colspan="3" >
-		<div style="color: #5e5e5e; padding-top: 3px;padding-bottom: 3px;" >
-			<span>Experimental Factors:</span>
-				<span id="<%=exp.getDwExpId().toString()%>_EFpagination" class="pagination_ie" style="padding-top: 5px; "><%HashSet<String> EFset = exp.getExperimentFactors();
-                	for(String EF: EFset){if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%><span class="current"><%=EF%></span>
+		<div style="color: #5e5e5e; padding-top: 5px;padding-bottom: 0px; valign:middle" >
+			<span>Experimental Factors</span>
+				<div id="<%=exp.getDwExpId().toString()%>_EFpagination" class="pagination_ie" style="padding-top: 15px;">
+				<%HashSet<String> EFset = exp.getExperimentFactors();
+                	for(String EF: EFset){
+                		request.setAttribute("PlotEF",EF);
+                		if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%><span class="current"><fmt:message key="head.ef.${PlotEF}"/></span>
                  		<%}else{%>
                  	<a id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>" 
 								onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
-							<%=EF%> </a>						
+							<fmt:message key="head.ef.${PlotEF}"/> </a>						
 					 
 				<%}}%>
-		</span>
+		</div>
 		</div>
 
 		</td>
@@ -210,8 +222,8 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 	<%} %>
 
 
-
-	<tr>
+	
+	<tr align="left">
 		<td colspan="3">
 		<table width="100%">
 			<tr>
@@ -219,8 +231,8 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 				<td valign="top" width="300px">
 				<table>
 					<!-- div style="position:relative"-->
-					<tr>
-						<td>
+					<tr align="left">
+						<td align="left">
 							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot" class="plot" style="width: 300px; height: 150px;"></div>
 							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot_thm"> </div>
 						</td>
@@ -251,85 +263,23 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 				</table>
 				</td>
 
-				<td align="left"   valign="top"><!-- div class="exp_summary"-->
-				<table class="heatmap" cellpadding="2" border="1" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_tbl"
-					bordercolor="#ffffff" style="border-style: dotted; top: 10px">
-					<tr><td colspan="3">Top conditions showing differential expression</td></tr>
-					<tr>
-						<th class="subheading">Mark</th>
-						<th class="subheading">Factor Value</th>
-						<th class="subheading">P-value</th>
-						<!--th class="subheading">Text Summary</th-->
-					</tr>
-					<%
-										                List<AtlasTuple> atlusTuples = AtlasGeneService.getAtlasResult(atlasGene.getGeneId(), exp.getDwExpId().toString());
-										                int i = 0;
-										                for (AtlasTuple atuple : atlusTuples) {
-										                    if (!atuple.getEfv().startsWith("V1")) {
-										                        i++;
-										                        if (i < 11) {
-										            %>
-					<tr>
-						<td align="center" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv().toLowerCase().replaceAll(" ","")%>_td" ><input type="radio" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv()%>_chk" name="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>" value="<%=atuple.getEfv()%>_<%=atuple.getEf()%>" class="markBox"></input></td>
-						<td><%=atuple.getEfv()%></td>
-						<td valign="top" nowrap="true">
-						<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif"
-							align="top"> <%} else if (atuple.getUpdn().equals(-1)) {%><img
-							src="images/dn_arrow.gif" align="top">
-						<%}%> <%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
-						</td>
-						<!--td><%=atlasGene.getGeneName() + " " + atuple.getTxtSummary()%></td-->
-					</tr>
-					<%
-										            } else {
-										                if (i == 11) {%>
-				<!--
-					<tr>
-						<td id="<%=exp.getDwExpId().toString()%>_atls_lnk_more"
-							colspan="3" align="center"><span class="moreLink"
-							onclick="viewMore('<%=exp.getDwExpId().toString() %>')">View
-						more results</span></td>
-					</tr> -->
-				</table>
-				<div id="<%=exp.getDwExpId().toString()%>_ext"
-					class="fullSectionView" style="display: none"">
-				<table class="heatmap" cellpadding="2" border="1" bordercolor="#ffffff" style="border-style: dotted" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_tbl_ext">
-					<%} %>
-					<tr>
-						<td align='center' id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv().toLowerCase().replaceAll(" ","")%>_td"><input type="checkbox" id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=atuple.getEfv()%>_chk" name="<%=atuple.getEfv()%>_<%=atuple.getEf()%>" class="markBox"></input></td>
-						<td><%=atuple.getEfv()%></td>
-						<td valign="top" nowrap="true">
-						<%if (atuple.getUpdn().equals(1)) {%><img src="images/up_arrow.gif"
-							align="top"> <%} else if (atuple.getUpdn().equals(-1)) {%><img
-							src="images/dn_arrow.gif" align="top">
-						<%}%> <%=atuple.getPval() > 1e-16D ? String.format("%.3g", atuple.getPval()) : "< 1e-16"%>
-						</td>
-						<!--td><%=atlasGene.getGeneName() + " " + atuple.getTxtSummary()%></td-->
-					</tr>
+<!--
 
-					<%  }
-										                }
-										            }
-										            if (i >= 11) {%>
-					<tr>
-						<td colspan="3"
-							id="<%=exp.getDwExpId().toString()%>_atls_lnk_less" align="right">
-						<img style="cursor: pointer" title="Collapse"
-							id="<%=exp.getDwExpId().toString()%>_atls_lnk_less"
-							src="images/minus_up.gif"
-							onclick="viewMore(<%=exp.getDwExpId().toString()%>)" /></td>
-					</tr>
-				</table>
-				</div>
-				<%}else{%>
-				
+
+ -->
+			</tr>
 		</table>
-		<%} %> <!-- /div--></td>
+		</td>
 	</tr>
-</table>
-</td>
-</tr>
-<tr>
+	<tr>
+		<td colspan="3">
+			Show in <a  href="../aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">ArrayExpress Warehouse</a>
+			&nbsp;/&nbsp;
+			<a  href="../arrayexpress/query/result?queryFor=Experiment&eAccession=<%=exp.getDwExpAccession().trim()%>">ArrayExpress Archive</a>
+		</td>
+	</tr>
+	
+	<tr>
 		<td colspan="3">
 		<div class="separator"></div>
 		</td>

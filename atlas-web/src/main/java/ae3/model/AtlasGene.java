@@ -49,6 +49,19 @@ public class AtlasGene {
     public String getGoTerm() {
         return getValue("gene_goterm");
     }
+    
+    public String getShortValue(String name){
+    	ArrayList fval = (ArrayList)geneSolrDocument.getFieldValues(name);
+    	if(fval.size()>5)
+    		return StringUtils.join(fval.subList(0, 5),", ");
+    	else
+    		return StringUtils.join(fval,", ");
+    			
+    }
+    
+    public boolean fieldAvailable(String field){
+    	return geneSolrDocument.getFieldNames().contains(field);
+    }
 
     public String getInterProTerm() {
         return getValue("gene_interproterm");
@@ -56,6 +69,10 @@ public class AtlasGene {
 
     public String getKeyword() {
         return getValue("gene_keyword");
+    }
+    
+    public String getDisease(){
+    	return getValue("gene_disease");
     }
 
     private String getHilitValue(String name) {
@@ -85,10 +102,30 @@ public class AtlasGene {
         this.geneHighlights = geneHighlights;
     }
 
+    public String getShortGOTerms(){
+    	return getShortValue("gene_goterm");
+    }
+    
+    public String getShortInterProTerms(){
+    	return getShortValue("gene_interproterm");
+    }
+    
+    public String getShortDiseases(){
+    	return getShortValue("gene_disease");
+    }
+    
     public SolrDocument getGeneSolrDocument() {
         return geneSolrDocument;
     }
 
+    public String getUniprotIds(){
+    	return getValue("gene_uniprot");
+    }
+    
+    public String getSynonyms(){
+    	return getValue("gene_synonym");
+    }
+    
     public String getGeneHighlightStringForHtml() {
 
         if(geneHighlights == null)
