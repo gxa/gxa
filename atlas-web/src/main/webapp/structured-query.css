@@ -114,21 +114,16 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
     position: absolute;
     width: 500px;
     height: 300px;
-    margin-top: 0px;
-    margin-left: 0px;
     background-color: #ffffe0;
     border: 1px solid black;
     padding: 10px;
     color: black;
     text-align:left;
-    opacity: 0.95;
     z-index:2000;
 }
 .waiter {
     position: absolute;
     overflow: auto;
-    margin-top: 0px;
-    margin-left: 0px;
     border: 1px solid black;
     padding: 3px;
     background-color: white;
@@ -136,37 +131,47 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
 }
 
 .expopup .exptable {
-    position: absolute;
+    position: relative;
     height: 250px;
-    width: 490px;
-    overflow: auto;
-    opacity: 1;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    border: 1px solid #cdcdcd;
+    margin-top: 10px;
 }
 
-.expopup h1 {
+.expopup .head {
     font-weight:normal;
     font-size:12px;
 }
-.expopup td {
+
+.expopup .head a {
+    font-size: 14px;
+}
+
+.expopup .exptable > table {
+    border-spacing: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.expopup td.explot, .expopup td.explink, .expopup td.expup, .expopup td.expdn  {
     white-space: normal;
     vertical-align:top;
     text-align: left;
+    padding: 5px;
 }
-.expopup th {
-    vertical-align:top;
-    text-align: left;
-    font-weight: bold;
+
+.expopup tr.notlast > td { border-bottom: 1px solid #cdcdcd; }
+
+.expopup td.explot {
+    border-right: 1px solid #cdcdcd;
 }
-.expopup th.expup {
-    background-color: #660000;
-    color: #ff6666;
-    font-weight: bold;
+
+.expopup td.explink {
+    border-right: 1px solid #cdcdcd;
 }
-.expopup th.expdn {
-    background-color: #000066;
-    color: #6666ff;
-    font-weight: bold;
-}
+
 .expopup td.expup {
     color: #990000;
 }
@@ -203,3 +208,6 @@ a.ftot:link, aftot:active, a.ftot:hover, a.ftot:visited { color: #666666;text-de
 #tooltip .genename { margin-bottom: 10px;font-size:10px; }
 #tooltip .genename b { font-weight: bold; font-size: 14px; }
 
+.plot { position: relative; width: 280px; height: 80px; }
+
+.footer { z-index: 6; }

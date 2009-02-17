@@ -39,7 +39,7 @@ public class ExperimentsService {
     private void addExperimentsToList(ExperimentList list, ResultSet rs, AtlasExperiment experiment) throws SQLException {
         boolean isUp = !rs.getString("updn").contains("-");
         list.add(new ExperimentRow(
-                experiment.getAerExpId(),
+                experiment.getDwExpId(),
                 experiment.getAerExpName(),
                 experiment.getAerExpAccession(),
                 experiment.getAerExpDescription(),

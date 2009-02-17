@@ -36,6 +36,7 @@ ArrayExpress Atlas Preview
 <script type="text/javascript" src="jquery.tooltip.js"></script>
 <script type="text/javascript" src="jquery.dimensions.js"></script>
 <script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="structured-query.js"></script>
 <script type="text/javascript" src="raphael-packed.js"></script>
 
@@ -210,13 +211,12 @@ ArrayExpress Atlas Preview
                 }<c:if test="${!s.last}">,</c:if></c:forEach>
             ]
         };
-
+        </c:if>
         $(document).ready(function () {
             initQuery();
             $('#simpleform, #structform').css('visibility', 'visible');
             $('#${empty query || query.simple ? 'struct' : 'simple'}form').hide();
         });
-        </c:if>
     </script>
 
     <c:if test="${!empty query}">
@@ -308,7 +308,7 @@ ArrayExpress Atlas Preview
                             <td colspan="2"></td>
                             <map name="efvmap">
                                 <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
-                                    <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;" href="#">
+                                    <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
                                 </c:forEach>
                             </map>
                             <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
@@ -368,18 +368,18 @@ ArrayExpress Atlas Preview
                                         </c:when>
                                         <c:when test="${ud.ups == 0 && ud.downs > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
-                                                title="Gene ${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiments. Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this)">${ud.downs}</td>
+                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                                onclick="hmc(${i.index},${j.index},this,event)">${ud.downs}</td>
                                         </c:when>
                                         <c:when test="${ud.downs == 0 && ud.ups > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
-                                                title="Gene ${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiments. Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this)">${ud.ups}</td>
+                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
+                                                onclick="hmc(${i.index},${j.index},this,event)">${ud.ups}</td>
                                         </c:when>
                                         <c:otherwise>
                                             <td class="acounter"
-                                                title="Gene ${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiments. Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
+                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                                onclick="hmc(${i.index},${j.index},this,event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>

@@ -3,9 +3,9 @@ var geneCounter = 0;
 
 function escapeHtml(s) {
     return s.replace(/\"/g,"&quot;")
-            .replace(/</g,"&lt;")
-            .replace(/>/g,"&gt;")
-            .replace(/&/g,"&amp;");
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/&/g,"&amp;");
 }
 
 (function($){
@@ -57,7 +57,7 @@ function escapeHtml(s) {
              }
 
          if(!found)
-            return;         
+             return;
 
          var value = $('<td class="specval">' + specie + '<input class="specval" type="hidden" name="specie_' + counter + '" value="' + specie + '"></td>');
          var remove = createRemoveButton(function () {
@@ -86,7 +86,7 @@ function escapeHtml(s) {
              tr.after($('<tr class="speccond"><td colspan="2">or</td></tr>').append(value).append(remove).append($('<td />')));
          } else {
              tbody.prepend($('<tr class="speccond"><td colspan="2">species is</td></tr>')
-                     .append(value).append(remove).append($('<td />')));
+                           .append(value).append(remove).append($('<td />')));
          }
      }
 
@@ -226,7 +226,7 @@ function escapeHtml(s) {
                          $('#gprop0').val(newprop);
                          var oldval = $(this).val();
                          this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
-                       //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
+                         //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
                      }).get(0).onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
 
 
@@ -250,11 +250,11 @@ function escapeHtml(s) {
              .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
 
          $(".genename a").tooltip({
-             bodyHandler: function () {
-                 return $(this).next('.gtooltip').html();
-             },
-             showURL: false
-         });
+                                      bodyHandler: function () {
+                                          return $(this).next('.gtooltip').html();
+                                      },
+                                      showURL: false
+                                  });
 
          $('#geneprops').change(function () {
                                     if(this.selectedIndex == 0)
@@ -313,55 +313,78 @@ function escapeHtml(s) {
 
          i = 0;
          $('#conditions tr.efvcond,#conditions tr.genecond').each(function(){
-                                      $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
-                                      ++i;
-                                  });
+                                                                      $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
+                                                                      ++i;
+                                                                  });
          $('#species,#geneprops,#factors').remove();
      };
 
+     function adjustPosition(el) {
+         var v = {
+             x: $(window).scrollLeft(),
+             y: $(window).scrollTop(),
+             cx: $(window).width(),
+             cy: $(window).height()
+         };
 
-     window.hmc = function (igene, iefv, tdd) {
-         $("div.expopup .closebox").click();
+         var h = el.get(0);
+         // check horizontal position
+         if (v.x + v.cx < h.offsetLeft + h.offsetWidth) {
+             var left = h.offsetLeft - (h.offsetWidth + 20 + 15);
+             el.css({left: left + 'px'});
+         }
+         // check vertical position
+         if (v.y + v.cy < h.offsetTop + h.offsetHeight) {
+             var top = h.offsetTop - (h.offsetHeight + 20 + 15);
+             el.css({top: top + 'px'});
+         }
+     }
 
-         var td = $(tdd);
+     window.hmc = function (igene, iefv, tdd, event) {
+         $("div.expopup").remove();
 
          var gene = resultGenes[igene];
          var efv = resultEfvs[iefv];
 
-         var waiter = $('<div/>').addClass('waiter').append($('<img/>').attr('src','expandwait.gif'));
+         var left = event.pageX + 15;
+         var top = event.pageY + 15;
 
-         td.prepend(waiter);
-         td.addClass('counter').removeClass('acounter');
-         td.unbind('click');
+         var waiter = $('<div/>').addClass('waiter').append($('<img/>').attr('src','expandwait.gif'))
+                 .css({ left: left + 'px', top: top + 'px' });
+
+         $('body').append(waiter);
+         adjustPosition(waiter);
 
          $.ajax({
-             mode: "queue",
-             port: "sexpt",
-             url: 'experiments.jsp',
-             dataType: "html",
-             data: { gene:gene.geneAtlasId, ef: efv.ef, efv: efv.efv },
-             complete: function(resp) {
-                 waiter.remove();
+                    mode: "queue",
+                    port: "sexpt",
+                    url: 'experiments.jsp',
+                    dataType: "html",
+                    data: { gene:gene.geneAtlasId, ef: efv.ef, efv: efv.efv },
+                    complete: function(resp) {
+                        waiter.remove();
 
-                 var popup = $("<div/>").addClass('expopup')
-                         .html(resp.responseText)
-                         .prepend($("<div/>").addClass('closebox')
-                         .click(
-                         function(e) {
-                             td.click(function() { hmc(igene, iefv, tdd); });
-                             td.addClass('acounter').removeClass('counter');
-                             popup.hide('normal',function() { popup.remove(); });
-                             e.stopPropagation();
-                             return false;
-                         }).text('close'))
-                         .click(function(e){e.stopPropagation();})
-                         .hide()
-                         .attr('title','');
+                        var popup = $("<div/>").addClass('expopup')
+                            .html(resp.responseText)
+                            .prepend($("<div/>").addClass('closebox')
+                                     .click(
+                                         function(e) {
+                                             popup.remove();
+                                             e.stopPropagation();
+                                             return false;
+                                         }).text('close'))
+                            .click(function(e){e.stopPropagation();})
+                            .attr('title','')
+                            .css({ left: left + 'px', top: top + 'px' });
 
-                 td.prepend(popup);
-                 popup.show('normal');
-             }
-         });
+                        $('#contentsarea').append(popup);
+
+                        // adjust for viewport
+                        adjustPosition(popup);
+
+                        drawExperimentPlots(gene.geneAtlasId, efv.ef, efv.efv);
+                    }
+                });
      };
 
      window.structMode = function() {
@@ -373,5 +396,61 @@ function escapeHtml(s) {
          $("#structform").hide('fast');
          $("#simpleform").show('fast');
      };
+
+     window.drawExperimentPlots = function(gene_id, ef, efv) {
+
+         function drawPlot(jsonObj, plot_id, efv){
+             if(jsonObj.series) {
+                 jsonObj.options.legend.container = "#" + plot_id + "_legend";
+                 jsonObj.options.legend.extContainer = null;
+
+                 var plot = $.plot($('#'+plot_id), jsonObj.series, jsonObj.options);
+                 var overview;
+                 var allSeries = plot.getData();
+
+                 var series = null;
+                 var markColor = null;
+                 for (var i = 0; i < allSeries.length; ++i){
+      		     if(allSeries[i].label){
+       		 	 if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
+       		 	     series = allSeries[i];
+       		 	     markColor = series.color;
+       		 	     break;
+       	 		}
+       	 	     }
+		 }
+
+                 if(!series)
+                     return;
+
+                 var data = series.data;
+		 var xMin= data[0][0] - 0.5;
+		 var xMax= data[data.length-1][0] + 0.5;
+
+		 plot = $.plot($('#'+plot_id), jsonObj.series,
+                               $.extend(true, {}, jsonObj.options, {
+                          		    grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
+                      			}));
+
+             }
+         };
+
+
+	 $(".plot").each(function() {
+                             var plot_id = this.id;
+                             var eid = plot_id.split('_')[1];
+                             $.ajax({
+   			                type: "GET",
+   			                url: "plot.jsp",
+   			                data: { gid: gene_id, eid: eid, ef: 'ba_' + ef },
+   			                dataType: "json",
+   			                success: function(o){
+   			                    drawPlot(o, plot_id, efv);
+   			                }
+ 		                    });
+
+                         });
+     };
+
 
  })(jQuery);

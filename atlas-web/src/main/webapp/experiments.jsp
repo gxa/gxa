@@ -30,23 +30,26 @@
     }
 %>
 <c:if test="${!empty gene && !empty exps}">
-    <h1>
-        Gene <b>${f:escapeXml(empty gene.geneName ? gene.geneIdentifier : gene.geneName)}</b> in <b>${f:escapeXml(efv)}</b> (<fmt:message key="head.ef.${ef}"/>)<br>is overexpressed in <b>${f:length(exps.ups)}</b> and underexpressed in <b>${f:length(exps.downs)}</b> experiments
-    </h1>
+    <div class="head">
+        <a href="gene?gid=${f:escapeXml(gene.geneIdentifier)}"><b>${f:escapeXml(empty gene.geneName ? gene.geneIdentifier : gene.geneName)}</b></a> in <b>${f:escapeXml(efv)}</b> (<fmt:message key="head.ef.${ef}"/>)<br>
+        overexpressed in <b>${f:length(exps.ups)}</b> and underexpressed in <b>${f:length(exps.downs)}</b> experiment(s)
+    </div>
     <div class="exptable">
     <table>
-        <c:forEach var="e" items="${expsi}">
-            <tr>
-                <th><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}"><c:out value="${e.experimentAccessment}"/></a></th>
-                <td><em><c:out value="${e.experimentName}"/></em><p><c:out value="${e.experimentDescription}"/></p></td>
+        <c:forEach var="e" items="${expsi}" varStatus="s">
+            <tr class="${s.last ? 'last' : 'notlast'}">
+                <td class="explink"><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}"><c:out value="${e.experimentAccessment}"/></a></td>
+                <td class="explot">
+                    <c:out value="${e.experimentName}"/>
+                    <div class="plot" id="explot_${e.experimentId}"></div>
+                    <div class="legend" id="explot_${e.experimentId}_legend"></div>
+                </td>
                 <c:choose>
                     <c:when test="${e.updn == 'UP'}">
-                        <th class="expup">&#8593;</th>
-                        <td class="expup"><fmt:formatNumber value="${e.pvalue}" maxFractionDigits="10"/></td>
+                        <td class="expup">&#8593;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></td>
                     </c:when>
                     <c:otherwise>
-                        <th class="expdn">&#8595;</th>
-                        <td class="expdn"><fmt:formatNumber value="${e.pvalue}" maxFractionDigits="10"/></td>
+                        <td class="expdn">&#8595;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></td>
                     </c:otherwise>
                 </c:choose>
             </tr>
