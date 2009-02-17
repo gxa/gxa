@@ -36,6 +36,7 @@ ArrayExpress Atlas Preview
 <script type="text/javascript" src="jquery.tooltip.js"></script>
 <script type="text/javascript" src="jquery.dimensions.js"></script>
 <script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="structured-query.js"></script>
 <script type="text/javascript" src="raphael-packed.js"></script>
@@ -313,6 +314,7 @@ ArrayExpress Atlas Preview
                             </map>
                             <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
                             <c:url var="imgUrl" value="/thead">
+                                <c:param name="random" value="${u:currentTime()}" />
                                 <c:param name="st" value="1" />
                                 <c:param name="s" value="27" />
                                 <c:param name="fs" value="11" />
@@ -369,17 +371,17 @@ ArrayExpress Atlas Preview
                                         <c:when test="${ud.ups == 0 && ud.downs > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
                                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this,event)">${ud.downs}</td>
+                                                onclick="hmc(${i.index},${j.index},event)">${ud.downs}</td>
                                         </c:when>
                                         <c:when test="${ud.downs == 0 && ud.ups > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
                                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this,event)">${ud.ups}</td>
+                                                onclick="hmc(${i.index},${j.index},event || window.event)">${ud.ups}</td>
                                         </c:when>
                                         <c:otherwise>
                                             <td class="acounter"
                                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},this,event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
+                                                onclick="hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>

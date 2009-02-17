@@ -38,7 +38,7 @@
     <table>
         <c:forEach var="e" items="${expsi}" varStatus="s">
             <tr class="${s.last ? 'last' : 'notlast'}">
-                <td class="explink"><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}"><c:out value="${e.experimentAccessment}"/></a></td>
+                <td class="explink"><nobr><a href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}"><c:out value="${e.experimentAccessment}"/></a></nobr></td>
                 <td class="explot">
                     <c:out value="${e.experimentName}"/>
                     <div class="plot" id="explot_${e.experimentId}"></div>
@@ -46,10 +46,10 @@
                 </td>
                 <c:choose>
                     <c:when test="${e.updn == 'UP'}">
-                        <td class="expup">&#8593;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></td>
+                        <td class="expup"><nobr>&#8593;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></nobr></td>
                     </c:when>
                     <c:otherwise>
-                        <td class="expdn">&#8595;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></td>
+                        <td class="expdn"><nobr>&#8595;&nbsp;<fmt:formatNumber value="${e.pvalue}" pattern="#.###E0" /></nobr></td>
                     </c:otherwise>
                 </c:choose>
             </tr>

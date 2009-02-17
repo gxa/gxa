@@ -340,14 +340,24 @@ function escapeHtml(s) {
          }
      }
 
-     window.hmc = function (igene, iefv, tdd, event) {
+     window.hmc = function (igene, iefv, event) {
          $("div.expopup").remove();
 
          var gene = resultGenes[igene];
          var efv = resultEfvs[iefv];
 
-         var left = event.pageX + 15;
-         var top = event.pageY + 15;
+         var left;
+         var top;
+         if ( event.pageX == null && event.clientX != null ) {
+             var e = document.documentElement, b = document.body;
+             left = event.clientX + (e && e.scrollLeft || b.scrollLeft || 0);
+             top = event.clientY + (e && e.scrollTop || b.scrollTop || 0);
+         } else {
+             left = event.pageX;
+             top = event.pageY;
+         }         
+         left += 15;
+         top += 15;
 
          var waiter = $('<div/>').addClass('waiter').append($('<img/>').attr('src','expandwait.gif'))
                  .css({ left: left + 'px', top: top + 'px' });
