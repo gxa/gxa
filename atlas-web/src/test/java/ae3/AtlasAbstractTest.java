@@ -3,6 +3,7 @@ package ae3;
 import java.util.logging.Logger;
 
 import ae3.service.ArrayExpressSearchService;
+import ae3.util.AtlasProperties;
 
 import junit.framework.TestCase;
 
@@ -15,7 +16,7 @@ public class AtlasAbstractTest extends TestCase
 	{
 		log.info("Set up");
 		//ArrayExpressSearchService.instance().setSolrIndexLocation("C:/Users/mdylag/workspaces/ebi/ae3/indexbuilder/data/multicore");
-		ArrayExpressSearchService.instance().setSolrIndexLocation("indexbuilder/data/multicore");
+		ArrayExpressSearchService.instance().setSolrIndexLocation(AtlasProperties.getProperty("atlas.solrIndexLocation"));
 		
 		ArrayExpressSearchService.instance().initialize();		
 		super.setUp();
