@@ -273,7 +273,8 @@ a:focus {
 						
 		$("#Pagination").empty().append(lnk);
 	}
-		
+	
+	
 		
     jQuery(document).ready(function()
     {
@@ -315,6 +316,7 @@ a:focus {
             }
         });
         
+              
 
     });
 </script>
@@ -565,7 +567,7 @@ a:focus {
 				<tr>
 					<td>
 					<div>
-					<table border="1" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff">
+					<table border="0" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff">
 						<tr>
 							<th rowspan="2">Factor Value</th>
 							<th rowspan="2">Factor</th>
@@ -592,18 +594,17 @@ a:focus {
 							for (HashMap<String, String> ar : atlasResultSet.getAtlasEfvCounts()) {
 								request.setAttribute("ef", ar.get("ef"));
 						%>
-						<tr>
-							<td nowrap="true"  onmouseover="this.className='heatmap_over'" onmouseout="this.className='heatmap_out'" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')">
+						<tr onmouseover="this.className='heatmap_over'" onmouseout="this.className='heatmap_out'" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')">
+							<td nowrap="true">
 								<span style="font-weight: bold"	title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>" >
 									<%=ar.get("efv_short")%>
-									
 								</span>
 							</td>
 								
-							<td>
+							<td nowrap="true">
 								<fmt:message key="head.ef.${ef}"/>
 							</td>
-							<td style="border-right: medium solid" align="right">
+							<td align="right">
 								<b><%=ar.get("experiment_count")%></b>
 							</td>
 	
@@ -670,7 +671,7 @@ a:focus {
 												}
 							%>
 							<td align="center"
-								style="background-color: rgb(<%=         r_up %>, <%=         g_up %>, <%=         b_up %>)"><span
+								style="background-color: rgb(<%=         r_up %>, <%=         g_up %>, <%=         b_up %>);border-left: medium solid"><span
 								title="<%=title%>"
 								style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
 							</td>
@@ -707,7 +708,7 @@ a:focus {
 			</table>
 		</td> 
 		<td valign="top" align="left">
-			<table>
+			<table align="left">
 			<tr>
 				<td id="expHeader_td" class="sectionHeader">Experiments showing Differential expression for <%=atlasGene.getGeneName()%>
 				</td>	

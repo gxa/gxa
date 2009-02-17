@@ -36,11 +36,13 @@ function drawPlot(jsonObj, plot_id){
 
         		if (item) {
           			if (previousPoint != item.datapoint) {
+          			
 				          previousPoint = item.datapoint;
 				                $("#tooltip").remove();
 				                 var x = item.datapoint[0].toFixed(2),
 				                     y = item.datapoint[1].toFixed(2);
-				                 showTooltip(pos.pageX, pos.pageY,item.series.label,plot_id);
+				                     
+				                 showTooltip(item.pageX, item.pageY,item.series.label,plot_id);
 				                    
 				                }
         		}else {
@@ -99,8 +101,6 @@ function drawPlot(jsonObj, plot_id){
 
 	function markClicked(eid,gid,ef,efv,plot,jsonObj){
 								
-						
-		//alert($("#"+eid+'_'+gid+'_'+EFV+'_chk').checked);
 		var plot_id = eid+'_'+gid+'_plot';
 		var allSeries = plot.getData();
 		var series;
@@ -114,13 +114,10 @@ function drawPlot(jsonObj, plot_id){
        	 		}
        	 	}
 		}
-						//alert('inside clicked ');
 						if(series==null){
-						//alert('series is null')
 							redrawPlotForFactor(eid+'_'+gid+'_'+ef,true,efv);
-							
 							return null;
-							}
+						}
 						var data = series.data;
 						var xMin= data[0][0]
 						var xMax= data[data.length-1][0]

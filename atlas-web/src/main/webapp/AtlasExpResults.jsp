@@ -21,6 +21,8 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <%@page import="java.util.HashSet"%>
+<script type="text/javascript">
+
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
 <script type="text/javascript">
 <!--
@@ -66,8 +68,8 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
         $('<div id="tooltip">' + contents + '</div>').css( {
             position: 'absolute',
             display: 'none',
-            top: 70,
-            left: x,
+            top: 50,
+            left:x-550,
             border: '1px solid #fdd',
             padding: '2px',
             'background-color': '#fee',
@@ -106,13 +108,17 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
     	var panelContent = [];
     	
     	var EFs = $("#"+eid+"_EFpagination *").each(function(){
-    		var ef = $(this).html().toString();
+    		var ef = $(this).attr("id");
+    		var ef_txt = $(this).html();
     		ef = jQuery.trim(ef);
     					if(ef == currentEF){
-    						panelContent.push("<span class='current'>"+ef+"</span>")
+    						//alert("<span id='"+ef+"' class='current'>"+ef_txt+"'/></span>");
+    						panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
+    						
     					}
     					else{
-    						panelContent.push('<a id="'+eid+'_'+gid+'_'+ef+ '" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ ef +' </a>');
+    					//alert("<a id='"+ef+"' onclick='redrawPlotForFactor('"+eid+"_"+gid+"_"+ef+"',false)'>"+ef_txt+"/></a>")
+    						panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ef_txt+'</a>');
     					}
     					
     					});
@@ -207,11 +213,14 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 				<%HashSet<String> EFset = exp.getExperimentFactors();
                 	for(String EF: EFset){
                 		request.setAttribute("PlotEF",EF);
-                		if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%><span class="current"><fmt:message key="head.ef.${PlotEF}"/></span>
+                		if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%>
+                	<span class="current" id="${PlotEF}">
+                		<fmt:message key="head.ef.${PlotEF}"/>
+                	</span>
                  		<%}else{%>
-                 	<a id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>" 
-								onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
-							<fmt:message key="head.ef.${PlotEF}"/> </a>						
+                 	<a id="${PlotEF}" onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
+							<fmt:message key="head.ef.${PlotEF}"/> 
+					</a>						
 					 
 				<%}}%>
 		</div>
