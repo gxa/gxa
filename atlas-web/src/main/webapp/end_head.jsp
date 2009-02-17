@@ -62,3 +62,5 @@
     pageTracker._trackPageview();
     </script>
 </c:if>
+
+${protonotes.script}
