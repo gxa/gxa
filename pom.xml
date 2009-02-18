@@ -113,6 +113,10 @@
 	<configuration>
 	  <doCheck>false</doCheck>
 	  <doUpdate>false</doUpdate>
+	  <timestampFormat>
+	    {0,date,yyyy-MM-dd HH:mm:ss}
+	  </timestampFormat>
+	  <timestampPropertyName>buildTimestamp</timestampPropertyName>
 	</configuration>
       </plugin>
 
@@ -174,7 +178,18 @@
 	<atlas.log.priority>INFO</atlas.log.priority>
 	<atlas.log.appender>atlas-log</atlas.log.appender>
 	<atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.smithers/</atlas.netCDFlocation>
-	<atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
+
+	<atlas.googleanalytics.script><![CDATA[
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    var pageTracker = _gat._getTracker("UA-338477-2");
+    pageTracker._initData();
+    pageTracker._trackPageview();
+    </script>
+        ]]></atlas.googleanalytics.script>
       </properties>
     </profile>
 
@@ -195,7 +210,18 @@
 	<atlas.log.priority>INFO</atlas.log.priority>
 	<atlas.log.appender>atlas-log</atlas.log.appender>
 	<atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.otto/</atlas.netCDFlocation>
-	<atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
+
+	<atlas.googleanalytics.script><![CDATA[
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    var pageTracker = _gat._getTracker("UA-338477-2");
+    pageTracker._initData();
+    pageTracker._trackPageview();
+    </script>
+        ]]></atlas.googleanalytics.script>
       </properties>
     </profile>
     
@@ -216,7 +242,6 @@
 	<atlas.dbName>AEDWDEV_MOE</atlas.dbName>
 	<atlas.log.priority>INFO</atlas.log.priority>
 	<atlas.log.appender>atlas-log</atlas.log.appender>
-	<atlas.has.googleanalytics>yes</atlas.has.googleanalytics>
       </properties>
     </profile>
 
@@ -245,10 +270,40 @@
 	<atlas.dbName>AEDWDEV_MOE</atlas.dbName>
 	<atlas.log.priority>INFO</atlas.log.priority>
 	<atlas.log.appender>console</atlas.log.appender>
-	<atlas.has.googleanalytics>no</atlas.has.googleanalytics>
       </properties>
     </profile>
     
+    <profile>
+      <id>ostolop</id>
+      <build>
+	<plugins>
+	  <plugin>
+	    <groupId>org.codehaus.mojo</groupId>
+	    <artifactId>tomcat-maven-plugin</artifactId>
+	    <configuration>
+	      <url>http://localhost:8080/manager</url>
+	    </configuration>
+	  </plugin>
+	</plugins>
+      </build>
+      <properties>
+	<solr.data.directory>/Users/pashky/projects/solrindex</solr.data.directory>
+	<atlas.netCDFlocation>/Users/pashky/projects/NetCDFs.DWDEV/</atlas.netCDFlocation>
+	<indexbuilder.ftp>nowhere</indexbuilder.ftp>
+	<jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
+	<jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
+	<jdbc.ae.username>aequery</jdbc.ae.username>
+	<jdbc.ae.password>aeq007tt</jdbc.ae.password>
+	<jdbc.dw.url>jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWDEV</jdbc.dw.url>
+	<jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
+	<jdbc.dw.username>aemart</jdbc.dw.username>
+	<jdbc.dw.password>marte</jdbc.dw.password>
+	<atlas.dbName>AEDWDEV_MOE</atlas.dbName>
+	<atlas.log.priority>INFO</atlas.log.priority>
+	<atlas.log.appender>console</atlas.log.appender>
+      </properties>
+    </profile>
+
     <profile>
       <id>bamboo</id>
       <build>
@@ -277,17 +332,16 @@
 	<atlas.dbName>AEDWDEV_MOE</atlas.dbName>
 	<atlas.log.priority>INFO</atlas.log.priority>
 	<atlas.log.appender>atlas-log</atlas.log.appender>
-	<atlas.has.googleanalytics>no</atlas.has.googleanalytics>
-	<protonotes.script><![CDATA[
-		<script src="http://www.protonotes.com/js/protonotes.js" type="text/javascript"></script>
-		<script type="text/javascript">
-			var groupnumber="AwN1pzm5IWkM";
-		</script> 
-	]]></protonotes.script>
+
+	<atlas.protonotes.script><![CDATA[
+	<script src="http://www.protonotes.com/js/protonotes.js" type="text/javascript"></script>
+	<script type="text/javascript">var groupnumber="AwN1pzm5IWkM";</script> 
+	]]></atlas.protonotes.script>
       </properties>
     </profile>	
   </profiles>
   
+  <!-- default properties -->
   <properties>
     <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR</solr.data.directory>
     <indexbuilder.ftp>nowhere</indexbuilder.ftp>
@@ -303,7 +357,8 @@
     <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWDEV/</atlas.netCDFlocation>
     <atlas.log.priority>INFO</atlas.log.priority>
     <atlas.log.appender>atlas-log</atlas.log.appender>
-    <atlas.has.googleanalytics>no</atlas.has.googleanalytics>
-    <protonotes.script/>
+
+    <atlas.googleanalytics.script/>
+    <atlas.protonotes.script/>
   </properties>
 </project>
