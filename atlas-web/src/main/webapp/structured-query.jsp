@@ -276,22 +276,13 @@ ArrayExpress Atlas Preview
             </script>
             </c:if>
 
-            <div class="summary">
-                <c:out value="${result.total}" /> matching gene(s) found, displaying as
-                <c:choose>
-                    <c:when test="${heatmap}">
-                        heatmap (<a href="${f:replace(pageUrl,'&view=hm','')}&amp;p=${query.start}">show as list</a>)
-                    </c:when>
-                    <c:otherwise>
-                        list (<a href="${pageUrl}&amp;p=${query.start}&amp;view=hm">show as heatmap</a>)
-                    </c:otherwise>
-                </c:choose>
-            </div>
-
             <table id="twocol"><tr>
             <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
             <td id="drilldowns">
-                <div class="pagination_ie page_short"></div>
+                <div id="summary">
+                    <c:out value="${result.total}" /> matching gene(s) found
+                </div>
+                <c:if test="${result.size < result.total}"><div class="pagination_ie page_short"></div></c:if>
                 <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                     <div class="drillsect">
                         <div class="name"><fmt:message key="head.ef.${ef.ef}"/>:</div>
@@ -328,8 +319,13 @@ ArrayExpress Atlas Preview
 
             <c:if test="${true || heatmap}">
                 <td id="resultpane">
-                <table id="squery">
-                    <tbody>
+                    <c:if test="${result.total < u:getIntProp('atlas.drilldowns.mingenes')}">
+                        <div id="summary">
+                            <c:out value="${result.total}" /> matching gene(s) found
+                        </div>
+                    </c:if>
+                    <table id="squery">
+                        <tbody>
                         <tr class="header">
                             <th class="padded" rowspan="2">Gene</th>
                             <c:if test="${f:length(query.species) != 1}">
@@ -409,8 +405,8 @@ ArrayExpress Atlas Preview
                                 </c:forEach>
                             </tr>
                         </c:forEach>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
 
                     <div class="pagination_ie page_long"></div>
 

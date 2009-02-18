@@ -1,14 +1,13 @@
-#twocol, #twocol td { padding: 0;border: none; }
-#twocol td { vertical-align: top; padding-right: 10px; }
+#twocol { padding: 0; margin: 15px 0 0 0; border-spacing: 0; }
+#twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* tables */
 #squery {
     font-family: arial, sans-serif;
     font-size: 8pt;
     text-align: left;
-    margin: -1px 0px 15px;
-    border-spacing: 1px;
-    background: #cdcdcd;
+    margin: 0px 0px 15px;
+    border-collapse: collapse;
     margin-right: 30px;
     padding: 0;
 }
@@ -18,6 +17,7 @@
     font-size: 8pt;
     vertical-align: top;
     padding: 0px 0px 0px 0px;
+    border: 1px solid #cdcdcd;
 }
 #squery .padded { padding: 1px 4px 1px 4px; }
 #squery th.padded { vertical-align: middle;text-align: center; }
@@ -32,6 +32,7 @@
     vertical-align: middle;
     padding: 0px 0px 0px 0px;
     white-space: nowrap;
+    border: 1px solid #cdcdcd;
 }
 
 #squery td.counter, #squery td.acounter {
@@ -84,16 +85,16 @@
 
 .drillsect { }
 .drillsect ul { padding: 5px 0px 10px 0px;margin: 0; }
-.drillsect li { padding-left: 0px; list-style: none; }
-.drillsect .name { font-weight: bold; }
-a.fup:link, a.fup:active, a.fup:visited { color: #660000; text-decoration: none; }
-a.fdn:link, a.fdn:active, a.fdn:visited { color: #000066; text-decoration: none; }
+.drillsect li { padding-left: 0px; list-style: none; color: #b0b0b0; }
+.drillsect .name { font-weight: bold; color: black; }
+a.fup:link, a.fup:active, a.fup:visited { color: #c5b0b0; text-decoration: none; }
+a.fdn:link, a.fdn:active, a.fdn:visited { color: #b0b0c5; text-decoration: none; }
 a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 .drillsect a:hover { text-decoration: underline; }
 
-#pagination { margin-top: 20px; text-align: left; }
+#pagination { margin-top: 10px; text-align: left; }
 
-.summary { margin-top: 10px; margin-bottom: 10px; }
+#summary { margin-bottom: 10px; }
 
 /* experiments popup */
 
@@ -209,5 +210,5 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 .plot { position: relative; width: 280px; height: 80px; }
 
 .pagination_ie {
-    padding: 0.3em 0 15px 0;
+    padding: 10px 0 15px 0;
 }
