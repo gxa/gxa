@@ -25,7 +25,7 @@
 	border: solid 1px #AAE;
 }
 
-.pagination_ie .current.prev, .pagination .current.next{
+.pagination_ie .current.prev, .pagination_ie .current.next{
 	color:#999;
 	border-color:#999;
 	background:#fff;
