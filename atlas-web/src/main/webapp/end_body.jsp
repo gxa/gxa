@@ -1,6 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-					<span style="position:fixed;bottom:30px;right:0px;padding-right:10px">ArrayExpress Atlas Build <c:out value="${u:getProp('atlas.buildNumber')}"/></span>
+					<span style="position:fixed;bottom:6px;right:0px;padding-right:10px;z-index:20;">ArrayExpress Atlas Build <c:out value="${u:getProp('atlas.buildNumber')}"/></span>
 					<img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></td>
 					<td class="rightmenucell" id="rightmenucell">
 					  <div class="rightmenu" id="rightmenu"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></div>
