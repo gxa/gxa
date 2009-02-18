@@ -341,7 +341,7 @@ function escapeHtml(s) {
      }
 
      window.hmc = function (igene, iefv, event) {
-         $("div.expopup").remove();
+         $("#expopup").remove();
 
          var gene = resultGenes[igene];
          var efv = resultEfvs[iefv];
@@ -359,7 +359,7 @@ function escapeHtml(s) {
          left += 15;
          top += 15;
 
-         var waiter = $('<div/>').addClass('waiter').append($('<img/>').attr('src','expandwait.gif'))
+         var waiter = $('<div id="waiter" />').append($('<img/>').attr('src','expandwait.gif'))
                  .css({ left: left + 'px', top: top + 'px' });
 
          $('body').append(waiter);
@@ -372,9 +372,9 @@ function escapeHtml(s) {
                     dataType: "html",
                     data: { gene:gene.geneAtlasId, ef: efv.ef, efv: efv.efv },
                     complete: function(resp) {
-                        waiter.remove();
+                        $('#waiter').remove();
 
-                        var popup = $("<div/>").addClass('expopup')
+                        var popup = $('<div id="expopup" />')
                             .html(resp.responseText)
                             .prepend($("<div/>").addClass('closebox')
                                      .click(
@@ -387,7 +387,7 @@ function escapeHtml(s) {
                             .attr('title','')
                             .css({ left: left + 'px', top: top + 'px' });
 
-                        $('#contentsarea').append(popup);
+                        $('body').append(popup);
 
                         // adjust for viewport
                         adjustPosition(popup);

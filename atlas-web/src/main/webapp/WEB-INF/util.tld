@@ -68,10 +68,26 @@
     </function>
 
     <function>
+      <name>truncate</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        java.lang.String truncateLine(java.lang.String,int)
+      </function-signature>
+    </function>
+
+    <function>
         <name>getProp</name>
         <function-class>ae3.util.AtlasProperties</function-class>
         <function-signature>
             java.lang.String getProperty(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>getIntProp</name>
+        <function-class>ae3.util.AtlasProperties</function-class>
+        <function-signature>
+            int getIntProperty(java.lang.String)
         </function-signature>
     </function>
 

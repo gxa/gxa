@@ -9,6 +9,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.IOException;
 
+import ae3.util.AtlasProperties;
+
 /**
  * @author pashky
  */
@@ -198,11 +200,11 @@ public class AtlasStructuredQueryParser {
 
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseExpFactorConditions(httpRequest));
-        request.setRows(DEFAULT_ROWS);
+        request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
 
         String start = httpRequest.getParameter(PARAM_START);
         try {
-            request.setStart(Integer.valueOf(start));
+            request.setStart(Integer.valueOf(start) * request.getRowsPerPage());
         } catch(Exception e) {
             request.setStart(0);
         }

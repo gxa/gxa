@@ -30,3 +30,14 @@
 	border-color:#999;
 	background:#fff;
 }
+
+.pagination_ie a.prev, .pagination_ie a.next {
+    color: #408c8c;
+    border: solid 1px #AAE;
+    background:#fff;
+    float: none;
+    height: auto;
+    padding: 0.3em 0.5em;
+    margin-right: 5px;
+	margin-bottom: 5px;
+}

@@ -18,7 +18,15 @@ public class AtlasProperties {
     }
 
     public static String getProperty(String key) {
-        return props.getProperty(key);
+        return props.getProperty(key) != null ? props.getProperty(key) : "";
+    }
+
+    public static int getIntProperty(String key) {
+        try {
+            return Integer.valueOf(props.getProperty(key));
+        } catch(Exception e) {
+            return 0;
+        }
     }
 
     public static boolean hasProperty(String key) {

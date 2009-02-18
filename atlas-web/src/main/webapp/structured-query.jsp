@@ -28,6 +28,7 @@ ArrayExpress Atlas Preview
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
+<link rel="stylesheet" href="scripts/pagination.css" />
 
 <script type="text/javascript" src="jquery.min.js"></script>
 <script type="text/javascript" src="jquery.cookie.js"></script>
@@ -38,6 +39,7 @@ ArrayExpress Atlas Preview
 <script type="text/javascript" src="jquerydefaultvalue.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.js"></script>
+<script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="structured-query.js"></script>
 <script type="text/javascript" src="raphael-packed.js"></script>
 
@@ -215,6 +217,7 @@ ArrayExpress Atlas Preview
         </c:if>
         $(document).ready(function () {
             initQuery();
+
             $('#simpleform, #structform').css('visibility', 'visible');
             $('#${empty query || query.simple ? 'struct' : 'simple'}form').hide();
         });
@@ -240,9 +243,9 @@ ArrayExpress Atlas Preview
             <c:url var="pageUrl" value="/qrs">
                
                 <c:forEach var="g" varStatus="gs"items="${query.geneQueries}">
-                    <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}"></c:param>
-                    <c:param name="gval_${gs.index}" value="${g.jointFactorValues}"></c:param>
-                	<c:param name="gprop_${gs.index}" value="${g.factor}"></c:param>
+                    <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
+                    <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
+                	<c:param name="gprop_${gs.index}" value="${g.factor}" />
                 </c:forEach>
                 <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
                 <c:forEach varStatus="cs" var="c" items="${result.conditions}">
@@ -253,9 +256,28 @@ ArrayExpress Atlas Preview
                 <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
             </c:url>
 
+            <c:if test="${!empty result && result.size < result.total}">
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var opts = {
+                        current_page: ${result.page},
+                        num_edge_entries: 1,
+                        items_per_page: ${result.rowsPerPage},
+                        link_to: '${pageUrl}&p=__id__',
+                        next_text: '»',
+                        prev_text: '«',
+                        callback: function(page) { return true; }
+                    };                    
+                    opts.num_display_entries = 2;
+                    $(".page_short").pagination(${result.total}, opts);
+                    opts.num_display_entries = 10;
+                    $(".page_long").pagination(${result.total}, opts);
+                });
+            </script>
+            </c:if>
 
             <div class="summary">
-                <c:out value="${result.total}" /> matching gene(s) found, displaying <c:out value="${result.start + 1} - ${result.start + result.size}"/> as
+                <c:out value="${result.total}" /> matching gene(s) found, displaying as
                 <c:choose>
                     <c:when test="${heatmap}">
                         heatmap (<a href="${f:replace(pageUrl,'&view=hm','')}&amp;p=${query.start}">show as list</a>)
@@ -266,13 +288,15 @@ ArrayExpress Atlas Preview
                 </c:choose>
             </div>
 
-            <c:if test="${result.total > 1}">
-            <div class="drilldowns">
+            <table id="twocol"><tr>
+            <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+            <td id="drilldowns">
+                <div class="pagination_ie page_short"></div>
                 <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                     <div class="drillsect">
                         <div class="name"><fmt:message key="head.ef.${ef.ef}"/>:</div>
                         <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                            <li><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot"><c:out value="${efv.efv}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</li>
+                            <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
                         </c:forEach></ul>
                     </div>
                 </c:forEach>
@@ -281,7 +305,7 @@ ArrayExpress Atlas Preview
                         <div class="name">Species:</div>
                         <ul>
                             <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                                <li><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</li>
+                                <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
                             </c:forEach>
                         </ul>
                     </div>
@@ -292,21 +316,25 @@ ArrayExpress Atlas Preview
                             <div class="name"><fmt:message key="head.gene.${facet.key}"/>:</div>
                             <ul>
                                 <c:forEach var="fv" items="${facet.value}" varStatus="s">
-                                    <li><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(fv.name, 0, 1))}${f:toLowerCase(f:substring(fv.name, 1, -1))}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</li>
+                                    <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
                                 </c:forEach>
                             </ul>
                         </div>
                     </c:if>
                 </c:forEach>
                 <div style="clear:both;"></div>
-            </div>
+            </td>
             </c:if>
 
             <c:if test="${true || heatmap}">
-                <table id="squery" class="squery">
+                <td id="resultpane">
+                <table id="squery">
                     <tbody>
                         <tr class="header">
-                            <td colspan="2"></td>
+                            <th class="padded" rowspan="2">Gene</th>
+                            <c:if test="${f:length(query.species) != 1}">
+                                <th class="padded" rowspan="2">Species</th>
+                            </c:if>
                             <map name="efvmap">
                                 <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
                                     <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
@@ -323,15 +351,9 @@ ArrayExpress Atlas Preview
                                 <c:param name="lc" value="#cdcdcd" />
                                 <c:param name="tc" value="#000000" />
                             </c:url>
-                            <td><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
-                            <td colspan="${result.resultEfvs.numEfvs - 1}"></td>
-                            <td></td>
+                            <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
                         </tr>
                         <tr>
-                            <th class="padded">Gene</th>
-                            <c:if test="${f:length(query.species) != 1}">
-                                <th class="padded">Species</th>
-                            </c:if>
                             <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
                                 <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
                                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
@@ -346,7 +368,6 @@ ArrayExpress Atlas Preview
                                     </c:choose>
                                 </th>
                             </c:forEach>
-                            <td class="fakecell"></td>
                         </tr>
                         <c:forEach var="row" items="${result.results}" varStatus="i">
                             <tr id="squeryrow${i.index}">
@@ -362,21 +383,22 @@ ArrayExpress Atlas Preview
                                 <c:if test="${f:length(query.species) != 1}">
                                     <td class="padded"><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a></td>
                                 </c:if>
+                                <c:set var="first" value="true" />
                                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
                                     <c:set var="ud" value="${row.counters[e.payload]}"/>
                                     <c:choose>
                                         <c:when test="${ud.zero}">
-                                            <td class="counter">&nbsp;</td>
+                                            <td class="counter"><c:if test="${first}"><div class="osq"></div><c:set var="first" value="false" /></c:if></td>
                                         </c:when>
                                         <c:when test="${ud.ups == 0 && ud.downs > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
                                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},event)">${ud.downs}</td>
+                                                onclick="hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
                                         </c:when>
                                         <c:when test="${ud.downs == 0 && ud.ups > 0}">
                                             <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
                                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},event || window.event)">${ud.ups}</td>
+                                                onclick="hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
                                         </c:when>
                                         <c:otherwise>
                                             <td class="acounter"
@@ -385,47 +407,24 @@ ArrayExpress Atlas Preview
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
-                                <td class="fakecell"><div></div></td>
                             </tr>
                         </c:forEach>
-                        <tr class="fakerow">
-                            <td><div></div></td>
-                            <td><div></div></td>
-                            <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
-                                <td><div></div></td>
-                            </c:forEach>
-                            <td><div></div></td>
-                        </tr>
                     </tbody>
                 </table>
-            </c:if>
 
-            <c:if test="${result.size < result.total}">
-                <div class="pagination">
-                    <c:if test="${result.start >= result.rows}">
-                        <a href="${pageUrl}&amp;p=${result.start - result.rows}">prev</a>
-                    </c:if>
-                    <c:forEach var="p" begin="0" end="${result.total}" step="${result.rows}">
-                        <c:if test="${result.start == p}">
-                            <b><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></b>
-                        </c:if>
-                        <c:if test="${result.start != p}">
-                            <a href="${pageUrl}&amp;p=${p}"><fmt:formatNumber value="${(p / result.rows) + 1}" maxFractionDigits="0"/></a>
-                        </c:if>
-                    </c:forEach>
-                    <c:if test="${result.total - result.start > result.rows}">
-                        <a href="${pageUrl}&amp;p=${result.start + result.rows}">next</a>
-                    </c:if>
-                </div>
+                    <div class="pagination_ie page_long"></div>
+
+                    <c:set var="timeFinish" value="${u:currentTime()}"/>
+                    <p>
+                        Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+                    </p>
+                </td>
             </c:if>
+            </tr></table>
         </c:if>
         <c:if test="${result.size == 0}">
             <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">No matching results found.</div>
         </c:if>
-        <c:set var="timeFinish" value="${u:currentTime()}"/>
-        <p>
-            Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-        </p>        
     </c:if>
 
 </div>

@@ -19,7 +19,7 @@ public class AtlasStructuredQueryResult {
 
     private long total;
     private long start;
-    private long rows;
+    private long rowsPerPage;
 
     private EfvTree<FacetUpDn> efvFacet;
     private Map<String,Iterable<FacetCounter>> geneFacets;
@@ -27,13 +27,13 @@ public class AtlasStructuredQueryResult {
     /**
      * Constructor
      * @param start starting position in paging
-     * @param rows number of rows in page
+     * @param rowsPerPage number of rows in page
      */
-    public AtlasStructuredQueryResult(long start, long rows) {
+    public AtlasStructuredQueryResult(long start, long rowsPerPage) {
         this.results = new ArrayList<StructuredResultRow>();
         this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
-        this.rows = rows;
+        this.rowsPerPage = rowsPerPage;
     }
 
     /**
@@ -77,6 +77,14 @@ public class AtlasStructuredQueryResult {
     }
 
     /**
+     * Returns results current page number
+     * @return page number
+     */
+    public long getPage() {
+        return getStart() / getRowsPerPage();
+    }
+
+    /**
      * Returns results start position in paging
      * @return start position
      */
@@ -96,8 +104,8 @@ public class AtlasStructuredQueryResult {
      * Returns number of rows in page
      * @return number of rows in page
      */
-    public long getRows() {
-        return rows;
+    public long getRowsPerPage() {
+        return rowsPerPage;
     }
 
     /**

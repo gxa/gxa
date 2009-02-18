@@ -86,4 +86,12 @@ public class HtmlHelper {
     {
         return set.contains(element);
     }
+
+    public static String truncateLine(String line, int num)
+    {
+        if(line.length() > num)
+            return line.substring(0, num) + "...";
+        else
+            return line;
+    }
 }

@@ -15,14 +15,14 @@ public class AtlasStructuredQuery {
     private Iterable<ExpFactorQueryCondition> conditions;
     private Iterable<GeneQueryCondition> geneQueries;
     private int start;
-    private int rows;
+    private int rowsPerPage;
     private Set<String> expandColumns;
 
     public AtlasStructuredQuery() {
         conditions = new ArrayList<ExpFactorQueryCondition>();
         geneQueries = new ArrayList<GeneQueryCondition>();
         start = 0;
-        rows = 100;
+        rowsPerPage = 100;
     }
 
     /**
@@ -95,16 +95,16 @@ public class AtlasStructuredQuery {
      * Returns required number of rows in page
      * @return number of rows in page
      */
-    public int getRows() {
-        return rows;
+    public int getRowsPerPage() {
+        return rowsPerPage;
     }
 
     /**
      * Sets required number of rows in page
-     * @param rows number of rows in page
+     * @param rowsPerPage number of rows in page
      */
-    public void setRows(int rows) {
-        this.rows = rows;
+    public void setRowsPerPage(int rowsPerPage) {
+        this.rowsPerPage = rowsPerPage;
     }
 
     /**

@@ -3,8 +3,10 @@ package ae3.service.structuredquery;
 import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.util.AtlasProperties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -77,7 +79,7 @@ public class AtlasStructuredQueryService {
 
         log.info("Solr query is: " + solrq + " calling for EFVs: " + (hasQueryEfvs ? queryEfvs : "(none)"));
 
-        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRows());
+        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage());
         result.setConditions(conditions);
 
         if(solrq.length() > 0)
@@ -342,7 +344,7 @@ public class AtlasStructuredQueryService {
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
 
-        StringBuffer sb = new StringBuffer("exp_in_dw:true AND exp_factor_values:(");
+        StringBuffer sb = new StringBuffer("exp_in_dw:true AND (exp_factor_values:(");
         for(String val : values) {
             if(val.length() > 0) {
                 sb.append("\"").append(val.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\" ");
@@ -366,10 +368,14 @@ public class AtlasStructuredQueryService {
                             HashMap<String,String> termChildren = olsQuery.getTermChildren(term, "EFO", -1, new int[] {1,2,3,4});
                             ontologyExpansion.addAll(termChildren.values());
                         }
+
+                        if(ontologyExpansion.size() > 0)
+                            sb.append(" exp_factor_values_exact:(");
                         for(String oval : ontologyExpansion) {
-                            sb.append(" exp_factor_values_exact:");
-                            sb.append("\"").append(oval.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\"");
+                            sb.append("\"").append(oval.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\" ");
                         }
+                        if(ontologyExpansion.size() > 0)
+                            sb.append(")");
                     }
                 }
             } catch(ServiceException e) {
@@ -377,9 +383,11 @@ public class AtlasStructuredQueryService {
             }
         }
 
+        sb.append(")");
+
         Iterable<String> factors;
         if(factor == null || "".equals(factor)) {
-            factors = getExperimentalFactorOptions();
+            factors = getExperimentalFactors();
         } else {
             factors = new ArrayList<String>(1);
             ((List<String>)factors).add(factor);
@@ -442,6 +450,7 @@ public class AtlasStructuredQueryService {
         };
 
         String idField = coreAtlas.getSearcher().get().getSchema().getUniqueKeyField().getName();
+        Iterable<String> autoFactors = getConfiguredFactors("anycondition");
 
         for(SolrDocument doc : docs) {
             String id = (String)doc.getFieldValue(idField);
@@ -462,7 +471,7 @@ public class AtlasStructuredQueryService {
             };
 
             if(!hasQueryEfvs) {
-                for(String ef : getExperimentalFactorOptions()) {
+                for(String ef : autoFactors) {
                     Collection<Object> efvs;
 
                     efvs = doc.getFieldValues("efvs_up_" + EfvTree.encodeEfv(ef));
@@ -507,10 +516,18 @@ public class AtlasStructuredQueryService {
 
     }
 
+    private Iterable<String> getConfiguredFactors(String category)
+    {
+        Set<String> result = new HashSet<String>();
+        result.addAll(getExperimentalFactors());
+        result.removeAll(Arrays.asList(StringUtils.split(StringUtils.trim(AtlasProperties.getProperty("atlas." + category + ".ignore.efs")), ",")));
+        return result;
+    }
+
     private SolrQuery setupSolrQuery(AtlasStructuredQuery query, String solrq, EfvTree<Integer> queryEfvs) {
         SolrQuery q = new SolrQuery(solrq);
 
-        q.setRows(query.getRows());
+        q.setRows(query.getRowsPerPage());
         q.setStart(query.getStart());
         q.setSortField("score", SolrQuery.ORDER.desc);
 
@@ -556,8 +573,7 @@ public class AtlasStructuredQueryService {
         q.addFacetField("exp_up_ids");
         q.addFacetField("exp_dn_ids");
 
-        Collection<String> efs = getExperimentalFactorOptions();
-        for(String ef : efs)
+        for(String ef : getConfiguredFactors("facet"))
         {
             q.addFacetField("efvs_up_" + ef);
             q.addFacetField("efvs_dn_" + ef);
@@ -637,10 +653,18 @@ public class AtlasStructuredQueryService {
     }
 
     /**
+     * Returns set of experimental factor for drop-down, fileterd by config
+     * @return set of strings representing experimental factors
+     */
+    public Iterable<String> getExperimentalFactorOptions() {
+        return getConfiguredFactors("options");
+    }
+
+    /**
      * Returns set of experimental factors
      * @return set of strings representing experimental factors
      */
-    public Set<String> getExperimentalFactorOptions() {
+    public Set<String> getExperimentalFactors() {
         // lazy caching
         if(allFactors == null)
         {

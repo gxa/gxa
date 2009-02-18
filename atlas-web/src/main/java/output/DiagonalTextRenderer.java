@@ -86,6 +86,10 @@ public class DiagonalTextRenderer {
             AffineTransform saveAT = g2d.getTransform();
             g2d.translate(x + 9, height - 5);
             g2d.rotate(- Math.PI / 4);
+
+            g2d.setColor(Color.WHITE);
+            g2d.fillRect((int)(layout.getBounds().getMinX()) - 4, (int)(layout.getBounds().getMinY()) - 4, (int)(layout.getBounds().getWidth()) + 8, (int)(layout.getBounds().getHeight()) + 8);
+
             g2d.setColor(textColor);
             layout.draw(g2d, 0, 0);
             g2d.setTransform(saveAT);
@@ -93,6 +97,12 @@ public class DiagonalTextRenderer {
             if(lineHeight > 0) {
                 g2d.setColor(lineColor);
                 g2d.drawLine(x, height - lineHeight, x, height);
+                if(i > 0 ) {
+                    int shift = height - lineHeight;
+                    if(x + shift > texts.length * stepWidth)
+                        shift = texts.length * stepWidth - x;
+                    g2d.drawLine(x, height - lineHeight, x + shift, height - lineHeight - shift);
+                }
             }
 
             x += stepWidth;
