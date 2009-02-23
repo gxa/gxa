@@ -7,7 +7,7 @@ import java.util.ArrayList;
      * Gene epxression option
  */
 public enum Expression {
-    UP_DOWN("up or down"),
+    UP_DOWN("up/down"),
     UP("up"),
     DOWN("down");
 

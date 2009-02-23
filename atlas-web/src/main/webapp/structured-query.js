@@ -1,5 +1,6 @@
 var counter = 0;
 var geneCounter = 0;
+var helprow;
 
 function escapeHtml(s) {
     return s.replace(/\"/g,"&quot;")
@@ -17,8 +18,7 @@ function escapeHtml(s) {
 
      function createNotButton(name,checked)
      {
-         return $('<td><select name="' + name + '"><option ' + (checked ? '' : 'selected="selected"') + 'value="">has</option><option'
-                  + (checked ? ' selected="selected"' : '') + ' value="1">has not</option></select></td>');
+         return ;
      }
 
      function createSelect(name, options, optional, value) {
@@ -42,6 +42,21 @@ function escapeHtml(s) {
              e.selectedIndex = selected;
          }
          return e;
+     }
+
+     function hasConditions(state) {
+         if(state) {
+             $('#structsubmit').removeAttr('disabled');
+             var h = $('#helprow');
+             if(h.length)
+                 helprow = h.remove();
+         } else {
+             if($('#conditions tr').length == 0) {
+                 $('#structsubmit').attr('disabled','disabled');
+                 if(helprow)
+                    $('#conditions').append(helprow);
+             }
+         }
      }
 
      function addSpecie(specie) {
@@ -71,6 +86,7 @@ function escapeHtml(s) {
                                                  nextr.remove();
                                              } else {
                                                  tr.remove();
+                                                 hasConditions(false);
                                              }
                                              var i;
                                              var sel = $('#species').get(0);
@@ -83,11 +99,12 @@ function escapeHtml(s) {
          var tbody = $('#conditions');
          var tr = $('tr.speccond:last', tbody);
          if(tr.length > 0) {
-             tr.after($('<tr class="speccond"><td colspan="2">or</td></tr>').append(value).append(remove).append($('<td />')));
+             tr.after($('<tr class="speccond"><td></td></tr>').append(value).append(remove).append($('<td />')));
          } else {
-             tbody.prepend($('<tr class="speccond"><td colspan="2">species is</td></tr>')
+             tbody.prepend($('<tr class="speccond"><td>belongs to species</td></tr>')
                            .append(value).append(remove).append($('<td />')));
          }
+         hasConditions(true);
      }
 
      function addExpFactor(factor,expression,values,expansion) {
@@ -95,11 +112,11 @@ function escapeHtml(s) {
          var factorLabel = factor;
          for(var i = 0; i < selopt.length; ++i)
              if(selopt[i].value == factor) {
-                 factorLabel = selopt[i].text;
+                 factorLabel = selopt[i].text.toLowerCase();
              }
 
          if(factor == "")
-             factorLabel = "";
+             factorLabel = "any condition";
 
          ++counter;
 
@@ -124,15 +141,18 @@ function escapeHtml(s) {
              .flushCache();
 
          var tr = $('<tr class="efvcond" />')
-             .append($('<td />').append(createSelect("fexp_" + counter, options['expressions'], false, expression)))
-             .append($('<td />').text('in ' + factorLabel).append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
+             .append($('<td />')
+                 .append('is ')
+                 .append(createSelect("fexp_" + counter, options['expressions'], false, expression))
+                 .append(' in ' + factorLabel + ' matching')
+                 .append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
              .append($('<td />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
                                             var tbody = tr.parents('tbody:first').get(0);
                                             tr.remove();
-                                        }))
-             .append($('<td class="expansion" />').html(expansion != null ? expansion : ""));
+                                            hasConditions(false);
+                                        }));
 
          if(values != null) {
              input.val(values);
@@ -144,6 +164,8 @@ function escapeHtml(s) {
              t.eq(0).after(tr);
          else
              $('#conditions').append(tr);
+         
+         hasConditions(true);
      }
 
      function getPropLabel(property)
@@ -152,13 +174,13 @@ function escapeHtml(s) {
          var propertyLabel = property;
          for(var i = 0; i < selopt.length; ++i)
              if(selopt[i].value == property) {
-                 propertyLabel = selopt[i].text;
+                 propertyLabel = selopt[i].text.toLowerCase();
              }
 
          if(property == "")
-             propertyLabel = "property";
+             propertyLabel = "any property";
 
-         return 'gene ' + propertyLabel;
+         return propertyLabel;
      }
 
      function makeGeneAcOptions(property) {
@@ -227,17 +249,24 @@ function escapeHtml(s) {
                      });
 
          var tr = $('<tr class="genecond" />')
-             .append(createNotButton('gnot_' + counter, not))
-             .append($('<td class="gprop" />').text(getPropLabel(property)))
-             .append($('<td />').append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')).append(input))
+             .append($('<td />')
+                 .append($('<select name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
+                  + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
+                 .append('&nbsp;&nbsp;&nbsp;')
+                 .append($('<span class="gprop" />').text(getPropLabel(property)))
+                 .append(' matching')
+                 .append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')))
+             .append($('<td />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
                                             var tbody = tr.parents('tbody:first').get(0);
                                             tr.remove();
+                                            hasConditions(false);
                                         }))
              .append($('<td />'));
 
          $('#conditions').append(tr);
+         hasConditions(true);
      }
 
      window.initQuery = function() {
@@ -289,6 +318,8 @@ function escapeHtml(s) {
                                     if(this.selectedIndex == 0)
                                         return;
 
+                                    structMode();
+
                                     var property = this.options[this.selectedIndex].value;
                                     addGeneQuery(property);
                                     this.selectedIndex = 0;
@@ -299,6 +330,8 @@ function escapeHtml(s) {
                                   if(this.selectedIndex == 0)
                                       return;
 
+                                  structMode();
+
                                   var specie = this.options[this.selectedIndex].value;
                                   addSpecie(specie);
 
@@ -308,6 +341,8 @@ function escapeHtml(s) {
          $('#factors').change(function () {
                                   if(this.selectedIndex == 0)
                                       return;
+
+                                  structMode();
 
                                   var factor = this.options[this.selectedIndex].value;
                                   addExpFactor(factor);
@@ -345,7 +380,6 @@ function escapeHtml(s) {
                                                                       $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
                                                                       ++i;
                                                                   });
-         $('#species,#geneprops,#factors').remove();
      };
 
      function adjustPosition(el) {
@@ -427,13 +461,20 @@ function escapeHtml(s) {
      };
 
      window.structMode = function() {
-         $("#simpleform").hide('fast');
-         $("#structform").show('fast');
+         if($('.visinstruct:visible').length)
+            return;
+         $('.visinsimple').hide();
+         $('.visinstruct').show();
+         $('#condadders').show();
      };
 
      window.simpleMode = function() {
-         $("#structform").hide('fast');
-         $("#simpleform").show('fast');
+         if($('#simpleform:visible').length)
+            return;
+         $('.visinsimple').show();
+         $('.visinstruct').hide();
+         if(!lastquery)
+             $('#condadders').hide();
      };
 
      window.drawExperimentPlots = function(gene_id, ef, efv) {

@@ -72,11 +72,15 @@
 
 /* form */
 
-#simpleform .expansion { font-size: 10px;color:gray; }
+fieldset { width: 720px; margin-bottom: 10px; border: 1px solid #cdcdcd; }
+legend { font-weight: bold; }
 
+#simpleform .expansion { font-size: 10px;color:gray; }
 #structform .expansion { padding-left: 10px;font-size: smaller;color:gray; }
 .expansion .ignored { color: #cc0000; }
-#conditions td { vertical-align: middle; white-space:nowrap;padding-left:10px;padding-right:10px;padding-top:3px; }
+
+#structform table { width: 100%; }
+#conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
 #conditions input.value { width:30em; }
 
 .label {
@@ -220,8 +224,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 }
 
 #efotext {
-    margin: 10px 0 10px 0;
-    padding: 5px;
-    border: 1px solid #cdcdcd;
     background: #e6EEEE;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
