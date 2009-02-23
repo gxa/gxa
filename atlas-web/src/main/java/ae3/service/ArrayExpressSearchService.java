@@ -690,16 +690,15 @@ public class ArrayExpressSearchService {
     return count;
     }
     
-    public ArrayList getRankedGeneExperiments(final String gene_id_key, String exp_ids, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
+    public ArrayList getRankedGeneExperiments(final String gene_id_key, String EFV, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
    	 
    	 String query = "select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
 				   	 " from ATLAS, ae1__experiment__main exp " +
-				   	 " where gene_id_key = "+gene_id_key+
-				   	 " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) " +
-				   	 " and exp.experiment_id_key = atlas.experiment_id_key ";
-   	 if(exp_ids != null)
-   		 query+= "and exp.experiment_id_key IN ("+exp_ids+")";
+				   	 " where exp.experiment_id_key = atlas.experiment_id_key "+
+				   	 " and gene_id_key = "+gene_id_key;
+   	 if(EFV != null)
+   		 query+= " and atlas.EFV ='"+EFV+"'";
    	 query+=	   	 " group by atlas.experiment_id_key" +
 				   	 " order by minp asc";
 
@@ -722,10 +721,10 @@ public class ArrayExpressSearchService {
 							HashMap rankInfo =  ranker.getHighestRankEF(expIdKey, gene_id_key);
 							
 						    AtlasExperiment atlasExp = AtlasDao.getExperimentByIdDw(expIdKey);
-						    atlasExp.addHighestRankEF(gene_id_key, rankInfo.get("expfactor").toString());
-						    if(atlasExp != null)
-						    atlasExps.add(atlasExp);
-						   
+						    if(atlasExp != null){
+						    	atlasExp.addHighestRankEF(gene_id_key, rankInfo.get("expfactor").toString());
+						    	atlasExps.add(atlasExp);
+						    }
 						    
 						}
 					} catch (AtlasObjectNotFoundException e) {

@@ -1,17 +1,20 @@
 function drawPlot(jsonObj, plot_id){
 	   	if(jsonObj.series){
-   			//alert('start of draw plot');
-			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
+   			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
 			var overview;
 			var allSeries = plot.getData();
+			
 			if(allSeries.length >10){
 				var divElt = $('#'+plot_id+'_thm');
 				divElt.width(300);divElt.height(50);
 				overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
+				//$('#'+plot_id+'_thm').show();
 				//overview.setSelection({ xaxis: { from: 0, to: allSeries.length } });
 				
+			}else{
+				var divElt = $('#'+plot_id+'_thm').empty();
+				divElt.width(0);divElt.height(0);
 			}
-				
 			
 			
 					
@@ -21,13 +24,15 @@ function drawPlot(jsonObj, plot_id){
            					xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
                     	 	}));
 
-				// don't fire event on the overview to prevent eternal loop
-				//overview.setSelection(ranges, true);
+				if(allSeries.length >10){
+					// don't fire event on the overview to prevent eternal loop
+					overview.setSelection(ranges, true);
+				}
     		});
     
-				    $('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
-				        plot.setSelection(ranges);
-				    });
+			$('#'+plot_id+'_thm').bind("plotselected", function (event, ranges) {
+			        					plot.setSelection(ranges);
+									  });
 				    
 				    
 			//Tooltip
@@ -162,6 +167,47 @@ function drawPlot(jsonObj, plot_id){
                       		}
                       	}
 	}
+	
+	function showTooltip(x, y, contents, plot_id) {
+		if(contents!='Mean'){
+	        $('<div id="tooltip">' + contents + '</div>').css( {
+		            position: 'absolute',
+		            display: 'none',
+		            top: 50,
+		            left:x-550,
+		            border: '1px solid #fdd',
+		            padding: '2px',
+		            'background-color': '#fee',
+		            opacity: 0.80
+	       	 }).appendTo("#"+plot_id).fadeIn(200);
+    	}
+    }
+    
+    function redrawPlotForFactor(id,mark,efv){
+    	var id = String(id);
+        var tokens = id.split('_');
+        var eid = tokens[0];
+        var gid = tokens[1];
+        var ef = "ba_"+tokens[2];
+        ef = ef.toLowerCase();
+        var plot_id = eid+"_"+gid+"_plot";
+
+       //$('#'+eid+'_'+gid+'_legend').empty();
+            $.ajax({
+   			type: "POST",
+   			url:"plot.jsp",
+   			data:"gid="+gid+"&eid="+eid+"&ef="+ef,
+   			dataType:"json",
+   			success: function(o){
+   				var plot = drawPlot(o,plot_id);
+				bindMarkings(o,plot,plot_id);
+				if(mark){
+					markClicked(eid,gid,ef,efv,plot,o);
+				}
+			}
+ 			});
+ 			drawEFpagination(eid,gid,tokens[2]);
+    }
 
 	function drawPlots(){
 
@@ -188,3 +234,23 @@ function drawPlot(jsonObj, plot_id){
 
 
 	}//drawPlots
+	
+	function drawEFpagination(eid,gid,currentEF){
+		
+    	var panelContent = [];
+    	
+    	var EFs = $("#"+eid+"_EFpagination *").each(function(){
+    		var ef = $(this).attr("id");
+    		var ef_txt = $(this).html();
+    		ef = jQuery.trim(ef);
+    		if(ef == currentEF){
+    			panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
+    		}
+    		else{
+    			panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ef_txt+'</a>');
+    		}
+    		});
+					
+    	$("#"+eid+"_EFpagination").empty();
+    	$("#"+eid+"_EFpagination").html(panelContent.join(""));
+    }

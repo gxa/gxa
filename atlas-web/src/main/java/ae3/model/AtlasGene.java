@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import java.util.*;
-
+import ae3.service.structuredquery.EfvTree;
 import ae3.util.HtmlHelper;
 import ae3.util.QueryHelper;
 
@@ -160,4 +160,55 @@ public class AtlasGene {
 
         return h;
     }
+    
+    private HashSet<String> getEFs(){
+		HashSet<String> efs = new HashSet<String>();
+		for (String field:geneSolrDocument.getFieldNames()){
+
+			if(field.startsWith("efvs_"))
+				efs.add(field.substring(8));
+		}
+		return efs;
+	}
+
+	public HashSet<Object> getAllFactorValues(String ef){
+		HashSet<Object> efvs = new HashSet<Object>();;
+
+		Collection<Object> fields = geneSolrDocument.getFieldValues("efvs_up_" + EfvTree.encodeEfv(ef));
+		if(fields!=null)
+			efvs.addAll(fields);
+		fields = geneSolrDocument.getFieldValues("efvs_dn_" + EfvTree.encodeEfv(ef));
+		if(fields!=null)
+			efvs.addAll(fields);
+		return efvs;
+	}
+
+	
+
+	public int getCount_up(String ef, String efv){
+		return nullzero((Integer)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_up")));
+	}
+
+	public int getCount_dn(String ef, String efv){
+		return nullzero((Integer)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_dn")));
+	}
+
+	public double getAvg_up(String ef, String efv){
+		return nullzero((Double)geneSolrDocument.getFieldValue("avgpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_up")));
+	}
+
+	public double getAvg_dn(String ef, String efv){
+		return nullzero((Double)geneSolrDocument.getFieldValue("avgpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_dn")));
+	}
+
+	private static int nullzero(Integer i)
+	{
+		return i == null ? 0 : i;
+	}
+
+	private static double nullzero(Double d)
+	{
+		return d == null ? 0.0d : d;
+	}
+
 }

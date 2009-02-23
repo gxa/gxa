@@ -11,6 +11,7 @@
 <%@page import="ae3.model.AtlasExperiment"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
+<%@page import="ae3.service.HeatmapRow"%>
 <c:set var="timeStart" value="${u:currentTime()}" />
 
 <%
@@ -18,11 +19,13 @@
 	String geneId = request.getParameter("gid");
 	String noAtlasExps = null;
 	if (geneId != null) {
-		atlasGene = AtlasDao.getGeneByIdentifier(geneId);
+		//atlasGene = AtlasDao.getGeneByIdentifier(geneId);
+		atlasGene = AtlasGeneService.getAtlasGene(geneId);
 		noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
 		request.setAttribute("atlasGene",atlasGene);
 		request.setAttribute("noAtlasExps",noAtlasExps);
 	}
+	request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows());
 
 	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
 		//TODO: set this right (via REST WS perhaps)
@@ -69,14 +72,14 @@ table.heatmap th {
 
 table.heatmap {
 	text-align: left;
-	font-family: Verdana;
-	font-weight: normal;
-	font-size: 11px;
+	font-family: arial, sans-serif;
+    font-size: 8pt;
 	color: #404040;
 	background-color: #fafafa;
 	border-collapse: collapse;
 	border-spacing: 0px;
 }
+
 
 .pagecontainer {
 	padding-left: 15px;
@@ -181,7 +184,7 @@ a:focus {
 	outline: none;
 }
 
-.heatmap_over {
+.heatmap tr:hover {
 	background-color: #bdd7d7;
 	color: #404040;
 	cursor: pointer;
@@ -191,6 +194,11 @@ a:focus {
 	background-color: #fafafa;
 	color: #404040;
 }
+
+.heatmap_cell{
+    width:20px; height:20px; position:relative;
+}
+
 }
 -->
 </style>
@@ -265,16 +273,24 @@ a:focus {
 	}
 	
 
-	function FilterExps(ids,fv){
-		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,exp_ids:ids},drawPlots);
+	function FilterExps(fv,ef){
+	
+		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:<%=atlasGene.getGeneId()%>,efv:fv},
+							function(){
+								
+								
+								for (var i = 0; i < exp_ids.length; ++i){
+									eid = jQuery.trim(exp_ids[i]);
+									redrawPlotForFactor(eid+'_'+<%=atlasGene.getGeneId()%>+'_'+ef,true,fv);
+								}
+							});
 		$("#expHeader_td").text("Experiments showing differential expression for <%=atlasGene.getGeneName()%> in "+ fv);
-		var lnk = $("<a> Return to all experiments </a>")
-						.bind("click", loadExps);
-						
+		var lnk = $("<a> Return to all experiments </a>").bind("click", loadExps);
 		$("#Pagination").empty().append(lnk);
+
 	}
 	
-	
+		
 		
     jQuery(document).ready(function()
     {
@@ -329,6 +345,7 @@ a:focus {
 <link rel="stylesheet" href="scripts/pagination.css" />
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
+<link rel="stylesheet" href="structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
 <div class="pagecontainer">
@@ -544,7 +561,7 @@ a:focus {
 
 
 
-<table width="100%" cellspacing="5" cellpadding="10">
+<table cellspacing="5" cellpadding="10">
 	<tr>
 
 		<td valign="top">
@@ -558,143 +575,59 @@ a:focus {
 					</td>
 				</tr>
 	
-				<%
-					AtlasResultSet atlasResultSet = AtlasGeneService.getExprSummary(atlasGene.getGeneId());
-					request.setAttribute("atlasResult", atlasResultSet);
-				%>
-				
-	
 				<tr>
 					<td>
 					<div>
-					<table border="0" class="heatmap" cellpadding="3" cellspacing="0" bordercolor="#ffffff">
+					<table class="heatmap" cellpadding="0" cellspacing="5" border="1" RULES=ROWS FRAME=HSIDES>
 						<tr>
-							<th rowspan="2">Factor Value</th>
-							<th rowspan="2">Factor</th>
-							<th rowspan="2"	style="border-right: medium solid; border-left: thin">Studies</th>
-							<%--<th><img src="tmp/<%=VerticalTextRenderer.drawString("Total up", application.getRealPath("tmp"))%>" title="Total up"/></th>--%>
-							<%--<th style="border-right: thick solid"><img src="tmp/<%=VerticalTextRenderer.drawString("Total down", application.getRealPath("tmp"))%>" title="Total down"/></th>--%>
-							<%
-								List<HashMap> genes = atlasResultSet.getAtlasResultGenes();
-								for (HashMap<String, String> gene : genes) {
-							%>
-							<th style="border-right: medium solid" colspan="2" align="center"><%=gene.get("gene_name")%>
+							<th>Factor Value</th>
+							<th>Factor</th>
+							<th>
+								<div class="sq"><div class="tri" style="border-right-color:#0000CC;border-top-color:#FF0000"></div>
+                                    	<div style="color:#FFFFFF" class="dnval">D</div>
+                                    	<div style="color:#000000" class="upval">U</div></div>
 							</th>
-							<%
-								}
-							%>
+							<!-- th style="border-right: medium solid; border-left: thin">Studies</th>
+							<th style="border-right: medium solid" colspan="2" align="center">${atlasGene.geneName}</th-->
 						</tr>
-						<tr>
-							<th style="border-left: medium solid">UP</th>
-							<th style="border-right: medium solid">DN</th>
-						</tr>
-	
-						<%
-							HashMap<String, HashMap<String, String>> gars = atlasResultSet.getAtlasResultAllGenesByEfv();
-							for (HashMap<String, String> ar : atlasResultSet.getAtlasEfvCounts()) {
-								request.setAttribute("ef", ar.get("ef"));
-						%>
-						<tr onmouseover="this.className='heatmap_over'" onmouseout="this.className='heatmap_out'" onclick="FilterExps('<%=ar.get("exp_ids")%>','<%=ar.get("efv")%>')">
+						
+						
+						<c:forEach var="row" items="${heatMapRows}" varStatus="i">
+						<tr onmouseover="this.className='heatmap_over'" 
+						    onmouseout="this.className='heatmap_out'" 
+						    onclick="FilterExps('${row.fv}','${u:escapeJS(row.ef)}')">
 							<td nowrap="true">
-								<span style="font-weight: bold"	title="<%=ar.get("efv")%> Matched in experiment(s) <%=ar.get("experiments")%>" >
-									<%=ar.get("efv_short")%>
+								<span style="font-weight: bold"	title="${row.fv}  Matched in experiment(s)" >
+									${row.shortFv}
 								</span>
 							</td>
 								
 							<td nowrap="true">
-								<fmt:message key="head.ef.${ef}"/>
+								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
-							<td align="right">
-								<b><%=ar.get("experiment_count")%></b>
-							</td>
-	
-							<%
-								for (HashMap<String, String> gene : genes) {
-											HashMap<String, String> gar = gars.get(gene.get("gene_identifier") + ar.get("efvef"));
-	
-											if (gar != null && gar.size() != 0) {
-												Long r_dn = 255L;
-												Long b_dn = 255L;
-												Long g_dn = 255L;
-	
-												Long r_up = 255L;
-												Long b_up = 255L;
-												Long g_up = 255L;
-												String mpvup = gar.get("mpvup");
-												String mpvdn = gar.get("mpvdn");
-	
-												String countup = gar.get("countup").equals("0") ? " "
-														: gar.get("countup");
-												String countdn = gar.get("countdn").equals("0") ? " "
-														: gar.get("countdn");
-	
-												String display = "";
-												String display_up = "";
-												String display_dn = "";
-												String title = "Probes for "
-														+ gene.get("gene_identifier")
-														+ " found in experiment(s) "
-														+ gar.get("experiment_count")
-														+ ", observed up "
-														+ (countup == null ? 0 : countup)
-														+ " times (mean p="
-														+ (mpvup == null ? "N/A" : String.format(
-																"%.3g", Double.valueOf(mpvup)))
-														+ ")"
-														+ ", observed down "
-														+ (countdn == null ? 0 : countdn)
-														+ " times (mean p="
-														+ (mpvdn == null ? "N/A" : String.format(
-																"%.3g", Double.valueOf(mpvdn)))
-														+ ")";
-	
-												if (mpvup == null && mpvdn == null) {
-													r_up = g_up = b_up = g_dn = r_dn = b_dn = 255L;
-												}
-												if (mpvdn != null) {
-													b_dn = 255L;
-													g_dn = 255 - Math.round(Double.valueOf(mpvdn)
-															* (-255D / 0.05D) + 255);
-													r_dn = 255 - Math.round(Double.valueOf(mpvdn)
-															* (-255D / 0.05D) + 255);
-													display_up = "0";
-													display_dn = countdn;
-												}
-												if (mpvup != null) {
-													r_up = 255L;
-													g_up = 255 - Math.round(Double.valueOf(mpvup)
-															* (-255D / 0.05D) + 255);
-													b_up = 255 - Math.round(Double.valueOf(mpvup)
-															* (-255D / 0.05D) + 255);
-													display_up = countup;
-													display_dn = "0";
-												}
-							%>
-							<td align="center"
-								style="background-color: rgb(<%=         r_up %>, <%=         g_up %>, <%=         b_up %>);border-left: medium solid"><span
-								title="<%=title%>"
-								style="text-decoration: none; font-weight: bold; color: lightgray"><%=countup == "" ? " " : countup%></span>
-							</td>
-							<td align="center"
-								style="background-color: rgb(<%=         r_dn %>, <%=         g_dn %>, <%=         b_dn %>); border-right: medium solid"><span
-								title="<%=title%>"
-								style="text-decoration: none; font-weight: bold; color: lightgray;"><%=countdn == "" ? " " : countdn%></span>
-							</td>
-							<%
-								} else {
-							%>
-							<td>&nbsp;</td>
-							<%
-								}
-							%>
-							<%
-								}
-							%>
-	
+							
+							<c:choose>
+								<c:when test="${row.mixedCell}">
+									<td class="acounter"
+                                    	title="">
+                                    	<div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
+                                    	<div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
+                                    	<div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
+                               		</td>
+								</c:when>
+								<c:otherwise>
+									<td class="acounter" style="background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}"
+                                    	title="">
+                                    	<div class="sq" style="text-align: center; vertical-align: middle" > <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
+                                    			 <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
+                                    		
+                                	</td>
+								</c:otherwise>
+							</c:choose>
 						</tr>
-						<%
-							}
-						%>
+						
+						
+						</c:forEach>
 					</table>
 					</div>
 					</td>

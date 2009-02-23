@@ -4,11 +4,12 @@ AtlasGene atlasGene = null;
 String geneId = request.getParameter("gid");
 String fromRow = request.getParameter("from");
 String toRow = request.getParameter("to");
-String exp_ids = request.getParameter("exp_ids");
+String efv = request.getParameter("efv");
 if (geneId != null) {
     atlasGene = AtlasDao.getGeneByIdentifier(geneId);
 }    
-ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, exp_ids, fromRow, toRow);
+ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, fromRow, toRow);
+request.setAttribute("exps",exps);
 %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
@@ -19,6 +20,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 <%@page import="ae3.model.AtlasTuple"%>
 <%@page import="java.util.List"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@page import="java.util.HashSet"%>
 <script type="text/javascript">
@@ -26,6 +28,12 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
 <script type="text/javascript">
 <!--
+
+	var exp_ids;
+	exp_ids = 
+		[<c:forEach var="exp" varStatus="s" items="${exps}">'${exp.dwExpId}'<c:if test="${!s.last}">,</c:if></c:forEach>];
+		
+	
     function viewMore(id)
     {
 
@@ -62,76 +70,9 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
         }
     }
     
-    function showTooltip(x, y, contents, plot_id) {
-		if(contents!='Mean'){
- 		
-        $('<div id="tooltip">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: 50,
-            left:x-550,
-            border: '1px solid #fdd',
-            padding: '2px',
-            'background-color': '#fee',
-            opacity: 0.80
-        }).appendTo("#"+plot_id).fadeIn(200);
-    }
-    }
     
-    function redrawPlotForFactor(id,mark,efv){
-    	var id = String(id);
-        var tokens = id.split('_');
-        var eid = tokens[0];
-        var gid = tokens[1];
-        var ef = "ba_"+tokens[2];
-        ef = ef.toLowerCase();
-        var plot_id = eid+"_"+gid+"_plot";
-
-       //$('#'+eid+'_'+gid+'_legend').empty();
-            $.ajax({
-   			type: "POST",
-   			url:"plot.jsp",
-   			data:"gid="+gid+"&eid="+eid+"&ef="+ef,
-   			dataType:"json",
-   			success: function(o){
-   				var plot = drawPlot(o,plot_id);
-				bindMarkings(o,plot,plot_id);
-				if(mark){
-					markClicked(eid,gid,ef,efv,plot,o);
-				}
-			}
- 			});
- 			drawEFpagination(eid,gid,tokens[2]);
-    }
     
-    function drawEFpagination(eid,gid,currentEF){
-    	var panelContent = [];
-    	
-    	var EFs = $("#"+eid+"_EFpagination *").each(function(){
-    		var ef = $(this).attr("id");
-    		var ef_txt = $(this).html();
-    		ef = jQuery.trim(ef);
-    					if(ef == currentEF){
-    						//alert("<span id='"+ef+"' class='current'>"+ef_txt+"'/></span>");
-    						panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
-    						
-    					}
-    					else{
-    					//alert("<a id='"+ef+"' onclick='redrawPlotForFactor('"+eid+"_"+gid+"_"+ef+"',false)'>"+ef_txt+"/></a>")
-    						panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ef_txt+'</a>');
-    					}
-    					
-    					});
-    				
-    					
-    	$("#"+eid+"_EFpagination").empty();
-    	$("#"+eid+"_EFpagination").html(panelContent.join(""));
-
-
-    	
-    	
-    	
-    }
+    
     
 //-->
 
@@ -272,10 +213,11 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 				</table>
 				</td>
 
-<!--
 
 
- -->
+
+
+
 			</tr>
 		</table>
 		</td>
@@ -287,7 +229,7 @@ ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRanked
 			<a  href="../arrayexpress/query/result?queryFor=Experiment&eAccession=<%=exp.getDwExpAccession().trim()%>">ArrayExpress Archive</a>
 		</td>
 	</tr>
-	
+
 	<tr>
 		<td colspan="3">
 		<div class="separator"></div>
