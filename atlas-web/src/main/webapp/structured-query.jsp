@@ -155,7 +155,7 @@ ArrayExpress Atlas Preview
                 <option value="">-&gt; Add experimental factor</option>
                 <option value="">(any)</option>
                 <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
-                    <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
+                    <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
                 </c:forEach>
             </select>
             <select id="species">
@@ -168,7 +168,7 @@ ArrayExpress Atlas Preview
                 <option value="">-&gt; Add gene property</option>
                 <option value="">(any)</option>
                 <c:forEach var="i" items="${service.geneProperties}">
-                    <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
+                    <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
                 </c:forEach>
             </select>
         </div>

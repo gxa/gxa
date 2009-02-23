@@ -1,7 +1,6 @@
 package ae3.service.structuredquery;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * @author pashky
@@ -97,9 +96,11 @@ public class GeneProperties {
 
     public static Iterable<String> allPropertyIds()
     {
-        List<String> s = new ArrayList<String>();
+        Collection<String> s = new TreeSet<String>();
         for(Prop p : GENE_PROPS)
-            s.add(p.id);
+            if(p.type != PropType.NAME)
+                s.add(p.id);
+        s.add("name");
         return s;
     }
 
