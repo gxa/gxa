@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 public class GeneProperties {
     public static enum PropType {
-        NAME(3), ID(3), DESC(-1);
+        NAME(5), ID(3), DESC(-1);
 
         public int limit;
         private PropType(int limit) {
@@ -33,9 +33,9 @@ public class GeneProperties {
     }
 
     private static final Prop[] GENE_PROPS = {
-        new Prop("synonym", "gene_synonym", "gene_synonym", PropType.ID, false),
         new Prop("dbxref", "gene_dbxref", "gene_dbxref", PropType.ID, false),
         new Prop("embl", "gene_embl", "gene_embl", PropType.ID, false),
+        new Prop("identifier", "gene_identifier", "gene_identifier", PropType.ID, false),
         new Prop("ensfamily", "gene_ensfamily", "gene_ensfamily", PropType.ID, false),
         new Prop("ensgene", "gene_ensgene", "gene_ensgene", PropType.ID, false),
         new Prop("ensprotein", "gene_ensprotein", "gene_ensprotein", PropType.ID, false),
@@ -55,7 +55,8 @@ public class GeneProperties {
         new Prop("cas", "gene_cas", "gene_cas", PropType.ID, false),
         new Prop("uniprotmetenz", "gene_uniprotmetenz", "gene_uniprotmetenz", PropType.ID, false),
 
-        new Prop("name", "gene_name_exact", "gene_name_exact", PropType.NAME, false),
+        new Prop("name", "gene_name_exact", "gene_name", PropType.NAME, false),
+        new Prop("synonym", "gene_synonym", "gene_synonym", PropType.NAME, false),
 
         new Prop("disease", "gene_disease_exact", "gene_disease", PropType.DESC, true),
         new Prop("goterm", "gene_goterm_exact", "gene_goterm", PropType.DESC, true),
@@ -108,5 +109,12 @@ public class GeneProperties {
             if(p.facetField.equals(field))
                 return p;
         return null;
+    }
+
+    public static boolean isNameProperty(String id) {
+        for(Prop p : GENE_PROPS)
+            if(p.id.equals(id))
+                return p.type == PropType.NAME;
+        return false;
     }
 }

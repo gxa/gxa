@@ -283,7 +283,10 @@ public class AtlasStructuredQueryService {
     		if(geneQuery.isAnyFactor()) {
                 solrq.append("(gene_ids:(").append(geneQuery.getJointFactorValues()).append(") ");
                 solrq.append("gene_desc:(").append(geneQuery.getJointFactorValues()).append("))");
-    		} else {
+    		} else if(GeneProperties.isNameProperty(geneQuery.getFactor())) {
+                solrq.append("(gene_name:(").append(geneQuery.getJointFactorValues()).append(") ");
+                solrq.append("gene_synonym:(").append(geneQuery.getJointFactorValues()).append("))");
+            } else {
                 String field = GeneProperties.convertPropertyToSearchField(geneQuery.getFactor());
                 if(field == null)
                     field = "gene_desc";
@@ -584,6 +587,7 @@ public class AtlasStructuredQueryService {
         q.setHighlightRequireFieldMatch(false);
         q.addHighlightField("gene_id");
         q.addHighlightField("gene_name");
+        q.addHighlightField("gene_synonym");
         q.addHighlightField("gene_identifier");
         for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
             q.addHighlightField(p.searchField.replace("_exact", ""));

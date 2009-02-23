@@ -212,3 +212,9 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 .pagination_ie {
     padding: 10px 0 15px 0;
 }
+
+.ac_results li em {
+    font-size: 11px;
+    font-style: normal;
+    color: #999999;
+}

@@ -35,7 +35,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
 
         for(String fv : getFactorValues(factor, query, limit))
         {
-            result.add(new AutoCompleteItem(null, fv, 1L));
+            result.add(new AutoCompleteItem(null, fv, 1L, null));
         }
         return result;
     }

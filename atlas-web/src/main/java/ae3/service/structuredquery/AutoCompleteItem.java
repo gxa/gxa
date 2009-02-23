@@ -7,11 +7,13 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     private final String property;
     private final String value;
     private final Long count;
+    private final String comment;
 
-    public AutoCompleteItem(String property, String value, Long count) {
+    public AutoCompleteItem(String property, String value, Long count, final String comment) {
         this.property = property;
         this.value = value;
         this.count = count;
+        this.comment = comment;
     }
 
     public String getProperty() {
@@ -24,6 +26,10 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
 
     public Long getCount() {
         return count;
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     public int compareTo(AutoCompleteItem o) {

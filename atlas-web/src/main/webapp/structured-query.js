@@ -161,33 +161,67 @@ function escapeHtml(s) {
          return 'gene ' + propertyLabel;
      }
 
+     function makeGeneAcOptions(property) {
+         var acoptions = {
+             minChars: property == "" ? 1 : 0,
+             matchCase: false,
+             matchSubset: false,
+             selectFirst: false,
+             multiple: false,
+             multipleSeparator: " ",
+             multipleQuotes: true,
+             scroll: false,
+             scrollHeight: 180,
+             max: 20,
+             extraParams: { type: 'gene', 'factor' : property },
+             formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
+         };
+
+         if(property == '') {
+             acoptions.formatItem = function(row, num, max, val, term) {
+                 var text = $.Autocompleter.defaults.highlight(row[1].length > 30 ? row[1] + '...' : row[1], term);
+                 if(row[0] == 'name') {
+                     var ext = row[3].split('$');
+                     ext = ext[0] + ' ' + ext[1];
+                     return '<nobr><em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em></nobr>';
+                 } else {
+                     return '<nobr><em>' + row[0] + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row[2] + ')</em></nobr>';
+                 }
+             };
+             acoptions.highlight = function (value,term) { return value; };
+             acoptions.width = '500px';
+         } else {
+             acoptions.formatItem = function(row, num, max, val, term) {
+                 var text = $.Autocompleter.defaults.highlight(row[1].length > 50 ? row[1] + '...' : row[1], term);
+                 return text + ' (' + row[2] + ')';
+             };
+             acoptions.highlight = function (value,term) { return value; };
+             acoptions.width = '300px';
+         }
+
+         return acoptions;
+     }
+
      function addGeneQuery(property,values,not) {
 
          ++counter;
 
+
+
          var input = $('<input type="text" class="value"/>')
              .attr('name', "gval_" + counter)
              .val(values != null ? values : "")
-             .autocomplete("fval", {
-                               minChars:0,
-                               matchCase: false,
-                               matchSubset: false,
-                               selectFirst: false,
-                               multiple: false,
-                               multipleSeparator: " ",
-                               multipleQuotes: true,
-                               scroll: false,
-                               scrollHeight: 180,
-                               max: 20,
-                               extraParams: { type: 'gene', 'factor' : property },
-                               formatItem: property=="" ? function(row) { return row[0] + ': ' + row[1] + ' (' + row[2] + ')'; } : function(row) { return row[1] + ' (' + row[2] + ')'; } ,
-                               formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
-                           })
+             .autocomplete("fval", makeGeneAcOptions(property))
              .flushCache()
              .result(function (unused, res) {
                          var newprop = res[0];
                          var tr = $(this).parents('tr:first');
-                         tr.find('input[type=hidden]').val(newprop);
+                         var propi = tr.find('input[type=hidden]');
+                         if(propi.val() == '' && newprop == 'name') {
+                             newprop = 'identifier';
+                             $(this).val(res[3].split('$')[2]);
+                         }
+                         propi.val(newprop);
                          tr.find('td.gprop').text(getPropLabel(newprop));
                          $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
                      });
@@ -211,18 +245,13 @@ function escapeHtml(s) {
          var oldval = $('#gene0').val();
          $("#gene0")
              .defaultvalue("(all genes)","(all genes)")
-             .autocomplete("fval", {
-                               minChars:1,
-                               matchCase: false,
-                               matchSubset: false,
-                               multiple: false,
-                               selectFirst: false,
-                               extraParams: { type: 'gene' },
-                               formatItem: function(row) { return row[0] + ': ' + row[1] + ' (' + row[2] + ')'; },
-                               formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
-                           })
+             .autocomplete("fval", makeGeneAcOptions(""))
              .result(function (unused, res) {
                          var newprop = res[0];
+                         if(res[0] == 'name') {
+                             newprop = 'identifier';
+                             $(this).val(res[3].split('$')[2]);
+                         }
                          $('#gprop0').val(newprop);
                          var oldval = $(this).val();
                          this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };

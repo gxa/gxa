@@ -126,6 +126,10 @@ public class AtlasGene {
     	return getValue("gene_synonym");
     }
     
+    public String getHilitSynonyms(){
+    	return getHilitValue("gene_synonym");
+    }
+
     public String getGeneHighlightStringForHtml() {
 
         if(geneHighlights == null)

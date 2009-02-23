@@ -31,7 +31,7 @@ public class FactorValues extends HttpServlet {
     }
 
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/html");
+        response.setContentType("text/plain");
         response.setCharacterEncoding("utf-8");
 
         AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance()
@@ -64,7 +64,8 @@ public class FactorValues extends HttpServlet {
             for(AutoCompleteItem s : ac) {
                 response.getWriter().println(
                         (s.getProperty() == null ? "" : s.getProperty() + "|") +
-                        s.getValue() + "|" + s.getCount());
+                        s.getValue() + "|" + s.getCount() +
+                        (s.getComment() == null ? "" : "|" + s.getComment()));
             }
         }
     }
