@@ -176,6 +176,10 @@ ArrayExpress Atlas Preview
         </div>
     </form>
 
+    <c:if test="${result.hasEFOExpansion}"><div id="efotext">
+        Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
+    </div></c:if>
+
     <script type="text/javascript">
         var options = {
             expressions : [
@@ -280,7 +284,7 @@ ArrayExpress Atlas Preview
             <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
             <td id="drilldowns">
                 <div id="summary">
-                    <c:out value="${result.total}" /> matching gene(s) found
+                    <b><c:out value="${result.total}" /></b> matching gene(s) found
                 </div>
                 <c:if test="${result.size < result.total}"><div class="pagination_ie page_short"></div></c:if>
                 <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">

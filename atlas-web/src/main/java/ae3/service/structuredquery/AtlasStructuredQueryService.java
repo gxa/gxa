@@ -45,6 +45,7 @@ public class AtlasStructuredQueryService {
     private Set<String> allFactors;
     private final IValueListHelper efvListHelper;
     private final IValueListHelper geneListHelper;
+    private boolean hadEFOExpansion;
 
     /**
      * Constructor. Requires SOLR core container reference to work.
@@ -71,6 +72,8 @@ public class AtlasStructuredQueryService {
         final StringBuffer solrq = new StringBuffer();
         final EfvTree<Integer> queryEfvs = new EfvTree<Integer>();
 
+        hadEFOExpansion = false;
+
         final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, solrq, queryEfvs);
         appendGeneQuery(query, solrq);
         appendSpeciesQuery(query, solrq);
@@ -78,8 +81,11 @@ public class AtlasStructuredQueryService {
         boolean hasQueryEfvs = queryEfvs.getNumEfvs() > 0;
 
         log.info("Solr query is: " + solrq + " calling for EFVs: " + (hasQueryEfvs ? queryEfvs : "(none)"));
+        if(hadEFOExpansion)
+            log.info("EFO expansion was here");
 
         AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage());
+        result.setHasEFOExpansion(hadEFOExpansion);
         result.setConditions(conditions);
 
         if(solrq.length() > 0)
@@ -374,11 +380,15 @@ public class AtlasStructuredQueryService {
 
                         if(ontologyExpansion.size() > 0)
                             sb.append(" exp_factor_values_exact:(");
+
                         for(String oval : ontologyExpansion) {
                             sb.append("\"").append(oval.replaceAll("[\\\\\"]", "\\\\\\$1")).append("\" ");
                         }
-                        if(ontologyExpansion.size() > 0)
+
+                        if(ontologyExpansion.size() > 0) {
                             sb.append(")");
+                            hadEFOExpansion = true;
+                        }
                     }
                 }
             } catch(ServiceException e) {

@@ -24,6 +24,8 @@ public class AtlasStructuredQueryResult {
     private EfvTree<FacetUpDn> efvFacet;
     private Map<String,Iterable<FacetCounter>> geneFacets;
 
+    private boolean hasEFOExpansion = false;
+
     /**
      * Constructor
      * @param start starting position in paging
@@ -191,5 +193,13 @@ public class AtlasStructuredQueryResult {
     public void setExpandableEfs(Collection<String> expandableEfs) {
         this.expandableEfs = new HashSet<String>();
         this.expandableEfs.addAll(expandableEfs);
+    }
+
+    public boolean isHasEFOExpansion() {
+        return hasEFOExpansion;
+    }
+
+    public void setHasEFOExpansion(boolean hasEFOExpansion) {
+        this.hasEFOExpansion = hasEFOExpansion;
     }
 }

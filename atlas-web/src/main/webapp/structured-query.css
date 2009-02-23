@@ -43,7 +43,7 @@
 
 #squery td.genename { font-size: 12px; font-weight: bold; }
 
-#squery em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
+#squery em, #tooltip em { font: inherit; background-color: #29ffff;text-decoration:inherit;  }
 
 .osq {
     width:26px; height:26px; position:relative; line-height: 26px; text-align: center;
@@ -102,7 +102,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     position: absolute;
     width: 500px;
     height: 300px;
-    background-color: #ffffe0;
+    background: #e6EEEE;
     border: 1px solid black;
     padding: 10px;
     color: black;
@@ -197,13 +197,11 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 #tooltip {
 	position: absolute;
 	z-index: 3000;
-    background-color: #ffffe0;
+    background-color: #e6EEEE;
     border: 1px solid black;
     padding: 10px;
-	opacity: 0.95;
 }
 
-#tooltip em { font: inherit; background-color: #ffff66;text-decoration:inherit;  }
 #tooltip .genename { margin-bottom: 10px;font-size:10px; }
 #tooltip .genename b { font-weight: bold; font-size: 14px; }
 
@@ -217,4 +215,11 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     font-size: 11px;
     font-style: normal;
     color: #999999;
+}
+
+#efotext {
+    margin: 10px 0 10px 0;
+    padding: 5px;
+    border: 1px solid #cdcdcd;
+    background: #e6EEEE;
 }
