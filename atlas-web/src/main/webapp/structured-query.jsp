@@ -124,8 +124,10 @@ ArrayExpress Atlas Preview
                 <td align="left">
                     <input type="submit" value="Search Atlas">
                 </td>
-                <td>
-                    <a href="javascript:structMode();">advanced mode</a>
+            </tr>
+            <tr>
+                <td class="label">
+                    <a href="javascript:structMode();">switch to advanced mode</a>
                 </td>
             </tr>
         </table>
