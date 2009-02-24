@@ -486,33 +486,34 @@ function escapeHtml(s) {
                  jsonObj.options.legend.container = "#" + plot_id + "_legend";
                  jsonObj.options.legend.extContainer = null;
 
-                 var plot = $.plot($('#'+plot_id), jsonObj.series, jsonObj.options);
-                 var overview;
-                 var allSeries = plot.getData();
-
                  var series = null;
                  var markColor = null;
-                 for (var i = 0; i < allSeries.length; ++i){
-      		     if(allSeries[i].label){
-       		 	 if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
-       		 	     series = allSeries[i];
-       		 	     markColor = series.color;
-       		 	     break;
-       	 		}
-       	 	     }
-		 }
+                 for (var i = 0; i < jsonObj.series.length; ++i){
+                     if(jsonObj.series[i].label){
+                         if(jsonObj.series[i].label.toLowerCase() == efv.toLowerCase()){
+                             series = jsonObj.series[i];
+                             markColor = series.color;
+                             break;
+                         }
+                     }
+                 }
 
                  if(!series)
                      return;
 
                  var data = series.data;
-		 var xMin= data[0][0] - 0.5;
-		 var xMax= data[data.length-1][0] + 0.5;
+                 var xMin= data[0][0] - 0.5;
+                 var xMax= data[data.length-1][0] + 0.5;
 
-		 plot = $.plot($('#'+plot_id), jsonObj.series,
-                               $.extend(true, {}, jsonObj.options, {
-                          		    grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
-                      			}));
+                 var plotel = $('#'+plot_id);
+                 $.plot(plotel, jsonObj.series,
+                         $.extend(true, {}, jsonObj.options, {
+                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
+                         }));
+                 
+                 var link = $('#' + plot_id + '_link');
+                 if(link)
+                    plotel.bind('click', function () { location.href = link.attr('href'); });
 
              }
          };

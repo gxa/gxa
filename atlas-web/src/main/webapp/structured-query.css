@@ -151,7 +151,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     width: 100%;
 }
 
-#expopup td.explot, #expopup td.explink, #expopup td.expup, #expopup td.expdn  {
+#expopup td.explot, #expopup td.expup, #expopup td.expdn  {
     white-space: normal;
     vertical-align:top;
     text-align: left;
@@ -161,10 +161,6 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 #expopup tr.notlast > td { border-bottom: 1px solid #cdcdcd; }
 
 #expopup td.explot {
-    border-right: 1px solid #cdcdcd;
-}
-
-#expopup td.explink {
     border-right: 1px solid #cdcdcd;
 }
 
