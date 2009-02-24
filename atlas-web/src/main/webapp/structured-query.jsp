@@ -103,7 +103,7 @@ ArrayExpress Atlas Preview
                         <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" />
                     </td>
                     <td>
-                        <select name="specie_0" id="species0">
+                        <select name="specie_0" id="species0" style="width:180px">
                             <option value="">(any)</option>
                             <c:forEach var="s"
                                        items="${service.allAvailableAtlasSpecies}">
@@ -115,10 +115,9 @@ ArrayExpress Atlas Preview
                         <select name="fexp_0">
                             <c:forEach var="s"
                                        items="${service.structQueryService.geneExpressionOptions}">
-                                <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])}</option>
+                                <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
                             </c:forEach>
                         </select>
-                        in
                         <input type="hidden" name="fact_0" value="">
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                     </td>

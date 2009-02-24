@@ -531,7 +531,7 @@ public class AtlasStructuredQueryService {
 
     private Iterable<String> getConfiguredFactors(String category)
     {
-        Set<String> result = new HashSet<String>();
+        Set<String> result = new TreeSet<String>();
         result.addAll(getExperimentalFactors());
         result.removeAll(Arrays.asList(StringUtils.split(StringUtils.trim(AtlasProperties.getProperty("atlas." + category + ".ignore.efs")), ",")));
         return result;

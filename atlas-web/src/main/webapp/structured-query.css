@@ -72,7 +72,7 @@
 
 /* form */
 
-fieldset { width: 720px; margin-bottom: 10px; border: 1px solid #cdcdcd; }
+fieldset { width: 720px; margin-bottom: 10px; border: 1px solid #cdcdcd;padding:7px;display:block; }
 legend { font-weight: bold; }
 
 .ignored { color: #cc0000; }
