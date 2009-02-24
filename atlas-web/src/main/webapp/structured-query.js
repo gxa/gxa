@@ -101,7 +101,7 @@ function escapeHtml(s) {
          if(tr.length > 0) {
              tr.after($('<tr class="speccond"><td></td></tr>').append(value).append(remove).append($('<td />')));
          } else {
-             tbody.prepend($('<tr class="speccond"><td>belongs to species</td></tr>')
+             tbody.prepend($('<tr class="speccond"><td>in species</td></tr>')
                            .append(value).append(remove).append($('<td />')));
          }
          hasConditions(true);
@@ -142,9 +142,9 @@ function escapeHtml(s) {
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td />')
-                 .append('is ')
                  .append(createSelect("fexp_" + counter, options['expressions'], false, expression))
-                 .append(' in ' + factorLabel + ' matching')
+                 .append('&nbsp;&nbsp;&nbsp;')
+                 .append(factorLabel)
                  .append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
              .append($('<td />').append(input))
              .append(createRemoveButton(function () {
@@ -254,7 +254,6 @@ function escapeHtml(s) {
                   + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append($('<span class="gprop" />').text(getPropLabel(property)))
-                 .append(' matching')
                  .append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')))
              .append($('<td />').append(input))
              .append(createRemoveButton(function () {
@@ -269,8 +268,7 @@ function escapeHtml(s) {
          hasConditions(true);
      }
 
-     window.initQuery = function() {
-
+     window.initSimpleForm = function() {
          var oldval = $('#gene0').val();
          $("#gene0")
              .defaultvalue("(all genes)","(all genes)")
@@ -306,6 +304,11 @@ function escapeHtml(s) {
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
              .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
+     };
+
+     window.initQuery = function() {
+
+         initSimpleForm();
 
          $(".genename a").tooltip({
                                       bodyHandler: function () {

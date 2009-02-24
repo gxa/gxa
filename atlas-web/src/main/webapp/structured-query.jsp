@@ -12,12 +12,11 @@
 <%
     request.setAttribute("service", ArrayExpressSearchService.instance());
 
-    AtlasStructuredQuery atlasQuery = null;
-    if(request.getParameterNames().hasMoreElements())
-         atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
+    AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
     request.setAttribute("query", atlasQuery);
 
     request.setAttribute("heatmap", "hm".equals(request.getParameter("view")));
+    request.setAttribute("forcestruct", request.getParameter("struct") != null);
 
 %>
 
@@ -69,7 +68,7 @@ ArrayExpress Atlas Preview
 </table>
 <div style="margin-bottom:50px">
 
-    <c:if test="${!empty query}">
+    <c:if test="${!query.none}">
         <div style="margin-top:20px;margin-bottom:20px" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..." /></div>
         <c:set var="timeStart" value="${u:currentTime()}"/>
         <%
@@ -100,8 +99,8 @@ ArrayExpress Atlas Preview
                 </tr>
                 <tr valign="top">
                     <td>
-                        <input type="hidden" name="gprop_0" id="gprop0" value="${!empty query && query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
-                        <input type="text" name="gval_0" id="gene0" style="width:150px" value="${!empty query && query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" />
+                        <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
+                        <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" />
                     </td>
                     <td>
                         <select name="specie_0" id="species0">
@@ -116,19 +115,19 @@ ArrayExpress Atlas Preview
                         <select name="fexp_0">
                             <c:forEach var="s"
                                        items="${service.structQueryService.geneExpressionOptions}">
-                                <option ${!empty query && query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])}</option>
+                                <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])}</option>
                             </c:forEach>
                         </select>
                         in
                         <input type="hidden" name="fact_0" value="">
-                        <input type="text" name="fval_0" id="fval0" style="width:150px" value="${!empty query && query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                        <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                     </td>
                     <td align="left">
                         <input type="submit" value="Search Atlas">
                     </td>
                 </tr>
             </table>
-            <c:if test="${empty query}"><a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a></c:if>
+            <c:if test="${query.none}"><a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a></c:if>
         </fieldset>
         <input type="hidden" name="view" value="hm" />
     </form>
@@ -146,7 +145,7 @@ ArrayExpress Atlas Preview
         <input type="hidden" name="view" value="hm" />
     </form>
 
-    <fieldset id="condadders" style="display:${empty query ? 'none' : 'display'}">
+    <fieldset id="condadders" style="display:${query.none && !forcestruct ? 'none' : 'display'};visibility:hidden;">
         <legend>
             Extend query with
         </legend>
@@ -184,7 +183,7 @@ ArrayExpress Atlas Preview
         var options = {
             expressions : [
                     <c:forEach var="i" varStatus="s" items="${service.structQueryService.geneExpressionOptions}">
-                    [ '${u:escapeJS(i[0])}', '${u:escapeJS(i[1])}' ]<c:if test="${!s.last}">,</c:if>
+                    [ '${u:escapeJS(i[0])}', 'is ${u:escapeJS(i[1])} in' ]<c:if test="${!s.last}">,</c:if>
                     </c:forEach>
             ],
             species : [
@@ -195,7 +194,7 @@ ArrayExpress Atlas Preview
         };
 
         var lastquery = null;
-        <c:if test="${!empty query}">
+        <c:if test="${!query.none}">
         lastquery = {
             genes: [ <c:forEach var="g" varStatus="s" items="${query.geneQueries}">
             			{ query: '${g.jointFactorValues}', property:'${g.factor}', not: ${g.negated ? 1 : 0} }<c:if test="${!s.last}">,</c:if>
@@ -222,12 +221,12 @@ ArrayExpress Atlas Preview
         $(document).ready(function () {
             initQuery();
 
-            $('#simpleform, #structform').css('visibility', 'visible');
-            $('.visin${empty query || query.simple ? 'struct' : 'simple'}').hide();
+            $('#simpleform, #structform, #condadders').css('visibility', 'visible');
+            $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
     </script>
 
-    <c:if test="${!empty query}">
+    <c:if test="${!query.none}">
         <c:set var="cn" value="${f:length(query.conditions)}"/>
         <c:set var="sn" value="${f:length(query.species)}"/>
         <c:set var="gn" value="${f:length(query.geneQueries)}"/>

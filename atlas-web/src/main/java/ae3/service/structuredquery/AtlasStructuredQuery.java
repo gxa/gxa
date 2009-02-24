@@ -109,7 +109,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Checks if query is "simple" query (just one condition)
-     * @return
+     * @return true or false
      */
     public boolean isSimple() {
         Iterator<ExpFactorQueryCondition> efi = conditions.iterator();
@@ -118,6 +118,14 @@ public class AtlasStructuredQuery {
         return (!efi.hasNext() || ("".equals(efi.next().getFactor())) && !efi.hasNext()) &&
                 (!gqi.hasNext() || (!gqi.next().isNegated() && !gqi.hasNext())) &&
                 (!spi.hasNext() || (spi.next() != null && !spi.hasNext())); 
+    }
+
+    /**
+     * Checks if there's not enough parameters entered to query for something
+     * @return true or false
+     */
+    public boolean isNone() {
+        return !conditions.iterator().hasNext() && !geneQueries.iterator().hasNext(); 
     }
 
     /**

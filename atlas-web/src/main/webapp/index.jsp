@@ -1,15 +1,20 @@
-<%String svnBuildString = "$Rev$ $Date$";%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    request.setAttribute("service", ArrayExpressSearchService.instance());
+%>
 
 <jsp:include page="start_head.jsp"></jsp:include>
 ArrayExpress Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+    <link rel="stylesheet" href="structured-query.css" type="text/css" />
     <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -18,6 +23,7 @@ ArrayExpress Atlas
     <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="jquery.autocomplete.js"></script>
     <script type="text/javascript" src="jquerydefaultvalue.js"></script>
+    <script type="text/javascript" src="structured-query.js"></script>
 
     <script type="text/javascript">
         function toggleAtlasHelp() {
@@ -46,29 +52,10 @@ ArrayExpress Atlas
 
         $(document).ready(function()
             {
-                $("#q_gene").defaultvalue("(all genes)");
-                $("#q_expt").defaultvalue("(all conditions)");
+                initSimpleForm();
 
                 $("#atlasHelpToggle").click(toggleAtlasHelp);
 
-                $("#q_expt").autocomplete("autocomplete.jsp", {
-                        minChars:1,
-                        matchSubset: false,
-                        multiple: true,
-                        multipleSeparator: " ",
-                        extraParams: {type:"expt"},
-                        formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
-                });
-
-                $("#q_gene").autocomplete("autocomplete.jsp", {
-                        minChars:1,
-                        matchCase: true,
-                        matchSubset: false,
-                        multiple: true,
-                        multipleSeparator: " ",                    
-                        extraParams: {type:"gene"},
-                        formatItem:function(row) {return row[0] + " (" + row[1] + ")";}
-                });
 
                 if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
                    showAtlasHelp();
@@ -109,19 +96,7 @@ ArrayExpress Atlas
         </td>
     </tr>
 </table>
-<form name="atlasform" action="qr">
-    <%
-        String q_gene = request.getParameter("q_gene");
-        String q_expt = request.getParameter("q_expt");
-        String q_updn = request.getParameter("q_updn");
-        String q_orgn = request.getParameter("q_orgn");
-
-        if (q_updn == null) q_updn = "";
-        if (q_expt == null) q_expt = "";
-        if (q_gene == null) q_gene = "";
-        if (q_orgn == null) q_orgn = "";
-    %>
-
+<form name="atlasform" action="qrs">
     <table style="margin:auto;height:200px">
         <tr valign="top">
             <td valign="top"><img border="0" src="atlasbeta.jpg"/></td>
@@ -129,43 +104,39 @@ ArrayExpress Atlas
                 <table>
                     <tr>
                         <td>
-                            <label class="label" for="q_gene">Genes</label>
+                            <label class="label" for="gene0">Genes</label>
                         </td>
                         <td/>
                         <td>
-                            <label class="label" for="q_orgn">Organism</label>
+                            <label class="label" for="species0">Organism</label>
                         </td>
                         <td>
-                            <label class="label" for="q_expt">Conditions</label>
+                            <label class="label" for="fval0">Conditions</label>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <input type="text" name="q_gene" id="q_gene" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_gene)%>"/>
+                            <input type="hidden" name="gprop_0" id="gprop0" value="">
+                            <input type="text" name="gval_0" id="gene0" style="width:150px" value="" />
                         </td>
                         <td>
-                            <select name="q_updn">
-                                <option value="updn" <%=q_updn.equals("updn") ? "selected" : ""%>>up/down in</option>
-                                <option value="up"   <%=q_updn.equals("up") ? "selected" : ""%>>up in</option>
-                                <option value="down" <%=q_updn.equals("down") ? "selected" : ""%>>down in</option>
+                            <select name="fexp_0">
+                                <c:forEach var="s" items="${service.structQueryService.geneExpressionOptions}">
+                                    <option value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
+                                </c:forEach>
                             </select>
                         </td>
                         <td>
-                            <select id="q_orgn" name="q_orgn" style="width:150px">
-                                <option value="any" <%=q_orgn.equals("") ? "selected" : ""%>>Any species</option>
-                                <%
-                                    SortedSet<String> species = ArrayExpressSearchService.instance().getAllAvailableAtlasSpecies();
-                                    for (String s : species) {
-                                %>
-                                <option value="<%=s.toUpperCase()%>" <%=q_orgn.equals(s.toUpperCase()) ? "selected" : ""%>><%=s%>
-                                </option>
-                                <%
-                                    }
-                                %>
+                            <select name="specie_0" id="species0">
+                                <option value="">(any)</option>
+                                <c:forEach var="s" items="${service.allAvailableAtlasSpecies}">
+                                    <option value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                                </c:forEach>
                             </select>
                         </td>
                         <td>
-                            <input type="text" name="q_expt" id="q_expt" style="width:150px" value="<%=StringEscapeUtils.escapeHtml(q_expt)%>"/>
+                            <input type="hidden" name="fact_0" value="">
+                            <input type="text" name="fval_0" id="fval0" style="width:150px" value="" />
                         </td>
                     </tr>
                     <tr>
@@ -180,23 +151,6 @@ ArrayExpress Atlas
                         <td colspan="2" align="center" valign="top" width="200">
                             <div style="margin-top:10px">
                                 <input type="submit" value="Search Atlas">
-                            </div>
-                            <div style="margin-top:10px">
-                                <label>View results as:</label>
-                                <input type="radio" name="view" id="view_table" value="table"
-                                    <%=request.getParameter("view") == null || request.getParameter("view").equals("table") ? "checked" : ""%>>
-                                <label for="view_table">table</label>
-
-                                <input type="radio" name="view" id="view_heatmap" value="heatmap"
-                                    <%=request.getParameter("view") != null && request.getParameter("view").equals("heatmap") ? "checked" : ""%>>
-                                <label for="view_heatmap">heatmap</label>
-
-                                <br/>
-                                <i><input type="checkbox" name="expand_efo" id="expand_efo" value="on"
-                                    <%=null == request.getParameter("expand_efo") ? "checked" : ""%>
-                                    <%=null != request.getParameter("expand_efo") && request.getParameter("expand_efo").equals("expand_efo") ? "checked" : ""%>>
-                                <label for="expand_efo">expand search with <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO" title="Experimental Factor Ontology">EFO</a> ontology</label>
-                                </i>
                             </div>
                         </td>
                         <td valign="top" align="center" style="width:150px">
@@ -214,7 +168,7 @@ ArrayExpress Atlas
                 <div style="position:relative;padding-left:15px;top:10px">
                     <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
                     <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
-                    <a class="smallgreen" href="qrs">advanced query</a>
+                    <a class="smallgreen" href="qrs?struct">advanced query</a>
                 </div>
             </td>
         </tr>
@@ -225,7 +179,7 @@ ArrayExpress Atlas
         </tr>
     </table>
 
-    <input type="hidden" name="view"/>
+    <input type="hidden" name="view" value="hm"/>
 </form>
 
 <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">

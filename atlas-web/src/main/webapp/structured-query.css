@@ -80,8 +80,10 @@ legend { font-weight: bold; }
 .expansion .ignored { color: #cc0000; }
 
 #structform table { width: 100%; }
+#conditions select { width: 120px; }
 #conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
-#conditions input.value { width:30em; }
+#simpleform input.value, #structform input.value { border: 1px solid #cdcdcd; }
+#structform input.value { width:250px;  }
 
 .label {
     font-size: 10px;
