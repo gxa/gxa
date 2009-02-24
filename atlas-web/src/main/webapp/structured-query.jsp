@@ -178,6 +178,11 @@ ArrayExpress Atlas Preview
     <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext">
         Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
     </fieldset></c:if>
+    <c:forEach var="c" varStatus="s" items="${result.conditions}">
+        <c:if test="${!c.anything && c.expansion.numEfvs == 0}"><fieldset class="ignoretext">
+            <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
+        </fieldset></c:if>
+    </c:forEach>
 
     <script type="text/javascript">
         var options = {

@@ -13,7 +13,7 @@ function escapeHtml(s) {
 
      function createRemoveButton(callback)
      {
-         return $('<td />').append($('<input type="button" value="-" />').click(callback));
+         return $('<td class="rm" />').append($('<input type="button" value="-" />').click(callback));
      }
 
      function createNotButton(name,checked)
@@ -99,10 +99,10 @@ function escapeHtml(s) {
          var tbody = $('#conditions');
          var tr = $('tr.speccond:last', tbody);
          if(tr.length > 0) {
-             tr.after($('<tr class="speccond"><td></td></tr>').append(value).append(remove).append($('<td />')));
+             tr.after($('<tr class="speccond"><td></td></tr>').append(value).append(remove));
          } else {
              tbody.prepend($('<tr class="speccond"><td>in species</td></tr>')
-                           .append(value).append(remove).append($('<td />')));
+                           .append(value).append(remove));
          }
          hasConditions(true);
      }
@@ -261,8 +261,7 @@ function escapeHtml(s) {
                                             var tbody = tr.parents('tbody:first').get(0);
                                             tr.remove();
                                             hasConditions(false);
-                                        }))
-             .append($('<td />'));
+                                        }));
 
          $('#conditions').append(tr);
          hasConditions(true);

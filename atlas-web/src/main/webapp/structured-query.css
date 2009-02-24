@@ -75,15 +75,14 @@
 fieldset { width: 720px; margin-bottom: 10px; border: 1px solid #cdcdcd; }
 legend { font-weight: bold; }
 
-#simpleform .expansion { font-size: 10px;color:gray; }
-#structform .expansion { padding-left: 10px;font-size: smaller;color:gray; }
-.expansion .ignored { color: #cc0000; }
+.ignored { color: #cc0000; }
 
-#structform table { width: 100%; }
+#structform table { width: 100%;border:none;margin:0;padding:0; }
 #conditions select { width: 120px; }
 #conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
+#conditions td.rm { text-align: right;padding:0; }
 #simpleform input.value, #structform input.value { border: 1px solid #cdcdcd; }
-#structform input.value { width:250px;  }
+#structform input.value { width:340px;  }
 
 .label {
     font-size: 10px;
@@ -225,8 +224,9 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     color: #999999;
 }
 
-#efotext {
+#efotext,.ignoretext {
     background: #e6EEEE;
     padding-top: 5px;
     padding-bottom: 5px;
+    margin-bottom: 3px;
 }
