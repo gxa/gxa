@@ -47,12 +47,14 @@ function escapeHtml(s) {
      function hasConditions(state) {
          if(state) {
              $('#structsubmit').removeAttr('disabled');
+             $('#structclear').removeAttr('disabled');
              var h = $('#helprow');
              if(h.length)
                  helprow = h.remove();
          } else {
              if($('#conditions tr').length == 0) {
                  $('#structsubmit').attr('disabled','disabled');
+                 $('#structclear').attr('disabled','disabled');
                  if(helprow)
                     $('#conditions').append(helprow);
              }
@@ -383,6 +385,11 @@ function escapeHtml(s) {
                                                                       $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
                                                                       ++i;
                                                                   });
+     };
+
+     window.clearQuery = function() {
+         $('#conditions td.rm input').click();
+         $('#conditions td.rm input').click();
      };
 
      function adjustPosition(el) {

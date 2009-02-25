@@ -112,7 +112,10 @@ ArrayExpress Atlas Preview
                     <tr id="helprow"><td colspan="4"><em>Please add some conditions using drop-down lists below</em></td></tr>
                 </tbody>
             </table>
-            <div style="text-align:right;"><input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas"></div>            
+            <div style="text-align:right;">
+                <input id="structclear" disabled="disabled" type="button" value="Clear query" onclick="clearQuery();">
+                <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">                
+            </div>
         </fieldset>
         <input type="hidden" name="view" value="hm" />
     </form>
