@@ -52,7 +52,7 @@ ArrayExpress Atlas Preview
 </table>
 <div style="margin-bottom:50px" id="kycontent">
     <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
-        <fieldset>
+        <fieldset class="top">
             <legend>Find genes</legend>            
             <table>
                 <tr valign="top">
@@ -105,7 +105,7 @@ ArrayExpress Atlas Preview
     </form>
     
     <form id="structform" class="visinstruct" name="atlasform" action="qrs" onsubmit="renumberAll();" style="visibility:hidden;">
-        <fieldset>
+        <fieldset class="top">
             <legend>Find genes corresponding to ALL following conditions:</legend>
             <table>
                 <tbody id="conditions">
@@ -113,16 +113,16 @@ ArrayExpress Atlas Preview
                 </tbody>
             </table>
             <div style="text-align:right;">
-                <input id="structclear" disabled="disabled" type="button" value="Clear query" onclick="clearQuery();">
+                <input id="structclear" disabled="disabled" type="button" value="Clear Query" onclick="clearQuery();">
                 <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">                
             </div>
         </fieldset>
         <input type="hidden" name="view" value="hm" />
     </form>
 
-    <fieldset id="condadders" style="display:${query.none && !forcestruct ? 'none' : 'display'};visibility:hidden;">
+    <fieldset class="top" id="condadders" style="display:${query.none && !forcestruct ? 'none' : 'display'};visibility:hidden;">
         <legend>
-            Extend query with
+            Add filter
         </legend>
         <a style="display:block;float:right;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
         <a style="display:block;float:right;" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>
@@ -150,11 +150,11 @@ ArrayExpress Atlas Preview
         </form>
     </fieldset>
 
-    <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext">
+    <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext" class="top">
         Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
     </fieldset></c:if>
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
-        <c:if test="${!c.anything && c.expansion.numEfvs == 0}"><fieldset class="ignoretext">
+        <c:if test="${!c.anything && c.expansion.numEfvs == 0}"><fieldset class="ignoretext top">
             <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
         </fieldset></c:if>
     </c:forEach>
@@ -262,51 +262,47 @@ ArrayExpress Atlas Preview
             <table id="twocol"><tr>
             <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
             <td id="drilldowns">
-                <div id="summary">
-                    <b><c:out value="${result.total}" /></b> matching gene(s) found
-                </div>
-                <div id="drillhead">Refine your query:</div>
-                <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
-                    <div class="drillsect">
-                        <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
-                        <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                            <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
-                        </c:forEach></ul>
-                    </div>
-                </c:forEach>
-                <c:if test="${!empty result.geneFacets['species']}">
-                    <div class="drillsect">
-                        <div class="name">Species</div>
-                        <ul>
-                            <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                                <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
-                            </c:forEach>
-                        </ul>
-                    </div>
-                </c:if>
-                <c:forEach var="facet" items="${result.geneFacets}">
-                    <c:if test="${!empty facet.key && facet.key!='species'}">
+                <fieldset id="drill">
+                    <legend>Refine your query</legend>
+                    <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                         <div class="drillsect">
-                            <div class="name"><fmt:message key="head.gene.${facet.key}"/></div>
+                            <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
+                            <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
+                                <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
+                            </c:forEach></ul>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${!empty result.geneFacets['species']}">
+                        <div class="drillsect">
+                            <div class="name">Species</div>
                             <ul>
-                                <c:forEach var="fv" items="${facet.value}" varStatus="s">
-                                    <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
+                                <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
+                                    <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
                                 </c:forEach>
                             </ul>
                         </div>
                     </c:if>
-                </c:forEach>
-                <div style="clear:both;"></div>
+                    <c:forEach var="facet" items="${result.geneFacets}">
+                        <c:if test="${!empty facet.key && facet.key!='species'}">
+                            <div class="drillsect">
+                                <div class="name"><fmt:message key="head.gene.${facet.key}"/></div>
+                                <ul>
+                                    <c:forEach var="fv" items="${facet.value}" varStatus="s">
+                                        <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
+                                    </c:forEach>
+                                </ul>
+                            </div>
+                        </c:if>
+                    </c:forEach>
+                </fieldset>
             </td>
             </c:if>
 
             <c:if test="${true || heatmap}">
                 <td id="resultpane">
-                    <c:if test="${result.total < u:getIntProp('atlas.drilldowns.mingenes')}">
-                        <div id="summary">
-                            <b><c:out value="${result.total}" /></b> matching gene(s) found
-                        </div>
-                    </c:if>
+                    <div id="summary">
+                        <b><c:out value="${result.total}" /></b> matching gene(s) found
+                    </div>
                     <c:if test="${result.size < result.total}"><div class="pagination_ie page_long"></div></c:if>
                     <table id="squery">
                         <tbody>
