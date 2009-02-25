@@ -7,7 +7,7 @@
 /* tables */
 #squery {
     font-family: arial, sans-serif;
-    font-size: 8pt;
+    font-size: 12px;
     text-align: left;
     margin: 0px 0px 15px;
     border-collapse: collapse;
@@ -17,7 +17,6 @@
 
 #squery th {
     background-color: #e6EEEE;
-    font-size: 8pt;
     vertical-align: top;
     padding: 0px 0px 0px 0px;
     border: 1px solid #cdcdcd;
@@ -26,7 +25,7 @@
 #squery th.padded { vertical-align: middle;text-align: center; }
 
 #squery th.factor { text-align:center;font-weight:normal; }
-#squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold; }
+#squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
 #squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
 
 #squery td {
@@ -97,7 +96,7 @@ legend { font-weight: bold; }
 .drillsect {  }
 .drillsect ul { padding: 5px 0px 20px 0px;margin: 0; }
 .drillsect li { padding-left: 10px; list-style: none; color: #999999; }
-.drillsect .name { font-weight: bold; font-size: 14px; color: #999999; }
+.drillsect .name { font-weight: bold; font-size: 12px; color: #000000; }
 a.fup:link, a.fup:active, a.fup:visited { text-decoration: none; color: #c5b0b0; }
 a.fdn:link, a.fdn:active, a.fdn:visited { text-decoration: none; color: #b0b0c5; }
 a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
@@ -146,7 +145,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 }
 
 #expopup .head a {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 #expopup .exptable > table {
@@ -178,12 +177,12 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 
 #expopup a:link, #expopup a:visited {
     color: #006666;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 #expopup a:hover, #expopup a:active {
     color: #e33e3e;
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 .closebox {
@@ -219,7 +218,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 }
 
 .ac_results li em {
-    font-size: 11px;
+    font-size: 10px;
     font-style: normal;
     color: #999999;
 }
@@ -229,4 +228,19 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     padding-top: 5px;
     padding-bottom: 5px;
     margin-bottom: 3px;
+}
+
+#efoexpand {
+    display: none;
+    margin: 10px 0 0 0;
+    padding:0;
+    border: none;
+}
+
+#efoexpand td { border: none; padding: 0 0 5px 10px;vertical-align:top; }
+#efoexpand th { border: none; padding: 0 0 5px 0;vertical-align:top; }
+
+#efotoggle {
+    cursor:pointer;
+    border: none; float: right; width:9px; height: 9px;
 }

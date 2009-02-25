@@ -140,7 +140,8 @@ function escapeHtml(s) {
                                formatItem: function(row) { return row[0]; },
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
-             .flushCache();
+             .flushCache()
+             .defaultvalue('(all ' + (factor != '' ? factorLabel.toLowerCase() : 'condition') + 's)');
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td />')
@@ -231,7 +232,7 @@ function escapeHtml(s) {
          ++counter;
 
 
-
+         var label = getPropLabel(property);
          var input = $('<input type="text" class="value"/>')
              .attr('name', "gval_" + counter)
              .val(values != null ? values : "")
@@ -248,14 +249,15 @@ function escapeHtml(s) {
                          propi.val(newprop);
                          tr.find('td.gprop').text(getPropLabel(newprop));
                          $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
-                     });
+                     })
+             .defaultvalue('(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
 
          var tr = $('<tr class="genecond" />')
              .append($('<td />')
                  .append($('<select name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
                   + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
                  .append('&nbsp;&nbsp;&nbsp;')
-                 .append($('<span class="gprop" />').text(getPropLabel(property)))
+                 .append($('<span class="gprop" />').text(label))
                  .append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')))
              .append($('<td />').append(input))
              .append(createRemoveButton(function () {
@@ -390,6 +392,9 @@ function escapeHtml(s) {
      window.clearQuery = function() {
          $('#conditions td.rm input').click();
          $('#conditions td.rm input').click();
+         $('#gene0,#fval0,#grop0').val('');
+         $('#species0,#expr0').each(function () { this.selectedIndex = 0; });
+         simpleMode();
      };
 
      function adjustPosition(el) {

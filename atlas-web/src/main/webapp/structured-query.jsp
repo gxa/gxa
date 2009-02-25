@@ -57,7 +57,6 @@ ArrayExpress Atlas Preview
             <table>
                 <tr valign="top">
                     <td>
-                        <label class="label" for="gene0">Find Genes</label>
                     </td>
 
                     <td>
@@ -85,7 +84,7 @@ ArrayExpress Atlas Preview
                         </select>
                     </td>
                     <td style="padding-left:5px">
-                        <select name="fexp_0">
+                        <select name="fexp_0" id="expr0">
                             <c:forEach var="s"
                                        items="${service.structQueryService.geneExpressionOptions}">
                                 <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
@@ -142,7 +141,7 @@ ArrayExpress Atlas Preview
                 </c:forEach>
             </select>&nbsp;&nbsp;
             <select id="species">
-                <option value="" style="font-color:#cdcdcd;" selected="selected">species</option>
+                <option value="" style="font-color:#cdcdcd;" selected="selected">organism</option>
                 <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
                     <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
                 </c:forEach>
@@ -151,7 +150,18 @@ ArrayExpress Atlas Preview
     </fieldset>
 
     <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext" class="top">
+        <img src="expp.gif" id="efotoggle" onclick="$('#efoexpand').toggle();this.src=this.src.indexOf('expp')>=0?'expm.gif':'expp.gif';">
         Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
+        <table id="efoexpand">
+            <c:forEach var="c" varStatus="s" items="${result.conditions}">
+                <c:forEach var="ef" items="${c.expansion.nameSortedTree}">
+                    <tr>
+                        <th><fmt:message key="head.ef.${ef.ef}"/></th>
+                        <td><c:forEach var="efv" items="${ef.efvs}" varStatus="s"><c:out value="${efv.efv}"/><c:if test="${!s.last}">, </c:if></c:forEach></td>
+                    </tr>
+                </c:forEach>
+            </c:forEach>
+        </table>
     </fieldset></c:if>
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
         <c:if test="${!c.anything && c.expansion.numEfvs == 0}"><fieldset class="ignoretext top">
@@ -204,6 +214,8 @@ ArrayExpress Atlas Preview
             $('#simpleform, #structform, #condadders').css('visibility', 'visible');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
+        new Image().src = 'expp.gif';
+        new Image().src = 'expm.gif';
     </script>
 
     <c:if test="${!query.none}">
@@ -274,7 +286,7 @@ ArrayExpress Atlas Preview
                     </c:forEach>
                     <c:if test="${!empty result.geneFacets['species']}">
                         <div class="drillsect">
-                            <div class="name">Species</div>
+                            <div class="name">Organism</div>
                             <ul>
                                 <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
                                     <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
@@ -309,7 +321,7 @@ ArrayExpress Atlas Preview
                         <tr class="header">
                             <th class="padded" rowspan="2">Gene</th>
                             <c:if test="${f:length(query.species) != 1}">
-                                <th class="padded" rowspan="2">Species</th>
+                                <th class="padded" rowspan="2">Organism</th>
                             </c:if>
                             <map name="efvmap">
                                 <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
@@ -336,7 +348,7 @@ ArrayExpress Atlas Preview
                                     <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
                                     <c:choose>
                                         <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
-                                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">««&nbsp;less</a>
+                                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">««&nbsp;fewer</a>
                                         </c:when>
                                         <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
                                             <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;»»</a>
@@ -357,7 +369,7 @@ ArrayExpress Atlas Preview
                                     </div>
                                 </td>
                                 <c:if test="${f:length(query.species) != 1}">
-                                    <td class="padded"><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(row.gene.geneSpecies)}"><c:out value="${row.gene.geneSpecies}"/></a></td>
+                                    <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
                                 </c:if>
                                 <c:set var="first" value="true" />
                                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
