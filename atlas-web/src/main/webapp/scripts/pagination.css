@@ -6,8 +6,14 @@
 .pagination_ie a {
     text-decoration: none;
 	border: solid 1px #AAE;
-	color: #408c8c;
-	text-decoration: underline;
+	color: #1f7979;
+	cursor: pointer;
+}
+
+.pagination_ie a:link {
+    text-decoration: underline;
+	border: solid 1px #AAE;
+	color: #e33e3e;
 	cursor: pointer;
 }
 
@@ -20,7 +26,7 @@
 }
 
 .pagination_ie .current {
-    background: #26B;
+    background: #1f7979;
     color: #fff;
 	border: solid 1px #AAE;
 }

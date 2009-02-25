@@ -83,7 +83,18 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
         return colorMap;
     }
 	
-		
+	public String getText(){
+		if(isMixedCell())
+			return " found over-expressed in "+fv+ " in "+ count_up + " experiments and under-expressed in "+ count_dn+ " experiments";
+		else if(count_up > 0)
+			return " found over-expressed in "+fv+ " in " + count_up + " experiments";
+		else
+			if(count_dn > 0)
+				return " found under-expressed in "+fv+ " in " + count_dn + " experiments";
+			else
+				return "";
+	}
+	
 	public boolean isMixedCell(){
 		return (count_dn>0 && count_up>0);
 	}

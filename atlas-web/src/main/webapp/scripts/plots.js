@@ -3,6 +3,9 @@ function drawPlot(jsonObj, plot_id){
    			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
 			var overview;
 			var allSeries = plot.getData();
+			var tokens = plot_id.split('_');
+        	var eid = tokens[0];
+        	var gid = tokens[1]; 
 			
 			if(allSeries.length >10){
 				var divElt = $('#'+plot_id+'_thm');
@@ -34,7 +37,11 @@ function drawPlot(jsonObj, plot_id){
 			        					plot.setSelection(ranges);
 									  });
 				    
+			$('#'+plot_id).bind("plotclick", function(){
+				openInAEW(eid);
+			});
 				    
+			
 			//Tooltip
 			var previousPoint = null;
 			$('#'+plot_id).bind("plothover", function (event, pos, item) {
@@ -174,7 +181,7 @@ function drawPlot(jsonObj, plot_id){
 		            position: 'absolute',
 		            display: 'none',
 		            top: 50,
-		            left:x-550,
+		            left:20,
 		            border: '1px solid #fdd',
 		            padding: '2px',
 		            'background-color': '#fee',
@@ -225,6 +232,7 @@ function drawPlot(jsonObj, plot_id){
    			
    			success: function(o){
    				var plot = drawPlot(o,plot_id);//success
+   				
    				bindMarkings(o,plot,plot_id);
    				}
  			});//ajax

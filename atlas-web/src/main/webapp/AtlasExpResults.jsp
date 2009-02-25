@@ -23,16 +23,19 @@ request.setAttribute("exps",exps);
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@page import="java.util.HashSet"%>
-<script type="text/javascript">
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
 <script type="text/javascript">
 <!--
 
 	var exp_ids;
-	exp_ids = 
-		[<c:forEach var="exp" varStatus="s" items="${exps}">'${exp.dwExpId}'<c:if test="${!s.last}">,</c:if></c:forEach>];
-		
+	var exps;
+	exps= [ <c:forEach var="exp" varStatus="s" items="${exps}">{
+				id: '${exp.dwExpId}',
+				acc: '${exp.dwExpAccession}'
+				}<c:if test="${!s.last}">,</c:if>
+			</c:forEach>
+			];
 	
     function viewMore(id)
     {
@@ -84,11 +87,19 @@ request.setAttribute("exps",exps);
         legend.hide();
         legend_ext.show();
 	}
+	
+	function openInAEW(eid){
+		for (var i = 0; i < exps.length; ++i){
+			if(eid == exps[i].id)
+				exp_acc = jQuery.trim(exps[i].acc);
+		}
+		window.open("http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query="+exp_acc,"_blank");
+	}
 
 	
 </script>
 
-<table align="left" cellpadding="1">
+<table align="left" cellpadding="0">
 
 	<% int c = 0;
                     for (AtlasExperiment exp : exps) {
@@ -96,12 +107,12 @@ request.setAttribute("exps",exps);
                 %>
 	
 
-	<tr align="left">
+	<tr align="left" class="exp_header">
 		<td align="right" nowrap="true" valign="top">
-			<h3><%=exp.getDwExpAccession().trim()%>:</h3>
+			<%=exp.getDwExpAccession().trim()%>:
 		</td>
 		<td align="left">
-			<h3><%=exp.getTitle()%></h3>
+			<%=exp.getTitle()%>
 		</td>
 		<!--
 		<td width="20px"><img style="cursor: pointer"
@@ -148,7 +159,7 @@ request.setAttribute("exps",exps);
 	<%if (!exp.getExperimentFactors().isEmpty()) { %>
 	<tr align="left">
 		<td colspan="3" >
-		<div style="color: #5e5e5e; padding-top: 5px;padding-bottom: 0px; valign:middle" >
+		<div class="header" style="padding-top: 5px;padding-bottom: 0px; valign:middle" >
 			<span>Experimental Factors</span>
 				<div id="<%=exp.getDwExpId().toString()%>_EFpagination" class="pagination_ie" style="padding-top: 15px;">
 				<%HashSet<String> EFset = exp.getExperimentFactors();
@@ -224,9 +235,9 @@ request.setAttribute("exps",exps);
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show in <a  href="../aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">ArrayExpress Warehouse</a>
+			Show <a title="Show expression profile in ArrayExpress Warehouse" href="../aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">Expression profile</a>
 			&nbsp;/&nbsp;
-			<a  href="../arrayexpress/query/result?queryFor=Experiment&eAccession=<%=exp.getDwExpAccession().trim()%>">ArrayExpress Archive</a>
+			<a title="Show experiment details in ArrayExpress Archive" href="../arrayexpress/query/result?queryFor=Experiment&eAccession=<%=exp.getDwExpAccession().trim()%>">Experiment details</a>
 		</td>
 	</tr>
 
