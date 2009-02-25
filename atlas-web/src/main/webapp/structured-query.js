@@ -281,6 +281,7 @@ function escapeHtml(s) {
                          $('#gprop0').val(newprop);
                          var oldval = $(this).val();
                          this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
+                         $(this).parents('form:first').get(0).submit();
                          //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
                      }).get(0).onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
 
@@ -513,7 +514,8 @@ function escapeHtml(s) {
                  
                  var link = $('#' + plot_id + '_link');
                  if(link)
-                    plotel.bind('click', function () { location.href = link.attr('href'); });
+                    plotel.bind('click', function (e) { location.href = link.attr('href');e.stopPropagation();return false; })
+                            .bind('mousedown', function (e) { e.stopPropagation();return false; });
 
              }
          };

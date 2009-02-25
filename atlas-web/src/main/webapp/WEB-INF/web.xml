@@ -69,7 +69,7 @@
     <servlet>
         <display-name>Factor Values completion helper</display-name>
         <servlet-name>fval</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.FactorValues</servlet-class>
+        <servlet-class>ae3.servlet.structuredquery.FactorValuesServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
 
@@ -89,7 +89,7 @@
     <servlet>
         <display-name>Search JSP Servlet</display-name>
         <servlet-name>qrs</servlet-name>
-        <jsp-file>/structured-query.jsp</jsp-file>
+        <servlet-class>ae3.servlet.structuredquery.StructuredQueryServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 

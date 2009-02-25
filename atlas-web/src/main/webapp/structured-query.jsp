@@ -2,23 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ page import="ae3.service.ArrayExpressSearchService" %>
-<%@ page import="ae3.service.structuredquery.AtlasStructuredQuery" %>
-<%@ page import="ae3.service.structuredquery.AtlasStructuredQueryResult" %>
-<%@ page import="ae3.service.structuredquery.AtlasStructuredQueryParser" %>
-<%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
-<%
-    request.setAttribute("service", ArrayExpressSearchService.instance());
-
-    AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
-    request.setAttribute("query", atlasQuery);
-
-    request.setAttribute("heatmap", "hm".equals(request.getParameter("view")));
-    request.setAttribute("forcestruct", request.getParameter("struct") != null);
-
-%>
 
 <jsp:include page="start_head.jsp"></jsp:include>
 ArrayExpress Atlas Preview
@@ -66,18 +50,7 @@ ArrayExpress Atlas Preview
         </td>
     </tr>
 </table>
-<div style="margin-bottom:50px">
-
-    <c:if test="${!query.none}">
-        <div style="margin-top:20px;margin-bottom:20px" id="loading_display">Searching... <img src="indicator.gif" alt="Loading..." /></div>
-        <c:set var="timeStart" value="${u:currentTime()}"/>
-        <%
-            response.flushBuffer();
-            AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(atlasQuery);
-            request.setAttribute("result", atlasResult);
-        %>
-    </c:if>
-
+<div style="margin-bottom:50px" id="kycontent">
     <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
         <fieldset>
             <legend>Find genes</legend>            
@@ -289,8 +262,7 @@ ArrayExpress Atlas Preview
                 <div id="summary">
                     <b><c:out value="${result.total}" /></b> matching gene(s) found
                 </div>
-                <c:if test="${result.size < result.total}"><div class="pagination_ie page_short"></div></c:if>
-                <div style="margin-bottom:10px;">Refine your query:</div>
+                <div id="drillhead">Refine your query:</div>
                 <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                     <div class="drillsect">
                         <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
@@ -332,6 +304,7 @@ ArrayExpress Atlas Preview
                             <b><c:out value="${result.total}" /></b> matching gene(s) found
                         </div>
                     </c:if>
+                    <c:if test="${result.size < result.total}"><div class="pagination_ie page_long"></div></c:if>
                     <table id="squery">
                         <tbody>
                         <tr class="header">

@@ -19,7 +19,7 @@ import ae3.service.structuredquery.AutoCompleteItem;
 /**
  * @author pashky
  */
-public class FactorValues extends HttpServlet {
+public class FactorValuesServlet extends HttpServlet {
     private Log log = LogFactory.getLog(getClass());
 
     protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {

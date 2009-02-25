@@ -1,3 +1,6 @@
+#kycontent a, #kycontent a:visited { text-decoration: none; }
+#kycontent a:hover, #kycontent a:active { text-decoration: underline; }
+
 #twocol { padding: 0; margin: 15px 0 0 0; border-spacing: 0; }
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
@@ -90,14 +93,15 @@ legend { font-weight: bold; }
 
 /* drilldown filters */
 
-.drillsect { }
-.drillsect ul { padding: 5px 0px 10px 0px;margin: 0; }
-.drillsect li { padding-left: 0px; list-style: none; color: #b0b0b0; }
-.drillsect .name { font-weight: bold; color: black; }
-a.fup:link, a.fup:active, a.fup:visited { color: #c5b0b0; text-decoration: none; }
-a.fdn:link, a.fdn:active, a.fdn:visited { color: #b0b0c5; text-decoration: none; }
+#drillhead { margin-bottom:15px; margin-top: 10px; font-size:16px; }
+.drillsect {  }
+.drillsect ul { padding: 5px 0px 20px 0px;margin: 0; }
+.drillsect li { padding-left: 10px; list-style: none; color: #999999; }
+.drillsect .name { font-weight: bold; color: #999999; }
+a.fup:link, a.fup:active, a.fup:visited { text-decoration: none; color: #c5b0b0; }
+a.fdn:link, a.fdn:active, a.fdn:visited { text-decoration: none; color: #b0b0c5; }
 a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
-.drillsect a:hover { text-decoration: underline; }
+.drillsect a:hover { text-decoration: underline;color: #e33e3e }
 
 #pagination { margin-top: 10px; text-align: left; }
 
@@ -211,7 +215,7 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 .plot { position: relative; width: 280px; height: 80px; }
 
 .pagination_ie {
-    padding: 10px 0 15px 0;
+    padding: 5px 0 15px 0;
 }
 
 .ac_results li em {
