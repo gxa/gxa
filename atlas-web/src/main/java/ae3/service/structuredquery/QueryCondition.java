@@ -40,14 +40,7 @@ public abstract class QueryCondition {
      * @return string of all factor values
      */
     public String getJointFactorValues() {
-        StringBuffer sb = new StringBuffer();
-        for (String v : factorValues)
-        {
-            if(sb.length() > 0)
-                sb.append(" ");
-            sb.append(HtmlHelper.optionalQuote(v));
-        }
-        return sb.toString();
+        return HtmlHelper.joinQuotedValues(factorValues);
     }
 
     /**

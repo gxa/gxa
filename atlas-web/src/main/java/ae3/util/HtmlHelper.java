@@ -40,6 +40,18 @@ public class HtmlHelper {
             return '"' + str.replaceAll("\"", "\\\"") + '"';
         return str;
     }
+
+    public static String joinQuotedValues(Iterable<String> values) {
+        StringBuffer sb = new StringBuffer();
+        for (String v : values)
+        {
+            if(sb.length() > 0)
+                sb.append(" ");
+            sb.append(optionalQuote(v));
+        }
+        return sb.toString();
+    }
+
     /**
      * Returns current system time, for util.tld
      * @return time in milliseconds
