@@ -170,7 +170,7 @@ request.setAttribute("exps",exps);
                 		<fmt:message key="head.ef.${PlotEF}"/>
                 	</span>
                  		<%}else{%>
-                 	<a id="${PlotEF}" onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
+                 	<a href="#" id="${PlotEF}" onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
 							<fmt:message key="head.ef.${PlotEF}"/> 
 					</a>						
 					 

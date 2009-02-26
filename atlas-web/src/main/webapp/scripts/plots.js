@@ -255,7 +255,7 @@ function drawPlot(jsonObj, plot_id){
     			panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
     		}
     		else{
-    			panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ef_txt+'</a>');
+    			panelContent.push('<a href="#" id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'_'+gid+'_'+ef+'\',false)">'+ef_txt+'</a>');
     		}
     		});
 					
