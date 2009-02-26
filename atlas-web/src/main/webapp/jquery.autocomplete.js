@@ -47,6 +47,9 @@ $.fn.extend({
 	},
 	unautocomplete: function() {
 		return this.trigger("unautocomplete");
+	},
+	hideResults: function() {
+		return this.trigger("hideResults");
 	}
 });
 
@@ -195,7 +198,9 @@ $.Autocompleter = function(input, options) {
 		select.unbind();
 		$input.unbind();
 		$(input.form).unbind(".autocomplete");
-	});
+	}).bind("hideResults", function() {
+		hideResults();
+    });
 
 
 	function selectCurrent() {
@@ -634,6 +639,11 @@ $.Autocompleter.Select = function (options, input, select, config) {
 		if( options.width > 0 )
 			element.css("width", options.width);
 
+        if(options.extraContent && typeof(options.extraContent) == 'function')
+            element.append(options.extraContent($(input)));
+        else if(options.extraContent)
+            element.append($(options.extraContent));
+        
 		needsInit = false;
 	}
 

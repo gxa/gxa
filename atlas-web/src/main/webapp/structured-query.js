@@ -2,6 +2,12 @@ var counter = 0;
 var geneCounter = 0;
 var helprow;
 
+var hideAutocompleteCode = function (input) {
+    var closebox = $('<div class="achide">hide suggestions</div>');
+    closebox.click(function () { input.hideResults(); });
+    return closebox;
+};
+
 function escapeHtml(s) {
     return s.replace(/\"/g,"&quot;")
         .replace(/</g,"&lt;")
@@ -135,7 +141,8 @@ function escapeHtml(s) {
                                multipleQuotes: true,
                                scroll: false,
                                scrollHeight: 180,
-                               max: 20,
+                               max: 15,
+                               extraContent: hideAutocompleteCode,
                                extraParams: { type: 'efv', 'factor' : factor },
                                formatItem: function(row) { return row[0]; },
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
@@ -197,7 +204,8 @@ function escapeHtml(s) {
              multipleQuotes: true,
              scroll: false,
              scrollHeight: 180,
-             max: 20,
+             max: 15,
+             extraContent: hideAutocompleteCode,
              extraParams: { type: 'gene', 'factor' : property },
              formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
          };
@@ -301,8 +309,9 @@ function escapeHtml(s) {
                                multipleSeparator: " ",
                                scroll: false,
                                scrollHeight: 180,
-                               max: 10,
+                               max: 15,
                                extraParams: { type: 'efv', factor: '' },
+                               extraContent: hideAutocompleteCode,
                                formatItem: function(row) { return row[0]; },
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })

@@ -10,7 +10,7 @@
 fieldset, #simpleform input.value, #structform input.value, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
       { border: 1px solid #5E9E9E; }
 
-#squery th, fieldset, #tooltip, #drill, #expopup
+#squery th, fieldset, #tooltip, #drill, #expopup, .achide
       { background-color: #EEF5F5; }
 
 .closebox { color: #006666; }
@@ -204,7 +204,8 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     position: absolute;
     right: 0;
     top: 0;
-    font: bold 10px sans-serif;
+    font-weight: bold;
+    font-size: 10px;
     background-color:white;
     padding: 4px 8px 4px 8px;
     text-align: center;
@@ -212,6 +213,11 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
     border-bottom: 1px solid #5E9E9E; 
     cursor: pointer;
     z-index: 2500;
+}
+
+.closebox:hover {
+    color: #e33e3e;
+    text-decoration: underline;    
 }
 
 #tooltip {
@@ -250,4 +256,19 @@ a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
 #efotoggle {
     cursor:pointer;
     border: none; float: right; width:9px; height: 9px;
+}
+
+.achide {
+    padding: 3px 5px 3px 5px;
+    text-align: left;
+    color: #005555;
+    font-weight: bold;
+    font-size: 10px;
+    border-top: 1px solid #5E9E9E;
+    cursor: pointer;
+}
+
+.achide:hover {
+    color: #e33e3e;
+    text-decoration: underline;
 }
