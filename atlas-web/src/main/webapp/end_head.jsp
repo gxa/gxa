@@ -52,4 +52,3 @@
     </script>
 
 ${atlas.googleanalytics.script}
-${atlas.protonotes.script}
