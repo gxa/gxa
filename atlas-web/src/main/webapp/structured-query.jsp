@@ -51,6 +51,8 @@ ArrayExpress Atlas Preview
     </tr>
 </table>
 <div style="margin-bottom:50px" id="kycontent">
+
+    <div style="width:720px">
     <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
         <fieldset class="top">
             <legend>Find genes</legend>            
@@ -112,7 +114,7 @@ ArrayExpress Atlas Preview
                 </tbody>
             </table>
             <div style="text-align:right;">
-                <input id="structclear" disabled="disabled" type="button" value="Clear Query" onclick="clearQuery();">
+                <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
                 <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">                
             </div>
         </fieldset>
@@ -168,6 +170,14 @@ ArrayExpress Atlas Preview
             <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
         </fieldset></c:if>
     </c:forEach>
+
+    <c:if test="${result.size > 0}">
+        <div id="summary">
+            <div id="pagetop" class="pagination_ie page_long"></div>
+            <b><c:out value="${result.total}" /></b> matching gene(s) found
+        </div>
+    </c:if>
+    </div>
 
     <script type="text/javascript">
         var options = {
@@ -271,143 +281,139 @@ ArrayExpress Atlas Preview
             </script>
             </c:if>
 
-            <table id="twocol"><tr>
-            <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
-            <td id="drilldowns">
-                <fieldset id="drill">
-                    <legend>Refine your query</legend>
-                    <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
-                        <div class="drillsect">
-                            <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
-                            <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                                <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
-                            </c:forEach></ul>
-                        </div>
-                    </c:forEach>
-                    <c:if test="${!empty result.geneFacets['species']}">
-                        <div class="drillsect">
-                            <div class="name">Organism</div>
-                            <ul>
-                                <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                                    <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
-                                </c:forEach>
-                            </ul>
-                        </div>
-                    </c:if>
-                    <c:forEach var="facet" items="${result.geneFacets}">
-                        <c:if test="${!empty facet.key && facet.key!='species'}">
-                            <div class="drillsect">
-                                <div class="name"><fmt:message key="head.gene.${facet.key}"/></div>
-                                <ul>
-                                    <c:forEach var="fv" items="${facet.value}" varStatus="s">
-                                        <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
-                                    </c:forEach>
-                                </ul>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                </fieldset>
-            </td>
-            </c:if>
-
-            <c:if test="${true || heatmap}">
-                <td id="resultpane">
-                    <div id="summary">
-                        <b><c:out value="${result.total}" /></b> matching gene(s) found
-                    </div>
-                    <c:if test="${result.size < result.total}"><div class="pagination_ie page_long"></div></c:if>
-                    <table id="squery">
-                        <tbody>
-                        <tr class="header">
-                            <th class="padded" rowspan="2">Gene</th>
-                            <c:if test="${f:length(query.species) != 1}">
-                                <th class="padded" rowspan="2">Organism</th>
-                            </c:if>
-                            <map name="efvmap">
-                                <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
-                                    <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
-                                </c:forEach>
-                            </map>
-                            <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
-                            <c:url var="imgUrl" value="/thead">
-                                <c:param name="random" value="${u:currentTime()}" />
-                                <c:param name="st" value="1" />
-                                <c:param name="s" value="27" />
-                                <c:param name="fs" value="11" />
-                                <c:param name="h" value="100" />
-                                <c:param name="lh" value="15" />
-                                <c:param name="lc" value="#cdcdcd" />
-                                <c:param name="tc" value="#000000" />
-                            </c:url>
-                            <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
-                        </tr>
-                        <tr>
-                            <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
-                                <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
-                                <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
-                                    <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
-                                    <c:choose>
-                                        <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
-                                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">««&nbsp;fewer</a>
-                                        </c:when>
-                                        <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
-                                            <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;»»</a>
-                                        </c:when>
-                                    </c:choose>
-                                </th>
+            <table id="twocol"><tr class="top">
+                <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+                    <td id="drilldowns">
+                        <div id="drill">
+                            <h2>Refine your query</h2>
+                            <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
+                                <div class="drillsect">
+                                    <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
+                                    <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
+                                        <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
+                                    </c:forEach></ul>
+                                </div>
                             </c:forEach>
-                        </tr>
-                        <c:forEach var="row" items="${result.results}" varStatus="i">
-                            <tr id="squeryrow${i.index}">
-                                <td class="padded genename">
-                                    <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
-                                    <div class="gtooltip">
-                                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>                                        
-                                        <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
-                                        <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
-                                        <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+                            <c:if test="${!empty result.geneFacets['species']}">
+                                <div class="drillsect">
+                                    <div class="name">Organism</div>
+                                    <ul>
+                                        <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
+                                            <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
+                                        </c:forEach>
+                                    </ul>
+                                </div>
+                            </c:if>
+                            <c:forEach var="facet" items="${result.geneFacets}">
+                                <c:if test="${!empty facet.key && facet.key!='species'}">
+                                    <div class="drillsect">
+                                        <div class="name"><fmt:message key="head.gene.${facet.key}"/></div>
+                                        <ul>
+                                            <c:forEach var="fv" items="${facet.value}" varStatus="s">
+                                                <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
+                                            </c:forEach>
+                                        </ul>
                                     </div>
-                                </td>
-                                <c:if test="${f:length(query.species) != 1}">
-                                    <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
                                 </c:if>
-                                <c:set var="first" value="true" />
-                                <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
-                                    <c:set var="ud" value="${row.counters[e.payload]}"/>
-                                    <c:choose>
-                                        <c:when test="${ud.zero}">
-                                            <td class="counter"><c:if test="${first}"><div class="osq"></div><c:set var="first" value="false" /></c:if></td>
-                                        </c:when>
-                                        <c:when test="${ud.ups == 0 && ud.downs > 0}">
-                                            <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
-                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
-                                        </c:when>
-                                        <c:when test="${ud.downs == 0 && ud.ups > 0}">
-                                            <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
-                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <td class="acounter"
-                                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                onclick="hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
-                                        </c:otherwise>
-                                    </c:choose>
+                            </c:forEach>
+                        </div>
+                    </td>
+                </c:if>
+
+                <c:if test="${true || heatmap}">
+                    <td id="resultpane">
+                        <table id="squery">
+                            <tbody>
+                            <tr class="header">
+                                <th class="padded" rowspan="2">Gene</th>
+                                <c:if test="${f:length(query.species) != 1}">
+                                    <th class="padded" rowspan="2">Organism</th>
+                                </c:if>
+                                <map name="efvmap">
+                                    <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
+                                        <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
+                                    </c:forEach>
+                                </map>
+                                <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
+                                <c:url var="imgUrl" value="/thead">
+                                    <c:param name="random" value="${u:currentTime()}" />
+                                    <c:param name="st" value="1" />
+                                    <c:param name="s" value="27" />
+                                    <c:param name="fs" value="11" />
+                                    <c:param name="h" value="100" />
+                                    <c:param name="lh" value="15" />
+                                    <c:param name="lc" value="#cdcdcd" />
+                                    <c:param name="tc" value="#000000" />
+                                </c:url>
+                                <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
+                            </tr>
+                            <tr>
+                                <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
+                                    <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
+                                    <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
+                                        <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
+                                        <c:choose>
+                                            <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
+                                                <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">««&nbsp;fewer</a>
+                                            </c:when>
+                                            <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
+                                                <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;»»</a>
+                                            </c:when>
+                                        </c:choose>
+                                    </th>
                                 </c:forEach>
                             </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
+                            <c:forEach var="row" items="${result.results}" varStatus="i">
+                                <tr id="squeryrow${i.index}">
+                                    <td class="padded genename">
+                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
+                                        <div class="gtooltip">
+                                            <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
+                                            <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
+                                            <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
+                                            <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+                                        </div>
+                                    </td>
+                                    <c:if test="${f:length(query.species) != 1}">
+                                        <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
+                                    </c:if>
+                                    <c:set var="first" value="true" />
+                                    <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
+                                        <c:set var="ud" value="${row.counters[e.payload]}"/>
+                                        <c:choose>
+                                            <c:when test="${ud.zero}">
+                                                <td class="counter"><c:if test="${first}"><div class="osq"></div><c:set var="first" value="false" /></c:if></td>
+                                            </c:when>
+                                            <c:when test="${ud.ups == 0 && ud.downs > 0}">
+                                                <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                                    onclick="hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
+                                            </c:when>
+                                            <c:when test="${ud.downs == 0 && ud.ups > 0}">
+                                                <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
+                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
+                                                    onclick="hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <td class="acounter"
+                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                                    onclick="hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
 
-                    <div class="pagination_ie page_long"></div>
+                        <div class="pagination_ie page_long"></div>
 
-                    <c:set var="timeFinish" value="${u:currentTime()}"/>
-                    <p>
-                        Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-                    </p>
-                </td>
-            </c:if>
+                        <c:set var="timeFinish" value="${u:currentTime()}"/>
+                        <p>
+                            Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+                        </p>
+                    </td>
+                </c:if>
             </tr></table>
         </c:if>
         <c:if test="${result.size == 0}">

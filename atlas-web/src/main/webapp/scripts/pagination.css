@@ -3,14 +3,14 @@
             text-transform : capitalize;
         }
         
-.pagination_ie a {
+.pagination_ie a:link, .pagination_ie a:visited {
     text-decoration: none;
 	border: solid 1px #AAE;
 	color: #1f7979;
 	cursor: pointer;
 }
 
-.pagination_ie a:link {
+.pagination_ie a:hover, .pagination_ie a:active {
     text-decoration: underline;
 	border: solid 1px #AAE;
 	color: #e33e3e;

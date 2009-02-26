@@ -498,6 +498,7 @@ function escapeHtml(s) {
              if(jsonObj.series) {
                  jsonObj.options.legend.container = "#" + plot_id + "_legend";
                  jsonObj.options.legend.extContainer = null;
+                 jsonObj.options.selection = null;
 
                  var series = null;
                  var markColor = null;
