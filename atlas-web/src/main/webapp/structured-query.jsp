@@ -65,16 +65,16 @@ ArrayExpress Atlas Preview
                         <label class="label" for="species0">Organisms</label>
                     </td>
 
-                    <td style="padding-left:5px">
+                    <td style="padding-left:5px" colspan="2">
                         <label class="label" for="fval0">Conditions</label>
                     </td>
 
-                    <td colspan="2"></td>
+                    <td></td>
                 </tr>
                 <tr valign="top">
                     <td>
                         <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
-                        <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" />
+                        <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" /><br>
                     </td>
                     <td>
                         <select name="specie_0" id="species0" style="width:180px">
@@ -93,11 +93,16 @@ ArrayExpress Atlas Preview
                             </c:forEach>
                         </select>
                         <input type="hidden" name="fact_0" value="">
+                    </td><td>
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                     </td>
                     <td align="right">
                         <input type="submit" value="Search Atlas">
                     </td>
+                </tr>
+                <tr>
+                    <td class="label" colspan="3"><span class="label">Ex: ASPM, ENSMUSG123, "p53 binding"</span></td>
+                    <td class="label" colspan="2"><span class="label">Ex: liver, kidney, "colon cancer"</span></td>
                 </tr>
             </table>
             <a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>

@@ -280,12 +280,11 @@ function escapeHtml(s) {
                          var newprop = res[0];
                          if(res[0] == 'name') {
                              newprop = 'identifier';
-                             $(this).val(res[3].split('$')[2]);
+                             $(this).val(res[3].split('$')[2]).parents('form:first').get(0).submit();
                          }
                          $('#gprop0').val(newprop);
                          var oldval = $(this).val();
                          this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
-                         $(this).parents('form:first').get(0).submit();
                          //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
                      }).get(0).onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
 

@@ -81,7 +81,7 @@ public class GenePropValueListHelper implements IValueListHelper {
             q.setRows(0);
             q.setFacet(true);
             q.setFacetMinCount(1);
-            q.setFacetLimit(hasPrefix ? -1 : limit);
+            q.setFacetLimit(limit);
             q.setFacetSort(true);
 
             if(anyProp) {
@@ -95,7 +95,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
             List<String> prefixes;
             if(hasPrefix) {
-                prefixes = generateCaseVariants(query.substring(0, Math.min(2, query.length())));
+                prefixes = generateCaseVariants(query.substring(0, query.length()));
             } else {
                 prefixes = new ArrayList<String>();
                 prefixes.add("");
@@ -177,6 +177,9 @@ public class GenePropValueListHelper implements IValueListHelper {
     }
 
     private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<AutoCompleteItem> source) throws SolrServerException {
+        if(!source.iterator().hasNext())
+            return;
+
         SolrQuery q;
         StringBuffer sb = new StringBuffer();
 
