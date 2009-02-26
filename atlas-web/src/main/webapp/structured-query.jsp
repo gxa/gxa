@@ -52,11 +52,11 @@ ArrayExpress Atlas Preview
 </table>
 <div style="margin-bottom:50px" id="kycontent">
 
-    <div style="width:720px">
+    <div id="topcontainer">
     <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
         <fieldset class="top">
             <legend>Find genes</legend>            
-            <table>
+            <table width="100%">
                 <tr valign="top">
                     <td>
                     </td>
@@ -95,12 +95,12 @@ ArrayExpress Atlas Preview
                         <input type="hidden" name="fact_0" value="">
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                     </td>
-                    <td align="left">
+                    <td align="right">
                         <input type="submit" value="Search Atlas">
                     </td>
                 </tr>
             </table>
-            <c:if test="${query.none}"><a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a></c:if>
+            <a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>
         </fieldset>
         <input type="hidden" name="view" value="hm" />
     </form>
@@ -113,43 +113,40 @@ ArrayExpress Atlas Preview
                     <tr id="helprow"><td colspan="4"><em>Please add some conditions using drop-down lists below</em></td></tr>
                 </tbody>
             </table>
-            <div style="text-align:right;">
-                <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
-                <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">                
+            <div style="margin-top:15px;">
+                <div style="float:right;">
+                    <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
+                    <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">
+                </div>
+                <b>&nbsp;Add&nbsp;</b>
+                <select id="factors">
+                    <option value="" selected="selected">experimental factor:</option>
+                    <option value=""></option>
+                    <option value="">(any)</option>
+                    <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
+                        <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
+                    </c:forEach>
+                </select>
+                <select id="geneprops">
+                    <option value="" selected="selected">gene property:</option>
+                    <option value=""></option>
+                    <option value="">(any)</option>
+                    <c:forEach var="i" items="${service.geneProperties}">
+                        <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
+                    </c:forEach>
+                </select>
+                <select id="species">
+                    <option value="" selected="selected">organism:</option>
+                    <option value=""></option>
+                    <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
+                        <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
+                    </c:forEach>
+                </select>
             </div>
+            <a style="margin-top:10px;text-align:right;display:block;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
         </fieldset>
         <input type="hidden" name="view" value="hm" />
     </form>
-
-    <fieldset class="top" id="condadders" style="display:${query.none && !forcestruct ? 'none' : 'display'};visibility:hidden;">
-        <legend>
-            Add filter
-        </legend>
-        <a style="display:block;float:right;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
-        <a style="display:block;float:right;" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>
-        <form action="">
-            <select id="factors">
-                <option value="" style="font-color:#cdcdcd;">experimental factor</option>
-                <option value="">(any)</option>
-                <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
-                    <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
-                </c:forEach>
-            </select>&nbsp;&nbsp;
-            <select id="geneprops">
-                <option value="" style="font-color:#cdcdcd;" selected="selected">gene property</option>
-                <option value="">(any)</option>
-                <c:forEach var="i" items="${service.geneProperties}">
-                    <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
-                </c:forEach>
-            </select>&nbsp;&nbsp;
-            <select id="species">
-                <option value="" style="font-color:#cdcdcd;" selected="selected">organism</option>
-                <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
-                    <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
-                </c:forEach>
-            </select>
-        </form>
-    </fieldset>
 
     <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext" class="top">
         <img src="expp.gif" id="efotoggle" onclick="$('#efoexpand').toggle();this.src=this.src.indexOf('expp')>=0?'expm.gif':'expp.gif';">
@@ -221,7 +218,7 @@ ArrayExpress Atlas Preview
         $(document).ready(function () {
             initQuery();
 
-            $('#simpleform, #structform, #condadders').css('visibility', 'visible');
+            $('#simpleform, #structform').css('visibility', 'visible');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
         new Image().src = 'expp.gif';

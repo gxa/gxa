@@ -76,7 +76,7 @@ function escapeHtml(s) {
          if(!found)
              return;
 
-         var value = $('<td class="specval">' + specie + '<input class="specval" type="hidden" name="specie_' + counter + '" value="' + specie + '"></td>');
+         var value = $('<td class="specval value">' + specie + '<input class="specval" type="hidden" name="specie_' + counter + '" value="' + specie + '"></td>');
          var remove = createRemoveButton(function () {
                                              var tr = $(this).parents('tr:first');
                                              var rmvalue = $('input.specval', tr).val();
@@ -101,9 +101,9 @@ function escapeHtml(s) {
          var tbody = $('#conditions');
          var tr = $('tr.speccond:last', tbody);
          if(tr.length > 0) {
-             tr.after($('<tr class="speccond"><td></td></tr>').append(value).append(remove));
+             tr.after($('<tr class="speccond"><td class="left"></td></tr>').append(value).append(remove));
          } else {
-             tbody.prepend($('<tr class="speccond"><td>in species</td></tr>')
+             tbody.prepend($('<tr class="speccond"><td class="left">in species</td></tr>')
                            .append(value).append(remove));
          }
          hasConditions(true);
@@ -144,12 +144,12 @@ function escapeHtml(s) {
              .defaultvalue('(all ' + (factor != '' ? factorLabel.toLowerCase() : 'condition') + 's)');
 
          var tr = $('<tr class="efvcond" />')
-             .append($('<td />')
+             .append($('<td class="left" />')
                  .append(createSelect("fexp_" + counter, options['expressions'], false, expression))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append(factorLabel)
                  .append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
-             .append($('<td />').append(input))
+             .append($('<td class="value" />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
                                             var tbody = tr.parents('tbody:first').get(0);
@@ -253,13 +253,13 @@ function escapeHtml(s) {
              .defaultvalue('(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
 
          var tr = $('<tr class="genecond" />')
-             .append($('<td />')
+             .append($('<td class="left" />')
                  .append($('<select name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
                   + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append($('<span class="gprop" />').text(label))
                  .append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')))
-             .append($('<td />').append(input))
+             .append($('<td class="value" />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
                                             var tbody = tr.parents('tbody:first').get(0);
@@ -322,37 +322,30 @@ function escapeHtml(s) {
                                   });
 
          $('#geneprops').change(function () {
-                                    if(this.selectedIndex == 0)
-                                        return;
-
-                                    structMode();
-
-                                    var property = this.options[this.selectedIndex].value;
-                                    addGeneQuery(property);
+                                    if(this.selectedIndex >= 2) {
+                                        structMode();
+                                        var property = this.options[this.selectedIndex].value;
+                                        addGeneQuery(property);
+                                    }
                                     this.selectedIndex = 0;
                                 });
 
 
          $('#species').change(function () {
-                                  if(this.selectedIndex == 0)
-                                      return;
-
-                                  structMode();
-
-                                  var specie = this.options[this.selectedIndex].value;
-                                  addSpecie(specie);
-
+                                  if(this.selectedIndex >= 2) {
+                                      structMode();
+                                      var specie = this.options[this.selectedIndex].value;
+                                      addSpecie(specie);
+                                  }
                                   this.selectedIndex = 0;
                               });
 
          $('#factors').change(function () {
-                                  if(this.selectedIndex == 0)
-                                      return;
-
-                                  structMode();
-
-                                  var factor = this.options[this.selectedIndex].value;
-                                  addExpFactor(factor);
+                                  if(this.selectedIndex >= 2) {
+                                      structMode();
+                                      var factor = this.options[this.selectedIndex].value;
+                                      addExpFactor(factor);
+                                  }
                                   this.selectedIndex = 0;
                               });
 
@@ -387,6 +380,7 @@ function escapeHtml(s) {
                                                                       $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
                                                                       ++i;
                                                                   });
+         $('#species,#geneprops,#factors').remove();
      };
 
      window.clearQuery = function() {
@@ -480,7 +474,6 @@ function escapeHtml(s) {
             return;
          $('.visinsimple').hide();
          $('.visinstruct').show();
-         $('#condadders').show();
      };
 
      window.simpleMode = function() {
@@ -488,8 +481,6 @@ function escapeHtml(s) {
             return;
          $('.visinsimple').show();
          $('.visinstruct').hide();
-         if(!lastquery)
-             $('#condadders').hide();
      };
 
      window.drawExperimentPlots = function(gene_id, ef, efv) {

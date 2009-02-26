@@ -1,6 +1,8 @@
 #kycontent a, #kycontent a:visited { text-decoration: none; }
 #kycontent a:hover, #kycontent a:active { text-decoration: underline; }
 
+#topcontainer { width: 740px; }
+
 #twocol { padding: 0; margin: 5px 0 0 0; border-spacing: 0; }
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
@@ -103,7 +105,9 @@ legend { font-weight: bold; }
 #structform table { width: 100%;border:none;margin:0;padding:0; }
 #conditions select { width: 120px; }
 #conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
-#conditions td.rm { text-align: right;padding:0; }
+#conditions td.left { width: 40%; }
+#conditions td.value { width: 50%; }
+#conditions td.rm { text-align: right;padding:0;width:10%; }
 #structform input.value { width:340px;  }
 
 .label {
