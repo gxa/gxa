@@ -104,6 +104,7 @@
         plotOffset = { left: 0, right: 0, top: 0, bottom: 0},
         canvasWidth = 0, canvasHeight = 0,
         plotWidth = 0, plotHeight = 0,
+        noLegendColors= ["#D8D8D8","#F2F2F2"], 
         // dedicated to storing data for buggy standard compliance cases
         workarounds = {};
         
@@ -1477,10 +1478,15 @@
             var shortFragments = [];
             var fullFragments = [];
             var rowStarted = false;
+            var inSigSerPresent = false;
             var visibleLegends=0;
             for (i = 0; i < series.length; ++i) {
+            	if(series[i].color == noLegendColors[0] || series[i].color == noLegendColors[1])
+            		inSigSerPresent = true;
+            	
                 if (!series[i].label || !series[i].legend.show)
                     continue;
+                
                 
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted){
@@ -1497,7 +1503,6 @@
                 if (options.legend.labelFormatter != null)
                     label = options.legend.labelFormatter(label);
                     
-                
                 if(visibleLegends<5)
                 	shortFragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:14px;height:10px;background-color:' + series[i].color + ';overflow:hidden"></div></div></td>' +
@@ -1508,6 +1513,28 @@
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:14px;height:10px;background-color:' + series[i].color + ';overflow:hidden"></div></div></td>' +
                     '<td class="legendLabel">' + label + '</td>');
             }
+            
+            if(inSigSerPresent){
+            	 if (i % options.legend.noColumns == 0) {
+                    if (rowStarted){
+                        shortFragments.push('</tr>');
+                        fullFragments.push('</tr>');
+                    }
+                    shortFragments.push('<tr>');
+                    fullFragments.push('<tr>');
+                    rowStarted = true;
+                }
+                fullFragments.push(
+                    '<td class="legendColorBox">' +
+                    '<div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px;">' +
+                    	'<div class="tri" style=" border-right-color: rgb(216, 216, 216); border-top-color: rgb(242, 242, 242); border-top-width: 10px; border-right-width: 14px;"/>' +
+                    '</div>' +
+                    '</td>' +
+                    '<td class="legendLabel">Not Significant</td>');
+            }
+            
+           
+            
             if (rowStarted){
                 fullFragments.push('</tr>');
                 shortFragments.push('</tr>');

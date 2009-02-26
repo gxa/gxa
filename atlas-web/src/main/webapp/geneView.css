@@ -1,10 +1,9 @@
 table.heatmap th {
 	background-color: #edf6f5;;
 	text-align: left;
-	text-indent: 5px;
 	font-weight: bold;
 	font-size: 11px;
-	color: #006666;
+	color: #005555;
 }
 
 table.heatmap {
@@ -27,13 +26,9 @@ table.heatmap {
 	font-family: Verdana, helvetica, arial, sans-serif;
 }
 
-a.ae_pagecontainer{
-		text-decoration: none;
-	color: #1f7979;
-	cursor: pointer;
-}
 
-.ae_pagecontainer a:link{
+
+.ae_pagecontainer a:link, .ae_pagecontainer a:visited{
 	text-decoration: none;
 	color: #1f7979;
 	cursor: pointer;
@@ -68,7 +63,7 @@ a.ae_pagecontainer{
 
 .geneAnnotHeader {
 	font-size: 9pt;
-	color: #1f7979;
+	color: #005555;
 	font-family: Verdana, helvetica, arial, sans-serif;
 	text-align: right;
 	font-weight: bold;
@@ -94,7 +89,7 @@ a.ae_pagecontainer{
 }
 
 .sectionHeader {
-	color: #1f7979;
+	color: #005555;
 	font-family: Verdana, helvetica, arial, sans-serif;
 	font-size: 11pt;
 	font-weight: bold;
@@ -102,8 +97,9 @@ a.ae_pagecontainer{
 }
 
 .header {
-	color: #1f7979;
-	font-weight: bolder;
+	color: #005555;
+	font-weight: bold;
+	font-size: 8pt;
 }
 
 .titleHeader {
@@ -166,8 +162,8 @@ a.ae_pagecontainer{
 }
 
 .heatmap_over  {
-	background-color: #bdd7d7;
-	color: #404040;
+	background-color: #1f7979;
+	color: #ffffff;
 	cursor: pointer;
 }
 

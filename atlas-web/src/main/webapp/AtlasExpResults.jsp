@@ -199,21 +199,7 @@ request.setAttribute("exps",exps);
 						</td>
 					</tr>
 
-					<tr>
-						<td>
-						
-						</td>
-					</tr>
-					<tr>
-						<td>
-						<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_legend" style=" left: 30px;"></div>
-						</td>
-					</tr>
-					<tr>
-						<td>
-						<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_legend_ext" style=" left: 30px; display: none"></div>
-						</td>
-					</tr>
+					
 					<!--
 					<span class="moreLink" style="top: 5px;"
 						onclick="showThumbnail('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>')">Click
@@ -223,7 +209,9 @@ request.setAttribute("exps",exps);
 					<!--/div-->
 				</table>
 				</td>
-
+				<td>
+					<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_legend_ext"></div>
+				</td>
 
 
 

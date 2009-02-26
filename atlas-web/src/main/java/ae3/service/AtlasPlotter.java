@@ -75,6 +75,7 @@ public class AtlasPlotter {
 			HashMap<String, Double>  fvMean_map = new HashMap<String, Double>(); 
 			int sampleIndex=1;
 			int c=0;
+			boolean unDiffPresent = false;
 			for (int i=0; i<fvs_arr.length; i++){
 				
 				String fv = fvs_arr[sortedFVindexes[i]].toString();
@@ -128,9 +129,10 @@ public class AtlasPlotter {
 			meanSeries.put("data", meanSeriesData);
 			meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0}"));
 			meanSeries.put("points", new JSONObject("{show:false}"));
-			meanSeries.put("color", "#1f1f1f");
+			meanSeries.put("color", "#bfbfbf");
 			meanSeries.put("label", "Mean");
 			meanSeries.put("legend",new JSONObject("{show:false}"));
+			meanSeries.put("hoverable", "false");
 			meanSeries.put("shadowSize","0");
 			seriesList.put(meanSeries);
 			

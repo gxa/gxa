@@ -116,14 +116,16 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 			items_per_page:5,
             callback: pageselectCallback
          });
-         //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression for ${atlasGene.geneName}");
+         //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
+         $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
 	}
 	
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id*5) +1;
 		var toPage = (page_id*5) + 5;
 		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:fromPage, to: toPage},drawPlots);
-		$('#pagingSummary').text("Showing experiments "+fromPage+"-"+toPage);
+		//$('#pagingSummary').text("Showing experiments "+fromPage+"-"+toPage);
+		//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 	}
 	
 
@@ -134,12 +136,13 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 									eid = jQuery.trim(exps[i].id);
 									redrawPlotForFactor(eid+'_${atlasGene.geneId}_'+ef,true,fv);
 								}
-								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression for ${atlasGene.geneName} in "+ fv);
+								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
+								var lnk = $("<a>Show all studies</a>").bind("click", loadExps);
+								$("#Pagination").empty().append(lnk);
 							});
 		
-		var lnk = $("<a> Return to all experiments </a>").bind("click", loadExps);
-		$("#Pagination").empty().append(lnk);
+		
 		
 		$(".heatmap_over").removeClass("heatmap_over");
 		el.className = "heatmap_over";
@@ -196,132 +199,129 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 	</tr>
 </table>
 
-
-
-
-
 <table width="100%" style="margin-top: 15px;">
-
-	<tr>
-		<td class="geneName">
-			${atlasGene.geneName}
-		</td>
-		<td align="rigtht" style="vertical-align: text-bottom"><span style="text-align: left; color: #1f7979; font-size: 9pt; font-weight: bold; ">
-			${atlasGene.geneSpecies}
-		</span>
-		</td>
-	</tr>
-	<tr>
-		<td colspan="2">
-			<div class="separator"></div>
-		</td>
-	</tr>
-	<tr>
-		<td class="geneAnnotHeader">Synonyms:</td>
-		<td align="left">${atlasGene.synonyms}</td>
-	</tr>
-	
-	<c:if test="${!empty atlasGene.interProTerm}">
-		<tr>
-			<td></td>
-			<td>
-			<div class="separator"></div>
-			</td>
-		</tr>
-		<tr>
-			<td class="geneAnnotHeader">InterPro Term:</td>
-			<td align="left">${atlasGene.shortInterProTerms}</td>
-		</tr>
-	</c:if>
-	
-	<c:if test="${!empty atlasGene.disease}">
-		<tr>
-			<td></td>
-			<td>
-			<div class="separator"></div>
-			</td>
-		</tr>
-		<tr>
-			<td class="geneAnnotHeader">Diseases:</td>
-			<td align="left">${atlasGene.shortDiseases}</td>
-		</tr>
-	</c:if>
-	
-	<c:if test="${!empty atlasGene.goTerm}">
-		<tr>
-			<td></td>
-			<td>
-			<div class="separator"></div>
-			</td>
-		</tr>
-		<tr>
-			<td class="geneAnnotHeader">GO Terms:</td>
-			<td align="left">${atlasGene.shortGOTerms}</td>
-		</tr>
-	</c:if>
-	
-	<c:if test="${!empty atlasGene.uniprotIds}">
-		<tr>
-			<td></td>
-			<td><div class="separator"></div></td>
-		</tr>
-		<tr>
-			<td class="geneAnnotHeader">Uniprot:</td>
-			<td align="left">
-				<c:forEach var="uniprot" items="${atlasGene.geneSolrDocument.fieldValuesMap['gene_uniprot']}">
-				 <a href="http://www.uniprot.org/uniprot/${uniprot}" target="_blank">${uniprot}</a>&nbsp;
-				</c:forEach>
-			</td>
-		</tr>
-	</c:if>
-	
-	<tr>
-		<td></td>
-		<td><div class="separator"></div></td>
-	</tr>
-	
-	<tr>
-		<td class="geneAnnotHeader">Cross Refs:</td>
-		<td align="left">
-			<a title="Show gene annotation" target="_blank"	href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
-				${atlasGene.geneIdentifier} 
-			</a>
-		</td>
 		
-		<!-- td width="8%">&nbsp;</td-->
+			<tr>
+				<td class="geneName">
+					${atlasGene.geneName}
+				</td>
+				<td align="rigtht" style="vertical-align: text-bottom"><span style="text-align: left; color: #005555; font-size: 9pt; font-weight: bold; ">
+					${atlasGene.geneSpecies}
+				</span>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="separator"></div>
+				</td>
+			</tr>
+			<tr>
+				<td class="geneAnnotHeader">Synonyms</td>
+				<td align="left">${atlasGene.synonyms}</td>
+			</tr>
+			
+			<c:if test="${!empty atlasGene.interProTerm}">
+				<tr>
+					<td></td>
+					<td>
+					<div class="separator"></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="geneAnnotHeader">InterPro Term</td>
+					<td align="left">${atlasGene.shortInterProTerms}</td>
+				</tr>
+			</c:if>
+			
+			<c:if test="${!empty atlasGene.disease}">
+				<tr>
+					<td></td>
+					<td>
+					<div class="separator"></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="geneAnnotHeader">Diseases</td>
+					<td align="left">${atlasGene.shortDiseases}</td>
+				</tr>
+			</c:if>
+			
+			<c:if test="${!empty atlasGene.goTerm}">
+				<tr>
+					<td></td>
+					<td>
+					<div class="separator"></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="geneAnnotHeader">GO Terms</td>
+					<td align="left">${atlasGene.shortGOTerms}</td>
+				</tr>
+			</c:if>
+			
+			<c:if test="${!empty atlasGene.uniprotIds}">
+				<tr>
+					<td></td>
+					<td><div class="separator"></div></td>
+				</tr>
+				<tr>
+					<td class="geneAnnotHeader">Uniprot</td>
+					<td align="left">
+						<c:forEach var="uniprot" items="${atlasGene.geneSolrDocument.fieldValuesMap['gene_uniprot']}">
+						 <a href="http://www.uniprot.org/uniprot/${uniprot}" target="_blank">${uniprot}</a>&nbsp;
+						</c:forEach>
+					</td>
+				</tr>
+			</c:if>
+			
+			<tr>
+				<td></td>
+				<td><div class="separator"></div></td>
+			</tr>
+			
+			<tr>
+				<td class="geneAnnotHeader">Search EB-eye</td>
+				<td align="left">
+					<a title="Show gene annotation" target="_blank"	href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
+						${atlasGene.geneIdentifier} 
+					</a>
+				</td>
+				
+				<!-- td width="8%">&nbsp;</td-->
+		
+			</tr>
+		
+			<tr>
+				<td colspan="2">
+				<div class="separator"></div>
+				</td>
+			</tr>
+		</table>
 
-	</tr>
+<table> 
 
+	
 	<tr>
-		<td colspan="2">
-		<div class="separator"></div>
-		</td>
-	</tr>
-</table>
-
-
-
-
-
-
-<table cellspacing="5" cellpadding="10">
+		<td>
+			<table cellspacing="0" cellpadding="0" border="0">
 	<tr>
 
-		<td valign="top">
+		<td valign="top" style="padding-right: 10px">
 			<table>
 				<tr>
 					<td class="sectionHeader">Expression Summary</td>
 				</tr>
 				<tr>
-					<td colspan="2">
-					<div class="separator"></div>
-					</td>
-				</tr>
+				<td align="left" class="header">
+					${f:length(heatMapRows)} factor values. Click each to filter
+				</td>
+				
+			</tr>
 	
 				<tr>
-					<td>
-					<div>
-					<table class="heatmap" cellpadding="0" cellspacing="5" border="1" RULES=ROWS FRAME=HSIDES>
+					<td style="padding-top: 3px">
+					
+					<table class="heatmap" cellpadding="0" cellspacing="5" border="1" RULES=ROWS FRAME=HSIDES >
 						<tr>
 							<th>Factor Value</th>
 							<th>Factor</th>
@@ -345,7 +345,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 								</span>
 							</td>
 								
-							<td nowrap="true">
+							<td nowrap="true" style="padding-right:5px">
 								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 							
@@ -370,13 +370,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 						
 						</c:forEach>
 					</table>
-					</div>
-					</td>
-				</tr>
-	
-				<tr>
-					<td colspan="2">
-					<div class="separator"></div>
+					
 					</td>
 				</tr>
 			</table>
@@ -384,19 +378,22 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 		<td valign="top" align="left">
 			<table align="left">
 			<tr>
-				<td id="expHeader_td" class="sectionHeader">Expression profiles (${noAtlasExps})</td>	
+				<td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>	
+				<td align="right">
+					<div id="Pagination" class="pagination_ie" style="padding-bottom: 0; padding-top: 2px; "></div>
+				</td>
+			</tr>
+			
+			<!--  -->
+			<tr>
+				<td align="left" colspan="2">
+					<div id="pagingSummary" class="header"></div>
+				</td>
+				
 			</tr>
 			<tr>
 				<td colspan="2">
 					<div class="separator"></div>
-				</td>
-			</tr>
-			<tr>
-				<td align="left">
-					<div id="pagingSummary" class="header"></div>
-				</td>
-				<td align="right">
-					<div id="Pagination" class="pagination_ie"></div>
 				</td>
 			</tr>
 			<tr>
@@ -408,6 +405,19 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 		</td> 
 	</tr>
 </table>
+		</td>
+	</tr>
+
+</table>
+
+
+
+
+
+
+
+
+
 
 <c:set var="timeFinish" value="${u:currentTime()}" />
 <div align="center">Processing time: <c:out
