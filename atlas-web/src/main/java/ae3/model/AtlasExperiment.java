@@ -391,8 +391,8 @@ public class AtlasExperiment implements java.io.Serializable {
     }
 
 	
-    public String getHighestRankEF(String geneIdentifier) {
-		return highestRankEF.get(geneIdentifier);
+    public HashMap<String, String> getHighestRankEFs() {
+		return highestRankEF;
 	}
 
 	public void addHighestRankEF(String geneIdentifier, String highestRankEF) {

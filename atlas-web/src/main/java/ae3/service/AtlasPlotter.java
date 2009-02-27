@@ -43,7 +43,7 @@ public class AtlasPlotter {
 			
 		System.out.println(EF);
 		ArrayList<String> topFVs = new ArrayList<String>();
-		List<AtlasTuple> atlusTuples = AtlasGeneService.getAtlasResult(geneIdKey, expIdKey);
+		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
 		for(int i=0; i<atlusTuples.size(); i++){
 			if(i>10)
 				break;

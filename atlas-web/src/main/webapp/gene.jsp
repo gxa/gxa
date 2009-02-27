@@ -13,13 +13,18 @@
 	AtlasGene atlasGene = null;
 	String geneId = request.getParameter("gid");
 	String noAtlasExps = null;
-	if (geneId != null) {
+	if (geneId != null || geneId!="") {
 		atlasGene = AtlasGeneService.getAtlasGene(geneId);
-		noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
-		request.setAttribute("atlasGene",atlasGene);
-		request.setAttribute("noAtlasExps",noAtlasExps);
-	}
-	request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows());
+		if(atlasGene!=null){
+			noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
+			request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows(geneId));
+			request.setAttribute("atlasGene",atlasGene);
+			request.setAttribute("noAtlasExps",noAtlasExps);
+		}else
+			response.sendRedirect("geneNotFound.jsp");
+	}else
+		response.sendRedirect("geneNotFound.jsp");
+	
 
 	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
 		//TODO: set this right (via REST WS perhaps)

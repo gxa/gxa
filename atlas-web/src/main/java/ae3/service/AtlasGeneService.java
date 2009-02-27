@@ -17,15 +17,13 @@ import ae3.model.AtlasTuple;
 
 public class AtlasGeneService {
 	protected static final Log log = LogFactory.getLog(AtlasGeneService.class);
-
-//	public static AtlasGene getGeneInfo(String gene_id_key){
-
-//	}
-	
-	static AtlasGene atlasGene;
 	private static final String omittedEFs = "age,individual,time,dose,V1";
 	
-	
+	/**
+	 * Fetches atlas results for a gene from atlas table in the database
+	 * @param gene_id_key
+	 * @return AtlasResultSet
+	 */
 	public static AtlasResultSet getExprSummary(String gene_id_key){
 		AtlasResultSet atlasResultSet = null;
 		try {
@@ -39,22 +37,34 @@ public class AtlasGeneService {
 		return atlasResultSet;
 	}
 
+	/**
+	 * Fetches Atlas gene document from Atlas index
+	 * @param gene_id_key
+	 * @return
+	 */
 	public static AtlasGene getAtlasGene(String gene_id_key){
 		
-		
+		AtlasGene atlasGene;
 		try {
 			atlasGene = AtlasDao.getGeneByIdentifier(gene_id_key);
 		} catch (AtlasObjectNotFoundException e) {
 			log.error(e);
+			return null;
 		}
 		return atlasGene;
 	}
 	
-	public static ArrayList<HeatmapRow> getHeatMapRows(){
+	/**
+	 * Fetches atlas results for a gene from atlas index (used for populating heatmap)
+	 * @param gene_id_key
+	 * @return ArrayList<HeatmapRow>
+	 */
+	public static ArrayList<HeatmapRow> getHeatMapRows(String gene_id_key){
 		
 		HeatmapRow heatmapRow;
 		ArrayList<HeatmapRow> heatmap = new ArrayList<HeatmapRow>();
-		for(String ef : getEFs()) {
+		AtlasGene atlasGene =  getAtlasGene(gene_id_key);
+		for(String ef : getEFs(atlasGene)) {
            HashSet<Object> efvs = atlasGene.getAllFactorValues(ef);
            if(!efvs.isEmpty()){
         	   for(Object efv : efvs) {
@@ -74,7 +84,7 @@ public class AtlasGeneService {
 		return heatmap;
 	}
 	
-	private static HashSet<String> getEFs(){
+	private  static HashSet<String> getEFs(AtlasGene atlasGene){
     	HashSet<String> efs = new HashSet<String>();
     	for (String field:atlasGene.getGeneSolrDocument().getFieldNames()){
     		
@@ -90,7 +100,7 @@ public class AtlasGeneService {
 	 * @param exp_id_key
 	 * @return
 	 */
-	public static List<AtlasTuple> getAtlasResult(String gene_id_key, String exp_id_key){
+	public static List<AtlasTuple> getTopFVs(String gene_id_key, String exp_id_key){
 		String updn_filter = " and updn <> 0\n";
 		String efvFilter ="";
 

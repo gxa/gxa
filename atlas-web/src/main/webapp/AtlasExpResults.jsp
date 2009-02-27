@@ -7,9 +7,11 @@ String toRow = request.getParameter("to");
 String efv = request.getParameter("efv");
 if (geneId != null) {
     atlasGene = AtlasDao.getGeneByIdentifier(geneId);
+    ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, fromRow, toRow);
+    request.setAttribute("exps",exps);
+    request.setAttribute("atlasGene",atlasGene);
 }    
-ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, fromRow, toRow);
-request.setAttribute("exps",exps);
+
 %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
@@ -93,7 +95,7 @@ request.setAttribute("exps",exps);
 			if(eid == exps[i].id)
 				exp_acc = jQuery.trim(exps[i].acc);
 		}
-		window.open("http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query="+exp_acc,"_blank");
+		window.open("http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query="+exp_acc,"_blank");
 	}
 
 	
@@ -101,18 +103,14 @@ request.setAttribute("exps",exps);
 
 <table align="left" cellpadding="0">
 
-	<% int c = 0;
-                    for (AtlasExperiment exp : exps) {
-                        c++;
-                %>
-	
+<c:forEach var="exp" items="${exps}">
 
 	<tr align="left" class="exp_header">
 		<td align="right" nowrap="true" valign="top">
-			<%=exp.getDwExpAccession().trim()%>:
+			${exp.dwExpAccession}:
 		</td>
 		<td align="left">
-			<%=exp.getDwExpDescription().trim()%>
+			${exp.dwExpDescription}
 		</td>
 	</tr>
 	<tr>
@@ -121,32 +119,32 @@ request.setAttribute("exps",exps);
 		</td>
 	</tr>
 
-	<%if (!exp.getExperimentFactors().isEmpty()) { %>
-	<tr align="left">
-		<td colspan="3" >
-		<div class="header" style="padding-top: 5px;padding-bottom: 0px; valign:middle" >
-			<span>Experimental Factors</span>
-				<div id="<%=exp.getDwExpId().toString()%>_EFpagination" class="pagination_ie" style="padding-top: 15px;">
-				<%HashSet<String> EFset = exp.getExperimentFactors();
-                	for(String EF: EFset){
-                		request.setAttribute("PlotEF",EF);
-                		if(EF.equals(exp.getHighestRankEF(atlasGene.getGeneId()))){%>
-                	<span class="current" id="${PlotEF}">
-                		<fmt:message key="head.ef.${PlotEF}"/>
-                	</span>
-                 		<%}else{%>
-                 	<a id="${PlotEF}" onclick="redrawPlotForFactor('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_<%=EF%>',false)" >
-							<fmt:message key="head.ef.${PlotEF}"/> 
-					</a>						
-					 
-				<%}}%>
-		</div>
-		</div>
-
-		</td>
-	</tr>
-	<%} %>
-
+	<c:if test="${!empty exp.experimentFactors}">
+	
+		<tr align="left">
+			<td colspan="3" >
+			<div class="header" style="padding-top: 5px;padding-bottom: 0px; valign:middle" >
+				<span>Experimental Factors</span>
+					<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 15px;">
+					<c:forEach var="EF" items="${exp.experimentFactors}">
+						<c:choose>
+							<c:when test="${EF == exp.highestRankEFs[atlasGene.geneId]}">
+								<span class="current" id="EF">
+	                				<fmt:message key="head.ef.${EF}"/>
+	                			</span>
+							</c:when>
+							<c:otherwise>
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}_${atlasGene.geneId}_${EF}',false)" >
+									<fmt:message key="head.ef.${EF}"/> 
+								</a>	
+							</c:otherwise>
+						</c:choose>
+					</c:forEach>
+				</div>
+			</div>
+			</td>
+		</tr>
+	</c:if>
 
 	
 	<tr align="left">
@@ -159,15 +157,15 @@ request.setAttribute("exps",exps);
 					<!-- div style="position:relative"-->
 					<tr align="left">
 						<td align="left">
-							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot" class="plot" style="width: 300px; height: 150px;"></div>
-							<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_plot_thm"> </div>
+							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div>
+							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm"> </div>
 						</td>
 					</tr>
 
 					
 					<!--
 					<span class="moreLink" style="top: 5px;"
-						onclick="showThumbnail('<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>')">Click
+						onclick="showThumbnail('${exp.dwExpId}_${atlasGene.geneId}')">Click
 					here to zoom</span>
 					</td>
 					</tr> -->
@@ -175,7 +173,7 @@ request.setAttribute("exps",exps);
 				</table>
 				</td>
 				<td>
-					<div id="<%=exp.getDwExpId()%>_<%=atlasGene.getGeneId()%>_legend_ext"></div>
+					<div id="${exp.dwExpId}_${atlasGene.geneId}_legend_ext"></div>
 				</td>
 
 
@@ -188,9 +186,9 @@ request.setAttribute("exps",exps);
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="/microarray-as/aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">expression profile</a>
+			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query=${exp.dwExpAccession}">expression profile</a>
 			&nbsp;/&nbsp;
-			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=<%=exp.getDwExpAccession().trim()%>&detailedview=on">experiment details</a>
+			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 		</td>
 	</tr>
 
@@ -199,9 +197,8 @@ request.setAttribute("exps",exps);
 		<div class="separator"></div>
 		</td>
 	</tr>
-<%
-    }
-%>
+	
+	</c:forEach>
 
 
 </table>
