@@ -6,7 +6,7 @@ package ae3.service.structuredquery;
  */
 public class ExperimentRow implements Comparable<ExperimentRow> {
     private long experimentId;
-    private String experimentAccessment;
+    private String experimentAccession;
     private String experimentDescription;
     private String experimentName;
     private double pvalue;
@@ -21,14 +21,14 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
      * Constructor
      * @param experimentId experiment id
      * @param experimentName experimnet name
-     * @param experimentAccessment experiment accessment
+     * @param experimentAccession experiment accessment
      * @param experimentDescription experimnet description
      * @param pvalue p-value
      * @param updn up or down
      */
-    public ExperimentRow(long experimentId, String experimentName, String experimentAccessment, String experimentDescription, double pvalue, UpDn updn) {
+    public ExperimentRow(long experimentId, String experimentName, String experimentAccession, String experimentDescription, double pvalue, UpDn updn) {
         this.experimentId = experimentId;
-        this.experimentAccessment = experimentAccessment;
+        this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
         this.experimentName = experimentName;
         this.pvalue = pvalue;
@@ -52,11 +52,11 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
     }
 
     /**
-     * Return experiment accessment
-     * @return experiment accessment
+     * Return experiment accession
+     * @return experiment accession
      */
-    public String getExperimentAccessment() {
-        return experimentAccessment;
+    public String getExperimentAccession() {
+        return experimentAccession;
     }
 
     /**
@@ -91,7 +91,7 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
     public String toString() {
         return "ExperimentRow{" +
                 "experimentId=" + experimentId +
-                ", experimentAccessment='" + experimentAccessment + '\'' +
+                ", experimentAccession='" + experimentAccession + '\'' +
                 ", experimentDescription='" + experimentDescription + '\'' +
                 ", experimentName='" + experimentName + '\'' +
                 ", pvalue=" + pvalue +

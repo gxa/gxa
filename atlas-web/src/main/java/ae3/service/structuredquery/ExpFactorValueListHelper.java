@@ -58,24 +58,28 @@ public class ExpFactorValueListHelper implements IValueListHelper {
             q.setFacetMinCount(1);
 
             if (factor == null || factor.equals(""))
-                factor = "exp_factor_values_exact";
-            else
-                factor = AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor;
-            q.addFacetField(factor);
+            {
+                q.addFacetField("exp_factor_values_exact");
+                q.addFacetField("dwe_exp_accession");
+            } else if(AtlasStructuredQueryService.EXP_FACTOR_NAME.equals(factor)) {
+                q.addFacetField("dwe_exp_accession");
+            } else {                
+                q.addFacetField(AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor);
+            }
 
             q.setFacetLimit(hasPrefix ? -1 : limit);
             q.setFacetSort(true);
             QueryResponse qr = solrExpt.query(q);
 
-            if (null == qr.getFacetFields().get(0).getValues())
-                return s;
-
-            for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                if(ffc.getName().length() > 0 && (!hasPrefix || ffc.getName().toLowerCase().startsWith(query)))
-                {
-                    s.add(ffc.getName());
-                    if(s.size() == limit && limit > 0)
-                        break;
+            for(FacetField ff : qr.getFacetFields())
+                if(ff.getValues() != null) {
+                    for (FacetField.Count ffc : ff.getValues())
+                        if(ffc.getName().length() > 0 && (!hasPrefix || ffc.getName().toLowerCase().startsWith(query)))
+                        {
+                            s.add(ffc.getName());
+                            if(s.size() == limit && limit > 0)
+                                break;
+                        }
                 }
 
         } catch (SolrServerException e) {

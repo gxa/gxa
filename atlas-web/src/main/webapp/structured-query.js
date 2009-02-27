@@ -136,7 +136,7 @@ function escapeHtml(s) {
                                matchCase: false,
                                matchSubset: false,
                                selectFirst: false,
-                               multiple: false,
+                               multiple: true,
                                multipleSeparator: " ",
                                multipleQuotes: true,
                                scroll: false,
@@ -147,8 +147,7 @@ function escapeHtml(s) {
                                formatItem: function(row) { return row[0]; },
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
-             .flushCache()
-             .defaultvalue('(all ' + (factor != '' ? factorLabel.toLowerCase() : 'condition') + 's)');
+             .flushCache();
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td class="left" />')
@@ -174,6 +173,8 @@ function escapeHtml(s) {
              t.eq(0).after(tr);
          else
              $('#conditions').append(tr);
+
+         input.defaultvalue('(all ' + (factor != '' ? factorLabel.toLowerCase() : 'condition') + 's)');
          
          hasConditions(true);
      }
@@ -258,7 +259,6 @@ function escapeHtml(s) {
                          tr.find('td.gprop').text(getPropLabel(newprop));
                          $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
                      })
-             .defaultvalue('(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
 
          var tr = $('<tr class="genecond" />')
              .append($('<td class="left" />')
@@ -276,6 +276,8 @@ function escapeHtml(s) {
                                         }));
 
          $('#conditions').append(tr);
+         input.defaultvalue('(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
+
          hasConditions(true);
      }
 
@@ -388,7 +390,7 @@ function escapeHtml(s) {
                                                                       $('input,select', this).each(function(){ this.name = this.name.replace(/_\d+/, '_' + i); });
                                                                       ++i;
                                                                   });
-         $('#species,#geneprops,#factors').remove();
+         $('#condadders,#species,#geneprops,#factors').remove();
      };
 
      window.clearQuery = function() {

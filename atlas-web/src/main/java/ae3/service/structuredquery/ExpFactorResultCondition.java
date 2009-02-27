@@ -6,15 +6,17 @@ package ae3.service.structuredquery;
 public class ExpFactorResultCondition {
     private ExpFactorQueryCondition condition;
     private EfvTree<Boolean> expansion;
+    private boolean ignored;
 
     /**
      * Constructor for condition
      * @param condition original query condition
      * @param expansion EFV expansion tree
      */
-    public ExpFactorResultCondition(ExpFactorQueryCondition condition, EfvTree<Boolean> expansion) {
+    public ExpFactorResultCondition(ExpFactorQueryCondition condition, EfvTree<Boolean> expansion, boolean ignored) {
         this.condition = condition;
         this.expansion = expansion;
+        this.ignored = ignored;
     }
 
     /**
@@ -75,9 +77,17 @@ public class ExpFactorResultCondition {
 
     /**
      * Convenience method to check whether condition is for anything (any value and any factor)
-     * @return
+     * @return true or false
      */
     public boolean isAnything() {
         return condition.isAnything();
+    }
+
+    /**
+     * Returns if this condition was ignored in query
+     * @return true or false
+     */
+    public boolean isIgnored() {
+        return ignored;
     }
 }

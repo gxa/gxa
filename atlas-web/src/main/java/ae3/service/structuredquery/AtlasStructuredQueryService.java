@@ -1,12 +1,16 @@
 package ae3.service.structuredquery;
 
 import ae3.model.AtlasGene;
+import ae3.model.AtlasExperiment;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.util.AtlasProperties;
+import ae3.dao.AtlasDao;
+import ae3.dao.AtlasObjectNotFoundException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -34,7 +38,13 @@ public class AtlasStructuredQueryService {
     private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
     private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
-    public static final String FIELD_GENE_PROP_PREFIX = "gene_";
+    private final static String[] EXP_SEARCH_FIELDS = {
+            "aer_txt_expaccession",
+            "dwe_exp_description",
+            "dwe_exp_accession",
+            "aer_txt_expname",
+            "dwe_exp_id" };
+    public static final String EXP_FACTOR_NAME = "experiment";
 
     private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
 
@@ -45,7 +55,6 @@ public class AtlasStructuredQueryService {
     private Set<String> allFactors;
     private final IValueListHelper efvListHelper;
     private final IValueListHelper geneListHelper;
-    private boolean hadEFOExpansion;
 
     /**
      * Constructor. Requires SOLR core container reference to work.
@@ -71,21 +80,23 @@ public class AtlasStructuredQueryService {
 
         final StringBuffer solrq = new StringBuffer();
         final EfvTree<Integer> queryEfvs = new EfvTree<Integer>();
+        final Set<String> queryExperiments = new HashSet<String>();
 
-        hadEFOExpansion = false;
+        MutableBoolean hadEFOExpansion = new MutableBoolean(false);
 
-        final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, solrq, queryEfvs);
+        final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, solrq, queryEfvs,
+                queryExperiments, hadEFOExpansion);
         appendGeneQuery(query, solrq);
         appendSpeciesQuery(query, solrq);
 
         boolean hasQueryEfvs = queryEfvs.getNumEfvs() > 0;
 
         log.info("Solr query is: " + solrq + " calling for EFVs: " + (hasQueryEfvs ? queryEfvs : "(none)"));
-        if(hadEFOExpansion)
+        if(hadEFOExpansion.booleanValue())
             log.info("EFO expansion was here");
 
         AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage());
-        result.setHasEFOExpansion(hadEFOExpansion);
+        result.setHasEFOExpansion(hadEFOExpansion.booleanValue());
         result.setConditions(conditions);
 
         if(solrq.length() > 0)
@@ -101,7 +112,7 @@ public class AtlasStructuredQueryService {
                 result.setResultEfvs(trimmedEfvs);
                 result.setExpandableEfs(expandableEfs);
 
-                result.setEfvFacet(getEfvFacet(response, queryEfvs));
+                result.setEfvFacet(getEfvFacet(response, queryEfvs, queryExperiments));
                 for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
                     Set<String> hasVals = new HashSet<String>();
                     for(GeneQueryCondition qc : query.getGeneQueries())
@@ -168,41 +179,123 @@ public class AtlasStructuredQueryService {
         return trimmedEfvs;
     }
 
-    private Iterable<ExpFactorResultCondition> appendEfvsQuery(AtlasStructuredQuery query,
-                                                               StringBuffer solrq,
-                                                               EfvTree<Integer> queryEfvs) {
+    private Collection<String> findExperiments(String query, EfvTree<Boolean> condEfvs) throws SolrServerException {
+
+        List<String> result = new ArrayList<String>();
+        if(query.length() == 0)
+            return result;
+        
+        StringBuffer sb = new StringBuffer("exp_in_dw:true AND (");
+        for(String f : EXP_SEARCH_FIELDS) {
+            sb.append(f).append(":(").append(query).append(") ");
+        }
+        sb.append(")");
+        SolrQuery q = new SolrQuery(sb.toString());
+        q.addField("*");
+        q.setRows(50);
+        q.setStart(0);
+
+        QueryResponse qr = solrExpt.query(q);
+        for(SolrDocument doc : qr.getResults()) {
+            String id = String.valueOf(doc.getFieldValue("dwe_exp_id"));
+            if(id != null) {
+                result.add(id);
+                for(String name : doc.getFieldNames())
+                    if(name.startsWith(FIELD_FACTOR_PREFIX))
+                        for(Object val : doc.getFieldValues(name))
+                            condEfvs.put(name.substring(FIELD_FACTOR_PREFIX.length()), String.valueOf(val), true);
+            }
+        }
+
+        return result;
+    }
+
+    private String makeExperimentsQuery(Iterable<String> ids, Expression e) {
+        StringBuffer sb = new StringBuffer();
+        String idss = StringUtils.join(ids.iterator(), " ");
+        if(idss.length() == 0)
+            return "";
+        if(e == Expression.UP || e == Expression.UP_DOWN)
+            sb.append("exp_up_ids:(").append(idss).append(") ");
+        if(e == Expression.DOWN || e == Expression.UP_DOWN)
+            sb.append("exp_dn_ids:(").append(idss).append(")");
+        return sb.toString();
+    }
+
+
+    private void appendScores(Expression e, StringBuffer scores, String efefvId) {
+        String cnt = "cnt_efv_" + efefvId;
+        String pvl = "avgpval_efv_" + efefvId;
+        switch(e)
+        {
+            case UP:
+                scores.append("product(").append(cnt).append("_up,linear(")
+                        .append(pvl).append("_up,-1,1)),")
+                        .append("product(").append(cnt).append("_dn,linear(")
+                        .append(pvl).append("_dn,1,-1))");
+                break;
+
+            case DOWN:
+                scores.append("product(").append(cnt).append("_up,linear(")
+                        .append(pvl).append("_up,1,-1)),")
+                        .append("product(").append(cnt).append("_dn,linear(")
+                        .append(pvl).append("_dn,-1,1))");
+                break;
+
+            case UP_DOWN:
+                scores.append("product(").append(cnt).append("_up,linear(")
+                        .append(pvl).append("_up,-1,1)),")
+                        .append("product(").append(cnt).append("_dn,linear(")
+                        .append(pvl).append("_dn,-1,1))");
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown regulation option specified " + e);
+        }
+    }
+
+    private void appendFields(Expression e, StringBuffer efvq, String efefvId) {
+        String cnt = "cnt_efv_" + efefvId;
+
+        switch(e)
+        {
+            case UP:
+                efvq.append(cnt).append("_up:[1 TO *]");
+                break;
+
+            case DOWN:
+                efvq.append(cnt).append("_dn:[1 TO *]");
+                break;
+
+            case UP_DOWN:
+                efvq.append(cnt).append("_up:[1 TO *] ")
+                        .append(cnt).append("_dn:[1 TO *]");
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown regulation option specified " + e);
+        }
+    }
+
+    private Iterable<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query,
+                                                               final StringBuffer solrq,
+                                                               final EfvTree<Integer> queryEfvs,
+                                                               final Set<String> queryExperiments,
+                                                               final MutableBoolean hadEFOExpansion) {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
         final StringBuffer efvq = new StringBuffer();
         final StringBuffer scores = new StringBuffer();
 
-        scores.append("sum(");
-
         int number = 0;
         for(ExpFactorQueryCondition c : query.getConditions())
         {
-            if(c.isAnything()) {
-                if(efvq.length() > 0) {
-                    efvq.append(" AND ");
-                }
-                switch(c.getExpression())
-                {
-                    case UP:
-                        efvq.append("exp_up_ids:[1 TO *]");
-                        scores.append("exp_up_ids");
-                        break;
-                    case DOWN:
-                        efvq.append("exp_dn_ids:[1 TO *]");
-                        scores.append("exp_dn_ids");
-                        break;
-                    case UP_DOWN:
-                        // nothing special, just match the gene
-                        break;
-                }
-
-                // conds.add(new AtlasStructuredQueryResult.ExpFactorResultCondition(c, new EfvTree<Boolean>()));
+            boolean isExperiment = EXP_FACTOR_NAME.equals(c.getFactor());
+            if(c.isAnything() || (isExperiment && c.isAnyValue())) {
+                // do nothing
             } else {
                 try {
-                    EfvTree<Boolean> condEfvs = getConditionEfvs(c);
+                    boolean nonemptyQuery = false;
+                    EfvTree<Boolean> condEfvs = isExperiment ? new EfvTree<Boolean>() : getConditionEfvs(c, hadEFOExpansion);
                     if(condEfvs.getNumEfvs() > 0)
                     {
                         if(efvq.length() > 0) {
@@ -212,54 +305,40 @@ public class AtlasStructuredQueryService {
                         for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
                         {
                             efvq.append(" ");
-                            if(number > 0)
+                            if(scores.length() > 0)
                                 scores.append(",");
 
-                            queryEfvs.put(condEfv.getEf(), condEfv.getEfv(), number);
+                            queryEfvs.put(condEfv.getEf(), condEfv.getEfv(), number++);
 
                             String efefvId = condEfv.getEfEfvId();
-                            String cnt = "cnt_efv_" + efefvId;
-                            String pvl = "avgpval_efv_" + efefvId;
-
-                            switch(c.getExpression())
-                            {
-                                case UP:
-                                    efvq.append(cnt).append("_up:[1 TO *]");
-                                    scores.append("product(").append(cnt).append("_up,linear(")
-                                            .append(pvl).append("_up,-1,1)),")
-                                            .append("product(").append(cnt).append("_dn,linear(")
-                                            .append(pvl).append("_dn,1,-1))");
-                                    break;
-
-                                case DOWN:
-                                    efvq.append(cnt).append("_dn:[1 TO *]");
-                                    scores.append("product(").append(cnt).append("_up,linear(")
-                                            .append(pvl).append("_up,1,-1)),")
-                                            .append("product(").append(cnt).append("_dn,linear(")
-                                            .append(pvl).append("_dn,-1,1))");
-                                    break;
-
-                                case UP_DOWN:
-                                    efvq.append(cnt).append("_up:[1 TO *] ")
-                                            .append(cnt).append("_dn:[1 TO *]");
-                                    scores.append("product(").append(cnt).append("_up,linear(")
-                                            .append(pvl).append("_up,-1,1)),")
-                                            .append("product(").append(cnt).append("_dn,linear(")
-                                            .append(pvl).append("_dn,-1,1))");
-                                    break;
-
-                                default:
-                                    throw new IllegalArgumentException("Unknown regulation option specified " + c.getExpression());
-                            }
-
-                            ++number;
-
-                            if(number > MAX_CONDITION_EFVS)
-                                break;
+                            appendFields(c.getExpression(), efvq, efefvId);
+                            appendScores(c.getExpression(), scores, efefvId);
                         }
                         efvq.append(")");
+                        nonemptyQuery = true;
+                    } else if(c.isAnyFactor() || isExperiment) {
+                        // try to search for experiment too if no matching conditions are found
+                        Collection<String> experiments = findExperiments(c.getJointFactorValues(), condEfvs);
+                        queryExperiments.addAll(experiments);
+                        String expq = makeExperimentsQuery(experiments, c.getExpression());
+                        if(expq.length() > 0) {
+                            for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
+                            {
+                                if(scores.length() > 0)
+                                    scores.append(",");
+
+                                queryEfvs.put(condEfv.getEf(), condEfv.getEfv(), number++);
+
+                                String efefvId = condEfv.getEfEfvId();
+                                appendScores(c.getExpression(), scores, efefvId);
+                            }
+                            if(efvq.length() > 0)
+                                efvq.append(" AND ");
+                            efvq.append(expq);
+                            nonemptyQuery = true;
+                        }
                     }
-                    conds.add(new ExpFactorResultCondition(c, condEfvs));
+                    conds.add(new ExpFactorResultCondition(c, condEfvs, !nonemptyQuery));
                     if(number > MAX_CONDITION_EFVS)
                         break;
                 } catch (SolrServerException e) {
@@ -269,13 +348,13 @@ public class AtlasStructuredQueryService {
                 }
             }
         }
-        scores.append(")");
 
         if(efvq.length() > 0) {
             if(solrq.length() > 0)
                 solrq.append(" AND ");
             solrq.append(efvq);
-            solrq.append(" AND _val_:\"").append(scores).append("\"");
+            if(scores.length() > 0)
+                solrq.append(" AND _val_:\"sum(").append(scores).append(")\"");
         }
 
         return conds;
@@ -328,14 +407,14 @@ public class AtlasStructuredQueryService {
         return solrq;
     }
 
-    private EfvTree<Boolean> getConditionEfvs(QueryCondition c) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getConditionEfvs(QueryCondition c, final MutableBoolean hadEFOExpansion) throws RemoteException, SolrServerException {
         if(c.isAnyValue())
             return getCondEfvsAllForFactor(c.getFactor());
 
         if(c.isAnyFactor())
-            return getCondEfvsForFactor(null, c.getFactorValues());
+            return getCondEfvsForFactor(null, c.getFactorValues(), hadEFOExpansion);
 
-        return getCondEfvsForFactor(c.getFactor(), c.getFactorValues());
+        return getCondEfvsForFactor(c.getFactor(), c.getFactorValues(), hadEFOExpansion);
     }
 
     private EfvTree<Boolean> getCondEfvsAllForFactor(String factor) {
@@ -349,7 +428,7 @@ public class AtlasStructuredQueryService {
         return condEfvs;
     }
 
-    private EfvTree<Boolean> getCondEfvsForFactor(final String factor, final Iterable<String> values) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getCondEfvsForFactor(final String factor, final Iterable<String> values, final MutableBoolean hadEFOExpansion) throws RemoteException, SolrServerException {
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
 
@@ -387,7 +466,7 @@ public class AtlasStructuredQueryService {
 
                         if(ontologyExpansion.size() > 0) {
                             sb.append(")");
-                            hadEFOExpansion = true;
+                            hadEFOExpansion.setValue(true);
                         }
                     }
                 }
@@ -529,7 +608,7 @@ public class AtlasStructuredQueryService {
 
     }
 
-    private Iterable<String> getConfiguredFactors(String category)
+    private Set<String> getConfiguredFactors(String category)
     {
         Set<String> result = new TreeSet<String>();
         result.addAll(getExperimentalFactors());
@@ -622,7 +701,7 @@ public class AtlasStructuredQueryService {
 
     }
 
-    private EfvTree<FacetUpDn> getEfvFacet(QueryResponse response, EfvTree<Integer> queryEfvs) {
+    private EfvTree<FacetUpDn> getEfvFacet(QueryResponse response, EfvTree<Integer> queryEfvs, Set<String> queryExperiments) {
         EfvTree<FacetUpDn> efvFacet = new EfvTree<FacetUpDn>();
         EfvTree.Creator<FacetUpDn> creator = new EfvTree.Creator<FacetUpDn>() {
             public FacetUpDn make() { return new FacetUpDn(); }
@@ -641,6 +720,25 @@ public class AtlasStructuredQueryService {
                                     .add(count, ff.getName().substring(5,7).equals("up"));
                         }
                     }
+                } else if(ff.getName().startsWith("exp_")) {
+                    for (FacetField.Count ffc : ff.getValues())
+                        if(!queryExperiments.contains(ffc.getName()))
+                        {
+                            try {
+                                AtlasExperiment exp = AtlasDao.getExperimentByIdDw(ffc.getName());
+                                if(exp != null) {
+                                    String expName = exp.getDwExpAccession();
+                                    if(expName != null)
+                                    {
+                                        int count = (int)ffc.getCount();
+                                        efvFacet.getOrCreate(EXP_FACTOR_NAME, expName, creator)
+                                                .add(count, ff.getName().substring(4,6).equals("up"));
+                                    }
+                                }
+                            } catch (AtlasObjectNotFoundException e) {
+                                // do nothing
+                            }
+                        }
                 }
             }
         }
@@ -671,7 +769,9 @@ public class AtlasStructuredQueryService {
      * @return set of strings representing experimental factors
      */
     public Iterable<String> getExperimentalFactorOptions() {
-        return getConfiguredFactors("options");
+        Collection<String> factors = getConfiguredFactors("options");
+        factors.add(EXP_FACTOR_NAME);
+        return factors;
     }
 
     /**

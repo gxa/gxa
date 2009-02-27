@@ -39,14 +39,14 @@
         <c:forEach var="e" items="${expsi}" varStatus="s">
             <tr class="${s.last ? 'last' : 'notlast'}">
                 <td class="explot">
-                    <b><c:out value="${e.experimentAccessment}"/></b>:
+                    <b><c:out value="${e.experimentAccession}"/></b>:
                     <c:out value="${e.experimentName}"/>
                     <div class="plot" id="explot_${e.experimentId}"></div>
                     <div class="legend" id="explot_${e.experimentId}_legend"></div>
                     <div style="margin-top:5px;font-size:10px;">
-                        Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" id="explot_${e.experimentId}_link" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}">expression profile</a>
+                        Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" id="explot_${e.experimentId}_link" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccession)}">expression profile</a>
 			&nbsp;/&nbsp;
-			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${u:escapeURL(e.experimentAccessment)}&detailedview=on">experiment details</a>
+			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${u:escapeURL(e.experimentAccession)}&detailedview=on">experiment details</a>
                     </div>
                 </td>
                 <c:choose>

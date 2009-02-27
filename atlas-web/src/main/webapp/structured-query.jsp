@@ -123,7 +123,7 @@ ArrayExpress Atlas Preview
                     <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
                     <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">
                 </div>
-                <b>&nbsp;Add&nbsp;</b>
+                <span id="condadders"><b>&nbsp;Add&nbsp;</b>
                 <select id="factors">
                     <option value="" selected="selected">experimental factor:</option>
                     <option value=""></option>
@@ -133,7 +133,7 @@ ArrayExpress Atlas Preview
                     </c:forEach>
                 </select>
                 <select id="geneprops">
-                    <option value="" selected="selected">gene property:</option>
+                    <option value="" selected="selected">gene property:</option>                         tr
                     <option value=""></option>
                     <option value="">(any)</option>
                     <c:forEach var="i" items="${service.geneProperties}">
@@ -146,7 +146,7 @@ ArrayExpress Atlas Preview
                     <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
                         <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
                     </c:forEach>
-                </select>
+                </select></span>
             </div>
             <a style="margin-top:10px;text-align:right;display:block;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
         </fieldset>
@@ -168,7 +168,7 @@ ArrayExpress Atlas Preview
         </table>
     </fieldset></c:if>
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
-        <c:if test="${!c.anything && c.expansion.numEfvs == 0}"><fieldset class="ignoretext top">
+        <c:if test="${c.ignored}"><fieldset class="ignoretext top">
             <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
         </fieldset></c:if>
     </c:forEach>
@@ -209,7 +209,7 @@ ArrayExpress Atlas Preview
                     expression: '${u:escapeJS(c.expression)}',
                     expansion: <c:choose>
                             <c:when test="${!c.anything && c.expansion.numEfvs == 0}">
-                            '<span class="ignored">no matching factor values found, ignored</span>'
+                            '<span class="ignored">no matching experiments were found, ignored</span>'
                             </c:when>
                             <c:otherwise>
                             '<c:forEach var="e" items="${c.expansion.valueSortedList}" varStatus="i"><c:if test="${c.expansion.numEfs > 1 || (i.first && empty c.factor)}">${u:escapeJS(f:escapeXml(e.ef))}: </c:if> ${u:escapeJS(f:escapeXml(e.efv))}<c:if test="${!i.last}">, </c:if></c:forEach>'

@@ -161,6 +161,8 @@ public class ArrayExpressSearchService {
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
 
+        squeryService = null;
+
         arsCache.syncWithDB();
         log.info("Shutting down AtlasResultSet cache: " + arsCache.size() + " result sets");
         CacheManager.getInstance().shutdown();
