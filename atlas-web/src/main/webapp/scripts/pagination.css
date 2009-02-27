@@ -3,7 +3,7 @@
             text-transform : capitalize;
         }
         
-.pagination_ie a:link, .pagination_ie a:visited {
+.pagination_ie a:link, .pagination_ie a:visited,.pagination_ie a {
     text-decoration: none;
 	border: solid 1px #AAE;
 	color: #1f7979;
