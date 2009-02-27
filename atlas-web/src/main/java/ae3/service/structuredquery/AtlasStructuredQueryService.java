@@ -33,7 +33,7 @@ import java.util.*;
  */
 public class AtlasStructuredQueryService {
 
-    private static final int MAX_CONDITION_EFVS = 100;
+    private static final int MAX_EFV_COLUMNS = 120;
     private static final String CORE_ATLAS = "atlas";
     private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
@@ -141,11 +141,17 @@ public class AtlasStructuredQueryService {
         final Set<String> expand = query.getExpandColumns();
         EfvTree<Integer> trimmedEfvs = new EfvTree<Integer>(result.getResultEfvs());
         if(expand.contains("*"))
-            return trimmedEfvs; 
+            return trimmedEfvs;
+
+        if(trimmedEfvs.getNumEfvs() < MAX_EFV_COLUMNS)
+            return trimmedEfvs;
+
+
+        int threshold = MAX_EFV_COLUMNS / trimmedEfvs.getNumEfs();
 
         for(EfvTree.Ef<Integer> ef : trimmedEfvs.getNameSortedTree())
         {
-            if(expand.contains(ef.getEf()) || ef.getEfvs().size() < COLUMN_COLLAPSE_THRESHOLD)
+            if(expand.contains(ef.getEf()) || ef.getEfvs().size() < threshold)
                 continue;
 
             Map<EfvTree.Efv<Integer>,Double> scores = new HashMap<EfvTree.Efv<Integer>,Double>();
@@ -169,7 +175,7 @@ public class AtlasStructuredQueryService {
                 }
             });
 
-            for(int i = COLUMN_COLLAPSE_THRESHOLD; i < scoreset.length; ++i)
+            for(int i = threshold; i < scoreset.length; ++i)
             {
                 trimmedEfvs.removeEfv(ef.getEf(), scoreset[i].getKey().getEfv());
                 expandableEfs.add(ef.getEf());
@@ -339,8 +345,6 @@ public class AtlasStructuredQueryService {
                         }
                     }
                     conds.add(new ExpFactorResultCondition(c, condEfvs, !nonemptyQuery));
-                    if(number > MAX_CONDITION_EFVS)
-                        break;
                 } catch (SolrServerException e) {
                     log.error(e);
                 } catch (RemoteException e) {
@@ -422,7 +426,7 @@ public class AtlasStructuredQueryService {
         int i = 0;
         for(String v : getEfvListHelper().listAllValues(factor)) {
             condEfvs.put(factor, v, true);
-            if(++i >= MAX_CONDITION_EFVS)
+            if(++i >= MAX_EFV_COLUMNS)
                 break;
         }
         return condEfvs;
