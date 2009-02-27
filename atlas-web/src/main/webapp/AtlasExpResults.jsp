@@ -112,47 +112,12 @@ request.setAttribute("exps",exps);
 			<%=exp.getDwExpAccession().trim()%>:
 		</td>
 		<td align="left">
-			<%=exp.getTitle()%>
+			<%=exp.getDwExpDescription().trim()%>
 		</td>
-		<!--
-		<td width="20px"><img style="cursor: pointer"
-			title="Show study details"
-			id="<%=exp.getDwExpId().toString()%>_std_lnk" src="images/minus.gif"
-			onclick="showStudyDetails(<%=exp.getDwExpId().toString()%>)" /></td>
-		-->
-	</tr>
-	<tr>
-		<!--
-				<td colspan="3">
-				<div style="display: block"	id="<%=exp.getDwExpId().toString()%>_desc_ext">
-				<table cellpadding="2" cellspacing="2">
-					
-					<tr>
-						<td align="right">Title:</td>
-						<td align="left"><%=exp.getTitle()%></td>
-					</tr>
-					
-					<tr>
-						<td align="right" valign="top">Summary:</td>
-						<td align="left"><%=exp.getTitle()%></td>
-		
-					</tr>
-					<tr>
-						<td colspan="3">
-							<div class="separator"></div>
-						</td>
-					</tr>
-				</table>
-				</div>
-				</td>
-				
-		 -->
-		 <td align="right">Summary:</td>
-		 <td align="left"><%=exp.getAerExpName()%></td>
 	</tr>
 	<tr>
 		<td colspan="3">
-		<div class="separator"></div>
+			<div class="separator"></div>
 		</td>
 	</tr>
 

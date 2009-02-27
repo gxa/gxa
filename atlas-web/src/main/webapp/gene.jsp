@@ -137,7 +137,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 									redrawPlotForFactor(eid+'_${atlasGene.geneId}_'+ef,true,fv);
 								}
 								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
-								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
+								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
 								var lnk = $("<a>Show all studies</a>").bind("click", loadExps);
 								$("#Pagination").empty().append(lnk);
 							});
