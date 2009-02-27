@@ -223,9 +223,9 @@ request.setAttribute("exps",exps);
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in ArrayExpress Warehouse" href="../aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">Expression profile</a>
+			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="/microarray-as/aew/DW?queryFor=gene&gene_query=<%=atlasGene.getGeneIdentifier()%>&exp_query=<%=exp.getDwExpAccession().trim()%>">expression profile</a>
 			&nbsp;/&nbsp;
-			<a title="Show experiment details in ArrayExpress Archive" href="../arrayexpress/query/result?queryFor=Experiment&eAccession=<%=exp.getDwExpAccession().trim()%>">Experiment details</a>
+			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=<%=exp.getDwExpAccession().trim()%>&detailedview=on">experiment details</a>
 		</td>
 	</tr>
 

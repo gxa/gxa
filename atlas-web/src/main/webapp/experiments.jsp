@@ -44,8 +44,9 @@
                     <div class="plot" id="explot_${e.experimentId}"></div>
                     <div class="legend" id="explot_${e.experimentId}_legend"></div>
                     <div style="margin-top:5px;font-size:10px;">
-                        Show expression profile in <a target="_blank" id="explot_${e.experimentId}_link" href="http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}">ArrayExpress Warehouse</a><br>
-                        Show experiment in <a target="_blank" href="http://pashkymac.windows:8080/arrayexpress/query/result?queryFor=Experiment&eAccession=${u:escapeURL(e.experimentAccessment)}">ArrayExpress Archive</a>
+                        Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" id="explot_${e.experimentId}_link" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccessment)}">expression profile</a>
+			&nbsp;/&nbsp;
+			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${u:escapeURL(e.experimentAccessment)}&detailedview=on">experiment details</a>
                     </div>
                 </td>
                 <c:choose>
