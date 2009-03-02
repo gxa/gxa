@@ -222,8 +222,12 @@ public class DataServer implements DataServerMonitor {
 		String[] ids = deId_ADid.split("_");
 		String deId = ids[0];
 		String adId = ids[1];
+		String netCDF;
 		//String netCDF = getNetCDF(geneIdentifier, expIdentifier);
-		String netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
+		if(isExpRatio(expIdentifier,adId))
+			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+"_ratios.nc";	
+		else
+			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
 		Vector deIds = new Vector<String>(); deIds.add(deId);
 		ExpressionDataSet eds = getDataFromNetCDF(netCDF,deIds,factor);
 //		DataProcessing dp = new DataProcessing();
@@ -1008,6 +1012,35 @@ public class DataServer implements DataServerMonitor {
 		this.netCDFsPath = netCDFsPath;
 	}
 
+	
+	private boolean isExpRatio(String exp_id_key, String AD_id_key){
+		Connection connection=null;
+		boolean isRatio = false;
+		try {
+			connection = DS_DBconnection.instance().getConnection();
+			Statement stmt = connection.createStatement();
+			String sql = "SELECT RATIO FROM AE2__EXPRESSIONVALUE__MAIN " +
+					     "WHERE EXPERIMENT_ID = "+exp_id_key+" AND ARRAYDESIGN_ID = "+AD_id_key+" AND ROWNUM < 2";
+		ResultSet rset = stmt.executeQuery(sql);
+		
+		if (rset.next()) {
+			rset.getString(1);
+			isRatio = !rset.wasNull();
+		}
+		rset.close();
+		stmt.close();
+		}catch (Exception ex){
+			log.error("Unable to check experiment is ratio or not. "+ex.getMessage());
+		}finally{
+			if(connection!=null)
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+		return isRatio;
+	}
 
 	public String getNetCDF(String geneIdKey, String expIdKey){
 		String netCDF="";
@@ -1039,15 +1072,15 @@ public class DataServer implements DataServerMonitor {
 						 " AND DE.arraydesign_id = A.arraydesign_id " +
 						 " AND DE.gene_id_key = "+geneIdKey;
 			
-//			System.out.println(sql);
-			
+////			System.out.println(sql);
+//			
 			ResultSet rset = stmt.executeQuery(sql);
 			
 			while (rset.next()) {
 				arIDs.add(rset.getString(1));
 //				expIds.add(rset.getString(2));
 			}
-			
+//			
 			rset.close();
 
 			stmt.close();

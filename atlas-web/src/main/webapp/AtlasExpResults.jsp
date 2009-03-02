@@ -4,10 +4,12 @@ AtlasGene atlasGene = null;
 String geneId = request.getParameter("gid");
 String fromRow = request.getParameter("from");
 String toRow = request.getParameter("to");
+String ef = request.getParameter("factor");
 String efv = request.getParameter("efv");
+
 if (geneId != null) {
     atlasGene = AtlasDao.getGeneByIdentifier(geneId);
-    ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, fromRow, toRow);
+    ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, ef, fromRow, toRow);
     request.setAttribute("exps",exps);
     request.setAttribute("atlasGene",atlasGene);
 }    
@@ -101,20 +103,21 @@ if (geneId != null) {
 	
 </script>
 
-<table align="left" cellpadding="0">
+<table align="left" cellpadding="0" >
 
 <c:forEach var="exp" items="${exps}">
 
 	<tr align="left" class="exp_header">
-		<td align="right" nowrap="true" valign="top">
+		<td align="left" nowrap="true" valign="top">
 			${exp.dwExpAccession}:
 		</td>
 		<td align="left">
 			${exp.dwExpDescription}
 		</td>
+		
 	</tr>
 	<tr>
-		<td colspan="3">
+		<td colspan="2">
 			<div class="separator"></div>
 		</td>
 	</tr>
@@ -122,14 +125,14 @@ if (geneId != null) {
 	<c:if test="${!empty exp.experimentFactors}">
 	
 		<tr align="left">
-			<td colspan="3" >
+			<td colspan="2" >
 			<div class="header" style="padding-top: 5px;padding-bottom: 0px; valign:middle" >
 				<span>Experimental Factors</span>
-					<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 15px;">
+					<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
 					<c:forEach var="EF" items="${exp.experimentFactors}">
 						<c:choose>
 							<c:when test="${EF == exp.highestRankEFs[atlasGene.geneId]}">
-								<span class="current" id="EF">
+								<span class="current" id="${EF}">
 	                				<fmt:message key="head.ef.${EF}"/>
 	                			</span>
 							</c:when>

@@ -115,12 +115,14 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
          $('#pagingSummary').empty();
          $(".heatmap_over").removeClass("heatmap_over");
          // Create pagination element
-        $("#Pagination").pagination(${noAtlasExps}, {
-			num_edge_entries: 2,
-			num_display_entries: 5,
-			items_per_page:5,
-            callback: pageselectCallback
-         });
+         if(${noAtlasExps > 5}){
+        	$("#Pagination").pagination(${noAtlasExps}, {
+				num_edge_entries: 2,
+				num_display_entries: 5,
+				items_per_page:5,
+            	callback: pageselectCallback
+         	});
+         }
          //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
          $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
 	}
@@ -135,7 +137,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 	
 
 	function FilterExps(el,fv,ef){
-		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},efv:fv},
+		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},efv:fv,factor:ef},
 							function(){
 								for (var i = 0; i < exps.length; ++i){
 									eid = jQuery.trim(exps[i].id);
@@ -318,7 +320,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				</tr>
 				<tr>
 				<td align="left" class="header">
-					${f:length(heatMapRows)} factor values. Click each to filter
+					${f:length(heatMapRows)} factor values, click each to filter
 				</td>
 				
 			</tr>
@@ -344,7 +346,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 						<tr class="heatmap_row"
 						    onclick="FilterExps(this,'${row.fv}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true">
+							<td nowrap="true" style="padding-right:5px">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>

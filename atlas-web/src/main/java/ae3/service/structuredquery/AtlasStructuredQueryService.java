@@ -230,7 +230,7 @@ public class AtlasStructuredQueryService {
 
     private void appendScores(Expression e, StringBuffer scores, String efefvId) {
         String cnt = "cnt_efv_" + efefvId;
-        String pvl = "avgpval_efv_" + efefvId;
+        String pvl = "minpval_efv_" + efefvId;
         switch(e)
         {
             case UP:
@@ -590,8 +590,8 @@ public class AtlasStructuredQueryService {
                 UpdownCounter counter = new UpdownCounter(
                         nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_up")),
                         nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_dn")),
-                        nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_up")),
-                        nullzero((Double)doc.getFieldValue("avgpval_efv_" + efefvId + "_dn"))
+                        nullzero((Double)doc.getFieldValue("minpval_efv_" + efefvId + "_up")),
+                        nullzero((Double)doc.getFieldValue("minpval_efv_" + efefvId + "_dn"))
                 );
                 counters.add(counter);
 
@@ -640,8 +640,8 @@ public class AtlasStructuredQueryService {
                 for(EfvTree.Efv<Integer> efv : ef.getEfvs()) {
                     q.addField("cnt_efv_" + EfvTree.getEfEfvId(ef, efv) + "_up");
                     q.addField("cnt_efv_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
-                    q.addField("avgpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_up");
-                    q.addField("avgpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
+                    q.addField("minpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_up");
+                    q.addField("minpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
                 }
             }
 

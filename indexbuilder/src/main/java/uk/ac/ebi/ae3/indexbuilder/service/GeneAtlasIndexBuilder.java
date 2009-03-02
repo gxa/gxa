@@ -61,7 +61,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 "where agenes.gene_id_key = xml.gene_id_key" +
                 (isUpdateMode() ? " and xml.status<>'fresh' and xml.status is not null" : ""));
         PreparedStatement countGeneEfvStmt = sql.prepareStatement("select ef,efv,updn," +
-                "avg(round(updn_pvaladj,100)) as avgpval," +
+                "min(round(updn_pvaladj,100)) as minpval," +
                 "count(distinct experiment_id_key) as cnt " +
                 "from atlas where gene_id_key = ? and updn<>0  group by ef,efv,updn having count(distinct experiment_id_key) > 0");
         PreparedStatement countGeneExpStmt = sql.prepareStatement("select experiment_id_key,updn," +
@@ -95,7 +95,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 String updn = efvs.getString(3).equals("-1") ? "dn" : "up";
                 String efvid = encodeEfv(ef) + "_" + encodeEfv(efv) + "_" + updn;
                 solrDoc.addField("cnt_efv_" + efvid, efvs.getInt(5));
-                solrDoc.addField("avgpval_efv_" + efvid, efvs.getDouble(4));
+                solrDoc.addField("minpval_efv_" + efvid, efvs.getDouble(4));
                 solrDoc.addField("efvs_" + updn + "_" + encodeEfv(ef), efv);
             }
             efvs.close();

@@ -11,17 +11,17 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
 	String ef;
 	private int count_up;
 	private int count_dn;
-	private double avgPval_up;
-	private double avgPval_dn;
+	private double minPval_up;
+	private double minPval_dn;
 	
 	
-	public HeatmapRow(String efv, String ef, int count_up, int count_dn, double avg_up, double avg_dn){
+	public HeatmapRow(String efv, String ef, int count_up, int count_dn, double min_up, double min_dn){
 		this.ef = ef;
 		this.fv = efv;
 		this.count_dn = count_dn;
 		this.count_up = count_up;
-		this.avgPval_dn = avg_dn;
-		this.avgPval_up = avg_up;
+		this.minPval_dn = min_dn;
+		this.minPval_up = min_up;
 	}
 	public String getFv() {
 		return fv;
@@ -51,17 +51,17 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
 	public void setCount_dn(int count_dn) {
 		this.count_dn = count_dn;
 	}
-	public double getPvalAvg_up() {
-		return avgPval_up;
+	public double getPvalMin_up() {
+		return minPval_up;
 	}
-	public void setPvalAvg_up(double avg_up) {
-		this.avgPval_up = avg_up;
+	public void setPvalMin_up(double avg_up) {
+		this.minPval_up = avg_up;
 	}
-	public double getPvalAvg_dn() {
-		return avgPval_dn;
+	public double getPvalMin_dn() {
+		return minPval_dn;
 	}
-	public void setPvalAvg_dn(double avg_dn) {
-		this.avgPval_dn = avg_dn;
+	public void setPvalMin_dn(double avg_dn) {
+		this.minPval_dn = avg_dn;
 	}
 	
 	public HashMap<String, String> getCellColor() {
@@ -69,13 +69,13 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
 		String color="#ffffff";
 		HashMap<String, String> colorMap = new HashMap<String, String>();
 		if(count_up>0){
-			int uc = coltrim((getPvalAvg_up() > 0.05 ? 0.05 : getPvalAvg_up()) * 255 / 0.05);            
+			int uc = coltrim((getPvalMin_up() > 0.05 ? 0.05 : getPvalMin_up()) * 255 / 0.05);            
 			color =  String.format("#ff%02x%02x", uc, uc);
 			colorMap.put("up",color);
 		}
 		
 		if(count_dn>0){
-			int dc = coltrim((getPvalAvg_dn() > 0.05 ? 0.05 : getPvalAvg_dn()) * 255 / 0.05);
+			int dc = coltrim((getPvalMin_dn() > 0.05 ? 0.05 : getPvalMin_dn()) * 255 / 0.05);
             color =  String.format("#%02x%02xff", dc, dc);
             colorMap.put("dn",color);
 		}
@@ -115,11 +115,11 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
         double c;
         HashMap<String, String> colorMap = new HashMap<String, String>();
         if(count_up>0) {
-            c = (getPvalAvg_up() > 0.05 ? 0.05 : getPvalAvg_up()) * 255 / 0.05;
+            c = (getPvalMin_up() > 0.05 ? 0.05 : getPvalMin_up()) * 255 / 0.05;
             colorMap.put("up",c > 127 ? "#000000" : "#ffffff");
         } 
         if(count_dn>0){
-            c = (getPvalAvg_dn() > 0.05 ? 0.05 : getPvalAvg_dn()) * 255 / 0.05;
+            c = (getPvalMin_dn() > 0.05 ? 0.05 : getPvalMin_dn()) * 255 / 0.05;
             colorMap.put("dn",c > 127 ? "#000000" : "#ffffff");
         }
         return colorMap;
@@ -131,9 +131,9 @@ public class HeatmapRow implements Comparable<HeatmapRow>{
     }
 	public int compareTo(HeatmapRow o) {
 		if (this.getNoStudies() == o.getNoStudies()){
-            if(this.avgPval_dn+this.avgPval_up > o.avgPval_dn+o.avgPval_up)
+            if(this.minPval_dn+this.minPval_up > o.minPval_dn+o.minPval_up)
             	return -1;
-            else if(this.avgPval_dn+this.avgPval_up < o.avgPval_dn+o.avgPval_up)
+            else if(this.minPval_dn+this.minPval_up < o.minPval_dn+o.minPval_up)
             	return 1;
             else
             	return 0;

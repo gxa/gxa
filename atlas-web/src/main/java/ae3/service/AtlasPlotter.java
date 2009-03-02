@@ -116,10 +116,10 @@ public class AtlasPlotter {
 					c++;
 				}
 				
-				if(EF.equals("ba_time")){
-					series.put("bars", new JSONObject("{show:false, align: \"center\", fill:true}"));
-					series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
-				}
+//				if(EF.equals("ba_time")){
+//					series.put("bars", new JSONObject("{show:false, align: \"center\", fill:true}"));
+//					series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
+//				}
 				
 
 				seriesList.put(series);
@@ -129,11 +129,11 @@ public class AtlasPlotter {
 			meanSeries.put("data", meanSeriesData);
 			meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0}"));
 			meanSeries.put("points", new JSONObject("{show:false}"));
-			meanSeries.put("color", "#bfbfbf");
+			meanSeries.put("color", "#5e5e5e");
 			meanSeries.put("label", "Mean");
 			meanSeries.put("legend",new JSONObject("{show:false}"));
 			meanSeries.put("hoverable", "false");
-			meanSeries.put("shadowSize","0");
+			meanSeries.put("shadowSize","1");
 			seriesList.put(meanSeries);
 			
 			

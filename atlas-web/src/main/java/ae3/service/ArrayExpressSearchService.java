@@ -697,15 +697,17 @@ public class ArrayExpressSearchService {
     return count;
     }
     
-    public ArrayList getRankedGeneExperiments(final String gene_id_key, String EFV, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
+    public ArrayList getRankedGeneExperiments(final String gene_id_key, String EFV, String EF, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
    	 
    	 String query = "select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
 				   	 " from ATLAS, ae1__experiment__main exp " +
 				   	 " where exp.experiment_id_key = atlas.experiment_id_key "+
 				   	 " and gene_id_key = "+gene_id_key;
-   	 if(EFV != null)
-   		 query+= " and atlas.EFV ='"+EFV+"'";
+   	 if(EFV != null && EF != null){
+   		    query+=  " and atlas.EFV ='"+EFV+"'"+
+   		    		 " and atlas.EF ='"+ EF+"'";
+   	 }
    	 query+=	   	 " group by atlas.experiment_id_key" +
 				   	 " order by minp asc";
 
