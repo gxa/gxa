@@ -216,7 +216,7 @@ ArrayExpress Atlas
                             <tr>
                                 <td><nobr><b><a href="qrs?gprop_0=&gval_0=&fexp_0=UP_DOWN&fact_0=experiment&specie_0=&fval_0=${u:escapeURL(e.accession)}"><c:out value="${e.accession}"/></a></b></nobr></td>
                                 <td><c:out value="${e.assayCount}"/></td>
-                                <td><c:out value="${e.descr}"/></td>
+                                <td><c:out value="${e.descr}" escapeXml="false"/></td>
                             </tr>
                         </c:if>
                     </c:forEach>
