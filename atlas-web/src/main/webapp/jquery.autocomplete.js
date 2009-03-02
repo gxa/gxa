@@ -211,6 +211,8 @@ $.Autocompleter = function(input, options) {
 		var v = selected.result;
 		previousValue = v;
 
+        $input.focus();
+        
 		if ( options.multiple ) {
 			var words = trimWords($input.val());
 			if ( words.length > 1 ) {
