@@ -37,7 +37,6 @@ public class AtlasStructuredQueryService {
     private static final String CORE_ATLAS = "atlas";
     private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
-    private static final int COLUMN_COLLAPSE_THRESHOLD = 5;
     private final static String[] EXP_SEARCH_FIELDS = {
             "aer_txt_expaccession",
             "dwe_exp_description",
