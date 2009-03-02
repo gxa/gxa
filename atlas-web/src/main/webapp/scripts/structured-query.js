@@ -290,6 +290,7 @@ function escapeHtml(s) {
                          var newprop = res[0];
                          if(res[0] == 'name') {
                              location.href='gene?gid=' + res[3].split('$')[2];
+                             startSearching();
                              return;
                          }
                          $('#gprop0').val(newprop);
@@ -318,6 +319,10 @@ function escapeHtml(s) {
                                formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
                            })
              .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
+
+         $('#simpleform').bind('submit', function () {
+             startSearching();
+         });
      };
 
      window.initQuery = function() {
@@ -359,6 +364,10 @@ function escapeHtml(s) {
                                   this.selectedIndex = 0;
                               });
 
+         $('#structform').bind('submit', function () {
+             startSearching();structSubmit();
+             return true;
+         });
 
          if(lastquery && lastquery.species.length) {
              for(var i = 0; i < lastquery.species.length; ++i)
@@ -381,7 +390,7 @@ function escapeHtml(s) {
          }
      };
 
-     window.renumberAll = function() {
+     window.structSubmit = function() {
          var i = 0;
          $('input.specval').each(function(){ this.name = this.name.replace(/_\d+/, '_' + (++i)); });
 
@@ -549,6 +558,12 @@ function escapeHtml(s) {
  		                    });
 
                          });
+     };
+
+     window.startSearching = function() {
+         $('input.ac_input').hideResults();
+         var v = $('input.searchatlas');
+         v.val('Searching...');
      };
 
 

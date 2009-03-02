@@ -200,6 +200,9 @@ $.Autocompleter = function(input, options) {
 		$(input.form).unbind(".autocomplete");
 	}).bind("hideResults", function() {
 		hideResults();
+        var xhr = $.data($input, "ac_xhr");
+        if(xhr && typeof(xhr.abort) == 'function')
+            xhr.abort();
     });
 
 
@@ -387,7 +390,7 @@ $.Autocompleter = function(input, options) {
 				extraParams[key] = typeof param == "function" ? param() : param;
 			});
 
-			$.ajax({
+			var xhr = $.ajax({
 				// try to leverage ajaxQueue plugin to abort previous requests
 				mode: "abort",
 				// limit abortion to this input
@@ -404,6 +407,7 @@ $.Autocompleter = function(input, options) {
 					success(term, parsed);
 				}
 			});
+            $.data(input, "ac_xhr", xhr);
 		} else {
 			// if we have a failure, we need to empty the list -- this prevents the the [TAB] key from selecting the last successful match
 			select.emptyList();

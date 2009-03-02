@@ -94,7 +94,7 @@ ArrayExpress Atlas Preview
                             <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                         </td>
                         <td align="right">
-                            <input type="submit" value="Search Atlas">
+                            <input type="submit" value="Search Atlas" class="searchatlas">
                         </td>
                     </tr>
                     <tr>
@@ -107,7 +107,7 @@ ArrayExpress Atlas Preview
             <input type="hidden" name="view" value="hm" />
         </form>
     
-        <form id="structform" class="visinstruct" name="atlasform" action="qrs" onsubmit="renumberAll();" style="visibility:hidden;">
+        <form id="structform" class="visinstruct" name="atlasform" action="qrs" style="visibility:hidden;">
             <fieldset class="top">
                 <legend>Find genes corresponding to ALL following conditions:</legend>
                 <table>
@@ -118,7 +118,7 @@ ArrayExpress Atlas Preview
                 <div style="margin-top:15px;">
                     <div style="float:right;">
                         <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
-                        <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">
+                        <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas">
                     </div>
                     <span id="condadders"><b>&nbsp;Add&nbsp;</b>
                         <select id="factors">

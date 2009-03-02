@@ -116,7 +116,7 @@ ArrayExpress Atlas
                 </td>
             </tr>
         </table>
-        <form name="atlasform" action="qrs">
+        <form name="atlasform" action="qrs" id="simpleform">
             <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0;">
                 <tr>
                     <td><label class="label" for="gene0">Genes</label></td>
@@ -154,7 +154,7 @@ ArrayExpress Atlas
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                     </td>
                     <td align="right">
-                        <input type="submit" value="Search Atlas">
+                        <input type="submit" value="Search Atlas" class="searchatlas">
                         <div style="position:relative;width:100%;">
                             <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:left;top:10px;">
                                 <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
