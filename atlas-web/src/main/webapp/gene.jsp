@@ -62,12 +62,12 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 
 <script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
-<script type="text/javascript" src="jquery.autocomplete.js"></script>
-<script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
-<link rel="stylesheet" href="geneView.css" />
-<link rel="stylesheet" href="scripts/pagination.css" />
+<link rel="stylesheet" href="atlas.css" type="text/css" />
+<link rel="stylesheet" href="geneView.css" type="text/css" />
 
 
 <script type="text/javascript">
@@ -168,22 +168,22 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 <link rel="stylesheet" href="stylesheets/ae_browse.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_index.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_common.css" type="text/css" />
-<link rel="stylesheet" href="scripts/pagination.css" />
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 <jsp:include page='end_menu.jsp' />
-<div class="ae_pagecontainer">
+<div id="ae_pagecontainer">
 
 <table align="right" style="border-bottom: thin solid lightgray; "	cellpadding="0" cellspacing="0">
 	<tr align="right">
 		<td align="right" valign="bottom" ><a href="index.jsp"><img
-			border="0" src="atlasbeta.jpg" width="50" height="25" /></a></td>
+			border="0" src="images/atlasbeta.jpg" width="50" height="25" /></a></td>
 
 
-		<td align="right" valign="center" style="padding-top: 5px"><a
-			href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
+		<td align="right" valign="center" style="padding-top: 5px">
+            <a href="./">home</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
 		the project</a> | <a
 			href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> | <a
 			id="feedback_href" href="javascript:showFeedbackForm()">feedback</a>
@@ -191,7 +191,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 		| <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a>
 		| <a target="_blank"
 			href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web
-		services api</a> (<b>new!</b>) | <a
+		services api</a> | <a
 			href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a></td>
 
 		<!-- 
@@ -199,7 +199,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 			id="searchSlider" alt="" src="images/searchAtlas.png" /></td> -->
 		<td align="right" valign="center" width="40px"><a
 			href="http://www.ebi.ac.uk/microarray"><img border="0"
-			height="20" title="EBI ArrayExpress" src="aelogo.png" /></a></td>
+			height="20" title="EBI ArrayExpress" src="images/aelogo.png" /></a></td>
 
 	</tr>
 </table>

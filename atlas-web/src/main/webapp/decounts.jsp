@@ -18,9 +18,9 @@ ArrayExpress Atlas Preview
 <jsp:include page="end_head.jsp"></jsp:include>
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
-    <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function()
@@ -77,14 +77,14 @@ ArrayExpress Atlas Preview
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
         </td>
         <td align="right">
-            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="images/aelogo.png"/></a>
         </td>
     </tr>
 </table>
 
 <table width="100%">
     <tr>
-        <td width="100"><a href="index.jsp"><img border="0" src="atlasbeta.jpg"/></a></td>
+        <td width="100"><a href="index.jsp"><img border="0" src="images/atlasbeta.jpg"/></a></td>
         <td valign="top"><h1>Counts of genes and experiments up or down per factor/factor value</h1></td>
     </tr>
 </table>

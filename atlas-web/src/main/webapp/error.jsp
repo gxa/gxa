@@ -13,11 +13,11 @@ ArrayExpress Atlas Preview
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 
-<script type="text/javascript" src="jquery.min.js"></script>
-<script type="text/javascript" src="jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
-<script type="text/javascript" src="jquery.autocomplete.js"></script>
-<script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
+<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function()
@@ -102,7 +102,7 @@ ArrayExpress Atlas Preview
             <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
         </td>
         <td align="right">
-            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
+            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="images/aelogo.png"/></a>
         </td>
     </tr>
 </table>
@@ -117,7 +117,7 @@ ArrayExpress Atlas Preview
     <table>
         <tr valign="middle">
             <td valign="top">
-                <a href="index.jsp"><img border="0" src="atlasbeta.jpg"/></a>
+                <a href="index.jsp"><img border="0" src="images/atlasbeta.jpg"/></a>
             </td>
             <td>
                 <table>

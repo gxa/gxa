@@ -441,7 +441,7 @@ function escapeHtml(s) {
          left += 15;
          top += 15;
 
-         var waiter = $('<div id="waiter" />').append($('<img/>').attr('src','expandwait.gif'))
+         var waiter = $('<div id="waiter" />').append($('<img/>').attr('src','images/indicator.gif'))
                  .css({ left: left + 'px', top: top + 'px' });
 
          $('body').append(waiter);

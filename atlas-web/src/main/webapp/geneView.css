@@ -17,29 +17,6 @@ table.heatmap {
 	border-color: #9e9e9e;
 }
 
-
-.ae_pagecontainer {
-	padding-left: 15px;
-	padding-top: 0px;
-	padding-right: 15px;
-	margin-bottom: 50px;
-	font-family: Verdana, helvetica, arial, sans-serif;
-}
-
-
-
-.ae_pagecontainer a:link, .ae_pagecontainer a:visited{
-	text-decoration: none;
-	color: #1f7979;
-	cursor: pointer;
-}
-
-.ae_pagecontainer a:hover {
-	text-decoration: underline;
-	color: #e33e3e;
-	cursor: pointer;
-}
-
 .exp_summary {
 	padding-left: 15px;
 	padding-top: 10px;
@@ -162,7 +139,7 @@ table.heatmap {
 }
 
 .heatmap_over  {
-	background-color: #1f7979;
+	background-color: #006666;
 	color: #ffffff;
 	cursor: pointer;
 }

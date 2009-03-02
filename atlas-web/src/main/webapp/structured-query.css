@@ -1,13 +1,10 @@
-#kycontent a, #kycontent a:visited { text-decoration: none; }
-#kycontent a:hover, #kycontent a:active { text-decoration: underline; }
-
 #topcontainer { width: 740px; }
 
 #twocol { padding: 0; margin: 5px 0 0 0; border-spacing: 0; }
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-fieldset, #simpleform input.value, #structform input.value, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
+fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
       { border: 1px solid #5E9E9E; }
 
 #squery th, fieldset, #tooltip, #drill, #expopup
@@ -77,9 +74,9 @@ fieldset, #simpleform input.value, #structform input.value, #expopup, #expopup .
 }
 .tri {
     width:0; height:0; font-size: 0;line-height: 0%;
-    border-right: none;
-    border-bottom: none;
-    border-top: 26px solid; border-right:26px solid;
+    border-top: 26px solid;
+    border-right: 26px solid;
+    border-bottom-style: none;
 }
 
 .upval {
@@ -90,7 +87,7 @@ fieldset, #simpleform input.value, #structform input.value, #expopup, #expopup .
     position: absolute; bottom: 0px; right: 0px; z-index: 0; width: 13px; height: 13px; text-align: center;
 }
 
-.gtooltip { display: none; }
+#squery .gtooltip { display: none; }
 
 #squery img, #squery img:hover, map, area, map:hover, area:hover { border: none; cursor:default; }
 
@@ -102,7 +99,7 @@ legend { font-weight: bold; }
 
 .ignored { color: #cc0000; }
 
-#structform table { width: 100%;border:none;margin:0;padding:0; }
+#simpleform table, #structform table { width: 100%;border:none;margin:0;padding:0; }
 #conditions select { width: 120px; }
 #conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
 #conditions td.left { width: 40%; }
@@ -120,14 +117,14 @@ legend { font-weight: bold; }
 .drillsect ul { padding: 5px 0px 20px 0px;margin: 0; }
 .drillsect li { padding-left: 10px; list-style: none; color: #999999; }
 .drillsect .name { font-weight: bold; font-size: 12px; }
-a.fup:link, a.fup:active, a.fup:visited { text-decoration: none; color: #c5b0b0; }
-a.fdn:link, a.fdn:active, a.fdn:visited { text-decoration: none; color: #b0b0c5; }
-a.ftot:link, a.ftot:active, a.ftot:visited { text-decoration: none; }
-.drillsect a:hover { text-decoration: underline;color: #e33e3e }
+#drill a.fup:link, #drill a.fup:visited { text-decoration: none; color: #c5b0b0; }
+#drill a.fdn:link, #drill a.fdn:visited { text-decoration: none; color: #b0b0c5; }
+#drill a.fup:active, #drill a.fup:hover { text-decoration: underline; color: #e33e3e; }
 
 /* experiments popup */
 
 #expopup {
+    font-family: Verdana, helvetica, arial, sans-serif;
     position: absolute;
     width: 500px;
     height: 300px;

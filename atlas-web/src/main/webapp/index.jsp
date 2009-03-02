@@ -14,24 +14,27 @@ ArrayExpress Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+    <link rel="stylesheet" href="atlas.css" type="text/css" />
     <link rel="stylesheet" href="structured-query.css" type="text/css" />
     <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.cookie.js"></script>
-    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
-    <script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
-    <script type="text/javascript" src="jquery.autocomplete.js"></script>
-    <script type="text/javascript" src="jquerydefaultvalue.js"></script>
-    <script type="text/javascript" src="structured-query.js"></script>
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
+    <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
+    <script type="text/javascript" src="scripts/structured-query.js"></script>
 
     <script type="text/javascript">
-        function toggleAtlasHelp() {
+        function toggleAtlasHelp(e) {
             if($("div.atlasHelp").is(":hidden")) {
                 showAtlasHelp();
             } else {
                 hideAtlasHelp();
-            }            
+            }
+            if(e && typeof(e.stopPropagation) == 'function')
+                e.stopPropagation();
+            return false;
         }
 
         function showAtlasHelp() {
@@ -73,6 +76,17 @@ ArrayExpress Atlas
 
         .atlasHelp {
             display: none;
+            text-align:center;
+        }
+
+        .atlasHelp .tri {
+            font-size: 0px; line-height: 0%; width: 0px;
+            border-bottom: 20px solid #EEF5F5;
+            border-left: 10px solid white;border-right: 10px solid white;
+        }
+
+        .atlasHelp .sq {
+            background-color: #EEF5F5; text-align:left; height:100%; width: 140px;padding:5px;
         }
     </style>
 
@@ -81,121 +95,126 @@ ArrayExpress Atlas
 
 <jsp:include page="end_menu.jsp"></jsp:include>
 
-<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
-    <tr>
-        <td align="left">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
-        </td>
-        <td align="right">
-            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png"/></a>
-        </td>
-    </tr>
-</table>
-<form name="atlasform" action="qrs">
-    <table style="margin:auto;height:200px">
-        <tr valign="top">
-            <td valign="top"><img border="0" src="atlasbeta.jpg"/></td>
-            <td>
-                <table>
-                    <tr>
-                        <td>
-                            <label class="label" for="gene0">Genes</label>
-                        </td>
-                        <td/>
-                        <td>
-                            <label class="label" for="species0">Organism</label>
-                        </td>
-                        <td>
-                            <label class="label" for="fval0">Conditions</label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="hidden" name="gprop_0" id="gprop0" value="">
-                            <input type="text" name="gval_0" id="gene0" style="width:150px" value="" />
-                        </td>
-                        <td>
-                            <select name="fexp_0">
-                                <c:forEach var="s" items="${service.structQueryService.geneExpressionOptions}">
-                                    <option value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
-                                </c:forEach>
-                            </select>
-                        </td>
-                        <td>
-                            <select name="specie_0" id="species0">
-                                <option value="">(any)</option>
-                                <c:forEach var="s" items="${service.allAvailableAtlasSpecies}">
-                                    <option value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
-                                </c:forEach>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="hidden" name="fact_0" value="">
-                            <input type="text" name="fval_0" id="fval0" style="width:150px" value="" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td valign="top" align="center" style="width:150px">
-                            <div class="atlasHelp">
-                                <div style="font-size: 0px; line-height: 0%; width: 0px; border-bottom: 20px solid pink; border-left: 10px solid white;border-right: 10px solid white;">&nbsp;</div>
-                                <div style="background-color:pink; text-align:left; height:100%; width: 140px;padding:5px">
-                                    Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
-                                </div>
+<div id="ae_pagecontainer">
+    <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:20px;" >
+        <table style="width:100%; border-bottom:thin solid lightgray">
+            <tr>
+                <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+                    <a href="index.jsp"><img border="0" src="images/atlasbeta.jpg" alt="Atlas Beta" /></a>
+                </td>
+
+                <td align="left" valign="bottom">
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+                    <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+                    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                    <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+                </td>
+                <td align="right" valign="bottom">
+                    <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="images/aelogo.png" /></a>
+                </td>
+            </tr>
+        </table>
+        <form name="atlasform" action="qrs">
+            <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0;">
+                <tr>
+                    <td><label class="label" for="gene0">Genes</label></td>
+                    <td></td>
+                    <td>
+                        <label class="label" for="species0">Organism</label>
+                    </td>
+                    <td>
+                        <label class="label" for="fval0">Conditions</label>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
+                        <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" /><br>
+                    </td>
+                    <td>
+                        <select name="fexp_0" id="expr0">
+                            <c:forEach var="s" items="${service.structQueryService.geneExpressionOptions}">
+                                <option value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
+                            </c:forEach>
+                        </select>
+                        <input type="hidden" name="fact_0" value="">
+                    </td>
+                    <td>
+                        <select name="specie_0" id="species0" style="width:180px">
+                            <option value="">(any)</option>
+                            <c:forEach var="s" items="${service.allAvailableAtlasSpecies}">
+                                <option value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                            </c:forEach>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                    </td>
+                    <td align="right">
+                        <input type="submit" value="Search Atlas">
+                        <div style="position:relative;width:100%;">
+                            <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:left;top:10px;">
+                                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
+                                <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
+                                <a class="smallgreen" href="qrs?struct">advanced query</a>
                             </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label" colspan="3"><span class="label">Ex: ASPM, ENSMUSG123, "p53 binding"</span></td>
+                    <td class="label" colspan="2"><span class="label">Ex: liver, kidney, "colon cancer"</span></td>
+                </tr>
+                <tr>
+                    <td class="label" valign="top"><div class="atlasHelp">
+                        <div class="tri">&nbsp;</div>
+                        <div class="sq">
+                            Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
+                        </div>
+                    </div></td>
+                    <td colspan="2"></td>
+                    <td class="label" valign="top"><div class="atlasHelp">
+                        <div class="tri">&nbsp;</div>
+                        <div class="sq">
+                            Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice.
+                        </div>
+                    </div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="label" colspan="4"></td>
+                    <td class="label">        
+                    </td>
+                </tr>
+            </table>
+
+            <div style="text-align:center;margin-top:100px;">
+                <b>Hint:</b> query for condition 'kidney' leaving blank the genes field for the most active genes in that tissue.
+            </div>
+            <input type="hidden" name="view" value="hm"/>
+        </form>
+
+        <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
+            <div style="text-align:center;margin:150px auto 30px auto;padding:10px 30px 10px 30px;color:#cdcdcd;">
+                <table align="center">
+                    <tr valign="middle">
+                        <td>
+                            For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
                         </td>
-                        <td colspan="2" align="center" valign="top" width="200">
-                            <div style="margin-top:10px">
-                                <input type="submit" value="Search Atlas">
-                            </div>
+                        <td>
+                            <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
                         </td>
-                        <td valign="top" align="center" style="width:150px">
-                            <div class="atlasHelp">
-                                <div style="font-size: 0px; line-height: 0%; width: 0px; border-bottom: 20px solid pink; border-left: 10px solid white;border-right: 10px solid white;">&nbsp;</div>
-                                <div style="background-color:pink; text-align:left; height:100%; width: 140px;padding:5px">
-                                    Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice.
-                                </div>
-                            </div>
+                        <td>
+                            <input type="submit" name="email-button" value="Subscribe" />
                         </td>
                     </tr>
                 </table>
-            </td>
-            <td valign="top">
-                <div style="position:relative;padding-left:15px;top:10px">
-                    <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
-                    <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
-                    <a class="smallgreen" href="qrs?struct">advanced query</a>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center" valign="center">
-                <b>Hint:</b> query for condition 'kidney' leaving blank the genes field for the most active genes in that tissue.
-            </td>
-        </tr>
-    </table>
-
-    <input type="hidden" name="view" value="hm"/>
-</form>
-
-<form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-    <div style="position:relative;top:150px;text-align:center">
-    for news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:
-        <table align="center">
-            <tr valign="middle">
-                <td>
-                    <input style="border: thin solid lightgray;font-size:11px" type="text" name="email" size="10" value=""/>
-                </td>
-                <td>
-                    <input style="font-size:11px" type="submit" name="email-button" value="subscribe"/>
-                 </td>
-            </tr>
-        </table>
+            </div>
+        </form>
+    </div>
 </div>
-</form>
 
 <jsp:include page="end_body.jsp"></jsp:include>

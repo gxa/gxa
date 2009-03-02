@@ -11,174 +11,171 @@ ArrayExpress Atlas Preview
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
-<link rel="stylesheet" href="scripts/pagination.css" />
+<link rel="stylesheet" href="atlas.css" type="text/css" />
 
-<script type="text/javascript" src="jquery.min.js"></script>
-<script type="text/javascript" src="jquery.cookie.js"></script>
-<script type="text/javascript" src="jquery-impromptu.1.5.js"></script>
-<script type="text/javascript" src="jquery.autocomplete.js"></script>
-<script type="text/javascript" src="jquery.tooltip.js"></script>
-<script type="text/javascript" src="jquery.dimensions.js"></script>
-<script type="text/javascript" src="jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/jquery.cookie.js"></script>
+<script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
+<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="scripts/jquery.tooltip.js"></script>
+<script type="text/javascript" src="scripts/jquery.dimensions.js"></script>
+<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="structured-query.js"></script>
-<script type="text/javascript" src="raphael-packed.js"></script>
+<script type="text/javascript" src="scripts/structured-query.js"></script>
 
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
 <jsp:include page="end_menu.jsp"></jsp:include>
 
 
-<table width="100%" style="position:relative;top:-10px;border-bottom:thin solid lightgray">
-    <tr>
-        <td align="left" valign="bottom" width="55">
-            <a href="index.jsp"><img border="0" src="atlasbeta.jpg" width="50" height="25" /></a>
-        </td>
-
-        <td align="left">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> (<b>new!</b>) |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
-        </td>
-        <td align="right">
-            <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="aelogo.png" /></a>
-        </td>
-    </tr>
-</table>
-<div style="margin-bottom:50px" id="kycontent">
-
+<div id="ae_pagecontainer">
     <div id="topcontainer">
-    <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
-        <fieldset class="top">
-            <legend>Find genes</legend>            
-            <table width="100%">
-                <tr valign="top">
-                    <td>
-                    </td>
+        <table style="width:100%; position:relative;top:-10px;border-bottom:thin solid lightgray">
+            <tr>
+                <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+                    <a href="index.jsp"><img border="0" src="images/atlasbeta.jpg" width="50" height="25" /></a>
+                </td>
 
-                    <td>
-                        <label class="label" for="species0">Organisms</label>
-                    </td>
-
-                    <td style="padding-left:5px" colspan="2">
-                        <label class="label" for="fval0">Conditions</label>
-                    </td>
-
-                    <td></td>
-                </tr>
-                <tr valign="top">
-                    <td>
-                        <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
-                        <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" /><br>
-                    </td>
-                    <td>
-                        <select name="specie_0" id="species0" style="width:180px">
-                            <option value="">(any)</option>
-                            <c:forEach var="s"
-                                       items="${service.allAvailableAtlasSpecies}">
-                                <option ${!empty query.species && s == query.species[0] ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
-                            </c:forEach>
-                        </select>
-                    </td>
-                    <td style="padding-left:5px">
-                        <select name="fexp_0" id="expr0">
-                            <c:forEach var="s"
-                                       items="${service.structQueryService.geneExpressionOptions}">
-                                <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
-                            </c:forEach>
-                        </select>
-                        <input type="hidden" name="fact_0" value="">
-                    </td><td>
-                        <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
-                    </td>
-                    <td align="right">
-                        <input type="submit" value="Search Atlas">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label" colspan="3"><span class="label">Ex: ASPM, ENSMUSG123, "p53 binding"</span></td>
-                    <td class="label" colspan="2"><span class="label">Ex: liver, kidney, "colon cancer"</span></td>
-                </tr>
-            </table>
-            <a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>
-        </fieldset>
-        <input type="hidden" name="view" value="hm" />
-    </form>
-    
-    <form id="structform" class="visinstruct" name="atlasform" action="qrs" onsubmit="renumberAll();" style="visibility:hidden;">
-        <fieldset class="top">
-            <legend>Find genes corresponding to ALL following conditions:</legend>
-            <table>
-                <tbody id="conditions">
-                    <tr id="helprow"><td colspan="4"><em>Please add some conditions using drop-down lists below</em></td></tr>
-                </tbody>
-            </table>
-            <div style="margin-top:15px;">
-                <div style="float:right;">
-                    <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
-                    <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">
-                </div>
-                <span id="condadders"><b>&nbsp;Add&nbsp;</b>
-                <select id="factors">
-                    <option value="" selected="selected">experimental factor:</option>
-                    <option value=""></option>
-                    <option value="">(any)</option>
-                    <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
-                        <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
-                    </c:forEach>
-                </select>
-                <select id="geneprops">
-                    <option value="" selected="selected">gene property:</option>                         tr
-                    <option value=""></option>
-                    <option value="">(any)</option>
-                    <c:forEach var="i" items="${service.geneProperties}">
-                        <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
-                    </c:forEach>
-                </select>
-                <select id="species">
-                    <option value="" selected="selected">organism:</option>
-                    <option value=""></option>
-                    <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
-                        <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
-                    </c:forEach>
-                </select></span>
-            </div>
-            <a style="margin-top:10px;text-align:right;display:block;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
-        </fieldset>
-        <input type="hidden" name="view" value="hm" />
-    </form>
-
-    <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext" class="top">
-        <img src="expp.gif" id="efotoggle" onclick="$('#efoexpand').toggle();this.src=this.src.indexOf('expp')>=0?'expm.gif':'expp.gif';">
-        Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
-        <table id="efoexpand">
-            <c:forEach var="c" varStatus="s" items="${result.conditions}">
-                <c:forEach var="ef" items="${c.expansion.nameSortedTree}">
-                    <tr>
-                        <th><fmt:message key="head.ef.${ef.ef}"/></th>
-                        <td><c:forEach var="efv" items="${ef.efvs}" varStatus="s"><c:out value="${efv.efv}"/><c:if test="${!s.last}">, </c:if></c:forEach></td>
-                    </tr>
-                </c:forEach>
-            </c:forEach>
+                <td align="left">
+                    <a href="./">home</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+                    <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+                    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                    <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+                </td>
+                <td align="right">
+                    <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="images/aelogo.png" /></a>
+                </td>
+            </tr>
         </table>
-    </fieldset></c:if>
-    <c:forEach var="c" varStatus="s" items="${result.conditions}">
-        <c:if test="${c.ignored}"><fieldset class="ignoretext top">
-            <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
-        </fieldset></c:if>
-    </c:forEach>
+        <form id="simpleform" class="visinsimple" action="qrs" style="visibility:hidden;">
+            <fieldset class="top">
+                <legend>Find genes</legend>
+                <table width="100%">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <label class="label" for="species0">Organism</label>
+                        </td>
+                        <td>
+                            <label class="label" for="fval0">Conditions</label>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
+                            <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" /><br>
+                        </td>
+                        <td>
+                            <select name="fexp_0" id="expr0">
+                                <c:forEach var="s"
+                                           items="${service.structQueryService.geneExpressionOptions}">
+                                    <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
+                                </c:forEach>
+                            </select>
+                            <input type="hidden" name="fact_0" value="">
+                        </td>
+                        <td>
+                            <select name="specie_0" id="species0" style="width:180px">
+                                <option value="">(any)</option>
+                                <c:forEach var="s"
+                                           items="${service.allAvailableAtlasSpecies}">
+                                    <option ${!empty query.species && s == query.species[0] ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                                </c:forEach>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                        </td>
+                        <td align="right">
+                            <input type="submit" value="Search Atlas">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" colspan="3"><span class="label">Ex: ASPM, ENSMUSG123, "p53 binding"</span></td>
+                        <td class="label" colspan="2"><span class="label">Ex: liver, kidney, "colon cancer"</span></td>
+                    </tr>
+                </table>
+                <a style="display:block;text-align:right;margin-top:10px" class="visinsimple" href="javascript:structMode();">Switch to advanced mode</a>
+            </fieldset>
+            <input type="hidden" name="view" value="hm" />
+        </form>
+    
+        <form id="structform" class="visinstruct" name="atlasform" action="qrs" onsubmit="renumberAll();" style="visibility:hidden;">
+            <fieldset class="top">
+                <legend>Find genes corresponding to ALL following conditions:</legend>
+                <table>
+                    <tbody id="conditions">
+                    <tr id="helprow"><td colspan="4"><em>Please add some conditions using drop-down lists below</em></td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:15px;">
+                    <div style="float:right;">
+                        <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
+                        <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas">
+                    </div>
+                    <span id="condadders"><b>&nbsp;Add&nbsp;</b>
+                        <select id="factors">
+                            <option value="" selected="selected">experimental factor:</option>
+                            <option value=""></option>
+                            <option value="">(any)</option>
+                            <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
+                                <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
+                            </c:forEach>
+                        </select>
+                        <select id="geneprops">
+                            <option value="" selected="selected">gene property:</option>                         tr
+                            <option value=""></option>
+                            <option value="">(any)</option>
+                            <c:forEach var="i" items="${service.geneProperties}">
+                                <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
+                            </c:forEach>
+                        </select>
+                        <select id="species">
+                            <option value="" selected="selected">organism:</option>
+                            <option value=""></option>
+                            <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
+                                <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
+                            </c:forEach>
+                        </select></span>
+                </div>
+                <a style="margin-top:10px;text-align:right;display:block;" class="visinstruct" href="javascript:simpleMode();">Switch to simple mode</a>
+            </fieldset>
+            <input type="hidden" name="view" value="hm" />
+        </form>
 
-    <c:if test="${result.size > 0}">
-        <div id="summary">
-            <div id="pagetop" class="pagination_ie page_long"></div>
-            <b><c:out value="${result.total}" /></b> matching gene(s) found
-        </div>
-    </c:if>
+        <c:if test="${result.hasEFOExpansion}"><fieldset id="efotext" class="top">
+            <img src="images/expp.gif" id="efotoggle" onclick="$('#efoexpand').toggle();this.src=this.src.indexOf('expp')>=0?'images/expm.gif':'images/expp.gif';">
+            Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
+            <table id="efoexpand">
+                <c:forEach var="c" varStatus="s" items="${result.conditions}">
+                    <c:forEach var="ef" items="${c.expansion.nameSortedTree}">
+                        <tr>
+                            <th><fmt:message key="head.ef.${ef.ef}"/></th>
+                            <td><c:forEach var="efv" items="${ef.efvs}" varStatus="s"><c:out value="${efv.efv}"/><c:if test="${!s.last}">, </c:if></c:forEach></td>
+                        </tr>
+                    </c:forEach>
+                </c:forEach>
+            </table>
+        </fieldset></c:if>
+        <c:forEach var="c" varStatus="s" items="${result.conditions}">
+            <c:if test="${c.ignored}"><fieldset class="ignoretext top">
+                <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
+            </fieldset></c:if>
+        </c:forEach>
+
+        <c:if test="${result.size > 0}">
+            <div id="summary">
+                <div id="pagetop" class="pagination_ie page_long"></div>
+                <b><c:out value="${result.total}" /></b> matching gene(s) found
+            </div>
+        </c:if>
     </div>
 
     <script type="text/javascript">
@@ -226,8 +223,8 @@ ArrayExpress Atlas Preview
             $('#simpleform, #structform').css('visibility', 'visible');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
-        new Image().src = 'expp.gif';
-        new Image().src = 'expm.gif';
+        new Image().src = 'images/expp.gif';
+        new Image().src = 'images/expm.gif';
     </script>
 
     <c:if test="${!query.none}">
@@ -290,9 +287,12 @@ ArrayExpress Atlas Preview
                             <h2>Refine your query</h2>
                             <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                                 <div class="drillsect">
-                                    <div class="name"><fmt:message key="head.ef.${ef.ef}"/></div>
+                                    <c:set var="efname"><fmt:message key="head.ef.${ef.ef}"/></c:set>
+                                    <div class="name">${efname}</div>
                                     <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                                        <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>&nbsp;(<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)</nobr></li>
+                                        <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="Filter for genes up or down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>
+                                            (<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup" title="Filter for genes up in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn" title="Filter for genes down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)
+                                        </nobr></li>
                                     </c:forEach></ul>
                                 </div>
                             </c:forEach>
@@ -301,7 +301,7 @@ ArrayExpress Atlas Preview
                                     <div class="name">Organism</div>
                                     <ul>
                                         <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                                            <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
+                                            <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot" title="Filter by organism ${f:escapeXml(sp.name)}"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
                                         </c:forEach>
                                     </ul>
                                 </div>
@@ -309,10 +309,11 @@ ArrayExpress Atlas Preview
                             <c:forEach var="facet" items="${result.geneFacets}">
                                 <c:if test="${!empty facet.key && facet.key!='species'}">
                                     <div class="drillsect">
-                                        <div class="name"><fmt:message key="head.gene.${facet.key}"/></div>
+                                        <c:set var="gpname"><fmt:message key="head.gene.${facet.key}"/></c:set>
+                                        <div class="name">${gpname}</div>
                                         <ul>
                                             <c:forEach var="fv" items="${facet.value}" varStatus="s">
-                                                <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
+                                                <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="Filter for genes with ${gpname}: ${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
                                             </c:forEach>
                                         </ul>
                                     </div>
