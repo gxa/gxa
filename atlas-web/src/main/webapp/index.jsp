@@ -88,6 +88,23 @@ ArrayExpress Atlas
         .atlasHelp .div2 {
             background-color: #EEF5F5; text-align:left; height:100%; width: 140px;padding:5px;
         }
+
+        #newexplist {
+            font-size: 10px;
+            text-align:left;margin-top:70px;margin-right:auto;margin-left:auto;width:740px;
+        }
+
+        #newexplist table {
+            border: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+
+        #newexplist td {
+            padding: 5px 10px 0 0;
+            vertical-align:top;
+            font-size: 10px;
+        }
     </style>
 
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
@@ -191,14 +208,25 @@ ArrayExpress Atlas
                 </tr>
             </table>
 
-            <div style="text-align:center;margin-top:100px;">
-                <b>Hint:</b> query for condition 'kidney' leaving blank the genes field for the most active genes in that tissue.
+            <div id="newexplist">
+                ArrayExpress Atlas Version <c:out value="${u:getProp('atlas.buildNumber')}"/> covers <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, and <c:out value="${service.stats.numEfvs}"/> conditions. <c:out value="${f:length(service.stats.newExperiments)}"/> new experiments were loaded since the last data release:
+                <table>
+                    <c:forEach var="e" items="${service.stats.newExperiments}" varStatus="i">
+                        <c:if test="${i.index < 10}">
+                            <tr>
+                                <td><nobr><b><a href="qrs?gprop_0=&gval_0=&fexp_0=UP_DOWN&fact_0=experiment&specie_0=&fval_0=${u:escapeURL(e.accession)}"><c:out value="${e.accession}"/></a></b></nobr></td>
+                                <td><c:out value="${e.assayCount}"/></td>
+                                <td><c:out value="${e.descr}"/></td>
+                            </tr>
+                        </c:if>
+                    </c:forEach>
+                </table>
             </div>
             <input type="hidden" name="view" value="hm"/>
         </form>
 
         <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-            <div style="text-align:center;margin:150px auto 30px auto;padding:10px 30px 10px 30px;color:#cdcdcd;">
+            <div style="text-align:center;margin:50px auto 30px auto;padding:10px 30px 10px 30px;color:#cdcdcd;">
                 <table align="center">
                     <tr valign="middle">
                         <td>

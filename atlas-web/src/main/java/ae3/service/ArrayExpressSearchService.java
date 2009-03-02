@@ -35,6 +35,7 @@ import ae3.dao.AtlasObjectNotFoundException;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.ols.webservice.axis.Query;
 import ae3.util.QueryHelper;
+import ae3.util.AtlasProperties;
 import ae3.service.structuredquery.*;
 import net.sf.ehcache.CacheManager;
 
@@ -71,6 +72,7 @@ public class ArrayExpressSearchService {
 
     private AtlasStructuredQueryService squeryService;
     private ExperimentsService experimentsService;
+    private AtlasStatisticsService.Stats stats;
 
     //// DataServer Instance(s)
 
@@ -135,6 +137,9 @@ public class ArrayExpressSearchService {
 
             squeryService = new AtlasStructuredQueryService(multiCore);
             experimentsService = new ExperimentsService(theAEDS.getConnection());
+
+            int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
+            stats = new AtlasStatisticsService(theAEDS.getConnection()).getStats(lastExpId);
 
         } catch (Exception e) {
             log.error(e);
@@ -877,5 +882,9 @@ public class ArrayExpressSearchService {
             log.error("Failed to expand query with EFO, proceeding with normal query", e);
             return fullTextQueryExpts(q_expt);
         }
+    }
+
+    public AtlasStatisticsService.Stats getStats() {
+        return stats;
     }
 }

@@ -72,6 +72,7 @@ public class ExperimentsService {
                     log.error(e);
                 }
             }
+            rs.close();
         } catch (SQLException e) {
             log.error(e);
         }
@@ -105,6 +106,7 @@ public class ExperimentsService {
                     log.error(e);
                 }
             }
+            rs.close();
             return results;
         } catch (SQLException e) {
             log.error(e);
