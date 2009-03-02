@@ -6,7 +6,7 @@
 	margin-bottom: 50px;
 }
 
-#ae_pagecontainer, #ae_pagecontainer input, #ae_pagecontainer select {
+#ae_pagecontainer, #ae_pagecontainer input, #ae_pagecontainer select, #ae_pagecontainer td, #ae_pagecontainer th {
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
