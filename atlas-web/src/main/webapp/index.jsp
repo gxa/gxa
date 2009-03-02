@@ -79,13 +79,13 @@ ArrayExpress Atlas
             text-align:center;
         }
 
-        .atlasHelp .tri {
+        .atlasHelp .div1 {
             font-size: 0px; line-height: 0%; width: 0px;
             border-bottom: 20px solid #EEF5F5;
             border-left: 10px solid white;border-right: 10px solid white;
         }
 
-        .atlasHelp .sq {
+        .atlasHelp .div2 {
             background-color: #EEF5F5; text-align:left; height:100%; width: 140px;padding:5px;
         }
     </style>
@@ -170,15 +170,15 @@ ArrayExpress Atlas
                 </tr>
                 <tr>
                     <td class="label" valign="top"><div class="atlasHelp">
-                        <div class="tri">&nbsp;</div>
-                        <div class="sq">
+                        <div class="div1">&nbsp;</div>
+                        <div class="div2">
                             Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
                         </div>
                     </div></td>
                     <td colspan="2"></td>
                     <td class="label" valign="top"><div class="atlasHelp">
-                        <div class="tri">&nbsp;</div>
-                        <div class="sq">
+                        <div class="div1">&nbsp;</div>
+                        <div class="div2">
                             Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice.
                         </div>
                     </div></td>
