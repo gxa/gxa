@@ -289,8 +289,8 @@ function escapeHtml(s) {
              .result(function (unused, res) {
                          var newprop = res[0];
                          if(res[0] == 'name') {
-                             newprop = 'identifier';
-                             $(this).val(res[3].split('$')[2]).parents('form:first').get(0).submit();
+                             location.href='gene?gid=' + res[3].split('$')[2];
+                             return;
                          }
                          $('#gprop0').val(newprop);
                          var oldval = $(this).val();
