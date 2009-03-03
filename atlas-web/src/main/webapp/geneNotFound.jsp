@@ -236,7 +236,7 @@ ArrayExpress Atlas
 
 
         <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-            <div style="position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
+            <div style="font-family: Verdana, helvetica, arial, sans-serif;position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
                             For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
                             <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
                             <input type="submit" name="email-button" value="Subscribe" />
