@@ -115,14 +115,14 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
          $('#pagingSummary').empty();
          $(".heatmap_over").removeClass("heatmap_over");
          // Create pagination element
-         if(${noAtlasExps > 5}){
+         <c:if test="${noAtlasExps > 5}">
         	$("#Pagination").pagination(${noAtlasExps}, {
 				num_edge_entries: 2,
 				num_display_entries: 5,
 				items_per_page:5,
             	callback: pageselectCallback
          	});
-         }
+         </c:if>
          //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
          $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
 	}
