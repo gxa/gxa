@@ -18,5 +18,7 @@
 	  </table>
 	   <script  src="http://www.ebi.ac.uk/inc/js/footer.js" type="text/javascript"></script>
 	</div>
+
+${atlas.googleanalytics.script}
 </body>
 </html>

@@ -4,10 +4,11 @@
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
-      { border: 1px solid #5E9E9E; }
+fieldset,#expopup, #expopup .exptable, #tooltip, #drill, #waiter
+      { border: none; //1px solid #5E9E9E; 
+}
 
-#squery th, fieldset, #tooltip, #drill, #expopup
+#squery th, #tooltip, #expopup
       { background-color: #EEF5F5; }
 
 .closebox { color: #006666; }
@@ -19,7 +20,7 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
             margin:0 0 15px 0; }
 
 #summary { line-height: 25px; vertical-align:middle;padding-bottom: 5px; }
-#pagetop { float: right; position: relative; right: -5px;} 
+/*#pagetop { float: right; position: relative; right: -5px;} */
 
 /* tables */
 #squery {
@@ -46,7 +47,7 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
 #squery .padded { padding: 1px 4px 1px 4px; }
 #squery th.padded { vertical-align: middle;text-align: center; }
 
-#squery th.factor { text-align:center;font-weight:normal; }
+#squery th.factor { text-align:center;font-weight:normal;font-size:10px }
 #squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
 #squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
 
@@ -118,11 +119,12 @@ legend { font-weight: bold; }
 }
 
 /* drilldown filters */
-#drill {  margin-bottom:15px; margin-top: 0px;padding: 7px; position: relative; }
-.drillsect {  }
-.drillsect ul { padding: 5px 0px 20px 0px;margin: 0; }
+#drill {  margin-bottom:15px; margin-top: 2px; padding: 7px; position: relative; border-bottom: 1px solid #dedede}
+.drillsect { border-top:1px solid #dedede}
+.drillsect ul { padding: 0px 5px 10px 0px;margin: 0; }
 .drillsect li { padding-left: 10px; list-style: none; color: #999999; }
-.drillsect .name { font-weight: bold; font-size: 12px; }
+.drillsect .name { font-size: 12px; font-weight: bold}
+.drillsect .ftot { font-size:12px }
 #drill a.fup:link, #drill a.fup:visited { text-decoration: none; color: #c5b0b0; }
 #drill a.fdn:link, #drill a.fdn:visited { text-decoration: none; color: #b0b0c5; }
 #drill a.fup:active, #drill a.fup:hover { text-decoration: underline; color: #e33e3e; }

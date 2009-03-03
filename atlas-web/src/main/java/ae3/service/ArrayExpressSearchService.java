@@ -83,7 +83,7 @@ public class ArrayExpressSearchService {
     // TODO: Refactor to an external cache (e.g., ehcache) for caching AtlasResultSets, evicting LRU ones.
     //       When an element is removed from the cache, it needs to get removed from the in-memory DB as
     //       well (see the remove method on AtlasResultSetCache).
-    private AtlasResultSetCache arsCache = new AtlasResultSetCache();
+    private AtlasResultSetCache arsCache;
 
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
@@ -157,6 +157,7 @@ public class ArrayExpressSearchService {
         log.info(names);
 
         CacheManager.create();
+        AtlasResultSetCache arsCache = new AtlasResultSetCache();
         arsCache.syncWithDB();
     }
 

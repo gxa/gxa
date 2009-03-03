@@ -113,14 +113,14 @@ ArrayExpress Atlas
 <jsp:include page="end_menu.jsp"></jsp:include>
 
 <div id="ae_pagecontainer">
-    <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:20px;" >
-        <table style="width:100%; border-bottom:thin solid lightgray">
+    <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;" >
+        <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
-                <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                    <a href="index.jsp"><img border="0" src="images/atlasbeta.jpg" alt="Atlas Beta" /></a>
+                <td align="left" valign="bottom">
+<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release 9.1: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
                 </td>
 
-                <td align="left" valign="bottom">
+                <td width="100%" valign="bottom" align="right">
                     <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
                     <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
                     <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
@@ -129,12 +129,12 @@ ArrayExpress Atlas
                     <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
                 </td>
                 <td align="right" valign="bottom">
-                    <a href="http://www.ebi.ac.uk/microarray"><img border="0" height="20" title="EBI ArrayExpress" src="images/aelogo.png" /></a>
                 </td>
             </tr>
         </table>
+<!--        <div style="width:100%;font-size:10px;text-align:right">-->
         <form name="atlasform" action="qrs" id="simpleform">
-            <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0;">
+            <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0">
                 <tr>
                     <td><label class="label" for="gene0">Genes</label></td>
                     <td></td>
@@ -173,17 +173,17 @@ ArrayExpress Atlas
                     <td align="right">
                         <input type="submit" value="Search Atlas" class="searchatlas">
                         <div style="position:relative;width:100%;">
-                            <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:left;top:10px;">
-                                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a><br/>
-                                <a class="smallgreen" href="decounts.jsp">gene counts</a><br/>
-                                <a class="smallgreen" href="qrs?struct">advanced query</a>
+                            <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:right;top:10px;">
+                                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a>
+                                <!--<a class="smallgreen" href="decounts.jsp">gene counts</a><br/>-->
+                                <a class="smallgreen" href="qrs?struct"><nobr>advanced search</nobr></a>
                             </div>
                         </div>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label" colspan="3"><span class="label">Ex: ASPM, ENSMUSG123, "p53 binding"</span></td>
-                    <td class="label" colspan="2"><span class="label">Ex: liver, kidney, "colon cancer"</span></td>
+                    <td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
+                    <td class="label" colspan="2"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
                 </tr>
                 <tr>
                     <td class="label" valign="top"><div class="atlasHelp">
@@ -208,11 +208,12 @@ ArrayExpress Atlas
                 </tr>
             </table>
 
+<!--
             <div id="newexplist">
                 ArrayExpress Atlas Version <c:out value="${u:getProp('atlas.buildNumber')}"/> covers <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, and <c:out value="${service.stats.numEfvs}"/> conditions. <c:out value="${f:length(service.stats.newExperiments)}"/> new experiments were loaded since the last data release:
                 <table>
                     <c:forEach var="e" items="${service.stats.newExperiments}" varStatus="i">
-                        <c:if test="${i.index < 10}">
+                        <c:if test="${i.index < 5}">
                             <tr>
                                 <td><nobr><b><a href="qrs?gprop_0=&gval_0=&fexp_0=UP_DOWN&fact_0=experiment&specie_0=&fval_0=${u:escapeURL(e.accession)}"><c:out value="${e.accession}"/></a></b></nobr></td>
                                 <td><c:out value="${e.assayCount}"/></td>
@@ -222,27 +223,19 @@ ArrayExpress Atlas
                     </c:forEach>
                 </table>
             </div>
+-->
             <input type="hidden" name="view" value="hm"/>
         </form>
 
-        <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-            <div style="text-align:center;margin:50px auto 30px auto;padding:10px 30px 10px 30px;color:#cdcdcd;">
-                <table align="center">
-                    <tr valign="middle">
-                        <td>
-                            For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
-                        </td>
-                        <td>
-                            <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
-                        </td>
-                        <td>
-                            <input type="submit" name="email-button" value="Subscribe" />
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </form>
     </div>
 </div>
+
+        <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
+            <div style="position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
+                            For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
+                            <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
+                            <input type="submit" name="email-button" value="Subscribe" />
+            </div>
+        </form>
 
 <jsp:include page="end_body.jsp"></jsp:include>

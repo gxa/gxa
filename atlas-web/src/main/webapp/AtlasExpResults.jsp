@@ -118,7 +118,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="2">
-			<div class="separator"></div>
+
 		</td>
 	</tr>
 
@@ -192,12 +192,12 @@ if (geneId != null) {
 			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query=${exp.dwExpAccession}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
+			<br/><br/>
 		</td>
 	</tr>
 
 	<tr>
-		<td colspan="3">
-		<div class="separator"></div>
+		<td colspan="3" style="border-bottom:1px solid #CDCDCD">
 		</td>
 	</tr>
 	

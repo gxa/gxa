@@ -50,5 +50,3 @@
             });
         }
     </script>
-
-${atlas.googleanalytics.script}

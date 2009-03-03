@@ -13,7 +13,7 @@ import junit.framework.TestCase;
  * @see #setUp
  * @see #tearDown
  */
-public class AbstractIndexBuilderTest extends TestCase
+public abstract class AbstractIndexBuilderTest extends TestCase
 {
     private App indexBuilder;
     private boolean runSetUp = false;

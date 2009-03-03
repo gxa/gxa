@@ -287,8 +287,8 @@
 	</plugins>
       </build>
       <properties>
-	<solr.data.directory>/Users/pashky/projects/solrindex</solr.data.directory>
-	<atlas.netCDFlocation>/Users/pashky/projects/NetCDFs.DWDEV/</atlas.netCDFlocation>
+	<solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR.TC-TEST/</solr.data.directory>
+	<atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWDEV/</atlas.netCDFlocation>
 	<indexbuilder.ftp>nowhere</indexbuilder.ftp>
 	<jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
 	<jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
@@ -331,7 +331,7 @@
 	<jdbc.dw.password>marte</jdbc.dw.password>
 	<atlas.dbName>AEDWDEV_MOE</atlas.dbName>
 	<atlas.log.priority>INFO</atlas.log.priority>
-	<atlas.log.appender>atlas-log</atlas.log.appender>
+	<atlas.log.appender>console</atlas.log.appender>
 
 	<atlas.protonotes.script><![CDATA[
 	<script src="http://www.protonotes.com/js/protonotes.js" type="text/javascript"></script>

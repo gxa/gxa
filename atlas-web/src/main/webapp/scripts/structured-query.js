@@ -19,7 +19,7 @@ function escapeHtml(s) {
 
      function createRemoveButton(callback)
      {
-         return $('<td class="rm" />').append($('<input type="button" value="-" />').click(callback));
+         return $('<td class="rm" />').append($('<input type="button" value=" - " />').click(callback));
      }
 
      function createNotButton(name,checked)
@@ -109,7 +109,7 @@ function escapeHtml(s) {
          if(tr.length > 0) {
              tr.after($('<tr class="speccond"><td class="left"></td></tr>').append(value).append(remove));
          } else {
-             tbody.prepend($('<tr class="speccond"><td class="left">in species</td></tr>')
+             tbody.prepend($('<tr class="speccond"><td class="left">organism</td></tr>')
                            .append(value).append(remove));
          }
          hasConditions(true);
@@ -262,7 +262,7 @@ function escapeHtml(s) {
 
          var tr = $('<tr class="genecond" />')
              .append($('<td class="left" />')
-                 .append($('<select name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
+                 .append($('<select  name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
                   + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append($('<span class="gprop" />').text(label))
@@ -525,7 +525,7 @@ function escapeHtml(s) {
                  for (var i = 0; i < jsonObj.series.length; ++i)
                      if(jsonObj.series[i].label && jsonObj.series[i].label.length > 20)
                          jsonObj.series[i].label = jsonObj.series[i].label.substring(0, 20) + '...';
-                 
+
                  if(!series)
                      return;
 

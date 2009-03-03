@@ -15,16 +15,17 @@
 	String noAtlasExps = null;
 	if (geneId != null || geneId!="") {
 		atlasGene = AtlasGeneService.getAtlasGene(geneId);
-		if(atlasGene!=null){
+		if ( atlasGene!=null){
 			noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
 			request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows(geneId));
 			request.setAttribute("atlasGene",atlasGene);
 			request.setAttribute("noAtlasExps",noAtlasExps);
-		}else
-			response.sendRedirect("geneNotFound.jsp");
-	}else
-		response.sendRedirect("geneNotFound.jsp");
-	
+		} else {
+			request.getRequestDispatcher("/geneNotFound.jsp").forward(request,response);
+                }
+	} else {
+		request.getRequestDispatcher("/geneNotFound.jsp").forward(request,response);
+        }
 
 	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
 		//TODO: set this right (via REST WS perhaps)
@@ -148,10 +149,10 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 								var lnk = $("<a>Show all studies</a>").bind("click", loadExps);
 								$("#Pagination").empty().append(lnk);
 							});
-		
-		
-		
-		$(".heatmap_over").removeClass("heatmap_over");
+
+        old = $(".heatmap_over");
+		old.removeClass("heatmap_over");
+        old.addClass ("heatmap_row");
 		el.className = "heatmap_over";
 		scroll(0,0);
 	}
@@ -166,6 +167,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 </script>
 
 
+<style type="text/css">.contents{top:87px}</style>
 
 <link rel="stylesheet" href="stylesheets/ae_browse.css" type="text/css" />
 <link rel="stylesheet" href="stylesheets/ae_index.css" type="text/css" />
@@ -174,53 +176,44 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
-<jsp:include page='end_menu.jsp' />
+
+        <div style="padding-left:15px; padding-right:15px;">
+        <table style="position:relative; z-index:1; top:58px;border-bottom:thin solid lightgray;width:100%;height:30px">
+            <tr>
+                <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+                     <img width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/>
+                </td>
+                <td align="right" valign="bottom">
+                    <a href="./">home</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+                    <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |                    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                    <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
+                    <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="contents" id="contents">
+                        <table class="contentspane" id="contentspane" summary="The main content pane of the page" style="width: 100%">
+                                <tr>
+                                  <td class="leftmargin"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></td>
+                                  <td class="leftmenucell" id="leftmenucell">
+                                        <div class="leftmenu" id="leftmenu" style="1px; visibility: hidden; display: none;">
+
+<img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" />
+</div>
+</td>
+<td class="contentsarea" id="contentsarea">
+
 <div id="ae_pagecontainer">
 
-<table align="right" style="border-bottom: thin solid lightgray; "	cellpadding="0" cellspacing="0">
-	<tr align="right">
-		<td align="right" valign="bottom" ><a href="index.jsp"><img
-			border="0" src="images/atlasbeta.jpg" width="50" height="25" /></a></td>
-
-
-		<td align="right" valign="center" style="padding-top: 5px">
-            <a href="./">home</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
-		the project</a> | <a
-			href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> | <a
-			id="feedback_href" href="javascript:showFeedbackForm()">feedback</a>
-		<span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span>
-		| <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a>
-		| <a target="_blank"
-			href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web
-		services api</a> | <a
-			href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a></td>
-
-		<!-- 
-		<td align="left" valign="bottom"><img style="cursor: pointer;" 
-			id="searchSlider" alt="" src="images/searchAtlas.png" /></td> -->
-		<td align="right" valign="center" width="40px"><a
-			href="http://www.ebi.ac.uk/microarray"><img border="0"
-			height="20" title="EBI ArrayExpress" src="images/aelogo.png" /></a></td>
-
-	</tr>
-</table>
-
-<table width="100%" style="margin-top: 15px;">
+<table width="100%" style="background-color: white">
 		
 			<tr>
-				<td class="geneName">
-					${atlasGene.geneName}
-				</td>
-				<td align="rigtht" style="vertical-align: text-bottom"><span style="text-align: left; color: #005555; font-size: 9pt; font-weight: bold; ">
-					${atlasGene.geneSpecies}
-				</span>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<div class="separator"></div>
-				</td>
+				<td align="left" class="geneName">${atlasGene.geneName}</td>
+				<td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
 			</tr>
 			<tr>
 				<td class="geneAnnotHeader">Synonyms</td>
@@ -231,7 +224,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				<tr>
 					<td></td>
 					<td>
-					<div class="separator"></div>
+				
 					</td>
 				</tr>
 				<tr>
@@ -244,7 +237,6 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				<tr>
 					<td></td>
 					<td>
-					<div class="separator"></div>
 					</td>
 				</tr>
 				<tr>
@@ -257,7 +249,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				<tr>
 					<td></td>
 					<td>
-					<div class="separator"></div>
+				
 					</td>
 				</tr>
 				<tr>
@@ -269,7 +261,9 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 			<c:if test="${!empty atlasGene.uniprotIds}">
 				<tr>
 					<td></td>
-					<td><div class="separator"></div></td>
+					<td>
+
+					</td>
 				</tr>
 				<tr>
 					<td class="geneAnnotHeader">Uniprot</td>
@@ -283,7 +277,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 			
 			<tr>
 				<td></td>
-				<td><div class="separator"></div></td>
+				<td></td>
 			</tr>
 			
 			<tr>
@@ -300,11 +294,11 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 		
 			<tr>
 				<td colspan="2">
-				<div class="separator"></div>
+		
 				</td>
 			</tr>
 		</table>
-
+<br/>
 <table> 
 
 	
@@ -313,7 +307,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 			<table cellspacing="0" cellpadding="0" border="0">
 	<tr>
 
-		<td valign="top" style="padding-right: 10px">
+		<td valign="top" style="padding-right: 30px">
 			<table>
 				<tr>
 					<td class="sectionHeader">Expression Summary</td>
@@ -328,15 +322,11 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				<tr>
 					<td style="padding-top: 3px">
 					
-					<table class="heatmap" cellpadding="0" cellspacing="5" border="1" RULES=ROWS FRAME=HSIDES >
-						<tr>
-							<th>Factor Value</th>
+					<table class="heatmap" cellpadding="0" cellspacing="5" border="0">
+						<tr style="height:26px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">
+							<th style="padding-left:2px">Factor Value</th>
 							<th>Factor</th>
-							<th>
-								<div class="sq"><div class="tri" style="border-right-color:#0000CC;border-top-color:#FF0000"></div>
-                                    	<div style="color:#FFFFFF" class="dnval" title="Number of Experiments with ${atlasGene.geneName} under-expressed">&darr;</div>
-                                    	<div style="color:#FFFFFF" class="upval" title="Number of Experiments with ${atlasGene.geneName} over-expressed">&uarr;</div></div>
-							</th>
+							<th style="padding-right:2px">Up/Down</th>
 							<!-- th style="border-right: medium solid; border-left: thin">Studies</th>
 							<th style="border-right: medium solid" colspan="2" align="center">${atlasGene.geneName}</th-->
 						</tr>
@@ -344,34 +334,36 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 						
 						<c:forEach var="row" items="${heatMapRows}" varStatus="i">
 						<tr class="heatmap_row"
-						    onclick="FilterExps(this,'${row.fv}','${u:escapeJS(row.ef)}')" 
+							style="border-bottom:1px solid #CDCDCD"
+						    onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true" style="padding-right:5px">
+							<td nowrap="true" style="padding-right:5px;padding-left:2px">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>
 							</td>
 								
 							<td nowrap="true" style="padding-right:5px">
-								<fmt:message key="head.ef.${row.ef}"/>
+								<fmt:message key="head.ef.${f:toLowerCase(row.ef)}"/>
 							</td>
-							
+
+							<td class="acounter" align="right">
 							<c:choose>
 								<c:when test="${row.mixedCell}">
-									<td class="acounter">
+							        <div style="width:26px">
                                     	<div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
                                     	<div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
                                     	<div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
-                               		</td>
+			</div>
 								</c:when>
 								<c:otherwise>
-									<td class="" style="background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
+								<div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
                                     	<div class="heatmap_cell"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
                                     			 <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
-                                    		
-                                	</td>
+					 </div>
 								</c:otherwise>
 							</c:choose>
+						</td>
 						</tr>
 						
 						
@@ -399,8 +391,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 				
 			</tr>
 			<tr>
-				<td colspan="2">
-					<div class="separator"></div>
+				<td colspan="2" style="border-bottom:1px solid #CDCDCD">
 				</td>
 			</tr>
 			<tr>

@@ -42,16 +42,19 @@ table.heatmap {
 	font-size: 9pt;
 	color: #005555;
 	font-family: Verdana, helvetica, arial, sans-serif;
-	text-align: right;
+	text-align: left;
 	font-weight: bold;
 	width: 10%;
 	vertical-align: top;
 }
 
-.geneName{
-	color: #e33e3e;
-	text-align: right;
-	font-size: 26pt;
+.geneName {
+	margin:0;
+	padding:0;
+    padding-right:10px;	
+	color: #005555; //#464646; // #e33e3e;
+	text-align: left;
+	font-size: 20pt;
 	font-weight: bold;
 	margin-bottom: 0;
 	vertical-align: text-bottom;
@@ -139,13 +142,15 @@ table.heatmap {
 }
 
 .heatmap_over  {
-	background-color: #006666;
+	background-color: #deebeb;
 	color: #ffffff;
 	cursor: pointer;
 }
 
+.heatmap_row { background-color: white }
+
 .heatmap_out{
-	background-color: #fafafa;
+	background-color: white;
 	color: #404040;
 }
 

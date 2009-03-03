@@ -1530,7 +1530,7 @@
                     	'<div class="tri" style=" border-right-color: rgb(216, 216, 216); border-top-color: rgb(242, 242, 242); border-top-width: 10px; border-right-width: 14px;"/>' +
                     '</div>' +
                     '</td>' +
-                    '<td class="legendLabel">Not Diff. Expressed</td>');
+                    '<td class="legendLabel">no signficant differential expression</td>');
             }
             
            
