@@ -254,15 +254,10 @@ public class ArrayExpressSearchService {
      * @param rows - maximum number of Documents
      * @return
      */
-  
-
     public QueryResponse fullTextQueryExpts(String query, int start, int rows)
     {
         if (query == null || query.equals(""))
             return null;
-//
-//        if (query.length()>500)
-//            query = query.substring(0,500);
 
         try {
             if (query.indexOf("exp_factor_values:") == -1) {
@@ -361,14 +356,9 @@ public class ArrayExpressSearchService {
             q_name.setFields("gene_name");
             q.setRows(0);
             q.setFacet(true);
-//            q.addFacetField("gene_ids");
-//            q.addFacetField("gene_name_exact");
             q.addFacetField("gene_disease_exact");
             q.addFacetField("gene_goterm_exact");
-//            q.addFacetField("gene_protein_exact");
             q.setFacetLimit(20);
-//            q.setFacetSort(false);
-//            q.setFacetPrefix(query);
             q.setFacetMinCount(1);
 
             QueryResponse qr = solr_atlas.query(q);
@@ -393,29 +383,6 @@ public class ArrayExpressSearchService {
                 if(ffc.getName().toLowerCase().contains(query.toLowerCase()) || query.toLowerCase().contains(ffc.getName().toLowerCase()))
             	s.add(ffc.getName() + "|" + ffc.getCount());
             }
-//            if (null != qr.getFacetFields().get(2).getValues())
-//            for (FacetField.Count ffc : qr.getFacetFields().get(2).getValues()) {
-//                if(ffc.getName().toLowerCase().contains(query.toLowerCase()) || query.toLowerCase().contains(ffc.getName().toLowerCase()))
-//            	s.add(ffc.getName() + "|" + ffc.getCount());
-//            }
-
-//            if (null == qr.getFacetFields().get(0).getValues() &&
-//                null == qr.getFacetFields().get(1).getValues())
-//                return null;
-//
-//            TreeSet<String> s = new TreeSet<String>();
-//
-//            if (null != qr.getFacetFields().get(0).getValues()) {
-//                for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-//                    s.add(ffc.getName() + "|" + ffc.getCount());
-//                }
-//            }
-//
-//            if (null != qr.getFacetFields().get(1).getValues()) {
-//                for (FacetField.Count ffc : qr.getFacetFields().get(1).getValues()) {
-//                    s.add(ffc.getName() + "|" + ffc.getCount());
-//                }
-//            }
 
             return s;
         } catch (SolrServerException e) {
@@ -469,10 +436,6 @@ public class ArrayExpressSearchService {
         if (geneExprFilter.equals("down"))
             updn_filter = " and updn = -1\n";
 
-//        String gene_species_filter = "";
-//        if (geneSpeciesFilter != null)
-//            gene_species_filter = " and UPPER(ad_species.value)='" + geneSpeciesFilter + "'";
-
         final Map<String, SolrDocument> solrExptMap = QueryHelper.convertSolrDocumentListToMap(exptHitsResponse, Constants.FIELD_DWEXP_ID);
         final Map<String, SolrDocument> solrGeneMap = QueryHelper.convertSolrDocumentListToMap(geneHitsResponse, "gene_id");
 
@@ -509,13 +472,7 @@ public class ArrayExpressSearchService {
         String atlas_query_topN = "SELECT * FROM (\n" +
                 " SELECT\n" +
                 "         atlas.experiment_id_key,\n" +
-//                "         expt.experiment_identifier,\n" +
-//                "         expt.experiment_description, \n" +
                 "         atlas.gene_id_key, \n" +
-//                "         gene.gene_name,\n" +
-//                "         gene.gene_identifier,\n" +
-//                "         gene.designelement_name,\n" +
-//                "         gene_species.value as species,\n" +
                 "         atlas.ef, \n" +
                 "         atlas.efv,\n" +
                 "         atlas.updn,\n" +
@@ -526,24 +483,13 @@ public class ArrayExpressSearchService {
                 "              PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.ef, atlas.efv\n" +
                 "              ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc\n" +
                 "            ) TopN \n"+ //,\n" +
-//                "         min(UPDN_PVALADJ) over (partition by efv) as min_updn_pvaladj_PER_EFV,\n" +
-//                "         count(case when updn = -1 then null else 1 end) over (partition by efv) as countup_PER_EFV,\n" +
-//                "         count(case when updn =  1 then null else 1 end) over (partition by efv) as countdn_PER_EFV,\n" +
-//                "         min(UPDN_PVALADJ) over (partition by atlas.GENE_ID_KEY) as min_updn_pvaladj_PER_GENE,\n" +
-//                "         count(case when updn = -1 then null else 1 end) over (partition by atlas.gene_id_key) as countup_PER_GENE,\n" +
-//                "         count(case when updn =  1 then null else 1 end) over (partition by atlas.gene_id_key) as countdn_PER_GENE\n" +
                 "        from aemart.atlas atlas \n" + //, aemart.ae2__designelement__main gene , aemart.ae1__experiment__main expt, aemart.AE2__GENE_SPECIES__DM gene_species \n" +
                 "        where gene_id_key <> 0 " + // atlas.designelement_id_key=gene.designelement_id_key \n" +
-//                " and atlas.experiment_id_key=expt.experiment_id_key\n" +
-//                " and gene.gene_identifier is not null\n" +
                 " and atlas.experiment_id_key NOT IN (211794549,215315583,384555530,411493378,411512559) \n" + // ignore E-TABM-145a,b,c
-//                " and ad_species.arraydesign_id_key=atlas.arraydesign_id_key\n" +
-//                " and gene_species.gene_id_key=gene.gene_id_key \n" +
                 (inGeneIds.length() != 0 ? "and atlas.gene_id_key       IN (" + inGeneIds + ") \n" : "" ) +
                 (inExptIds.length() != 0 ? "and atlas.experiment_id_key IN (" + inExptIds + ") \n" : "" ) +
                 updn_filter +
                 efvFilter   +
-//                gene_species_filter +
                 ")\n" +
                 " WHERE \n" +
                 " TopN <= 20 and gene_id_key is not null\n" +
@@ -597,21 +543,6 @@ public class ArrayExpressSearchService {
                             }
                         }
 
-
-    //
-    //                    if (geneHitsResponse != null) {
-    //                        Map<String, List<String>> hilites = geneHitsResponse.getHighlighting().get(atlasResult.getGene().getGeneId());
-    //
-    //                        Set<String> hls = new HashSet<String>();
-    //                        for (String hlf : hilites.keySet()) {
-    //                            hls.add(hlf + ": " + StringUtils.join(hilites.get(hlf), ";"));
-    //                        }
-    //
-    //                        if(hls.size() > 0)
-    //                            atlasResult.getGene().setGeneHighlights(StringUtils.join(hls,"<br/>"));
-    //                    }
-    //
-
                         if( ( expt != null && gene != null )
                                 &&
                             ( geneSpeciesFilter == null || geneSpeciesFilter.equals("") || geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies())) ) {
@@ -656,8 +587,6 @@ public class ArrayExpressSearchService {
                  }
              } );
 
-//             log.info("Retrieved query completely: " + arset.size() + " records" );
-//             arsCache.put(arset);
          } catch (SQLException e) {
              log.error(e);
          }
@@ -705,9 +634,9 @@ public class ArrayExpressSearchService {
 				   	 " from ATLAS, ae1__experiment__main exp " +
 				   	 " where exp.experiment_id_key = atlas.experiment_id_key "+
 				   	 " and gene_id_key = "+gene_id_key;
-   	 if(EFV != null && EF != null){
-   		    query+=  " and atlas.EFV ='"+EFV+"'"+
-   		    		 " and atlas.EF ='"+ EF+"'";
+   	 if(EFV != null && EF != null) {
+   		    query+=  " and atlas.EFV ='" + EFV.replaceAll("\'","''") + "'"+
+   		    		 " and atlas.EF ='" + EF + "'";
    	 }
    	 query+=	   	 " group by atlas.experiment_id_key" +
 				   	 " order by minp asc";
@@ -766,16 +695,6 @@ public class ArrayExpressSearchService {
         this.solrIndexLocation = solrIndexLocation;
     }
 
-//    public long writeAtlasQuery(QueryResponse geneHitsResponse, QueryResponse exptHitsResponse, String updn_filter, HtmlTableWriter tw) throws IOException {
-//        if (geneHitsResponse == null && exptHitsResponse == null)
-//            return 0;
-//
-//        String inGeneIds = getSqlInClauseFromSolrHits(geneHitsResponse, "gene_id");
-//        String inExptIds = getSqlInClauseFromSolrHits(exptHitsResponse, "exp_id");
-//
-//        return writeAtlasQuery(inGeneIds, inExptIds, exptHitsResponse, geneHitsResponse, updn_filter, tw);
-//    }
-
     public AtlasStructuredQueryService getStructQueryService() {
         return squeryService;
     }
@@ -799,7 +718,6 @@ public class ArrayExpressSearchService {
                             SortedSet<String> species = new TreeSet<String>();
                             while(rs.next()) {
                                 species.add(rs.getString(1));
-//                                species.add(s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase());
                             }
 
                             return species;
