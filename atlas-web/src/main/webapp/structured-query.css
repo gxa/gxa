@@ -31,6 +31,8 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
     border-spacing: 0px;
     border-right: 1px solid #cdcdcd;
     border-bottom: 1px solid #cdcdcd;
+    empty-cells: show;
+    *border-collapse: collapse; /* i luv IE */
 }
 
 #squery th {
@@ -38,6 +40,8 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
     padding: 0px 0px 0px 0px;
     border-left: 1px solid #cdcdcd;
     border-top: 1px solid #cdcdcd;
+    *border-right: 1px solid #cdcdcd;
+    *border-bottom: 1px solid #cdcdcd;
 }
 #squery .padded { padding: 1px 4px 1px 4px; }
 #squery th.padded { vertical-align: middle;text-align: center; }
@@ -54,6 +58,8 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
     white-space: nowrap;
     border-left: 1px solid #cdcdcd;
     border-top: 1px solid #cdcdcd;
+    *border-right: 1px solid #cdcdcd;
+    *border-bottom: 1px solid #cdcdcd;
 }
 
 #squery td.counter, #squery td.acounter {
@@ -252,7 +258,9 @@ legend { font-weight: bold; }
 
 #efotoggle {
     cursor:pointer;
-    border: none; float: right; width:9px; height: 9px;
+    border: none; width:9px; height: 9px;
+    vertical-align: baseline;
+    padding-right: 2px;
 }
 
 .achide {

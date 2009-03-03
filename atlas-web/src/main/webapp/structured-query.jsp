@@ -223,8 +223,10 @@ ArrayExpress Atlas Preview
             $('#simpleform, #structform').css('visibility', 'visible');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
-        new Image().src = 'images/expp.gif';
-        new Image().src = 'images/expm.gif';
+        var preloads = [ 'expp.gif', 'expm.gif', 'indicator.gif' ]; var img = [];
+        for(var i = 0; i < preloads.length; ++i) {
+            img[i] = new Image(); img[i].src = 'images/' + preloads[i];
+        }
     </script>
 
     <c:if test="${!query.none}">
@@ -385,7 +387,7 @@ ArrayExpress Atlas Preview
                                         <c:set var="ud" value="${row.counters[e.payload]}"/>
                                         <c:choose>
                                             <c:when test="${ud.zero}">
-                                                <td class="counter"><c:if test="${first}"><div class="osq"></div><c:set var="first" value="false" /></c:if></td>
+                                                <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
                                             </c:when>
                                             <c:when test="${ud.ups == 0 && ud.downs > 0}">
                                                 <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
