@@ -522,6 +522,10 @@ function escapeHtml(s) {
                      }
                  }
 
+                 for (var i = 0; i < jsonObj.series.length; ++i)
+                     if(jsonObj.series[i].label && jsonObj.series[i].label.length > 20)
+                         jsonObj.series[i].label = jsonObj.series[i].label.substring(0, 20) + '...';
+                 
                  if(!series)
                      return;
 

@@ -80,11 +80,11 @@ fieldset, #expopup, #expopup .exptable, #tooltip, #drill, #waiter
 }
 
 .upval {
-    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center;
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
 }
 
 .dnval {
-    position: absolute; bottom: 0px; right: 0px; z-index: 0; width: 13px; height: 13px; text-align: center;
+    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
 }
 
 #squery .gtooltip { display: none; }
@@ -226,7 +226,7 @@ legend { font-weight: bold; }
 #tooltip .genename { margin-bottom: 10px;font-size:10px; }
 #tooltip .genename b { font-weight: bold; font-size: 14px; }
 
-.plot { position: relative; width: 280px; height: 80px; }
+.plot { position: relative; width: 240px; height: 100px; }
 
 .ac_results li em {
     font-size: 10px;

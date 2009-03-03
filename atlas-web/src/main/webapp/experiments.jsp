@@ -41,8 +41,10 @@
                 <td class="explot">
                     <b><c:out value="${e.experimentAccession}"/></b>:
                     <c:out value="${e.experimentName}"/>
-                    <div class="plot" id="explot_${e.experimentId}"></div>
-                    <div class="legend" id="explot_${e.experimentId}_legend"></div>
+                    <table border="0" cellpadding="0" cellspacing="0"><tr>
+                        <td><div class="plot" id="explot_${e.experimentId}"></div></td>
+                        <td><div class="legend" id="explot_${e.experimentId}_legend"></div></td>
+                    </tr></table>
                     <div style="margin-top:5px;font-size:10px;">
                         Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" id="explot_${e.experimentId}_link" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${u:escapeURL(gene.geneIdentifier)}&species=&displayInsitu=on&exp_query=${u:escapeURL(e.experimentAccession)}">expression profile</a>
 			&nbsp;/&nbsp;
