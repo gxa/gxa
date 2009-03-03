@@ -139,7 +139,7 @@ public class ArrayExpressSearchService {
             experimentsService = new ExperimentsService(theAEDS.getConnection());
 
             int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
-            stats = new AtlasStatisticsService(theAEDS.getConnection()).getStats(lastExpId);
+            stats = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt).getStats(lastExpId);
 
         } catch (Exception e) {
             log.error(e);

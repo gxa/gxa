@@ -2,6 +2,10 @@ package ae3.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +14,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import ae3.service.structuredquery.AtlasStructuredQueryService;
+
 /**
  * Experiments listing service class
  */
@@ -17,7 +23,7 @@ public class AtlasStatisticsService {
     private PreparedStatement sqlGetNewExperiments;
     private PreparedStatement sqlNumExperiments;
     private PreparedStatement sqlNumAssays;
-    private PreparedStatement sqlNumEfvs;
+    private SolrServer solrExpt;
     private Log log = LogFactory.getLog(getClass());
 
     /**
@@ -25,7 +31,7 @@ public class AtlasStatisticsService {
      * @param sql reference to SQL connection to be used for queries
      * @throws java.sql.SQLException
      */
-    public AtlasStatisticsService(Connection sql) throws SQLException {
+    public AtlasStatisticsService(Connection sql, SolrServer solrExpt) throws SQLException {
         sqlGetNewExperiments = sql.prepareStatement(
                 "select e.experiment_identifier, count(a.assay_id_key), e.experiment_description\n" +
                         "from ae1__experiment__main e\n" +
@@ -35,7 +41,7 @@ public class AtlasStatisticsService {
                         "order by e.experiment_id_key");
         sqlNumExperiments = sql.prepareStatement("select count(e.experiment_id_key) from ae1__experiment__main e");
         sqlNumAssays = sql.prepareStatement("select count(a.assay_id_key) from ae1__assay__main a");
-        sqlNumEfvs = sql.prepareStatement("select count(distinct a.efv) from atlas a");
+        this.solrExpt = solrExpt;
     }
 
     static public class Exp {
@@ -96,6 +102,24 @@ public class AtlasStatisticsService {
         }
     };
 
+    private int countEfvs() {
+        try {
+            SolrQuery q = new SolrQuery("exp_in_dw:true");
+            q.setRows(0);
+            q.setFacet(true);
+            q.setFacetMinCount(1);
+            q.addFacetField("exp_factor_values_exact");
+            q.setFacetLimit(-1);
+            q.setFacetSort(false);
+            QueryResponse qr = solrExpt.query(q);
+            return qr.getFacetFields().get(0).getValues().size();
+        } catch(Exception e) {
+            log.error("Something's gone terribly wrong calculating EFVs", e);
+        }
+
+        return 0;
+    }
+
     /**
      * Calculates Atlas statistics
      * @return statistics object
@@ -119,10 +143,7 @@ public class AtlasStatisticsService {
                 numAsss = rs.getInt(1);
             rs.close();
             
-            rs = sqlNumEfvs.executeQuery();
-            if(rs.next())
-                numEfvs = rs.getInt(1);
-            rs.close();
+            numEfvs = countEfvs();
 
             final Stats stats = new Stats(numExps, numAsss, numEfvs);
 
