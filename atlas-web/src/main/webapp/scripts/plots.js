@@ -178,8 +178,8 @@ function drawPlot(jsonObj, plot_id){
 	        $('<div id="tooltip">' + contents + '</div>').css( {
 		            position: 'absolute',
 		            display: 'none',
-		            top: 20,
-		            left:20,
+		            top: 50,
+		            left:x-500,
 		            border: '1px solid #fdd',
 		            padding: '2px',
 		            'background-color': '#fee',
