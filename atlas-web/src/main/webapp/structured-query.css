@@ -4,9 +4,8 @@
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-fieldset,#expopup, #expopup .exptable, #tooltip, #drill, #waiter
-      { border: none; //1px solid #5E9E9E; 
-}
+#expopup, #expopup .exptable, #tooltip, #waiter { border: 1px solid #5E9E9E }
+fieldset, #drill {  border: none }
 
 #squery th, #tooltip, #expopup
       { background-color: #EEF5F5; }

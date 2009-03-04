@@ -113,7 +113,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
                 </table>
             <input type="hidden" name="view" value="hm" />
     </form>
-    <form id="structform" class="visinstruct" name="atlasform" action="qrs">
+    <form id="structform" class="visinstruct" name="atlasform" action="qrs" style="display:none">
 		  <fieldset style="border:1px solid #DEDEDE;width: 850px">
 		  <legend  style="padding-left:5px;padding-right:5px;color: black">Find genes matching all of the following conditions</legend>
                <table >
@@ -239,7 +239,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
         $(document).ready(function () {
             initQuery();
 
-            $('#simpleform, #structform').css('visibility', 'visible');
+            $('#simpleform, #structform').css('display', '');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
         });
         var preloads = [ 'expp.gif', 'expm.gif', 'indicator.gif' ]; var img = [];

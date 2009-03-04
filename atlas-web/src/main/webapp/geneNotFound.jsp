@@ -7,6 +7,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     request.setAttribute("service", ArrayExpressSearchService.instance());
+    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 %>
 
 <jsp:include page="start_head.jsp"></jsp:include>

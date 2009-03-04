@@ -143,7 +143,6 @@ table.heatmap {
 
 .heatmap_over  {
 	background-color: #deebeb;
-	color: #ffffff;
 	cursor: pointer;
 }
 

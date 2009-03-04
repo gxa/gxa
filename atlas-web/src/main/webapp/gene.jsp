@@ -298,8 +298,7 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 				</td>
 			</tr>
 		</table>
-<br/>
-<table> 
+<table cellspacing="0" cellpadding="0" style="margin-top:40px"> 
 
 	
 	<tr>
