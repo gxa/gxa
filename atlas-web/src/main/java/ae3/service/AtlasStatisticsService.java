@@ -5,7 +5,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.FacetField;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,8 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import ae3.service.structuredquery.AtlasStructuredQueryService;
 
 /**
  * Experiments listing service class
@@ -73,8 +70,10 @@ public class AtlasStatisticsService {
         private int numExperiments;
         private int numAssays;
         private int numEfvs;
+        private String dataRelease;
 
-        public Stats(int numExperiments, int numAssays, int numEfvs) {
+        public Stats(int numExperiments, int numAssays, int numEfvs, String dataRelease) {
+            this.dataRelease = dataRelease;
             this.newExperiments = new ArrayList<Exp>();
             this.numExperiments = numExperiments;
             this.numAssays = numAssays;
@@ -99,6 +98,10 @@ public class AtlasStatisticsService {
 
         void addNewExperiment(Exp exp) {
             newExperiments.add(exp);
+        }
+
+        public String getDataRelease() {
+            return dataRelease;
         }
     };
 
@@ -125,7 +128,7 @@ public class AtlasStatisticsService {
      * @return statistics object
      * @param lastExperimentId
      */
-    public Stats getStats(final int lastExperimentId) {
+    public Stats getStats(final int lastExperimentId, final String dataRelease) {
         try {
             int numExps = 0;
             int numAsss = 0;
@@ -145,7 +148,7 @@ public class AtlasStatisticsService {
             
             numEfvs = countEfvs();
 
-            final Stats stats = new Stats(numExps, numAsss, numEfvs);
+            final Stats stats = new Stats(numExps, numAsss, numEfvs, dataRelease);
 
             sqlGetNewExperiments.setInt(1, lastExperimentId);
             rs = sqlGetNewExperiments.executeQuery();

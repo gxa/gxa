@@ -8,4 +8,4 @@
 <%
     request.setAttribute("service", ArrayExpressSearchService.instance());
 %>
-Atlas Data Release 9.1: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions
+Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions

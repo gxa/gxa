@@ -192,7 +192,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td align="left" valign="bottom">
-<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release 9.1: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
+<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
                 </td>
 
                 <td width="100%" valign="bottom" align="right">
@@ -313,7 +313,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 
   <div class="rcsfg">
    <div style="padding:10px">
-    <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release 9.1</div>
+    <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release <c:out value="${service.stats.dataRelease}"/>:</div>
     <table cellpadding="0" cellspacing="0" width="100%">
     <tr><td>new experiments</td><td><c:out value="${f:length(service.stats.newExperiments)}"/></td></tr>
 	<tr><td>total experiments</td<td><c:out value="${service.stats.numExperiments}"/></td></tr>

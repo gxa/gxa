@@ -117,7 +117,7 @@ ArrayExpress Atlas
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td align="left" valign="bottom">
-<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release 9.1: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
+<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
                 </td>
 
                 <td width="100%" valign="bottom" align="right">

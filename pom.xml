@@ -361,5 +361,7 @@
     <atlas.googleanalytics.script/>
     <atlas.protonotes.script/>
     <atlas.last.experiment>700377881</atlas.last.experiment>
+    <atlas.data.release>9.1</atlas.data.release>
+    <atlas.software.version>1.0</atlas.software.version>
   </properties>
 </project>
