@@ -787,7 +787,7 @@ public class AtlasStructuredQueryService {
         {
             @SuppressWarnings("unchecked")
             Collection<String> fields = (Collection<String>)coreExpt.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-            Set<String> names = new TreeSet<String>();
+            Set<String> names = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
             for(String i : fields) {
                 if(i.startsWith(FIELD_FACTOR_PREFIX)) {
                     names.add(i.substring(FIELD_FACTOR_PREFIX.length()));
