@@ -45,8 +45,7 @@ public class AtlasPlotter {
 		ArrayList<String> topFVs = new ArrayList<String>();
 		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
 		for(int i=0; i<atlusTuples.size(); i++){
-			if(i>10)
-				break;
+
 			AtlasTuple at = atlusTuples.get(i);
 			if(at.getEf().equalsIgnoreCase(EF.substring(3)) && !at.getEfv().equals("V1")){
 				topFVs.add(at.getEfv().toLowerCase());
