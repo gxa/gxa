@@ -232,7 +232,7 @@ function drawPlot(jsonObj, plot_id){
    				
    				bindMarkings(o,plot,plot_id);
    				$('#'+plot_id).bind("plotclick", function(){
-				openInAEW(eid);
+					openInAEW(eid);
 				});
    				}
  			});//ajax

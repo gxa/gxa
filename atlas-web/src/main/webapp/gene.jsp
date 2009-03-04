@@ -146,6 +146,9 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 								for (var i = 0; i < exps.length; ++i){
 									eid = jQuery.trim(exps[i].id);
 									redrawPlotForFactor(eid+'_${atlasGene.geneId}_'+ef,true,fv);
+									$('#'+eid+'_${atlasGene.geneId}_plot').bind("plotclick", function(){
+										openInAEW(eid);
+									});
 								}
 								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
