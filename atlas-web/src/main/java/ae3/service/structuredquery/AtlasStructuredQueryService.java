@@ -772,8 +772,10 @@ public class AtlasStructuredQueryService {
      * @return set of strings representing experimental factors
      */
     public Iterable<String> getExperimentalFactorOptions() {
-        Collection<String> factors = getConfiguredFactors("options");
+        List<String> factors = new ArrayList<String>();
+        factors.addAll(getConfiguredFactors("options"));
         factors.add(EXP_FACTOR_NAME);
+        Collections.sort(factors, String.CASE_INSENSITIVE_ORDER);
         return factors;
     }
 
@@ -787,7 +789,7 @@ public class AtlasStructuredQueryService {
         {
             @SuppressWarnings("unchecked")
             Collection<String> fields = (Collection<String>)coreExpt.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-            Set<String> names = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+            Set<String> names = new TreeSet<String>();
             for(String i : fields) {
                 if(i.startsWith(FIELD_FACTOR_PREFIX)) {
                     names.add(i.substring(FIELD_FACTOR_PREFIX.length()));
