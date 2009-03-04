@@ -1134,32 +1134,46 @@ public class DataServer implements DataServerMonitor {
 
 	private String getDEforGene(String gene_id_key, String exp_id_key, String factor){
 
-//		String sql = "SELECT designelement_id_key " +
-//					 "FROM AE2__DESIGNELEMENT__MAIN "+
-//					 "WHERE GENE_ID_KEY = "+ geneIdent+" "+
-//					 "AND arraydesign_id = "+ADid;
+		String sqlEF = "Select distinct EF "+
+						" From atlas " +
+						" where experiment_id_key = "+exp_id_key+
+						" and gene_id_key = "+gene_id_key+
+						" and ef = '"+factor.substring(3)+"'";
 		
-		String sql = "select * from( " +
-				"select atlas.EF, atlas.EFV, atlas.UPDN, atlas.UPDN_PVALADJ, atlas.UPDN_TSTAT, atlas.DESIGNELEMENT_ID_KEY, atlas.ARRAYDESIGN_ID_KEY, " +
-				"row_number() OVER(" +
-				"PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.GENE_ID_KEY, atlas.ef,  atlas.EFV " +
-				"ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc) TopN " +
-				"from ATLAS " +
-				"where gene_id_key = "+gene_id_key + " "+
-				"and experiment_id_key = "+exp_id_key +" )" +
-//				"and EF= '"+factor.substring(3)+"') " +
-				"order by updn_pvaladj asc";
+		
 		Vector<String> deIds= new Vector<String>();
 		Connection connection=null;
+		boolean inAtlas = false;
 		String selectedId="";
 		try {
 			connection = DS_DBconnection.instance().getConnection();
 			Statement stmt = connection.createStatement();
+			ResultSet rset = stmt.executeQuery(sqlEF);
+			if (rset.next()) {
+				inAtlas = true;
+			}
+			rset.close();
+			
+			
+			String sql = "select * from( " +
+			"select /*+ INDEX (ATLAS ATLAS_EF_EFV)*/ atlas.EF, atlas.EFV, atlas.UPDN, atlas.UPDN_PVALADJ, atlas.UPDN_TSTAT, atlas.DESIGNELEMENT_ID_KEY, atlas.ARRAYDESIGN_ID_KEY, " +
+			"row_number() OVER(" +
+			"PARTITION BY atlas.EXPERIMENT_ID_KEY, atlas.GENE_ID_KEY, atlas.ef,  atlas.EFV " +
+			"ORDER BY atlas.updn_pvaladj asc, UPDN_TSTAT desc) TopN " +
+			"from ATLAS " +
+			"where gene_id_key = "+gene_id_key + 
+			" and experiment_id_key = "+exp_id_key;
+			
+			if(inAtlas)
+				sql+= " and EF= '"+factor.substring(3)+"' ";
+			
+			sql+= ") where topn=1 "+
+			      "order by updn_pvaladj asc";
+			
+			
+			
 			ResultSet rs = stmt.executeQuery(sql);
 
-//			while(rs.next()){
-//				deIds.add(Integer.toString((rs.getInt(1))));
-//			}
 			String deId,adId;
 			HashMap<String, Integer> deTopCounts = new HashMap<String, Integer>(); 
 			while(rs.next()){
@@ -1173,18 +1187,17 @@ public class DataServer implements DataServerMonitor {
 						deTopCounts.put(deId+"_"+adId,deTopCounts.get(deId+"_"+adId)+1);
 					else
 						deTopCounts.put(deId+"_"+adId, 1);
-					
-					//deIds.add(rs.getString(6));
-					//break;
+
 				}
 			}
 			int count=0;int maxCount=0;
 			
 			for(String deId_ADid:deTopCounts.keySet()){
 				count= deTopCounts.get(deId_ADid);
-				if(count>maxCount)
+				if(count>maxCount){
 					maxCount = count;
 					selectedId = deId_ADid;
+				}
 			}
 			
 			rs.close();
