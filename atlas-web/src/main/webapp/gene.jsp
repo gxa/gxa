@@ -56,8 +56,11 @@
 	}
 %>
 <jsp:include page="start_head.jsp" />
-ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
+Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - ArrayExpress Atlas of Gene Expression
 <jsp:include page="end_head.jsp" />
+
+<meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - ArrayExpress Atlas Gene Expression Summary"/>
+<meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
 <script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
@@ -181,7 +184,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
         <table style="position:relative; z-index:1; top:58px;border-bottom:thin solid lightgray;width:100%;height:30px">
             <tr>
                 <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                     <img width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/>
+                     <a href="index.jsp" title="ArrayExpress Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/></a>
                 </td>
                 <td align="right" valign="bottom">
                     <a href="./">home</a> |
@@ -344,7 +347,7 @@ ArrayExpress Atlas Gene View - ${(atlasGene.geneName)}
 							</td>
 								
 							<td nowrap="true" style="padding-right:5px">
-								<fmt:message key="head.ef.${f:toLowerCase(row.ef)}"/>
+								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 
 							<td class="acounter" align="right">

@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas
+Search Results - ArrayExpress Atlas of Gene Expression
 <jsp:include page="end_head.jsp"></jsp:include>
 
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
@@ -33,7 +33,7 @@ ArrayExpress Atlas
         <table style="position:relative; z-index:1; top:58px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
             <tr>
                 <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                     <img width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/>
+                   <a href="index.jsp" title="ArrayExpress Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/></a>
                 </td>
                 <td align="right" valign="bottom">
                     <a href="./">home</a> |
@@ -108,7 +108,7 @@ ArrayExpress Atlas
                     <tr>
 			<td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
 			<td class="label"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
-			<td valign="top" align="right"><a class="smallgreen" class="visinsimple" href="javascript:structMode();">advanced search</a></td>
+			<td valign="top" align="right"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:structMode();">advanced search</a></td>
                     </tr>
                 </table>
             <input type="hidden" name="view" value="hm" />
@@ -165,7 +165,7 @@ ArrayExpress Atlas
 		      </tr>
 		      <tr>
 			<td colspan="4" align="right">
-			  <a class="visinstruct smallgreen" href="javascript:simpleMode();">simple search</a>
+			  <a class="visinstruct smallgreen" style="font-size:12px" href="javascript:simpleMode();">simple search</a>
 			  </td>
 		    </table>
                </div>
@@ -175,7 +175,7 @@ ArrayExpress Atlas
         </form>
 
         <c:if test="${result.hasEFOExpansion}">
-	 <fieldset id="efotext" style="border:1px solid #dedede;width:850px;margin-top:15px;margin-bottom:15px">
+	 <fieldset id="efotext" style="width:850px;margin-top:15px;margin-bottom:15px;padding:0px">
             <img src="images/expp.gif" id="efotoggle" onclick="$('#efoexpand').toggle();this.src=this.src.indexOf('expp')>=0?'images/expm.gif':'images/expp.gif';">
             Your query was expanded via <a href="http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=EFO">EFO</a>, an ontology of experimental variables developed by ArrayExpress Production Team
             <table id="efoexpand">
@@ -301,13 +301,13 @@ ArrayExpress Atlas
             </script>
             </c:if>
 
-            <table id="twocol">
+            <table id="twocol" style="margin-top:20px">
 	      <tr class="top">
                 <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
                     <td id="drilldowns">
 		     <c:if test="${result.size > 0}">
-		    <div id="summary">
-		      <b>Refine your query</b>
+		    <div id="summary" style="font-size:11px">
+		      <b>REFINE YOUR QUERY</b>
 		    </div>
 		    </c:if>
 		    <div id="drill" style="padding:0px;">

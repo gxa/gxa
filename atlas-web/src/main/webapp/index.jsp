@@ -10,8 +10,11 @@
 %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas
+ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Microarray Data
 <jsp:include page="end_head.jsp"></jsp:include>
+
+	<meta name="Description" content="ArrayExpress Atlas of Gene Expression is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
+    <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
     <link rel="stylesheet" href="atlas.css" type="text/css" />
@@ -26,6 +29,42 @@ ArrayExpress Atlas
     <script type="text/javascript" src="scripts/structured-query.js"></script>
 
     <script type="text/javascript">
+        var feedback_formtxt = 'Tell us what you think:<br/>' +
+                  '<textarea style="width:100%" rows="5" id="feedback_txt" name="feedback_txt"/><br/><br/>' +
+                  'Email (optional): ' +
+                  '<input size="20" id="feedback_email" name="feedback_email"/>';
+
+        function resetFeedback() {
+           $("#feedback_thanks").hide();
+        }
+
+        function sendFeedback(v,m){
+              if(v) {
+                  $.post(
+                    "feedback.jsp",
+                    { f: m.children('#feedback_txt').val(),
+                      e: m.children('#feedback_email').val()
+                    },
+                    function(res) {
+                        if(-1 != res.indexOf("SEND OK")) {
+                          $("#feedback_thanks").show();
+                          setTimeout(resetFeedback, 3000);
+                        } else {
+                            alert ("Failed to send feedback! Sorry!");
+                        }
+                    }
+                  );
+              }
+              return true;
+        }
+
+        function showFeedbackForm() {
+            $.prompt(feedback_formtxt,{
+              submit: sendFeedback,
+              buttons: { Send: true, Cancel: false }
+            });
+        }
+
         function toggleAtlasHelp(e) {
             if($("div.atlasHelp").is(":hidden")) {
                 showAtlasHelp();
@@ -105,6 +144,42 @@ ArrayExpress Atlas
             vertical-align:top;
             font-size: 10px;
         }
+.rcs{display:block}
+.rcs *{
+  display:block;
+  height:1px;
+  overflow:hidden;
+  font-size:.01em;
+  background:#EEF5F5}
+.rcs1{
+  margin-left:3px;
+  margin-right:3px;
+  padding-left:1px;
+  padding-right:1px;
+  border-left:1px solid #f7fafa;
+  border-right:1px solid #f7fafa;
+  background:#f2f7f7}
+.rcs2{
+  margin-left:1px;
+  margin-right:1px;
+  padding-right:1px;
+  padding-left:1px;
+  border-left:1px solid #fdfefe;
+  border-right:1px solid #fdfefe;
+  background:#f1f6f6}
+.rcs3{
+  margin-left:1px;
+  margin-right:1px;
+  border-left:1px solid #f1f6f6;
+  border-right:1px solid #f1f6f6;}
+.rcs4{
+  border-left:1px solid #f7fafa;
+  border-right:1px solid #f7fafa}
+.rcs5{
+  border-left:1px solid #f2f7f7;
+  border-right:1px solid #f2f7f7}
+.rcsfg{
+  background:#EEF5F5}
     </style>
 
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
@@ -174,9 +249,9 @@ ArrayExpress Atlas
                         <input type="submit" value="Search Atlas" class="searchatlas">
                         <div style="position:relative;width:100%;">
                             <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:right;top:10px;">
-                                <a id="atlasHelpToggle" class="smallgreen" href="#">show help</a>
+                                <a id="atlasHelpToggle" class="smallgreen" style="font-size:12px" href="#">show help</a>
                                 <!--<a class="smallgreen" href="decounts.jsp">gene counts</a><br/>-->
-                                <a class="smallgreen" href="qrs?struct"><nobr>advanced search</nobr></a>
+                                <a class="smallgreen" style="font-size:12px" href="qrs?struct"><nobr>advanced search</nobr></a>
                             </div>
                         </div>
                     </td>
@@ -227,6 +302,64 @@ ArrayExpress Atlas
             <input type="hidden" name="view" value="hm"/>
         </form>
 
+<div style="position:relative">
+<div style="margin-top:50px;width:200px;position:absolute;left:0px">
+  <b class="rcs">
+  <b class="rcs1"><b></b></b>
+  <b class="rcs2"><b></b></b>
+  <b class="rcs3"></b>
+  <b class="rcs4"></b>
+  <b class="rcs5"></b></b>
+
+  <div class="rcsfg">
+   <div style="padding:10px">
+    <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release 9.1</div>
+    <table cellpadding="0" cellspacing="0" width="100%">
+    <tr><td>new experiments</td><td><c:out value="${f:length(service.stats.newExperiments)}"/></td></tr>
+	<tr><td>total experiments</td<td><c:out value="${service.stats.numExperiments}"/></td></tr>
+    <tr><td>assays</td><td><c:out value="${service.stats.numAssays}"/></td></tr>
+    <tr><td>conditions</td><td><c:out value="${service.stats.numEfvs}"/></td></tr>
+     </table>
+   </div>
+  </div>
+
+  <b class="rcs">
+  <b class="rcs5"></b>
+  <b class="rcs4"></b>
+  <b class="rcs3"></b>
+  <b class="rcs2"><b></b></b>
+  <b class="rcs1"><b></b></b></b>
+</div>
+
+<div style="margin-top:50px;width:530px;position:absolute;left:210px">
+  <b class="rcs">
+  <b class="rcs1"><b></b></b>
+  <b class="rcs2"><b></b></b>
+  <b class="rcs3"></b>
+  <b class="rcs4"></b>
+  <b class="rcs5"></b></b>
+
+  <div class="rcsfg">
+   <div style="padding:10px">
+    <div style="font-weight:bold;margin-bottom:5px">ArrayExpress Atlas of Gene Expression</div>
+	
+ArrayExpress Atlas is a semantically enriched database of
+meta-analysis based summary statistics over a curated subset of
+ArrayExpress Archive, servicing queries for condition-specific gene
+expression patterns as well as broader exploratory searches for
+biologically interesting genes/samples.  
+
+    </div>
+  </div>
+
+  <b class="rcs">
+  <b class="rcs5"></b>
+  <b class="rcs4"></b>
+  <b class="rcs3"></b>
+  <b class="rcs2"><b></b></b>
+  <b class="rcs1"><b></b></b></b>
+</div>
+</div>
     </div>
 </div>
 

@@ -119,10 +119,10 @@ legend { font-weight: bold; }
 }
 
 /* drilldown filters */
-#drill {  margin-bottom:15px; margin-top: 2px; padding: 7px; position: relative; border-bottom: 1px solid #dedede}
-.drillsect { border-top:1px solid #dedede}
+#drill {  margin-bottom:15px; margin-top: 2px; padding: 7px; position: relative }
+.drillsect { } /* border-top:1px solid #dedede} */
 .drillsect ul { padding: 0px 5px 10px 0px;margin: 0; }
-.drillsect li { padding-left: 10px; list-style: none; color: #999999; }
+.drillsect li { padding-left: 0px; list-style: none; color: #999999; }
 .drillsect .name { font-size: 12px; font-weight: bold}
 .drillsect .ftot { font-size:12px }
 #drill a.fup:link, #drill a.fup:visited { text-decoration: none; color: #c5b0b0; }

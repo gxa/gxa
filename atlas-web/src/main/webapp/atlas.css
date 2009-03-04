@@ -28,12 +28,14 @@ a:link, a:visited, #ae_pagecontainer a:link, #ae_pagecontainer a:visited {
 	text-decoration: none;
 	color: #006666;
 	cursor: pointer;
+    font-family: Verdana, helvetica, arial, sans-serif;
 }
 
 a:hover, #ae_pagecontainer a:hover {
 	text-decoration: underline;
 	color: #e33e3e;
 	cursor: pointer;
+	font-family: Verdana, helvetica, arial, sans-serif;
 }
 
 .pagination_ie {
