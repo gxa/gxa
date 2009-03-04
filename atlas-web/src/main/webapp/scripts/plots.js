@@ -196,7 +196,6 @@ function drawPlot(jsonObj, plot_id){
         var eid = tokens[0];
         var gid = tokens[1];
         var ef = "ba_"+tokens[2];
-        ef = ef.toLowerCase();
         var plot_id = eid+"_"+gid+"_plot";
 
        //$('#'+eid+'_'+gid+'_legend').empty();
