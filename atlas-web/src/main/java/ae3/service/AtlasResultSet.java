@@ -36,10 +36,12 @@ public class AtlasResultSet implements Serializable {
         Connection conn = null;
         try {
             conn = ArrayExpressSearchService.instance().getMEMConnection();
-            ResultSet idrs = conn.prepareStatement("SELECT RANDOM_UUID()").executeQuery();
+            PreparedStatement pst = conn.prepareStatement("SELECT RANDOM_UUID()");
+            ResultSet idrs = pst.executeQuery();
             idrs.next();
             idkey = idrs.getString(1);
             idrs.close();
+            pst.close();
         } catch (SQLException e) {
             log.error(e);
         } finally {
@@ -391,6 +393,7 @@ public class AtlasResultSet implements Serializable {
 
             memstm.execute();
             eltCount++;
+            memstm.close();
         } catch (SQLException e) {
             log.error(e);
         } finally {

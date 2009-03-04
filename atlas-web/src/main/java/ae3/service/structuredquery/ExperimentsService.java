@@ -113,4 +113,14 @@ public class ExperimentsService {
         }
         return results;
     }
+
+    public void shutdown() {
+        try {
+            sqlGetAllGeneExperiments.close();
+            sqlGetExperiments.close();
+        } catch(SQLException e) {
+            log.error(e);
+        }
+
+    }
 }

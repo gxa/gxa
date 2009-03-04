@@ -172,9 +172,6 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 
 <style type="text/css">.contents{top:87px}</style>
 
-<link rel="stylesheet" href="stylesheets/ae_browse.css" type="text/css" />
-<link rel="stylesheet" href="stylesheets/ae_index.css" type="text/css" />
-<link rel="stylesheet" href="stylesheets/ae_common.css" type="text/css" />
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />

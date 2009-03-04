@@ -45,6 +45,8 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
+            System.setProperty("java.awt.headless", "true");
+            
 //            ServletContext sc = sce.getServletContext();
 
             ArrayExpressSearchService as = ArrayExpressSearchService.instance();

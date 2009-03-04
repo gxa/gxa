@@ -138,9 +138,10 @@ public class ArrayExpressSearchService {
             squeryService = new AtlasStructuredQueryService(multiCore);
             experimentsService = new ExperimentsService(theAEDS.getConnection());
 
+            AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
             int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
             String dataRelease = AtlasProperties.getProperty("atlas.data.release");
-            stats = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt).getStats(lastExpId, dataRelease);
+            stats = sserv.getStats(lastExpId, dataRelease);
 
         } catch (Exception e) {
             log.error(e);
@@ -168,10 +169,14 @@ public class ArrayExpressSearchService {
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
 
+        experimentsService.shutdown();
+        experimentsService = null;
         squeryService = null;
 
         arsCache.syncWithDB();
         log.info("Shutting down AtlasResultSet cache: " + arsCache.size() + " result sets");
+
+        arsCache = null;
         CacheManager.getInstance().shutdown();
 
         log.info("Shutting down DB connections and indexes");
@@ -180,8 +185,10 @@ public class ArrayExpressSearchService {
             if (memAEDS != null) memAEDS = null;
 
             if (multiCore != null) {
-            	multiCore.shutdown();
+                solr_atlas = null;
             	solr_expt = null;
+            	multiCore.shutdown();
+                multiCore = null;
             }
         } catch (Exception e) {
             log.error("Error shutting down ArrayExpressSearchService!", e);
@@ -294,9 +301,9 @@ public class ArrayExpressSearchService {
 			log.error(e);
 		}
 		return null;
-    	 
+
     }
-    
+
     public QueryResponse query(SolrQuery query)
     {
       try {
@@ -364,7 +371,7 @@ public class ArrayExpressSearchService {
 
             QueryResponse qr = solr_atlas.query(q);
             QueryResponse qr_name = solr_atlas.query(q_name);
-            
+
             if (qr.getResults().getNumFound()==0 && qr_name.getResults().getNumFound()==0)
                 return null;
             TreeSet<String> s = new TreeSet<String>();
@@ -372,7 +379,7 @@ public class ArrayExpressSearchService {
             for(SolrDocument doc:docList){
             	s.add(doc.getFieldValue("gene_name").toString() + "|" +"1");
             }
-            
+
 
             if (null != qr.getFacetFields().get(0).getValues())
             for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
@@ -407,7 +414,7 @@ public class ArrayExpressSearchService {
         q.setRows(1);
         q.setStart(0);
         QueryResponse queryResponse = solr_expt.query(q);
-        
+
         SolrDocumentList l=queryResponse.getResults();
         return l;
     }
@@ -576,12 +583,12 @@ public class ArrayExpressSearchService {
                     ArrayList<AtlasTuple> atlasTuples = new ArrayList<AtlasTuple>();
 
                      while(rs.next()) {
-                         
+
                     	 if(rs.getString("TopN").equals("1")){
                     		 AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"), rs.getDouble("updn_pvaladj"));
                     		 atlasTuples.add(atuple);
                     	 }
-                         
+
                      }
 
                      return atlasTuples;
@@ -592,9 +599,9 @@ public class ArrayExpressSearchService {
              log.error(e);
          }
          return atlasTuples;
-    	
+
     }
-    
+
     public String getNumOfAtlasExps(String gene_id_key){
   	 String query = "select count(*) cc from (select distinct experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp " +
 		"from ATLAS " +
@@ -608,15 +615,15 @@ public class ArrayExpressSearchService {
             public String handle(ResultSet rs) throws SQLException {
                String count="";
 
-               
+
 					rs.next();
-					    
+
 
 					    count = rs.getString("cc");
-					    
-					    
-					
-				
+
+
+
+
 
                 return count;
             }
@@ -627,10 +634,10 @@ public class ArrayExpressSearchService {
     }
     return count;
     }
-    
+
     public ArrayList getRankedGeneExperiments(final String gene_id_key, String EFV, String EF, String MIN_ROW_TO_FETCH, String MAX_ROW_TO_FETCH){
    	 ArrayList<AtlasExperiment> atlasExps = null;
-   	 
+
    	 String query = "select distinct atlas.experiment_id_key, MIN(atlas.UPDN_PVALADJ) as minp" +
 				   	 " from ATLAS, ae1__experiment__main exp " +
 				   	 " where exp.experiment_id_key = atlas.experiment_id_key "+
@@ -659,13 +666,13 @@ public class ArrayExpressSearchService {
 						while(rs.next()) {
 						    String expIdKey = String.valueOf((rs.getInt("experiment_id_key")));
 							HashMap rankInfo =  ranker.getHighestRankEF(expIdKey, gene_id_key);
-							
+
 						    AtlasExperiment atlasExp = AtlasDao.getExperimentByIdDw(expIdKey);
 						    if(atlasExp != null){
 						    	atlasExp.addHighestRankEF(gene_id_key, rankInfo.get("expfactor").toString());
 						    	atlasExps.add(atlasExp);
 						    }
-						    
+
 						}
 					} catch (AtlasObjectNotFoundException e) {
 						log.error(e);
@@ -680,9 +687,9 @@ public class ArrayExpressSearchService {
             log.error(e);
         }
         return atlasExps;
-   	
+
    }
-    
+
 
     public void setAEDataSource(DataSource aeds) {
         this.theAEDS = aeds;

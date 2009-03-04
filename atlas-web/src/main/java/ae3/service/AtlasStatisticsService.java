@@ -163,4 +163,14 @@ public class AtlasStatisticsService {
         return null;
     }
 
+    public void shutdown() {
+        try {
+            sqlGetNewExperiments.close();
+            sqlNumAssays.close();
+            sqlNumExperiments.close();
+        } catch(SQLException e) {
+            log.error(e);
+        }
+    }
+
 }

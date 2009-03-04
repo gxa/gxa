@@ -21,6 +21,12 @@
         </listener-class>
     </listener>
 
+    <listener>
+        <listener-class>
+            org.springframework.web.util.IntrospectorCleanupListener
+        </listener-class>
+    </listener>
+
     <servlet>
         <display-name>CXF Servlet</display-name>
         <servlet-name>CXFServlet</servlet-name>

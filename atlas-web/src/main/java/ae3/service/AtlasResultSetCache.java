@@ -89,6 +89,7 @@ public class AtlasResultSetCache {
                     notInCacheCount++;
                 }
             }
+            memstm.close();
         } catch (SQLException e) {
             log.error(e);
         } finally {
