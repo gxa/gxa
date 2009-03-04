@@ -138,7 +138,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
                         Collections.sort(l);
                         result.addAll(l);
-                        if(result.size() >= limit)
+                        if(limit > 0 && result.size() >= limit)
                             break;
                     }
                 result = result.subList(0, Math.min(result.size(), limit));
@@ -150,11 +150,11 @@ public class GenePropValueListHelper implements IValueListHelper {
                     if(qr.getFacetFields().get(0).getValues() != null) {
                         int i = 0;
                         for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                            if(ffc.getName().length() > 0 && ffc.getName().toLowerCase().startsWith(query))
+                            if(ffc.getName().length() > 0 && (!hasPrefix || ffc.getName().toLowerCase().startsWith(query)))
                             {
                                 result.add(new AutoCompleteItem(property,
                                         ffc.getName(), ffc.getCount(), null));
-                                if(++i >= limit)
+                                if(limit > 0 && ++i >= limit)
                                     break;
                             }
                     }
@@ -167,7 +167,8 @@ public class GenePropValueListHelper implements IValueListHelper {
                 }
 
                 Collections.sort(result);
-                result = result.subList(0, Math.min(result.size(), limit));
+                if(limit > 0)
+                    result = result.subList(0, Math.min(result.size(), limit));
             }
         } catch (SolrServerException e) {
             log.error(e);
