@@ -37,9 +37,7 @@ function drawPlot(jsonObj, plot_id){
 			        					plot.setSelection(ranges);
 									  });
 				    
-			$('#'+plot_id).bind("plotclick", function(){
-				openInAEW(eid);
-			});
+			
 				    
 			
 			//Tooltip
@@ -180,7 +178,7 @@ function drawPlot(jsonObj, plot_id){
 	        $('<div id="tooltip">' + contents + '</div>').css( {
 		            position: 'absolute',
 		            display: 'none',
-		            top: 50,
+		            top: 20,
 		            left:20,
 		            border: '1px solid #fdd',
 		            padding: '2px',
@@ -233,6 +231,9 @@ function drawPlot(jsonObj, plot_id){
    				var plot = drawPlot(o,plot_id);//success
    				
    				bindMarkings(o,plot,plot_id);
+   				$('#'+plot_id).bind("plotclick", function(){
+				openInAEW(eid);
+				});
    				}
  			});//ajax
         	
