@@ -132,14 +132,10 @@ if (geneId != null) {
 					<c:forEach var="EF" items="${exp.experimentFactors}">
 						<c:choose>
 							<c:when test="${EF == exp.highestRankEFs[atlasGene.geneId]}">
-								<span class="current" id="${EF}">
-	                				<fmt:message key="head.ef.${EF}"/>
-	                			</span>
+								<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
 							</c:when>
 							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}_${atlasGene.geneId}_${EF}',false)" >
-									<fmt:message key="head.ef.${EF}"/> 
-								</a>	
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}_${atlasGene.geneId}_${EF}',false)" ><fmt:message key="head.ef.${EF}"/></a>	
 							</c:otherwise>
 						</c:choose>
 					</c:forEach>
