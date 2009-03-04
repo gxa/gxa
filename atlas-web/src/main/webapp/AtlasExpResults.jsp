@@ -97,7 +97,7 @@ if (geneId != null) {
 			if(eid == exps[i].id)
 				exp_acc = jQuery.trim(exps[i].acc);
 		}
-		window.open("http://www.ebi.ac.uk/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query="+exp_acc,"_blank");
+		window.open("/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query="+exp_acc,"_blank");
 	}
 
 	
@@ -126,7 +126,7 @@ if (geneId != null) {
 	
 		<tr align="left">
 			<td colspan="2" >
-			<div class="header" style="padding-top: 5px;padding-bottom: 0px; valign:middle" >
+			<div class="header" style="padding-top: 5px;padding-bottom: 5px; valign:middle" >
 				<span>Experimental Factors</span>
 					<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
 					<c:forEach var="EF" items="${exp.experimentFactors}">
@@ -197,8 +197,7 @@ if (geneId != null) {
 	</tr>
 
 	<tr>
-		<td colspan="3" style="border-bottom:1px solid #CDCDCD">
-		</td>
+		<td colspan="3" style="border-bottom:1px solid #CDCDCD">&nbsp; </td>
 	</tr>
 	
 	</c:forEach>

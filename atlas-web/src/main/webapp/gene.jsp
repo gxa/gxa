@@ -178,7 +178,7 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 <jsp:include page='start_body_no_menus.jsp' />
 
         <div style="padding-left:15px; padding-right:15px;">
-        <table style="position:relative; z-index:1; top:58px;border-bottom:thin solid lightgray;width:100%;height:30px">
+        <table style="position:relative; z-index:1; top:58px;border-bottom:1px solid #dedede;width:100%;height:30px">
             <tr>
                 <td align="left" valign="bottom" width="55" style="padding-right:10px;">
                      <a href="index.jsp" title="ArrayExpress Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/></a>
@@ -321,11 +321,11 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 				<tr>
 					<td style="padding-top: 3px">
 					
-					<table class="heatmap" cellpadding="0" cellspacing="5" border="0">
-						<tr style="height:26px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">
-							<th style="padding-left:2px">Factor Value</th>
-							<th>Factor</th>
-							<th style="padding-right:2px">Up/Down</th>
+					<table class="heatmap" cellpadding="0" cellspacing="0" border="0">
+						<tr style="height:26px;border-top:1px solid #CDCDCD">
+							<th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor Value</th>
+							<th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor</th>
+							<th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Up/Down</th>
 							<!-- th style="border-right: medium solid; border-left: thin">Studies</th>
 							<th style="border-right: medium solid" colspan="2" align="center">${atlasGene.geneName}</th-->
 						</tr>
@@ -336,17 +336,17 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 							style="border-bottom:1px solid #CDCDCD"
 						    onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true" style="padding-right:5px;padding-left:2px">
+							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>
 							</td>
 								
-							<td nowrap="true" style="padding-right:5px">
+							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD">
 								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 
-							<td class="acounter" align="right">
+							<td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD">
 							<c:choose>
 								<c:when test="${row.mixedCell}">
 							        <div style="width:26px">
@@ -378,20 +378,15 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 			<tr>
 				<td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>	
 				<td align="right">
-					<div id="Pagination" class="pagination_ie" style="padding-bottom: 0; padding-top: 2px; "></div>
+					<div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
 				</td>
 			</tr>
 			
-			<!--  -->
 			<tr>
-				<td align="left" colspan="2">
+				<td align="left" colspan="2" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
 					<div id="pagingSummary" class="header"></div>
 				</td>
 				
-			</tr>
-			<tr>
-				<td colspan="2" style="border-bottom:1px solid #CDCDCD">
-				</td>
 			</tr>
 			<tr>
 				<td colspan="2">

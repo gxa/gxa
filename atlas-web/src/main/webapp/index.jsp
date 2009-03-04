@@ -315,10 +315,10 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
    <div style="padding:10px">
     <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release <c:out value="${service.stats.dataRelease}"/>:</div>
     <table cellpadding="0" cellspacing="0" width="100%">
-    <tr><td>new experiments</td><td><c:out value="${f:length(service.stats.newExperiments)}"/></td></tr>
-	<tr><td>total experiments</td<td><c:out value="${service.stats.numExperiments}"/></td></tr>
-    <tr><td>assays</td><td><c:out value="${service.stats.numAssays}"/></td></tr>
-    <tr><td>conditions</td><td><c:out value="${service.stats.numEfvs}"/></td></tr>
+    <tr><td align="left">new experiments</td><td align="right"><c:out value="${f:length(service.stats.newExperiments)}"/></td></tr>
+    <tr><td align="left">total experiments</td><td align="right"><c:out value="${service.stats.numExperiments}"/></td></tr>
+    <tr><td align="left">assays</td><td align="right"><c:out value="${service.stats.numAssays}"/></td></tr>
+    <tr><td align="left">conditions</td><td align="right"><c:out value="${service.stats.numEfvs}"/></td></tr>
      </table>
    </div>
   </div>
