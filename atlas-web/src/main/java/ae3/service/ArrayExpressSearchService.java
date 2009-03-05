@@ -159,7 +159,7 @@ public class ArrayExpressSearchService {
         log.info(names);
 
         CacheManager.create();
-        AtlasResultSetCache arsCache = new AtlasResultSetCache();
+        arsCache = new AtlasResultSetCache();
         arsCache.syncWithDB();
     }
 
