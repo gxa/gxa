@@ -151,7 +151,7 @@
                     <webResources>
 			    <resource>
 				    <includes>
-					    <include>end_head.jsp</include>
+					    <include>end_body.jsp</include>
 				    </includes>
 				    <directory>src/main/webapp</directory>
 				    <filtering>true</filtering>

@@ -185,14 +185,12 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
-<jsp:include page="end_menu.jsp"></jsp:include>
-
-<div id="ae_pagecontainer">
+<div id="ae_pagecontainer" style="position:absolute;z-index:2;width:100%">
     <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;" >
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td align="left" valign="bottom">
-<img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
+                    <img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
                 </td>
 
                 <td width="100%" valign="bottom" align="right">
