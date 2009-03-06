@@ -36,9 +36,10 @@ public class HtmlHelper {
      */
     public static String optionalQuote(String str)
     {
-        if(str.indexOf(' ') >= 0 || str.indexOf("\"") >= 0)
-            return '"' + str.replaceAll("\"", "\\\"") + '"';
-        return str;
+        String escaped = str.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\\\"");
+        if(str.indexOf(' ') >= 0)
+            return '"' + escaped + '"';
+        return escaped;
     }
 
     public static String joinQuotedValues(Iterable<String> values) {

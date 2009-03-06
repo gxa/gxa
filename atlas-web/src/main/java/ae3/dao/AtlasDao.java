@@ -18,6 +18,7 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.ArrayExpressSearchService;
 import ae3.util.QueryHelper;
+import ae3.util.HtmlHelper;
 
 /**
  * Created by IntelliJ IDEA.
@@ -195,7 +196,7 @@ public class AtlasDao {
     }
 
     public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException {
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + gene_identifier);
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + HtmlHelper.optionalQuote(gene_identifier));
 
         SolrDocumentList documentList = queryResponse.getResults();
 
