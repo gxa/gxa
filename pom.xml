@@ -5,14 +5,14 @@
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas</artifactId>
   <packaging>pom</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>ArrayExpress Atlas</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
   <scm>
-    <connection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</connection>
-    <developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</developerConnection>
-    <url>svn://dukkha.ebi.ac.uk/sandbox/branches/dev/ae3</url>
+    <connection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</connection>
+    <developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</developerConnection>
+    <url>svn://dukkha.ebi.ac.uk/trunk/atlas/</url>
   </scm>
 
   <dependencies>
@@ -43,6 +43,18 @@
     </dependency>
   </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>local-repo</id>
+            <name>dukkha.ebi.ac.uk-releases</name>
+            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-repo</id>
+            <name>dukkha.ebi.ac.uk-snapshots</name>
+            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
+        </snapshotRepository>
+    </distributionManagement>
 
   <repositories>
     <repository>
@@ -362,6 +374,5 @@
     <atlas.protonotes.script/>
     <atlas.last.experiment>642359708</atlas.last.experiment>
     <atlas.data.release>9.1</atlas.data.release>
-    <atlas.software.version>1.0</atlas.software.version>
   </properties>
 </project>
