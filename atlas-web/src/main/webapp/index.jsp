@@ -94,7 +94,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 
         $(document).ready(function()
             {
-                atlas.initSimpleForm($('#gprop0'),$('#gene0'),$('#fval0'));
+                atlas.initSimpleForm();
 
                 $("#atlasHelpToggle").click(toggleAtlasHelp);
 
