@@ -20,12 +20,13 @@
 			request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows(geneId));
 			request.setAttribute("atlasGene",atlasGene);
 			request.setAttribute("noAtlasExps",noAtlasExps);
-		} else {
-			request.getRequestDispatcher("/geneNotFound.jsp").forward(request,response);
-                }
-	} else {
-		request.getRequestDispatcher("/geneNotFound.jsp").forward(request,response);
-        }
+		}
+	}
+    if(atlasGene == null) {
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
+        request.getRequestDispatcher("/error.jsp").forward(request,response);
+    }
 
 	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
 		//TODO: set this right (via REST WS perhaps)

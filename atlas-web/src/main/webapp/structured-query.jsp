@@ -23,6 +23,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
 
 <style type="text/css">.contents{top: 87px}</style>
@@ -108,7 +109,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
                     <tr>
 			<td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
 			<td class="label"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
-			<td valign="top" align="right"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:structMode();">advanced search</a></td>
+			<td valign="top" align="right"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
                     </tr>
                 </table>
             <input type="hidden" name="view" value="hm" />
@@ -159,13 +160,13 @@ Search Results - ArrayExpress Atlas of Gene Expression
 			  </select>
 			</td>
 			<td align="right">
-			  <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="clearQuery();">
+			  <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="atlas.clearQuery();">
 			  <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas">
 			</td>
 		      </tr>
 		      <tr>
 			<td colspan="4" align="right">
-			  <a class="visinstruct smallgreen" style="font-size:12px" href="javascript:simpleMode();">simple search</a>
+			  <a class="visinstruct smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
 			  </td>
 		    </table>
                </div>
@@ -237,7 +238,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
         };
         </c:if>
         $(document).ready(function () {
-            initQuery();
+            atlas.initStructForm(lastquery);
 
             $('#simpleform, #structform').css('display', '');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
@@ -424,17 +425,17 @@ Search Results - ArrayExpress Atlas of Gene Expression
                                             <c:when test="${ud.ups == 0 && ud.downs > 0}">
                                                 <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
                                                     title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                    onclick="hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
+                                                    onclick="atlas.hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
                                             </c:when>
                                             <c:when test="${ud.downs == 0 && ud.ups > 0}">
                                                 <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
                                                     title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
-                                                    onclick="hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
+                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
                                             </c:when>
                                             <c:otherwise>
                                                 <td class="acounter"
                                                     title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                    onclick="hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
+                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
                                             </c:otherwise>
                                         </c:choose>
                                     </c:forEach>

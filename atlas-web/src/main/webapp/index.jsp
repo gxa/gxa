@@ -26,7 +26,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
     <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
     <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
-    <script type="text/javascript" src="scripts/structured-query.js"></script>
+    <script type="text/javascript" src="scripts/common-query.js"></script>
 
     <script type="text/javascript">
         var feedback_formtxt = 'Tell us what you think:<br/>' +
@@ -94,7 +94,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 
         $(document).ready(function()
             {
-                initSimpleForm();
+                atlas.initSimpleForm($('#gprop0'),$('#gene0'),$('#fval0'));
 
                 $("#atlasHelpToggle").click(toggleAtlasHelp);
 

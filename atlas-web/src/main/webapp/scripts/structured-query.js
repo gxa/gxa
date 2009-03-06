@@ -1,30 +1,10 @@
-var counter = 0;
-var geneCounter = 0;
-var helprow;
-
-var hideAutocompleteCode = function (input) {
-    var closebox = $('<div class="achide">hide suggestions</div>');
-    closebox.click(function () { input.hideResults(); });
-    return closebox;
-};
-
-function escapeHtml(s) {
-    return s.replace(/\"/g,"&quot;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/&/g,"&amp;");
-}
-
 (function($){
+     atlas.counter = 0;
+     atlas.helprow = null;
 
      function createRemoveButton(callback)
      {
          return $('<td class="rm" />').append($('<input type="button" value=" - " />').click(callback));
-     }
-
-     function createNotButton(name,checked)
-     {
-         return ;
      }
 
      function createSelect(name, options, optional, value) {
@@ -56,19 +36,19 @@ function escapeHtml(s) {
              $('#structclear').removeAttr('disabled');
              var h = $('#helprow');
              if(h.length)
-                 helprow = h.remove();
+                 atlas.helprow = h.remove();
          } else {
              if($('#conditions tr').length == 0) {
                  $('#structsubmit').attr('disabled','disabled');
                  $('#structclear').attr('disabled','disabled');
                  if(helprow)
-                    $('#conditions').append(helprow);
+                    $('#conditions').append(atlas.helprow);
              }
          }
      }
 
      function addSpecie(specie) {
-         ++counter;
+         ++atlas.counter;
          var sel = $('#species').get(0);
          var found = false;
          for(var i = 0; i < sel.options.length; ++i)
@@ -82,7 +62,7 @@ function escapeHtml(s) {
          if(!found)
              return;
 
-         var value = $('<td class="specval value">' + specie + '<input class="specval" type="hidden" name="specie_' + counter + '" value="' + specie + '"></td>');
+         var value = $('<td class="specval value">' + specie + '<input class="specval" type="hidden" name="specie_' + atlas.counter + '" value="' + specie + '"></td>');
          var remove = createRemoveButton(function () {
                                              var tr = $(this).parents('tr:first');
                                              var rmvalue = $('input.specval', tr).val();
@@ -126,35 +106,20 @@ function escapeHtml(s) {
          if(factor == "")
              factorLabel = "any condition";
 
-         ++counter;
+         ++atlas.counter;
 
 
          var input = $('<input type="text" class="value"/>')
-             .attr('name', "fval_" + counter)
-             .autocomplete("fval", {
-                               minChars:0,
-                               matchCase: false,
-                               matchSubset: false,
-                               selectFirst: false,
-                               multiple: true,
-                               multipleSeparator: " ",
-                               multipleQuotes: true,
-                               scroll: false,
-                               scrollHeight: 180,
-                               max: 15,
-                               extraContent: hideAutocompleteCode,
-                               extraParams: { type: 'efv', 'factor' : factor },
-                               formatItem: function(row) { return row[0]; },
-                               formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
-                           })
+             .attr('name', "fval_" + atlas.counter)
+             .autocomplete(atlas.homeUrl + "fval", atlas.makeFvalAcOptions(factor, false))                 
              .flushCache();
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td class="left" />')
-                 .append(createSelect("fexp_" + counter, options['expressions'], false, expression))
+                 .append(createSelect("fexp_" + atlas.counter, options['expressions'], false, expression))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append(factorLabel)
-                 .append($('<input type="hidden" name="fact_' + counter + '" value="'+ factor +'">')))
+                 .append($('<input type="hidden" name="fact_' + atlas.counter + '" value="'+ factor +'">')))
              .append($('<td class="value" />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
@@ -194,58 +159,16 @@ function escapeHtml(s) {
          return propertyLabel;
      }
 
-     function makeGeneAcOptions(property) {
-         var acoptions = {
-             minChars: property == "" ? 1 : 0,
-             matchCase: false,
-             matchSubset: false,
-             selectFirst: false,
-             multiple: false,
-             multipleSeparator: " ",
-             multipleQuotes: true,
-             scroll: false,
-             scrollHeight: 180,
-             max: 15,
-             extraContent: hideAutocompleteCode,
-             extraParams: { type: 'gene', 'factor' : property },
-             formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
-         };
-
-         if(property == '') {
-             acoptions.formatItem = function(row, num, max, val, term) {
-                 var text = $.Autocompleter.defaults.highlight(row[1].length > 30 ? row[1] + '...' : row[1], term);
-                 if(row[0] == 'name') {
-                     var ext = row[3].split('$');
-                     ext = ext[0] + ' ' + ext[1];
-                     return '<nobr><em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em></nobr>';
-                 } else {
-                     return '<nobr><em>' + row[0] + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row[2] + ')</em></nobr>';
-                 }
-             };
-             acoptions.highlight = function (value,term) { return value; };
-             acoptions.width = '500px';
-         } else {
-             acoptions.formatItem = function(row, num, max, val, term) {
-                 var text = $.Autocompleter.defaults.highlight(row[1].length > 50 ? row[1] + '...' : row[1], term);
-                 return text + ' (' + row[2] + ')';
-             };
-             acoptions.highlight = function (value,term) { return value; };
-             acoptions.width = '300px';
-         }
-
-         return acoptions;
-     }
-
      function addGeneQuery(property,values,not) {
 
-         ++counter;
+         ++atlas.counter;
 
 
          var label = getPropLabel(property);
          var input = $('<input type="text" class="value"/>')
-             .attr('name', "gval_" + counter)
+             .attr('name', "gval_" + atlas.counter)
              .val(values != null ? values : "")
-             .autocomplete("fval", makeGeneAcOptions(property))
+             .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions(property))
              .flushCache()
              .result(function (unused, res) {
                          var newprop = res[0];
@@ -262,11 +185,11 @@ function escapeHtml(s) {
 
          var tr = $('<tr class="genecond" />')
              .append($('<td class="left" />')
-                 .append($('<select  name="' + ('gnot_' + counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
+                 .append($('<select  name="' + ('gnot_' + atlas.counter) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
                   + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append($('<span class="gprop" />').text(label))
-                 .append($('<input type="hidden" name="gprop_' + counter + '" value="'+ property +'">')))
+                 .append($('<input type="hidden" name="gprop_' + atlas.counter + '" value="'+ property +'">')))
              .append($('<td class="value" />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
@@ -281,53 +204,9 @@ function escapeHtml(s) {
          hasConditions(true);
      }
 
-     window.initSimpleForm = function() {
-         var oldval = $('#gene0').val();
-         $("#gene0")
-             .defaultvalue("(all genes)","(all genes)")
-             .autocomplete("fval", makeGeneAcOptions(""))
-             .result(function (unused, res) {
-                         var newprop = res[0];
-                         if(res[0] == 'name') {
-                             location.href='gene?gid=' + res[3].split('$')[2];
-                             startSearching();
-                             return;
-                         }
-                         $('#gprop0').val(newprop);
-                         var oldval = $(this).val();
-                         this.onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
-                         //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
-                     }).get(0).onkeyup = function () { if(oldval != this.value) $('#gprop0').val(''); };
+     atlas.initStructForm = function(lastquery) {
 
-
-         var fval0old  = $("#fval0")
-             .defaultvalue("(all conditions)")
-             .autocomplete("fval", {
-                               minChars:1,
-                               matchCase: false,
-                               matchSubset: false,
-                               multiple: false,
-                               selectFirst: false,
-                               multipleQuotes: true,
-                               multipleSeparator: " ",
-                               scroll: false,
-                               scrollHeight: 180,
-                               max: 15,
-                               extraParams: { type: 'efv', factor: '' },
-                               extraContent: hideAutocompleteCode,
-                               formatItem: function(row) { return row[0]; },
-                               formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
-                           })
-             .keyup(function (e) { if(this.value != fval0old) $("#simpleform .expansion").remove(); }).val();
-
-         $('#simpleform').bind('submit', function () {
-             startSearching();
-         });
-     };
-
-     window.initQuery = function() {
-
-         initSimpleForm();
+         atlas.initSimpleForm();
 
          $(".genename a").tooltip({
                                       bodyHandler: function () {
@@ -338,7 +217,7 @@ function escapeHtml(s) {
 
          $('#geneprops').change(function () {
                                     if(this.selectedIndex >= 2) {
-                                        structMode();
+                                        atlas.structMode();
                                         var property = this.options[this.selectedIndex].value;
                                         addGeneQuery(property);
                                     }
@@ -348,7 +227,7 @@ function escapeHtml(s) {
 
          $('#species').change(function () {
                                   if(this.selectedIndex >= 2) {
-                                      structMode();
+                                      atlas.structMode();
                                       var specie = this.options[this.selectedIndex].value;
                                       addSpecie(specie);
                                   }
@@ -357,25 +236,29 @@ function escapeHtml(s) {
 
          $('#factors').change(function () {
                                   if(this.selectedIndex >= 2) {
-                                      structMode();
+                                      atlas.structMode();
                                       var factor = this.options[this.selectedIndex].value;
                                       addExpFactor(factor);
                                   }
                                   this.selectedIndex = 0;
                               });
 
-         $('#structform').bind('submit', function () {
-             startSearching();structSubmit();
+         var form = $('#structform');
+         form.bind('submit', function () {
+             $('input.ac_input', form).hideResults();
+             atlas.startSearching(form);
+             atlas.structSubmit();
              return true;
          });
 
+         var i;
          if(lastquery && lastquery.species.length) {
-             for(var i = 0; i < lastquery.species.length; ++i)
+             for(i = 0; i < lastquery.species.length; ++i)
                  addSpecie(lastquery.species[i]);
          }
 
          if(lastquery && lastquery.conditions.length) {
-             for(var i = 0; i < lastquery.conditions.length; ++i)
+             for(i = 0; i < lastquery.conditions.length; ++i)
                  addExpFactor(lastquery.conditions[i].factor,
                               lastquery.conditions[i].expression,
                               lastquery.conditions[i].values,
@@ -383,14 +266,14 @@ function escapeHtml(s) {
          }
 
          if(lastquery && lastquery.genes.length) {
-             for(var i = 0; i < lastquery.genes.length; ++i)
+             for(i = 0; i < lastquery.genes.length; ++i)
          	 addGeneQuery(lastquery.genes[i].property,
                               lastquery.genes[i].query,
                               lastquery.genes[i].not);
          }
      };
 
-     window.structSubmit = function() {
+     atlas.structSubmit = function() {
          var i = 0;
          $('input.specval').each(function(){ this.name = this.name.replace(/_\d+/, '_' + (++i)); });
 
@@ -402,12 +285,12 @@ function escapeHtml(s) {
          $('#condadders,#species,#geneprops,#factors').remove();
      };
 
-     window.clearQuery = function() {
+     atlas.clearQuery = function() {
          $('#conditions td.rm input').click();
          $('#conditions td.rm input').click();
          $('#gene0,#fval0,#grop0').val('');
          $('#species0,#expr0').each(function () { this.selectedIndex = 0; });
-         simpleMode();
+         atlas.simpleMode();
      };
 
      function adjustPosition(el) {
@@ -431,7 +314,69 @@ function escapeHtml(s) {
          }
      }
 
-     window.hmc = function (igene, iefv, event) {
+     function drawExperimentPlots(gene_id, ef, efv) {
+
+         function drawPlot(jsonObj, plot_id, efv){
+             if(jsonObj.series) {
+                 jsonObj.options.legend.container = "#" + plot_id + "_legend";
+                 jsonObj.options.legend.extContainer = null;
+                 jsonObj.options.selection = null;
+
+                 var series = null;
+                 var markColor = null;
+                 for (var i = 0; i < jsonObj.series.length; ++i){
+                     if(jsonObj.series[i].label){
+                         if(jsonObj.series[i].label.toLowerCase() == efv.toLowerCase()){
+                             series = jsonObj.series[i];
+                             markColor = series.color;
+                             break;
+                         }
+                     }
+                 }
+
+                 for (var i = 0; i < jsonObj.series.length; ++i)
+                     if(jsonObj.series[i].label && jsonObj.series[i].label.length > 20)
+                         jsonObj.series[i].label = jsonObj.series[i].label.substring(0, 20) + '...';
+
+                 if(!series)
+                     return;
+
+                 var data = series.data;
+                 var xMin= data[0][0] - 0.5;
+                 var xMax= data[data.length-1][0] + 0.5;
+
+                 var plotel = $('#'+plot_id);
+                 $.plot(plotel, jsonObj.series,
+                         $.extend(true, {}, jsonObj.options, {
+                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
+                         }));
+
+                 var link = $('#' + plot_id + '_link');
+                 if(link)
+                     plotel.bind('click', function (e) { location.href = link.attr('href');e.stopPropagation();return false; })
+                             .bind('mousedown', function (e) { e.stopPropagation();return false; });
+
+             }
+         };
+
+
+         $(".plot").each(function() {
+             var plot_id = this.id;
+             var eid = plot_id.split('_')[1];
+             $.ajax({
+                 type: "GET",
+                 url: "plot.jsp",
+                 data: { gid: gene_id, eid: eid, ef: 'ba_' + ef },
+                 dataType: "json",
+                 success: function(o){
+                     drawPlot(o, plot_id, efv);
+                 }
+             });
+
+         });
+     };
+
+     atlas.hmc = function (igene, iefv, event) {
          $("#expopup").remove();
 
          var gene = resultGenes[igene];
@@ -488,85 +433,22 @@ function escapeHtml(s) {
                 });
      };
 
-     window.structMode = function() {
+     atlas.structMode = function() {
          if($('.visinstruct:visible').length)
             return;
          $('.visinsimple').hide();
          $('.visinstruct').show();
      };
 
-     window.simpleMode = function() {
+     atlas.simpleMode = function() {
          if($('#simpleform:visible').length)
             return;
          $('.visinsimple').show();
          $('.visinstruct').hide();
      };
 
-     window.drawExperimentPlots = function(gene_id, ef, efv) {
-
-         function drawPlot(jsonObj, plot_id, efv){
-             if(jsonObj.series) {
-                 jsonObj.options.legend.container = "#" + plot_id + "_legend";
-                 jsonObj.options.legend.extContainer = null;
-                 jsonObj.options.selection = null;
-
-                 var series = null;
-                 var markColor = null;
-                 for (var i = 0; i < jsonObj.series.length; ++i){
-                     if(jsonObj.series[i].label){
-                         if(jsonObj.series[i].label.toLowerCase() == efv.toLowerCase()){
-                             series = jsonObj.series[i];
-                             markColor = series.color;
-                             break;
-                         }
-                     }
-                 }
-
-                 for (var i = 0; i < jsonObj.series.length; ++i)
-                     if(jsonObj.series[i].label && jsonObj.series[i].label.length > 20)
-                         jsonObj.series[i].label = jsonObj.series[i].label.substring(0, 20) + '...';
-
-                 if(!series)
-                     return;
-
-                 var data = series.data;
-                 var xMin= data[0][0] - 0.5;
-                 var xMax= data[data.length-1][0] + 0.5;
-
-                 var plotel = $('#'+plot_id);
-                 $.plot(plotel, jsonObj.series,
-                         $.extend(true, {}, jsonObj.options, {
-                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
-                         }));
-                 
-                 var link = $('#' + plot_id + '_link');
-                 if(link)
-                    plotel.bind('click', function (e) { location.href = link.attr('href');e.stopPropagation();return false; })
-                            .bind('mousedown', function (e) { e.stopPropagation();return false; });
-
-             }
-         };
-
-
-	 $(".plot").each(function() {
-                             var plot_id = this.id;
-                             var eid = plot_id.split('_')[1];
-                             $.ajax({
-   			                type: "GET",
-   			                url: "plot.jsp",
-   			                data: { gid: gene_id, eid: eid, ef: 'ba_' + ef },
-   			                dataType: "json",
-   			                success: function(o){
-   			                    drawPlot(o, plot_id, efv);
-   			                }
- 		                    });
-
-                         });
-     };
-
-     window.startSearching = function() {
-         $('input.ac_input').hideResults();
-         var v = $('input.searchatlas');
+     atlas.startSearching = function(form) {
+         var v = $(form).find('input[type=submit]');
          v.val('Searching...');
      };
 

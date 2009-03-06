@@ -46,3 +46,25 @@
 	background-color: #408c8c;
 	color: white;
 }
+
+.ac_hide {
+    padding: 5px 5px 5px 5px;
+    text-align: left;
+    color: #005555;
+    background-color: #cdcdcd;
+    font-weight: bold;
+    font-size: 10px;
+    border-top: 1px solid #5E9E9E;
+    cursor: pointer;
+}
+
+.ac_hide:hover {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+.ac_results li em {
+    font-size: 10px;
+    font-style: normal;
+    color: #999999;
+}

@@ -23,7 +23,7 @@ ArrayExpress Atlas
     <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
     <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
-    <script type="text/javascript" src="scripts/structured-query.js"></script>
+    <script type="text/javascript" src="scripts/common-query.js"></script>
 
     <script type="text/javascript">
         function toggleAtlasHelp(e) {
@@ -55,7 +55,7 @@ ArrayExpress Atlas
 
         $(document).ready(function()
             {
-                initSimpleForm();
+                atlas.initSimpleForm();
 
                 $("#atlasHelpToggle").click(toggleAtlasHelp);
 
@@ -231,7 +231,14 @@ ArrayExpress Atlas
 </div>
 
 <div align="center" style="color:red;font-weight:bold;margin-top:150px">
-    We're sorry an error has occurred! We will try to remedy this as soon as possible. Responsible parties have been notified and heads will roll.
+    <c:choose>
+        <c:when test="${!empty errorMessage}">
+            <c:out value="${errorMessage}" />
+        </c:when>
+        <c:otherwise>
+            We're sorry an error has occurred! We will try to remedy this as soon as possible. Responsible parties have been notified and heads will roll.
+        </c:otherwise>
+    </c:choose>
     <br/><br/><br/>Please try another search.
 </div>
 
