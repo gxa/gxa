@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.lang.StringUtils;
 import ae3.service.structuredquery.GeneProperties.Prop;
 import ae3.service.structuredquery.GeneProperties.PropType;
-import ae3.util.HtmlHelper;
+import ae3.util.EscapeUtil;
 
 import java.util.*;
 
@@ -191,7 +191,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
             sb.append(GeneProperties.convertPropertyToFacetField(i.getProperty()))
                     .append(":")
-                    .append(HtmlHelper.optionalQuote(i.getValue()));
+                    .append(EscapeUtil.escapeSolr(i.getValue()));
             if(--num == 0)
                 break;
         }

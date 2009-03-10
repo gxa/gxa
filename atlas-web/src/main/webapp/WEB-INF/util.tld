@@ -29,7 +29,7 @@
 
     <function>
       <name>optionalQuote</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-class>ae3.util.EscapeUtil</function-class>
       <function-signature>
         java.lang.String optionalQuote( java.lang.String )
       </function-signature>

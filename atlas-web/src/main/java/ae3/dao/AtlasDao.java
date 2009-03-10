@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -18,7 +16,7 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.ArrayExpressSearchService;
 import ae3.util.QueryHelper;
-import ae3.util.HtmlHelper;
+import ae3.util.EscapeUtil;
 
 /**
  * Created by IntelliJ IDEA.
@@ -196,7 +194,7 @@ public class AtlasDao {
     }
 
     public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException {
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + HtmlHelper.optionalQuote(gene_identifier));
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
 
         SolrDocumentList documentList = queryResponse.getResults();
 

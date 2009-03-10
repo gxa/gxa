@@ -30,30 +30,6 @@ public class HtmlHelper {
     }
 
     /**
-     * Quote string if it contains spaces
-     * @param str url
-     * @return quoted str
-     */
-    public static String optionalQuote(String str)
-    {
-        String escaped = str.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\\\"");
-        if(str.indexOf(' ') >= 0)
-            return '"' + escaped + '"';
-        return escaped;
-    }
-
-    public static String joinQuotedValues(Iterable<String> values) {
-        StringBuffer sb = new StringBuffer();
-        for (String v : values)
-        {
-            if(sb.length() > 0)
-                sb.append(" ");
-            sb.append(optionalQuote(v));
-        }
-        return sb.toString();
-    }
-
-    /**
      * Returns current system time, for util.tld
      * @return time in milliseconds
      */

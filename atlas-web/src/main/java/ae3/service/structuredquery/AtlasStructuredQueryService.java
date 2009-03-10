@@ -265,16 +265,16 @@ public class AtlasStructuredQueryService {
         switch(e)
         {
             case UP:
-                efvq.append(cnt).append("_up:[1 TO *]");
+                efvq.append(cnt).append("_up:[* TO *]");
                 break;
 
             case DOWN:
-                efvq.append(cnt).append("_dn:[1 TO *]");
+                efvq.append(cnt).append("_dn:[* TO *]");
                 break;
 
             case UP_DOWN:
-                efvq.append(cnt).append("_up:[1 TO *] ")
-                        .append(cnt).append("_dn:[1 TO *]");
+                efvq.append(cnt).append("_up:[* TO *] ")
+                        .append(cnt).append("_dn:[* TO *]");
                 break;
 
             default:
@@ -323,7 +323,7 @@ public class AtlasStructuredQueryService {
                         nonemptyQuery = true;
                     } else if(c.isAnyFactor() || isExperiment) {
                         // try to search for experiment too if no matching conditions are found
-                        Collection<String> experiments = findExperiments(c.getJointFactorValues(), condEfvs);
+                        Collection<String> experiments = findExperiments(c.getSolrEscapedFactorValues(), condEfvs);
                         queryExperiments.addAll(experiments);
                         String expq = makeExperimentsQuery(experiments, c.getExpression());
                         if(expq.length() > 0) {
@@ -369,17 +369,17 @@ public class AtlasStructuredQueryService {
                 solrq.append(geneQuery.isNegated() ? " NOT " : " AND ");
 
     		if(geneQuery.isAnyFactor()) {
-                solrq.append("(gene_ids:(").append(geneQuery.getJointFactorValues()).append(") ");
-                solrq.append("gene_desc:(").append(geneQuery.getJointFactorValues()).append("))");
+                solrq.append("(gene_ids:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
+                solrq.append("gene_desc:(").append(geneQuery.getSolrEscapedFactorValues()).append("))");
     		} else if(GeneProperties.isNameProperty(geneQuery.getFactor())) {
-                solrq.append("(gene_name:(").append(geneQuery.getJointFactorValues()).append(") ");
-                solrq.append("gene_synonym:(").append(geneQuery.getJointFactorValues()).append("))");
+                solrq.append("(gene_name:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
+                solrq.append("gene_synonym:(").append(geneQuery.getSolrEscapedFactorValues()).append("))");
             } else {
                 String field = GeneProperties.convertPropertyToSearchField(geneQuery.getFactor());
                 if(field == null)
                     field = "gene_desc";
 
-                solrq.append(field).append(":(").append(geneQuery.getJointFactorValues()).append(")");
+                solrq.append(field).append(":(").append(geneQuery.getSolrEscapedFactorValues()).append(")");
                 
                 // Ugly hack!!!
                 // SOLR doesn't do highlighting if there's no search in text field occured, so we need to do a fake search
@@ -387,7 +387,7 @@ public class AtlasStructuredQueryService {
                 if(field.contains("_exact"))
                     solrq.append(" AND ")
                             .append(field.replace("_exact","")).append(":(")
-                            .append(geneQuery.getJointFactorValues())
+                            .append(geneQuery.getSolrEscapedFactorValues())
                             .append(")");
     		}
     	}

@@ -1,6 +1,6 @@
 package ae3.service.structuredquery;
 
-import ae3.util.HtmlHelper;
+import ae3.util.EscapeUtil;
 
 import java.util.List;
 
@@ -40,7 +40,15 @@ public abstract class QueryCondition {
      * @return string of all factor values
      */
     public String getJointFactorValues() {
-        return HtmlHelper.joinQuotedValues(factorValues);
+        return EscapeUtil.joinQuotedValues(factorValues);
+    }
+
+    /**
+     * Returns string with space-separated factor values, quoted if necessary
+     * @return string of all factor values
+     */
+    public String getSolrEscapedFactorValues() {
+        return EscapeUtil.escapeSolrValueList(factorValues);
     }
 
     /**
