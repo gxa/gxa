@@ -59,6 +59,9 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
             log.info("  Solr index location: " + solrIndexLocation);
             log.info("  database name: " + dbName );
             log.info("  netCDF location: " + netCDFlocation );
+            log.info("  software version: " + AtlasProperties.getProperty("atlas.software.version"));
+            log.info("  data release:" + AtlasProperties.getProperty("atlas.data.release"));
+            log.info("  build number:" + AtlasProperties.getProperty("atlas.buildNumber"));
 
             as.setSolrIndexLocation(solrIndexLocation);
 

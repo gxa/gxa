@@ -95,7 +95,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
                                 <option value="">(any)</option>
                                 <c:forEach var="s"
                                            items="${service.allAvailableAtlasSpecies}">
-                                    <option ${!empty query.species && s == query.species[0] ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                                    <option ${!empty query.species && f:toLowerCase(s) == f:toLowerCase(query.species[0]) ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
                                 </c:forEach>
                             </select>
                         </td>
