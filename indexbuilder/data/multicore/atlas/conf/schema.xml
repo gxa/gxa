@@ -74,6 +74,7 @@ http://wiki.apache.org/solr/SchemaXml
              value verbatim (and hence don't support range queries, since the
              lexicographic ordering isn't equal to the numeric ordering) ]]> -->
         <fieldtype name="integer" class="solr.IntField" omitNorms="true"/>
+        <fieldtype name="short" class="solr.ShortField" omitNorms="true"/>
         <fieldtype name="long" class="solr.LongField" omitNorms="true"/>
         <fieldtype name="float" class="solr.FloatField" omitNorms="true"/>
         <fieldtype name="double" class="solr.DoubleField" omitNorms="true"/>
@@ -310,11 +311,12 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="suggest_full" type="prefix_full" indexed="true" stored="false"  multiValued="true"/>
         <field name="suggest_token" type="prefix_token" indexed="true" stored="false"  multiValued="true"/>
         
-        <dynamicField name="cnt_efv_*" type="sint" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="cnt_efv_*" type="short" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="s_efv_*" type="short" indexed="true" stored="true" multiValued="false" />
         <field name="exp_up_ids" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="exp_dn_ids" type="string" indexed="true" stored="true" multiValued="true" />
-        <dynamicField name="minpval_efv_*" type="sdouble" indexed="true" stored="true" multiValued="false" />
-        <dynamicField name="avgpval_exp_*" type="sdouble" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="minpval_efv_*" type="float" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="avgpval_exp_*" type="float" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="efvs_up_*" type="string" indexed="true" stored="true" multiValued="true" />       
         <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="true" multiValued="true" />       
     </fields>

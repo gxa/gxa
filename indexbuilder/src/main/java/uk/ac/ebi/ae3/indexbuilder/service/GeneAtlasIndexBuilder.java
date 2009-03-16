@@ -53,6 +53,15 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         }
     }
 
+    private static short shorten(double d) {
+        d = d * 256;
+        if(d > Short.MAX_VALUE)
+            return Short.MAX_VALUE;
+        if(d < Short.MIN_VALUE)
+            return Short.MIN_VALUE;
+        return (short)d;
+    }
+
     protected void createIndexDocs() throws Exception {
         Connection sql = getDataSource().getConnection();
 
@@ -77,7 +86,6 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 "from atlas where gene_id_key = ? and updn<>0 group by experiment_id_key,updn");
 
         log.info("Querying genes...");
-        int c=0;
         ResultSet genes = listAtlasGenesStmt.executeQuery();
         while(genes.next()) {
             SolrInputDocument solrDoc = new SolrInputDocument();
@@ -104,15 +112,25 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     
                 int cup = efvs.getInt("cup");
                 int cdn = efvs.getInt("cdn");
+
+                double pvup = efvs.getDouble("minup");
+                double pvdn = efvs.getDouble("mindn");
+
                 String efvid = encodeEfv(ef) + "_" + encodeEfv(efv);
-                solrDoc.addField("cnt_efv_" + efvid+"_up", efvs.getInt("cup"));
-                solrDoc.addField("minpval_efv_" + efvid+"_up", efvs.getDouble("minup"));
-                solrDoc.addField("cnt_efv_" + efvid+"_dn", efvs.getInt("cdn"));
-                solrDoc.addField("minpval_efv_" + efvid+"_dn", efvs.getDouble("mindn"));
-                if(cdn!=0)
+                if(cup != 0) {
+                    solrDoc.addField("cnt_efv_" + efvid + "_up", cup);
+                    solrDoc.addField("minpval_efv_" + efvid + "_up", pvup);
+                    solrDoc.addField("efvs_up_" + encodeEfv(ef), efv);
+                }
+                if(cdn != 0) {
+                    solrDoc.addField("cnt_efv_" + efvid + "_dn", cdn);
+                    solrDoc.addField("minpval_efv_" + efvid + "_dn", pvdn);
                 	solrDoc.addField("efvs_dn_" + encodeEfv(ef), efv);
-                if(cup!=0)
-                	solrDoc.addField("efvs_up_" + encodeEfv(ef), efv);
+                }
+
+                solrDoc.addField("s_efv_" + efvid + "_up", shorten(cup * (1.0 - pvup) - cdn * (1.0 - pvdn)));
+                solrDoc.addField("s_efv_" + efvid + "_dn", shorten(cdn * (1.0 - pvdn) - cup * (1.0 - pvup)));
+                solrDoc.addField("s_efv_" + efvid + "_ud", shorten(cup * (1.0 - pvup) + cdn * (1.0 - pvdn)));
             }
             efvs.close();
 
@@ -132,52 +150,5 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         countGeneEfvStmt.close();
         countGeneExpStmt.close();
         log.info("Finished, committing");
-    }
-    
-    private Integer getEFVcount(String ef, String efv, String updn, String gene_id_key) throws Exception{
-        Integer count=0;
-        Connection sql = getDataSource().getConnection();
-    	PreparedStatement countEfvStmt = sql.prepareStatement(
-        		"select count(*) from( "+
-				      "select distinct experiment_id_key, min(round(updn_pvaladj,100)) as minp " +
-				      "from atlas " +
-				      "where ef = ? " +
-				      "and efv = ? " +
-				      "and updn = ? " +
-				      "and gene_id_key = ? " +
-				      "group by experiment_id_key) t1 " +
-				"where not exists ( select experiment_id_key " +
-									"from atlas " +
-									"where ef = ? " +
-									"and efv = ? " +
-									"and updn = ? " +
-									"and gene_id_key = ? " +
-									"and t1.experiment_id_key = atlas.experiment_id_key " +
-									"group by experiment_id_key " +
-									"having min(round(updn_pvaladj,100)) < t1.minp)");
-        
-        countEfvStmt.setString(1, ef);
-        countEfvStmt.setString(2, efv);
-        if(updn.equals("up"))
-        	countEfvStmt.setObject(3, 1);
-        else
-        	countEfvStmt.setObject(3, -1);
-        countEfvStmt.setString(4, gene_id_key);
-        countEfvStmt.setString(5, ef);
-        countEfvStmt.setString(6, efv);
-        if(updn.equals("up"))
-        	countEfvStmt.setObject(7, -1);
-        else
-        	countEfvStmt.setObject(7, 1);
-        countEfvStmt.setString(8, gene_id_key);
-        
-        ResultSet efvs = countEfvStmt.executeQuery();
-        while(efvs.next()){
-        	count = efvs.getInt(1);
-        }
-        efvs.close();
-        countEfvStmt.close();
-        sql.close();
-        return count;  
     }
 }
