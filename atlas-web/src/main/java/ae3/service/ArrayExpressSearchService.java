@@ -15,7 +15,10 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CoreContainer;
+import org.apache.solr.core.SolrCore;
 import org.apache.solr.schema.SchemaField;
+import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.util.RefCounted;
 
 import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
@@ -153,9 +156,13 @@ public class ArrayExpressSearchService {
 
         theAEQueryRunner = new QueryRunner(theAEDS);
 
-        Map<String, SchemaField> fieldMap = multiCore.getCore("expt").getSchema().getFields();
+        SolrCore core = multiCore.getCore("expt"); 
+        Map<String, SchemaField> fieldMap = core.getSchema().getFields();
         log.info(fieldMap);
-        Collection names = multiCore.getCore("expt").getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+        RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
+        Collection names = searcher.get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+        searcher.decref();
+        core.close();
         log.info(names);
 
         CacheManager.create();

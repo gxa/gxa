@@ -1,16 +1,16 @@
 package ae3.service.structuredquery;
 
-import ae3.model.AtlasGene;
+import ae3.dao.AtlasDao;
+import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.util.AtlasProperties;
-import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -22,6 +22,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
+import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.util.RefCounted;
 
 import javax.xml.rpc.ServiceException;
 import java.rmi.RemoteException;
@@ -47,21 +49,42 @@ public class AtlasStructuredQueryService {
 
     private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
 
-    private SolrCore coreExpt;
-    private SolrCore coreAtlas;
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
-    private Set<String> allFactors;
+    private Set<String> allFactors = new TreeSet<String>();
     private final IValueListHelper efvListHelper;
     private final IValueListHelper geneListHelper;
+
+    private final String atlasIdField;
+    private final String exptIdField;
 
     /**
      * Constructor. Requires SOLR core container reference to work.
      * @param coreContainer reference to core container with cores "expt" and "atlas"
      */
     public AtlasStructuredQueryService(CoreContainer coreContainer) {
-        this.coreExpt = coreContainer.getCore(CORE_EXPT);
-        this.coreAtlas = coreContainer.getCore(CORE_ATLAS);
+        SolrCore coreExpt = coreContainer.getCore(CORE_EXPT);
+        SolrCore coreAtlas = coreContainer.getCore(CORE_ATLAS);
+
+        RefCounted<SolrIndexSearcher> searcher = coreAtlas.getSearcher();
+        atlasIdField = searcher.get().getSchema().getUniqueKeyField().getName();
+        searcher.decref();
+
+        searcher = coreExpt.getSearcher();
+        exptIdField = searcher.get().getSchema().getUniqueKeyField().getName();
+
+        @SuppressWarnings("unchecked")
+        Collection<String> fields = (Collection<String>)searcher.get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+        searcher.decref();
+        for(String i : fields) {
+            if(i.startsWith(FIELD_FACTOR_PREFIX)) {
+                allFactors.add(i.substring(FIELD_FACTOR_PREFIX.length()));
+            }
+        }
+
+        coreExpt.close();
+        coreAtlas.close();
+
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
 
@@ -229,31 +252,12 @@ public class AtlasStructuredQueryService {
 
 
     private void appendScores(Expression e, StringBuffer scores, String efefvId) {
-        String cnt = "cnt_efv_" + efefvId;
-        String pvl = "minpval_efv_" + efefvId;
+        scores.append("s_efv_").append(efefvId).append("_");
         switch(e)
         {
-            case UP:
-                scores.append("product(").append(cnt).append("_up,linear(")
-                        .append(pvl).append("_up,-1,1)),")
-                        .append("product(").append(cnt).append("_dn,linear(")
-                        .append(pvl).append("_dn,1,-1))");
-                break;
-
-            case DOWN:
-                scores.append("product(").append(cnt).append("_up,linear(")
-                        .append(pvl).append("_up,1,-1)),")
-                        .append("product(").append(cnt).append("_dn,linear(")
-                        .append(pvl).append("_dn,-1,1))");
-                break;
-
-            case UP_DOWN:
-                scores.append("product(").append(cnt).append("_up,linear(")
-                        .append(pvl).append("_up,-1,1)),")
-                        .append("product(").append(cnt).append("_dn,linear(")
-                        .append(pvl).append("_dn,-1,1))");
-                break;
-
+            case UP: scores.append("up"); break;
+            case DOWN: scores.append("dn"); break;
+            case UP_DOWN: scores.append("ud"); break;
             default:
                 throw new IllegalArgumentException("Unknown regulation option specified " + e);
         }
@@ -488,7 +492,6 @@ public class AtlasStructuredQueryService {
             ((List<String>)factors).add(factor);
         }
 
-        String idField = coreExpt.getSearcher().get().getSchema().getUniqueKeyField().getName();
         SolrQuery q = new SolrQuery(sb.toString());
         q.setHighlight(true);
         q.addHighlightField("exp_factor_values");
@@ -500,14 +503,14 @@ public class AtlasStructuredQueryService {
         q.setParam("hl.usePhraseHighlighter", "true");
         for(String f : factors)
             q.addField(FIELD_FACTOR_PREFIX + f);
-        q.addField(idField);
+        q.addField(exptIdField);
         q.setRows(1000);
         q.setStart(0);
         QueryResponse qr = solrExpt.query(q);
 
         for(SolrDocument doc : qr.getResults())
         {
-            String id = (String)doc.getFieldValue(idField);
+            String id = (String)doc.getFieldValue(exptIdField);
             if(id != null) {
                 for(String f : factors) {
                     Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
@@ -544,11 +547,10 @@ public class AtlasStructuredQueryService {
             public Integer make() { return num++; }
         };
 
-        String idField = coreAtlas.getSearcher().get().getSchema().getUniqueKeyField().getName();
         Iterable<String> autoFactors = getConfiguredFactors("anycondition");
 
         for(SolrDocument doc : docs) {
-            String id = (String)doc.getFieldValue(idField);
+            String id = (String)doc.getFieldValue(atlasIdField);
             if(id == null)
                 continue;
 
@@ -588,10 +590,10 @@ public class AtlasStructuredQueryService {
             {
                 String efefvId = efefv.getEfEfvId();
                 UpdownCounter counter = new UpdownCounter(
-                        nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_up")),
-                        nullzero((Integer)doc.getFieldValue("cnt_efv_" + efefvId + "_dn")),
-                        nullzero((Double)doc.getFieldValue("minpval_efv_" + efefvId + "_up")),
-                        nullzero((Double)doc.getFieldValue("minpval_efv_" + efefvId + "_dn"))
+                        nullzero((Short)doc.getFieldValue("cnt_efv_" + efefvId + "_up")),
+                        nullzero((Short)doc.getFieldValue("cnt_efv_" + efefvId + "_dn")),
+                        nullzero((Float)doc.getFieldValue("minpval_efv_" + efefvId + "_up")),
+                        nullzero((Float)doc.getFieldValue("minpval_efv_" + efefvId + "_dn"))
                 );
                 counters.add(counter);
 
@@ -748,14 +750,14 @@ public class AtlasStructuredQueryService {
         return efvFacet;
     }
 
-    private static int nullzero(Integer i)
+    private static int nullzero(Short i)
     {
         return i == null ? 0 : i;
     }
 
-    private static double nullzero(Double d)
+    private static double nullzero(Float d)
     {
-        return d == null ? 0.0d : d;
+        return d == null ? 0.0 : d;
     }
 
 
@@ -784,21 +786,6 @@ public class AtlasStructuredQueryService {
      * @return set of strings representing experimental factors
      */
     public Set<String> getExperimentalFactors() {
-        // lazy caching
-        if(allFactors == null)
-        {
-            @SuppressWarnings("unchecked")
-            Collection<String> fields = (Collection<String>)coreExpt.getSearcher().get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-            Set<String> names = new TreeSet<String>();
-            for(String i : fields) {
-                if(i.startsWith(FIELD_FACTOR_PREFIX)) {
-                    names.add(i.substring(FIELD_FACTOR_PREFIX.length()));
-                }
-            }
-
-            allFactors = names;
-        }
-        
         return allFactors;
     }
 
