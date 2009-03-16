@@ -21,6 +21,7 @@ ArrayExpress Atlas Preview
     <script type="text/javascript" src="scripts/jquery.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
     <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
+    <script type="text/javascript" src="scripts/feedback.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function()

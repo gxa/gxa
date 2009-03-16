@@ -18,6 +18,7 @@ ArrayExpress Atlas Preview
 <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
 <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="scripts/feedback.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function()

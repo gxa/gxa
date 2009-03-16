@@ -24,6 +24,7 @@ ArrayExpress Atlas
     <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
     <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
     <script type="text/javascript" src="scripts/common-query.js"></script>
+    <script type="text/javascript" src="scripts/feedback.js"></script>
 
     <script type="text/javascript">
         function toggleAtlasHelp(e) {

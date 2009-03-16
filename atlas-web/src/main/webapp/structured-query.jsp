@@ -25,6 +25,7 @@ Search Results - ArrayExpress Atlas of Gene Expression
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
+<script type="text/javascript" src="scripts/feedback.js"></script>
 
 <style type="text/css">.contents{top: 87px}</style>
 

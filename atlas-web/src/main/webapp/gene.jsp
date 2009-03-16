@@ -71,6 +71,7 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
+<script type="text/javascript" src="scripts/feedback.js"></script>
 <link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 
