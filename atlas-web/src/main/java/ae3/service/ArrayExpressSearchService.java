@@ -146,6 +146,13 @@ public class ArrayExpressSearchService {
             String dataRelease = AtlasProperties.getProperty("atlas.data.release");
             stats = sserv.getStats(lastExpId, dataRelease);
 
+            new Thread() {
+                @Override
+                public void run() {
+                    squeryService.preloadData();
+                }
+            }.start();
+
         } catch (Exception e) {
             log.error(e);
         } finally {

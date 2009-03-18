@@ -92,6 +92,11 @@ public class AtlasStructuredQueryService {
         this.geneListHelper = new GenePropValueListHelper(solrAtlas);
     }
 
+    public void preloadData() {
+        getEfvListHelper().preloadData();
+        getGeneListHelper().preloadData();
+    }
+
     /**
      * Process structured Atlas query
      * @param query parsed query

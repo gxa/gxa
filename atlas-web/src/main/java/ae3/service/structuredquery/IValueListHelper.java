@@ -22,4 +22,10 @@ public interface IValueListHelper {
      * @return iterable list of strings
      */
     public Iterable<String> listAllValues(String property);
+
+    /**
+     * Utility method called after creation to populate internal data structures with cached values
+     * (optional)
+     */
+    public void preloadData();
 }
