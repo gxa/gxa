@@ -9,9 +9,11 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
+import ae3.dao.MultipleGeneException;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
 
@@ -51,7 +53,22 @@ public class AtlasGeneService {
 			log.error(e);
 			return null;
 		}
+		catch (MultipleGeneException em) {
+			log.error(em);
+			return null;
+		}
 		return atlasGene;
+	}
+	
+	public static boolean hitMultiGene(String gene_identifier){
+		boolean multi=false;
+		try {
+			SolrDocumentList documentList = AtlasDao.getDocListForGene(gene_identifier);
+			multi = documentList.size()>1;
+		} catch (AtlasObjectNotFoundException e) {
+			log.error(e);
+		}
+		return multi;
 	}
 	
 	/**

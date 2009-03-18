@@ -1,9 +1,24 @@
 table.heatmap th {
-	background-color: #edf6f5;;
+	background-color: #edf6f5;
+	
 	text-align: left;
 	font-weight: bold;
 	font-size: 11px;
 	color: #005555;
+	background-repeat: no-repeat; 
+    background-position: center right;
+	cursor: pointer;
+}
+table.heatmap th.header{
+	background-image: url(images/bg.gif);
+}
+
+table.heatmap th.headerSortUp { 
+    background-image: url(images/asc.gif); 
+} 
+
+table.heatmap th.headerSortDown { 
+    background-image: url(images/desc.gif); 
 }
 
 table.heatmap {

@@ -4,6 +4,8 @@ import ae3.service.AtlasResultSet;
 import ae3.service.ArrayExpressSearchService;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
+import ae3.dao.MultipleGeneException;
+
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +58,8 @@ public class AtlasWebServiceImpl implements AtlasWebService {
             return AtlasDao.getGeneByIdentifier(geneIdentifier).serializeForWebServices();
         } catch (AtlasObjectNotFoundException e) {
             throw new RemoteException(e.getMessage());
+        } catch (MultipleGeneException e) {
+        	throw new RemoteException(e.getMessage());
         }
     }
 

@@ -172,6 +172,12 @@ public class AtlasDao {
         return new AtlasGene(geneDoc);
     }
     
+    /**
+     * Returns experiments SOLR docs for the gene specified
+     * 
+     * @param gene_id_key
+     * @return
+     */
     public static SolrDocumentList getGeneExperiments(String gene_id_key){
     	SolrDocumentList results=null;
     	try{
@@ -186,6 +192,13 @@ public class AtlasDao {
     	return results;
     }
 
+    /**
+     * TODO
+     * 
+     * @param solrGeneDoc
+     * @param geneHitsResponse
+     * @return
+     */
     public static AtlasGene getGene(SolrDocument solrGeneDoc, QueryResponse geneHitsResponse) {
         AtlasGene gene = new AtlasGene(solrGeneDoc);
         gene.setGeneHighlights(geneHitsResponse.getHighlighting().get(gene.getGeneId()));
@@ -193,7 +206,30 @@ public class AtlasDao {
         return gene;
     }
 
-    public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException {
+    /**
+     * Returns a list of SOLR gene documents for the gene specified
+     * @param gene_identifier
+     * @return
+     * @throws AtlasObjectNotFoundException
+     */
+    public static SolrDocumentList getDocListForGene(String gene_identifier) throws AtlasObjectNotFoundException{
+    	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
+    	
+        SolrDocumentList documentList = queryResponse.getResults();
+        if (documentList == null || documentList.size() == 0)
+            throw new AtlasObjectNotFoundException(gene_identifier);
+       
+        return documentList;
+    }
+    
+    /**
+     * Returns an instance for AtlasGene Object corresponding to the specified gene_identifier.
+     * @param gene_identifier
+     * @return
+     * @throws AtlasObjectNotFoundException
+     * @throws MultipleGeneException
+     */
+    public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException, MultipleGeneException{
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
 
         SolrDocumentList documentList = queryResponse.getResults();
@@ -202,11 +238,13 @@ public class AtlasDao {
             throw new AtlasObjectNotFoundException(gene_identifier);
 
         if (documentList.size() > 1)
-            log.info("More than one match for gene identifier " + gene_identifier + "; returning the first match");
+            throw new MultipleGeneException(gene_identifier);
+            
 
         SolrDocument geneDoc = documentList.get(0);
 
         return new AtlasGene(geneDoc);
     }
+    
 
 }

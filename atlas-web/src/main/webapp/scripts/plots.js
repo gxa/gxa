@@ -231,9 +231,9 @@ function drawPlot(jsonObj, plot_id){
    				var plot = drawPlot(o,plot_id);//success
    				
    				bindMarkings(o,plot,plot_id);
-   				$('#'+plot_id).bind("plotclick", function(){
-					openInAEW(eid);
-				});
+   				//$('#'+plot_id).bind("plotclick", function(){
+				//	openInAEW(eid);
+				//});
    				}
  			});//ajax
         	

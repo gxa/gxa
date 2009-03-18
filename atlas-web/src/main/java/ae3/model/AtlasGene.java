@@ -186,27 +186,27 @@ public class AtlasGene {
 	
 
 	public int getCount_up(String ef, String efv){
-		return nullzero((Integer)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_up")));
+		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_up")));
 	}
 
 	public int getCount_dn(String ef, String efv){
-		return nullzero((Integer)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_dn")));
+		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_dn")));
 	}
 
 	public double getAvg_up(String ef, String efv){
-		return nullzero((Double)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_up")));
+		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_up")));
 	}
 
 	public double getAvg_dn(String ef, String efv){
-		return nullzero((Double)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_dn")));
+		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_dn")));
 	}
 
-	private static int nullzero(Integer i)
+	private static int nullzero(Short i)
 	{
 		return i == null ? 0 : i;
 	}
 
-	private static double nullzero(Double d)
+	private static double nullzero(Float d)
 	{
 		return d == null ? 0.0d : d;
 	}

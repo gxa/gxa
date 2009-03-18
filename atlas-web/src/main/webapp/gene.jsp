@@ -14,6 +14,13 @@
 	String geneId = request.getParameter("gid");
 	String noAtlasExps = null;
 	if (geneId != null || geneId!="") {
+		
+				
+		if(AtlasGeneService.hitMultiGene(geneId)){
+	        response.sendRedirect("qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
+	        return;
+		}
+		
 		atlasGene = AtlasGeneService.getAtlasGene(geneId);
 		if ( atlasGene!=null){
 			noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
@@ -26,6 +33,7 @@
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
         request.getRequestDispatcher("/error.jsp").forward(request,response);
+        return;
     }
 
 	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
@@ -72,6 +80,7 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/feedback.js"></script>
+<script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script> 
 <link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 
@@ -148,9 +157,9 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 								for (var i = 0; i < exps.length; ++i){
 									eid = jQuery.trim(exps[i].id);
 									redrawPlotForFactor(eid+'_${atlasGene.geneId}_'+ef,true,fv);
-									$('#'+eid+'_${atlasGene.geneId}_plot').bind("plotclick", function(){
-										openInAEW(eid);
-									});
+									//$('#'+eid+'_${atlasGene.geneId}_plot').bind("plotclick", function(){
+									//	openInAEW(eid);
+									//});
 								}
 								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
@@ -170,7 +179,8 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
     jQuery(document).ready(function()
     {		
        loadExps();
-             
+       $("#heatmap_tbl").tablesorter({ 
+               headers: {2: {sorter: false}}});       
     });
 </script>
 
@@ -326,7 +336,8 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 				<tr>
 					<td style="padding-top: 3px">
 					
-					<table class="heatmap" cellpadding="0" cellspacing="0" border="0">
+					<table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
+						<thead>
 						<tr style="height:26px;border-top:1px solid #CDCDCD">
 							<th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor Value</th>
 							<th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor</th>
@@ -334,20 +345,20 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 							<!-- th style="border-right: medium solid; border-left: thin">Studies</th>
 							<th style="border-right: medium solid" colspan="2" align="center">${atlasGene.geneName}</th-->
 						</tr>
-						
-						
+						</thead>
+						<tbody>
 						<c:forEach var="row" items="${heatMapRows}" varStatus="i">
 						<tr class="heatmap_row"
 							style="border-bottom:1px solid #CDCDCD"
 						    onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD">
+							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>
 							</td>
 								
-							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD">
+							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px ">
 								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 
@@ -358,20 +369,19 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
                                     	<div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
                                     	<div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
                                     	<div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
-			</div>
+									</div>
 								</c:when>
 								<c:otherwise>
-								<div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
+									<div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
                                     	<div class="heatmap_cell"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
                                     			 <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
-					 </div>
+					 					</div>
 								</c:otherwise>
 							</c:choose>
-						</td>
+							</td>
 						</tr>
-						
-						
 						</c:forEach>
+						</tbody>
 					</table>
 					
 					</td>
