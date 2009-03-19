@@ -65,8 +65,8 @@ var atlas = {};
             max: 15,
             extraParams: { type: 'efv', factor: factor },
             extraContent: atlas.makeHideAutocompleteCode,
-            formatItem: function(row) { return row[0]; },
-            formatResult: function(row) { return row[0].indexOf(' ') >= 0 ? '"' + row[0] + '"' : row[0]; }
+            formatItem: function(row) { return row[1]; },
+            formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
         };
         return acoptions;
     };

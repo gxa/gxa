@@ -96,7 +96,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                 result.add(name);
             }
             public boolean enough() {
-                return true;
+                return false;
             }
         };
         if(null == property || "".equals(property)) {

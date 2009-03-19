@@ -88,13 +88,8 @@ public class AtlasStructuredQueryService {
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
 
-        this.efvListHelper = new ExpFactorValueListHelper(solrExpt);
+        this.efvListHelper = new ExpFactorValueListHelper(solrExpt, getExperimentalFactorOptions());
         this.geneListHelper = new GenePropValueListHelper(solrAtlas);
-    }
-
-    public void preloadData() {
-        getEfvListHelper().preloadData();
-        getGeneListHelper().preloadData();
     }
 
     /**
@@ -778,7 +773,7 @@ public class AtlasStructuredQueryService {
      * Returns set of experimental factor for drop-down, fileterd by config
      * @return set of strings representing experimental factors
      */
-    public Iterable<String> getExperimentalFactorOptions() {
+    public Collection<String> getExperimentalFactorOptions() {
         List<String> factors = new ArrayList<String>();
         factors.addAll(getConfiguredFactors("options"));
         factors.add(EXP_FACTOR_NAME);

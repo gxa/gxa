@@ -20,76 +20,120 @@ public class ExpFactorValueListHelper implements IValueListHelper {
     private SolrServer solrExpt;
     private Log log = LogFactory.getLog(ExpFactorValueListHelper.class);
 
-    public ExpFactorValueListHelper(SolrServer solrExpt)
+    private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
+    private Set<String> allFactors;
+    
+    public ExpFactorValueListHelper(SolrServer solrExpt, Collection<String> allFactors)
     {
         this.solrExpt = solrExpt;
+        this.allFactors = new HashSet<String>(allFactors);
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(String factor, String query, int limit) {
-        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+    public void preloadData() {
+        for(String property : allFactors) {
+            treeGetOrLoad(property);
+        }
+    }
 
+    private PrefixNode treeGetOrLoad(String property) {
+        PrefixNode root;
+        synchronized(prefixTrees) {
+            if(!prefixTrees.containsKey(property)) {
+                SolrQuery q = new SolrQuery("exp_in_dw:true");
+                q.setRows(0);
+                q.setFacet(true);
+                q.setFacetMinCount(1);
+                q.setFacetLimit(-1);
+                q.setFacetSort(true);
+
+                if(AtlasStructuredQueryService.EXP_FACTOR_NAME.equals(property))
+                    q.addFacetField("dwe_exp_accession");
+                else if(!allFactors.contains(property))
+                    return null;
+                else
+                    q.addFacetField(AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + property);
+                
+                try {
+                    QueryResponse qr = solrExpt.query(q);
+                    root = new PrefixNode();
+                    if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
+                            && qr.getFacetFields().get(0).getValues() != null) {
+                        for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
+                            if(ffc.getName().length() > 0) {
+                                root.add(ffc.getName(), (int)ffc.getCount());
+                            }
+                    }
+                    prefixTrees.put(property, root);
+                } catch (SolrServerException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            root = prefixTrees.get(property);
+        }
+        return root;
+    }
+
+    public Iterable<String> listAllValues(String property) {
+        final List<String> result = new ArrayList<String>();
+        PrefixNode.WalkResult rc = new PrefixNode.WalkResult() {
+            public void put(String name, int count) {
+                result.add(name);
+            }
+            public boolean enough() {
+                return false;
+            }
+        };
+        if(null == property || "".equals(property)) {
+            for(String prop : allFactors) {
+                PrefixNode root = treeGetOrLoad(prop);
+                if(root != null)
+                    root.collect("", rc);
+            }
+            Collections.sort(result);
+        } else {
+            PrefixNode root = treeGetOrLoad(property);
+            if(root != null)
+                root.collect("", rc);
+        }
+        return result;
+    }
+
+    public Iterable<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit) {
         if(query.startsWith("\""))
             query = query.substring(1);
         if(query.endsWith("\""))
             query = query.substring(0, query.length() - 1);
 
-        for(String fv : getFactorValues(factor, query, limit))
-        {
-            result.add(new AutoCompleteItem(null, fv, 1L, null));
-        }
-        return result;
-    }
-
-    public Iterable<String> listAllValues(String factor) {
-        return getFactorValues(factor, null, -1);
-    }
-
-    private SortedSet<String> getFactorValues(String factor, String query, int limit) {
-
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)
             query = query.toLowerCase();
 
-        SortedSet<String> s = new TreeSet<String>();
-        try {
-            SolrQuery q = new SolrQuery("exp_in_dw:true");
-            q.setRows(0);
-            q.setFacet(true);
-            q.setFacetMinCount(1);
+        boolean anyProp = property == null || property.equals("");
 
-            if (factor == null || factor.equals(""))
-            {
-                q.addFacetField("exp_factor_values_exact");
-                q.addFacetField("dwe_exp_accession");
-            } else if(AtlasStructuredQueryService.EXP_FACTOR_NAME.equals(factor)) {
-                q.addFacetField("dwe_exp_accession");
-            } else {                
-                q.addFacetField(AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + factor);
-            }
-
-            q.setFacetLimit(hasPrefix ? -1 : limit);
-            q.setFacetSort(true);
-            QueryResponse qr = solrExpt.query(q);
-
-            for(FacetField ff : qr.getFacetFields())
-                if(ff.getValues() != null) {
-                    for (FacetField.Count ffc : ff.getValues())
-                        if(ffc.getName().length() > 0 && (!hasPrefix || ffc.getName().toLowerCase().startsWith(query)))
-                        {
-                            s.add(ffc.getName());
-                            if(s.size() == limit && limit > 0)
-                                break;
-                        }
-                }
-
-        } catch (SolrServerException e) {
-            log.error(e);
+        Collection<AutoCompleteItem> result;
+        if(anyProp) {
+            result = new TreeSet<AutoCompleteItem>();
+            for(final String prop : allFactors)
+                treeAutocomplete(prop, query, limit, result);
+        } else {
+            result = new ArrayList<AutoCompleteItem>();
+            treeAutocomplete(property, query, limit, result);
         }
-
-        return s;
+        return result;
     }
 
-    public void preloadData() {
-        // no caches here by now
+    private void treeAutocomplete(final String property, String query, final int limit, final Collection<AutoCompleteItem> result) {
+        PrefixNode root = treeGetOrLoad(property);
+        if(root != null) {
+            root.walk(query, 0, "", new PrefixNode.WalkResult() {
+                public void put(String name, int count) {
+                    result.add(new AutoCompleteItem(property, name, (long) count, ""));
+                }
+
+                public boolean enough() {
+                    return limit >= 0 && result.size() >= limit;
+                }
+            });
+        }
     }
 }

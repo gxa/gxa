@@ -146,12 +146,8 @@ public class ArrayExpressSearchService {
             String dataRelease = AtlasProperties.getProperty("atlas.data.release");
             stats = sserv.getStats(lastExpId, dataRelease);
 
-            new Thread() {
-                @Override
-                public void run() {
-                    squeryService.preloadData();
-                }
-            }.start();
+            new Thread() { public void run() {  squeryService.getEfvListHelper().preloadData(); } }.start();
+            new Thread() { public void run() {  squeryService.getGeneListHelper().preloadData(); } }.start();
 
         } catch (Exception e) {
             log.error(e);
