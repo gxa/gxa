@@ -65,7 +65,7 @@
 	}
 %>
 <jsp:include page="start_head.jsp" />
-Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - ArrayExpress Atlas of Gene Expression
+Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - ArrayExpress Atlas of Gene Expression
 <jsp:include page="end_head.jsp" />
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - ArrayExpress Atlas Gene Expression Summary"/>
@@ -330,7 +330,6 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 				<td align="left" class="header">
 					${f:length(heatMapRows)} factor values, click each to filter
 				</td>
-				
 			</tr>
 	
 				<tr>
@@ -342,8 +341,11 @@ Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - A
 							<th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor Value</th>
 							<th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor</th>
 							<th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Up/Down</th>
-							<!-- th style="border-right: medium solid; border-left: thin">Studies</th>
-							<th style="border-right: medium solid" colspan="2" align="center">${atlasGene.geneName}</th-->
+						</tr>
+						<tr>
+						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD">
+							Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in.
+						   </td>
 						</tr>
 						</thead>
 						<tbody>

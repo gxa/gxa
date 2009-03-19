@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-Search Results - ArrayExpress Atlas of Gene Expression
+Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <jsp:include page="end_head.jsp"></jsp:include>
 
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
@@ -359,6 +359,10 @@ Search Results - ArrayExpress Atlas of Gene Expression
                 <span id="pagetop" class="pagination_ie page_long"></span>
                 Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
             </div>
+
+		    <div id="legendexpand" style="width:850px;height:30px">
+				Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over-</span>/<span style="color:blue;font-weight:bold">under-</span> expressed in.
+			</div>
         </c:if>
                         <table id="squery">
                             <tbody>
