@@ -343,7 +343,7 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 							<th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Up/Down</th>
 						</tr>
 						<tr>
-						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD">
+						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white">
 							Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in.
 						   </td>
 						</tr>
