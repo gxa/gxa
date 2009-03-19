@@ -154,7 +154,6 @@ Search Results - ArrayExpress Atlas of Gene Expression
 			<td>
 			  <select id="species">
                             <option value="" selected="selected">Organism</option>                         
-			    <option value="">(any)</option>
 			    <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
 			    <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
 			      </c:forEach>

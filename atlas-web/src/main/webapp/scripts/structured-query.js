@@ -216,7 +216,7 @@
                                   });
 
          $('#geneprops').change(function () {
-                                    if(this.selectedIndex >= 2) {
+                                    if(this.selectedIndex >= 1) {
                                         atlas.structMode();
                                         var property = this.options[this.selectedIndex].value;
                                         addGeneQuery(property);
@@ -226,7 +226,7 @@
 
 
          $('#species').change(function () {
-                                  if(this.selectedIndex >= 2) {
+                                  if(this.selectedIndex >= 1) {
                                       atlas.structMode();
                                       var specie = this.options[this.selectedIndex].value;
                                       addSpecie(specie);
@@ -235,7 +235,7 @@
                               });
 
          $('#factors').change(function () {
-                                  if(this.selectedIndex >= 2) {
+                                  if(this.selectedIndex >= 1) {
                                       atlas.structMode();
                                       var factor = this.options[this.selectedIndex].value;
                                       addExpFactor(factor);
