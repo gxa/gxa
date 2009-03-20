@@ -361,7 +361,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
             </div>
 
 		    <div id="legendexpand" style="width:850px;height:30px">
-				Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over-</span>/<span style="color:blue;font-weight:bold">under-</span> expressed in.
+				Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
 			</div>
         </c:if>
                         <table id="squery">
