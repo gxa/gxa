@@ -60,12 +60,12 @@ class PrefixNode {
     }
 
     public void walk(String text, int pos, String sofar, WalkResult result) {
-        if(result.enough() || this.chars == null)
+        if(result.enough())
             return;
 
         if(pos >= text.length()) {
             this.collect(sofar, result);
-        } else {
+        } else if(this.chars != null) {
             char c = Character.toUpperCase(text.charAt(pos));
             int i = Arrays.binarySearch(this.chars, c);
             if(i >= 0)
