@@ -89,3 +89,7 @@ a:hover, #ae_pagecontainer a:hover {
 }
 
 input.value { border: solid 1px #5E9E9E; }
+
+.jqibox {
+    z-index: 100;
+}
