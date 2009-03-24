@@ -66,7 +66,7 @@
     </servlet>
 
     <servlet>
-        <display-name>Table Heaedr Servlet</display-name>
+        <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>
         <servlet-class>ae3.servlet.TableHeaderServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
@@ -77,6 +77,13 @@
         <servlet-name>fval</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.FactorValuesServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
+      <display-name>Gene Identifiers Dump</display-name>
+      <servlet-name>GeneIdentifiersDump</servlet-name>
+      <servlet-class>ae3.servlet.GeneIdentifiersDumpDownloadServlet</servlet-class>
+      <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet>
@@ -92,12 +99,18 @@
         <jsp-file>/search.jsp</jsp-file>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
     <servlet>
         <display-name>Search JSP Servlet</display-name>
         <servlet-name>qrs</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.StructuredQueryServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
+    <servlet-mapping>
+        <servlet-name>GeneIdentifiersDump</servlet-name>
+        <url-pattern>/download/gene_identifiers.txt</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>qr</servlet-name>

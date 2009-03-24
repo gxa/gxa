@@ -1,46 +1,46 @@
 package ae3.service;
 
+import ae3.dao.AtlasDao;
+import ae3.dao.AtlasObjectNotFoundException;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.model.AtlasTuple;
+import ae3.ols.webservice.axis.Query;
+import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.ExperimentList;
+import ae3.service.structuredquery.ExperimentsService;
+import ae3.util.AtlasProperties;
+import ae3.util.QueryHelper;
+import net.sf.ehcache.CacheManager;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.schema.SchemaField;
-import org.apache.solr.search.SolrIndexSearcher;
-import org.apache.solr.util.RefCounted;
-
-import org.apache.lucene.index.IndexReader;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
-import java.io.*;
-import java.sql.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import ae3.model.AtlasExperiment;
-import ae3.model.AtlasGene;
-import ae3.model.AtlasTuple;
-import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
-import ae3.ols.webservice.axis.QueryServiceLocator;
-import ae3.ols.webservice.axis.Query;
-import ae3.util.QueryHelper;
-import ae3.util.AtlasProperties;
-import ae3.service.structuredquery.*;
-import net.sf.ehcache.CacheManager;
 
 /**
  * User: ostolop
@@ -142,12 +142,14 @@ public class ArrayExpressSearchService {
             experimentsService = new ExperimentsService(theAEDS.getConnection());
 
             AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
+
             int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
             String dataRelease = AtlasProperties.getProperty("atlas.data.release");
             stats = sserv.getStats(lastExpId, dataRelease);
 
-            new Thread() { public void run() {  squeryService.getEfvListHelper().preloadData(); } }.start();
-            new Thread() { public void run() {  squeryService.getGeneListHelper().preloadData(); } }.start();
+            new Thread() { public void run() { squeryService.getEfvListHelper().preloadData(); } }.start();
+            new Thread() { public void run() { squeryService.getGeneListHelper().preloadData(); } }.start();
+//            new Thread() { public void run() { dumpGeneIdentifiers(); } }.start();
 
         } catch (Exception e) {
             log.error(e);
@@ -159,19 +161,21 @@ public class ArrayExpressSearchService {
 
         theAEQueryRunner = new QueryRunner(theAEDS);
 
-        SolrCore core = multiCore.getCore("expt"); 
-        Map<String, SchemaField> fieldMap = core.getSchema().getFields();
-        log.info(fieldMap);
-        RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
-        Collection names = searcher.get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
-        searcher.decref();
-        core.close();
-        log.info(names);
+//        SolrCore core = multiCore.getCore("expt");
+//        Map<String, SchemaField> fieldMap = core.getSchema().getFields();
+//        log.info(fieldMap);
+//        RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
+//        Collection names = searcher.get().getReader().getFieldNames(IndexReader.FieldOption.ALL);
+//        searcher.decref();
+//        core.close();
+//        log.info(names);
 
         CacheManager.create();
         arsCache = new AtlasResultSetCache();
         arsCache.syncWithDB();
     }
+
+
 
     /**
      * Should be called when app is going down.
@@ -825,5 +829,15 @@ public class ArrayExpressSearchService {
 
     public AtlasStatisticsService.Stats getStats() {
         return stats;
+    }
+
+    /**
+     * Gets the Solr core from the main core container. Don't forget to close when finished with it.
+     *
+     * @param coreName core to return
+     * @return SolrCore
+     */
+    public SolrCore getSolrCore(final String coreName) {
+        return multiCore.getCore(coreName);
     }
 }
