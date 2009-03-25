@@ -223,9 +223,11 @@ public class AtlasDao {
     }
     
     /**
-     * Returns an instance for AtlasGene Object corresponding to the specified gene_identifier.
+     * Returns the AtlasGene corresponding to the specified gene identifier, i.e. matching one of the terms in the
+     * "gene_ids" field in Solr schema.
+     *
      * @param gene_identifier
-     * @return
+     * @return AtlasGene
      * @throws AtlasObjectNotFoundException
      * @throws MultipleGeneException
      */
