@@ -349,7 +349,6 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
     <copyField source="gene_locuslink" dest="gene_ids"/>
     <copyField source="gene_omimid" dest="gene_ids"/>
     <copyField source="gene_orf" dest="gene_ids"/>
-    <copyField source="gene_ortholog" dest="gene_ids"/>
     <copyField source="gene_refseq" dest="gene_ids"/>
     <copyField source="gene_unigene" dest="gene_ids"/>
     <copyField source="gene_uniprot" dest="gene_ids"/>

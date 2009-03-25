@@ -12,6 +12,7 @@ import ae3.util.QueryHelper;
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
+    private ArrayList<AtlasGene> orthoGenes = new ArrayList<AtlasGene>();
 
     public AtlasGene(SolrDocument geneDoc) {
         this.geneSolrDocument = geneDoc;
@@ -46,6 +47,10 @@ public class AtlasGene {
         return getValue("gene_identifier");
     }
 
+    public String getGeneEnsembl() {
+        return getValue("gene_ensgene");
+    }
+    
     public String getGoTerm() {
         return getValue("gene_goterm");
     }
@@ -183,7 +188,15 @@ public class AtlasGene {
 		return efvs;
 	}
 
+	public String getOrthologsIds(){
+		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
+		return StringUtils.join(orths,"+");
+	}
 	
+	public ArrayList<String> getOrthologs(){
+		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
+		return orths;
+	}
 
 	public int getCount_up(String ef, String efv){
 		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_up")));
@@ -209,6 +222,14 @@ public class AtlasGene {
 	private static double nullzero(Float d)
 	{
 		return d == null ? 0.0d : d;
+	}
+	
+	public void addOrthoGene(AtlasGene ortho){
+		this.orthoGenes.add(ortho);
+	}
+	
+	public ArrayList<AtlasGene> getOrthoGenes(){
+		return this.orthoGenes;
 	}
 
 }

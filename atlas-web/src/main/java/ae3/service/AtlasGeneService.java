@@ -49,6 +49,7 @@ public class AtlasGeneService {
 		AtlasGene atlasGene;
 		try {
 			atlasGene = AtlasDao.getGeneByIdentifier(gene_id_key);
+			retrieveOrthoGenes(atlasGene);
 		} catch (AtlasObjectNotFoundException e) {
 			log.error(e);
 			return null;
@@ -60,6 +61,29 @@ public class AtlasGeneService {
 		return atlasGene;
 	}
 	
+	/**
+	 * Retrieves genes from index corresponding to the list of ortholog ids for the specified AtlasGene. Retrieved genes are added to the list of orthoGenes of the specified AtlasGene.
+	 * @param atlasGene
+	 * @throws AtlasObjectNotFoundException
+	 * @throws MultipleGeneException
+	 */
+	public static void retrieveOrthoGenes(AtlasGene atlasGene) throws AtlasObjectNotFoundException, MultipleGeneException{
+		AtlasGene orthoGene;
+		ArrayList<String> orthoGenes = atlasGene.getOrthologs();
+		if(orthoGenes != null){
+			for (String orth: orthoGenes){
+				orthoGene = AtlasDao.getGeneByIdentifier(orth);
+				if(orthoGene != null)
+					atlasGene.addOrthoGene(orthoGene);
+			}
+		}
+	}
+
+	/**
+	 * Checks if the identifier specified hits multiple gene entries in the index
+	 * @param gene_identifier
+	 * @return boolean
+	 */
 	public static boolean hitMultiGene(String gene_identifier){
 		boolean multi=false;
 		try {

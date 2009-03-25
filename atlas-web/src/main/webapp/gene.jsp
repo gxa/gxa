@@ -235,6 +235,22 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 				<td align="left">${atlasGene.synonyms}</td>
 			</tr>
 			
+			<c:if test="${!empty atlasGene.orthologs}">
+				<tr>
+				</tr>
+				<tr>
+					<td class="geneAnnotHeader">Orthologs</td>
+					
+					<td align="left">
+						<c:forEach var="ortholog" items="${atlasGene.orthoGenes}">
+						 	<a href="http://www.ebi.ac.uk/microarray-as/atlas/gene?gid=${ortholog.geneEnsembl}" target="_blank">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
+						</c:forEach>
+							(<a href="http://www.ebi.ac.uk/microarray-as/atlas/qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+										target="_blank">Compare orthologs</a>)
+					</td>
+				</tr>
+			</c:if>
+			
 			<c:if test="${!empty atlasGene.interProTerm}">
 				<tr>
 					<td></td>
@@ -330,6 +346,7 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 				<td align="left" class="header">
 					${f:length(heatMapRows)} factor values, click each to filter
 				</td>
+				
 			</tr>
 	
 				<tr>
