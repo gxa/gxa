@@ -32,7 +32,7 @@ import java.util.List;
  * A file servlet supporting resume of downloads and client-side caching of content.
  * This servlet can also be used for images. Client-side caching would become more efficient.
  *
- * @author BalusC
+ * @author BalusC, ostolop
  * @link http://balusc.blogspot.com/2009/02/fileservlet-supporting-resume-and.html
  */
 public class FileDownloadServlet extends HttpServlet {
@@ -43,6 +43,14 @@ public class FileDownloadServlet extends HttpServlet {
     private static final String MULTIPART_BOUNDARY = "MULTIPART_BYTERANGES";
 
     // Properties ---------------------------------------------------------------------------------
+
+    public String getBasePath() {
+        return basePath;
+    }
+
+    public void setBasePath(String basePath) {
+        this.basePath = basePath;
+    }
 
     protected String basePath;
 
