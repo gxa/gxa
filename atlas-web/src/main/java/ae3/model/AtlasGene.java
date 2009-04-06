@@ -6,8 +6,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import java.util.*;
 import ae3.service.structuredquery.EfvTree;
-import ae3.util.HtmlHelper;
-import ae3.util.QueryHelper;
 
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
@@ -50,20 +48,19 @@ public class AtlasGene {
     public String getGeneEnsembl() {
         return getValue("gene_ensgene");
     }
-    
+
     public String getGoTerm() {
         return getValue("gene_goterm");
     }
-    
+
     public String getShortValue(String name){
     	ArrayList fval = (ArrayList)geneSolrDocument.getFieldValues(name);
     	if(fval.size()>5)
     		return StringUtils.join(fval.subList(0, 5),", ");
     	else
     		return StringUtils.join(fval,", ");
-    			
     }
-    
+
     public boolean fieldAvailable(String field){
     	return geneSolrDocument.getFieldNames().contains(field);
     }
@@ -75,7 +72,7 @@ public class AtlasGene {
     public String getKeyword() {
         return getValue("gene_keyword");
     }
-    
+
     public String getDisease(){
     	return getValue("gene_disease");
     }
@@ -110,15 +107,15 @@ public class AtlasGene {
     public String getShortGOTerms(){
     	return getShortValue("gene_goterm");
     }
-    
+
     public String getShortInterProTerms(){
     	return getShortValue("gene_interproterm");
     }
-    
+
     public String getShortDiseases(){
     	return getShortValue("gene_disease");
     }
-    
+
     public SolrDocument getGeneSolrDocument() {
         return geneSolrDocument;
     }
@@ -126,11 +123,11 @@ public class AtlasGene {
     public String getUniprotIds(){
     	return getValue("gene_uniprot");
     }
-    
+
     public String getSynonyms(){
     	return getValue("gene_synonym");
     }
-    
+
     public String getHilitSynonyms(){
     	return getHilitValue("gene_synonym");
     }
@@ -165,7 +162,7 @@ public class AtlasGene {
 
         return h;
     }
-    
+
     private HashSet<String> getEFs(){
 		HashSet<String> efs = new HashSet<String>();
 		for (String field:geneSolrDocument.getFieldNames()){
@@ -192,7 +189,7 @@ public class AtlasGene {
 		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
 		return StringUtils.join(orths,"+");
 	}
-	
+
 	public ArrayList<String> getOrthologs(){
 		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
 		return orths;
@@ -227,7 +224,7 @@ public class AtlasGene {
 	public void addOrthoGene(AtlasGene ortho){
 		this.orthoGenes.add(ortho);
 	}
-	
+
 	public ArrayList<AtlasGene> getOrthoGenes(){
 		return this.orthoGenes;
 	}

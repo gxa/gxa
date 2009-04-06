@@ -3,9 +3,8 @@ package ae3.servlet;
 import org.junit.Test;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import junit.framework.TestCase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;import junit.framework.TestCase;
 import ae3.util.AtlasProperties;
 
 import java.io.File;
@@ -14,7 +13,7 @@ import java.io.File;
  * @author ostolop
  */
 public class GeneIdentifiersDumpDownloadServletTest extends TestCase {
-    private Log log = LogFactory.getLog(getClass());
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     private SolrCore core;
 

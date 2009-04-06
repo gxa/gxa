@@ -1,7 +1,7 @@
 package ae3.service.structuredquery;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -15,7 +15,7 @@ import ae3.util.AtlasProperties;
  * @author pashky
  */
 public class AtlasStructuredQueryParser {
-    private static final Log log = LogFactory.getLog("AtlasStructuredQueryParser");
+    private static final Logger log = LoggerFactory.getLogger(AtlasStructuredQueryParser.class);
     private static String PARAM_EXPRESSION = "fexp_";
     private static String PARAM_FACTOR = "fact_";
     private static String PARAM_FACTORVALUE = "fval_";
@@ -172,7 +172,7 @@ public class AtlasStructuredQueryParser {
                 }
             }
         } catch(IOException e) {
-            throw new RuntimeException("Shouldn't be", e);
+            throw new RuntimeException("Unexpected exception!", e);
         }
         return values;
     }

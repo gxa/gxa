@@ -5,8 +5,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -18,7 +18,7 @@ import java.util.*;
 public class ExpFactorValueListHelper implements IValueListHelper {
 
     private SolrServer solrExpt;
-    private Log log = LogFactory.getLog(ExpFactorValueListHelper.class);
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
     private Set<String> allFactors;

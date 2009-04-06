@@ -451,10 +451,8 @@ public class ExpressionDataSet implements Serializable {
 	 * @return
 	 */
 	
-	public Set getFactorValues(String factor) {
-		
+	public Set<String> getFactorValues(String factor) {	
 		if (factors == null || factorValues.size() == 0)
-//			this.getExpressionMatrix(); 
 			return null;
 		if (!factorValues.containsKey(factor))
 			return null;

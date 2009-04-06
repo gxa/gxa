@@ -72,8 +72,7 @@ public class DataServerAPI {
 	 * @return
 	 */
 	
-	public static ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String experimentIdentifier, String factor) throws Exception {
-		
+	public static ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String experimentIdentifier, String factor) {
 		DataServer ds = new DataServer();
 		
 		return ds.retrieveExpressionDataSet(geneIdentifier, experimentIdentifier, factor);

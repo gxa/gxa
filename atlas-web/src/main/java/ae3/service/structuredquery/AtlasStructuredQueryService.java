@@ -1,16 +1,16 @@
 package ae3.service.structuredquery;
 
 import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.ols.OlsCommunicationException;
 import ae3.util.AtlasProperties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -47,7 +47,7 @@ public class AtlasStructuredQueryService {
             "dwe_exp_id" };
     public static final String EXP_FACTOR_NAME = "experiment";
 
-    private Log log = LogFactory.getLog(AtlasStructuredQueryService.class);
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
@@ -149,7 +149,7 @@ public class AtlasStructuredQueryService {
                     result.setGeneFacet("species", getGeneFacet(response, "gene_species_exact", new HashSet<String>()));
 
             } catch (SolrServerException e) {
-                log.error(e);
+                log.error("Error in structured query!", e);
             }            
         }
 
@@ -349,9 +349,9 @@ public class AtlasStructuredQueryService {
                     }
                     conds.add(new ExpFactorResultCondition(c, condEfvs, !nonemptyQuery));
                 } catch (SolrServerException e) {
-                    log.error(e);
-                } catch (RemoteException e) {
-                    log.error(e);
+                    log.error("Error querying Atlas index", e);
+                } catch (OlsCommunicationException e) {
+                    log.error("Exception communicating with OLS!", e);
                 }
             }
         }
@@ -414,7 +414,7 @@ public class AtlasStructuredQueryService {
         return solrq;
     }
 
-    private EfvTree<Boolean> getConditionEfvs(QueryCondition c, final MutableBoolean hadEFOExpansion) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getConditionEfvs(QueryCondition c, final MutableBoolean hadEFOExpansion) throws OlsCommunicationException, SolrServerException {
         if(c.isAnyValue())
             return getCondEfvsAllForFactor(c.getFactor());
 
@@ -435,7 +435,7 @@ public class AtlasStructuredQueryService {
         return condEfvs;
     }
 
-    private EfvTree<Boolean> getCondEfvsForFactor(final String factor, final Iterable<String> values, final MutableBoolean hadEFOExpansion) throws RemoteException, SolrServerException {
+    private EfvTree<Boolean> getCondEfvsForFactor(final String factor, final Iterable<String> values, final MutableBoolean hadEFOExpansion) throws OlsCommunicationException, SolrServerException {
 
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
 
@@ -478,7 +478,9 @@ public class AtlasStructuredQueryService {
                     }
                 }
             } catch(ServiceException e) {
-                log.error(e);
+                throw new OlsCommunicationException(e.getMessage());
+            } catch(RemoteException e) {
+                throw new OlsCommunicationException(e.getMessage());
             }
         }
 
@@ -729,19 +731,15 @@ public class AtlasStructuredQueryService {
                     for (FacetField.Count ffc : ff.getValues())
                         if(!queryExperiments.contains(ffc.getName()))
                         {
-                            try {
-                                AtlasExperiment exp = AtlasDao.getExperimentByIdDw(ffc.getName());
-                                if(exp != null) {
-                                    String expName = exp.getDwExpAccession();
-                                    if(expName != null)
-                                    {
-                                        int count = (int)ffc.getCount();
-                                        efvFacet.getOrCreate(EXP_FACTOR_NAME, expName, creator)
-                                                .add(count, ff.getName().substring(4,6).equals("up"));
-                                    }
+                            AtlasExperiment exp = AtlasDao.getExperimentByIdDw(ffc.getName());
+                            if(exp != null) {
+                                String expName = exp.getDwExpAccession();
+                                if(expName != null)
+                                {
+                                    int count = (int)ffc.getCount();
+                                    efvFacet.getOrCreate(EXP_FACTOR_NAME, expName, creator)
+                                            .add(count, ff.getName().substring(4,6).equals("up"));
                                 }
-                            } catch (AtlasObjectNotFoundException e) {
-                                // do nothing
                             }
                         }
                 }

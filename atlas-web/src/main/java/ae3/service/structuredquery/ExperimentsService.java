@@ -1,7 +1,6 @@
 package ae3.service.structuredquery;
 
 import ae3.model.AtlasExperiment;
-import ae3.dao.AtlasObjectNotFoundException;
 import ae3.dao.AtlasDao;
 
 import java.sql.PreparedStatement;
@@ -9,16 +8,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Connection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Experiments listing service class
  */
 public class ExperimentsService {
     private PreparedStatement sqlGetExperiments;
     private PreparedStatement sqlGetAllGeneExperiments;
-    private Log log = LogFactory.getLog(ExperimentsService.class);
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Constructor. Needs refernce to SQL connection containing ATLAS table.
@@ -63,18 +61,14 @@ public class ExperimentsService {
             sqlGetExperiments.setString(3, factorValue);
             ResultSet rs = sqlGetExperiments.executeQuery();
             while (rs.next()) {
-                try {
-                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
-                    if (experiment != null) {
-                        addExperimentsToList(results, rs, experiment);
-                    }
-                } catch (AtlasObjectNotFoundException e) {
-                    log.error(e);
+                AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
+                if (experiment != null) {
+                    addExperimentsToList(results, rs, experiment);
                 }
             }
             rs.close();
         } catch (SQLException e) {
-            log.error(e);
+            log.error("Exception querying Atlas database", e);
         }
         return results;
     }
@@ -96,20 +90,16 @@ public class ExperimentsService {
                 }
             };
             while (rs.next()) {
-                try {
-                    AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
-                    if (experiment != null) {
-                        addExperimentsToList(results.getOrCreate(rs.getString("ef"), rs.getString("efv"), creator),
-                                rs, experiment);
-                    }
-                } catch (AtlasObjectNotFoundException e) {
-                    log.error(e);
+                AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(rs.getString("experiment_id_key"));
+                if (experiment != null) {
+                    addExperimentsToList(results.getOrCreate(rs.getString("ef"), rs.getString("efv"), creator),
+                            rs, experiment);
                 }
             }
             rs.close();
             return results;
         } catch (SQLException e) {
-            log.error(e);
+            log.error("Exception querying Atlas database", e);
         }
         return results;
     }
@@ -119,8 +109,7 @@ public class ExperimentsService {
             sqlGetAllGeneExperiments.close();
             sqlGetExperiments.close();
         } catch(SQLException e) {
-            log.error(e);
+            log.error("Exception closing connections to Atlas database", e);
         }
-
     }
 }

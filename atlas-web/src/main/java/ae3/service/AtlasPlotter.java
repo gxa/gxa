@@ -10,17 +10,17 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.core.io.DescriptiveResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ae3.model.AtlasTuple;
 
 import ds.server.DataServerAPI;
 import ds.server.ExpressionDataSet;
 
-
-
 public class AtlasPlotter {
-	private AtlasPlotter() {};
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
 	private static AtlasPlotter _instance = null;
 	private static final String[] altColors= {"#D8D8D8","#F2F2F2"};  
 	final java.util.regex.Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
@@ -32,38 +32,43 @@ public class AtlasPlotter {
 		return _instance;
 	}
 
-	
-	public JSONObject getGeneInExpPlotData(String geneIdKey, String expIdKey, String EF) throws Exception{
+	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF) {
+        String efToPlot = null;
 
-		AtlasRanker ranker = new AtlasRanker();
 		if(EF.equals("default")){
-			HashMap rankInfo =  ranker.getHighestRankEF(expIdKey, geneIdKey);
-			EF = "ba_"+rankInfo.get("expfactor").toString();
-		}
+            HashMap rankInfo = ArrayExpressSearchService.instance().getHighestRankEF(expIdKey, geneIdKey);
+
+            if (null != rankInfo)
+                efToPlot = "ba_" + rankInfo.get("expfactor").toString();
+		} else {
+            efToPlot = EF;
+        }
+
+        if (efToPlot == null)
+            return null;
 			
-		System.out.println(EF);
+        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[] {geneIdKey, expIdKey, efToPlot});
+
 		ArrayList<String> topFVs = new ArrayList<String>();
 		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
-		for(int i=0; i<atlusTuples.size(); i++){
 
-			AtlasTuple at = atlusTuples.get(i);
-			if(at.getEf().equalsIgnoreCase(EF.substring(3)) && !at.getEfv().equals("V1")){
-				topFVs.add(at.getEfv().toLowerCase());
-			}
-		}
+        for (AtlasTuple at : atlusTuples) {
+            if (at.getEf().equalsIgnoreCase(efToPlot.substring(3)) && !at.getEfv().equals("V1")) {
+                topFVs.add(at.getEfv().toLowerCase());
+            }
+        }
 		
-		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, EF);
-//		double[][] data = ds.getSortedExpressionMatrix().get("ba_"+EF);
-		JSONObject jsonString = createJSON(ds,EF,geneIdKey, expIdKey, topFVs);
-		return jsonString;
+		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
+
+        return createJSON(ds, efToPlot, geneIdKey, expIdKey, topFVs);
 	}
 
 	private JSONObject createJSON(ExpressionDataSet eds, String EF, String gid, String eid, ArrayList<String> topFVs){
 		JSONObject plotData = new JSONObject();
 		try {
-			JSONObject series = new JSONObject();
+			JSONObject series;
 			JSONArray seriesList = new JSONArray();
-			JSONArray seriesData = new JSONArray();
+			JSONArray seriesData;
 			Set<String> fvs = eds.getFactorValues(EF);
 			final Object[] fvs_arr = fvs.toArray();
 			Integer[] sortedFVindexes = sortFVs(fvs_arr);
@@ -74,7 +79,6 @@ public class AtlasPlotter {
 			HashMap<String, Double>  fvMean_map = new HashMap<String, Double>(); 
 			int sampleIndex=1;
 			int c=0;
-			boolean unDiffPresent = false;
 			for (int i=0; i<fvs_arr.length; i++){
 				
 				String fv = fvs_arr[sortedFVindexes[i]].toString();
@@ -114,12 +118,6 @@ public class AtlasPlotter {
 					series.put("legend",new JSONObject("{show:false}"));
 					c++;
 				}
-				
-//				if(EF.equals("ba_time")){
-//					series.put("bars", new JSONObject("{show:false, align: \"center\", fill:true}"));
-//					series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
-//				}
-				
 
 				seriesList.put(series);
 			}
@@ -134,22 +132,11 @@ public class AtlasPlotter {
 			meanSeries.put("hoverable", "false");
 			meanSeries.put("shadowSize","1");
 			seriesList.put(meanSeries);
-			
+
 			
 			plotData.put("series", seriesList);
-			int noOfCols = (fvs.size()>=5)? 2: fvs.size();
-//			JSONObject options = new JSONObject("{ xaxis:{ticks:0}, " +
-//												  " legend:{ position:\"sw\", container: \"#"+gid+"_"+eid+"_legend\", extContainer: \"#"+gid+"_"+eid+"_legend_ext\"  }," +
-//												  "	grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true		}," +
-//												  "	bars:{fill:0.7}," +
-//												  " selection: { mode: \"x\" } }");
-//			JSONObject legend = new JSONObject();
-////			legend.put("container", "#"+gid+"_"+eid+"_legend");
-////			options.put("legend", legend);
-//			plotData.put("options", options);
-			
 		} catch (JSONException e) {
-			e.printStackTrace();
+            log.error("Error construction JSON!", e);
 		}
 		return plotData;
 	}
@@ -202,7 +189,4 @@ public class AtlasPlotter {
 		return sum/test.size();
 
 	}
-
-	
-
 }

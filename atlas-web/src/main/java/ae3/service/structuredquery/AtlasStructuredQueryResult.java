@@ -1,7 +1,7 @@
 package ae3.service.structuredquery;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -10,7 +10,7 @@ import java.util.*;
  * @author pashky
  */
 public class AtlasStructuredQueryResult {
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private EfvTree<Integer> resultEfvs;
     private Collection<StructuredResultRow> results;

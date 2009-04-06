@@ -1,10 +1,13 @@
-package ae3.servlet; /**
+package ae3.servlet;
+
+/**
  * User: ostolop
  * Date: 07-Feb-2008
  *
  * EBI Microarray Informatics Team (c) 2007 
  */
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletContext;
@@ -16,24 +19,19 @@ import javax.naming.InitialContext;
 import javax.naming.Context;
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ds.server.DataServerAPI;
 import ds.utils.DS_DBconnection;
 
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.AtlasResultSet;
-import ae3.util.DBhandler;
 import ae3.util.AtlasProperties;
-
-import java.util.HashSet;
-import java.util.Properties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     // Public constructor is required by servlet spec
     public ArrayExpressApplicationListener() {
@@ -45,12 +43,11 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
+            SLF4JBridgeHandler.install();            
+
             System.setProperty("java.awt.headless", "true");
-            
-//            ServletContext sc = sce.getServletContext();
 
             ArrayExpressSearchService as = ArrayExpressSearchService.instance();
-            DBhandler dbHandler = DBhandler.instance(); 
             final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
             final String dbName            = AtlasProperties.getProperty("atlas.dbName");
             final String netCDFlocation = AtlasProperties.getProperty("atlas.netCDFlocation");
@@ -68,18 +65,15 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
             Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:/comp/env");
             DataSource ds = (DataSource) envContext.lookup("jdbc/" + dbName);
-            DataSource memds = (DataSource) envContext.lookup("jdbc/ATLAS");
 
-            dbHandler.setMEMDataSource(memds);
-            dbHandler.setAEDataSource(ds);
             DS_DBconnection.instance().setAEDataSource(ds);
-            as.setMEMDataSource(memds);
+
             as.setAEDataSource(ds);
             as.initialize();
-            DataServerAPI.setNetCDFPath(netCDFlocation);
 
+            DataServerAPI.setNetCDFPath(netCDFlocation);
         } catch (Exception e) {
-            log.error(e);
+            log.error("Error in initialization", e);
         }
     }
 
@@ -94,7 +88,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
         ArrayExpressSearchService as = ArrayExpressSearchService.instance();
         as.shutdown();
 
-        LogFactory.releaseAll();
+        SLF4JBridgeHandler.uninstall();
     }
 
     // -------------------------------------------------------

@@ -423,7 +423,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                                     <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
                                         <c:set var="ud" value="${row.counters[e.payload]}"/>
                                         <c:choose>
-                                            <c:when test="${ud.zero}">
+                                            <c:when test="${empty ud || ud.zero}">
                                                 <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
                                             </c:when>
                                             <c:when test="${ud.ups == 0 && ud.downs > 0}">

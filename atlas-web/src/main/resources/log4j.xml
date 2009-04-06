@@ -16,10 +16,10 @@
     </layout>
   </appender>
 
-  <category name="logger.EhCache" additivity="false">
-    <priority value="INFO"/>
-    <appender-ref ref="console"/>
-  </category>
+  <logger name="org.apache.solr" additivity="false">
+    <level value="WARN"/>
+    <appender-ref ref="${atlas.log.appender}"/>
+  </logger>
 
   <root> 
       <priority value="${atlas.log.priority}"/>

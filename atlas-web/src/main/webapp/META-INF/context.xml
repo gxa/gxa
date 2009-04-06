@@ -47,14 +47,4 @@
       url="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"
       maxActive="50"
     />
-
-    <Resource name="jdbc/ATLAS"
-              type="javax.sql.DataSource"
-              username="sa"
-              password=""
-              driverClassName="org.h2.Driver"
-              maxIdle="2"
-              maxWait="5000"
-              maxActive="50"
-              url="jdbc:h2:${java.io.tmpdir}/ATLAS;DB_CLOSE_ON_EXIT=FALSE"/>
 </Context>

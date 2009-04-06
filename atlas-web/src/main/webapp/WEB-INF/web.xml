@@ -52,20 +52,6 @@
     </error-page>
 
     <servlet>
-        <display-name>Atlas Query Servlet</display-name>
-        <servlet-name>query</servlet-name>
-        <servlet-class>ae3.servlet.QueryServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-
-    <servlet>
-        <display-name>Vertical Text Servlet</display-name>
-        <servlet-name>vtext</servlet-name>
-        <servlet-class>ae3.servlet.VerticalTextServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-
-    <servlet>
         <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>
         <servlet-class>ae3.servlet.TableHeaderServlet</servlet-class>
@@ -123,18 +109,8 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>vtext</servlet-name>
-        <url-pattern>/vtext</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
         <servlet-name>thead</servlet-name>
         <url-pattern>/thead</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>query</servlet-name>
-        <url-pattern>/query</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

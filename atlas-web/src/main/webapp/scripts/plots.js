@@ -95,7 +95,7 @@ function drawPlot(jsonObj, plot_id){
 						var EFV=tokens[0];
 						var EF=tokens[1];
 						if(this.checked){
-							markClicked(eid,gid,EF,EFV,plot,jsonObj);
+							markClicked(eid,gid,EF,uni2efv(EFV),plot,jsonObj);
 						}
 						else{
 						
@@ -109,12 +109,48 @@ function drawPlot(jsonObj, plot_id){
 	
 	}
 
+    function uni2ent(srcTxt) {
+      var entTxt = '';
+      var c, hi, lo;
+      var len = 0;
+      for (var i=0, code; code=srcTxt.charCodeAt(i); i++) {
+        var rawChar = srcTxt.charAt(i);
+        // needs to be an HTML entity
+        if (code > 255) {
+          // normally we encounter the High surrogate first
+          if (0xD800 <= code && code <= 0xDBFF) {
+            hi  = code;
+            lo = srcTxt.charCodeAt(i+1);
+            // the next line will bend your mind a bit
+            code = ((hi - 0xD800) * 0x400) + (lo - 0xDC00) + 0x10000;
+            i++; // we already got low surrogate, so don't grab it again
+          }
+          // what happens if we get the low surrogate first?
+          else if (0xDC00 <= code && code <= 0xDFFF) {
+            hi  = srcTxt.charCodeAt(i-1);
+            lo = code;
+            code = ((hi - 0xD800) * 0x400) + (lo - 0xDC00) + 0x10000;
+          }
+
+          // wrap it up as Hex entity
+          c = "&#" + code.toString(10) + ";";
+        }
+        else {
+          c = rawChar;
+        }
+        entTxt += c;
+        len++;
+      }
+      return entTxt;
+    }
+
 	function markClicked(eid,gid,ef,efv,plot,jsonObj){
 								
 		var plot_id = eid+'_'+gid+'_plot';
 		var allSeries = plot.getData();
 		var series;
 		var markColor;
+        
       	for (var i = 0; i < allSeries.length; ++i){
       		if(allSeries[i].label){
        		 	if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
@@ -124,52 +160,53 @@ function drawPlot(jsonObj, plot_id){
        	 		}
        	 	}
 		}
-						if(series==null){
-							redrawPlotForFactor(eid+'_'+gid+'_'+ef,true,efv);
-							return null;
-						}
-						var data = series.data;
-						var xMin= data[0][0]
-						var xMax= data[data.length-1][0]
-						
-						//var seriesoptions = $.extend(true,{},series.lines,{show:true,lineWidth:1, fill:true})
-						
-						//var testSeries=[];
-						
-						//testSeries.push(series);
-						////allSeries.push(testSeries);
-						//var modSeries = $.extend(true,{},series,{lines:{show:true,lineWidth:1, fill:true}})
-						//alert(testSeries);
-						
-						//plot = $.plot($('#'+plot_id), allSeries,o.options);
-						var overviewDiv = $('#'+plot_id+'_thm');
-						if(allSeries.length>10 && data.length<5){
-						
-						
-							
-                      		//showThumbnail(eid+'_'+gid);
-                      		
-                      		
-                      		if(overviewDiv.height()!=0){
-                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,jsonObj.options);
-				
-                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
-                      		}
-                      		plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
-                          				xaxis: { min: xMin-10, max: xMax+10 }
-                      					}));
-						}
-						else{
-						
-						plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                          				grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]}
-                      					}));
-                      					if(overviewDiv.height()!=0){
-                      		overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']})); 
-				
-                      		overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
-                      		}
+
+        if(series==null){
+            return null;
+        }
+
+        var data = series.data;
+        var xMin= data[0][0]
+        var xMax= data[data.length-1][0]
+
+        //var seriesoptions = $.extend(true,{},series.lines,{show:true,lineWidth:1, fill:true})
+
+        //var testSeries=[];
+
+        //testSeries.push(series);
+        ////allSeries.push(testSeries);
+        //var modSeries = $.extend(true,{},series,{lines:{show:true,lineWidth:1, fill:true}})
+        //alert(testSeries);
+
+        //plot = $.plot($('#'+plot_id), allSeries,o.options);
+        var overviewDiv = $('#'+plot_id+'_thm');
+        if(allSeries.length>10 && data.length<5){
+
+
+
+            //showThumbnail(eid+'_'+gid);
+
+
+            if(overviewDiv.height()!=0){
+            overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,jsonObj.options);
+
+            overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+            }
+            plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                        grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
+                        xaxis: { min: xMin-10, max: xMax+10 }
+                        }));
+        }
+        else{
+
+        plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                        grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]}
+                        }));
+                        if(overviewDiv.height()!=0){
+            overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']}));
+
+            overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+            }
                       	}
 	}
 	
@@ -206,7 +243,7 @@ function drawPlot(jsonObj, plot_id){
    				var plot = drawPlot(o,plot_id);
 				bindMarkings(o,plot,plot_id);
 				if(mark){
-					markClicked(eid,gid,ef,efv,plot,o);
+					markClicked(eid,gid,ef,uni2ent(efv),plot,o);
 				}
 			}
  			});

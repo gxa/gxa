@@ -1,7 +1,7 @@
 package ae3.servlet.structuredquery;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ import ae3.util.HtmlHelper;
  * @author pashky
  */
 public class StructuredQueryServlet extends HttpServlet {
-    private Log log = LogFactory.getLog(getClass());
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         doIt(httpServletRequest, httpServletResponse);
@@ -32,7 +32,6 @@ public class StructuredQueryServlet extends HttpServlet {
 
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         long startTime = HtmlHelper.currentTime(); 
-
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
 

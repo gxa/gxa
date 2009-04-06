@@ -4,8 +4,8 @@ import ae3.service.structuredquery.GeneProperties.Prop;
 import ae3.service.structuredquery.GeneProperties.PropType;
 import ae3.util.EscapeUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class GenePropValueListHelper implements IValueListHelper {
     private SolrServer solrAtlas;
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
 
@@ -170,7 +170,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                     result = result.subList(0, Math.min(result.size(), limit));
             }
         } catch (SolrServerException e) {
-            log.error(e);
+            log.error("Error querying Atlas index", e);
         }
 
         return result;

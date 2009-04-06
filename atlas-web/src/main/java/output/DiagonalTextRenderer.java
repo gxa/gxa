@@ -1,7 +1,7 @@
 package output;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -14,8 +14,9 @@ import java.awt.image.BufferedImage;
 /**
  * @author pashky
  */
+@SuppressWarnings("unchecked")
 public class DiagonalTextRenderer {
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final Map hints = new HashMap();
 
@@ -80,7 +81,6 @@ public class DiagonalTextRenderer {
 
         int x = 0;
         for(int i = 0; i < texts.length; ++i) {
-            String s = txts[i];
             TextLayout layout = new TextLayout(txts[i], font, g2d.getFontRenderContext());
 
             AffineTransform saveAT = g2d.getTransform();

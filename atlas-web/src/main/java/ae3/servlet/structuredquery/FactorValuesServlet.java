@@ -1,16 +1,13 @@
 package ae3.servlet.structuredquery;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.Writer;
-import java.io.PrintWriter;
-import java.util.Map;
 
 import ae3.service.structuredquery.IValueListHelper;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
@@ -20,7 +17,7 @@ import ae3.service.structuredquery.AutoCompleteItem;
  * @author pashky
  */
 public class FactorValuesServlet extends HttpServlet {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         doIt(httpServletRequest, httpServletResponse);

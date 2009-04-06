@@ -20,13 +20,8 @@ if (geneId != null) {
 <%@page import="ae3.model.AtlasExperiment"%>
 <%@page import="ae3.model.AtlasGene"%>
 <%@page import="ae3.dao.AtlasDao"%>
-<%@page import="ae3.service.AtlasGeneService"%>
-<%@page import="ae3.model.AtlasTuple"%>
-<%@page import="java.util.List"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
-<%@page import="java.util.HashSet"%>
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.pack.js"></script><![endif]-->
 <script type="text/javascript">

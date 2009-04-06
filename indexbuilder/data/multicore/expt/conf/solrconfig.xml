@@ -134,7 +134,7 @@
        Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
     <documentCache
       class="solr.LRUCache"
-      size="512"
+      size="2048"
       initialSize="512"
       autowarmCount="0"/>
 

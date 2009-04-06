@@ -11,19 +11,18 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayObject;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.microarray.pools.TimeoutException;
@@ -33,12 +32,11 @@ import ds.R.RUtilities;
 import ds.utils.DSConstants;
 import ds.utils.DS_DBconnection;
 
-
 public class DataServer implements DataServerMonitor {
 
 	DataProcessing[] dpProcess;
 	private String netCDFsPath = DataServerAPI.getNetCDFPath();
-	private final Log log = LogFactory.getLog(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	/**
 	 * 
@@ -214,28 +212,23 @@ public class DataServer implements DataServerMonitor {
 		
 	}
 	
-	public ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String expIdentifier, String factor) throws Exception{
-		
-		
-		//String ADid = netCDF.substring(netCDF.indexOf("_")+1, netCDF.indexOf(".nc"));
+	public ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String expIdentifier, String factor) {
 		String deId_ADid = getDEforGene(geneIdentifier,expIdentifier,factor);
 		String[] ids = deId_ADid.split("_");
 		String deId = ids[0];
 		String adId = ids[1];
 		String netCDF;
-		//String netCDF = getNetCDF(geneIdentifier, expIdentifier);
+
 		if(isExpRatio(expIdentifier,adId))
 			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+"_ratios.nc";	
 		else
 			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
-		Vector deIds = new Vector<String>(); deIds.add(deId);
+		Vector deIds = new Vector<String>();
+        deIds.add(deId);
+        
 		ExpressionDataSet eds = getDataFromNetCDF(netCDF,deIds,factor);
-//		DataProcessing dp = new DataProcessing();
-//		dpProcess = new DataProcessing[] {dp};
-//		ExpressionDataSet eds = dp.retrieveExpressionDataForDE(netCDF,deIds,factor);
-//		this.waitOnProcessToFinish();
+
 		return eds;
-		
 	}
 	
 	private ExpressionDataSet getDataFromNetCDF(String filename, Vector<String> deIds, String factor){
@@ -307,15 +300,18 @@ public class DataServer implements DataServerMonitor {
 		    eds.setFactors(EFarr);
 		    eds.setFactorValues(factor, dataPerFV_map.keySet());
 		    
-		  } catch (Exception ioe) {
-			  log.error("trying to open " + filename, ioe);
-		  } finally { 
+		  } catch (IOException ioe) {
+			  log.error("Error opening " + filename, ioe);
+		  } catch (InvalidRangeException e) {
+              log.error("Error reading data from " + filename + " for factor " + factor + " de ids: " + deIds, e);
+          } finally {
 		    if (null != ncfile) try {
 		      ncfile.close();
 		    } catch (IOException ioe) {
 		      log.error("trying to close " + filename, ioe);
 		    }
 		  }
+
 		  return eds;
 	}
 	
@@ -590,8 +586,8 @@ public class DataServer implements DataServerMonitor {
 	 * 
 	 * Retrieve Similarity Data via a SimilarityResultSet object
 	 * 
-	 * @param netCDF
-	 * @param deId
+	 * @param geneIdent
+	 * @param expIdent
 	 * @param topMatches
 	 * @param method
 	 * @return
@@ -607,7 +603,6 @@ public class DataServer implements DataServerMonitor {
 		String arID = new String();
 		String deId = new String();
 		String ratio = new String();
-		//String absolute = new String();
 		String netCDFFile = new String();
 		Statement stmt;
 		Vector<String> deIds = new Vector<String>();

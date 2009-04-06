@@ -1,7 +1,7 @@
 package ae3.service;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -21,7 +21,7 @@ public class AtlasStatisticsService {
     private PreparedStatement sqlNumExperiments;
     private PreparedStatement sqlNumAssays;
     private SolrServer solrExpt;
-    private Log log = LogFactory.getLog(getClass());
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Constructor. Needs refernce to SQL connection containing ATLAS table.
@@ -158,7 +158,7 @@ public class AtlasStatisticsService {
 
             return stats;
         } catch (SQLException e) {
-            log.error(e);
+            log.error("Error querying Atlas database", e);
         }
         return null;
     }
@@ -169,7 +169,7 @@ public class AtlasStatisticsService {
             sqlNumAssays.close();
             sqlNumExperiments.close();
         } catch(SQLException e) {
-            log.error(e);
+            log.error("Error querying Atlas database", e);
         }
     }
 

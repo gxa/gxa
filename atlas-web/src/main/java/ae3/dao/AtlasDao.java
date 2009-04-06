@@ -8,8 +8,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import ae3.model.AtlasExperiment;
@@ -19,14 +20,10 @@ import ae3.util.QueryHelper;
 import ae3.util.EscapeUtil;
 
 /**
- * Created by IntelliJ IDEA.
- * User: ostolop, mdylag
- * Date: Apr 17, 2008
- * Time: 9:32:22 AM
- * To change this template use File | Settings | File Templates.
+ * @author: ostolop, mdylag
  */
 public class AtlasDao {
-    private final static Log log = LogFactory.getLog(AtlasDao.class);    
+    final static protected Logger log = LoggerFactory.getLogger(AtlasDao.class);
 
     /**
 	 * Returns an AtlasExperiment that contains all information from index.
@@ -51,12 +48,12 @@ public class AtlasDao {
     
 	/**
 	 * Returns an AtlasExperiment that contains all information from index.
-	 * @param solrExptDoc
+	 * @param exptDoc
 	 * @param exptHitsResponse
 	 * @return
 	 */
     public static AtlasExperiment getExperimentByIdAER(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
-        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);;
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getAerExpId()));
         return expt;
     }
@@ -67,34 +64,25 @@ public class AtlasDao {
      * @return
      * @throws AtlasObjectNotFoundException
      */
-	public static AtlasExperiment getExperimentByIdDw(String experiment_id_key) throws AtlasObjectNotFoundException {
-    	//String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_DWEXP_ID + ":" + experiment_id_key + ")";
+	public static AtlasExperiment getExperimentByIdDw(String experiment_id_key) {
     	String query = Constants.FIELD_DWEXP_ID + ":" + experiment_id_key;
-
-        net.sf.ehcache.Cache atlasCache = net.sf.ehcache.CacheManager.getInstance().getCache("atlasCache");
-        net.sf.ehcache.Element exptElement = atlasCache.get(query);
-
-        if(exptElement != null) 
-            return (AtlasExperiment) exptElement.getValue();
 
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
 
         SolrDocumentList documentList = queryResponse.getResults();
 
         if (documentList == null || documentList.size() == 0)
-          //  throw new AtlasObjectNotFoundException(experiment_id_key); 
         	return null;
 
         SolrDocument exptDoc = documentList.get(0);
 
         AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);
-        atlasCache.put(new net.sf.ehcache.Element(query,expt));
 
         return expt;
     }
     
 	/**
-	 * @param solrExptDoc
+	 * @param exptDoc
 	 * @param exptHitsResponse
 	 * @return
 	 */
@@ -122,8 +110,7 @@ public class AtlasDao {
             throw new AtlasObjectNotFoundException(accessionId);
         
     	SolrDocument exptDoc = documentList.get(0);
-    	return AtlasExperiment.load(exptDoc, true, true);      
-
+    	return AtlasExperiment.load(exptDoc, true, true);
     }
 
     
@@ -143,8 +130,6 @@ public class AtlasDao {
 
         SolrDocumentList documentList = queryResponse.getResults();
 
-        //if (documentList == null || documentList.size() == 0)
-          //  throw new AtlasObjectNotFoundException(keywords[0]);
         ArrayList<AtlasExperiment> list = new ArrayList<AtlasExperiment>();
        
         Iterator<SolrDocument> itDoc=documentList.iterator();
@@ -156,7 +141,6 @@ public class AtlasDao {
         	list.add(atlasExp);
         }
         return list;
-
     }    
 
     public static AtlasGene getGene(String gene_id_key) throws AtlasObjectNotFoundException {
@@ -178,18 +162,17 @@ public class AtlasDao {
      * @param gene_id_key
      * @return
      */
-    public static SolrDocumentList getGeneExperiments(String gene_id_key){
-    	SolrDocumentList results=null;
-    	try{
-    	AtlasGene gene = getGene(gene_id_key);
-//    	ArrayList geneExps = gene.getGeneSolrDocument().getFieldValues("gene_experiment")
-    	String expList = "("+StringUtils.join(gene.getGeneSolrDocument().getFieldValues("gene_experiment")," ")+")";
-    	QueryResponse solrResults =  ArrayExpressSearchService.instance().queryExptsByField(expList, "dwe_id", 0, 25);
-    	results = solrResults.getResults();
-    	}catch(AtlasObjectNotFoundException exp){
-    		log.error(exp);
-    	}
-    	return results;
+    public static SolrDocumentList getGeneExperiments(String gene_id_key) {
+        SolrDocumentList results = null;
+        try {
+            AtlasGene gene = getGene(gene_id_key);
+            String expList = "(" + StringUtils.join(gene.getGeneSolrDocument().getFieldValues("gene_experiment"), " ") + ")";
+            QueryResponse solrResults = ArrayExpressSearchService.instance().queryExptsByField(expList, "dwe_id", 0, 25);
+            results = solrResults.getResults();
+        } catch (AtlasObjectNotFoundException exp) {
+            log.error("Experiments not found; gene missing: " + gene_id_key, exp);
+        }
+        return results;
     }
 
     /**
@@ -212,7 +195,7 @@ public class AtlasDao {
      * @return
      * @throws AtlasObjectNotFoundException
      */
-    public static SolrDocumentList getDocListForGene(String gene_identifier) throws AtlasObjectNotFoundException{
+    public static SolrDocumentList getDocListForGene(String gene_identifier) throws AtlasObjectNotFoundException {
     	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
     	
         SolrDocumentList documentList = queryResponse.getResults();
@@ -231,7 +214,7 @@ public class AtlasDao {
      * @throws AtlasObjectNotFoundException
      * @throws MultipleGeneException
      */
-    public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException, MultipleGeneException{
+    public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException, MultipleGeneException {
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
 
         SolrDocumentList documentList = queryResponse.getResults();
@@ -247,6 +230,4 @@ public class AtlasDao {
 
         return new AtlasGene(geneDoc);
     }
-    
-
 }

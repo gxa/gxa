@@ -5,7 +5,6 @@
 <%@page import="ae3.model.AtlasGene"%>
 <%@page import="java.util.*"%>
 <%@page import="ae3.service.AtlasGeneService"%>
-<%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
 <c:set var="timeStart" value="${u:currentTime()}" />
 
@@ -24,7 +23,7 @@
 		atlasGene = AtlasGeneService.getAtlasGene(geneId);
 		if ( atlasGene!=null){
 			noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
-			request.setAttribute("heatMapRows",AtlasGeneService.getHeatMapRows(geneId));
+			request.setAttribute("heatMapRows", AtlasGeneService.getHeatMapRows(geneId));
 			request.setAttribute("atlasGene",atlasGene);
 			request.setAttribute("noAtlasExps",noAtlasExps);
 		}
@@ -152,7 +151,7 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 	
 
 	function FilterExps(el,fv,ef){
-		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},efv:fv,factor:ef},
+		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId}, efv: uni2ent(fv), factor:ef},
 							function(){
 								for (var i = 0; i < exps.length; ++i){
 									eid = jQuery.trim(exps[i].id);
@@ -361,7 +360,7 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 						</tr>
 						<tr>
 						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white">
-							Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in.
+							Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in
 						   </td>
 						</tr>
 						</thead>
