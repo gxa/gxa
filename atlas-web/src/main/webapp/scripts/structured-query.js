@@ -348,7 +348,7 @@
                  var plotel = $('#'+plot_id);
                  $.plot(plotel, jsonObj.series,
                          $.extend(true, {}, jsonObj.options, {
-                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#e8cfac' }]}
+                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#FFFFCC' }]}
                          }));
 
                  var link = $('#' + plot_id + '_link');

@@ -31,7 +31,6 @@ import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -518,6 +517,11 @@ public class ArrayExpressSearchService {
     public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
     {
         return experimentsService.getExperiments(gene_id_key, factor, factorValue);
+    }
+    
+    public ExperimentList getExperiments(ArrayList<String> exps)
+    {
+        return experimentsService.getExperiments(exps);
     }
 
     public Iterable<String> getGeneProperties(){

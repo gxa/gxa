@@ -32,7 +32,7 @@ public class AtlasPlotter {
 		return _instance;
 	}
 
-	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF) {
+	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType) {
         String efToPlot = null;
 
 		if(EF.equals("default")){
@@ -59,11 +59,14 @@ public class AtlasPlotter {
         }
 		
 		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
-
-        return createJSON(ds, efToPlot, geneIdKey, expIdKey, topFVs);
+		
+		if(plotType.equals("thumb"))
+			return createThumbnailJSON(ds, efToPlot, EFV);
+		
+        return createJSON(ds, efToPlot, topFVs);
 	}
 
-	private JSONObject createJSON(ExpressionDataSet eds, String EF, String gid, String eid, ArrayList<String> topFVs){
+	private JSONObject createJSON(ExpressionDataSet eds, String EF, ArrayList<String> topFVs){
 		JSONObject plotData = new JSONObject();
 		try {
 			JSONObject series;
@@ -141,6 +144,56 @@ public class AtlasPlotter {
 		return plotData;
 	}
 
+	
+	private JSONObject createThumbnailJSON(ExpressionDataSet eds, String EF, String EFV){
+		JSONObject plotData = new JSONObject();
+		JSONArray seriesList = new JSONArray();
+		JSONObject series;
+		JSONArray seriesData;
+		
+		try {
+			int sampleIndex=1;
+			int startMark=0, endMark=0;
+			Set<String> fvs = eds.getFactorValues(EF);
+			final Object[] fvs_arr = fvs.toArray();
+			Integer[] sortedFVindexes = sortFVs(fvs_arr);
+			series = new JSONObject();
+			seriesData = new JSONArray();
+			for (int i=0; i<fvs_arr.length; i++){
+				
+				String fv = fvs_arr[sortedFVindexes[i]].toString();
+				
+				ArrayList[] DEdata = eds.getDataByFV(EF, fv);
+				if(fv.equals(EFV))
+					startMark = sampleIndex;
+				
+				for(int j=0; j<DEdata[0].size(); j++){//columns <==> samples with the same FV
+					for(int k=0; k<DEdata.length; k++){//rows <==> DEs
+						JSONArray point = new JSONArray();
+						point.put(sampleIndex);
+						point.put(DEdata[k].get(j));// loop over available DEs and add data points to the same x point
+						seriesData.put(point);
+					}
+					sampleIndex++;
+				}
+				if(fv.equals(EFV))
+					endMark = sampleIndex;
+			}
+			series.put("data", seriesData);
+			series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
+			series.put("legend",new JSONObject("{show:false}"));
+			seriesList.put(series);
+			plotData.put("series", seriesList);
+			plotData.put("startMarkIndex",startMark);
+			plotData.put("endMarkIndex",endMark);
+			
+		} catch (JSONException e) {
+			log.error("Error construction JSON!", e);
+		}
+		
+		return plotData;
+	}
+	
 	
 	private Integer[] sortFVs(final Object[] fvs){
 		

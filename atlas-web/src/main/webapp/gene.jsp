@@ -216,10 +216,10 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                   <td class="leftmenucell" id="leftmenucell">
                                         <div class="leftmenu" id="leftmenu" style="1px; visibility: hidden; display: none;">
 
-<img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" />
-</div>
-</td>
-<td class="contentsarea" id="contentsarea">
+										<img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" />
+										</div>
+								  </td>
+									<td class="contentsarea" id="contentsarea">
 
 <div id="ae_pagecontainer">
 

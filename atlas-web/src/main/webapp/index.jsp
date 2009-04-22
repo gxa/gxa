@@ -182,6 +182,9 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
                     <td>
                         <label class="label" for="fval0">Conditions</label>
                     </td>
+                    <td>
+                    	<label class="label" for="view">View</label>
+                    </td>
                     <td></td>
                 </tr>
                 <tr>
@@ -207,6 +210,10 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
                     </td>
                     <td>
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                    </td>
+                    <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
+                    	<input type="radio" name="view" value="hm" style="vertical-align:bottom">Heatmap<br>
+                    	<input type="radio" style="vertical-align:bottom" name="view" value="list" checked="checked">List
                     </td>
                     <td align="right">
                         <input type="submit" value="Search Atlas" class="searchatlas">
@@ -262,7 +269,6 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
                 </table>
             </div>
 -->
-            <input type="hidden" name="view" value="hm"/>
         </form>
 
 <div style="position:relative">

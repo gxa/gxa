@@ -318,7 +318,8 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="minpval_efv_*" type="float" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="avgpval_exp_*" type="float" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="efvs_up_*" type="string" indexed="true" stored="true" multiValued="true" />       
-        <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="true" multiValued="true" />       
+        <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="true" multiValued="true" />
+        <dynamicField name="exp_info_efv_*" type="string" indexed="false" stored="true" multiValued="true" />        
     </fields>
 
 

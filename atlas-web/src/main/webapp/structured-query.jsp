@@ -8,10 +8,12 @@
 Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <jsp:include page="end_head.jsp"></jsp:include>
 
-<link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+<!-- <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" /> -->
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <link rel="stylesheet" href="atlas.css" type="text/css" />
+<link rel="stylesheet" href="listView.css" type="text/css" />
+<link rel="stylesheet" href="geneView.css" type="text/css" />
 
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
@@ -22,10 +24,14 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.js"></script>
+<script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
 <script type="text/javascript" src="scripts/feedback.js"></script>
+<script type="text/javascript" src="scripts/jquery.tablesorter.mod.js"></script>
+<!-- >script type="text/javascript" src="scripts/jquery.tablesorter.pager.js"></script-->
+<script type="text/javascript" src="scripts/jquery.tablesorter.collapsible.js"></script>
 
 <style type="text/css">.contents{top: 87px}</style>
 
@@ -75,6 +81,9 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <td>
                             <label class="label" for="fval0">Conditions</label>
                         </td>
+                        <td>
+                        	<label class="label" for="view">View</label>
+                        </td>
                         <td></td>
                     </tr>
                     <tr>
@@ -103,6 +112,10 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <td>
                             <input type="text" class="value" name="fval_0" id="fval0" style="width:200px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                         </td>
+                         <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
+                    		<input type="radio" name="view" style="vertical-align:bottom" value="hm">Heatmap<br>
+                    		<input type="radio" name="view" style="vertical-align:bottom" value="list" checked="checked">List
+                    	</td>
                         <td align="right">
                             <input type="submit" value="Search Atlas" class="searchatlas">
 		        </td>
@@ -110,10 +123,9 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     <tr>
 			<td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
 			<td class="label"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
-			<td valign="top" align="right"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
+			<td valign="top" align="right" nowrap="nowrap"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
                     </tr>
                 </table>
-            <input type="hidden" name="view" value="hm" />
     </form>
     <form id="structform" class="visinstruct" name="atlasform" action="qrs" style="display:none">
 		  <fieldset style="border:1px solid #DEDEDE;width: 850px">
@@ -128,9 +140,11 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 	       <legend  style="padding-left:5px;padding-right:5px;color: black">Add conditions to the query</legend>
 
                <div style="">
-		    <table>
+		    <table cellspacing="0">
 		      <tr>	
-			<td colspan="4" ></td>
+				<td colspan="3" ></td>
+				<td><label class="label" for="view">View</label></td>
+				<td></td>
 		      </tr>
 		      <tr>
 			<td>
@@ -159,19 +173,22 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 			      </c:forEach>
 			  </select>
 			</td>
+			 <td class="label" nowrap="nowrap">
+                   <input type="radio" name="view" value="hm" style="vertical-align:bottom">Heatmap<br>
+                   <input type="radio" name="view" value="list" style="vertical-align:bottom" checked="checked">List
+             </td>
 			<td align="right">
 			  <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="atlas.clearQuery();">
 			  <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas">
 			</td>
 		      </tr>
 		      <tr>
-			<td colspan="4" align="right">
+			<td colspan="5" align="right">
 			  <a class="visinstruct smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
 			  </td>
 		    </table>
                </div>
 		    </fieldset>
-            <input type="hidden" name="view" value="hm" />
 		</fieldset>
         </form>
 
@@ -242,6 +259,32 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 
             $('#simpleform, #structform').css('display', '');
             $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
+
+            $(".tablesorter")
+						/*
+						 * td.collapsible = collapse to the first table row and show +/-
+						 * td.collapsible_alt = anchor to order number
+						 */
+						.collapsible("td.collapsible", {
+							collapse: true,
+							callback:showExps
+						})
+						.tablesorter({
+						// set default sort column
+						//sortList: [[3,0]],
+						// don't sort by first column
+						headers: {0: {sorter: false}}
+						// set the widgets being used - zebra stripping
+						, widgets: ['zebra']
+						, onRenderHeader: function (){
+							this.wrapInner("<span></span>");
+						}
+						, debug: false
+					});
+					
+					
+            
+            
         });
         var preloads = [ 'expp.gif', 'expm.gif', 'indicator.gif' ]; var img = [];
         for(var i = 0; i < preloads.length; ++i) {
@@ -274,12 +317,13 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 	<c:param name="gprop_${gs.index}" value="${g.factor}" />
                 </c:forEach>
                 <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
-                <c:forEach varStatus="cs" var="c" items="${result.conditions}">
+                <c:forEach varStatus="cs" var="c" items="${query.conditions}">
                     <c:param name="fact_${cs.index}" value="${c.factor}"/>
                     <c:param name="fexp_${cs.index}" value="${c.expression}"/>
                     <c:param name="fval_${cs.index}" value="${c.jointFactorValues}"/>
                 </c:forEach>
                 <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
+                <c:if test="${list}"><c:param name="view" value="list"/></c:if>
             </c:url>
 
             <c:if test="${!empty result && result.size < result.total}">
@@ -298,10 +342,52 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     $(".page_short").pagination(${result.total}, opts);
                     opts.num_display_entries = 5;
                     $(".page_long").pagination(${result.total}, opts);
+
+                    $("#export_lnk").bind("click",function(){
+                    	
+                    	$.ajax({ 
+			                url: '${pageUrl}&export=true', 
+			                cache: false, 
+			                complete: function() { 
+			                    // unblock when remote call returns 
+			                    //$.blockUI({ message: $('#question'), css: { width: '275px' } }); 
+			                    
+			                } 
+                    	});
+                    	
+                    	popup('downloads.jsp');
+                    	
+                    	
+                    });	
                 });
+                
+                function popup(url) 
+				{
+					 var width  = 600;
+					 var height = 200;
+					 var left   = (screen.width  - width)/2;
+					 var top    = (screen.height - height)/2;
+					 var params = 'width='+width+', height='+height;
+					 params += ', top='+top+', left='+left;
+					 params += ', directories=no';
+					 params += ', location=no';
+					 params += ', menubar=no';
+					 params += ', resizable=no';
+					 params += ', scrollbars=no';
+					 params += ', status=no';
+					 params += ', toolbar=no';
+					 newwin=window.open(url,'windowname5', params);
+					 if (window.focus) {newwin.focus()}
+					 return false;
+				 }
+                
+                
             </script>
             </c:if>
-
+            
+            
+            
+<div id = "result_cont" style="width: 100%" >
             <table id="twocol" style="margin-top:20px">
 	      <tr class="top">
                 <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
@@ -347,122 +433,255 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                                     </div>
                                 </c:if>
                             </c:forEach>
-                       </div>
-                    </td>
-                </c:if>
-
-                <c:if test="${true || heatmap}">
-                   <td id="resultpane">
-
-		     <c:if test="${result.size > 0}">
-            <div id="summary">
-                <span id="pagetop" class="pagination_ie page_long"></span>
-                Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
             </div>
-
-		    <div id="legendexpand" style="width:850px;height:30px">
-				Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
-			</div>
-        </c:if>
-                        <table id="squery">
-                            <tbody>
-                            <tr class="header">
-                                <th class="padded" rowspan="2">Gene</th>
-                                <c:if test="${f:length(query.species) != 1}">
-                                    <th class="padded" rowspan="2">Organism</th>
-                                </c:if>
-                                <map name="efvmap">
-                                    <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
-                                        <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
-                                    </c:forEach>
-                                </map>
-                                <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
-                                <c:url var="imgUrl" value="/thead">
-                                    <c:param name="random" value="${u:currentTime()}" />
-                                    <c:param name="st" value="1" />
-                                    <c:param name="s" value="27" />
-                                    <c:param name="fs" value="11" />
-                                    <c:param name="h" value="100" />
-                                    <c:param name="lh" value="15" />
-                                    <c:param name="lc" value="#cdcdcd" />
-                                    <c:param name="tc" value="#000000" />
-                                </c:url>
-                                <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
-                            </tr>
-                            <tr>
-                                <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
-                                    <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
-                                    <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
-                                        <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
-                                        <c:choose>
-                                            <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
-                                                <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;&nbsp;fewer</a>
-                                            </c:when>
-                                            <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
-                                                <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;&#0187;</a>
-                                            </c:when>
-                                        </c:choose>
-                                    </th>
-                                </c:forEach>
-                            </tr>
-                            <c:forEach var="row" items="${result.results}" varStatus="i">
-                                <tr id="squeryrow${i.index}">
-                                    <td class="padded genename">
-                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
-                                        <div class="gtooltip">
-                                            <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
-                                            <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
-                                            <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
-                                            <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
-                                        </div>
-                                    </td>
-                                    <c:if test="${f:length(query.species) != 1}">
-                                        <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
-                                    </c:if>
-                                    <c:set var="first" value="true" />
-                                    <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
-                                        <c:set var="ud" value="${row.counters[e.payload]}"/>
-                                        <c:choose>
-                                            <c:when test="${empty ud || ud.zero}">
-                                                <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
-                                            </c:when>
-                                            <c:when test="${ud.ups == 0 && ud.downs > 0}">
-                                                <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
-                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                    onclick="atlas.hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
-                                            </c:when>
-                                            <c:when test="${ud.downs == 0 && ud.ups > 0}">
-                                                <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
-                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
-                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <td class="acounter"
-                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </c:forEach>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
-
-                        <div class="pagination_ie page_long"></div>
-
-                        <c:set var="timeFinish" value="${u:currentTime()}"/>
-                        <p>
-                            Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-                        </p>
                     </td>
                 </c:if>
-            </tr></table>
+
+                
+                   <td id="resultpane" width="100%">
+						
+       				 	<c:choose>
+       				 		<c:when test="${heatmap}">
+	       				 		<c:if test="${result.size > 0}">
+						            <div id="summary">
+						                <span id="pagetop" class="pagination_ie page_long"></span>
+						                Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
+						            </div>
+		
+								    <div id="legendexpand" style="width:850px;height:30px">
+										Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
+									</div>
+	       				 		</c:if>
+       				 			 <table id="squery">
+		                            <tbody>
+		                            <tr class="header">
+		                                <th class="padded" rowspan="2">Gene</th>
+		                                <c:if test="${f:length(query.species) != 1}">
+		                                    <th class="padded" rowspan="2">Organism</th>
+		                                </c:if>
+		                                <map name="efvmap">
+		                                    <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
+		                                        <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},80,${s.index*27+80},0,${s.index*27+99+17},0,${s.index*27+17},99,${s.index*27},99,${s.index*27},80" onclick="return false;">
+		                                    </c:forEach>
+		                                </map>
+		                                <c:set scope="session" var="diagonalTexts" value="${result.resultEfvs.efvArray}" />
+		                                <c:url var="imgUrl" value="/thead">
+		                                    <c:param name="random" value="${u:currentTime()}" />
+		                                    <c:param name="st" value="1" />
+		                                    <c:param name="s" value="27" />
+		                                    <c:param name="fs" value="11" />
+		                                    <c:param name="h" value="100" />
+		                                    <c:param name="lh" value="15" />
+		                                    <c:param name="lc" value="#cdcdcd" />
+		                                    <c:param name="tc" value="#000000" />
+		                                </c:url>
+		                                <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:100px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${imgUrl}" usemap="#efvmap"></div></div></td>
+		                            </tr>
+		                            <tr>
+		                                <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
+		                                    <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
+		                                    <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
+		                                        <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
+		                                        <c:choose>
+		                                            <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
+		                                                <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;&nbsp;fewer</a>
+		                                            </c:when>
+		                                            <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
+		                                                <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;&#0187;</a>
+		                                            </c:when>
+		                                        </c:choose>
+		                                    </th>
+		                                </c:forEach>
+		                            </tr>
+		                            <c:forEach var="row" items="${result.results}" varStatus="i">
+		                                <tr id="squeryrow${i.index}">
+		                                    <td class="padded genename">
+		                                        <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
+		                                        <div class="gtooltip">
+		                                            <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
+		                                            <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
+		                                            <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
+		                                            <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+		                                        </div>
+		                                    </td>
+		                                    <c:if test="${f:length(query.species) != 1}">
+		                                        <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
+		                                    </c:if>
+		                                    <c:set var="first" value="true" />
+		                                    <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
+		                                        <c:set var="ud" value="${row.counters[e.payload]}"/>
+		                                        <c:choose>
+		                                            <c:when test="${ud.zero}">
+		                                                <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
+		                                            </c:when>
+		                                            <c:when test="${ud.ups == 0 && ud.downs > 0}">
+		                                                <td class="acounter" style="background-color:${u:expressionBack(ud,-1)};color:${u:expressionText(ud,-1)}"
+		                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
+		                                                    onclick="atlas.hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
+		                                            </c:when>
+		                                            <c:when test="${ud.downs == 0 && ud.ups > 0}">
+		                                                <td class="acounter" style="background-color:${u:expressionBack(ud,1)};color:${u:expressionText(ud,1)}"
+		                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
+		                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
+		                                            </c:when>
+		                                            <c:otherwise>
+		                                                <td class="acounter"
+		                                                    title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
+		                                                    onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri" style="border-right-color:${u:expressionBack(ud,-1)};border-top-color:${u:expressionBack(ud,1)};"></div><div style="color:${u:expressionText(ud,-1)}" class="dnval">${ud.downs}</div><div style="color:${u:expressionText(ud,1)}" class="upval">${ud.ups}</div></div></td>
+		                                            </c:otherwise>
+		                                        </c:choose>
+		                                    </c:forEach>
+		                                </tr>
+		                            </c:forEach>
+		                            </tbody>
+		                        </table>
+		
+		                        <div class="pagination_ie page_long"></div>
+		
+		                        <c:set var="timeFinish" value="${u:currentTime()}"/>
+		                        <p>
+		                            Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+		                        </p>
+       				 		</c:when>
+       				 		<c:otherwise>
+       				 		<c:if test="${result.size > 0}">
+						            <div id="summary">
+						                <span id="pagetop" class="pagination_ie page_long"></span>
+						                Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
+						            </div>
+									
+								    <div id="legendexpand" style="width:850px;height:30px">
+										Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
+									</div>
+									<div style="text-align:right" id="downloads"><a  href="javascript:void(0)" onclick="popup('downloads.jsp')">Downloads (${noDownloads})</a> </div>
+	       				 		</c:if>
+       	<table id="grid" "class="tablesorter" cellspacing="0" width="100%">
+						<colgroup>
+							<col width="15" />
+							<col width="110" />
+							<col  />
+							<col  />
+							<col  />
+							<col width="110"/>
+							<col width="90"/>
+						</colgroup>
+					
+						<thead>
+							<tr>
+								<th style="padding: 0; margin: 0;"></th>
+								<th>Gene</th>
+								<th>Organism</th>
+								<th>Experimental Factor</th>
+								<th>Factor Value</th>
+								<th>Expression</th>
+								<th>P-value</th>
+							</tr>
+						</thead>
+					
+						<tbody>
+						
+						<c:forEach var="row" items="${result.listResults}" varStatus="r">
+							<!-- 
+							<c:if test="${r.first}">
+								<tr class="geneHead">
+									<td></td>
+									<td colspan="6"><b>${row.gene_name}</b></td>
+								</tr>
+							</c:if>
+							 -->
+							
+								
+							<tr id="${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}">
+									<td rowspan="${row.exp_list.num+2}" class="collapsible" style="vertical-align:top"></td>
+									<td style="border-bottom:1px solid #CDCDCD; padding-left: 4px" class="collapsible_alt genename">
+										<a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
+										 <div class="gtooltip" style="display: none;">
+		                                            <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
+		                                            <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
+		                                            <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
+		                                            <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+		                                 </div>
+									</td>
+									<td style="border-bottom:1px solid #CDCDCD">${row.gene_species}</td>
+									<td style="border-bottom:1px solid #CDCDCD"><fmt:message key="head.ef.${row.ef}"/></td>
+									<td style="border-bottom:1px solid #CDCDCD">${row.fv}</td>
+									<td style="border-bottom:1px solid #CDCDCD" class="acounter">
+										<c:choose>
+										<c:when test="${row.mixedCell}">
+									        <div style="width:26px">
+		                                    	<div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
+		                                    	<div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
+		                                    	<div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
+											</div>
+										</c:when>
+										<c:otherwise>
+											<div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
+		                                    	<div class="osq"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
+		                                    			 <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
+							 					</div>
+										</c:otherwise>
+										</c:choose>
+									</td>
+									<td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${row.minPval}" pattern="#.###E0" /></td>
+								</tr>
+								<tr class="expand-child" style="background-color: #deebeb;">
+										<td colspan="6">
+											<span class="bold">Experiments</span>
+										</td>
+									</tr>
+								<c:forEach var="exp" items="${row.explistIter}">
+									
+									<tr class="expand-child" style="background-color: #deebeb;">
+									
+									
+									<td colspan="4">
+										<div><span class="bold">${exp.experimentAccession}&nbsp;</span><span>${exp.experimentName}</span></div>
+									</td>
+
+									 <td> <div id="${exp.experimentId}_${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}_${exp.updn}"  class="thumb" style="width:100px;height:50px;">
+											<img align="center" src="images/indicator.gif"/>
+										</div>
+										<span style="display: none"></span>
+									</td>
+									 <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
+							          <c:choose>
+							                    <c:when test="${exp.updn == 'UP'}">
+							           			<td style="color: red">
+							                    	&#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.###E0" />
+							                    </td>
+							                    </c:when>
+							                    <c:otherwise>
+							                        <td style="color: blue">
+							                    		&#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.###E0" />
+							                    	</td>
+							                    </c:otherwise>
+							         </c:choose>
+								</tr>
+								</c:forEach>				
+						</c:forEach>
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="7" align="right"><a id="export_lnk" href="javascript:void(0)" >Download full results</a></td>	
+							</tr>
+						</tfoot>
+						</table>			
+       				 		</c:otherwise>
+       				 	</c:choose>
+		           </td>
+                
+            </tr>
+            </table>
+        </div>
+
         </c:if>
         <c:if test="${result.size == 0}">
             <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">No matching results found.</div>
         </c:if>
     </c:if>
-
+<div id="question" style="display:none; cursor: default"> 
+        <input  type="button" id="no" value="Get file" /> 
+</div> 
 </div>
 
 <jsp:include page="end_body.jsp"></jsp:include>

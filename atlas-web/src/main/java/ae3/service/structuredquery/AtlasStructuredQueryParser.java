@@ -197,11 +197,22 @@ public class AtlasStructuredQueryParser {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
         
         request.setGeneQueries(parseGeneConditions(httpRequest));
-
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseExpFactorConditions(httpRequest));
-        request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
-
+        request.setView(httpRequest.getParameter("view"));
+        
+        if(httpRequest.getParameter("export")!=null){
+        	request.setExport(httpRequest.getParameter("export").equals("true"));
+        }
+        
+        if(!request.isNone()){
+        	if(request.viewHeatMap() || request.isExport())
+            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
+            else 
+            	request.setRowsPerPage(10); //TO DO: put value in atlas properties
+        }
+        
+        
         String start = httpRequest.getParameter(PARAM_START);
         try {
             request.setStart(Integer.valueOf(start) * request.getRowsPerPage());
@@ -210,6 +221,7 @@ public class AtlasStructuredQueryParser {
         }
 
         request.setExpandColumns(parseExpandColumns(httpRequest));
+       
 
         return request;
     }

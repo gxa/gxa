@@ -203,11 +203,11 @@ public class AtlasGene {
 		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_dn")));
 	}
 
-	public double getAvg_up(String ef, String efv){
+	public double getMin_up(String ef, String efv){
 		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_up")));
 	}
 
-	public double getAvg_dn(String ef, String efv){
+	public double getMin_dn(String ef, String efv){
 		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_dn")));
 	}
 

@@ -145,6 +145,9 @@ ArrayExpress Atlas
                     <td>
                         <label class="label" for="fval0">Conditions</label>
                     </td>
+                     <td>
+                    	<label class="label" for="view">View</label>
+                    </td>
                     <td></td>
                 </tr>
                 <tr>
@@ -170,6 +173,10 @@ ArrayExpress Atlas
                     </td>
                     <td>
                         <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                    </td>
+                     <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
+                    	<input type="radio" name="view" value="hm" style="vertical-align:bottom">Heatmap<br>
+                    	<input type="radio" style="vertical-align:bottom" name="view" value="list" checked="checked">List
                     </td>
                     <td align="right">
                         <input type="submit" value="Search Atlas" class="searchatlas">

@@ -9,21 +9,31 @@
 
     String gid = request.getParameter("gid");
     String eid = request.getParameter("eid");
+    String plotType = "full";
     String ef="default";
+    String efv="";
+    String updn="up";
 
+    if(request.getParameter("plot") != null)
+    	plotType=request.getParameter("plot");
+    
     if(request.getParameter("ef") != null)
         ef=request.getParameter("ef");
+    
+    if(request.getParameter("efv") != null)
+        efv=request.getParameter("efv");
+    
+    if(request.getParameter("updn") != null)
+        updn=request.getParameter("updn");
 
     try {
-        JSONObject jsonString = AtlasPlotter
-                .instance()
-                .getGeneInExpPlotData(
-                        request.getParameter("gid"),
-                        request.getParameter("eid"),
-                        ef);
+        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(request.getParameter("gid"),request.getParameter("eid"),ef,efv,plotType);
 
         if (jsonString != null) {
-            JSONObject options = new JSONObject(
+            
+        	if(!plotType.equals("thumb")){
+        	
+        	JSONObject options = new JSONObject(
                            "{  xaxis: {    ticks: 0 }, " +
                             " legend: {     show: true, " +
                             "           position: 'sw', " +
@@ -37,8 +47,26 @@
                             "          clickable: true, " +
                             "        borderWidth: 1}," +
                             " selection: {  mode: 'x' } }");
-
-            jsonString.put("options", options);
+        		jsonString.put("options", options);
+        	}
+        	else{
+        		String color = updn.equals("UP") ? "#FE2E2E" : "#2E2EFE";
+        		JSONObject options = new JSONObject(
+                        "{  xaxis: {    ticks: 0 }, " +
+                         "  yaxis: {    ticks: 0 }, "+	
+                         " legend: {     show: false }," +
+                         "   grid: {  " +
+                         "    backgroundColor: '#fafafa',	" +
+                         "      autoHighlight: false, " +
+                         "          hoverable: true, " +
+                         "          clickable: true, " +
+                         "			markings: [{ xaxis: { from: "+jsonString.get("startMarkIndex")+", to: "+jsonString.get("endMarkIndex")+" },"+
+                        	 							" color: '"+"#D8D8D8"+"' }],"+
+                         "        borderWidth: 1}," +
+                         " selection: {  mode: 'x' } }");
+        		jsonString.put("options", options);
+        	}
+            
             response.setContentType("text/javascript");
             response.getWriter().print(jsonString);
         }

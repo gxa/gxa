@@ -3,6 +3,8 @@ package ae3.service.structuredquery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ae3.service.ListResultRow;
+
 import java.util.*;
 
 /**
@@ -14,12 +16,15 @@ public class AtlasStructuredQueryResult {
 
     private EfvTree<Integer> resultEfvs;
     private Collection<StructuredResultRow> results;
+    private Collection<ListResultRow> listResults;
     private Iterable<ExpFactorResultCondition> conditions;
     private Set<String> expandableEfs;
 
     private long total;
     private long start;
     private long rowsPerPage;
+    private int rowsPerGene;
+    private int numListGenes;
 
     private EfvTree<FacetUpDn> efvFacet;
     private Map<String,Iterable<FacetCounter>> geneFacets;
@@ -33,9 +38,11 @@ public class AtlasStructuredQueryResult {
      */
     public AtlasStructuredQueryResult(long start, long rowsPerPage) {
         this.results = new ArrayList<StructuredResultRow>();
+        this.listResults = new ArrayList<ListResultRow>();
         this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
         this.rowsPerPage = rowsPerPage;
+        this.rowsPerGene = 10;
     }
 
     /**
@@ -63,6 +70,23 @@ public class AtlasStructuredQueryResult {
     }
 
     /**
+     * Returns sorted list of atlas list view results sorted by number of studies and p-value
+     * @return
+     */
+    public Collection<ListResultRow> getListResults() {
+    	Collections.sort((ArrayList<ListResultRow>)listResults,Collections.reverseOrder());
+		return listResults;
+	}
+
+    /**
+     * Adds listResult to list
+     * @param listRow to add
+     */
+	public void addListResult(ListResultRow listRow) {
+		this.listResults.add(listRow);
+	}
+
+	/**
      * Set results EFVs tree
      * @param resultEfvs result EFVs tree
      */
@@ -111,6 +135,27 @@ public class AtlasStructuredQueryResult {
     }
 
     /**
+     * Returns number of rows (Factor values) allowed to show in list view per gene
+     * @return
+     */
+    public int getRowsPerGene() {
+		return rowsPerGene;
+	}
+
+	public void setRowsPerGene(int listRowsPerGene) {
+		this.rowsPerGene = listRowsPerGene;
+	}
+
+
+	public int getNumListGenes() {
+		return numListGenes;
+	}
+
+	public void setNumListGenes(int numListGenes) {
+		this.numListGenes = numListGenes;
+	}
+
+	/**
      * Sets total number of results
      * @param total total number of results
      */

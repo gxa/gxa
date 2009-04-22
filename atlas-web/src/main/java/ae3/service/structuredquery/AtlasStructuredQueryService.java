@@ -1,10 +1,13 @@
 package ae3.service.structuredquery;
 
 import ae3.dao.AtlasDao;
+import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
+import ae3.service.ArrayExpressSearchService;
+import ae3.service.ListResultRow;
 import ae3.ols.OlsCommunicationException;
 import ae3.util.AtlasProperties;
 import org.apache.commons.lang.StringUtils;
@@ -126,8 +129,8 @@ public class AtlasStructuredQueryService {
             try {
                 SolrQuery q = setupSolrQuery(query, solrq.toString(), queryEfvs);
                 QueryResponse response = solrAtlas.query(q);
-
-                processResultGenes(response, result, queryEfvs);
+                
+                processResultGenes(response, result, queryEfvs, query);
 
                 Set<String> expandableEfs = new HashSet<String>();
                 EfvTree<Integer> trimmedEfvs = trimColumns(query, result, expandableEfs);
@@ -154,8 +157,8 @@ public class AtlasStructuredQueryService {
         }
 
         return result;
-    }
-
+    }    
+        
     private EfvTree<Integer> trimColumns(final AtlasStructuredQuery query,
                                          final AtlasStructuredQueryResult result,
                                          Collection<String> expandableEfs)
@@ -534,11 +537,12 @@ public class AtlasStructuredQueryService {
 
     private void processResultGenes(QueryResponse response,
                                     AtlasStructuredQueryResult result,
-                                    EfvTree<Integer> queryEfvs) throws SolrServerException {
+                                    EfvTree<Integer> queryEfvs,
+                                    AtlasStructuredQuery query) throws SolrServerException {
 
         SolrDocumentList docs = response.getResults();
         result.setTotal(docs.getNumFound());
-
+        int listRowsPerGene=0;int numOfListGenes = 0;int totalListRows=0;
         boolean hasQueryEfvs = queryEfvs.getNumEfvs() > 0;
         EfvTree<Integer> resultEfvs = new EfvTree<Integer>();
 
@@ -552,6 +556,7 @@ public class AtlasStructuredQueryService {
         Iterable<String> autoFactors = getConfiguredFactors("anycondition");
 
         for(SolrDocument doc : docs) {
+        	listRowsPerGene=0;
             String id = (String)doc.getFieldValue(atlasIdField);
             if(id == null)
                 continue;
@@ -601,18 +606,47 @@ public class AtlasStructuredQueryService {
 
                 if(hasQueryEfvs && counter.getUps() + counter.getDowns() > 0)
                     resultEfvs.put(efefv);
+                
+                if(counter.getUps() + counter.getDowns() > 0 && listRowsPerGene<result.getRowsPerGene() && query.viewList() /*&& (numOfListGenes<result.getListGenesPerPage() || totalListRows<100)*/){
+                	
+                	ArrayList<String> exp_info = new ArrayList(doc.getFieldValues("exp_info_efv_"+efefvId));
+                	result.addListResult(createListRow(exp_info,gene, efefv.getEf(), efefv.getEfv()));
+                	listRowsPerGene++;
+                	totalListRows++;
+                }
             }
             
             result.addResult(new StructuredResultRow(gene, counters));
+//            if(numOfListGenes<result.getListGenesPerPage() || totalListRows<100)
+//            	numOfListGenes++;
         }
 
         result.setResultEfvs(resultEfvs);
+        result.setNumListGenes(numOfListGenes);
 
         log.info("Retrieved query completely: " + result.getSize() + " records of " +
                 result.getTotal() + " total starting from " + result.getStart() );
 
         log.info("Resulting EFVs are: " + resultEfvs);
 
+    }
+    
+    private ListResultRow createListRow(ArrayList<String> exp_info, AtlasGene atlasGene, String ef, String efv){
+    	ListResultRow row = new ListResultRow(efv,
+					ef,
+				    atlasGene.getCount_up(ef, efv),
+				    atlasGene.getCount_dn(ef, efv),
+				    atlasGene.getMin_up(ef, efv),
+				    atlasGene.getMin_dn(ef, efv));
+		row.setGene_name(atlasGene.getGeneName());
+		row.setGene_id(atlasGene.getGeneId());
+		row.setGene_species(atlasGene.getGeneSpecies());
+		row.setGene(atlasGene);
+//		ExperimentList experiments = ArrayExpressSearchService.instance().getExperiments(atlasGene.getGeneId(), ef, efv);
+		ExperimentList experiments = ArrayExpressSearchService.instance().getExperiments(exp_info);
+		row.setExp_list(experiments);
+		
+		return row;
     }
 
     private Set<String> getConfiguredFactors(String category)
@@ -646,6 +680,7 @@ public class AtlasStructuredQueryService {
                     q.addField("cnt_efv_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
                     q.addField("minpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_up");
                     q.addField("minpval_efv_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
+                    q.addField("exp_info_efv_" + EfvTree.getEfEfvId(ef, efv));
                 }
             }
 

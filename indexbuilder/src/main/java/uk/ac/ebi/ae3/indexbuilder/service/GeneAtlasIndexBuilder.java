@@ -74,7 +74,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         		" select ef, efv, count(case when (updn=1) then 1 else null end) as cup," +
         		" count(case when (updn=-1) then 1 else null end) as cdn, " +
         		" min(case when (updn=1) then updn_pvaladj else null end) as minup, " +
-        		" min(case when (updn=-1) then updn_pvaladj else null end) as mindn " +
+        		" min(case when (updn=-1) then updn_pvaladj else null end) as mindn, " +
+        		" string_agg(experiment_id_key || '/' || updn || '/' || updn_pvaladj) as exps  "+
         		" from (" +
         		"		select ef,efv,updn,experiment_id_key, updn_pvaladj, dense_rank() over (partition by gene_id_key,experiment_id_key, ef, efv order by updn_pvaladj) as r" +
         		"   		from atlas" +
@@ -131,6 +132,13 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 solrDoc.addField("s_efv_" + efvid + "_up", shorten(cup * (1.0 - pvup) - cdn * (1.0 - pvdn)));
                 solrDoc.addField("s_efv_" + efvid + "_dn", shorten(cdn * (1.0 - pvdn) - cup * (1.0 - pvup)));
                 solrDoc.addField("s_efv_" + efvid + "_ud", shorten(cup * (1.0 - pvup) + cdn * (1.0 - pvdn)));
+                
+                String[] exps = efvs.getString("exps").split(",");
+                for(String exp_info: exps){
+                	//String[] exp_info = exp.split("/"); 
+                	
+                	solrDoc.addField("exp_info_efv_"+efvid, exp_info);
+                }
             }
             efvs.close();
 

@@ -79,21 +79,21 @@ public class AtlasGeneService {
 	 * @param gene_id_key
 	 * @return ArrayList<HeatmapRow>
 	 */
-	public static ArrayList<HeatmapRow> getHeatMapRows(String gene_id_key) {
-		HeatmapRow heatmapRow;
-		ArrayList<HeatmapRow> heatmap = new ArrayList<HeatmapRow>();
+	public static ArrayList<ListResultRow> getHeatMapRows(String gene_id_key) {
+		ListResultRow heatmapRow;
+		ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
 		AtlasGene atlasGene =  getAtlasGene(gene_id_key);
 		for(String ef : getEFs(atlasGene)) {
            HashSet<Object> efvs = atlasGene.getAllFactorValues(ef);
            if(!efvs.isEmpty()){
         	   for(Object efv : efvs) {
         		   if(!omittedEFs.contains(efv.toString()) && !omittedEFs.contains(ef)){
-        		   heatmapRow = new HeatmapRow(efv.toString(),
+        		   heatmapRow = new ListResultRow(efv.toString(),
         				   					   ef,
         				   					   atlasGene.getCount_up(ef, efv.toString()),
         				   					   atlasGene.getCount_dn(ef, efv.toString()),
-        				   					   atlasGene.getAvg_up(ef, efv.toString()),
-        				   					   atlasGene.getAvg_dn(ef, efv.toString()));
+        				   					   atlasGene.getMin_up(ef, efv.toString()),
+        				   					   atlasGene.getMin_dn(ef, efv.toString()));
         		   heatmap.add(heatmapRow);
         		   }
         	   }

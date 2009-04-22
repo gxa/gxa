@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Connection;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,18 @@ public class ExperimentsService {
                 rs.getDouble("updn_pvaladj"),
                 (isUp ? ExperimentRow.UpDn.UP : ExperimentRow.UpDn.DOWN)));
     }
+    
+    private void addExperimentsToList(ExperimentList list, AtlasExperiment experiment, boolean isUp, double pval ) {
+//        boolean isUp = !rs.getString("updn").contains("-");
+        list.add(new ExperimentRow(
+                experiment.getDwExpId(),
+                experiment.getAerExpName(),
+                experiment.getAerExpAccession(),
+                experiment.getAerExpDescription(),
+                pval,
+                (isUp ? ExperimentRow.UpDn.UP : ExperimentRow.UpDn.DOWN)));
+    }
+    
 
     /**
      * Returns list of experiments by gene id, factor and factorvalue
@@ -70,7 +83,7 @@ public class ExperimentsService {
         } catch (SQLException e) {
             log.error("Exception querying Atlas database", e);
         }
-        return results;
+    	return results;
     }
 
     /**
@@ -102,6 +115,26 @@ public class ExperimentsService {
             log.error("Exception querying Atlas database", e);
         }
         return results;
+    }
+    
+    /**
+     * Populates experimentList with values from index
+     * @param exps: A list of the exp_info field values
+     * @return ExperimentList
+     */
+    public ExperimentList getExperiments(ArrayList<String> exps){
+    	final ExperimentList results = new ExperimentList();
+    	for(String exp : exps){
+    		String[] exp_info = exp.split("/");
+    		String exp_id = exp_info[0];
+    		boolean isUp = !exp_info[1].contains("-");
+    		double pval = Double.parseDouble(exp_info[2]);
+    		AtlasExperiment experiment = AtlasDao.getExperimentByIdDw(exp_id);
+            if (experiment != null) {
+                addExperimentsToList(results, experiment, isUp, pval);
+            }
+    	}
+    	return results;
     }
 
     public void shutdown() {

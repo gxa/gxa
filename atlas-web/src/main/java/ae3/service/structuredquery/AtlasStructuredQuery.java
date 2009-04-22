@@ -17,7 +17,10 @@ public class AtlasStructuredQuery {
     private int start;
     private int rowsPerPage;
     private Set<String> expandColumns;
-
+    public enum Views {HEATMAP, LIST, XML}
+    private String view;
+    private boolean export;
+    
     public AtlasStructuredQuery() {
         conditions = new ArrayList<ExpFactorQueryCondition>();
         geneQueries = new ArrayList<GeneQueryCondition>();
@@ -144,4 +147,50 @@ public class AtlasStructuredQuery {
     public void setExpandColumns(Set<String> expandColumns) {
         this.expandColumns = expandColumns;
     }
+    
+    /**
+     * Sets requested view for the output results
+     */
+    public void setView(String view){
+    	this.view = view;
+    }
+    
+    public boolean viewHeatMap(){
+    	return view.equals("hm");
+    }
+    public boolean viewList(){
+    	return view.equals("list");
+    }
+
+	public boolean isExport() {
+		return export;
+	}
+
+	public void setExport(boolean export) {
+		this.export = export;
+	}
+	
+	public String toString(){
+		String query="";
+		ArrayList<GeneQueryCondition> geneList = (ArrayList<GeneQueryCondition>)geneQueries;
+		ArrayList<ExpFactorQueryCondition> factorList = (ArrayList<ExpFactorQueryCondition>)conditions;
+		if(geneList.isEmpty())
+			query+="(All genes) ";
+		for (int i=0; i<geneList.size(); i++){
+			if(i>0)
+				query+=" and ";
+				query+= geneList.get(i).getJointFactorValues() + " ";
+		}
+				
+		for(int i=0; i<factorList.size(); i++){
+			if(i>0)
+				query+= " and ";
+			query+= factorList.get(i).getExpression().getDescription() + " in ";
+			if(factorList.get(i).isAnything())
+				query+= "(all conditions)";
+			else
+				query+= factorList.get(i).getJointFactorValues() + "\n";
+		}
+		return query;
+	}
 }

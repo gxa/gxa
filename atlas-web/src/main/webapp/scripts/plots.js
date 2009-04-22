@@ -249,6 +249,45 @@ function drawPlot(jsonObj, plot_id){
  			});
  			drawEFpagination(eid,gid,tokens[2]);
     }
+    
+    function showExps(row){
+    	$("div[id*=_"+row.id+"]").each(function(){
+    	var plot_id = this.id;
+        var tokens = plot_id.split('_');
+        var eid = tokens[0];
+        var gid = tokens[1];
+        var ef = "ba_"+tokens[2];
+        var efv = tokens[3];
+        var updn = tokens[4];
+        var divEle = $(this);
+        if(!$(this).hasClass("done")){
+        $.ajax({
+   			type: "POST",
+   			url:"plot.jsp",
+   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&efv="+efv+"&updn="+updn+"&plot=thumb",
+   			dataType:"json",
+   			
+   			success: function(jsonObj){
+   				if(jsonObj.series){
+   					var plot = $.plot(divEle, jsonObj.series,jsonObj.options); 
+   				}
+   				//var plot = drawPlot(o,plot_id);//success
+   				
+   				//bindMarkings(o,plot,plot_id);
+   				//$('#'+plot_id).bind("plotclick", function(){
+				//	openInAEW(eid);
+				//});
+   				}
+ 			});//ajax
+        
+        $(this).addClass("done")
+        }
+    	});
+    }
+    
+    function drawThumbnail(jsonObj, plot_id){
+    	
+    }
 
 	function drawPlots(){
 

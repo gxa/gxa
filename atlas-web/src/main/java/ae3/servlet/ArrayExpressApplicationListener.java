@@ -26,6 +26,7 @@ import ds.server.DataServerAPI;
 import ds.utils.DS_DBconnection;
 
 import ae3.service.ArrayExpressSearchService;
+import ae3.service.DownloadService;
 import ae3.util.AtlasProperties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
@@ -70,6 +71,8 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
 
             as.setAEDataSource(ds);
             as.initialize();
+            
+            DownloadService.instance().initialize();
 
             DataServerAPI.setNetCDFPath(netCDFlocation);
         } catch (Exception e) {

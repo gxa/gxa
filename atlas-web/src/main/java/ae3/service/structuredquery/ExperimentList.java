@@ -73,7 +73,7 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
      * Returns total number of experiments
      * @return total number of experiments
      */
-    private int getNum()
+    public int getNum()
     {
         return ups.size() + downs.size();
     }
