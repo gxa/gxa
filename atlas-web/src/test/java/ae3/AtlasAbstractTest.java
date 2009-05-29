@@ -5,6 +5,9 @@ import java.util.logging.Logger;
 import ae3.service.ArrayExpressSearchService;
 import ae3.util.AtlasProperties;
 
+import javax.naming.Context;
+import javax.sql.DataSource;
+
 import junit.framework.TestCase;
 
 public abstract class AtlasAbstractTest extends TestCase
@@ -15,19 +18,20 @@ public abstract class AtlasAbstractTest extends TestCase
 	protected void setUp() throws Exception
 	{
 		log.info("Set up");
+		//ArrayExpressSearchService.instance().setSolrIndexLocation("C:/Users/mdylag/workspaces/ebi/ae3/indexbuilder/data/multicore");
 
-        ArrayExpressSearchService as = ArrayExpressSearchService.instance();
-        // DBhandler dbHandler = DBhandler.instance();
-        final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
-        final String dbName            = AtlasProperties.getProperty("atlas.dbName");
-        final String netCDFlocation    = AtlasProperties.getProperty("atlas.netCDFlocation");
+            ArrayExpressSearchService as = ArrayExpressSearchService.instance();
+            // DBhandler dbHandler = DBhandler.instance();
+            final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
+            final String dbName            = AtlasProperties.getProperty("atlas.dbName");
+            final String netCDFlocation    = AtlasProperties.getProperty("atlas.netCDFlocation");
 
-        log.info("Initializing Atlas...");
-        log.info("  Solr index location: " + solrIndexLocation);
-        log.info("  database name: " + dbName );
-        log.info("  netCDF location: " + netCDFlocation );
+            log.info("Initializing Atlas...");
+            log.info("  Solr index location: " + solrIndexLocation);
+            log.info("  database name: " + dbName );
+            log.info("  netCDF location: " + netCDFlocation );
 
-        as.setSolrIndexLocation(solrIndexLocation);
+            as.setSolrIndexLocation(solrIndexLocation);
 
         oracle.jdbc.pool.OracleDataSource ds = new oracle.jdbc.pool.OracleDataSource();
         ds.setURL("jdbc:oracle:thin:aemart/marte@moe:1521:AEDWDEV");

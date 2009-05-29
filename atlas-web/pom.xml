@@ -24,7 +24,7 @@
         <dependency>
             <groupId>uk.ac.ebi.microarray.atlas</groupId>
             <artifactId>atlas-index-api</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -194,7 +194,7 @@
     </build>
 
     <properties>
-        <netbeans.hint.deploy.server>gfv3</netbeans.hint.deploy.server>
+        <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
     </properties>
 </project>

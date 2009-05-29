@@ -1,5 +1,7 @@
 package ae3.service.structuredquery;
 
+import uk.ac.ebi.ae3.indexbuilder.Expression;
+
 /**
  * Experiment list's row container
  * @author pashky
@@ -9,13 +11,14 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
     private String experimentAccession;
     private String experimentDescription;
     private String experimentName;
+    private String ef;
+    private String efv;
     private double pvalue;
 
     /**
      * Expression - up or down
      */
-    public enum UpDn { UP, DOWN };
-    private UpDn updn;
+    private Expression updn;
 
     /**
      * Constructor
@@ -26,13 +29,16 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
      * @param pvalue p-value
      * @param updn up or down
      */
-    public ExperimentRow(long experimentId, String experimentName, String experimentAccession, String experimentDescription, double pvalue, UpDn updn) {
+    public ExperimentRow(long experimentId, String experimentName, String experimentAccession, String experimentDescription,
+                         double pvalue, Expression updn, String ef, String efv) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
         this.experimentName = experimentName;
         this.pvalue = pvalue;
         this.updn = updn;
+        this.ef = ef;
+        this.efv = efv;
     }
 
     /**
@@ -79,8 +85,16 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
      * Returns up or down
      * @return UP or DOWN
      */
-    public UpDn getUpdn() {
+    public Expression getUpdn() {
         return updn;
+    }
+
+    public String getEf() {
+        return ef;
+    }
+
+    public String getEfv() {
+        return efv;
     }
 
     public int compareTo(ExperimentRow o) {

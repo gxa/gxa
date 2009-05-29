@@ -1,21 +1,25 @@
 package ae3.service.structuredquery;
 
+import ae3.service.structuredquery.EfoValueListHelper.EfoTermCount;
+import java.util.Collection;
+import java.util.List;
+
 /**
      * Structured query condition expanded by query service
  */
 public class ExpFactorResultCondition {
     private ExpFactorQueryCondition condition;
-    private EfvTree<Boolean> expansion;
     private boolean ignored;
+    private Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths;
 
     /**
      * Constructor for condition
      * @param condition original query condition
      * @param expansion EFV expansion tree
      */
-    public ExpFactorResultCondition(ExpFactorQueryCondition condition, EfvTree<Boolean> expansion, boolean ignored) {
+    public ExpFactorResultCondition(ExpFactorQueryCondition condition, Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths, boolean ignored) {
         this.condition = condition;
-        this.expansion = expansion;
+        this.efoPaths = efoPaths;
         this.ignored = ignored;
     }
 
@@ -23,7 +27,7 @@ public class ExpFactorResultCondition {
      * Returns gene expression type
      * @return gene expression type
      */
-    public Expression getExpression() {
+    public QueryExpression getExpression() {
         return condition.getExpression();
     }
 
@@ -52,12 +56,13 @@ public class ExpFactorResultCondition {
     }
 
     /**
-     * Return EFV expansion tree
-     * @return EFV expansion tree
+     * Get EFO paths for condition
+     * @return
      */
-    public EfvTree<Boolean> getExpansion() {
-        return expansion;
+    public Collection<List<EfoTermCount>> getEfoPaths() {
+        return efoPaths;
     }
+
 
     /**
      * Convenience method to check whether conditions is for any factor

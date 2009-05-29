@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 
 import ae3.service.structuredquery.IValueListHelper;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
@@ -34,15 +36,25 @@ public class FactorValuesServlet extends HttpServlet {
         AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService();
         
-        IValueListHelper lister = "gene".equals(request.getParameter("type")) ?
-                service.getGeneListHelper() : service.getEfvListHelper();
+        List<IValueListHelper> listers = new ArrayList<IValueListHelper>();
+
+        String type = request.getParameter("type");
+        if("gene".equals(type)) {
+            listers.add(service.getGeneListHelper());
+        } else if("efv".equals(type)) {
+            listers.add(service.getEfvListHelper());
+        } else if("efo".equals(type)) {
+            listers.add(service.getEfoListHelper());
+        } else if("efoefv".equals(type)) {
+            listers.add(service.getEfoListHelper());
+            listers.add(service.getEfvListHelper());
+        }
         
         if("all".equals(request.getParameter("mode")))
         {
-            for(String fv : lister.listAllValues(request.getParameter("factor")))
-            {
-                response.getWriter().println(fv);
-            }
+            for(IValueListHelper lister : listers)
+                for(String fv : lister.listAllValues(request.getParameter("factor")))
+                    response.getWriter().println(fv);
         } else {
             int nlimit = 100;
             try {
@@ -52,17 +64,29 @@ public class FactorValuesServlet extends HttpServlet {
             } catch(Exception e) {
                 // just ignore
             }
-            Iterable<AutoCompleteItem> ac =
-                    lister.autoCompleteValues(
-                            request.getParameter("factor"),
-                            request.getParameter("q"),
-                            nlimit
-                    );
-            for(AutoCompleteItem s : ac) {
-                response.getWriter().println(
-                        (s.getProperty() == null ? "" : s.getProperty() + "|") +
-                        s.getValue() + "|" + s.getCount() +
-                        (s.getComment() == null ? "" : "|" + s.getComment()));
+            String factor = request.getParameter("factor");
+            String query = request.getParameter("q");
+            if (query == null)
+                query = "";
+            if (query.startsWith("\"")) {
+                query = query.substring(1);
+            }
+            if (query.endsWith("\"")) {
+                query = query.substring(0, query.length() - 1);
+            }
+            for(IValueListHelper lister : listers) {
+                Iterable<AutoCompleteItem> ac =
+                        lister.autoCompleteValues(
+                                factor,
+                                query,
+                                nlimit
+                        );
+                for(AutoCompleteItem s : ac) {
+                    response.getWriter().println(
+                            (s.getProperty() == null ? "" : s.getProperty() + "|") +
+                                    s.getValue() + "|" + s.getCount() +
+                                    (s.getComment() == null ? "" : "|" + s.getComment()));
+                }
             }
         }
     }

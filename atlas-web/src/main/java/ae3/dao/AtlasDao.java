@@ -157,25 +157,6 @@ public class AtlasDao {
     }
     
     /**
-     * Returns experiments SOLR docs for the gene specified
-     * 
-     * @param gene_id_key
-     * @return
-     */
-    public static SolrDocumentList getGeneExperiments(String gene_id_key) {
-        SolrDocumentList results = null;
-        try {
-            AtlasGene gene = getGene(gene_id_key);
-            String expList = "(" + StringUtils.join(gene.getGeneSolrDocument().getFieldValues("gene_experiment"), " ") + ")";
-            QueryResponse solrResults = ArrayExpressSearchService.instance().queryExptsByField(expList, "dwe_id", 0, 25);
-            results = solrResults.getResults();
-        } catch (AtlasObjectNotFoundException exp) {
-            log.error("Experiments not found; gene missing: " + gene_id_key, exp);
-        }
-        return results;
-    }
-
-    /**
      * TODO
      * 
      * @param solrGeneDoc

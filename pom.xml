@@ -46,20 +46,20 @@
     <distributionManagement>
         <repository>
             <id>local-repo</id>
-            <name>dukkha.ebi.ac.uk-releases</name>
-            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
+            <name>bar.ebi.ac.uk-releases</name>
+            <url>http://bar.ebi.ac.uk:8081/artifactory/local-repo/</url>
         </repository>
         <snapshotRepository>
             <id>local-repo</id>
-            <name>dukkha.ebi.ac.uk-snapshots</name>
-            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
+            <name>bar.ebi.ac.uk-snapshots</name>
+            <url>http://bar.ebi.ac.uk:8081/artifactory/local-repo/</url>
         </snapshotRepository>
     </distributionManagement>
 
     <repositories>
         <repository>
             <id>local-repo</id>
-            <url>http://dukkha.ebi.ac.uk:8081/artifactory/local-repo</url>
+            <url>http://bar.ebi.ac.uk:8081/artifactory/local-repo/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>

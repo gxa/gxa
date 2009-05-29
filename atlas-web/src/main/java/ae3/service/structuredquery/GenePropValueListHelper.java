@@ -58,6 +58,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         PrefixNode root;
         synchronized(prefixTrees) {
             if(!prefixTrees.containsKey(property)) {
+                log.info("Loading gene property values and counts for " + property);
                 SolrQuery q = new SolrQuery("gene_id:[* TO *]");
                 q.setRows(0);
                 q.setFacet(true);
@@ -83,6 +84,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                 } catch (SolrServerException e) {
                     throw new RuntimeException(e);
                 }
+                log.info("Done loading gene property values and counts for " + property);
             }
             root = prefixTrees.get(property);
         }
@@ -114,10 +116,6 @@ public class GenePropValueListHelper implements IValueListHelper {
     }
 
     public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
-        if(query.startsWith("\""))
-            query = query.substring(1);
-        if(query.endsWith("\""))
-            query = query.substring(0, query.length() - 1);
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)

@@ -5,27 +5,24 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.IOException;
 
 import ae3.util.AtlasProperties;
+import ae3.util.EscapeUtil;
 
 /**
  * @author pashky
  */
 public class AtlasStructuredQueryParser {
     private static final Logger log = LoggerFactory.getLogger(AtlasStructuredQueryParser.class);
-    private static String PARAM_EXPRESSION = "fexp_";
-    private static String PARAM_FACTOR = "fact_";
-    private static String PARAM_FACTORVALUE = "fval_";
-    private static String PARAM_GENE = "gval_";
-    private static String PARAM_GENENOT = "gnot_";
-    private static String PARAM_GENEPROP = "gprop_";
-    private static String PARAM_SPECIE = "specie_";
-    private static int DEFAULT_ROWS = 100;
-    private static String PARAM_START = "p";
-    private static String PARAM_EXPAND = "fexp";
+    private static final String PARAM_EXPRESSION = "fexp_";
+    private static final String PARAM_FACTOR = "fact_";
+    private static final String PARAM_FACTORVALUE = "fval_";
+    private static final String PARAM_GENE = "gval_";
+    private static final String PARAM_GENENOT = "gnot_";
+    private static final String PARAM_GENEPROP = "gprop_";
+    private static final String PARAM_SPECIE = "specie_";
+    private static final String PARAM_START = "p";
+    private static final String PARAM_EXPAND = "fexp";
 
     public static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
     {
@@ -73,7 +70,7 @@ public class AtlasStructuredQueryParser {
         for(String id : findPrefixParamsSuffixes(httpRequest, PARAM_FACTOR)) {
             ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             try {
-                condition.setExpression(Expression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                condition.setExpression(QueryExpression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);
                 if(factor == null)
@@ -82,7 +79,7 @@ public class AtlasStructuredQueryParser {
                 condition.setFactor(factor);
 
                 String value = httpRequest.getParameter(PARAM_FACTORVALUE + id);
-                List<String> values = value != null ? parseQuotedList(value) : new ArrayList<String>();
+                List<String> values = value != null ? EscapeUtil.parseQuotedList(value) : new ArrayList<String>();
 
                 condition.setFactorValues(values);
                 result.add(condition);
@@ -111,7 +108,7 @@ public class AtlasStructuredQueryParser {
                 condition.setFactor(factor);
 
                 String value = httpRequest.getParameter(PARAM_GENE + id);
-                List<String> values = value != null ? parseQuotedList(value) : new ArrayList<String>();
+                List<String> values = value != null ? EscapeUtil.parseQuotedList(value) : new ArrayList<String>();
                 if(values.size() > 0)
                 {
                     condition.setFactorValues(values);
@@ -124,57 +121,6 @@ public class AtlasStructuredQueryParser {
         }
 
         return result;
-    }
-
-    private static List<String> parseQuotedList(final String value)
-    {
-        List<String> values = new ArrayList<String>();
-        if(value.startsWith("(all "))
-            return values;
-
-        try {
-            Reader r = new StringReader(value);
-            StringBuffer curVal = new StringBuffer();
-            boolean inQuotes = false;
-            while(true) {
-                int c = r.read();
-                if(inQuotes)
-                {
-                    if(c < 0)
-                        return values; // skip last incorrect condition
-
-                    if(c == '\\') {
-                        c = r.read();
-                        if(c < 0)
-                            return values; // skip last incorrect condition
-
-                        curVal.appendCodePoint(c);
-                    } else if(c == '"') {
-                        inQuotes = false;
-                    } else {
-                        curVal.appendCodePoint(c);
-                    }
-                } else {
-                    if(c < 0  || Character.isSpaceChar(c))
-                    {
-                        if(curVal.length() > 0) {
-                            values.add(curVal.toString());
-                            curVal.setLength(0);
-                        }
-                    } else if(c == '"') {
-                        inQuotes = true;
-                    } else {
-                        curVal.appendCodePoint(c);
-                    }
-
-                    if(c < 0)
-                        break;
-                }
-            }
-        } catch(IOException e) {
-            throw new RuntimeException("Unexpected exception!", e);
-        }
-        return values;
     }
 
     static private Set<String> parseExpandColumns(final HttpServletRequest httpRequest)
@@ -195,8 +141,8 @@ public class AtlasStructuredQueryParser {
      */
     static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
-        
-        request.setGeneQueries(parseGeneConditions(httpRequest));
+        request.setGeneConditions(parseGeneConditions(httpRequest));
+
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseExpFactorConditions(httpRequest));
         request.setView(httpRequest.getParameter("view"));

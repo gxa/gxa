@@ -3,8 +3,10 @@ package ae3.util;
 import ae3.service.structuredquery.UpdownCounter;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.Set;
+import org.springframework.beans.MethodInvocationException;
 
 /**
  * Helper functions for parsing and managing structured query
@@ -82,5 +84,28 @@ public class HtmlHelper {
             return line.substring(0, num) + "...";
         else
             return line;
+    }
+
+    public static Comparable maxProperty(Iterable it, String prop) {
+        Method method = null;
+        Comparable r = null;
+        for(Object o : it) {
+            if(method == null) {
+                try {
+                    method = o.getClass().getMethod(prop, (Class[])null);
+                } catch(Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            try {
+                Comparable v = (Comparable)method.invoke(o, (Object[])null);
+                if(r == null || r.compareTo(v) < 0) {
+                    r = v;
+                }
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return r;
     }
 }

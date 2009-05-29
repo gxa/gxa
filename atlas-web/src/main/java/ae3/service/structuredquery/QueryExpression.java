@@ -6,13 +6,13 @@ import java.util.ArrayList;
 /**
      * Gene epxression option
  */
-public enum Expression {
+public enum QueryExpression {
     UP_DOWN("up/down"),
     UP("up"),
     DOWN("down");
 
     private String description;
-    Expression(String description) { this.description = description; }
+    QueryExpression(String description) { this.description = description; }
 
     /**
      * Get human-readable option description
@@ -26,7 +26,7 @@ public enum Expression {
      */
     static public List<String[]> getOptionsList() {
         List<String[]> result = new ArrayList<String[]>();
-        for(Expression r : values())
+        for(QueryExpression r : values())
         {
            result.add(new String[] { r.name(), r.getDescription() });
         }

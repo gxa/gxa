@@ -65,7 +65,6 @@ public class ArrayExpressSearchService {
     private QueryRunner theAEQueryRunner;
 
     private AtlasStructuredQueryService squeryService;
-    private ExperimentsService experimentsService;
     private AtlasStatisticsService.Stats stats;
 
     private ArrayExpressSearchService() {};
@@ -94,7 +93,6 @@ public class ArrayExpressSearchService {
             solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
 
             squeryService = new AtlasStructuredQueryService(multiCore);
-            experimentsService = new ExperimentsService(theAEDS.getConnection());
 
             AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
 
@@ -103,6 +101,7 @@ public class ArrayExpressSearchService {
             stats = sserv.getStats(lastExpId, dataRelease);
 
             new Thread() { public void run() { squeryService.getEfvListHelper().preloadData(); } }.start();
+            new Thread() { public void run() { squeryService.getEfoListHelper().preloadData(); } }.start();
             new Thread() { public void run() { squeryService.getGeneListHelper().preloadData(); } }.start();
 
         } catch (Exception e) {
@@ -124,8 +123,6 @@ public class ArrayExpressSearchService {
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
 
-        experimentsService.shutdown();
-        experimentsService = null;
         squeryService = null;
 
         log.info("Shutting down DB connections and indexes");
@@ -512,16 +509,6 @@ public class ArrayExpressSearchService {
 
     public AtlasStructuredQueryService getStructQueryService() {
         return squeryService;
-    }
-
-    public ExperimentList getExperiments(String gene_id_key, String factor, String factorValue)
-    {
-        return experimentsService.getExperiments(gene_id_key, factor, factorValue);
-    }
-    
-    public ExperimentList getExperiments(ArrayList<String> exps)
-    {
-        return experimentsService.getExperiments(exps);
     }
 
     public Iterable<String> getGeneProperties(){

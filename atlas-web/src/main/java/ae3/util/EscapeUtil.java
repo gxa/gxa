@@ -1,5 +1,11 @@
 package ae3.util;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author pashky
  */
@@ -40,5 +46,56 @@ public class EscapeUtil {
             sb.append(optionalQuote(v));
         }
         return sb.toString();
+    }
+
+    public static List<String> parseQuotedList(final String value)
+    {
+        List<String> values = new ArrayList<String>();
+        if(value.startsWith("(all "))
+            return values;
+
+        try {
+            Reader r = new StringReader(value);
+            StringBuffer curVal = new StringBuffer();
+            boolean inQuotes = false;
+            while(true) {
+                int c = r.read();
+                if(inQuotes)
+                {
+                    if(c < 0)
+                        return values; // skip last incorrect condition
+
+                    if(c == '\\') {
+                        c = r.read();
+                        if(c < 0)
+                            return values; // skip last incorrect condition
+
+                        curVal.appendCodePoint(c);
+                    } else if(c == '"') {
+                        inQuotes = false;
+                    } else {
+                        curVal.appendCodePoint(c);
+                    }
+                } else {
+                    if(c < 0  || Character.isSpaceChar(c))
+                    {
+                        if(curVal.length() > 0) {
+                            values.add(curVal.toString());
+                            curVal.setLength(0);
+                        }
+                    } else if(c == '"') {
+                        inQuotes = true;
+                    } else {
+                        curVal.appendCodePoint(c);
+                    }
+
+                    if(c < 0)
+                        break;
+                }
+            }
+        } catch(IOException e) {
+            throw new RuntimeException("Unexpected exception!", e);
+        }
+        return values;
     }
 }

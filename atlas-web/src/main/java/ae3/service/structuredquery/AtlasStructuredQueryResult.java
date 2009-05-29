@@ -15,6 +15,7 @@ public class AtlasStructuredQueryResult {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private EfvTree<Integer> resultEfvs;
+    private EfoTree<Integer> resultEfos;
     private Collection<StructuredResultRow> results;
     private Collection<ListResultRow> listResults;
     private Iterable<ExpFactorResultCondition> conditions;
@@ -67,6 +68,14 @@ public class AtlasStructuredQueryResult {
      */
     public Iterable<StructuredResultRow> getResults() {
         return results;
+    }
+
+    public EfoTree<Integer> getResultEfos() {
+        return resultEfos;
+    }
+
+    public void setResultEfos(EfoTree<Integer> resultEfos) {
+        this.resultEfos = resultEfos;
     }
 
     /**

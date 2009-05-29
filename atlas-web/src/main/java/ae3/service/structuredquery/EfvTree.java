@@ -1,46 +1,42 @@
 package ae3.service.structuredquery;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexField;
+
 import java.util.*;
 import java.io.UnsupportedEncodingException;
 
 /**
  * @author pashky
  */
-public class EfvTree<PayLoad extends Comparable<PayLoad>> {
+public class EfvTree<Payload extends Comparable<Payload>> {
 
-    public static class Efv<PayLoad extends Comparable<PayLoad>> implements Comparable<Efv<PayLoad>> {
+    public static class Efv<Payload extends Comparable<Payload>> implements Comparable<Efv<Payload>> {
         private String efv;
-        private PayLoad payload;
-        private int number;
+        private Payload Payload;
 
-        public Efv(final String efv, final PayLoad payload, final int number) {
+        public Efv(final String efv, final Payload Payload) {
             this.efv = efv;
-            this.payload = payload;
-            this.number = number;
+            this.Payload = Payload;
         }
 
         public String getEfv() {
             return efv;
         }
 
-        public PayLoad getPayload() {
-            return payload;
+        public Payload getPayload() {
+            return Payload;
         }
 
-        public int getNumber() {
-            return number;
-        }
-
-        public int compareTo(Efv<PayLoad> o) {
+        public int compareTo(Efv<Payload> o) {
             return getPayload().compareTo(o.getPayload());
         }
     }
 
-    public static class Ef<PayLoad extends Comparable<PayLoad>> implements Comparable<Ef<PayLoad>> {
+    public static class Ef<Payload extends Comparable<Payload>> implements Comparable<Ef<Payload>> {
         private String ef;
-        private List<Efv<PayLoad>> efvs;
+        private List<Efv<Payload>> efvs;
 
-        public Ef(String ef, List<Efv<PayLoad>> efvs) {
+        public Ef(String ef, List<Efv<Payload>> efvs) {
             this.ef = ef;
             this.efvs = efvs;
         }
@@ -49,14 +45,14 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
             return ef;
         }
 
-        public List<Efv<PayLoad>> getEfvs() {
+        public List<Efv<Payload>> getEfvs() {
             return efvs;
         }
 
-        public int compareTo(Ef<PayLoad> o) {
+        public int compareTo(Ef<Payload> o) {
             int d = 0;
-            for(Efv<PayLoad> efv1 : getEfvs()) {
-                for(Efv<PayLoad> efv2 : o.getEfvs()) {
+            for(Efv<Payload> efv1 : getEfvs()) {
+                for(Efv<Payload> efv2 : o.getEfvs()) {
                     d += efv1.compareTo(efv2);
                 }
             }
@@ -64,16 +60,16 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         }
     }
 
-    public static class EfEfv<PayLoad> {
+    public static class EfEfv<Payload> {
         private String ef;
         private String efv;
 
-        private PayLoad payload;
+        private Payload Payload;
 
-        public EfEfv(String ef, String efv, PayLoad payLoad) {
+        public EfEfv(String ef, String efv, Payload Payload) {
             this.ef = ef;
             this.efv = efv;
-            this.payload = payLoad;
+            this.Payload = Payload;
         }
 
         public String getEf() {
@@ -84,8 +80,8 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
             return efv;
         }
 
-        public PayLoad getPayload() {
-            return payload;
+        public Payload getPayload() {
+            return Payload;
         }
 
         public String getEfEfvId() {
@@ -97,12 +93,12 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
             return "EfEfv{" +
                     "ef='" + ef + '\'' +
                     ", efv='" + efv + '\'' +
-                    ", pl=" + payload +
+                    ", pl=" + Payload +
                     '}';
         }
     }
 
-    private SortedMap<String,SortedMap<String, PayLoad>> efvs = new TreeMap<String,SortedMap<String, PayLoad>>();
+    private SortedMap<String,SortedMap<String, Payload>> efvs = new TreeMap<String,SortedMap<String, Payload>>();
     private int efLimit;
     private int efvLimit;
 
@@ -110,18 +106,18 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         efLimit = efvLimit = 5;
     }
 
-    public EfvTree(EfvTree<PayLoad> other) {
+    public EfvTree(EfvTree<Payload> other) {
         super();
         put(other);
     }
 
-    public void put(EfvTree<PayLoad> other)
+    public void put(EfvTree<Payload> other)
     {
-        for(EfEfv<PayLoad> i : other.getNameSortedList())
+        for(EfEfv<Payload> i : other.getNameSortedList())
             put(i);
     }
 
-    public PayLoad get(String ef, String efv)
+    public Payload get(String ef, String efv)
     {
         if(!efvs.containsKey(ef))
             return null;
@@ -133,37 +129,35 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         return efvs.containsKey(ef) && efvs.get(ef).containsKey(efv);
     }
 
-    public interface Creator<T> { T make(); }
-
-    public PayLoad getOrCreate(String ef, String efv, Creator<PayLoad> plCreator)
+    public Payload getOrCreate(String ef, String efv, EfoEfvPayloadCreator<Payload> plEfoEfvPayloadCreator)
     {
         if(!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String,PayLoad>());
+            efvs.put(ef, new TreeMap<String,Payload>());
 
         if(efvs.get(ef).containsKey(efv))
             return efvs.get(ef).get(efv);
         
-        PayLoad pl = plCreator.make();
+        Payload pl = plEfoEfvPayloadCreator.make();
         efvs.get(ef).put(efv, pl);
         return pl;
     }
 
-    public void put(EfEfv<PayLoad> efEfv)
+    public void put(EfEfv<Payload> efEfv)
     {
         put(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
     }
 
-    public void put(String ef, String efv, PayLoad payLoad)
+    public void put(String ef, String efv, Payload Payload)
     {
         if(!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String,PayLoad>());
-        efvs.get(ef).put(efv, payLoad);
+            efvs.put(ef, new TreeMap<String,Payload>());
+        efvs.get(ef).put(efv, Payload);
     }
 
     public int getNumEfvs()
     {
         int n = 0;
-        for(SortedMap<String,PayLoad> i : efvs.values()) {
+        for(SortedMap<String,Payload> i : efvs.values()) {
             n += i.size();
         }
         return n;
@@ -174,37 +168,47 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         return efvs.size();
     }
 
-    public List<Ef<PayLoad>> getNameSortedTree()
+    public List<Efv<Payload>> getEfvs(String ef)
     {
-        List<Ef<PayLoad>> efs = new ArrayList<Ef<PayLoad>>();
-        int number = 0;
-        for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
-            List<Efv<PayLoad>> efvs = new ArrayList<Efv<PayLoad>>();
-            for(Map.Entry<String,PayLoad> j : i.getValue().entrySet()) {
-                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue(), number++));
-            }
-            efs.add(new Ef<PayLoad>(i.getKey(), efvs));
-        }
-
-        return efs;
-    }
-
-    public List<EfEfv<PayLoad>> getNameSortedList()
-    {
-        List<EfEfv<PayLoad>> result = new ArrayList<EfEfv<PayLoad>>();
-        for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
-            for(SortedMap.Entry<String,PayLoad> j : i.getValue().entrySet()) {
-                result.add(new EfEfv<PayLoad>(i.getKey(), j.getKey(), j.getValue()));
+        List<Efv<Payload>> result = new ArrayList<Efv<Payload>>();
+        if(efvs.containsKey(ef)) {
+            for (Map.Entry<String, Payload> j : efvs.get(ef).entrySet()) {
+                result.add(new Efv<Payload>(j.getKey(), j.getValue()));
             }
         }
         return result;
     }
 
-    public List<EfEfv<PayLoad>> getValueSortedList()
+    public List<Ef<Payload>> getNameSortedTree()
     {
-        List<EfEfv<PayLoad>> result = getNameSortedList();
-        Collections.sort(result, new Comparator<EfEfv<PayLoad>>() {
-            public int compare(EfEfv<PayLoad> o1, EfEfv<PayLoad> o2) {
+        List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
+        for(SortedMap.Entry<String,SortedMap<String,Payload>> i : efvs.entrySet()) {
+            List<Efv<Payload>> efvs = new ArrayList<Efv<Payload>>();
+            for(Map.Entry<String,Payload> j : i.getValue().entrySet()) {
+                efvs.add(new Efv<Payload>(j.getKey(), j.getValue()));
+            }
+            efs.add(new Ef<Payload>(i.getKey(), efvs));
+        }
+
+        return efs;
+    }
+
+    public List<EfEfv<Payload>> getNameSortedList()
+    {
+        List<EfEfv<Payload>> result = new ArrayList<EfEfv<Payload>>();
+        for(SortedMap.Entry<String,SortedMap<String,Payload>> i : efvs.entrySet()) {
+            for(SortedMap.Entry<String,Payload> j : i.getValue().entrySet()) {
+                result.add(new EfEfv<Payload>(i.getKey(), j.getKey(), j.getValue()));
+            }
+        }
+        return result;
+    }
+
+    public List<EfEfv<Payload>> getValueSortedList()
+    {
+        List<EfEfv<Payload>> result = getNameSortedList();
+        Collections.sort(result, new Comparator<EfEfv<Payload>>() {
+            public int compare(EfEfv<Payload> o1, EfEfv<Payload> o2) {
                 return o1.getPayload().compareTo(o2.getPayload());
             }
         });
@@ -228,20 +232,19 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
     }
 
     /**
-     * Throw back object, representing two-level tree of EF/EFVs sorted by payload and sliced
+     * Throw back object, representing two-level tree of EF/EFVs sorted by Payload and sliced
      * no more than efLimit group with no more than efvLimit values
      * @return iterable collection of objects with "ef" property and "efvs"
      */
-    public List<Ef<PayLoad>> getValueSortedTrimmedTree() {
-        List<Ef<PayLoad>> efs = new ArrayList<Ef<PayLoad>>();
-        int number = 0;
-        for(SortedMap.Entry<String,SortedMap<String,PayLoad>> i : efvs.entrySet()) {
-            List<Efv<PayLoad>> efvs = new ArrayList<Efv<PayLoad>>();
-            for(Map.Entry<String,PayLoad> j : i.getValue().entrySet()) {
-                efvs.add(new Efv<PayLoad>(j.getKey(), j.getValue(), number++));
+    public List<Ef<Payload>> getValueSortedTrimmedTree() {
+        List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
+        for(SortedMap.Entry<String,SortedMap<String,Payload>> i : efvs.entrySet()) {
+            List<Efv<Payload>> efvs = new ArrayList<Efv<Payload>>();
+            for(Map.Entry<String,Payload> j : i.getValue().entrySet()) {
+                efvs.add(new Efv<Payload>(j.getKey(), j.getValue()));
             }
             Collections.sort(efvs);
-            efs.add(new Ef<PayLoad>(i.getKey(), efvs.subList(0, Math.min(efvLimit, efvs.size()))));
+            efs.add(new Ef<Payload>(i.getKey(), efvs.subList(0, Math.min(efvLimit, efvs.size()))));
         }
         Collections.sort(efs);
         return efs.subList(0, Math.min(efLimit, efs.size()));
@@ -249,7 +252,7 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
     public static String getEfEfvId(String ef, String efv)
     {
-        return encodeEfv(ef) + "_" + encodeEfv(efv);
+        return IndexField.encode(ef, efv);
     }
 
     public static String getEfEfvId(Ef<?> ef, Efv<?> efv)
@@ -257,26 +260,9 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
         return getEfEfvId(ef.getEf(), efv.getEfv());
     }
 
-    public static String encodeEfv(String v) {
-        try {
-            StringBuffer r = new StringBuffer();
-            for(char x : v.toCharArray())
-            {
-                if(Character.isJavaIdentifierPart(x))
-                    r.append(x);
-                else
-                    for(byte b : Character.toString(x).getBytes("UTF-8"))
-                        r.append("_").append(String.format("%x", b));
-            }
-            return r.toString();
-        } catch(UnsupportedEncodingException e){
-            throw new IllegalArgumentException("Unable to encode EFV in UTF-8", e);
-        }
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for(EfEfv<PayLoad> efefv : getNameSortedList())
+        for(EfEfv<Payload> efefv : getNameSortedList())
         {
             if(sb.length() > 0)
                 sb.append(", ");
@@ -300,12 +286,18 @@ public class EfvTree<PayLoad extends Comparable<PayLoad>> {
 
     public String[] getEfvArray()
     {
-        List<EfEfv<PayLoad>> list = getNameSortedList();
+        List<EfEfv<Payload>> list = getNameSortedList();
         String[] result = new String[list.size()];
         int k = 0;
-        for(EfEfv<PayLoad> e : list) {
+        for(EfEfv<Payload> e : list) {
             result[k++] = e.getEfv();
         }
         return result;
+    }
+
+    public Set<String> getEfvSet(String ef)
+    {
+        Map<String,Payload> efvmap = efvs.get(ef);
+        return efvmap == null ? new HashSet<String>() : efvmap.keySet();
     }
 }

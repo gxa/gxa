@@ -1,5 +1,7 @@
 package ae3.service.structuredquery;
 
+import uk.ac.ebi.ae3.indexbuilder.Expression;
+
 import java.util.*;
 
 /**
@@ -10,14 +12,43 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
     private SortedSet<ExperimentRow> ups = new TreeSet<ExperimentRow>();
     private SortedSet<ExperimentRow> downs = new TreeSet<ExperimentRow>();
 
+    public static Comparator<ExperimentRow> ORDER_PVALUE = new Comparator<ExperimentRow>() {
+        public int compare(ExperimentRow o1, ExperimentRow o2) {
+            return o1.compareTo(o2);
+        }
+    };
+
+    public static Comparator<ExperimentRow> ORDER_EFEFV_PVALUE = new Comparator<ExperimentRow>() {
+        public int compare(ExperimentRow o1, ExperimentRow o2) {
+            int d = o1.getEf().compareTo(o2.getEf());
+            if(d != 0)
+                return d;
+            d = o1.getEfv().compareTo(o2.getEfv());
+            if(d != 0)
+                return d;
+            d = Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
+            return d;
+        }
+    };
+
+    public static Comparator<ExperimentRow> ORDER_EXPID_PVALUE = new Comparator<ExperimentRow>() {
+        public int compare(ExperimentRow o1, ExperimentRow o2) {
+            int d = Long.valueOf(o1.getExperimentId()).compareTo(o2.getExperimentId());
+            if(d != 0)
+                return d;
+            d = Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue()); 
+            return d;
+        }
+    };
+
     /**
      * Merging iterartor
      */
     public class BothIterator implements Iterator<ExperimentRow> {
-        Iterator<ExperimentRow> upiter = ExperimentList.this.ups.iterator();
-        Iterator<ExperimentRow> dniter = ExperimentList.this.downs.iterator();
-        ExperimentRow up = null;
-        ExperimentRow dn = null;
+        private Iterator<ExperimentRow> upiter = ups.iterator();
+        private Iterator<ExperimentRow> dniter = downs.iterator();
+        private ExperimentRow up = null;
+        private ExperimentRow dn = null;
 
         public boolean hasNext() {
             return upiter.hasNext() || dniter.hasNext() || up != null || dn != null;
@@ -29,7 +60,7 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
                 up = upiter.next();
             if(dn == null && dniter.hasNext())
                 dn = dniter.next();
-            if(dn == null || (up != null && up.compareTo(dn) < 0))
+            if(dn == null || (up != null && ups.comparator().compare(up, dn) < 0))
             {
                 out = up;
                 up = null;
@@ -43,6 +74,15 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
         }
 
         public void remove() { }
+    }
+
+    public ExperimentList(Comparator<ExperimentRow> comparator) {
+        ups = new TreeSet<ExperimentRow>(comparator);
+        downs = new TreeSet<ExperimentRow>(comparator);
+    }
+
+    public ExperimentList() {
+        this(ORDER_PVALUE);
     }
 
     /**
@@ -88,6 +128,30 @@ public class ExperimentList implements Iterable<ExperimentRow>, Comparable<Exper
      */
     public void add(ExperimentRow row)
     {
-        (row.getUpdn() == ExperimentRow.UpDn.UP ? ups : downs).add(row);
+        (row.getUpdn().isUp() ? ups : downs).add(row);
+    }
+
+    public int getNumUps() {
+        return ups.size();
+    }
+
+    public int getNumDowns() {
+        return downs.size();
+    }
+
+    public double getMinPvalUp() {
+        double r = 1;
+        for(ExperimentRow er : ups)
+            if(er.getPvalue() < r)
+                r = er.getPvalue();
+        return r;
+    }
+
+    public double getMinPvalDn() {
+        double r = 1;
+        for(ExperimentRow er : downs)
+            if(er.getPvalue() < r)
+                r = er.getPvalue();
+        return r;
     }
 }

@@ -245,4 +245,6 @@ public class Constants
 	public static final String FIELD_DWEXP_FV = "exp_factor_values";
 	public static final String FIELD_DWEXP_EF = PREFIX_DWE+"exp_factor";
 
+    public static final String EFO_FACTOR_NAME = "efo";
+    public static final String EXP_FACTOR_NAME = "experiment";
 }

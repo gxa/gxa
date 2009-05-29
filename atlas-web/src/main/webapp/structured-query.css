@@ -258,3 +258,77 @@ legend { font-weight: bold; }
     padding-right: 2px;
 }
 
+div.efoinput div {
+    position:absolute;
+    right:0;
+    top:0;
+    width:16px;
+    height:100%;
+    background:  url(images/expp.gif) no-repeat scroll 2px center;
+    cursor:pointer;
+}
+
+#structform div.efoinput input.value {
+    width: 323px;
+}
+
+div.efoinput input {
+    padding-right: 17px;
+}
+
+div.efoinput {
+    position:relative;
+    *display: inline;
+    display:inline-block;
+}
+
+.ac_results .tree {
+    font-size: 10px;
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px 25px 5px 5px;
+    margin-left: -10px;
+
+}
+
+.ac_results .tree UL {
+    padding: 0px 0px 0px 13px;
+    margin: 0px;
+}
+
+.ac_results .tree LI {
+    line-height: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.ac_results .tree LI a, .ac_results .tree LI a:hover {
+    cursor: pointer;
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid white;
+}
+
+.ac_results .tree li.selected a.selected {
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid #006666;
+    background: #99cccc;
+}
+
+/* Core Styles */
+.ac_results .tree LI i {
+    display: inline-block;
+    width: 11px;
+    height: auto;
+    cursor: pointer;
+}
+.ac_results .tree LI.collapsed { background: url(images/expp.gif) left 7px no-repeat; }
+.ac_results .tree LI.expanded { background: url(images/expm.gif) left 7px no-repeat; }
+.ac_results .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
+
+.ac_results .tree a.hl { color: #005555; }

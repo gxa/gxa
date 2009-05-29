@@ -19,15 +19,11 @@ import ae3.service.structuredquery.UpdownCounter;
 public class ListResultRow implements Comparable<ListResultRow>{
 	private String fv;
 	private String ef;
-	private String row_id;
 	private int count_up;
 	private int count_dn;
 	private double minPval_up;
 	private double minPval_dn;
-	private String gene_name;
-	private String gene_species;
 	private ExperimentList exp_list;
-	private String gene_id;
 	private AtlasGene gene;
 	
 	
@@ -147,24 +143,14 @@ public class ListResultRow implements Comparable<ListResultRow>{
 		this.gene = gene;
 	}
 	public String getGene_name() {
-		return gene_name;
-	}
-	public void setGene_name(String gene_name) {
-		this.gene_name = gene_name;
+		return gene.getGeneName();
 	}
 	public String getGene_species() {
-		return gene_species;
-	}
-	public void setGene_species(String gene_species) {
-		this.gene_species = gene_species;
+		return gene.getGeneSpecies();
 	}
 	public String getGene_id() {
-		return gene_id;
+		return gene.getGeneId();
 	}
-	public void setGene_id(String gene_id) {
-		this.gene_id = gene_id;
-	}
-		
     public HashMap<String, String> getCellText()
     {
         double c;

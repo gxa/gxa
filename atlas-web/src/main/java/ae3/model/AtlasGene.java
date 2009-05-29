@@ -1,11 +1,12 @@
 package ae3.model;
 
-import org.apache.solr.common.SolrDocument;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrDocument;
+import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.IndexField;
 
 import java.util.*;
-import ae3.service.structuredquery.EfvTree;
 
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
@@ -176,10 +177,10 @@ public class AtlasGene {
 	public HashSet<Object> getAllFactorValues(String ef){
 		HashSet<Object> efvs = new HashSet<Object>();;
 
-		Collection<Object> fields = geneSolrDocument.getFieldValues("efvs_up_" + EfvTree.encodeEfv(ef));
+		Collection<Object> fields = geneSolrDocument.getFieldValues("efvs_up_" + IndexField.encode(ef));
 		if(fields!=null)
 			efvs.addAll(fields);
-		fields = geneSolrDocument.getFieldValues("efvs_dn_" + EfvTree.encodeEfv(ef));
+		fields = geneSolrDocument.getFieldValues("efvs_dn_" + IndexField.encode(ef));
 		if(fields!=null)
 			efvs.addAll(fields);
 		return efvs;
@@ -195,21 +196,37 @@ public class AtlasGene {
 		return orths;
 	}
 
-	public int getCount_up(String ef, String efv){
-		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_up")));
-	}
+    public int getCount_up(String ef, String efv){
+        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + IndexField.encode(ef, efv) + "_up"));
+    }
 
-	public int getCount_dn(String ef, String efv){
-		return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efv_"+ef+"_"+EfvTree.encodeEfv(efv.toString()+"_dn")));
-	}
+    public int getCount_dn(String ef, String efv){
+        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + IndexField.encode(ef, efv) + "_dn"));
+    }
 
-	public double getMin_up(String ef, String efv){
-		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_up")));
-	}
+    public double getMin_up(String ef, String efv){
+        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + IndexField.encode(ef, efv) + "_up"));
+    }
 
-	public double getMin_dn(String ef, String efv){
-		return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efv_" + ef+"_"+EfvTree.encodeEfv(efv.toString() + "_dn")));
-	}
+    public double getMin_dn(String ef, String efv){
+        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + IndexField.encode(ef, efv) + "_dn"));
+    }
+
+    public int getCount_up(String efo) {
+        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efo_" + IndexField.encode(efo) + "_up"));
+    }
+
+    public int getCount_dn(String efo) {
+        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efo_" + IndexField.encode(efo) + "_dn"));
+    }
+
+    public double getMin_up(String efo) {
+        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + IndexField.encode(efo) + "_up"));
+    }
+
+    public double getMin_dn(String efo) {
+        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + IndexField.encode(efo) + "_dn"));
+    }
 
 	private static int nullzero(Short i)
 	{
@@ -229,4 +246,8 @@ public class AtlasGene {
 		return this.orthoGenes;
 	}
 
+
+    public ExperimentsTable getExpermientsTable() {
+        return ExperimentsTable.deserialize((String)geneSolrDocument.getFieldValue("exp_info"));
+    }
 }

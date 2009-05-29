@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import uk.ac.ebi.ae3.indexbuilder.IndexField;
+import uk.ac.ebi.ae3.indexbuilder.Constants;
+
 /**
  * EFVs listing and autocompletion helper implementation
  * @author pashky
@@ -17,15 +20,15 @@ import java.util.*;
  */
 public class ExpFactorValueListHelper implements IValueListHelper {
 
-    private SolrServer solrExpt;
+    private SolrServer solrAtlas;
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
     private Set<String> allFactors;
-    
-    public ExpFactorValueListHelper(SolrServer solrExpt, Collection<String> allFactors)
+
+    public ExpFactorValueListHelper(SolrServer solrAtlas, Collection<String> allFactors)
     {
-        this.solrExpt = solrExpt;
+        this.solrAtlas = solrAtlas;
         this.allFactors = new HashSet<String>(allFactors);
     }
 
@@ -39,34 +42,37 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         PrefixNode root;
         synchronized(prefixTrees) {
             if(!prefixTrees.containsKey(property)) {
-                SolrQuery q = new SolrQuery("exp_in_dw:true");
+                log.info("Loading factor values and counts for " + property);
+                SolrQuery q = new SolrQuery("gene_id:[* TO *]");
                 q.setRows(0);
                 q.setFacet(true);
                 q.setFacetMinCount(1);
                 q.setFacetLimit(-1);
                 q.setFacetSort(true);
 
-                if(AtlasStructuredQueryService.EXP_FACTOR_NAME.equals(property))
-                    q.addFacetField("dwe_exp_accession");
+                if(Constants.EXP_FACTOR_NAME.equals(property))
+                    q.addFacetField("exp_ud_ids");
                 else if(!allFactors.contains(property))
                     return null;
                 else
-                    q.addFacetField(AtlasStructuredQueryService.FIELD_FACTOR_PREFIX  + property);
-                
+                    q.addFacetField("efvs_ud_" + IndexField.encode(property));
+
                 try {
-                    QueryResponse qr = solrExpt.query(q);
+                    QueryResponse qr = solrAtlas.query(q);
                     root = new PrefixNode();
                     if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
                             && qr.getFacetFields().get(0).getValues() != null) {
                         for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                            if(ffc.getName().length() > 0) {
+                            if(ffc.getName().length() > 0 && ffc.getCount() > 0) {
                                 root.add(ffc.getName(), (int)ffc.getCount());
                             }
                     }
                     prefixTrees.put(property, root);
+
                 } catch (SolrServerException e) {
                     throw new RuntimeException(e);
                 }
+                log.info("Done loading factor values and counts for " + property);
             }
             root = prefixTrees.get(property);
         }
@@ -99,10 +105,6 @@ public class ExpFactorValueListHelper implements IValueListHelper {
     }
 
     public Iterable<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit) {
-        if(query.startsWith("\""))
-            query = query.substring(1);
-        if(query.endsWith("\""))
-            query = query.substring(0, query.length() - 1);
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)

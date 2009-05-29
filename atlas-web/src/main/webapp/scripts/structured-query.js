@@ -133,6 +133,9 @@
              input.keyup(function () { if(values != this.value) tr.find("td.expansion").text(''); });
          }
 
+         if(factor == "" || factor == "efo")
+             atlas.bindEfoTree(input, true);
+
          var t = $('tr.efvcond:last,tr.speccond:last', $('#conditions'));
          if(t.length)
              t.eq(0).after(tr);
@@ -314,11 +317,11 @@
          }
      }
 
-     function drawExperimentPlots(gene_id, ef, efv) {
+     function drawExperimentPlots(gene_id) {
 
          function drawPlot(jsonObj, plot_id, efv){
              if(jsonObj.series) {
-                 jsonObj.options.legend.container = "#" + plot_id + "_legend";
+                 jsonObj.options.legend.container = "#legend_" + plot_id;
                  jsonObj.options.legend.extContainer = null;
                  jsonObj.options.selection = null;
 
@@ -351,7 +354,7 @@
                              grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#FFFFCC' }]}
                          }));
 
-                 var link = $('#' + plot_id + '_link');
+                 var link = $('#link_' + plot_id);
                  if(link)
                      plotel.bind('click', function (e) { location.href = link.attr('href');e.stopPropagation();return false; })
                              .bind('mousedown', function (e) { e.stopPropagation();return false; });
@@ -362,7 +365,12 @@
 
          $(".plot").each(function() {
              var plot_id = this.id;
-             var eid = plot_id.split('_')[1];
+             var eid = $('#eid_'+plot_id).text();
+             var ef = $('#ef_'+plot_id).text();
+             var efv = $('#efv_'+plot_id).text();
+             $('#eid_'+plot_id).remove();
+             $('#ef_'+plot_id).remove();
+             $('#efv_'+plot_id).remove();
              $.ajax({
                  type: "GET",
                  url: "plot.jsp",
@@ -380,7 +388,12 @@
          $("#expopup").remove();
 
          var gene = resultGenes[igene];
-         var efv = resultEfvs[iefv];
+
+         var efv; var efo;
+         if(isNaN(iefv))
+             efo = iefv;
+         else
+             efv = resultEfvs[iefv];
 
          var left;
          var top;
@@ -404,9 +417,13 @@
          $.ajax({
                     mode: "queue",
                     port: "sexpt",
-                    url: 'experiments.jsp',
+                    url: 'experiments',
                     dataType: "html",
-                    data: { gene:gene.geneAtlasId, ef: efv.ef, efv: efv.efv },
+                    data: {
+                        gene:gene.geneAtlasId,
+                        ef: efo ? 'efo' : efv.ef,
+                        efv: efo ? efo : efv.efv
+                    },
                     complete: function(resp) {
                         $('#waiter').remove();
 
@@ -428,7 +445,7 @@
                         // adjust for viewport
                         adjustPosition(popup);
 
-                        drawExperimentPlots(gene.geneAtlasId, efv.ef, efv.efv);
+                        drawExperimentPlots(gene.geneAtlasId);
                     }
                 });
      };
@@ -451,6 +468,28 @@
          var v = $(form).find('input[type=submit]');
          v.val('Searching...');
      };
+
+    atlas.popup = function  (url) {
+        var width  = 600;
+        var height = 200;
+        var left   = (screen.width  - width)/2;
+        var top    = (screen.height - height)/2;
+        var params = 'width='+width+', height='+height;
+        params += ', top='+top+', left='+left;
+        params += ', directories=no';
+        params += ', location=no';
+        params += ', menubar=no';
+        params += ', resizable=no';
+        params += ', scrollbars=no';
+        params += ', status=no';
+        params += ', toolbar=no';
+        newwin=window.open(url,'windowname5', params);
+        if (window.focus) {newwin.focus()}
+        return false;
+    };
+
+
+
 
 
  })(jQuery);

@@ -66,6 +66,13 @@
     </servlet>
 
     <servlet>
+        <display-name>EFO ajax helper</display-name>
+        <servlet-name>efo</servlet-name>
+        <servlet-class>ae3.servlet.structuredquery.EfoServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
       <display-name>Gene Identifiers Dump</display-name>
       <servlet-name>GeneIdentifiersDump</servlet-name>
       <servlet-class>ae3.servlet.GeneIdentifiersDumpDownloadServlet</servlet-class>
@@ -90,6 +97,13 @@
         <display-name>Search JSP Servlet</display-name>
         <servlet-name>qrs</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.StructuredQueryServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>Experiments servlet</display-name>
+        <servlet-name>experiments</servlet-name>
+        <servlet-class>ae3.servlet.structuredquery.ExperimentsServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
@@ -118,10 +132,20 @@
         <url-pattern>/fval</url-pattern>
     </servlet-mapping>
 
-   <servlet-mapping>
-       <servlet-name>gene</servlet-name>
-       <url-pattern>/gene</url-pattern>
-   </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>efo</servlet-name>
+        <url-pattern>/efo</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>gene</servlet-name>
+        <url-pattern>/gene</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>experiments</servlet-name>
+        <url-pattern>/experiments</url-pattern>
+    </servlet-mapping>
 
     <mime-mapping>
         <extension>wsdl</extension>

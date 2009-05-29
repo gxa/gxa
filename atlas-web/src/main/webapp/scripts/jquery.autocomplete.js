@@ -50,6 +50,11 @@ $.fn.extend({
 	},
 	hideResults: function() {
 		return this.trigger("hideResults");
+	},
+	lastWord: function() {
+                var result = [''];
+		this.trigger("lastWord", [result]);
+                return result[0];
 	}
 });
 
@@ -199,11 +204,13 @@ $.Autocompleter = function(input, options) {
 		$input.unbind();
 		$(input.form).unbind(".autocomplete");
 	}).bind("hideResults", function() {
-		hideResults();
-        var xhr = $.data($input, "ac_xhr");
-        if(xhr && typeof(xhr.abort) == 'function')
-            xhr.abort();
-    });
+            hideResultsNow();
+            var xhr = $.data($input, "ac_xhr");
+            if(xhr && typeof(xhr.abort) == 'function')
+                xhr.abort();
+        }).bind("lastWord", function(e, data) {
+            data[0] = lastWord($input.val());
+        });
 
 
 	function selectCurrent() {
@@ -376,6 +383,9 @@ $.Autocompleter = function(input, options) {
 	function request(term, success, failure) {
 		if (!options.matchCase)
 			term = term.toLowerCase();
+                if(options.multipleQuotes && term.charAt(0) == "\"")
+                        term = term.substr(1);
+
 		var data = cache.load(term);
 		// recieve the cached data
 		if (data && data.length) {
@@ -398,8 +408,8 @@ $.Autocompleter = function(input, options) {
 				dataType: options.dataType,
 				url: options.url,
 				data: $.extend({
-					q: lastWord(term),
-					limit: options.max
+					q: term,
+					limit: options.queryMax || options.max
 				}, extraParams),
 				success: function(data) {
 					var parsed = options.parse && options.parse(data) || parse(data);

@@ -13,7 +13,7 @@ public class AtlasStructuredQuery {
 
     private Iterable<String> species;
     private Iterable<ExpFactorQueryCondition> conditions;
-    private Iterable<GeneQueryCondition> geneQueries;
+    private Iterable<GeneQueryCondition> geneConditions;
     private int start;
     private int rowsPerPage;
     private Set<String> expandColumns;
@@ -22,26 +22,26 @@ public class AtlasStructuredQuery {
     private boolean export;
     
     public AtlasStructuredQuery() {
-        conditions = new ArrayList<ExpFactorQueryCondition>();
-        geneQueries = new ArrayList<GeneQueryCondition>();
+        conditions = new ArrayList<ExpFactorQueryCondition>(0);
+        geneConditions = new ArrayList<GeneQueryCondition>(0);
         start = 0;
         rowsPerPage = 100;
     }
 
     /**
      * sets lists of gene queries represented by each row added to the query
-     * @param geneQueries
+     * @param geneConditions
      */
-    public void setGeneQueries(List<GeneQueryCondition> geneQueries){
-    	this.geneQueries = geneQueries;
+    public void setGeneConditions(List<GeneQueryCondition> geneConditions){
+    	this.geneConditions = geneConditions;
     }
     
     /**
      * Returns gene queries for the current query. Includes for each query (query, query operator and gene property)
      * @return geneQueries
      */
-    public Iterable<GeneQueryCondition> getGeneQueries(){
-    	return geneQueries;
+    public Iterable<GeneQueryCondition> getGeneConditions(){
+    	return geneConditions;
     }
     
     /**
@@ -116,7 +116,7 @@ public class AtlasStructuredQuery {
      */
     public boolean isSimple() {
         Iterator<ExpFactorQueryCondition> efi = conditions.iterator();
-        Iterator<GeneQueryCondition> gqi = geneQueries.iterator();
+        Iterator<GeneQueryCondition> gqi = geneConditions.iterator();
         Iterator<String> spi = species.iterator();
         return (!efi.hasNext() || ("".equals(efi.next().getFactor())) && !efi.hasNext()) &&
                 (!gqi.hasNext() || (!gqi.next().isNegated() && !gqi.hasNext())) &&
@@ -128,7 +128,7 @@ public class AtlasStructuredQuery {
      * @return true or false
      */
     public boolean isNone() {
-        return !conditions.iterator().hasNext() && !geneQueries.iterator().hasNext(); 
+        return !conditions.iterator().hasNext() && !geneConditions.iterator().hasNext();
     }
 
     /**
@@ -170,27 +170,31 @@ public class AtlasStructuredQuery {
 		this.export = export;
 	}
 	
-	public String toString(){
-		String query="";
-		ArrayList<GeneQueryCondition> geneList = (ArrayList<GeneQueryCondition>)geneQueries;
-		ArrayList<ExpFactorQueryCondition> factorList = (ArrayList<ExpFactorQueryCondition>)conditions;
-		if(geneList.isEmpty())
-			query+="(All genes) ";
-		for (int i=0; i<geneList.size(); i++){
-			if(i>0)
-				query+=" and ";
-				query+= geneList.get(i).getJointFactorValues() + " ";
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+        boolean hasValues = false;
+
+		for (GeneQueryCondition c : geneConditions){
+			if(!hasValues)
+				sb.append(" and ");
+            sb.append(c.getJointFactorValues());
+            hasValues = true;
 		}
-				
-		for(int i=0; i<factorList.size(); i++){
-			if(i>0)
-				query+= " and ";
-			query+= factorList.get(i).getExpression().getDescription() + " in ";
-			if(factorList.get(i).isAnything())
-				query+= "(all conditions)";
+        if(!hasValues)
+            sb.append("(All genes) ");
+
+        hasValues = false;
+		for(ExpFactorQueryCondition c : conditions){
+            if(!hasValues)
+                sb.append(" and ");
+
+			sb.append(c.getExpression().getDescription()).append(" in ");
+			if(c.isAnything())
+				sb.append("(all conditions)");
 			else
-				query+= factorList.get(i).getJointFactorValues() + "\n";
+				sb.append(c.getJointFactorValues()).append("\n");
 		}
-		return query;
+		return sb.toString();
 	}
 }
