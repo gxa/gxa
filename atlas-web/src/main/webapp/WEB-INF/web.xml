@@ -64,7 +64,7 @@
         <servlet-class>ae3.servlet.structuredquery.FactorValuesServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
-
+	
     <servlet>
         <display-name>EFO ajax helper</display-name>
         <servlet-name>efo</servlet-name>
@@ -78,7 +78,7 @@
       <servlet-class>ae3.servlet.GeneIdentifiersDumpDownloadServlet</servlet-class>
       <load-on-startup>1</load-on-startup>
     </servlet>
-
+ 
     <servlet>
         <display-name>Gene View</display-name>
         <servlet-name>gene</servlet-name>
@@ -106,12 +106,24 @@
         <servlet-class>ae3.servlet.structuredquery.ExperimentsServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    
+    <servlet>
+        <display-name>ExperimentGeneList servlet</display-name>
+        <servlet-name>expGenes</servlet-name>
+        <servlet-class>ae3.servlet.ExpGeneListServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>GeneIdentifiersDump</servlet-name>
         <url-pattern>/download/gene_identifiers.txt</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>expGenes</servlet-name>
+        <url-pattern>/expGenes</url-pattern>
+    </servlet-mapping>
+    
     <servlet-mapping>
         <servlet-name>qr</servlet-name>
         <url-pattern>/qr</url-pattern>

@@ -155,7 +155,7 @@ public class AtlasStructuredQueryParser {
         	if(request.viewHeatMap() || request.isExport())
             	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
             else 
-            	request.setRowsPerPage(10); //TO DO: put value in atlas properties
+            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize")); //TO DO: put value in atlas properties
         }
         
         

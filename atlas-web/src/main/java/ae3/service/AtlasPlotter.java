@@ -6,14 +6,21 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
+import org.apache.lucene.analysis.compound.hyphenation.CharVector;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.HtmlUtils;
 
+import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
+import ae3.util.HtmlHelper;
 
 import ds.server.DataServerAPI;
 import ds.server.ExpressionDataSet;
@@ -22,7 +29,7 @@ public class AtlasPlotter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static AtlasPlotter _instance = null;
-	private static final String[] altColors= {"#D8D8D8","#F2F2F2"};  
+	private static final String[] altColors= {"#F0FFFF","#F5F5DC"};  
 	final java.util.regex.Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
 	public static AtlasPlotter instance() {
 		if(null == _instance) {
@@ -49,6 +56,15 @@ public class AtlasPlotter {
 			
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[] {geneIdKey, expIdKey, efToPlot});
 
+		ArrayList<String> geneNames = getGeneNames(geneIdKey);
+		
+		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
+		
+		if(plotType.equals("thumb"))
+			return createThumbnailJSON(ds, efToPlot, EFV);
+		else if(plotType.equals("big") || plotType.equals("large"))
+			return createBigPlotJSON(ds, efToPlot, EFV,geneNames);
+		
 		ArrayList<String> topFVs = new ArrayList<String>();
 		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
 
@@ -57,12 +73,6 @@ public class AtlasPlotter {
                 topFVs.add(at.getEfv().toLowerCase());
             }
         }
-		
-		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
-		
-		if(plotType.equals("thumb"))
-			return createThumbnailJSON(ds, efToPlot, EFV);
-		
         return createJSON(ds, efToPlot, topFVs);
 	}
 
@@ -195,6 +205,145 @@ public class AtlasPlotter {
 	}
 	
 	
+	private JSONObject createBigPlotJSON(ExpressionDataSet eds, String EF, String EFV, ArrayList<String> geneNames){
+		JSONObject plotData = new JSONObject();
+		JSONArray seriesList = new JSONArray();
+		JSONObject series;
+		JSONArray seriesData;
+		String markings="";
+//		ArrayList<String> names = new ArrayList<String>(geneNames.values());
+		try {
+			int sampleIndex=0;
+			int startMark=0, endMark=0;
+			Set<String> fvs = eds.getFactorValues(EF);
+			final Object[] fvs_arr = fvs.toArray();
+			Integer[] sortedFVindexes = sortFVs(fvs_arr);
+			series = new JSONObject();
+			seriesData = new JSONArray();
+			
+			double[][] data = eds.getExpressionMatrix();
+			Object[] assay_fvs = eds.getAssayFVs(EF); //fvs ordered by assay_id_key
+			Integer[] sortedAssayFVindexes = sortFVs(assay_fvs);//indexes of fvs sorted alphabetically
+			for(int j=0; j<data.length; j++){
+				double[] deData = data[j];
+				series = new JSONObject();
+				seriesData = new JSONArray();
+				for(int k=0; k<deData.length; k++){
+					JSONArray point = new JSONArray();
+					point.put(k+0.5);
+					point.put(deData[sortedAssayFVindexes[k]]);
+					seriesData.put(point);
+				}
+				series.put("data", seriesData);
+				series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
+				series.put("points", new JSONObject("{show:true,fill:true}"));
+				series.put("legend",new JSONObject("{show:true}"));
+				series.put("label", geneNames.get(j));
+				seriesList.put(series);
+			}
+			
+			for (int i=0; i<fvs_arr.length; i++){
+				
+				String fv = fvs_arr[sortedFVindexes[i]].toString();
+				
+				ArrayList[] DEdata = eds.getDataByFV(EF, fv);
+				startMark = sampleIndex;
+				endMark = DEdata[0].size()+startMark;
+				sampleIndex=endMark;
+				if(fv.equals(""))fv="unannotated";
+				markings= markings.equals("") ? markings : markings+",";
+				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:"+fv.replaceAll("'", "").replaceAll(",", "")+" ,color: '"+altColors[i%2]+"' }";
+				
+			}
+			
+//			series.put("data", seriesData);
+//			series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
+//			series.put("legend",new JSONObject("{show:true}"));
+//			series.put("label", "gene");
+//			seriesList.put(series);
+			plotData.put("series", seriesList);
+			plotData.put("markings",markings);
+			
+			///////////////////////////////////////////////////////////////
+			
+			plotData.put("sAttrs", getSampleAttributes(eds,EF));
+			plotData.put("assay2samples", getSampleAssayMap(eds,EF));
+			
+			JSONStringer sampleChars = new JSONStringer();
+			JSONStringer sampleCharValues = new JSONStringer();
+			sampleChars.array();
+			sampleCharValues.object();
+			for(String sampChar: eds.getSampleCharacteristics()){
+				sampleChars.value(sampChar.substring(3));
+				sampleCharValues.key(sampChar.substring(3));
+				sampleCharValues.array();
+				TreeSet charValuesSet = new TreeSet(Arrays.asList(eds.getSampleCharValues(sampChar)));
+			
+				for(Object charValue: charValuesSet){
+					sampleCharValues.value(charValue.toString());
+				}
+				sampleCharValues.endArray();
+			}
+			sampleCharValues.endObject();
+			sampleChars.endArray();
+			plotData.put("characteristics", sampleChars);
+			plotData.put("charValues", sampleCharValues);
+			plotData.put("currEF", EF.substring(3));
+			plotData.put("ADid", eds.getArraydesign_id());
+			plotData.put("geneNames", getJSONarray(geneNames));
+			plotData.put("DEids", getJSONarray(eds.getDElist()));
+			plotData.put("GNids", getJSONarray(eds.getGNids()));
+			
+			
+			
+		} catch (JSONException e) {
+			log.error("Error construction JSON!", e);
+		}
+		
+		return plotData;
+	}
+	
+	private JSONStringer getSampleAttributes(ExpressionDataSet eds, String EF) throws JSONException{
+		JSONStringer sampleAttrs = new JSONStringer();
+		int[] sample_ids = eds.getSampleList();
+		Set<String> characteristics = eds.getSampleCharacteristics();
+		sampleAttrs.object();
+		for(int i=0; i<sample_ids.length; i++){
+			int sample_key = sample_ids[i];
+			sampleAttrs.key("s"+Integer.toString(sample_key));
+			sampleAttrs.object();
+			for(String scar:characteristics){
+				String charValue = eds.getSampleCharValues(scar)[i].toString();
+				
+				sampleAttrs.key(scar.substring(3)).value(charValue);
+			}
+			sampleAttrs.endObject();
+		}
+		sampleAttrs.endObject();
+		return sampleAttrs;
+	}
+	
+	private JSONStringer getSampleAssayMap(ExpressionDataSet eds, String EF) throws JSONException{
+		JSONStringer map = new JSONStringer();
+		int[] assay_ids = eds.getAssayList();
+		Object[] fvs = eds.getAssayFVs(EF); //fvs ordered by assay_id_key
+		Integer[] sortedFVindexes = sortFVs(fvs);//indexes of fvs sorted alphabetically
+		TreeMap<Integer, ArrayList<Integer>> assays2samples = eds.getAssays2Samples();
+		
+		map.array();
+		for(int i=0; i<fvs.length; i++){
+			int assay_id = assay_ids[sortedFVindexes[i]];
+			ArrayList<Integer> sample_ids = assays2samples.get(assay_id);
+			map.array();
+			for(Integer sample:sample_ids){
+				map.value("s"+sample);
+			}
+			map.endArray();
+		}
+		map.endArray();
+		return map;
+	}
+	
 	private Integer[] sortFVs(final Object[] fvs){
 		
 		Integer[] fso = new Integer[fvs.length];
@@ -242,4 +391,26 @@ public class AtlasPlotter {
 		return sum/test.size();
 
 	}
+	
+	private ArrayList<String> getGeneNames(String gids){
+		ArrayList<String> geneNames = new ArrayList<String>();
+		String[] ids = gids.split(",");
+		for(String gid:ids){
+			AtlasGene gene = AtlasGeneService.getAtlasGene(gid);
+			geneNames.add(gene.getGeneName());
+		}
+		return geneNames;
+	}
+	
+	private JSONStringer getJSONarray(ArrayList<String> geneNames) throws JSONException{
+		JSONStringer JSONarray = new JSONStringer();
+		JSONarray.array();
+		for(String gene:geneNames){
+			JSONarray.value(gene);
+		}
+		JSONarray.endArray();
+		return JSONarray;
+	}
+	
+	
 }

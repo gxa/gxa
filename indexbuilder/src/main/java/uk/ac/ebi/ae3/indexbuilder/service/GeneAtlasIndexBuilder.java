@@ -323,12 +323,12 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         listAtlasGenesStmt = sql.prepareStatement("select agenes.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
                 "from (select distinct gene_id_key from atlas where gene_id_key<>0 and updn<>0) agenes, gene_xml xml " +
                 "where " +
-                "xml.gene_id_key in (170031719,169992680,169990246,153072733,153070758,170037497,160591323,221532282,531073730,220879651) and " +
+//                "xml.gene_id_key in (170031719,169992680,169990246,153072733,153070758,170037497,160591323,221532282,531073730,220879651,153080879,153073444, 153078307, 153080131, 153080879, 153080879) and " +
                 "agenes.gene_id_key = xml.gene_id_key" +
                 (isUpdateMode() ? " and xml.status<>'fresh' and xml.status is not null" : ""));
 
         countGeneEfoStmt = sql.prepareStatement(
-                "SELECT o.accession, o.experiment_id_key, a.updn_pvaladj, a.updn, a.ef, a.efv" +
+                "SELECT o.accession, a.experiment_id_key, a.updn_pvaladj, a.updn, a.ef, a.efv" +
                         " FROM " +
                         "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
                         "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +

@@ -59,8 +59,8 @@ public class StructuredQueryServlet extends HttpServlet {
 
         request.setAttribute("query", atlasQuery);
         request.setAttribute("timeStart", startTime);
-        request.setAttribute("heatmap", "hm".equals(request.getParameter("view")));
-        request.setAttribute("list", "list".equals(request.getParameter("view")));
+        request.setAttribute("heatmap", atlasQuery.viewHeatMap());
+        request.setAttribute("list", atlasQuery.viewList());
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("service", ArrayExpressSearchService.instance());
         request.setAttribute("noDownloads", DownloadService.getNumOfDownloads(request.getSession().getId()));

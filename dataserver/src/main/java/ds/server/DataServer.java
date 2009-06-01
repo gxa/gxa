@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
+import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.microarray.pools.TimeoutException;
@@ -213,25 +215,35 @@ public class DataServer implements DataServerMonitor {
 	}
 	
 	public ExpressionDataSet retrieveExpressionDataSet(String geneIdentifier, String expIdentifier, String factor) {
-		String deId_ADid = getDEforGene(geneIdentifier,expIdentifier,factor);
-		String[] ids = deId_ADid.split("_");
-		String deId = ids[0];
-		String adId = ids[1];
+		String[] geneIds = geneIdentifier.split(",");
 		String netCDF;
+		String adId="";
+		ArrayList<String> deIds = new ArrayList<String>();
+		ArrayList<String> gnIds = new ArrayList<String>();
+		for(String geneId:geneIds){
+			String deId_ADid = getDEforGene(geneId,expIdentifier,factor);
+			String[] ids = deId_ADid.split("_");
+			String deId = ids[0];
+			deIds.add(deId);
+			gnIds.add(geneId);
+			adId = ids[1];
+		}
+		
 
 		if(isExpRatio(expIdentifier,adId))
 			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+"_ratios.nc";	
 		else
 			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
-		Vector deIds = new Vector<String>();
-        deIds.add(deId);
+		
+        
         
 		ExpressionDataSet eds = getDataFromNetCDF(netCDF,deIds,factor);
-
+		eds.setArraydesign_id(adId);
+		eds.setGNids(gnIds);
 		return eds;
 	}
 	
-	private ExpressionDataSet getDataFromNetCDF(String filename, Vector<String> deIds, String factor){
+	private ExpressionDataSet getDataFromNetCDF(String filename, ArrayList<String> deIds, String factor){
 		 NetcdfFile ncfile = null;
 		 ExpressionDataSet eds = new ExpressionDataSet();
 		  try {
@@ -239,8 +251,22 @@ public class DataServer implements DataServerMonitor {
 		    Variable bdc = ncfile.findVariable("BDC");
 		    Variable de = ncfile.findVariable("DE");
 		    Variable bs = ncfile.findVariable("BS");
+		    Variable as = ncfile.findVariable("AS");
 		    Variable efv = ncfile.findVariable("EFV");
 		    Variable ef = ncfile.findVariable("EF");
+		    Variable sc = ncfile.findVariable("SC");
+		    Variable scv = ncfile.findVariable("SCV");
+		    Variable bs2as = ncfile.findVariable("BS2AS");
+		    
+		    String ADaccession;
+		    String ADname;
+		    String quantitationType;
+		    if(ncfile.findGlobalAttribute("ADaccession") != null)
+		    	ADaccession = ncfile.findGlobalAttribute("ADaccession").getStringValue();
+		    if(ncfile.findGlobalAttribute("ADname") != null)
+		    	ADname = ncfile.findGlobalAttribute("ADname").getStringValue();
+		    if(ncfile.findGlobalAttribute("quantitationType") != null)
+		    	quantitationType = ncfile.findGlobalAttribute("quantitationType").getStringValue();
 		    
 
 		    //Get index of current EF
@@ -248,10 +274,47 @@ public class DataServer implements DataServerMonitor {
 		    int EFindex = Arrays.asList(EFarr).indexOf(factor);
 		    
 		    //Get FVs for the current EF
-		    int[] shapeEFV = efv.getShape();      int[] originEFV = new int[ efv.getRank()];
-		    originEFV[0] = EFindex; 
-		    shapeEFV[0] = 1;   
-		    Object[] EFVarr= (Object[])((ArrayChar)efv.read(originEFV,shapeEFV)).make1DStringArray().get1DJavaArray(String.class); 
+//		    int[] shapeEFV = efv.getShape();      int[] originEFV = new int[ efv.getRank()];
+//		    originEFV[0] = EFindex; 
+//		    shapeEFV[0] = 1;   
+//		     EFVarr= (Object[])((ArrayChar)efv.read(originEFV,shapeEFV)).make1DStringArray().get1DJavaArray(String.class); 
+		    Object[] EFVarr = (Object[])((ArrayChar)efv.read().slice(0,EFindex)).make1DStringArray().get1DJavaArray(String.class);
+		    TreeMap assayFVs = new TreeMap<String, Object[]>();
+		    assayFVs.put(factor, EFVarr);
+		     
+		    TreeMap sampleCharacters = new TreeMap<String, Object[]>();
+		    //Get sampleCharacteristics
+		    if(scv != null){
+		    	
+		    	Object[] charArr = (Object[])((ArrayChar)sc.read()).make1DStringArray().get1DJavaArray(String.class);
+		    	int[] shapeSCV = scv.getShape();
+		    	shapeSCV[0] = 1;
+		    	int[] originSCV = new int[ efv.getRank()];
+		    	for(int i=0; i<charArr.length; i++){
+		    		originSCV[0] = i; 
+		    		Object[] SCVarr= (Object[])((ArrayChar)scv.read(originSCV,shapeSCV)).make1DStringArray().get1DJavaArray(String.class);
+		    		String SC = Arrays.asList(charArr).get(i).toString();
+		    		sampleCharacters.put(SC,SCVarr);
+		    	}
+		    }
+		    
+		    int[] vector;
+		    
+		    Index asIndex = as.read().getIndex();
+		    Index bsIndex = bs.read().getIndex();
+		    TreeMap<Integer, Integer> samples2assays = new TreeMap<Integer, Integer>();
+		    for(int i=0; i<bs.getSize(); i++){
+		    	vector = (int[])bs2as.read().slice(0, i).get1DJavaArray(int.class);
+		    	for(int j=0; j<vector.length;j++){
+		    		if(vector[j]==1){
+		    			int assay_id_key = as.read().getInt(asIndex.set(j));
+		    			int sample_id_key = bs.read().getInt(bsIndex.set(i));
+		    			samples2assays.put(sample_id_key, assay_id_key);
+		    			continue;
+		    		}else
+		    			continue;
+		    	}
+		    }
 		    
 		    
 		    //Get index of DE(s)
@@ -265,7 +328,8 @@ public class DataServer implements DataServerMonitor {
 		    }
 		    
 		    //Get data for this DE index
-		    int[] shapeBDC = bdc.getShape(); int[] originBDC = new int[bdc.getRank()];
+		    int[] shapeBDC = bdc.getShape(); 
+		    int[] originBDC = new int[bdc.getRank()];
 		    double[][] DEsData = new double[deIds.size()][];
 		    for(int i=0; i< DEindices.size(); i++){
 		    	originBDC[0]=DEindices.get(i);
@@ -299,6 +363,14 @@ public class DataServer implements DataServerMonitor {
 		    eds.addEFdata(factor,dataPerFV_map);
 		    eds.setFactors(EFarr);
 		    eds.setFactorValues(factor, dataPerFV_map.keySet());
+		    eds.setAssayFVs(assayFVs);
+		    eds.setSampleCharacteristics(sampleCharacters);// Map of characteristic values ordered by sample_id_key
+		    eds.setSampleList((int[])bs.read().copyTo1DJavaArray());
+		    eds.setAssayList((int[])as.read().copyTo1DJavaArray());
+		    eds.setSamples2Assays(samples2assays);
+		    eds.setExpressionMatrix(DEsData);//Data points ordered by assay_id_key
+		    eds.setDEids(deIds);
+		    
 		    
 		  } catch (IOException ioe) {
 			  log.error("Error opening " + filename, ioe);

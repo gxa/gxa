@@ -42,6 +42,10 @@
     		position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
 		}
 
+		#grid .padded { padding: 1px 4px 1px 4px; }
+		#grid th.padded { vertical-align: middle;text-align: center; }
+		#grid a.genename { font-size: 12px; font-weight: bold; }
+
 		/* use the below style below to hide the collapsed rows via CSS, you must also set the showCollapsed setting to true */		
 
 		#grid tr.expand-child td {

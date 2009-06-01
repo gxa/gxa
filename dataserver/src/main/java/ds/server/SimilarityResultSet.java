@@ -1,11 +1,16 @@
 package ds.server;
 
-import java.util.Vector;
 import java.util.*;
 
 import org.bioconductor.packages.rservices.RChar;
 import org.bioconductor.packages.rservices.RMatrix;
 import org.bioconductor.packages.rservices.RNumeric;
+import org.kchine.r.RArray;
+import org.kchine.r.RDataFrame;
+import org.kchine.r.RInteger;
+import org.kchine.r.RList;
+import org.kchine.r.RObject;
+import org.kchine.r.RVector;
 
 /**
  * 
@@ -21,9 +26,22 @@ public class SimilarityResultSet {
 	private String[] colNames = null;  // Description of the different columns making the vector
 	private String methodUsed; // Similarity method used
 	private String sourceNetCDF; // NetCDF file from which the analysis come
-
-	public SimilarityResultSet() {
-
+	private String targetDesignElementId; // Id of the target gene
+	private String targetArrayDesignId; // Id of the target ArrayDesign
+	private String targetExperimentId;
+	private String netCDFsPath;
+	private HashMap<String, Double> scores = new HashMap<String, Double>();
+	
+	public SimilarityResultSet(){
+		results = new Vector<SimilarityResult>();
+	}
+	public SimilarityResultSet(String eid, String deid, String adid) {
+		targetExperimentId = eid;
+		targetArrayDesignId = adid;
+		targetDesignElementId = deid;
+		netCDFsPath = "/ebi/ArrayExpress-files/NetCDFs.DWDEV";//DataServerAPI.getNetCDFPath();
+		if(eid!=""&&deid!=""&&adid!="")
+			sourceNetCDF = netCDFsPath+"/"+targetExperimentId+"_"+targetArrayDesignId+".nc";
 		results = new Vector<SimilarityResult>();
 
 	}
@@ -50,7 +68,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @return
 	 */
-	
 	public int size() {
 		return results.size();
 	}
@@ -61,7 +78,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @return an array of string containg the ids
 	 */
-
 	public String[] getDesignElementIds() {
 
 		String[] deIds = new String[results.size()];
@@ -80,7 +96,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @return an array of string containg the scores
 	 */
-	
 	public double[] retrieveScores1() {
 
 		double[] scores = new double[results.size()];
@@ -99,7 +114,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @return an array of string containg the scores
 	 */
-	
 	public double[] retrieveScores2() {
 
 		double[] scores = new double[results.size()];
@@ -120,7 +134,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @return an array of string containg the scores
 	 */
-
 	public double[] retrieveScores3() {
 
 		double[] scores = new double[results.size()];
@@ -141,7 +154,11 @@ public class SimilarityResultSet {
 	 * 
 	 * @param sr SimilarityResult to be added
 	 */
-
+	public void addResult(SimilarityResult sr, double score) {
+		results.add(sr);
+		scores.put(sr.getGeneId(), score);
+	}
+	
 	public void addResult(SimilarityResult sr) {
 		results.add(sr);
 	}
@@ -152,7 +169,6 @@ public class SimilarityResultSet {
 	 * 
 	 * @param ro
 	 */
-	
 	public void loadResult(RMatrix ro) {
 
 		RChar dimnames = (RChar) ro.getDimnames().getValue()[0];
@@ -197,6 +213,37 @@ public class SimilarityResultSet {
 
 	}
 	
+	
+	public boolean loadResult(RDataFrame rdf) {
+		boolean success = true;
+		
+		try {
+			RList d = rdf.getData();
+			String[] names = d.getNames();
+			RObject[] values = d.getValue();
+			RArray gnIds = (RArray)values[0];
+			RArray deIds = (RArray)values[1];
+			org.kchine.r.RNumeric scores = (org.kchine.r.RNumeric)values[2];
+			for (int i = 0; i < rdf.getRowNames().length; i++) {
+				SimilarityResult sr = new SimilarityResult();
+				
+				sr.setGeneId(String.valueOf(((RInteger)gnIds.getValue()).getValue()[i]));
+				sr.setDesignElementId(String.valueOf(((RInteger)deIds.getValue()).getValue()[i]));
+				sr.setScore_row1(scores.getValue()[i]);
+				addResult(sr,scores.getValue()[i]);
+			}
+		} catch (Exception e) {
+			success= false;
+			e.printStackTrace();
+		}
+		return success;
+	}
+	
+	
+	public HashMap<String, Double> getScores(){
+		return scores;
+	}
+	
 	/**
 	 * 
 	 * Class representing a single similarity relation
@@ -204,14 +251,14 @@ public class SimilarityResultSet {
 	 * @author hugo
 	 *
 	 */
-
 	public class SimilarityResult {
 
 		private String geneId; // gene on which the similarity is run
 		private String designElementId; // Id of the original gene
 		private String targetDesignElementId; // Id of the target gene
+		private String geneName;
 
-		private Hashtable<String, Double> scores;
+		private Hashtable<String, Double> scores = new Hashtable<String, Double>();
 		
 		
 		public String getGeneId() {
@@ -285,6 +332,14 @@ public class SimilarityResultSet {
 			scores.put("score3", scr3);
 			
 		}
+
+		public String getGeneName() {
+			return geneName;
+		}
+
+		public void setGeneName(String geneName) {
+			this.geneName = geneName;
+		}
 		
 		
 	}
@@ -335,6 +390,28 @@ public class SimilarityResultSet {
 
 	public void setSourceNetCDF(String sourceNetCDf) {
 		this.sourceNetCDF = sourceNetCDf;
+	}
+
+	public String getTargetDesignElementId() {
+		return targetDesignElementId;
+	}
+
+	public void setTargetDesignElementId(String targetDesignElementId) {
+		this.targetDesignElementId = targetDesignElementId;
+	}
+	
+	public ArrayList<String> getSimGeneIDs(){
+		ArrayList<String> geneIds = new ArrayList<String>();
+		for(SimilarityResult sim:results){
+			geneIds.add(sim.getGeneId());
+		}
+		return geneIds;
+	}
+	public Vector<SimilarityResult> getResults() {
+		return results;
+	}
+	public void setResults(Vector<SimilarityResult> results) {
+		this.results = results;
 	}
 
 }

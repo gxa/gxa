@@ -2,12 +2,13 @@ package ds.server;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.io.Serializable;
+
+
 import ds.R.RUtilities;
 
 
@@ -24,6 +25,8 @@ public class ExpressionDataSet implements Serializable {
 
 	private String[] factors = null;  // experimental factors for which the expression matrix were taken
 	private HashMap <String, Set<String>> factorValues = null; // factor valeurs for each factor
+	private TreeMap<String, Object[]> sampleAttributes = new TreeMap<String, Object[]>();
+	private TreeMap<String, Object[]> assayFVs = new TreeMap<String, Object[]>();
 	private static final long serialVersionUID = 1L;
 	private String filename; // file from which the data was read
 	private String assayId; // Assay DB id
@@ -31,19 +34,25 @@ public class ExpressionDataSet implements Serializable {
 	private Hashtable <String, Integer> deMap; // Map from DE DB id -> Matrix row id
 	private Hashtable <String, Integer> sampleMap; // Map from BS DB id -> Matrix col id
 	private HashMap<String, TreeMap<String, ArrayList[]>> databyEF;
+	private TreeMap<Integer, Integer> samples2assays;
 
-	private int[] ar_BS = null; // array of col names (DB BS ids)
+	private int[] sampleList = null; // array of col names (DB BS ids)
+	private int[] assayList = null;
+	private double[][] expressionMatrix = null;
+	
+	
 	private String[] ar_DE = null; // array of row names (DB DE ids)
 	private String[] ar_EF = null; 
 	private String[][] ar_EFV = null;
 	private Vector<ExpressionDataSet> joinTo = null;
-	private double[][] expressionMatrix = null;
 	private HashMap<String, double[][]> sortedExpressionMatrix = null;
 	private HashMap <String, int[]> sortOrder = null;
 	
 	private Hashtable<String, String> deAnn = null;
 	private Hashtable<String, String> bsAnn = null;
-	
+	private ArrayList<String> DEids;
+	private ArrayList<String> GNids;
+	private String arraydesign_id;
 	public ExpressionDataSet(){
 		
 		sortedExpressionMatrix = new HashMap<String, double[][]>();
@@ -131,13 +140,13 @@ public class ExpressionDataSet implements Serializable {
 	
 	public ExpressionDataSet getSliceByDE(String[] deids){
 		
-		double[][] temp_new_d_arDBC = new double[deids.length][this.getAr_BS().length];
+		double[][] temp_new_d_arDBC = new double[deids.length][this.getSampleList().length];
 		String [] temp_new_i_arDE = new String[deids.length];
 		ExpressionDataSet ers = new ExpressionDataSet();
 		
 		ers.setAssayId(this.getAssayId());
 		ers.setStudyId(this.getStudyId());
-		ers.setAr_BS(this.getAr_BS());
+		ers.setSampleList(this.getSampleList());
 		int matchIt = 0;
 		
 		for (int a = 0 ;  a< deids.length; a++){
@@ -150,7 +159,7 @@ public class ExpressionDataSet implements Serializable {
 			
 		}
 		
-		double[][] new_d_arDBC = new double[matchIt][this.getAr_BS().length];
+		double[][] new_d_arDBC = new double[matchIt][this.getSampleList().length];
 		String [] new_i_arDE = new String[matchIt];
 		
 		System.arraycopy(temp_new_d_arDBC,0,new_d_arDBC,0,matchIt);
@@ -158,7 +167,7 @@ public class ExpressionDataSet implements Serializable {
 
 		// Updating NetCDFs attributes necessary
 		ers.setAr_DE(new_i_arDE);
-		ers.setAr_BS(this.getAr_BS());
+		ers.setSampleList(this.getSampleList());
 		ers.updatedeMap();
 		ers.setAr_EF(this.getAr_EF());
 		ers.setAr_EFV(this.getAr_EFV());
@@ -189,7 +198,7 @@ public class ExpressionDataSet implements Serializable {
 		}
 		
 		ers.setAr_DE(new_i_arDE);
-		ers.setAr_BS(this.getAr_BS());
+		ers.setSampleList(this.getSampleList());
 		ers.updatedeMap();
 		ers.setAr_EF(this.getAr_EF());
 		ers.setAr_EFV(this.getAr_EFV());
@@ -207,12 +216,44 @@ public class ExpressionDataSet implements Serializable {
 	 * Returns list of sample ids
 	 * 
 	 */
-	public int[] getAr_BS() {
-		return ar_BS;
+	public int[] getSampleList() {
+		return sampleList;
 	}
 
-	public void setAr_BS(int[] ar_BS) {
-		this.ar_BS = ar_BS;
+	public void setSampleList(int[] ar_BS) {
+		this.sampleList = ar_BS;
+	}
+	
+	public int[] getAssayList() {
+		return assayList;
+	}
+
+	public void setAssayList(int[] ar_AS) {
+		this.assayList = ar_AS;
+	}
+	
+	public void setDEids(ArrayList<String> deIds ){
+		this.DEids = deIds;
+	}
+	
+	public ArrayList<String> getDElist(){
+		return DEids;
+	}
+
+	public ArrayList<String> getGNids() {
+		return GNids;
+	}
+
+	public void setGNids(ArrayList<String> nids) {
+		GNids = nids;
+	}
+
+	public String getArraydesign_id() {
+		return arraydesign_id;
+	}
+
+	public void setArraydesign_id(String arraydesign_id) {
+		this.arraydesign_id = arraydesign_id;
 	}
 
 	/**
@@ -308,7 +349,7 @@ public class ExpressionDataSet implements Serializable {
 			
 			new_eds.setAssayId(this.getAssayId());
 			new_eds.setStudyId(this.getStudyId());
-			new_eds.setAr_BS(this.getAr_BS());
+			new_eds.setSampleList(this.getSampleList());
 			int matchIt = 0;
 			
 			for (int a = this.getAr_DE().length ;  a< temp_new_i_arDE.length; a++){
@@ -320,7 +361,7 @@ public class ExpressionDataSet implements Serializable {
 
 			// Updating NetCDFs attributes necessary
 			new_eds.setAr_DE(temp_new_i_arDE);
-			new_eds.setAr_BS(this.getAr_BS());
+			new_eds.setSampleList(this.getSampleList());
 			new_eds.setDeMap(new_eds.obtaindeMap());
 			new_eds.setAr_EF(this.getAr_EF());
 			new_eds.setAr_EFV(this.getAr_EFV());
@@ -363,6 +404,50 @@ public class ExpressionDataSet implements Serializable {
 	public void setBsAnn(Hashtable<String, String> bsAnn) {
 		this.bsAnn = bsAnn;
 	}
+	
+	public void setSampleCharacteristics(TreeMap<String, Object[]> sChars){
+		this.sampleAttributes = sChars;
+	}
+	
+	public Set<String> getSampleCharacteristics(){
+		return sampleAttributes.keySet();
+	}
+	
+	public void setAssayFVs(TreeMap<String, Object[]> assayFVs){
+		this.assayFVs = assayFVs;
+	}
+	
+	public Object[] getAssayFVs(String factor){
+		return assayFVs.get(factor);
+	}
+	
+	
+	
+	public Object[] getSampleCharValues(String sampleChar){
+		return (Object[])sampleAttributes.get(sampleChar);
+	}
+	
+	public void setSamples2Assays(TreeMap<Integer, Integer> s2a){
+		samples2assays = s2a;
+	}
+	
+	public TreeMap<Integer, ArrayList<Integer>> getAssays2Samples(){
+		TreeMap<Integer, ArrayList<Integer>> assays2samples = new TreeMap<Integer, ArrayList<Integer>>();
+		for(Integer sample:samples2assays.keySet()){
+			Integer assay_id = samples2assays.get(sample);
+			ArrayList<Integer> sample_ids;
+			if(assays2samples.containsKey(assay_id)){
+				sample_ids  = assays2samples.get(assay_id);
+	    	}
+	    	else{
+	    		sample_ids = new ArrayList();
+	    		assays2samples.put(assay_id, sample_ids);	
+	    	}
+			sample_ids.add(sample);
+		}
+		return assays2samples;
+	}
+	
 
 	/**
 	 * 
@@ -373,15 +458,15 @@ public class ExpressionDataSet implements Serializable {
 	
 	public double[][] getExpressionMatrix() {
 		
-		if (expressionMatrix == null){
-			RUtilities ru = new RUtilities();
-			
-			try {
-				this.expressionMatrix = ru.retrieveExpressionMatrix(this).getExpressionMatrix();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+//		if (expressionMatrix == null){
+//			RUtilities ru = new RUtilities();
+//			
+//			try {
+//				this.expressionMatrix = ru.retrieveExpressionMatrix(this).getExpressionMatrix();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
 		
 		return expressionMatrix;
 	}
@@ -480,7 +565,7 @@ public class ExpressionDataSet implements Serializable {
 		return sortOrder.get(factor);
 	}
 
-	public void setSortOrder(String factor, int[] order) {
+	public void addSortOrder(String factor, int[] order) {
 		sortOrder.put(factor, order);
 	}
 
@@ -492,6 +577,21 @@ public class ExpressionDataSet implements Serializable {
 		ArrayList[] DEdata =null;
 		DEdata = databyEF.get(EF).get(FV);
 		return DEdata;
+	}
+	
+	public ArrayList<ArrayList>  getDataByDE(String EF){
+		TreeMap<String, ArrayList[]> fvData = databyEF.get(EF);
+		ArrayList<ArrayList> data = new ArrayList();
+		int numOfDEs = fvData.get(fvData.firstKey()).length;
+		for(int i=0; i<numOfDEs; i++){
+			ArrayList deData = new ArrayList();
+			
+			for(ArrayList[] fvdata: fvData.values()){
+				deData.addAll(fvdata[i]);
+			}
+			data.add(deData);
+		}
+		return data;
 	}
 	
 	/*

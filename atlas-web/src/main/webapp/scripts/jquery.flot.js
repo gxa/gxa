@@ -14,7 +14,8 @@
         var series = [],
             options = {
             // the color theme used for graphs
-            colors: ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
+            //colors: ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
+            colors: ["#59BB14", "#39A5FE", "#DC5F13", "#EDC240", "#AFD8F8"],
                 legend: {
                     show: true,
                     noColumns: 1, // number of colums in legend table
@@ -104,7 +105,7 @@
         plotOffset = { left: 0, right: 0, top: 0, bottom: 0},
         canvasWidth = 0, canvasHeight = 0,
         plotWidth = 0, plotHeight = 0,
-        noLegendColors= ["#D8D8D8","#F2F2F2"], 
+        noLegendColors= ["#F0FFFF","#F5F5DC"], 
         // dedicated to storing data for buggy standard compliance cases
         workarounds = {};
         
@@ -368,7 +369,9 @@
 
             setSpacing();
             insertLabels();
+            insertHeaders();
             insertLegend();
+            insertAxisLabels();
         }
         
         function setRange(axis, axisOptions) {
@@ -1023,6 +1026,30 @@
             
             target.append(html);
         }
+        
+        function insertHeaders(){
+        	var html = '<div class="tickLabels" style="position:relative; cursor:pointer; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
+        	var offset =0;
+        	 if (options.grid.markings) {
+                var markings = options.grid.markings;
+                for (i = 0; i < markings.length; ++i) {
+                    var m = markings[i],
+                    xrange = extractRange(m, "x");
+                    xrange.from = xrange.axis.p2c(xrange.from);
+                    xrange.to = xrange.axis.p2c(xrange.to);
+                    var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ (Math.floor(xrange.to)-Math.floor(xrange.from)) + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' + m.label + "</div>";
+                    html += header;
+                    offset+= xrange.from;    
+                }
+                html += '</div>';
+            
+            target.append(html);
+        	 }
+        }
+        
+        function insertAxisLabels(){
+        	
+        }
 
         function drawSeries(series) {
             if (series.lines.show || (!series.bars.show && !series.points.show))
@@ -1500,8 +1527,11 @@
 
                 var label = series[i].label;
                 visibleLegends++;
-                if (options.legend.labelFormatter != null)
-                    label = options.legend.labelFormatter(label);
+                if (options.legend.labelFormatter != null){
+                	//label = options.legend.labelFormatter(label);
+                	label = radioLabel(label);
+                }
+                    
                     
                 if(visibleLegends<5)
                 	shortFragments.push(
@@ -1527,7 +1557,7 @@
                 fullFragments.push(
                     '<td class="legendColorBox">' +
                     '<div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px;">' +
-                    	'<div class="tri" style=" border-right-color: rgb(216, 216, 216); border-top-color: rgb(242, 242, 242); border-top-width: 10px; border-right-width: 14px;"/>' +
+                    	'<div class="tri" style=" border-right-color: rgb(240,255,255); border-top-color: rgb(245, 245, 220); border-top-width: 10px; border-right-width: 14px;"/>' +
                     '</div>' +
                     '</td>' +
                     '<td class="legendLabel">no signficant differential expression</td>');

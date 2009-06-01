@@ -350,5 +350,21 @@ var atlas = {};
         var v = $(form).find('input[type=submit]');
         v.val('Searching...');
     };
+    
+    initExpPageAutoComplete = function(){
+    	var genefield = $("#geneInExp_qry");
+    	var form = genefield.parents('form:first');
+        var oldval = genefield.val();
+        var gpropfield;
+        genefield
+                .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
+                .result(function (unused, res) {
+            var newprop = res[0];
+                gpropfield.val(newprop);
+            var oldval = $(this).val();
+            this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); };
+            //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
+        }).each(function () { this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); }; });
+    };
 })(jQuery);
 

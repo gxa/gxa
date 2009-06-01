@@ -21,6 +21,12 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
+			<groupId>uk.ac.ebi.microarray</groupId>
+			<artifactId>bioc</artifactId>
+			<version>1.0-alpha</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc14</artifactId>
 			<version>9.0.2.0.0</version>

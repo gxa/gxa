@@ -41,6 +41,7 @@
 	   <property name="experimentDwDao" ref="experimentDwJdbcDao"></property>
 	   <property name="solrEmbeddedIndex" ref="solrEmbeddedIndexExpt"></property>
 	   <property name="ftpDir" value="${indexbuilder.ftp}"></property>
+	   <property name="dataSource" ref="dataSourceDW"></property>
 	</bean>
 	
 

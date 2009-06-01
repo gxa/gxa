@@ -731,7 +731,7 @@ public class RUtilities implements Serializable {
 
 		eds.setStudyId(exp.getValue()[0]);
 		eds.setAssayId(array_id.getValue()[0]);
-		eds.setAr_BS(ar_BS);
+		eds.setSampleList(ar_BS);
 		eds.setAr_DE(ar_DE);
 		eds.setAr_EF(ar_EF);
 		eds.setAr_EFV(ar_EFV);
@@ -866,7 +866,7 @@ public class RUtilities implements Serializable {
 			String[] ar_EFVJ = ra_EFVJ.getValue();
 			eds.setFactorValues(currentFactor.getValue()[0], null);
 
-			eds.setSortOrder(currentFactor.getValue()[0], ar_OJ);
+			eds.addSortOrder(currentFactor.getValue()[0], ar_OJ);
 
 			eds.setSortedExpressionMatrix(ar_BDC, currentFactor.getValue()[0]);
 

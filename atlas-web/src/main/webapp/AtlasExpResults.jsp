@@ -130,7 +130,7 @@ if (geneId != null) {
 								<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
 							</c:when>
 							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}_${atlasGene.geneId}_${EF}',false)" ><fmt:message key="head.ef.${EF}"/></a>	
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}','${atlasGene.geneId}','${EF}','bar',false)" ><fmt:message key="head.ef.${EF}"/></a>	
 							</c:otherwise>
 						</c:choose>
 					</c:forEach>
@@ -150,8 +150,9 @@ if (geneId != null) {
 				<table>
 					<!-- div style="position:relative"-->
 					<tr align="left">
-						<td align="left">
+						<td align="center">
 							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div>
+							<span style="font-size:xx-small; color: gray;">Click and drag selection to zoom in above</span>
 							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm"> </div>
 						</td>
 					</tr>
@@ -167,7 +168,7 @@ if (geneId != null) {
 				</table>
 				</td>
 				<td>
-					<div id="${exp.dwExpId}_${atlasGene.geneId}_legend_ext"></div>
+					<div style="overflow-y: auto; width:150px; height:150px" id="${exp.dwExpId}_${atlasGene.geneId}_legend_ext"></div>
 				</td>
 
 
@@ -180,7 +181,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query=${exp.dwExpAccession}">expression profile</a>
+			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="experiment.jsp?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>
