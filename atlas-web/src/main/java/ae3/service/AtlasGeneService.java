@@ -93,8 +93,7 @@ public class AtlasGeneService {
             if(!efvs.isEmpty()){
                 for(Object efv : efvs) {
                     if(!omittedEFs.contains(efv.toString()) && !omittedEFs.contains(ef)){
-                        heatmapRow = new ListResultRow(efv.toString(),
-                                ef,
+                        heatmapRow = new ListResultRow(ef, efv.toString(),
                                 atlasGene.getCount_up(ef, efv.toString()),
                                 atlasGene.getCount_dn(ef, efv.toString()),
                                 atlasGene.getMin_up(ef, efv.toString()),

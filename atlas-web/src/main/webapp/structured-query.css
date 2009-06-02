@@ -186,12 +186,13 @@ legend { font-weight: bold; }
     border-right: 1px solid #5E9E9E;
 }
 
-#expopup td.expup {
+#expopup .expup {
     color: #990000;
 }
-#expopup td.expdn {
+#expopup .expdn {
     color: #000099;
 }
+
 #expopup em { font-weight: bold; }
 
 #expopup a:link, #expopup a:visited {
@@ -203,6 +204,9 @@ legend { font-weight: bold; }
     color: #e33e3e;
     text-decoration: underline;
 }
+
+#expopup table.oneplot td { vertical-align: top; }
+#expopup table.oneplot .efname { font-size: smaller; font-weight: bold; margin: 6px 0 2px 2px;  }
 
 .closebox {
     position: absolute;

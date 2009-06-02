@@ -30,7 +30,7 @@ public class EfoServlet extends HttpServlet {
     }
 
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/html");
+        response.setContentType("text/plain");
         response.setCharacterEncoding("utf-8");
 
         EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()

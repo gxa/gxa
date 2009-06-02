@@ -274,6 +274,23 @@
                               lastquery.genes[i].query,
                               lastquery.genes[i].not);
          }
+
+         $('#experimentsTemplate').compile('experimentsTemplate', {
+             'div.head a[href]': 'gene?gid=#{gene.identifier}',
+             '.gname': 'gene.name',
+             '.numup': 'numUp',
+             '.numdn': 'numDn',
+             '.ef': 'ef',
+             '.efv': 'efv',
+             '.experRows': 'experiment <- experiments',
+             '.experRows[class]+': function(a) { return (a.pos != a.items.length - 1) ? 'notlast' : ''; },
+             '.expaccession': 'experiment.accession',
+             '.expname': 'experiment.name',
+             'table.oneplot': 'ef <- experiment.efs',
+             '.efname': 'ef.eftext',
+             'a.proflink[href]': '/microarray-as/aew/DW?queryFor=gene&gene_query=#{gene.identifier}&species=&displayInsitu=on&exp_query=#{experiment.accession}',
+             'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
+         }).remove();
      };
 
      atlas.structSubmit = function() {
@@ -317,74 +334,59 @@
          }
      }
 
-     function drawExperimentPlots(gene_id) {
+    function drawPlot(jsonObj, root, efvs){
+        if(jsonObj.series) {
+            var efvsh = {};
+            for(var iefv in efvs)
+                efvsh[efvs[iefv].efv.toLowerCase()] = efvs[iefv];
 
-         function drawPlot(jsonObj, plot_id, efv){
-             if(jsonObj.series) {
-                 jsonObj.options.legend.container = "#legend_" + plot_id;
-                 jsonObj.options.legend.extContainer = null;
-                 jsonObj.options.selection = null;
+            jsonObj.options.legend.container = root.find('.legend');
+            jsonObj.options.legend.extContainer = null;
+            jsonObj.options.selection = null;
 
-                 var series = null;
-                 var markColor = null;
-                 for (var i = 0; i < jsonObj.series.length; ++i){
-                     if(jsonObj.series[i].label){
-                         if(jsonObj.series[i].label.toLowerCase() == efv.toLowerCase()){
-                             series = jsonObj.series[i];
-                             markColor = series.color;
-                             break;
-                         }
-                     }
-                 }
+            var height = 1;
+            var nlegs = 0;
+            var markings = [];
+            for (var i = 0; i < jsonObj.series.length; ++i){
+                if(jsonObj.series[i].label) {
+                    var series = jsonObj.series[i];
+                    var efv = efvsh[jsonObj.series[i].label.toLowerCase()];
+                    if(efv) {
+                        var data = series.data;
+                        var xMin= data[0][0] - 0.5;
+                        var xMax= data[data.length-1][0] + 0.5;
 
-                 for (var i = 0; i < jsonObj.series.length; ++i)
-                     if(jsonObj.series[i].label && jsonObj.series[i].label.length > 20)
-                         jsonObj.series[i].label = jsonObj.series[i].label.substring(0, 20) + '...';
+                        markings.push({ xaxis: { from: xMin, to: xMax }, color: '#FFFFCC' });
 
-                 if(!series)
-                     return;
+                        if(series.label.length > 30)
+                            series.label = series.label.substring(0, 30) + '...';
+                        series.label = '<span class="' + (efv.isup ? 'expup' : 'expdn') + '">'
+                                + series.label + '<br />'
+                                + (efv.isup ? '&#8593;' : '&#8595;') + '&nbsp;' + efv.pvalue + '</span>';
+                        series.legend.show = true;
+                        height += 2;
+                        nlegs += 1;
+                    } else if(series.label.length > 30 && series.legend.show && nlegs < 5) {
+                        series.label = series.label.substring(0, 30) + '...';
+                        height += 1;
+                        nlegs += 1;
+                    }
+                }
+            }
 
-                 var data = series.data;
-                 var xMin= data[0][0] - 0.5;
-                 var xMax= data[data.length-1][0] + 0.5;
+            var plotel = root.find('.plot');
+            if(height > 5)
+                plotel.css({ height: (height * 16 + 20) + 'px' });
+            
+            $.plot(plotel, jsonObj.series,
+                    $.extend(true, {}, jsonObj.options, {
+                        grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: markings}
+                    }));
 
-                 var plotel = $('#'+plot_id);
-                 $.plot(plotel, jsonObj.series,
-                         $.extend(true, {}, jsonObj.options, {
-                             grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin, to: xMax }, color: '#FFFFCC' }]}
-                         }));
+        }
+    }
 
-                 var link = $('#link_' + plot_id);
-                 if(link)
-                     plotel.bind('click', function (e) { location.href = link.attr('href');e.stopPropagation();return false; })
-                             .bind('mousedown', function (e) { e.stopPropagation();return false; });
-
-             }
-         };
-
-
-         $(".plot").each(function() {
-             var plot_id = this.id;
-             var eid = $('#eid_'+plot_id).text();
-             var ef = $('#ef_'+plot_id).text();
-             var efv = $('#efv_'+plot_id).text();
-             $('#eid_'+plot_id).remove();
-             $('#ef_'+plot_id).remove();
-             $('#efv_'+plot_id).remove();
-             $.ajax({
-                 type: "GET",
-                 url: "plot.jsp",
-                 data: { gid: gene_id, eid: eid, ef: 'ba_' + ef },
-                 dataType: "json",
-                 success: function(o){
-                     drawPlot(o, plot_id, efv);
-                 }
-             });
-
-         });
-     };
-
-     atlas.hmc = function (igene, iefv, event) {
+    atlas.hmc = function (igene, iefv, event) {
          $("#expopup").remove();
 
          var gene = resultGenes[igene];
@@ -415,20 +417,22 @@
          adjustPosition(waiter);
 
          $.ajax({
-                    mode: "queue",
-                    port: "sexpt",
+                    type: "GET",
                     url: 'experiments',
-                    dataType: "html",
+                    dataType: "json",
                     data: {
                         gene:gene.geneAtlasId,
                         ef: efo ? 'efo' : efv.ef,
                         efv: efo ? efo : efv.efv
                     },
-                    complete: function(resp) {
+                    success: function(resp) {
                         $('#waiter').remove();
-
+                        if(resp.error) {
+                            alert(resp.error);
+                            return;
+                        }
                         var popup = $('<div id="expopup" />')
-                            .html(resp.responseText)
+                            .html($p.render('experimentsTemplate', resp))
                             .prepend($("<div/>").addClass('closebox')
                                      .click(
                                          function(e) {
@@ -445,7 +449,21 @@
                         // adjust for viewport
                         adjustPosition(popup);
 
-                        drawExperimentPlots(gene.geneAtlasId);
+                        var plots = popup.find('.oneplot');
+                        var c = 0;
+                        var iexp, ief;
+                        for(iexp = 0; iexp < resp.experiments.length; ++iexp)
+                            for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
+                                $.ajax({
+                                    type: "GET",
+                                    url: "plot.jsp",
+                                    data: { gid: gene.geneAtlasId, eid: resp.experiments[iexp].id, ef: 'ba_' + resp.experiments[iexp].efs[ief].ef },
+                                    dataType: "json",
+                                    success: (function(x) { return function(o) {
+                                        drawPlot(o, plots.eq(c++), x);
+                                    } })(resp.experiments[iexp].efs[ief].efvs)
+                                });
+                            }
                     }
                 });
      };
@@ -487,9 +505,5 @@
         if (window.focus) {newwin.focus()}
         return false;
     };
-
-
-
-
 
  })(jQuery);

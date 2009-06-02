@@ -32,6 +32,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <script type="text/javascript" src="scripts/jquery.tablesorter.mod.js"></script>
 <!-- >script type="text/javascript" src="scripts/jquery.tablesorter.pager.js"></script-->
 <script type="text/javascript" src="scripts/jquery.tablesorter.collapsible.js"></script>
+<script type="text/javascript" src="scripts/pure.js"></script>
 
 <style type="text/css">.contents{top: 87px}</style>
 
@@ -628,18 +629,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         <tbody>
 						
         <c:forEach var="row" items="${result.listResults}" varStatus="r">
-            <!--
-            <c:if test="${r.first}">
-                <tr class="geneHead">
-                <td></td>
-                <td colspan="6"><b>${row.gene_name}</b></td>
-                </tr>
-            </c:if>
-            -->
-							
-								
             <tr id="${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}">
-                <td rowspan="${row.exp_list.num+2}" class="collapsible" style="vertical-align:top"></td>
+                <td rowspan="${f:length(row.exp_list)+2}" class="collapsible" style="vertical-align:top"></td>
                 <td style="border-bottom:1px solid #CDCDCD; padding-left: 4px" class="collapsible_alt genename">
                     <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip" style="display: none;">
@@ -676,11 +667,11 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     <span class="bold">Experiments</span>
                 </td>
             </tr>
-            <c:forEach var="exp" items="${row.explistIter}">
-									
+            <c:forEach var="exp" items="${row.exp_list}">
+
                 <tr class="expand-child" style="background-color: #deebeb;">
-									
-									
+
+
                     <td colspan="4">
                         <div><span class="bold">${exp.experimentAccession}&nbsp;</span><span>${exp.experimentName}</span></div>
                     </td>
@@ -737,6 +728,36 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 </tr>
 </table><!-- /id="contentspane" -->
 </div><!-- /id="contents" -->
+
+<div  style="display:none">
+    <div id="experimentsTemplate">
+        <div class="head">
+            <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
+            overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> case(s)
+        </div>
+        <div class="exptable">
+            <table>
+                <tr class="experRows">
+                    <td class="explot">
+                        <b class="expaccession">E-ACC</b>:
+                        <span class="expname"></span>
+
+                        <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
+                            <td><div class="plot"></div></td>
+                            <td><div class="efname"></div><div class="legend"></div></td>
+                        </tr></table>
+                
+                        <div style="margin-top:5px;font-size:10px;">
+                            Show <a class="proflink" target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="">expression profile</a>
+                            &nbsp;/&nbsp;
+                            <a class="detailink" target="_blank" title="Show experiment details in ArrayExpress Archive" href="">experiment details</a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
 
 <jsp:include page="end_body.jsp"></jsp:include>
 

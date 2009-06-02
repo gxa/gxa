@@ -164,17 +164,7 @@ public class AtlasGene {
         return h;
     }
 
-    private HashSet<String> getEFs(){
-		HashSet<String> efs = new HashSet<String>();
-		for (String field:geneSolrDocument.getFieldNames()){
-
-			if(field.startsWith("efvs_"))
-				efs.add(field.substring(8));
-		}
-		return efs;
-	}
-
-	public HashSet<Object> getAllFactorValues(String ef){
+	public HashSet<Object> getAllFactorValues(String ef) {
 		HashSet<Object> efvs = new HashSet<Object>();;
 
 		Collection<Object> fields = geneSolrDocument.getFieldValues("efvs_up_" + IndexField.encode(ef));

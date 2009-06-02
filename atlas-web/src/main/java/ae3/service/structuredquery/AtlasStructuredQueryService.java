@@ -4,7 +4,9 @@ import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.ListResultRow;
+import ae3.service.ListResultRowExperiment;
 import ae3.util.AtlasProperties;
+import ae3.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.IndexField;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
 
 import java.util.*;
 
@@ -699,37 +702,8 @@ public class AtlasStructuredQueryService {
                 }
             }
 
-            if(query.viewList()) {
-                String lastEf = "";
-                String lastEfv = "";
-                ExperimentList lastList = new ExperimentList(ExperimentList.ORDER_EFEFV_PVALUE);
-                int listRowsPerGene = 0;
-                for(ExperimentRow er : ExperimentsService.getExperiments(gene, resultEfvs, resultEfos, ExperimentList.ORDER_EFEFV_PVALUE)) {
-                    if(!er.getEf().equals(lastEf) || !er.getEfv().equals(lastEfv)) {
-                        if(lastList.getNum() > 0) {
-                            ListResultRow row = new ListResultRow(lastEfv, lastEf, lastList.getNumUps(), lastList.getNumDowns(), lastList.getMinPvalUp(), lastList.getMinPvalDn());
-                            row.setGene(gene);
-                            row.setExp_list(lastList);
-                            result.addListResult(row);
-                            lastList = new ExperimentList(ExperimentList.ORDER_EFEFV_PVALUE);
-                            if(++listRowsPerGene >= result.getRowsPerGene())
-                                break;
-                        }
-
-                        lastEf = er.getEf();
-                        lastEfv = er.getEfv();
-                    }
-
-                    lastList.add(er);
-                }
-
-                if(lastList.getNum() > 0 && listRowsPerGene < result.getRowsPerGene()) {
-                    ListResultRow row = new ListResultRow(lastEfv, lastEf, lastList.getNumUps(), lastList.getNumDowns(), lastList.getMinPvalUp(), lastList.getMinPvalDn());
-                    row.setGene(gene);
-                    row.setExp_list(lastList);
-                    result.addListResult(row);
-                }
-
+            if(query.getViewType() == ViewType.LIST) {
+                getListExperiments(result, gene, resultEfvs, resultEfos);
                 ++numOfListGenes;
             }
 
@@ -747,6 +721,79 @@ public class AtlasStructuredQueryService {
         log.info("Resulting EFOs are: " + resultEfos);
 
     }
+
+    private void getListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree) {
+        Iterable<String> efviter = new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private Iterator<EfvTree.EfEfv<Integer>> treeit = efvTree.getNameSortedList().iterator();
+                    public boolean hasNext() { return treeit.hasNext(); }
+                    public String next() { return treeit.next().getEfEfvId(); }
+                    public void remove() { }
+                };
+            }
+        };
+        Iterable<String> efoiter = new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private Iterator<String> explit = efoTree.getExplicitEfos().iterator();
+                    private Iterator<String> childit;
+                    public boolean hasNext() {
+                        return explit.hasNext() || (childit != null && childit.hasNext());
+                    }
+                    public String next() {
+                        if(childit != null) {
+                            String r = childit.next();                                                                                                  
+                            if(!childit.hasNext() && explit.hasNext())
+                                childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                            return r;
+                        } else {
+                            childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                            return next();
+                        }
+                    }
+                    public void remove() { }
+                };
+            }
+        };
+
+        Map<Pair<String,String>,List<ListResultRowExperiment>> map = new HashMap<Pair<String,String>, List<ListResultRowExperiment>>();
+        for(Experiment exp : gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter)) {
+            AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(exp.getId()));
+            if(aexp != null) {
+                Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
+                if(!map.containsKey(key))
+                    map.put(key, new ArrayList<ListResultRowExperiment>());
+                map.get(key).add(new ListResultRowExperiment(exp.getId(), aexp.getAerExpName(),
+                        aexp.getAerExpAccession(),
+                        aexp.getAerExpDescription(),
+                        exp.getPvalue(), exp.getExpression()));
+            }
+        }
+
+        int listRowsPerGene = 0;
+        for(Map.Entry<Pair<String,String>,List<ListResultRowExperiment>> e : map.entrySet()) {
+            int cup = 0, cdn = 0;
+            double pup = 1, pdn = 1;
+            for(ListResultRowExperiment exp : e.getValue())
+                if(exp.getUpdn().isUp()) {
+                    ++cup;
+                    pup = Math.min(pup, exp.getPvalue());
+                } else {
+                    ++cdn;
+                    pdn = Math.min(pdn, exp.getPvalue());
+                }
+
+            ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, pup, pdn);
+            row.setGene(gene);
+            row.setExp_list(e.getValue());
+            result.addListResult(row);
+
+            if(++listRowsPerGene >= result.getRowsPerGene())
+                break;
+        }
+    }
+
     
     private Set<String> getConfiguredFactors(String category)
     {

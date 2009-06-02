@@ -1,24 +1,17 @@
-package ae3.service.structuredquery;
+package ae3.service;
 
 import uk.ac.ebi.ae3.indexbuilder.Expression;
 
 /**
- * Experiment list's row container
  * @author pashky
  */
-public class ExperimentRow implements Comparable<ExperimentRow> {
+public class ListResultRowExperiment {
     private long experimentId;
     private String experimentAccession;
     private String experimentDescription;
     private String experimentName;
-    private String ef;
-    private String efv;
-    private double pvalue;
-
-    /**
-     * Expression - up or down
-     */
     private Expression updn;
+    private double pvalue;
 
     /**
      * Constructor
@@ -29,16 +22,14 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
      * @param pvalue p-value
      * @param updn up or down
      */
-    public ExperimentRow(long experimentId, String experimentName, String experimentAccession, String experimentDescription,
-                         double pvalue, Expression updn, String ef, String efv) {
+    public ListResultRowExperiment(long experimentId, String experimentName, String experimentAccession, String experimentDescription,
+                                   double pvalue, Expression updn) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
         this.experimentName = experimentName;
         this.pvalue = pvalue;
         this.updn = updn;
-        this.ef = ef;
-        this.efv = efv;
     }
 
     /**
@@ -87,28 +78,5 @@ public class ExperimentRow implements Comparable<ExperimentRow> {
      */
     public Expression getUpdn() {
         return updn;
-    }
-
-    public String getEf() {
-        return ef;
-    }
-
-    public String getEfv() {
-        return efv;
-    }
-
-    public int compareTo(ExperimentRow o) {
-        return Double.valueOf(getPvalue()).compareTo(o.getPvalue());
-    }
-
-    @Override
-    public String toString() {
-        return "ExperimentRow{" +
-                "experimentId=" + experimentId +
-                ", experimentAccession='" + experimentAccession + '\'' +
-                ", experimentDescription='" + experimentDescription + '\'' +
-                ", experimentName='" + experimentName + '\'' +
-                ", pvalue=" + pvalue +
-                '}';
     }
 }

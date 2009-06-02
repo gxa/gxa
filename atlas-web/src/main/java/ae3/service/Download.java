@@ -1,12 +1,7 @@
 package ae3.service;
 
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.service.structuredquery.ExperimentRow;
 
 /**
  * Represents a download event for exporting atlas list results to files
@@ -85,7 +80,7 @@ public class Download {
 	
 	private void appendResults(AtlasStructuredQueryResult result, StringBuilder strBuf ){
     	for (ListResultRow row: result.getListResults()){
-        	for(ExperimentRow expRow: row.getExp_list()){
+        	for(ListResultRowExperiment expRow: row.getExp_list()){
         		strBuf.append(row.getGene_name());
 	        	strBuf.append("\t");
 	        	strBuf.append(row.getGene().getGeneIdentifier());

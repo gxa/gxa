@@ -1,34 +1,31 @@
 package ae3.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Collection;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import ae3.model.AtlasGene;
-import ae3.service.structuredquery.ExperimentList;
-import ae3.service.structuredquery.UpdownCounter;
 
 /**
  * This class represents the data structure used for atlas list views
  * @author iemam
  *
  */
-public class ListResultRow implements Comparable<ListResultRow>{
+public class ListResultRow implements Comparable<ListResultRow> {
 	private String fv;
 	private String ef;
 	private int count_up;
 	private int count_dn;
 	private double minPval_up;
 	private double minPval_dn;
-	private ExperimentList exp_list;
 	private AtlasGene gene;
+
+    Collection<ListResultRowExperiment> exp_list;
+
 	
-	
-	
-	public ListResultRow (String efv, String ef, int count_up, int count_dn, double min_up, double min_dn){
+	public ListResultRow(String ef, String efv, int count_up, int count_dn, double min_up, double min_dn){
 		this.ef = ef;
 		this.fv = efv;
 		this.count_dn = count_dn;
@@ -39,9 +36,6 @@ public class ListResultRow implements Comparable<ListResultRow>{
 	public String getFv() {
 		return fv;
 	}
-	public void setFv(String fv) {
-		this.fv = fv;
-	}
 	public String getShortFv(){
 		String fv_short = StringUtils.capitalize(fv);
 		return fv_short.length() > 30 ? fv_short.substring(0,30)+"..." : fv_short;
@@ -49,32 +43,17 @@ public class ListResultRow implements Comparable<ListResultRow>{
 	public String getEf() {
 		return ef;
 	}
-	public void setEf(String ef) {
-		this.ef = ef;
-	}
 	public int getCount_up() {
 		return count_up;
-	}
-	public void setCount_up(int count_up) {
-		this.count_up = count_up;
 	}
 	public int getCount_dn() {
 		return count_dn;
 	}
-	public void setCount_dn(int count_dn) {
-		this.count_dn = count_dn;
-	}
 	public double getPvalMin_up() {
 		return minPval_up;
 	}
-	public void setPvalMin_up(double avg_up) {
-		this.minPval_up = avg_up;
-	}
 	public double getPvalMin_dn() {
 		return minPval_dn;
-	}
-	public void setPvalMin_dn(double avg_dn) {
-		this.minPval_dn = avg_dn;
 	}
 	public double getMinPval(){
 		if(isMixedCell())
@@ -166,15 +145,14 @@ public class ListResultRow implements Comparable<ListResultRow>{
         return colorMap;
     }
     
-    public ExperimentList getExp_list() {
+    public Collection<ListResultRowExperiment> getExp_list() {
 		return exp_list;
 	}
-    public Iterator getExplistIter() {
-		return exp_list.iterator();
-	}
-	public void setExp_list(ExperimentList exp_list) {
+
+	public void setExp_list(Collection<ListResultRowExperiment> exp_list) {
 		this.exp_list = exp_list;
 	}
+
 	private int coltrim(double v)
     {
         return Math.min(255, Math.max(0, (int)v));

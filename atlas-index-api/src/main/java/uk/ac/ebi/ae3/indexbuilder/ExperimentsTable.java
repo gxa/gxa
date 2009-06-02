@@ -11,7 +11,7 @@ public class ExperimentsTable implements Serializable {
     private HashMap<String, BitSet> byEfEfvId = new HashMap<String, BitSet>();
     private HashMap<String, BitSet> byEfoId = new HashMap<String, BitSet>();
 
-    public void add(String ef, String efv, String[] efo, String experimentId, boolean isUp, double pvalue) {
+    public void add(String ef, String efv, String[] efo, long experimentId, boolean isUp, double pvalue) {
         Experiment exp = new Experiment(Expression.valueOf(isUp), experimentId, ef, efv, efo, pvalue);
         experiments.add(exp);
 
@@ -33,7 +33,29 @@ public class ExperimentsTable implements Serializable {
 
     }
 
-    public List<Experiment> findByEfEfv(String ef, String efv) {
+    private Iterable<Experiment> makeIterable(final BitSet bs) {
+        return new Iterable<Experiment>() {
+            public Iterator<Experiment> iterator() {
+                return new Iterator<Experiment>() {
+                    int pos = bs.nextSetBit(0);
+
+                    public boolean hasNext() {
+                        return pos >= 0; 
+                    }
+
+                    public Experiment next() {
+                        int curr = pos;
+                        pos = bs.nextSetBit(pos + 1);
+                        return experiments.get(curr);
+                    }
+
+                    public void remove() { }
+                };
+            }
+        };
+    }
+
+    public Iterable<Experiment> findByEfEfv(String ef, String efv) {
         List<Experiment> result = new ArrayList<Experiment>();
 
         BitSet bs = byEfEfvId.get(IndexField.encode(ef, efv));
@@ -44,13 +66,11 @@ public class ExperimentsTable implements Serializable {
             result.add(experiments.get(i));
         }
         
-        return result;
+        return makeIterable(bs);
     }
 
-    public List<Experiment> findByEfEfvEfoSet(Iterable<String> efefvs, Iterable<String> efos) {
-        List<Experiment> result = new ArrayList<Experiment>();
-
-        BitSet bs = new BitSet();
+    public Iterable<Experiment> findByEfEfvEfoSet(Iterable<String> efefvs, Iterable<String> efos) {
+        final BitSet bs = new BitSet();
         for(String efefv : efefvs) {
             BitSet other = byEfEfvId.get(efefv);
             if(other != null)
@@ -62,15 +82,10 @@ public class ExperimentsTable implements Serializable {
                 bs.or(other);
         }
 
-        for(int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            result.add(experiments.get(i));
-        }
-
-        return result;
+        return makeIterable(bs);
     }
 
-    public List<Experiment> findByEfoSet(Iterable<String> efos) {
-        List<Experiment> result = new ArrayList<Experiment>();
+    public Iterable<Experiment> findByEfoSet(Iterable<String> efos) {
 
         BitSet bs = new BitSet();
         for(String efo : efos) {
@@ -79,11 +94,7 @@ public class ExperimentsTable implements Serializable {
                 bs.or(other);
         }
 
-        for(int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            result.add(experiments.get(i));
-        }
-
-        return result;
+        return makeIterable(bs);
     }
 
     public String serialize() {

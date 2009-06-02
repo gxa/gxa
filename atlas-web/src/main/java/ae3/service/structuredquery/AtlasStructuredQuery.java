@@ -17,10 +17,9 @@ public class AtlasStructuredQuery {
     private int start;
     private int rowsPerPage;
     private Set<String> expandColumns;
-    public enum Views {HEATMAP, LIST, XML}
-    private String view;
+    private ViewType viewType;
     private boolean export;
-    
+
     public AtlasStructuredQuery() {
         conditions = new ArrayList<ExpFactorQueryCondition>(0);
         geneConditions = new ArrayList<GeneQueryCondition>(0);
@@ -151,15 +150,12 @@ public class AtlasStructuredQuery {
     /**
      * Sets requested view for the output results
      */
-    public void setView(String view){
-    	this.view = view;
+    public void setViewType(ViewType viewType){
+    	this.viewType = viewType;
     }
-    
-    public boolean viewHeatMap(){
-    	return view.equals("hm");
-    }
-    public boolean viewList(){
-    	return view.equals("list");
+
+    public ViewType getViewType() {
+        return viewType;
     }
 
 	public boolean isExport() {

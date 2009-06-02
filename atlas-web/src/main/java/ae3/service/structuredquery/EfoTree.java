@@ -38,9 +38,13 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         if(efos.containsKey(id) && explicitEfos.contains(id))
             return efos.get(id);
 
+        Iterable<String> parents = efo.getTermParents(id, true);
+        if(parents == null) // it's not in EFO, don't add it
+            return null;
+
         explicitEfos.add(id);
 
-        for(String pId : efo.getTermParents(id, true))
+        for(String pId : parents)
             if (!efos.containsKey(pId)) {
                 PayLoad pl = plCreator.make();
                 efos.put(pId, pl);

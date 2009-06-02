@@ -12,10 +12,7 @@ import java.io.IOException;
 
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.DownloadService;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.service.structuredquery.AtlasStructuredQueryParser;
-import ae3.service.structuredquery.AtlasStructuredQuery;
-import ae3.service.structuredquery.StructuredResultRow;
+import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
 
 /**
@@ -59,8 +56,8 @@ public class StructuredQueryServlet extends HttpServlet {
 
         request.setAttribute("query", atlasQuery);
         request.setAttribute("timeStart", startTime);
-        request.setAttribute("heatmap", atlasQuery.viewHeatMap());
-        request.setAttribute("list", atlasQuery.viewList());
+        request.setAttribute("heatmap", atlasQuery.getViewType() == ViewType.HEATMAP);
+        request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("service", ArrayExpressSearchService.instance());
         request.setAttribute("noDownloads", DownloadService.getNumOfDownloads(request.getSession().getId()));

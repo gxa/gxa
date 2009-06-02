@@ -134,6 +134,15 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    static private ViewType parseViewType(String s) {
+        try {
+            if("list".equals(s))
+                return ViewType.LIST;
+        } catch (Exception e) { // skip
+        }
+        return ViewType.HEATMAP;
+    }
+
     /**
      * Parse HTTP request parameters and build AtlasExtendedRequest structure
      * @param httpRequest HTTP servlet request
@@ -145,14 +154,14 @@ public class AtlasStructuredQueryParser {
 
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseExpFactorConditions(httpRequest));
-        request.setView(httpRequest.getParameter("view"));
+        request.setViewType(parseViewType(httpRequest.getParameter("view")));
         
         if(httpRequest.getParameter("export")!=null){
         	request.setExport(httpRequest.getParameter("export").equals("true"));
         }
         
         if(!request.isNone()){
-        	if(request.viewHeatMap() || request.isExport())
+        	if(request.getViewType() == ViewType.HEATMAP || request.isExport())
             	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
             else 
             	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize")); //TO DO: put value in atlas properties
