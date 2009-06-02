@@ -14,11 +14,7 @@ import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
-import ae3.service.structuredquery.AtlasStructuredQuery;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.service.structuredquery.ExpFactorQueryCondition;
-import ae3.service.structuredquery.GeneQueryCondition;
-import ae3.service.structuredquery.QueryExpression;
+import ae3.service.structuredquery.*;
 import ae3.util.AtlasProperties;
 
 
@@ -62,7 +58,7 @@ public class ExperimentService {
 		conditions.add(condition);
 		
 		query.setConditions(conditions);
-		query.setView("list");
+		query.setViewType(ViewType.LIST);
 		query.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize"));
 		query.setStart(start);
 		query.setSpecies(new ArrayList<String>());
