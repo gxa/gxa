@@ -208,7 +208,7 @@ public class Efo {
         }
 
         private String getId(OWLClass cls) {
-            return ontology.getURI().relativize(cls.getURI()).toString();
+            return cls.getURI().getPath().replaceAll("^.*/", "");
         }
 
         private EfoNode loadClass(OWLClass cls) throws OWLReasonerException {
