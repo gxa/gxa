@@ -12,6 +12,7 @@ public class Experiment implements Serializable, Comparable<Experiment> {
     private String efv;
     private String[] efo;
     private double pvalue;
+    private static final long serialVersionUID = 1L;
 
     Experiment(Expression expression, long id, String ef, String efv, String[] efo, double pvalue) {
         this.expression = expression;

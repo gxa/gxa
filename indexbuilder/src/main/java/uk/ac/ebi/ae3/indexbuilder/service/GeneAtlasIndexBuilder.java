@@ -28,6 +28,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     private BasicDataSource dataSource;
     private PreparedStatement listAtlasGenesStmt;
     private PreparedStatement countGeneEfoStmt;
+    private Map<String,String[]> ontomap = new HashMap<String,String[]>();
     private Efo efo;
 
     public GeneAtlasIndexBuilder() throws ParserConfigurationException, IOException, SAXException
@@ -85,6 +86,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
 
         log.info("Querying genes...");
         ResultSet genes = listAtlasGenesStmt.executeQuery();
+        int count = 0;
         while(genes.next()) {
             SolrInputDocument solrDoc = new SolrInputDocument();
             String geneId = genes.getString(1);
@@ -105,6 +107,9 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
             addEfoCounts(solrDoc, geneId);
 
             getSolrEmbeddedIndex().addDoc(solrDoc);
+
+//            if(++count > 100)
+//                break;
         }
         genes.close();
         closeStatements();
@@ -151,9 +156,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         ResultSet efos = countGeneEfoStmt.executeQuery();
         while(efos.next()) {
             boolean isUp = efos.getInt("updn") > 0;
-            String accessions = efos.getString("accession");
-            String[] accession = accessions != null ? accessions.split("[,;]") : null;
-            
+
             Integer experimentId = efos.getInt("experiment_id_key");
             if(experimentId == 0) {
                 log.error("Found experimentId=0 for gene " + geneId);
@@ -163,6 +166,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
             double pval = efos.getDouble("updn_pvaladj");
             final String ef = efos.getString("ef");
             final String efv = efos.getString("efv");
+
+            String[] accession = ontomap.get(experimentId + "_" + ef + "_" + efv);
 
             if(true || accession == null) {
                 String efvid = IndexField.encode(ef, efv);
@@ -187,7 +192,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 for(String acc : accession) {
                     String accId = IndexField.encode(acc);
 
-                    if(!efoupdn.containsKey(accession))
+                    if(!efoupdn.containsKey(accId))
                         efoupdn.put(accId, new UpDnSet());
                     if(isUp) {
                         efoupdn.get(accId).up.add(experimentId);
@@ -204,7 +209,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 dnexp.add(experimentId);
             }
 
-            expTable.add(ef, efv, accession, experimentId.toString(), isUp, pval);
+            expTable.add(ef, efv, accession, experimentId, isUp, pval);
         }
         efos.close();
 
@@ -215,7 +220,38 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
             calcChildren(rootId, efoupdn);
         }
 
-        for(Map.Entry<String,UpDnSet> e : efoupdn.entrySet()) {
+        storeEfoCounts(solrDoc, efoupdn);
+        storeEfvCounts(solrDoc, efvupdn);
+        storeExperimentIds(solrDoc, upexp, dnexp);
+        storeEfvs(solrDoc, upefv, dnefv);
+    }
+
+    private void storeEfvs(SolrInputDocument solrDoc, Map<String, Set<String>> upefv, Map<String, Set<String>> dnefv) {
+        for(Map.Entry<String,Set<String>> e : upefv.entrySet())
+            for(String i : e.getValue())
+                solrDoc.addField("efvs_up_" + IndexField.encode(e.getKey()), i);
+
+        for(Map.Entry<String,Set<String>> e : dnefv.entrySet())
+            for(String i : e.getValue())
+                solrDoc.addField("efvs_dn_" + IndexField.encode(e.getKey()), i);
+
+        for(String factor : union(upefv.keySet(), dnefv.keySet()))
+            for(String i : union(upefv.get(factor), dnefv.get(factor)))
+                solrDoc.addField("efvs_ud_" + IndexField.encode(factor), i);
+    }
+
+    private void storeExperimentIds(SolrInputDocument solrDoc, Set<Integer> upexp, Set<Integer> dnexp) {
+        for(Integer i : upexp)
+            solrDoc.addField("exp_up_ids", i.toString());
+        for(Integer i : dnexp)
+            solrDoc.addField("exp_dn_ids", i.toString());
+
+        for(Integer i : union(upexp,dnexp))
+            solrDoc.addField("exp_ud_ids", i.toString());
+    }
+
+    private void storeEfoCounts(SolrInputDocument solrDoc, Map<String, UpDnSet> efoupdn) {
+        for(Map.Entry<String, UpDnSet> e : efoupdn.entrySet()) {
             String accession = e.getKey();
             UpDnSet ud = e.getValue();
 
@@ -259,8 +295,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
             if(cup + cdn > 0)
                 solrDoc.addField("efos_ud", accession);
         }
+    }
 
-        for(Map.Entry<String,UpDn> e : efvupdn.entrySet()) {
+    private void storeEfvCounts(SolrInputDocument solrDoc, Map<String, UpDn> efvupdn) {
+        for(Map.Entry<String, UpDn> e : efvupdn.entrySet()) {
             String efvid = e.getKey();
             UpDn ud = e.getValue();
 
@@ -283,37 +321,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
             solrDoc.addField("s_" + efvid + "_ud", shorten(cup * (1.0 - pvup) + cdn * (1.0 - pvdn)));
 
         }
-
-        for(Integer i : upexp)
-            solrDoc.addField("exp_up_ids", i.toString());
-        for(Integer i : dnexp)
-            solrDoc.addField("exp_dn_ids", i.toString());
-
-        for(Integer i : union(upexp,dnexp))
-            solrDoc.addField("exp_ud_ids", i.toString());
-
-        for(Map.Entry<String,Set<String>> e : upefv.entrySet())
-            for(String i : e.getValue())
-                solrDoc.addField("efvs_up_" + IndexField.encode(e.getKey()), i);
-
-        for(Map.Entry<String,Set<String>> e : dnefv.entrySet())
-            for(String i : e.getValue())
-                solrDoc.addField("efvs_dn_" + IndexField.encode(e.getKey()), i);
-
-        for(String factor : union(upefv.keySet(), dnefv.keySet()))
-            for(String i : union(upefv.get(factor), dnefv.get(factor)))
-                solrDoc.addField("efvs_ud_" + IndexField.encode(factor), i);
     }
 
     private void closeStatements() throws SQLException {
         Connection sql = getDataSource().getConnection();
-        PreparedStatement efoTableStmt = sql.prepareStatement("drop table ontology_mapping");
-        try {
-            efoTableStmt.execute();
-            efoTableStmt.close();
-        } catch (SQLException e) {
-            // it's ok
-        }
         listAtlasGenesStmt.close();
     }
 
@@ -323,41 +334,39 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         listAtlasGenesStmt = sql.prepareStatement("select agenes.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
                 "from (select distinct gene_id_key from atlas where gene_id_key<>0 and updn<>0) agenes, gene_xml xml " +
                 "where " +
-//                "xml.gene_id_key in (170031719,169992680,169990246,153072733,153070758,170037497,160591323,221532282,531073730,220879651,153080879,153073444, 153078307, 153080131, 153080879, 153080879) and " +
+ //               "xml.gene_id_key in (170031719,169992680,169990246,153072733,153070758,170037497,160591323,221532282,531073730,220879651) and " +
                 "agenes.gene_id_key = xml.gene_id_key" +
                 (isUpdateMode() ? " and xml.status<>'fresh' and xml.status is not null" : ""));
 
         countGeneEfoStmt = sql.prepareStatement(
-                "SELECT o.accession, a.experiment_id_key, a.updn_pvaladj, a.updn, a.ef, a.efv" +
-                        " FROM " +
+                "SELECT * FROM " +
                         "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
                         "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +
                         "   FROM atlas " +
-                        "   WHERE gene_id_key = ?) a left outer join (select ef, efv, experiment_id_key, string_agg(accession) as accession from ontology_mapping group by ef, efv, experiment_id_key) o " +
-                        "   on o.ef = LOWER(a.ef) AND o.efv = a.efv AND a.efv <> 'V1' AND a.experiment_id_key > 0 AND o.experiment_id_key = a.experiment_id_key " +
+                        "   WHERE gene_id_key = ? AND efv <> 'V1' AND experiment_id_key > 0) " +
                         " WHERE r=1"
                 );
 
-//        PreparedStatement efoTableStmt = sql.prepareStatement("drop table ontology_mapping");
-//        try {
-//            efoTableStmt.execute();
-//            efoTableStmt.close();
-//        } catch (SQLException e) {
-//            // it's ok
-//        }
-//
-//        efoTableStmt = sql.prepareStatement(
-//                "create global temporary table ontology_mapping ON COMMIT PRESERVE ROWS as " +
-//                        "SELECT DISTINCT s.experiment_id_key," +
-//                        "     LOWER(SUBSTR(oa.orig_value_src,    instr(oa.orig_value_src,    '_',    1,    3) + 1,    instr(oa.orig_value_src,    '__DM',    1,    1) -instr(oa.orig_value_src,    '_',    1,    3) -1)) ef," +
-//                        "     oa.orig_value AS efv," +
-//                        "     oa.accession," +
-//                        "     oa.term" +
-//                        "   FROM ontology_annotation oa," +
-//                        "     ae1__sample__main s" +
-//                        "   WHERE(s.sample_id_key = oa.sample_id_key OR s.assay_id_key = oa.assay_id_key)" +
-//                        "   AND oa.ontology_id_key = 575119145");
-//        efoTableStmt.execute();
-//        efoTableStmt.close();
+
+        log.info("Fetching ontology mapping table...");
+        PreparedStatement ontomapStmt = sql.prepareStatement("select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
+                        "     LOWER(SUBSTR(oa.orig_value_src,    instr(oa.orig_value_src,    '_',    1,    3) + 1,    instr(oa.orig_value_src,    '__DM',    1,    1) -instr(oa.orig_value_src,    '_',    1,    3) -1)) ef," +
+                        "     oa.orig_value AS efv," +
+                        "     oa.accession" +
+                        "   FROM ontology_annotation oa," +
+                        "     ae1__sample__main s" +
+                        "   WHERE(s.sample_id_key = oa.sample_id_key OR s.assay_id_key = oa.assay_id_key)" +
+                        "   AND oa.ontology_id_key = 575119145) group by experiment_id_key, ef, efv");
+
+        ResultSet rs = ontomapStmt.executeQuery();
+        while(rs.next()) {
+            String mapkey = rs.getString(1);
+            String[] accession = rs.getString(2).split("[,;]");
+            ontomap.put(mapkey, accession);
+        }
+        rs.close();
+        ontomapStmt.close();
+        
+        log.info("Ontology mappings loaded");
     }
 }

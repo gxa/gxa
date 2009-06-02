@@ -10,6 +10,7 @@ public class ExperimentsTable implements Serializable {
     private ArrayList<Experiment> experiments = new ArrayList<Experiment>();
     private HashMap<String, BitSet> byEfEfvId = new HashMap<String, BitSet>();
     private HashMap<String, BitSet> byEfoId = new HashMap<String, BitSet>();
+    private static final long serialVersionUID = 1L;
 
     public void add(String ef, String efv, String[] efo, long experimentId, boolean isUp, double pvalue) {
         Experiment exp = new Experiment(Expression.valueOf(isUp), experimentId, ef, efv, efo, pvalue);
