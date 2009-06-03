@@ -225,7 +225,7 @@ function drawPlot(jsonObj, plot_id){
     	}
     }
     
-    function redrawPlotForFactor(eid,gid,ef,plotType,mark,efv){
+    function redrawPlotForFactor(eid,gid,ef,plotType,mark,efv,genePlotIds){
     	//var id = String(id);
         //var tokens = id.split('_');
         //var eid = tokens[0];
@@ -241,15 +241,19 @@ function drawPlot(jsonObj, plot_id){
             $.ajax({
    			type: "POST",
    			url:"plot.jsp",
-   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&plot="+plotType,
+   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&plot="+plotType+"&gplotIds="+genePlotIds,
    			dataType:"json",
    			success: function(o){
-   				var plot = drawPlot(o,plot_id);
-				//bindMarkings(o,plot,plot_id);
-				if(mark){
-					markClicked(eid,gid,ef,uni2ent(efv),plot,o);
-				}
+   				if(plotType=="thumb"){
+   					var plot = drawPlot(o,plot_id);
+					//bindMarkings(o,plot,plot_id);
+					if(mark){
+						markClicked(eid,gid,ef,uni2ent(efv),plot,o);
+					}
+   				}
+   				
 				if(plotType=="large"){
+					var plot = drawPlot(o,plot_id);
 					plotZoomOverview(o);
 				}
 			}
@@ -343,18 +347,23 @@ function drawPlot(jsonObj, plot_id){
     	$("#bioSampleData").html('<div> <ul> <li><span style="font-weight: bold">'+sc+'</span>:'+scv+'</li></ul></div>');
     }
     
-    function plotBigPlot(gid,eid,ef,initial){
+    
+    function hideGene(gid){
+    	plotBigPlot(gid,eid,ef,initial);
+    }
+    
+    function plotBigPlot(gid,eid,ef,initial,geneIndeces){
     	if(ef=="")
     		ef="default";
     	else
     		ef="ba_"+ef;
     	
-    	
+    
     	
     	$.ajax({
     		type: "POST",
     		url: "plot.jsp",
-    		data: "gid="+gid+"&eid="+eid+"&ef="+ef+"&plot=large",
+    		data: "gid="+gid+"&eid="+eid+"&ef="+ef+"&plot=large"+"&gplotIds="+geneIndeces,
     		dataType:"json",
     		success: function(jsonObj){
     			if(jsonObj.series){
@@ -365,6 +374,8 @@ function drawPlot(jsonObj, plot_id){
    					if(initial){
    						
 	   					  						
+   						//geneNames = jsonObj.geneNames;
+   						//geneIDS = jsonObj.GNids;
    						
 	   					sampleAttrs = jsonObj.sAttrs; 
 	   					assay2samples = jsonObj.assay2samples;
@@ -394,6 +405,14 @@ function drawPlot(jsonObj, plot_id){
 							autoHeight: false
 						
 						});
+						
+						var names= eval('('+jsonObj.geneNames+')');
+						var gids= eval('('+jsonObj.GNids+')');
+						var gName = names[0];
+						var gID = gids[0];
+						
+						genesToPlot[gName]=gID;
+						
 	   					
 	   					$("#plot").bind("plotclick", function (event, pos, item) {
 				        if (item) {
@@ -425,14 +444,22 @@ function drawPlot(jsonObj, plot_id){
 				        }
 					    });
 					    
-					    $(".rmButton").hover(function(){
+					   
+				        
+   					}
+   					
+   					populateSimMenu(jsonObj);
+   					 $(".rmButton").hover(function(){
 				        	$(this).attr("src","images/closeButtonO.gif");
 				        },function(){
 				        	$(this).attr("src","images/closeButton.gif");
 				        });
-   					}
-   					
-   					populateSimMenu(jsonObj);	
+				        
+				        $(".rmButton").each(function(){
+				        	$(this).click(function(){
+				        		removeGene(this.id);
+				        	});
+				        });	
 	   			}
     		}
     	});
@@ -500,7 +527,10 @@ function drawPlot(jsonObj, plot_id){
     			panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
     		}
     		else{
-    			panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'\',\''+gid+'\',\''+ef+'\',\''+plotType+'\',false)">'+ef_txt+'</a>');
+    			if(plotType=="large"){
+    				panelContent.push('<a id="'+ef+'" onclick="redrawForEF( \''+eid+'\',\''+ef+'\')">'+ef_txt+'</a>');
+    			}else
+    				panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'\',\''+gid+'\',\''+ef+'\',\''+plotType+'\',false)">'+ef_txt+'</a>');
     		}
     		});
 					

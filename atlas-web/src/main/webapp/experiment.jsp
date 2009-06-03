@@ -17,7 +17,7 @@ if (expAcc != null || expAcc!="") {
 	request.setAttribute("exp",exp);
 	HashMap rankInfo =  ArrayExpressSearchService.instance().getHighestRankEF(exp.getDwExpId().toString(), geneId);
 	request.setAttribute("topRankEF",rankInfo.get("expfactor").toString());
-
+	ef = rankInfo.get("expfactor").toString();
 }
 
 request.setAttribute("gid",geneId);
@@ -30,7 +30,7 @@ ArrayList<String> genesToPlot = new ArrayList<String>();
 
 <%@page import="ae3.service.structuredquery.AtlasStructuredQueryResult"%>
 <jsp:include page="start_head.jsp" />
-Atlas Gene Expression Summary for E-MEXP-145 - ArrayExpress Atlas of
+Atlas Gene Expression Summary for experiment ${exp.dwExpAccession} - ArrayExpress Atlas of
 Gene Expression
 <jsp:include page="end_head.jsp" />
 
@@ -72,12 +72,16 @@ Gene Expression
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <script id="source" language="javascript" type="text/javascript">
 var genesToPlot = new Array("${gid}");
+
 var sampleAttrs;
 var assay2samples;
 var characteristics;
 var charValues;
 var plot;
 var prevSelections = new Array();
+var geneCounter = 0;
+var geneIndeces = new Array();
+geneIndeces.push(geneCounter);
 $(document).ready(function() 
     { 
         
@@ -94,7 +98,7 @@ $(document).ready(function()
 							autoHeight: false
 						});
         
-        plotBigPlot('${gid}','${eid}','${ef}',true);
+        plotBigPlot('${gid}','${eid}','${ef}',true, geneIndeces.toString());
         
         $("button").click(function(){
         
@@ -137,19 +141,46 @@ $(document).ready(function()
 );
 
 function addGeneToPlot(gid,gname,eid,ef){
+	
+	if(genesToPlot[gname] != null){
+		return false;
+		// if ef is different from current one redraw plot for new ef
+	}
+	geneCounter++;
 	genesToPlot.push(gid);
-	plotBigPlot(genesToPlot.toString(),eid,ef,false);
+	genesToPlot[gname]=gid;
+	geneIndeces.push(geneCounter);
+	plotBigPlot(genesToPlot.toString(),eid,ef,false,geneIndeces.toString());
 } 
 
 function redrawForEF(eid, ef){
-	redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false)
+	
+	redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
+	
 }
 
 
 function radioLabel(label){
-	return ' <a href="#' + label + '">' + label + '</a> ';
+	return label + '&nbsp;<img id="'+label+'"class="rmButton" height="8" src="images/closeButton.gif"/>';
 }
 
+
+function removeGene(gname){
+	if(genesToPlot.length == 1)
+		return false; 
+		
+	var gid = genesToPlot[gname];
+	delete genesToPlot[gname];
+    for(var i=0; i<genesToPlot.length;i++ )
+     { 
+        if(genesToPlot[i]==gid){
+            genesToPlot.splice(i,1); 
+            geneIndeces.splice(i,1);
+        } 
+     }
+     //$("#"+gname+":parent").hide();
+     plotBigPlot(genesToPlot.toString(),'${eid}','${ef}',false,geneIndeces.toString()); 
+}
 
 </script>
 
@@ -185,15 +216,14 @@ function radioLabel(label){
 
 
 <div class="contents" id="contents">
-<table class="contentspane" id="contentspane"
-	summary="The main content pane of the page" style="width: 100%">
+<table class="contentspane" id="contentspane"	summary="The main content pane of the page" style="width: 100%">
 	<tr>
 		<td class="leftmargin"><img
 			src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
 			alt="spacer" /></td>
 		<td class="leftmenucell" id="leftmenucell">
 		<div class="leftmenu" id="leftmenu"
-			style="visibility: hidden; display: none;"><img
+			style="visibility: hidden; display: none;"><img 
 			src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
 			alt="spacer" /></div>
 		</td>
@@ -202,16 +232,16 @@ function radioLabel(label){
 		<table width="100%" style="background-color: white">
 
 			<tr>
-				<td align="left" class="geneName">Experiment</td>
-				<td style="vertical-align: text-bottom">${exp.dwExpAccession}</td>
+				<td align="left" class="geneName">${exp.dwExpAccession}</td>
+				<td style="vertical-align: text-bottom"></td>
 			</tr>
 			<tr>
-				<td colspan="2">${exp.dwExpDescription}</td>
+				<td class="geneAnnotHeader" colspan="2">${exp.dwExpDescription}</td>
 			</tr>
 			
 			<tr>
 				<td class="geneAnnotHeader">ArrayExpress Archive</td>
-				<td align="left"><a title="Show gene annotation"
+				<td align="left"><a title="Show experiment details"
 					target="_blank"
 					href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}">
 				${exp.dwExpAccession} </a></td>

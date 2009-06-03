@@ -620,7 +620,7 @@ public class ArrayExpressSearchService {
         String rank_query = "select nvl(atlas.fpvaladj,999.0) as rank, atlas.ef as expfactor " +
                             "from aemart.atlas atlas " +
                             "where atlas.experiment_id_key = "+expIdKey +
-                            " and gene_id_key = "+ geneIdKey +
+                            " and gene_id_key = ("+ geneIdKey + ")"+
                             " order by rank";
 
         HashMap rankInfo = null;

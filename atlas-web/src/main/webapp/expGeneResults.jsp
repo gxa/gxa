@@ -43,21 +43,21 @@ function initPaging(){
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px"
 					class="padded "><a class="genename" href="#"
 					onclick="javascript:window.open('gene?gid=${f:escapeXml(row.gene.geneIdentifier)}')">${row.gene_name}</a>
-				<div class="gtooltip" style="display: none;">
-				<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if
-					test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
-				<c:if test="${!empty row.gene.keyword}">
-					<b>Keyword:</b> ${row.gene.hilitKeyword}<br>
-				</c:if> <c:if test="${!empty row.gene.goTerm}">
-					<b>Go Term:</b> ${row.gene.hilitGoTerm}<br>
-				</c:if> <c:if test="${!empty row.gene.interProTerm}">
-					<b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br>
-				</c:if></div>
+					<div class="gtooltip" style="display: none;">
+						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
+						<c:if test="${!empty row.gene.keyword}">
+							<b>Keyword:</b> ${row.gene.hilitKeyword}<br>
+						</c:if> <c:if test="${!empty row.gene.goTerm}">
+							<b>Go Term:</b> ${row.gene.hilitGoTerm}<br>
+						</c:if> <c:if test="${!empty row.gene.interProTerm}">
+							<b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br>
+						</c:if>
+					</div>
 				</td>
 				<td style="border-bottom: 1px solid #CDCDCD">${row.gene_species}</td>
-				<!-- <td style="border-bottom:1px solid #CDCDCD"><fmt:message key="head.ef.${row.ef}"/></td> -->
+				
 				<td style="border-bottom: 1px solid #CDCDCD">${row.fv}</td>
-				<c:forEach var="e" items="${row.explistIter}">
+				<c:forEach var="e" items="${row.exp_list}">
 					<c:if test="${e.experimentAccession == eAcc}">
 						<c:choose>
 							<c:when test="${e.updn == 'UP'}">

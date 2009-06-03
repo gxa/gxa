@@ -242,10 +242,10 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 					
 					<td align="left">
 						<c:forEach var="ortholog" items="${atlasGene.orthoGenes}">
-						 	<a href="http://www.ebi.ac.uk/microarray-as/atlas/gene?gid=${ortholog.geneEnsembl}" target="_blank">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
+						 	<a href="gene?gid=${ortholog.geneEnsembl}" target="_self">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
 						</c:forEach>
-							(<a href="http://www.ebi.ac.uk/microarray-as/atlas/qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
-										target="_blank">Compare orthologs</a>)
+							(<a href="qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+										target="_self">Compare orthologs</a>)
 					</td>
 				</tr>
 			</c:if>

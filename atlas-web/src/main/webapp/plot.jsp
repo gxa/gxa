@@ -14,6 +14,7 @@
     String ef="default";
     String efv="";
     String updn="up";
+    String gplotIds="";
 
     if(request.getParameter("plot") != null)
     	plotType=request.getParameter("plot");
@@ -26,20 +27,24 @@
     
     if(request.getParameter("updn") != null)
         updn=request.getParameter("updn");
+    
+    if(request.getParameter("gplotIds") != null)
+    	gplotIds=request.getParameter("gplotIds");
+    
 
     try {
-        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(request.getParameter("gid"),request.getParameter("eid"),ef,efv,plotType);
+        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(request.getParameter("gid"),request.getParameter("eid"),ef,efv,plotType,gplotIds);
 
         if (jsonString != null) {
             
         	if(plotType.equals("bar")){
         	
         	JSONObject options = new JSONObject(
-                           "{  xaxis: {  ticks: 0 }, " +
+                           "{  xaxis: {  ticks: 0, autoscaleMargin: 0.05 }, " +
                             " legend: {     show: true, " +
                             "           position: 'sw', " +
                             "          container: '#" + eid + "_" + gid + "_legend', " +
-                            "       extContainer: '#" + eid + "_" + gid + "_legend_ext', " +
+                           // "       extContainer: '#" + eid + "_" + gid + "_legend_ext', " +
                             "          noColumns: 1 }," +
                             "   grid: {  " +
                             "    backgroundColor: '#fafafa',	" +
@@ -53,8 +58,9 @@
         	else if(plotType.equals("thumb")){
         		String color = updn.equals("UP") ? "#FE2E2E" : "#2E2EFE";
         		JSONObject options = new JSONObject(
-                        "{  xaxis: {    ticks: 0 }, " +
+                        "{  xaxis: {    ticks: 0, autoscaleMargin: 0.05 }, " +
                          "  yaxis: {    ticks: 0 }, "+	
+                         "  colors: ['#edc240'],    "+
                          " legend: {     show: false }," +
                          "   grid: {  " +
                          "    backgroundColor: '#fafafa',	" +
@@ -62,7 +68,7 @@
                          "          hoverable: true, " +
                          "          clickable: true, " +
                          "			markings: [{ xaxis: { from: "+jsonString.get("startMarkIndex")+", to: "+jsonString.get("endMarkIndex")+" },"+
-                        	 							" color: '"+"#D8D8D8"+"' }],"+
+                        	 							" color: '"+"#FFFFCC"+"' }],"+
                          "        borderWidth: 1}," +
                          " selection: {  mode: 'x' } }");
         		jsonString.put("options", options);
@@ -73,7 +79,7 @@
                          "  yaxis: { ticks:3    }, " +
                          " legend: {     show: true," +
                          "          	 container: '#legend', " +
-                         "               extContainer: '#legend', labelFormatter:FUCK}, " +
+                         "               extContainer: '#legend', labelFormatter:TEST}, " +
                          "   grid: {  " +
                          "    backgroundColor: '#fafafa',	" +
                          "      autoHighlight: true, " +

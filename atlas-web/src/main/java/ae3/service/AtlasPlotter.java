@@ -39,7 +39,7 @@ public class AtlasPlotter {
 		return _instance;
 	}
 
-	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType) {
+	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType, final String gplotIds) {
         String efToPlot = null;
 
 		if(EF.equals("default")){
@@ -63,7 +63,7 @@ public class AtlasPlotter {
 		if(plotType.equals("thumb"))
 			return createThumbnailJSON(ds, efToPlot, EFV);
 		else if(plotType.equals("big") || plotType.equals("large"))
-			return createBigPlotJSON(ds, efToPlot, EFV,geneNames);
+			return createBigPlotJSON(ds, efToPlot, EFV,geneNames,gplotIds);
 		
 		ArrayList<String> topFVs = new ArrayList<String>();
 		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
@@ -205,12 +205,16 @@ public class AtlasPlotter {
 	}
 	
 	
-	private JSONObject createBigPlotJSON(ExpressionDataSet eds, String EF, String EFV, ArrayList<String> geneNames){
+	private JSONObject createBigPlotJSON(ExpressionDataSet eds, String EF, String EFV, ArrayList<String> geneNames,final String gplotIds){
 		JSONObject plotData = new JSONObject();
 		JSONArray seriesList = new JSONArray();
 		JSONObject series;
 		JSONArray seriesData;
 		String markings="";
+		String[] genePlotOrder = gplotIds.split(",");
+//		if(gplotIds!=""){
+//			genePlotOrder = 
+//		}
 //		ArrayList<String> names = new ArrayList<String>(geneNames.values());
 		try {
 			int sampleIndex=0;
@@ -220,7 +224,7 @@ public class AtlasPlotter {
 			Integer[] sortedFVindexes = sortFVs(fvs_arr);
 			series = new JSONObject();
 			seriesData = new JSONArray();
-			
+			ArrayList<String> deKeys =  eds.getDElist();
 			double[][] data = eds.getExpressionMatrix();
 			Object[] assay_fvs = eds.getAssayFVs(EF); //fvs ordered by assay_id_key
 			Integer[] sortedAssayFVindexes = sortFVs(assay_fvs);//indexes of fvs sorted alphabetically
@@ -235,10 +239,22 @@ public class AtlasPlotter {
 					seriesData.put(point);
 				}
 				series.put("data", seriesData);
+				
+				//if hiddenDEs.contains(deKeys.get(i))
+				/*
+				 * series.put("lines", new JSONObject("{show:false,lineWidth:2, fill:false, steps:true}"));
+				series.put("points", new JSONObject("{show:false,fill:true}"));
+				series.put("legend",new JSONObject("{show:true}"));
+				series.put("label", geneNames.get(j));
+				 */
+				
 				series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
 				series.put("points", new JSONObject("{show:true,fill:true}"));
 				series.put("legend",new JSONObject("{show:true}"));
 				series.put("label", geneNames.get(j));
+				
+				if(genePlotOrder[j] != null)
+					series.put("color", Integer.parseInt(genePlotOrder[j]));
 				seriesList.put(series);
 			}
 			

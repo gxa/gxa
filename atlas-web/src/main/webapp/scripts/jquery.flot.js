@@ -15,7 +15,7 @@
             options = {
             // the color theme used for graphs
             //colors: ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
-            colors: ["#59BB14", "#39A5FE", "#DC5F13", "#EDC240", "#AFD8F8"],
+            colors: ["#59BB14", "#39A5FE", "#DC5F13", "#EDC240", "#AFD8F8", "#660000", "#333333"],
                 legend: {
                     show: true,
                     noColumns: 1, // number of colums in legend table
@@ -1033,8 +1033,21 @@
         	 if (options.grid.markings) {
                 var markings = options.grid.markings;
                 for (i = 0; i < markings.length; ++i) {
+                	
                     var m = markings[i],
                     xrange = extractRange(m, "x");
+                    if(!m.label)
+                		continue;
+                		
+                	 if (xrange.to < xrange.axis.min || xrange.from > xrange.axis.max)
+                        continue;
+
+                    xrange.from = Math.max(xrange.from, xrange.axis.min);
+                    xrange.to = Math.min(xrange.to, xrange.axis.max);
+                    
+                    if (xrange.from == xrange.to)
+                        continue;	
+                		
                     xrange.from = xrange.axis.p2c(xrange.from);
                     xrange.to = xrange.axis.p2c(xrange.to);
                     var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ (Math.floor(xrange.to)-Math.floor(xrange.from)) + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' + m.label + "</div>";
@@ -1502,8 +1515,7 @@
             if (!options.legend.show)
                 return;
             
-            var shortFragments = [];
-            var fullFragments = [];
+            var fragments = [];
             var rowStarted = false;
             var inSigSerPresent = false;
             var visibleLegends=0;
@@ -1517,11 +1529,9 @@
                 
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted){
-                        shortFragments.push('</tr>');
-                        fullFragments.push('</tr>');
+                        fragments.push('</tr>');
                     }
-                    shortFragments.push('<tr>');
-                    fullFragments.push('<tr>');
+                    fragments.push('<tr>');
                     rowStarted = true;
                 }
 
@@ -1529,17 +1539,12 @@
                 visibleLegends++;
                 if (options.legend.labelFormatter != null){
                 	//label = options.legend.labelFormatter(label);
-                	label = radioLabel(label);
+                	label = radioLabel(label);//To do: use line above
                 }
                     
                     
-                if(visibleLegends<5)
-                	shortFragments.push(
-                    '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:14px;height:10px;background-color:' + series[i].color + ';overflow:hidden"></div></div></td>' +
-                    '<td class="legendLabel">' + label + '</td>');
-                
-                
-                fullFragments.push(
+                             
+                fragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:14px;height:10px;background-color:' + series[i].color + ';overflow:hidden"></div></div></td>' +
                     '<td class="legendLabel">' + label + '</td>');
             }
@@ -1547,14 +1552,12 @@
             if(inSigSerPresent){
             	 if (i % options.legend.noColumns == 0) {
                     if (rowStarted){
-                        shortFragments.push('</tr>');
-                        fullFragments.push('</tr>');
+                        fragments.push('</tr>');
                     }
-                    shortFragments.push('<tr>');
-                    fullFragments.push('<tr>');
+                    fragments.push('<tr>');
                     rowStarted = true;
                 }
-                fullFragments.push(
+                fragments.push(
                     '<td class="legendColorBox">' +
                     '<div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px;">' +
                     	'<div class="tri" style=" border-right-color: rgb(240,255,255); border-top-color: rgb(245, 245, 220); border-top-width: 10px; border-right-width: 14px;"/>' +
@@ -1566,36 +1569,18 @@
            
             
             if (rowStarted){
-                fullFragments.push('</tr>');
-                shortFragments.push('</tr>');
+                fragments.push('</tr>');
             }
             
-            //if (fullFragments.length == 0)
-             //   return;
 
-            //if (series.length>=5 && options.legend.extContainer != null){
-            	//shortFragments.push('<td class="legendLabel"> <a id="">Show extended legend</a');
-            //}
             
-            var fullTable = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fullFragments.join("") + '</table>';
-            var shortTable = '<table style="font-size:smaller;color:' + options.grid.color + '">' + shortFragments.join("") + '</table>';
+            var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join("") + '</table>';
             
             if (options.legend.container != null){
 
             	options.legend.container = $(options.legend.container);
-            
-            	
-            	
-            	if(options.legend.extContainer != null){
-            		options.legend.extContainer = $(options.legend.extContainer);
-            		options.legend.extContainer.html(fullTable);
-            		options.legend.container.html(shortTable);
-            	}else
-            		options.legend.container.html(shortTable);
-            		
-            	
-               
-               
+            	options.legend.container.html(table);
+            		               
             }
             else {
                 var pos = "";

@@ -168,7 +168,7 @@ if (geneId != null) {
 				</table>
 				</td>
 				<td>
-					<div style="overflow-y: auto; width:150px; height:150px" id="${exp.dwExpId}_${atlasGene.geneId}_legend_ext"></div>
+					<div style="overflow-y: auto; width:150px; height:150px" id="${exp.dwExpId}_${atlasGene.geneId}_legend"></div>
 				</td>
 
 
