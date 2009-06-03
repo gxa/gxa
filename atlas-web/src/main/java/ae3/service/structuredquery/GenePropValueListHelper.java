@@ -195,13 +195,14 @@ public class GenePropValueListHelper implements IValueListHelper {
 
         q = new SolrQuery(sb.toString());
         q.setStart(0);
-        q.setRows(PropType.NAME.limit);
+        q.setRows(500);
         for(Prop p : GeneProperties.allProperties())
             if(p.type == PropType.NAME)
                 q.addField(p.searchField);
         q.addField("gene_species");
         q.addField("gene_identifier");
         QueryResponse qr = solrAtlas.query(q);
+        List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
         for(SolrDocument doc : qr.getResults())
         {
             String name = null;
@@ -221,16 +222,21 @@ public class GenePropValueListHelper implements IValueListHelper {
                         for(String v : (Collection<String>)c) {
                             if(name == null && v.toLowerCase().startsWith(query))
                                 name = v;
-                            else
+                            else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
+                                names.add(name);
+                                name = v;
+                            } else
                                 names.add(v);
                         }
                 }
 
             if(name != null)
-                result.add(new AutoCompleteItem("name", name, 1L,
+                res.add(new AutoCompleteItem("name", name, 1L,
                         (names.size() > 0 ? "(" + StringUtils.join(names, ",").replace("$","") + ")" : "") +
                                 "$" + species + "$" + geneId
                 ));
         }
+        Collections.sort(res);
+        result.addAll(res.subList(0, PropType.NAME.limit));
     }
 }
