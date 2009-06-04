@@ -90,7 +90,7 @@ public class AtlasStructuredQueryService {
         this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
         this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
 
-        this.efvListHelper = new ExpFactorValueListHelper(solrAtlas, getExperimentalFactorOptions());
+        this.efvListHelper = new ExpFactorValueListHelper(solrAtlas, solrExpt, getExperimentalFactorOptions());
         this.geneListHelper = new GenePropValueListHelper(solrAtlas);
         this.efoListHelper = new EfoValueListHelper(solrAtlas);
     }
