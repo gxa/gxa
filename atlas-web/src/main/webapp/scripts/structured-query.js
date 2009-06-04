@@ -280,7 +280,7 @@
              '.gname': 'gene.name',
              '.numup': 'numUp',
              '.numdn': 'numDn',
-             '.ef': 'ef',
+             '.ef': 'eftext',
              '.efv': 'efv',
              '.experRows': 'experiment <- experiments',
              '.experRows[class]+': function(a) { return (a.pos != a.items.length - 1) ? 'notlast' : ''; },
@@ -340,6 +340,10 @@
             for(var iefv in efvs)
                 efvsh[efvs[iefv].efv.toLowerCase()] = efvs[iefv];
 
+            if(!jsonObj.options)
+                jsonObj.options = {};
+            if(!jsonObj.options.legend)
+                jsonObj.options.legend = {};
             jsonObj.options.legend.container = root.find('.legend');
             jsonObj.options.legend.extContainer = null;
             jsonObj.options.selection = null;
@@ -360,23 +364,39 @@
 
                         if(series.label.length > 30)
                             series.label = series.label.substring(0, 30) + '...';
+                        var pvalue = efv.pvalue.toFixed(12);
                         series.label = '<span class="' + (efv.isup ? 'expup' : 'expdn') + '">'
                                 + series.label + '<br />'
-                                + (efv.isup ? '&#8593;' : '&#8595;') + '&nbsp;' + efv.pvalue + '</span>';
+                                + (efv.isup ? '&#8593;' : '&#8595;') + '&nbsp;' + pvalue + '</span>';
                         series.legend.show = true;
                         height += 2;
                         nlegs += 1;
-                    } else if(series.label.length > 30 && series.legend.show && nlegs < 5) {
-                        series.label = series.label.substring(0, 30) + '...';
-                        height += 1;
-                        nlegs += 1;
+                    } else if(series.legend.show) {
+                        if(nlegs < 6) {
+                            if(series.label.length > 30)
+                                series.label = series.label.substring(0, 30) + '...';
+                            height += 1;
+                            nlegs += 1;
+                        } else
+                            series.legend.show = false;
                     }
                 }
             }
 
+            for (i = 0; nlegs > 6 && i < jsonObj.series.length; ++i) {
+                series = jsonObj.series[i];
+                efv = efvsh[jsonObj.series[i].label.toLowerCase()];
+                if(!efv && series.legend.show) {
+                    series.legend.show = false;
+                    --nlegs;
+                    --height;
+                }
+            }
+
             var plotel = root.find('.plot');
-            if(height > 5)
+            if(height > 5) {
                 plotel.css({ height: (height * 16 + 20) + 'px' });
+            }
             
             $.plot(plotel, jsonObj.series,
                     $.extend(true, {}, jsonObj.options, {
@@ -457,7 +477,12 @@
                                 $.ajax({
                                     type: "GET",
                                     url: "plot.jsp",
-                                    data: { gid: gene.geneAtlasId, eid: resp.experiments[iexp].id, ef: 'ba_' + resp.experiments[iexp].efs[ief].ef },
+                                    data: {
+                                        gid: gene.geneAtlasId,
+                                        eid: resp.experiments[iexp].id,
+                                        ef: 'ba_' + resp.experiments[iexp].efs[ief].ef,
+                                        type: 'bar' 
+                                    },
                                     dataType: "json",
                                     success: (function(x) { return function(o) {
                                         drawPlot(o, plots.eq(c++), x);

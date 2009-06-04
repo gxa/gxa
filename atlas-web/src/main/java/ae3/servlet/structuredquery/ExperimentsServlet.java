@@ -50,6 +50,7 @@ public class ExperimentsServlet extends HttpServlet {
 
             try {
                 jsResult.put("ef", factor);
+                jsResult.put("eftext", CuratedTexts.get("head.ef." + factor));
                 jsResult.put("efv", factorValue);
 
                 if(isEfo) {
