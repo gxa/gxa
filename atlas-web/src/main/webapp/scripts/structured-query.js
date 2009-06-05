@@ -288,7 +288,7 @@
              '.expname': 'experiment.name',
              'table.oneplot': 'ef <- experiment.efs',
              '.efname': 'ef.eftext',
-             'a.proflink[href]': '/microarray-as/aew/DW?queryFor=gene&gene_query=#{gene.identifier}&species=&displayInsitu=on&exp_query=#{experiment.accession}',
+             'a.proflink[href]': 'experiment.jsp?gid=#{gene.id}&eid=#{experiment.accession}',
              'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
          }).remove();
      };
@@ -369,6 +369,7 @@
                                 + series.label + '<br />'
                                 + (efv.isup ? '&#8593;' : '&#8595;') + '&nbsp;' + pvalue + '</span>';
                         series.legend.show = true;
+                        series.legend.isefv = true;
                         height += 2;
                         nlegs += 1;
                     } else if(series.legend.show) {
@@ -385,8 +386,7 @@
 
             for (i = 0; nlegs > 6 && i < jsonObj.series.length; ++i) {
                 series = jsonObj.series[i];
-                efv = efvsh[jsonObj.series[i].label.toLowerCase()];
-                if(!efv && series.legend.show) {
+                if(!series.legend.isefv && series.legend.show) {
                     series.legend.show = false;
                     --nlegs;
                     --height;
@@ -395,9 +395,14 @@
 
             var plotel = root.find('.plot');
             if(height > 5) {
+                if(height > 10)
+                    height = 10;
                 plotel.css({ height: (height * 16 + 20) + 'px' });
             }
             
+            root.find('.waiter').remove();
+            root.find('.efname,.plot').show();
+
             $.plot(plotel, jsonObj.series,
                     $.extend(true, {}, jsonObj.options, {
                         grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: markings}

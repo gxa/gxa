@@ -69,8 +69,6 @@ public class ExperimentsServlet extends HttpServlet {
                 jsGene.put("name", gene.getGeneName());
                 jsResult.put("gene", jsGene);
 
-                int numUp = 0, numDn = 0;
-
                 Map<Long,Map<String, List<Experiment>>> exmap = new HashMap<Long,Map<String,List<Experiment>>>();
                 for(Experiment exp : isEfo ?
                         gene.getExpermientsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(factorValue)) :
@@ -84,7 +82,6 @@ public class ExperimentsServlet extends HttpServlet {
 
                     list.add(exp);
 
-                    if(exp.getExpression().isUp()) ++numUp; else ++numDn;
                 }
 
                 for(Map<String,List<Experiment>> ef : exmap.values())
@@ -112,6 +109,8 @@ public class ExperimentsServlet extends HttpServlet {
                     }
                 });
 
+                int numUp = 0, numDn = 0;
+
                 JSONArray jsExps = new JSONArray();
                 for(Map.Entry<Long,Map<String, List<Experiment>>> e : exps) {
                     AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(e.getKey()));
@@ -121,6 +120,8 @@ public class ExperimentsServlet extends HttpServlet {
                         jsExp.put("name", aexp.getAerExpName());
                         jsExp.put("id", e.getKey());
 
+                        boolean wasup = false;
+                        boolean wasdn = false;
                         JSONArray jsEfs = new JSONArray();
                         for(Map.Entry<String, List<Experiment>> ef : e.getValue().entrySet()) {
                             JSONObject jsEf = new JSONObject();
@@ -134,12 +135,16 @@ public class ExperimentsServlet extends HttpServlet {
                                 jsEfv.put("isup", exp.getExpression().isUp());
                                 jsEfv.put("pvalue", exp.getPvalue());
                                 jsEfvs.put(jsEfvs.length(), jsEfv);
+
+                                if(exp.getExpression().isUp()) wasup = true;else wasdn = true;
                             }
                             jsEf.put("efvs", jsEfvs);                            
                             jsEfs.put(jsEfs.length(), jsEf);
                         }
                         jsExp.put("efs", jsEfs);
 
+                        if(wasup) ++numUp;
+                        if(wasdn) ++numDn;
                         jsExps.put(jsExps.length(), jsExp);
                     }
                 }

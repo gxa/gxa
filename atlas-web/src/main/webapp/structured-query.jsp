@@ -733,7 +733,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <div id="experimentsTemplate">
         <div class="head">
             <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
-            overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> case(s)
+            overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> experiments(s)
         </div>
         <div class="exptable">
             <table>
@@ -743,8 +743,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <span class="expname"></span>
 
                         <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                            <td><div class="plot"></div></td>
-                            <td><div class="efname"></div><div class="legend"></div></td>
+                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..." /><div style="display:none" class="plot"></div></td>
+                            <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                         </tr></table>
                 
                         <div style="margin-top:5px;font-size:10px;">
