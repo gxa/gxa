@@ -150,7 +150,7 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
-<div id="ae_pagecontainer" style="position:absolute;z-index:2;width:100%;padding:0;">
+<div id="ae_pagecontainer">
     <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;" >
     <jsp:include page="simpleform.jsp"></jsp:include>
         

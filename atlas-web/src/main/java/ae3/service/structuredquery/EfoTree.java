@@ -5,14 +5,8 @@
 
 package ae3.service.structuredquery;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import uk.ac.ebi.ae3.indexbuilder.Efo;
 
 /**
@@ -22,6 +16,7 @@ import uk.ac.ebi.ae3.indexbuilder.Efo;
 public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
     private Map<String,PayLoad> efos = new HashMap<String,PayLoad>();
+    private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
 
     public EfoTree(Efo efo) {
@@ -32,31 +27,29 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         return efos.get(id);
     }
 
-    public PayLoad getOrCreate(String id, EfoEfvPayloadCreator<PayLoad> plCreator)
+    public void add(String id, EfoEfvPayloadCreator<PayLoad> plCreator, boolean withChildren)
     {
-        
+
         if(efos.containsKey(id) && explicitEfos.contains(id))
-            return efos.get(id);
+            return;
 
         Iterable<String> parents = efo.getTermParents(id, true);
         if(parents == null) // it's not in EFO, don't add it
-            return null;
+            return;
 
         explicitEfos.add(id);
 
         for(String pId : parents)
-            if (!efos.containsKey(pId)) {
-                PayLoad pl = plCreator.make();
-                efos.put(pId, pl);
-            }
+            if (!efos.containsKey(pId)) 
+                efos.put(pId, plCreator.make());
 
-        if (!efos.containsKey(id)) {
-            PayLoad pl = plCreator.make();
-            efos.put(id, pl);
-            return pl;
-        }
+        if (!efos.containsKey(id))
+            efos.put(id, plCreator.make());
 
-        return efos.get(id);
+        if(withChildren)
+            for(Efo.Term c : efo.getTermChildren(id))
+                if (!efos.containsKey(c.getId()))
+                    efos.put(c.getId(), plCreator.make());
     }
 
     public int getNumEfos() {
@@ -114,6 +107,21 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         return result;
     }
 
+    public List<EfoItem<PayLoad>> getMarkedSubTreeList()
+    {
+        List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
+//        Set<String> keyset = efos.keySet();
+//        for(Iterator<String> i = keyset.iterator(); i.hasNext(); ) {
+//            Collection<Efo.Term> t = efo.getTermChildren(i.next());
+//            if(!t.isExpandable() && !marked.contains(t.getId()))
+//                i.remove();
+//        }
+        for (Efo.Term t : efo.getSubTree(marked)) {
+            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId())));
+        }
+        return result;
+    }
+
     public List<EfoItem<PayLoad>> getValueOrderedList()
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
@@ -146,19 +154,13 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         for(EfoItem<PayLoad> i : getExplicitList()) {
             if(sb.length() > 0)
                 sb.append(", ");
-            sb.append(i.getId() + "(" + i.getTerm() + ")=" + i.getPayload());
+            sb.append(i.getId()).append("(").append(i.getTerm()).append(")=").append(i.getPayload());
         }
         return sb.toString();
     }
 
 
-    public void put(EfoItem<PayLoad> other, EfoTree<PayLoad> otherTree) {
-        for(String pId : efo.getTermParents(other.getId(), true))
-            if (!efos.containsKey(pId)) {
-                efos.put(pId, otherTree.get(pId));
-            }
-
-        efos.put(other.getId(), other.getPayload());
-        explicitEfos.add(other.getId());
+    public void mark(String id) {
+        marked.add(id);
     }
 }

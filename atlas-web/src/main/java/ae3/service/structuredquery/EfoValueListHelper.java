@@ -164,7 +164,7 @@ public class EfoValueListHelper implements IValueListHelper {
             Collections.reverse(path);
             for(Efo.Term term : path) {
                 Long count = getCount(term.getId());
-                if(count != null && count < 1000) {
+                if(count != null) {
                     current.add(new EfoTermCount(term, count));
                 }
             }

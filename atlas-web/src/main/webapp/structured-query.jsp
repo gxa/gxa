@@ -355,7 +355,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
     <td id="drilldowns">
         <c:if test="${result.size > 0}">
-            <div id="summary" style="font-size:11px">
+            <div style="font-size:11px">
                 <b>REFINE YOUR QUERY</b>
             </div>
         </c:if>
@@ -404,31 +404,38 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <c:choose>
 <c:when test="${heatmap}">
     <c:if test="${result.size > 0}">
-        <ul>
-            <c:forEach var="c" items="${result.conditions}" varStatus="cs">
-                <c:url var="condUrl" value="/qrs">
-                    <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
-                        <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
-                        <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
-                        <c:param name="gprop_${gs.index}" value="${g.factor}" />
+        <c:set var="numPaths" value="0"/>
+        <c:forEach var="c" items="${result.conditions}"><c:set var="numPaths" value="${numPaths + f:length(c.efoPaths)}"/></c:forEach>
+        <c:if test="${numPaths > 0}">
+            <div style="font-size:11px;">
+                <b>EXPAND YOUR QUERY</b>
+            </div>
+            <div style="font-size:9px;margin-bottom:9px">
+                <c:forEach var="c" items="${result.conditions}" varStatus="cs">
+                    <c:url var="condUrl" value="/qrs">
+                        <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
+                            <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
+                            <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
+                            <c:param name="gprop_${gs.index}" value="${g.factor}" />
+                        </c:forEach>
+                        <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
+                        <c:forEach varStatus="ucs" var="uc" items="${result.conditions}">
+                            <c:param name="fact_${ucs.index}" value="${uc.factor}"/>
+                            <c:param name="fexp_${ucs.index}" value="${uc.expression}"/>
+                            <c:if test="${c != uc}">
+                                <c:param name="fval_${ucs.index}" value="${uc.jointFactorValues}"/>
+                            </c:if>
+                        </c:forEach>
+                        <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
+                    </c:url>
+                    <c:forEach var="path" items="${c.efoPaths}">
+                        <c:forEach var="term" items="${path}" varStatus="s">
+                            <a href="${condUrl}&fval_${cs.index}=${u:escapeURL(term.id)}"><c:out value="${term.term}" /></a><c:if test="${!s.last}">&nbsp;&gt;&nbsp;</c:if>
+                        </c:forEach><br />
                     </c:forEach>
-                    <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
-                    <c:forEach varStatus="ucs" var="uc" items="${result.conditions}">
-                        <c:param name="fact_${ucs.index}" value="${uc.factor}"/>
-                        <c:param name="fexp_${ucs.index}" value="${uc.expression}"/>
-                        <c:if test="${c != uc}">
-                            <c:param name="fval_${ucs.index}" value="${uc.jointFactorValues}"/>
-                        </c:if>
-                    </c:forEach>
-                    <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
-                </c:url>
-                <c:forEach var="path" items="${c.efoPaths}">
-                    <li><c:forEach var="term" items="${path}" varStatus="s">
-                        <a href="${condUrl}&fval_${cs.index}=${u:escapeURL(term.id)}"><c:out value="${term.term}" /></a>  (${term.count})<c:if test="${!s.last}">&nbsp;&gt;&nbsp;</c:if>
-                    </c:forEach></li>
                 </c:forEach>
-            </c:forEach>
-        </ul>
+            </div>
+        </c:if>
 
         <div id="summary">
             <span id="pagetop" class="pagination_ie page_long"></span>
@@ -444,7 +451,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <table id="squery">
         <tbody>
         <tr class="header">
-            <c:set var="efoSubTree" value="${result.resultEfos.subTreeList}" />
+            <c:set var="efoSubTree" value="${result.resultEfos.markedSubTreeList}" />
             <c:set var="efoSubTreeLength" value="${f:length(efoSubTree)}" />
             <th class="padded" rowspan="2">Gene</th>
             <c:if test="${f:length(query.species) != 1}">

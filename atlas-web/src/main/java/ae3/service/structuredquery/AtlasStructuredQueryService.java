@@ -193,9 +193,7 @@ public class AtlasStructuredQueryService {
         }
 
         public void addEfo(String id) {
-            efos.getOrCreate(id, numberer);
-            for(Efo.Term child : getEfo().getTermChildren(id))
-                efos.getOrCreate(child.getId(), numberer);
+            efos.add(id, numberer, true);
         }
 
         public Set<String> getExperiments() {
@@ -288,7 +286,7 @@ public class AtlasStructuredQueryService {
                                          Collection<String> expandableEfs)
     {
         final Set<String> expand = query.getExpandColumns();
-        EfvTree<Integer> trimmedEfvs = new EfvTree(result.getResultEfvs());
+        EfvTree<Integer> trimmedEfvs = new EfvTree<Integer>(result.getResultEfvs());
         if(expand.contains("*"))
             return trimmedEfvs;
 
@@ -592,7 +590,7 @@ public class AtlasStructuredQueryService {
         result.setTotal(docs.getNumFound());
         int numOfListGenes = 0;
         EfvTree<Integer> resultEfvs = new EfvTree<Integer>();
-        EfoTree<Integer> resultEfos = new EfoTree<Integer>(getEfo());
+        EfoTree<Integer> resultEfos = qstate.getEfos();
 
         Iterable<EfvTree.EfEfv<Integer>> efvList = qstate.getEfvs().getValueSortedList();
         Iterable<EfoTree.EfoItem<Integer>> efoList = qstate.getEfos().getValueOrderedList();
@@ -647,7 +645,7 @@ public class AtlasStructuredQueryService {
                     for(Object efoo : values) {
                         String efo = (String)efoo;
                         if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > 0)
-                            resultEfos.getOrCreate(efo, numberer);
+                            resultEfos.add(efo, numberer, false);
                     }
 
                 values = doc.getFieldValues("efos_dn");
@@ -655,7 +653,7 @@ public class AtlasStructuredQueryService {
                     for(Object efoo : values) {
                         String efo = (String)efoo;
                         if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > 0)
-                            resultEfos.getOrCreate(efo, numberer);
+                            resultEfos.add(efo, numberer, false);
                     }
 
                 efvList = resultEfvs.getValueSortedList();
@@ -689,15 +687,17 @@ public class AtlasStructuredQueryService {
 
                 counters.add(counter);
 
-                boolean addToResult = hasQueryEfvs && counter.getUps() + counter.getDowns() > 0;
+                boolean addToResult = hasQueryEfvs && (counter.getUps() + counter.getDowns() > 0);
 
                 if (usingEfv) {
                     if (addToResult)
                         resultEfvs.put(efv);
                     efv = null;
                 } else {
-                    if (addToResult && qstate.getEfos().getExplicitEfos().contains(efo.getId()))
-                        resultEfos.put(efo, qstate.getEfos());
+                    if (addToResult)
+                        resultEfos.mark(efo.getId());
+                    if(efo.getId().equals("EFO_0001093"))
+                        efo = null;
                     efo = null;
                 }
             }
