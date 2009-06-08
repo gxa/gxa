@@ -3,13 +3,6 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -20,9 +13,14 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.xml.sax.SAXException;
-
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 

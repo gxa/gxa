@@ -1,33 +1,40 @@
 package uk.ac.ebi.ae3.indexbuilder.service;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import uk.ac.ebi.ae3.indexbuilder.Efo;
+import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.IndexField;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-
-import uk.ac.ebi.ae3.indexbuilder.Efo;
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
-import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class GeneAtlasIndexBuilder extends IndexBuilderService {
-    protected final Log log = LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final int NUM_THREADS = 64;
+    private static final int BURST_SIZE = 1000;
 
     private BasicDataSource dataSource;
-    private PreparedStatement listAtlasGenesStmt;
-    private PreparedStatement countGeneEfoStmt;
     private Map<String,String[]> ontomap = new HashMap<String,String[]>();
     private Efo efo;
 
@@ -81,38 +88,131 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         double pdn = 1;
     }
 
+    private class StatementPool {
+        private final Semaphore available = new Semaphore(NUM_THREADS, true);
+
+        public PreparedStatement getItem() throws InterruptedException {
+            available.acquire();
+            return getNextAvailableItem();
+        }
+
+        public void putItem(PreparedStatement x) {
+            if (markAsUnused(x))
+                available.release();
+        }
+
+        protected Map<PreparedStatement, MutableBoolean> pool = new HashMap<PreparedStatement,MutableBoolean>();
+
+        protected synchronized PreparedStatement getNextAvailableItem() {
+            for(Map.Entry<PreparedStatement,MutableBoolean> e : pool.entrySet())
+                if(e.getValue().booleanValue()) {
+                    pool.get(e.getKey()).setValue(false);
+                    return e.getKey();
+                }
+
+            try {
+                PreparedStatement stmt = getDataSource().getConnection().prepareStatement(                "SELECT * FROM " +
+                        "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
+                        "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +
+                        "   FROM atlas " +
+                        "   WHERE gene_id_key = ? AND efv <> 'V1' AND experiment_id_key > 0) " +
+                        " WHERE r=1");
+                pool.put(stmt, new MutableBoolean(false));
+                return stmt;
+            } catch(SQLException e) {
+                throw new RuntimeException("SQL error", e);
+            }
+        }
+
+        protected synchronized boolean markAsUnused(PreparedStatement item) {
+            MutableBoolean b = pool.get(item);
+            if(b != null && !b.booleanValue()) {
+                b.setValue(true);
+                return true;
+            }
+            return false;
+        }
+    }
+
+
     protected void createIndexDocs() throws Exception {
-        prepareStatements();
+
+        loadEfoMapping();
+
+        final StatementPool spool = new StatementPool();
+        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         log.info("Querying genes...");
+        PreparedStatement listAtlasGenesStmt = getDataSource().getConnection().prepareStatement("select xml.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
+                "from gene_xml xml " +
+                (isUpdateMode() ? " where xml.status<>'fresh' and xml.status is not null" : ""));
+
+        List<String[]> queue = new ArrayList<String[]>(BURST_SIZE);
+
         ResultSet genes = listAtlasGenesStmt.executeQuery();
-        int count = 0;
-        while(genes.next()) {
-            SolrInputDocument solrDoc = new SolrInputDocument();
-            String geneId = genes.getString(1);
+        final AtomicInteger count = new AtomicInteger(0);
+        while(true) {
+            boolean hasMore = genes.next();
+            
+            if(hasMore) {
+                final String geneId = genes.getString(1);
 
-            oracle.sql.CLOB clob = (oracle.sql.CLOB)genes.getClob(2);
-            String xml = clob.getSubString(1, (int)clob.length());
-            Document xmlDoc = DocumentHelper.parseText(xml);
-            Element el = xmlDoc.getRootElement();
+                oracle.sql.CLOB clob = (oracle.sql.CLOB)genes.getClob(2);
+                final String xml = clob.getSubString(1, (int)clob.length());
 
-            @SuppressWarnings("unchecked")
-            List<Element> fields = el.elements("field");
-            for(Element field : fields) {
-                String fieldName = field.attribute("name").getValue();
-                if(!fieldName.equals("gene_experiment"))
-                    solrDoc.addField(fieldName, field.getText());
+                String[] e = { geneId, xml };
+                queue.add(e);
+                count.incrementAndGet();
             }
 
-            if(addEfoCounts(solrDoc, geneId))
-                getSolrEmbeddedIndex().addDoc(solrDoc);
+            if(!hasMore || queue.size() >= BURST_SIZE) {
+                final String[][] copy = new String[queue.size()][];
+                queue.toArray(copy);
+                queue.clear();
+                tpool.submit(new Runnable() {
+                    public void run() {
+                        try {
+                            PreparedStatement ps = spool.getItem();
+                            for(String[] e : copy) {
+                                processGene(e[0], e[1], ps);
+                            }
+                            spool.putItem(ps);
+                        } catch(Exception e) {
+                            log.error("Exception in worker", e);
+                            throw new RuntimeException(e);
+                        }
+                        log.info("Batch finished, genes so far " + count);
+                    }
+                });
+            }
 
-//            if(++count > 100)
-//                break;
+            if(!hasMore)
+                break;
         }
         genes.close();
-        closeStatements();
+        listAtlasGenesStmt.close();
+
+        log.info("Waiting for workers...");
+        tpool.shutdown();
+        tpool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         log.info("Finished, committing");
+    }
+
+    private void processGene(String geneId, String xml, PreparedStatement countGeneEfoStmt) throws DocumentException, SQLException, SolrServerException, IOException {
+        SolrInputDocument solrDoc = new SolrInputDocument();
+        Document xmlDoc = DocumentHelper.parseText(xml);
+        Element el = xmlDoc.getRootElement();
+
+        @SuppressWarnings("unchecked")
+        List<Element> fields = el.elements("field");
+        for(Element field : fields) {
+            String fieldName = field.attribute("name").getValue();
+            if(!fieldName.equals("gene_experiment"))
+                solrDoc.addField(fieldName, field.getText());
+        }
+
+        if(addEfoCounts(solrDoc, geneId, countGeneEfoStmt))
+            getSolrEmbeddedIndex().addDoc(solrDoc);
     }
 
     private void calcChildren(String currentId, Map<String, UpDnSet> efoupdn) {
@@ -141,7 +241,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         return x;
     }
 
-    private boolean addEfoCounts(SolrInputDocument solrDoc, String geneId) throws SQLException {
+    private boolean addEfoCounts(SolrInputDocument solrDoc, String geneId, PreparedStatement countGeneEfoStmt) throws SQLException {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
         Set<Integer> upexp = new HashSet<Integer>();
@@ -329,30 +429,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         }
     }
 
-    private void closeStatements() throws SQLException {
-        Connection sql = getDataSource().getConnection();
-        listAtlasGenesStmt.close();
-    }
-
-    private void prepareStatements() throws SQLException {
-        Connection sql = getDataSource().getConnection();
-
-        listAtlasGenesStmt = sql.prepareStatement("select xml.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
-                "from gene_xml xml " +
-                (isUpdateMode() ? " where xml.status<>'fresh' and xml.status is not null" : ""));
-
-        countGeneEfoStmt = sql.prepareStatement(
-                "SELECT * FROM " +
-                        "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
-                        "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +
-                        "   FROM atlas " +
-                        "   WHERE gene_id_key = ? AND efv <> 'V1' AND experiment_id_key > 0) " +
-                        " WHERE r=1"
-                );
-
+    private void loadEfoMapping() throws SQLException {
 
         log.info("Fetching ontology mapping table...");
-        PreparedStatement ontomapStmt = sql.prepareStatement("select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
+        PreparedStatement ontomapStmt = getDataSource().getConnection().prepareStatement("select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
                         "     LOWER(SUBSTR(oa.orig_value_src,    instr(oa.orig_value_src,    '_',    1,    3) + 1,    instr(oa.orig_value_src,    '__DM',    1,    1) -instr(oa.orig_value_src,    '_',    1,    3) -1)) ef," +
                         "     oa.orig_value AS efv," +
                         "     oa.accession" +

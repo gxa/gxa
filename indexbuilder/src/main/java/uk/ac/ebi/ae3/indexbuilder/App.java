@@ -12,16 +12,16 @@ import org.apache.commons.cli2.builder.GroupBuilder;
 import org.apache.commons.cli2.commandline.Parser;
 import org.apache.commons.cli2.option.DefaultOption;
 import org.apache.commons.cli2.util.HelpFormatter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.dbcp.BasicDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
-
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
-import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
+
+import java.util.logging.LogManager;
 
 /**
  * The main class which contains main method. Create expt lucene index.
@@ -32,6 +32,14 @@ import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
  */
 public class App
 {
+    static {
+        try {
+            LogManager.getLogManager().readConfiguration(App.class.getResourceAsStream("logging.properties"));
+        } catch(Exception e) {
+            
+        }
+        SLF4JBridgeHandler.install();
+    }
 	/** */
 	private final HelpFormatter		helpFormatter   = new HelpFormatter();
 	
@@ -86,8 +94,8 @@ public class App
     private String					 propertyFile;
 	private XmlBeanFactory appContext; 	
 	
-	private static final Log		   log			 = LogFactory
-															   .getLog(App.class);
+	private static final Logger log			 = LoggerFactory
+															   .getLogger(App.class);
 
     private boolean buildExpt = false;
     private boolean buildGene = false;
@@ -109,13 +117,13 @@ public class App
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			log.error(e);
+			log.error("Exception", e);
 			System.exit(-1);
 		}
 		catch (IndexException e)
 		{
 			e.printStackTrace();
-			log.error(e);
+			log.error("Exception", e);
 			System.exit(-1);
 		}
 		

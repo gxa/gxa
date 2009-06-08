@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 /**
@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
  * EBI Microarray Informatics Team (c) 2007
  */
 public class MageTabParser {
-    private static final Log log = LogFactory.getLog(MageTabParser.class);    
+    private static final Logger log = LoggerFactory.getLogger(MageTabParser.class);    
 
     public MageTabDocument parseIDF(Reader reader) throws IOException {
         ExcelCSVParser csvp = new ExcelCSVParser(reader);

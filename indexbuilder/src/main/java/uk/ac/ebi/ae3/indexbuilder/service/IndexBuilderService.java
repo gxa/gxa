@@ -12,12 +12,12 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.xml.sax.SAXException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
@@ -37,7 +37,7 @@ public abstract class IndexBuilderService
 	/** a path to the ftp dir*/
 	private String ftpDir;
 	/** an instance of loging interface*/
-	protected static final Log log = LogFactory.getLog(IndexBuilderService.class);
+	protected static final Logger log = LoggerFactory.getLogger(IndexBuilderService.class);
 	/** The extension of the fgem files*/
 	private static final String FILE_FILTER_FGEM = "processed.zip";
 	/** The extension of the raw files*/	

@@ -11,8 +11,8 @@ import javax.sql.DataSource;
 
 import oracle.sql.CLOB;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
@@ -39,7 +39,7 @@ public class ExperimentDwJdbcDao
 												  "where searchindex='pending' " +
 												  "and load_type='experiment' " +
 												  "and status = 'loaded'";
-	protected static final Log log = LogFactory.getLog(ExperimentDwJdbcDao.class);
+	protected static final Logger log = LoggerFactory.getLogger(ExperimentDwJdbcDao.class);
 	
 	/** An instance of JDBC RowMapper for SQL_ASXML**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
