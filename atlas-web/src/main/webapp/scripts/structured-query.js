@@ -364,7 +364,7 @@
 
                         if(series.label.length > 30)
                             series.label = series.label.substring(0, 30) + '...';
-                        var pvalue = efv.pvalue.toFixed(12);
+                        var pvalue = efv.pvalue < 1e-16 ? '&lt;1e-16' : efv.pvalue.toExponential(2);
                         series.label = '<span class="' + (efv.isup ? 'expup' : 'expdn') + '">'
                                 + series.label + '<br />'
                                 + (efv.isup ? '&#8593;' : '&#8595;') + '&nbsp;' + pvalue + '</span>';
