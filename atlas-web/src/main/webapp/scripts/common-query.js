@@ -242,9 +242,9 @@ var atlas = {};
                     var indent = '';
                     for(var i = 0; i < ext[1]; ++i)
                         indent += '&nbsp;&nbsp;&nbsp;';                    
-                    return '<nobr>' + indent + row[1] + ' <em>(' + row[2] + ') ' + ext[0] + '</em></nobr>';
+                    return '<nobr>' + indent + row[1] + ' <em>(' + row[2] + ' genes) ' + ext[0] + '</em></nobr>';
                 }
-                return '<nobr>' + row[1] + ' <em>(' + row[2] + ')</em></nobr>';
+                return '<nobr>' + row[1] + ' <em>(' + row[2] + ' genes)</em></nobr>';
             },
             formatResult: function(row) {
                 if(row[0] == 'efo') {
