@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas-index-api</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
     <name>ArrayExpress Atlas Index Common API</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>

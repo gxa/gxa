@@ -150,6 +150,7 @@ public class Efo {
         private OWLOntology ontology;
         private OWLReasoner reasoner;
         private Map<String,EfoNode> efomap;
+        private Set<String> orgnodes;
 
         private Loader()
         {
@@ -166,6 +167,7 @@ public class Efo {
         private static class ClassAnnoVisitor implements OWLAnnotationVisitor {
             private String term;
             private boolean branchRoot;
+            private boolean organizational;
 
             public void visit(OWLConstantAnnotation annotation) {
                 if (annotation.isLabel()) {
@@ -173,6 +175,8 @@ public class Efo {
                     term = c.getLiteral();
                 } else if(annotation.getAnnotationURI().toString().contains("branch_class")) {
                     branchRoot = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
+                } else if(annotation.getAnnotationURI().toString().contains("organizational_class")) {
+                    organizational = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
                 }
             }
 
@@ -185,6 +189,10 @@ public class Efo {
 
             public boolean isBranchRoot() {
                 return branchRoot;
+            }
+
+            public boolean isOrganizational() {
+                return organizational;
             }
         }
 
@@ -211,7 +219,7 @@ public class Efo {
             return cls.getURI().getPath().replaceAll("^.*/", "");
         }
 
-        private EfoNode loadClass(OWLClass cls) throws OWLReasonerException {
+        private Collection<EfoNode> loadClass(OWLClass cls) throws OWLReasonerException {
             if(reasoner.isSatisfiable(cls)) {
                 String id = getId(cls);
                 EfoNode en = efomap.get(id);
@@ -227,19 +235,23 @@ public class Efo {
                     for (Set<OWLClass> setOfClasses : children) {
                         for (OWLClass child : setOfClasses) {
                             if (!child.equals(cls)) {
-                                EfoNode cn = loadClass(child);
-                                if(cn != null) {
+                                Collection<EfoNode> cnc = loadClass(child);
+                                for(EfoNode cn : cnc) {
                                     en.children.add(cn);
-                                    cn.parents.add(en);
+                                    if(!cannov.isOrganizational())
+                                        cn.parents.add(en);
                                 }
                             }
                         }
                     }
-                    efomap.put(id, en);
+                    if(cannov.isOrganizational())
+                        return en.children;
+                    else
+                        efomap.put(id, en);
                 }
-                return en;
+                return Collections.singletonList(en);
             }
-            return null;
+            return new ArrayList<EfoNode>();
         }
 
     }

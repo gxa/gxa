@@ -96,8 +96,7 @@ public class EfoTest extends TestCase {
     public void testSubTree() {
         Efo efo = Efo.getEfo();
 
-        Set<String> ids = new HashSet<String>();
-        ids.add("EFO_0000872");
+        Set<String> ids = efo.getTermParents("EFO_0000872", true);
         Collection<Efo.Term> result = efo.getSubTree(ids);
         assertTrue(isTermInCollection(result, "EFO_0000870"));
         assertTrue(isTermInCollection(result, "EFO_0000635"));
