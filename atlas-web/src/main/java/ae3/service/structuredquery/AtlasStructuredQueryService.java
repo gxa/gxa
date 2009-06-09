@@ -640,11 +640,17 @@ public class AtlasStructuredQueryService {
                         }
                 }
 
+                int threshold = 0;
+                if(resultEfos.getNumExplicitEfos() > 0)
+                    threshold = 1;
+                else if(resultEfos.getNumExplicitEfos() > 20)
+                    threshold = 3;
+
                 values = doc.getFieldValues("efos_up");
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > 0)
+                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -652,7 +658,7 @@ public class AtlasStructuredQueryService {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > 0)
+                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -687,17 +693,15 @@ public class AtlasStructuredQueryService {
 
                 counters.add(counter);
 
-                boolean addToResult = hasQueryEfvs && (counter.getUps() + counter.getDowns() > 0);
+                boolean nonZero = (counter.getUps() + counter.getDowns() > 0);
 
                 if (usingEfv) {
-                    if (addToResult)
+                    if (hasQueryEfvs && nonZero)
                         resultEfvs.put(efv);
                     efv = null;
                 } else {
-                    if (addToResult)
+                    if (nonZero)
                         resultEfos.mark(efo.getId());
-                    if(efo.getId().equals("EFO_0001093"))
-                        efo = null;
                     efo = null;
                 }
             }
