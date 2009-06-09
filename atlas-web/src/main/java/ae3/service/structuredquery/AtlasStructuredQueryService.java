@@ -874,6 +874,8 @@ public class AtlasStructuredQueryService {
 
         q.setHighlight(true);
         q.setHighlightSnippets(100);
+        q.setParam("hl.usePhraseHighlighter", "true");
+        q.setParam("hl.mergeContiguous", "true");
         q.setHighlightRequireFieldMatch(false);
         q.addHighlightField("gene_id");
         q.addHighlightField("gene_name");
