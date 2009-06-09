@@ -401,9 +401,9 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         <c:if test="${numPaths > 0 || result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
             <div style="font-size:11px">
                 <b>
-                    <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();">REFINE</a></c:if>
+                    <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a></c:if>
                     <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
-                    <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());">EXPAND</a></c:if>
+                    <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());return false;">EXPAND</a></c:if>
                     YOUR QUERY
                 </b>
             </div>
@@ -482,7 +482,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
                     </c:forEach>
                 </map>
-                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}" rowspan="2"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:170px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efomap"></div></div></td>
+                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efomap"></div></div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
                 <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.nameSortedList}" />
@@ -507,6 +507,9 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
             </c:if>
         </tr>
         <tr>
+            <c:if test="${efoSubTreeLength > 0}">
+                <th colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}">&nbsp;</th>
+            </c:if>
             <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
                 <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">

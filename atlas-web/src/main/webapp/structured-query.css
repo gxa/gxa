@@ -7,7 +7,7 @@
 #expopup, #expopup .exptable, #tooltip, #waiter { border: 1px solid #5E9E9E }
 fieldset, #drill {  border: none }
 
-#squery th, #tooltip, #expopup
+#squery th, #tooltip, #expopup, .diaghead
       { background-color: #EEF5F5; }
 
 .closebox { color: #006666; }
@@ -51,7 +51,7 @@ fieldset, #drill {  border: none }
 #squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
 #squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
 
-#squery div.diaghead { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
+#squery div.diaghead { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px;border-bottom: 1px solid #cdcdcd; }
 
 #squery .divider { border-right: 3px solid #cdcdcd; }
 
