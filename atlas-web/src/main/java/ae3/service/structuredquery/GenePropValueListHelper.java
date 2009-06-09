@@ -195,7 +195,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
         q = new SolrQuery(sb.toString());
         q.setStart(0);
-        q.setRows(500);
+        q.setRows(50);
         for(Prop p : GeneProperties.allProperties())
             if(p.type == PropType.NAME)
                 q.addField(p.searchField);
@@ -237,6 +237,6 @@ public class GenePropValueListHelper implements IValueListHelper {
                 ));
         }
         Collections.sort(res);
-        result.addAll(res.subList(0, PropType.NAME.limit));
+        result.addAll(res.subList(0, Math.min(PropType.NAME.limit, res.size())));
     }
 }
