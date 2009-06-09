@@ -476,7 +476,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
                     </c:forEach>
                 </map>
-                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efomap"></div></div></td>
+                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}" rowspan="2"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:170px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efomap"></div></div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
                 <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.nameSortedList}" />
@@ -497,17 +497,14 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},${efvhgt-20},${s.index*27+efvhgt-20},0,${s.index*27+efvhgt-1+17},0,${s.index*27+17},${efvhgt-1},${s.index*27},${efvhgt-1},${s.index*27},${efvhgt-20}" onclick="return false;">
                     </c:forEach>
                 </map>
-                <td colspan="${result.resultEfvs.numEfvs}"><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efvmap"></div></div></td>
+                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efvmap"></div></div></td>
             </c:if>
         </tr>
         <tr>
-            <c:if test="${efoSubTreeLength > 0}"><th class="factor${result.resultEfvs.numEfvs > 0 ? ' divider' : ''}" title="EFO" colspan="${efoSubTreeLength}">
-                EFO
-            </th></c:if>
             <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
                 <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
-                    <div style="width:${f:length(c.efvs) * 26 - 1}px;">${eftitle}</div>
+                    <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
                         <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
                             <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;&nbsp;fewer</a>

@@ -50,6 +50,8 @@ fieldset, #drill {  border: none }
 #squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
 #squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
 
+#squery div.diaghead { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
+
 #squery .divider { border-right: 3px solid #cdcdcd; }
 
 #squery td {
