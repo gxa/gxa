@@ -65,4 +65,16 @@ public class DownloadService {
 		return strBuf;
 			
 	}
+	
+	public static String getDownloadFileName(String sessionID, String qid){
+		String filename = "download";
+		if(downloads.containsKey(sessionID)){
+			Download dn = downloads.get(sessionID).get(Integer.parseInt(qid));
+			if(dn != null){
+				filename = dn.getFile();
+			}
+			
+		}
+		return filename;
+	}
 }

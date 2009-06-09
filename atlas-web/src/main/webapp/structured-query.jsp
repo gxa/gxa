@@ -326,17 +326,19 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     </c:if>
 
         $("#export_lnk").bind("click",function(){
+       	var count = parseInt($("#dwnldCounter").text())+1;
+       	$("#dwnldCounter").text(count);
             $.ajax({
                 url: '${pageUrl}&export=true',
                 cache: false,
                 complete: function() {
                     // unblock when remote call returns
                     //$.blockUI({ message: $('#question'), css: { width: '275px' } });
-			                    
+			        atlas.popup('downloads.jsp');           
                 }
             });
                     	
-            atlas.popup('downloads.jsp');
+            
         });
     });
                 
@@ -607,7 +609,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         <div id="legendexpand" style="width:850px;height:30px">
             Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
         </div>
-        <div style="text-align:right" id="downloads"><a id="export_lnk" href="javascript:void(0)" >Download full results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (${noDownloads})</a> </div>
+        <div style="text-align:right" id="downloads"><a id="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
     </c:if>
     <table id="grid" class="tablesorter" cellspacing="0" width="100%">
         <colgroup>

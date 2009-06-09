@@ -26,7 +26,8 @@ USAGE:
 				barImage	: {
 								0:	'images/progressbg_red.gif',
 								30: 'images/progressbg_orange.gif',
-								70: 'images/progressbg_green.gif'
+								70: 'images/progressbg_green.gif',
+								100: 'images/progressbg_green.gif'
 							},												// Image to use in the progressbar. Can be a single image too: 'images/progressbg_green.gif'
 				height		: 12											// Height of the progressbar - don't forget to adjust your image too!!!
 			};
@@ -77,6 +78,9 @@ USAGE:
 						this.config				= config;
 						this.config.cpercentage	= 0;
 						this.config.tpercentage	= percentage;
+						
+						if(this.config.tpercentage == 100)
+							this.config.cpercentage = 100;
 						
 						$bar.css("width", config.width + "px");
 						$bar.css("height", config.height + "px");

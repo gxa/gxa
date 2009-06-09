@@ -14,13 +14,18 @@
 <script type="text/javascript" src="scripts/jquery.progressbar.js"></script>
 <link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="listView.css" type="text/css" />
+<link rel="stylesheet" href="geneView.css" type="text/css" />
 <script type="text/javascript">
 	$(document).ready(function() {
+	var empty=true;
 		$(".progressBar").each(function(){
-			$(this).progressBar({ barImage: 'images/progressbg_orange.gif'});
+			
+			$(this).progressBar();
+			empty = false;
 		});
 		
-		setTimeout("updateProgress()",1000);
+		if(!empty)
+			setTimeout("updateProgress()",1000);
 		
 	});
 	
@@ -49,24 +54,39 @@
 <title>Atlas Downloads</title>
 </head>
 <body>
-       <div> List of your current downloads </div> 
-       <table id="grid" cellpadding="2">
-       	<thead>
-       		<th>ID</th>
-       		<th>Query</th>
-       		<th>Download Progress</th>
-       		<th>File</th>
-       	</thead>
-       		<c:forEach items="${downloads}" var="download" varStatus="i">
-        		<tr>
-        			<td>${i.index}</td>
-        			<td><c:out value="${download.query}"></c:out> </td>
-        			<td><span class="progressBar" id="query${i.index}"><c:out value="${download.progress}"></c:out></span></td>
-        			<td><input id="btn_${i.index}" disabled="disabled" type="button" onclick="getFile(${i.index})" value="Get file" /></td>
-        		</tr>
-        		
-        	</c:forEach>
-       </table>
+<table style="position:absolute; top:5px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
+        <tr>
+            <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+                <img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/>
+            </td>
+        </tr>
+    </table>
+<c:choose>
+	<c:when test="${!empty downloads}">
+		 <div style="position: relative; padding-left: 3px; top: 35px;" class="header"> List of your current downloads </div> 
+	       <table id="grid" cellpadding="2" style="position: relative; top: 40px;">
+	       	<thead>
+	       		<th style="padding-left: 3px;">ID</th>
+	       		<th style="padding-left: 3px;">Query</th>
+	       		<th style="padding-left: 3px;">Download Progress</th>
+	       		<th style="padding-left: 3px;">File</th>
+	       	</thead>
+	       		<c:forEach items="${downloads}" var="download" varStatus="i">
+	        		<tr>
+	        			<td style="padding-left: 3px;">${i.index+1}</td>
+	        			<td style="padding-left: 3px;"><c:out value="${download.query}"></c:out> </td>
+	        			<td style="padding-left: 3px;"><span class="progressBar" id="query${i.index}"><c:out value="${download.progress}"></c:out></span></td>
+	        			<td style="padding-left: 3px;"><input id="btn_${i.index}" disabled="disabled" type="button" onclick="getFile(${i.index})" value="Get file" /></td>
+	        		</tr>
+	        		
+	        	</c:forEach>
+	       </table>
+	</c:when>
+
+<c:otherwise>
+	<div style="font-weight: bold; text-align: center; position: relative; top: 50px;">No current downloads available. </div>
+</c:otherwise>
+</c:choose>     
         
 </body>
 </html>

@@ -7,14 +7,14 @@
 <%@ page import="java.io.*"  %>
 
 <%
-
 	String qid = request.getParameter("qid");
 	StringBuilder strBuf = DownloadService.getFileContent(session.getId(),qid);
+	String filename = DownloadService.getDownloadFileName(session.getId(),qid);
 	
 	try {
 		BufferedReader bufferedReader=null;
    	 	response.setContentType("application/octet-stream");
-        response.setHeader("Content-Disposition","attachment;filename=download.csv");
+        response.setHeader("Content-Disposition","attachment;filename="+filename+".tab");
         //InputStream in = new ArrayInputStream(strBuf.toString().getBytes("UTF-8"));
         //File file = new File("/Volumes/Workspace/Projects/atlas-1.0/out.csv");
         //FileInputStream fileIn = new FileInputStream(file);

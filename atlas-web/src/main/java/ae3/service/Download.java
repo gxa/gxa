@@ -1,7 +1,13 @@
 package ae3.service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
+import ae3.util.AtlasProperties;
 
 /**
  * Represents a download event for exporting atlas list results to files
@@ -18,6 +24,8 @@ public class Download {
 	public Download(AtlasStructuredQuery query){
 		this.query = query;
 		strBuf = new StringBuilder();
+		this.file = StringUtils.replaceChars(query.toString(), "\\\"()", "'").replaceAll(" ","_");
+		
 	}
 
 	public String getQuery() {
@@ -52,6 +60,7 @@ public class Download {
 		if(query != null){
 			
 			AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(query);
+			appendHeader(strBuf);
 			appendResults(atlasResult, strBuf);
 			progress++;
 			long total = atlasResult.getTotal();
@@ -77,6 +86,19 @@ public class Download {
 
 		}
 	}
+	
+	private void appendHeader(StringBuilder strBuf){
+		Date today = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
+		strBuf.append("Atlas data version: ").append(AtlasProperties.getProperty("atlas.data.release")).append("\n");
+		strBuf.append("Query: ").append(query.toString()).append("\n");
+		strBuf.append("Timestamp: ").append( formatter.format(today)).append("\n\n");
+		
+		strBuf.append("Gene Name").append("\t").append("Gene Identifier").append("\t").append("Organism").append("\t");
+		strBuf.append("Experimental factor").append("\t").append("Factor value").append("\t");
+		strBuf.append("Experiment accession").append("\t").append("Expression").append("\t").append("P-value").append("\n");
+	}
+	
 	
 	private void appendResults(AtlasStructuredQueryResult result, StringBuilder strBuf ){
     	for (ListResultRow row: result.getListResults()){

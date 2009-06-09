@@ -172,9 +172,9 @@ public class AtlasStructuredQuery {
         boolean hasValues = false;
 
 		for (GeneQueryCondition c : geneConditions){
-			if(!hasValues)
+			if(hasValues)
 				sb.append(" and ");
-            sb.append(c.getJointFactorValues());
+            sb.append(c.getJointFactorValues()).append(" ");
             hasValues = true;
 		}
         if(!hasValues)
@@ -182,7 +182,7 @@ public class AtlasStructuredQuery {
 
         hasValues = false;
 		for(ExpFactorQueryCondition c : conditions){
-            if(!hasValues)
+            if(hasValues)
                 sb.append(" and ");
 
 			sb.append(c.getExpression().getDescription()).append(" in ");
