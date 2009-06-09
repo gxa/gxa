@@ -249,18 +249,11 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         $('#simpleform, #structform').css('display', '');
         $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
 
-        $(".tablesorter")
-            /*
-						 * td.collapsible = collapse to the first table row and show +/-
-						 * td.collapsible_alt = anchor to order number
-						 */
-                .collapsible("td.collapsible", {
+        $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,
             callback:showExps
         })
-                .tablesorter({
-            // set default sort column
-            //sortList: [[3,0]],
+          .tablesorter({
             // don't sort by first column
             headers: {0: {sorter: false}}
             // set the widgets being used - zebra stripping
@@ -608,7 +601,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         <div id="legendexpand" style="width:850px;height:30px">
             Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
         </div>
-        <div style="text-align:right" id="downloads"><a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (${noDownloads})</a> </div>
+        <div style="text-align:right" id="downloads"><a id="export_lnk" href="javascript:void(0)" >Download full results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (${noDownloads})</a> </div>
     </c:if>
     <table id="grid" class="tablesorter" cellspacing="0" width="100%">
         <colgroup>
@@ -636,10 +629,13 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         <tbody>
 						
         <c:forEach var="row" items="${result.listResults}" varStatus="r">
-            <tr id="${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}">
-                <td rowspan="${f:length(row.exp_list)+2}" class="collapsible" style="vertical-align:top"></td>
+            <tr id="${row.gene_id}_${row.ef}_${r.index}">
+            <input type="hidden" id="ef" value="${row.ef}">
+            <input type="hidden" id="efv" value="${row.fv}">
+            <input type="hidden" id="gene" value="${row.gene_id}">
+                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="vertical-align:top"></td>
                 <td style="border-bottom:1px solid #CDCDCD; padding-left: 4px" class="collapsible_alt genename">
-                    <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
+                    <a style="font-weight: bold"onclick="window.open('gene?gid=${f:escapeXml(row.gene.geneIdentifier)}')" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip" style="display: none;">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
                         <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
@@ -653,61 +649,71 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 <td style="border-bottom:1px solid #CDCDCD" class="acounter">
                     <c:choose>
                         <c:when test="${row.mixedCell}">
-                            <div style="width:26px">
+                            <div style="width:26px; padding-left: 25px;position:relative">
                                 <div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
                                     <div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
                                     <div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
+                            <div style="width:26px;position: relative; left: 25px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
                                 <div class="osq"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
                                     <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
                             </div>
                         </c:otherwise>
                     </c:choose>
                 </td>
-                <td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${row.minPval}" pattern="#.###E0" /></td>
+                <td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
-            <tr class="expand-child" style="background-color: #deebeb;">
-                <td colspan="6">
-                    <span class="bold">Experiments</span>
+            <tr class="expand-child" style="background-color:#C3C3C3;">
+                <td colspan="6" style="height: 22px;">
+                    <span style="padding-left: 5px; color: white; font-weight: bold; ">Experiments</span>
                 </td>
             </tr>
             <c:forEach var="exp" items="${row.exp_list}">
 
-                <tr class="expand-child" style="background-color: #deebeb;">
+                <tr class="expand-child" style="background-color: #F5F5DC;">
 
 
-                    <td colspan="4">
-                        <div><span class="bold">${exp.experimentAccession}&nbsp;</span><span>${exp.experimentName}</span></div>
+                    <td style="padding-left: 5px;">
+                        <div><a target="_blank" style="font-weight: bold" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a></div>
+                    </td>
+                    
+                    <td colspan="3">
+                    	<span>${exp.experimentName}</span>
                     </td>
 
-                    <td> <div id="${exp.experimentId}_${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}_${exp.updn}"  class="thumb" style="width:100px;height:50px;">
+                    <td> <div onclick="window.open('experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}')" 
+                    	id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"  class="thumb" style="width:90px;height:45px;">
                         <img align="center" src="images/indicator.gif"/>
                     </div>
-                        <span style="display: none"></span>
+                       
                     </td>
                     <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
                             <td style="color: red">
-                                &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.###E0" />
+                                &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
                         <c:otherwise>
                             <td style="color: blue">
-                                &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.###E0" />
+                                &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>
                     </c:choose>
                 </tr>
             </c:forEach>
+             <tr class="expand-child" style="background-color:#C3C3C3; color: white; font-weight: bold; ">
+                <td colspan="6" style="height:22px;>
+                    <span class="bold">&nbsp;</span>
+                </td>
+            </tr>
         </c:forEach>
         </tbody>
         <tfoot>
         <tr>
-            <td colspan="7" align="right"><a id="export_lnk" href="javascript:void(0)" >Download full results</a></td>
+            <td colspan="7" align="left"><a id="export_lnk" href="javascript:void(0)" >Download full results</a></td>
         </tr>
         </tfoot>
     </table>

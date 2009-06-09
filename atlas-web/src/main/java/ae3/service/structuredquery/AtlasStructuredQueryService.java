@@ -703,7 +703,7 @@ public class AtlasStructuredQueryService {
             }
 
             if(query.getViewType() == ViewType.LIST) {
-                getListExperiments(result, gene, resultEfvs, resultEfos);
+                getListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
                 ++numOfListGenes;
             }
 
@@ -722,7 +722,7 @@ public class AtlasStructuredQueryService {
 
     }
 
-    private void getListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree) {
+    private void getListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
         Iterable<String> efviter = new Iterable<String>() {
             public Iterator<String> iterator() {
                 return new Iterator<String>() {
@@ -759,6 +759,8 @@ public class AtlasStructuredQueryService {
 
         Map<Pair<String,String>,List<ListResultRowExperiment>> map = new HashMap<Pair<String,String>, List<ListResultRowExperiment>>();
         for(Experiment exp : gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter)) {
+        	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
+        		continue;
             AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(exp.getId()));
             if(aexp != null) {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());

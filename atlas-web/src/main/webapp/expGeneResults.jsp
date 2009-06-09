@@ -10,17 +10,24 @@ function initPaging(){
 				items_per_page:5,
             	callback: pageselectCallback
          	});
+         	
+    $("#grid").tablesorter({headers: { 0: { sorter: false}}});
 }
 
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id * ${result.rowsPerPage});
-		
-		$('#topGenes').load("expGenes",{eid:'${eid}',eAcc:'${eAcc}',gid:'${gid}',query:'top',from:fromPage});
+		//$('#topGenes').html("<img src='images/indicator.gif' />");
+		$('#topGenes').load("expGenes",{eid:'${eid}',eAcc:'${eAcc}',gid:'${gid}',query:'top',from:fromPage}, function(){
+			 $("#grid").tablesorter({headers: { 0: { sorter: false}}});
+			//$('#topGenes').fadeIn("slow");
+		});
 
 	}
 </script>
 
-<table id="grid" "class="tablesorter" cellspacing="0" cellpadding="5"	width="100%">
+<c:choose>
+	<c:when test="${!empty genes}">
+		<table id="grid" "class="tablesorter" cellspacing="0" cellpadding="5"	width="100%">
 	<thead>
 		<tr>
 			<th></th>
@@ -63,18 +70,18 @@ function initPaging(){
 							<c:when test="${e.updn == 'UP'}">
 								<td
 									style="border-bottom: 1px solid #CDCDCD; color: red; text-align: left">&#8593;&nbsp;<fmt:formatNumber
-									value="${e.pvalue}" pattern="#.###E0" /></td>
+									value="${e.pvalue}" pattern="#.##E0" /></td>
 							</c:when>
 							<c:otherwise>
 								<td
 									style="border-bottom: 1px solid #CDCDCD; color: blue; text-align: left">&#8595;&nbsp;<fmt:formatNumber
-									value="${e.pvalue}" pattern="#.###E0" /></td>
+									value="${e.pvalue}" pattern="#.##E0" /></td>
 							</c:otherwise>
 						</c:choose>
 					</c:if>
 				</c:forEach>
 				<c:if test="${!empty simRS}">
-					<td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${simRS.scores[row.gene_id]}" pattern="#.###E0" /></td>
+					<td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${simRS.scores[row.gene_id]}" pattern="#.##E0" /></td>
 				</c:if>
 			</tr>
 
@@ -84,3 +91,12 @@ function initPaging(){
 		<input id="gid" type="hidden" name="geneid" value="${gid}">
 	</tfoot>
 </table>
+	</c:when>
+	<c:otherwise>
+		<c:out value="No genes matched your query"></c:out>
+	</c:otherwise>
+ </c:choose>
+
+
+
+

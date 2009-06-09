@@ -12,12 +12,15 @@ AtlasExperiment exp = null;
 String expAcc = request.getParameter("eid");
 String geneId = request.getParameter("gid");
 String ef = request.getParameter("ef");
-if (expAcc != null || expAcc!="") {
+if (expAcc != null && expAcc!="") {
 	exp = ExperimentService.getAtlasExperiment(expAcc);
 	request.setAttribute("exp",exp);
-	HashMap rankInfo =  ArrayExpressSearchService.instance().getHighestRankEF(exp.getDwExpId().toString(), geneId);
-	request.setAttribute("topRankEF",rankInfo.get("expfactor").toString());
-	ef = rankInfo.get("expfactor").toString();
+	
+	if(ef ==null || ef=="" ){
+		HashMap rankInfo =  ArrayExpressSearchService.instance().getHighestRankEF(exp.getDwExpId().toString(), geneId);
+		request.setAttribute("topRankEF",rankInfo.get("expfactor").toString());
+		ef = rankInfo.get("expfactor").toString();
+	}
 }
 
 request.setAttribute("gid",geneId);
@@ -86,7 +89,7 @@ $(document).ready(function()
     { 
         
         $("#topGenes").load("expGenes",{eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function(){
-        	$("#grid").tablesorter(); 
+        	 
         	initPaging();
         });
         
@@ -155,8 +158,8 @@ function addGeneToPlot(gid,gname,eid,ef){
 
 function redrawForEF(eid, ef){
 	
-	redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
-	
+	//redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
+	plotBigPlot(genesToPlot.toString(),eid,ef,false,geneIndeces.toString()); 
 }
 
 

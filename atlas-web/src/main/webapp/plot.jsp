@@ -63,12 +63,12 @@
                          "  colors: ['#edc240'],    "+
                          " legend: {     show: false }," +
                          "   grid: {  " +
-                         "    backgroundColor: '#fafafa',	" +
+                         "    backgroundColor: '#F0FFFF',	" +
                          "      autoHighlight: false, " +
                          "          hoverable: true, " +
                          "          clickable: true, " +
                          "			markings: [{ xaxis: { from: "+jsonString.get("startMarkIndex")+", to: "+jsonString.get("endMarkIndex")+" },"+
-                        	 							" color: '"+"#FFFFCC"+"' }],"+
+                        	 							" color: '"+"#F5F5DC"+"' }],"+
                          "        borderWidth: 1}," +
                          " selection: {  mode: 'x' } }");
         		jsonString.put("options", options);

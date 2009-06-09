@@ -130,7 +130,7 @@ if (geneId != null) {
 								<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
 							</c:when>
 							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}','${atlasGene.geneId}','${EF}','bar',false)" ><fmt:message key="head.ef.${EF}"/></a>	
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.dwExpId}','${atlasGene.geneId}','${EF}',false)" ><fmt:message key="head.ef.${EF}"/></a>	
 							</c:otherwise>
 						</c:choose>
 					</c:forEach>
@@ -181,7 +181,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="experiment.jsp?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
+			Show <a target="_blank" title="Show expression profile in detail" href="experiment.jsp?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>

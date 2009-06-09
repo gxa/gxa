@@ -225,40 +225,25 @@ function drawPlot(jsonObj, plot_id){
     	}
     }
     
-    function redrawPlotForFactor(eid,gid,ef,plotType,mark,efv,genePlotIds){
-    	//var id = String(id);
-        //var tokens = id.split('_');
-        //var eid = tokens[0];
-        //var gid = tokens[1];
-        //var ef = "ba_"+tokens[2];
+    function redrawPlotForFactor(eid,gid,ef,mark,efv){
+
         var plot_id;
         ef = "ba_"+ef;
-        if(plotType=="bar")
-         	plot_id= eid+"_"+gid+"_plot";
-        else
-        	plot_id= "plot";
-       //$('#'+eid+'_'+gid+'_legend').empty();
-            $.ajax({
+        plot_id= eid+"_"+gid+"_plot";
+        $.ajax({
    			type: "POST",
    			url:"plot.jsp",
-   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&plot="+plotType+"&gplotIds="+genePlotIds,
+   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&plot=bar",
    			dataType:"json",
    			success: function(o){
-   				if(plotType=="thumb"){
    					var plot = drawPlot(o,plot_id);
 					//bindMarkings(o,plot,plot_id);
 					if(mark){
 						markClicked(eid,gid,ef,uni2ent(efv),plot,o);
 					}
-   				}
-   				
-				if(plotType=="large"){
-					var plot = drawPlot(o,plot_id);
-					plotZoomOverview(o);
-				}
 			}
  			});
- 			drawEFpagination(eid,gid,ef,plotType);
+ 			drawEFpagination(eid,gid,ef,'bar');
     }
     
     function plotZoomOverview(jsonObj){
@@ -287,14 +272,22 @@ function drawPlot(jsonObj, plot_id){
     }
     
     function showExps(row){
-    	$("div[id*=_"+row.id+"]").each(function(){
+    	
+    	
+    	var gid = $("#"+row.id+" #gene").val();
+        var ef = "ba_"+$("#"+row.id+" #ef").val();
+        var efv = $("#"+row.id+" #efv").val();
+    	
+    	//$("div[id*=_"+i+"]")
+    	
+    	
+    	var i = row.id.split("_")[2];
+    	$("div[id$=_"+i+"]").each(function(){
+    	
     	var plot_id = this.id;
         var tokens = plot_id.split('_');
         var eid = tokens[0];
-        var gid = tokens[1];
-        var ef = "ba_"+tokens[2];
-        var efv = tokens[3];
-        var updn = tokens[4];
+        var updn = tokens[1];
         var divEle = $(this);
         if(!$(this).hasClass("done")){
         $.ajax({
@@ -369,13 +362,9 @@ function drawPlot(jsonObj, plot_id){
     			if(jsonObj.series){
    					plot = $.plot($('#plot'), jsonObj.series,jsonObj.options);
    					plotZoomOverview(jsonObj);
-   					
+   					drawEFpagination(eid,gid,ef,'large');
    					 
    					if(initial){
-   						
-	   					  						
-   						//geneNames = jsonObj.geneNames;
-   						//geneIDS = jsonObj.GNids;
    						
 	   					sampleAttrs = jsonObj.sAttrs; 
 	   					assay2samples = jsonObj.assay2samples;
@@ -494,16 +483,11 @@ function drawPlot(jsonObj, plot_id){
    			type: "POST",
    			url:"plot.jsp",
    			data:"gid="+gid+"&eid="+eid+"&plot=bar",
-   			
    			dataType:"json",
    			
    			success: function(o){
    				var plot = drawPlot(o,plot_id);//success
-   				
-   				bindMarkings(o,plot,plot_id);
-   				//$('#'+plot_id).bind("plotclick", function(){
-				//	openInAEW(eid);
-				//});
+   				//bindMarkings(o,plot,plot_id);
    				}
  			});//ajax
         	

@@ -212,10 +212,7 @@ public class AtlasPlotter {
 		JSONArray seriesData;
 		String markings="";
 		String[] genePlotOrder = gplotIds.split(",");
-//		if(gplotIds!=""){
-//			genePlotOrder = 
-//		}
-//		ArrayList<String> names = new ArrayList<String>(geneNames.values());
+
 		try {
 			int sampleIndex=0;
 			int startMark=0, endMark=0;
@@ -240,14 +237,7 @@ public class AtlasPlotter {
 				}
 				series.put("data", seriesData);
 				
-				//if hiddenDEs.contains(deKeys.get(i))
-				/*
-				 * series.put("lines", new JSONObject("{show:false,lineWidth:2, fill:false, steps:true}"));
-				series.put("points", new JSONObject("{show:false,fill:true}"));
-				series.put("legend",new JSONObject("{show:true}"));
-				series.put("label", geneNames.get(j));
-				 */
-				
+			
 				series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
 				series.put("points", new JSONObject("{show:true,fill:true}"));
 				series.put("legend",new JSONObject("{show:true}"));
@@ -271,12 +261,7 @@ public class AtlasPlotter {
 				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:"+fv.replaceAll("'", "").replaceAll(",", "")+" ,color: '"+altColors[i%2]+"' }";
 				
 			}
-			
-//			series.put("data", seriesData);
-//			series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
-//			series.put("legend",new JSONObject("{show:true}"));
-//			series.put("label", "gene");
-//			seriesList.put(series);
+
 			plotData.put("series", seriesList);
 			plotData.put("markings",markings);
 			
