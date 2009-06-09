@@ -347,11 +347,9 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <tr class="top">
 <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
     <td id="drilldowns">
-        <c:if test="${result.size > 0}">
-            <div style="font-size:11px">
-                <b>REFINE YOUR QUERY</b>
-            </div>
-        </c:if>
+        <div style="font-size:11px">
+            <b>REFINE YOUR QUERY</b>
+        </div>
         <div id="drill" style="padding:0px;">
             <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                 <div class="drillsect">
@@ -399,11 +397,19 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <c:if test="${result.size > 0}">
         <c:set var="numPaths" value="0"/>
         <c:forEach var="c" items="${result.conditions}"><c:set var="numPaths" value="${numPaths + f:length(c.efoPaths)}"/></c:forEach>
-        <c:if test="${numPaths > 0}">
-            <div style="font-size:11px;">
-                <b>EXPAND YOUR QUERY</b>
+
+        <c:if test="${numPaths > 0 || result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+            <div style="font-size:11px">
+                <b>
+                    <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();">REFINE</a></c:if>
+                    <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
+                    <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());">EXPAND</a></c:if>
+                    YOUR QUERY
+                </b>
             </div>
-            <div style="font-size:9px;margin-bottom:9px">
+        </c:if>
+        <c:if test="${numPaths > 0}">
+            <div id="efopaths" style="display:none; font-size:9px;margin-bottom:9px">
                 <c:forEach var="c" items="${result.conditions}" varStatus="cs">
                     <c:url var="condUrl" value="/qrs">
                         <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
