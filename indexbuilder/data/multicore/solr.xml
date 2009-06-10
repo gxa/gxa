@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <solr persistent="true" sharedLib="lib">
     <cores adminPath="/admin/cores">
-        <core name="gene" instanceDir="gene" default="true"/>
         <core name="expt" instanceDir="expt"/>
         <core name="atlas" instanceDir="atlas"/>
     </cores>
