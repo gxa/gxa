@@ -116,8 +116,8 @@ public class ExperimentsServlet extends HttpServlet {
                     AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(e.getKey()));
                     if(aexp != null) {
                         JSONObject jsExp = new JSONObject();
-                        jsExp.put("accession", aexp.getAerExpAccession());
-                        jsExp.put("name", aexp.getAerExpName());
+                        jsExp.put("accession", aexp.getDwExpAccession());
+                        jsExp.put("name", aexp.getDwExpDescription());
                         jsExp.put("id", e.getKey());
 
                         boolean wasup = false;
