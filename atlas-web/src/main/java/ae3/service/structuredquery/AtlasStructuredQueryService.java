@@ -771,8 +771,8 @@ public class AtlasStructuredQueryService {
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
                 map.get(key).add(new ListResultRowExperiment(exp.getId(), aexp.getAerExpName(),
-                        aexp.getAerExpAccession(),
-                        aexp.getAerExpDescription(),
+                        aexp.getDwExpAccession(),
+                        aexp.getDwExpDescription(),
                         exp.getPvalue(), exp.getExpression()));
             }
         }

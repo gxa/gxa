@@ -66,7 +66,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
                         QueryResponse qr = solrExpt.query(exptMapQ);
                         for(SolrDocument doc : qr.getResults())
                         {
-                            Long id = (Long)doc.getFieldValue("dwe_exp_id");
+                            String id = doc.getFieldValue("dwe_exp_id").toString();
                             String accession = (String)doc.getFieldValue("dwe_exp_accession");
                             if(id != null && accession != null)
                                 valMap.put(id.toString(), accession);
