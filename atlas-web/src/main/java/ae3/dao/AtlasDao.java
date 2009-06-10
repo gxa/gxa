@@ -26,41 +26,6 @@ public class AtlasDao {
     final static protected Logger log = LoggerFactory.getLogger(AtlasDao.class);
 
     /**
-	 * Returns an AtlasExperiment that contains all information from index.
-	 * @param experiment_id_key
-	 * @return the AtlasExperiment at the specified experiment_id_key. 
-	 * @throws AtlasObjectNotFoundException
-	 */
-    @Deprecated
-	public static AtlasExperiment getExperimentByIdAER(String experiment_id_key) throws AtlasObjectNotFoundException {
-    	String query = Constants.FIELD_AER_FV_OE+":(" + Constants.FIELD_AER_EXPID + ":" + experiment_id_key + ")";
-		
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query);
-
-        SolrDocumentList documentList = queryResponse.getResults();
-
-        if (documentList == null || documentList.size() == 0)
-            throw new AtlasObjectNotFoundException(experiment_id_key);
-
-        SolrDocument exptDoc = documentList.get(0);
-        
-        return AtlasExperiment.load(exptDoc, true, true);
-    }
-    
-	/**
-	 * Returns an AtlasExperiment that contains all information from index.
-	 * @param exptDoc
-	 * @param exptHitsResponse
-	 * @return
-	 */
-	@Deprecated
-    public static AtlasExperiment getExperimentByIdAER(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
-        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);
-        expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getAerExpId()));
-        return expt;
-    }
-
-    /**
      * 
      * @param experiment_id_key
      * @return
@@ -78,7 +43,7 @@ public class AtlasDao {
 
         SolrDocument exptDoc = documentList.get(0);
 
-        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc);
 
         return expt;
     }
@@ -89,7 +54,7 @@ public class AtlasDao {
 	 * @return
 	 */
     public static AtlasExperiment getExperimentByIdDw(SolrDocument exptDoc, QueryResponse exptHitsResponse) {
-        AtlasExperiment expt = AtlasExperiment.load(exptDoc, true, true);;
+        AtlasExperiment expt = AtlasExperiment.load(exptDoc);
         expt.setExperimentHighlights(exptHitsResponse.getHighlighting().get(expt.getDwExpAccession()));
         return expt;
     }
@@ -112,38 +77,9 @@ public class AtlasDao {
             throw new AtlasObjectNotFoundException(accessionId);
         
     	SolrDocument exptDoc = documentList.get(0);
-    	return AtlasExperiment.load(exptDoc, true, true);
+    	return AtlasExperiment.load(exptDoc);
     }
 
-    
-    
-    /**
-     * Return a list of AtlasExperiment objects for specify keywords. 
-     *  
-     * @param keywords - the keywords parse to query 
-     * @param start - the start record
-     * @param rows  - number of records in result set
-     * @return {@link List}<AtlasExperiment>
-     */
-    public static List<AtlasExperiment> getExperimentsAer(String[] keywords, int start, int rows) 
-    {
-    	String query = QueryHelper.prepareQueryByKeywords(keywords);
-    	QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(query, start, rows);
-
-        SolrDocumentList documentList = queryResponse.getResults();
-
-        ArrayList<AtlasExperiment> list = new ArrayList<AtlasExperiment>();
-       
-        Iterator<SolrDocument> itDoc=documentList.iterator();
-        while (itDoc.hasNext())
-        {
-        	SolrDocument exptDoc = itDoc.next();
-        	AtlasExperiment atlasExp = new AtlasExperiment(true, false);
-        	atlasExp.load(exptDoc);
-        	list.add(atlasExp);
-        }
-        return list;
-    }    
 
     public static AtlasGene getGene(String gene_id_key) throws AtlasObjectNotFoundException {
         QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_id:" + gene_id_key);
