@@ -325,7 +325,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         $(".page_long").pagination(${result.total}, opts);
     </c:if>
 
-        $("#export_lnk").bind("click",function(){
+        $(".export_lnk").bind("click",function(){
        	var count = parseInt($("#dwnldCounter").text())+1;
        	$("#dwnldCounter").text(count);
             $.ajax({
@@ -600,7 +600,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <div id="legendexpand" style="width:850px;height:30px">
         Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
     </div>
-    <div style="text-align:right" id="downloads"><a id="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
+    <div style="text-align:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
     <table id="grid" class="tablesorter" cellspacing="0" width="100%">
         <colgroup>
             <col width="15" />
@@ -703,15 +703,15 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 </tr>
             </c:forEach>
              <tr class="expand-child" style="background-color:#C3C3C3; color: white; font-weight: bold; ">
-                <td colspan="6" style="height:22px;>
-                    <span class="bold">&nbsp;</span>
+                <td colspan="6" style="height:22px;">
+                    &nbsp;
                 </td>
             </tr>
         </c:forEach>
         </tbody>
         <tfoot>
         <tr>
-            <td colspan="7" align="left"><a id="export_lnk" href="javascript:void(0)" >Download full results</a></td>
+            <td colspan="7" align="left"><a class="export_lnk" href="javascript:void(0)">Download results in a tab-delimited format</a></td>
         </tr>
         </tfoot>
     </table>
