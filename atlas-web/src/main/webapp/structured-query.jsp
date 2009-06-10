@@ -711,7 +711,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         </tbody>
         <tfoot>
         <tr>
-            <td colspan="7" align="left"><a class="export_lnk" href="javascript:void(0)">Download results in a tab-delimited format</a></td>
+            <td colspan="7" align="left"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a></td>
         </tr>
         </tfoot>
     </table>
