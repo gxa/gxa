@@ -400,7 +400,12 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <c:if test="${numPaths > 0 || result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
     <div style="font-size:11px">
         <b>
-            <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a></c:if>
+            <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a>
+            </c:if>
+            <c:if test="${numPaths == 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">REFINE</a>
+            </c:if>
             <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
             <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());return false;">EXPAND</a></c:if>
             YOUR QUERY
