@@ -18,6 +18,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Map<String,PayLoad> efos = new HashMap<String,PayLoad>();
     private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
+    private Set<String> autoChildren = new HashSet<String>();
 
     public EfoTree(Efo efo) {
         this.efo = efo;
@@ -47,9 +48,11 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
             efos.put(id, plCreator.make());
 
         if(withChildren)
-            for(Efo.Term c : efo.getTermChildren(id))
+            for(Efo.Term c : efo.getTermChildren(id)) {
                 if (!efos.containsKey(c.getId()))
                     efos.put(c.getId(), plCreator.make());
+                autoChildren.add(c.getId());
+            }
     }
 
     public int getNumEfos() {
@@ -73,12 +76,14 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         private String term;
         private int depth;
         private PayLoad payload;
+        private boolean explicit;
 
-        private EfoItem(String id, String term, int depth, PayLoad payload) {
+        private EfoItem(String id, String term, int depth, PayLoad payload, boolean explicit) {
             this.id = id;
             this.term = term;
             this.depth = depth;
             this.payload = payload;
+            this.explicit = explicit;
         }
 
         public int getDepth() {
@@ -96,13 +101,17 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         public String getTerm() {
             return term;
         }
+
+        public boolean isExplicit() {
+            return explicit;
+        }
     }
 
     public List<EfoItem<PayLoad>> getSubTreeList()
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (Efo.Term t : efo.getSubTree(efos.keySet())) {
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId())));
+            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -110,14 +119,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     public List<EfoItem<PayLoad>> getMarkedSubTreeList()
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
-//        Set<String> keyset = efos.keySet();
-//        for(Iterator<String> i = keyset.iterator(); i.hasNext(); ) {
-//            Collection<Efo.Term> t = efo.getTermChildren(i.next());
-//            if(!t.isExpandable() && !marked.contains(t.getId()))
-//                i.remove();
-//        }
         for (Efo.Term t : efo.getSubTree(marked)) {
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId())));
+            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -133,7 +136,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         });
         for (String id : ids) {
             Efo.Term t = efo.getTermById(id);
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId())));
+            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -143,7 +146,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (String id : explicitEfos) {
             Efo.Term t = efo.getTermById(id);
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId())));
+            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -161,6 +164,15 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
 
 
     public void mark(String id) {
-        marked.add(id);
+        if(marked.contains(id))
+            return;
+        
+        if(explicitEfos.contains(id)) {
+            for(String p : efo.getTermParents(id, true))
+                marked.add(p);
+            marked.add(id);
+        } else if(autoChildren.contains(id)) {
+            marked.add(id);
+        }
     }
 }
