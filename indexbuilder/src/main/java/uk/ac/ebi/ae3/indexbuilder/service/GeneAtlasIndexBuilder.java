@@ -61,10 +61,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     }
 
     private class UpDnSet {
-        Set<Integer> up = new HashSet<Integer>();
-        Set<Integer> dn = new HashSet<Integer>();
-        Set<Integer> childrenUp = new HashSet<Integer>();
-        Set<Integer> childrenDn = new HashSet<Integer>();
+        Set<String> up = new HashSet<String>();
+        Set<String> dn = new HashSet<String>();
+        Set<String> childrenUp = new HashSet<String>();
+        Set<String> childrenDn = new HashSet<String>();
         boolean processed = false;
         double minpvalUp = 1;
         double minpvalDn = 1;
@@ -244,8 +244,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     private boolean addEfoCounts(SolrInputDocument solrDoc, String geneId, PreparedStatement countGeneEfoStmt) throws SQLException {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
-        Set<Integer> upexp = new HashSet<Integer>();
-        Set<Integer> dnexp = new HashSet<Integer>();
+        Set<String> upexp = new HashSet<String>();
+        Set<String> dnexp = new HashSet<String>();
         Map<String,Set<String>> upefv = new HashMap<String,Set<String>>();
         Map<String,Set<String>> dnefv = new HashMap<String,Set<String>>();
 
@@ -256,12 +256,12 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         ResultSet efos = countGeneEfoStmt.executeQuery();
 
         while(efos.next()) {
-            Integer experimentId = efos.getInt("experiment_id_key");
-            if(experimentId == 0) {
+            String experimentId = efos.getString("experiment_id_key");
+            if(experimentId.equals("") || experimentId==null) {
                 log.error("Found experimentId=0 for gene " + geneId);
                 continue;
             }
-
+           
             wasresult = true;
 
             boolean isUp = efos.getInt("updn") > 0;
@@ -311,7 +311,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 dnexp.add(experimentId);
             }
 
-            expTable.add(ef, efv, accession, experimentId, isUp, pval);
+            expTable.add(ef, efv, accession, experimentId.toString(), isUp, pval);
         }
         efos.close();
 
@@ -346,14 +346,14 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 solrDoc.addField("efvs_ud_" + IndexField.encode(factor), i);
     }
 
-    private void storeExperimentIds(SolrInputDocument solrDoc, Set<Integer> upexp, Set<Integer> dnexp) {
-        for(Integer i : upexp)
-            solrDoc.addField("exp_up_ids", i.toString());
-        for(Integer i : dnexp)
-            solrDoc.addField("exp_dn_ids", i.toString());
+    private void storeExperimentIds(SolrInputDocument solrDoc, Set<String> upexp, Set<String> dnexp) {
+        for(String i : upexp)
+            solrDoc.addField("exp_up_ids", i);
+        for(String i : dnexp)
+            solrDoc.addField("exp_dn_ids", i);
 
-        for(Integer i : union(upexp,dnexp))
-            solrDoc.addField("exp_ud_ids", i.toString());
+        for(String i : union(upexp,dnexp))
+            solrDoc.addField("exp_ud_ids", i);
     }
 
     private void storeEfoCounts(SolrInputDocument solrDoc, Map<String, UpDnSet> efoupdn) {

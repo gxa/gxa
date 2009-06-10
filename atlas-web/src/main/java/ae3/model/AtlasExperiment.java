@@ -56,7 +56,7 @@ public class AtlasExperiment implements java.io.Serializable {
     private Collection aerDescId; 
     private Collection aerDescText; 
 
-    private Long dwExpId;
+    private String dwExpId;
     private String dwExpAccession;
     private String dwExpDescription;
     private Collection dwExpType;
@@ -132,7 +132,7 @@ public class AtlasExperiment implements java.io.Serializable {
             this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
             this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
 	}
-        this.setDwExpId((Long)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID));
+        this.setDwExpId(exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID).toString());
         if (loadDwe)
         {
             this.dwExpAccession = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ACCESSION);
@@ -225,12 +225,12 @@ public class AtlasExperiment implements java.io.Serializable {
         return experimentHighlights;
     }
 
-	public Long getDwExpId()
+	public String getDwExpId()
 	{
 		return dwExpId;
 	}
 
-	public void setDwExpId(Long dwExpId)
+	public void setDwExpId(String dwExpId)
 	{
 		this.dwExpId = dwExpId;
 	}

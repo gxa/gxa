@@ -69,7 +69,7 @@ public class ExperimentsServlet extends HttpServlet {
                 jsGene.put("name", gene.getGeneName());
                 jsResult.put("gene", jsGene);
 
-                Map<Long,Map<String, List<Experiment>>> exmap = new HashMap<Long,Map<String,List<Experiment>>>();
+                Map<String,Map<String, List<Experiment>>> exmap = new HashMap<String,Map<String,List<Experiment>>>();
                 for(Experiment exp : isEfo ?
                         gene.getExpermientsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(factorValue)) :
                         gene.getExpermientsTable().findByEfEfv(factor, factorValue)) {
@@ -96,9 +96,9 @@ public class ExperimentsServlet extends HttpServlet {
 
                 @SuppressWarnings("unchecked")
 
-                List<Map.Entry<Long,Map<String, List<Experiment>>>> exps = new ArrayList<Map.Entry<Long,Map<String, List<Experiment>>>>(exmap.entrySet());
-                Collections.sort(exps, new Comparator<Map.Entry<Long,Map<String, List<Experiment>>>>() {
-                    public int compare(Map.Entry<Long, Map<String, List<Experiment>>> o1, Map.Entry<Long, Map<String, List<Experiment>>> o2) {
+                List<Map.Entry<String,Map<String, List<Experiment>>>> exps = new ArrayList<Map.Entry<String,Map<String, List<Experiment>>>>(exmap.entrySet());
+                Collections.sort(exps, new Comparator<Map.Entry<String,Map<String, List<Experiment>>>>() {
+                    public int compare(Map.Entry<String, Map<String, List<Experiment>>> o1, Map.Entry<String, Map<String, List<Experiment>>> o2) {
                         double minp1 = 1;
                         for(Map.Entry<String,List<Experiment>> ef : o1.getValue().entrySet())
                             minp1 = Math.min(minp1, ef.getValue().get(0).getPvalue());
@@ -112,7 +112,7 @@ public class ExperimentsServlet extends HttpServlet {
                 int numUp = 0, numDn = 0;
 
                 JSONArray jsExps = new JSONArray();
-                for(Map.Entry<Long,Map<String, List<Experiment>>> e : exps) {
+                for(Map.Entry<String,Map<String, List<Experiment>>> e : exps) {
                     AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(e.getKey()));
                     if(aexp != null) {
                         JSONObject jsExp = new JSONObject();

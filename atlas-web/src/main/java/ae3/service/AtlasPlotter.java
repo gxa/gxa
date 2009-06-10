@@ -258,7 +258,7 @@ public class AtlasPlotter {
 				sampleIndex=endMark;
 				if(fv.equals(""))fv="unannotated";
 				markings= markings.equals("") ? markings : markings+",";
-				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:"+fv.replaceAll("'", "").replaceAll(",", "")+" ,color: '"+altColors[i%2]+"' }";
+				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:\""+fv.replaceAll("'", "").replaceAll(",", "")+"\" ,color: '"+altColors[i%2]+"' }";
 				
 			}
 

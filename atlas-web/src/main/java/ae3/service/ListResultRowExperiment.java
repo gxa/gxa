@@ -6,7 +6,7 @@ import uk.ac.ebi.ae3.indexbuilder.Expression;
  * @author pashky
  */
 public class ListResultRowExperiment {
-    private long experimentId;
+    private String experimentId;
     private String experimentAccession;
     private String experimentDescription;
     private String experimentName;
@@ -22,7 +22,7 @@ public class ListResultRowExperiment {
      * @param pvalue p-value
      * @param updn up or down
      */
-    public ListResultRowExperiment(long experimentId, String experimentName, String experimentAccession, String experimentDescription,
+    public ListResultRowExperiment(String experimentId, String experimentName, String experimentAccession, String experimentDescription,
                                    double pvalue, Expression updn) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
@@ -44,7 +44,7 @@ public class ListResultRowExperiment {
      * Returns experiment id
      * @return experiment id
      */
-    public long getExperimentId() {
+    public String getExperimentId() {
         return experimentId;
     }
 

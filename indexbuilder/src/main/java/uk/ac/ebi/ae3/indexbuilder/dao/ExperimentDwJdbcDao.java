@@ -35,11 +35,13 @@ public class ExperimentDwJdbcDao
 	private JdbcTemplate jdbcTemplate;
 
     private static final String SQL_EXPERIMENT="select Experiment_id_key, experiment_identifier  FROM ae1__experiment__main experiment WHERE experiment.experiment_accession=?";
-	private static String sqlPendingExperiments = "select accession from load_monitor " +
+	private static String sqlPendingExperiments = "select db_id_key, accession from load_monitor " +
 												  "where searchindex='pending' " +
 												  "and load_type='experiment' " +
 												  "and status = 'loaded'";
+	private static String sqlAEWexperiments="select experiment_id_key, experiment_identifier  FROM ae1__experiment__main experiment";
 	protected static final Logger log = LoggerFactory.getLogger(ExperimentDwJdbcDao.class);
+
 	
 	/** An instance of JDBC RowMapper for SQL_ASXML**/
 	private RowMapper rowMapper = new RowMapperExperimentXml();
@@ -91,6 +93,11 @@ public class ExperimentDwJdbcDao
 		return colection;
 	}
 	
+	public Collection<Experiment> getExperiments() throws Exception{
+		Collection<Experiment> colection=this.jdbcTemplate.query(sqlAEWexperiments, rowExpLoadMonitorMapper);
+		return colection;
+	}
+	
 	public boolean experimentExists(Experiment experiment)
 	{
 		try{
@@ -127,8 +134,8 @@ public class ExperimentDwJdbcDao
 		public Experiment mapRow(ResultSet rst, int arg1) throws SQLException
 		{
 			Experiment exp = new Experiment();
-
-			exp.setAccession(rst.getString(1));
+			exp.setId(rst.getLong(1));
+			exp.setAccession(rst.getString(2));
 
 			return exp;
 		}

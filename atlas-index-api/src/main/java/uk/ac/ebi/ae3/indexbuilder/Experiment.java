@@ -7,14 +7,14 @@ import java.io.Serializable;
  */
 public class Experiment implements Serializable, Comparable<Experiment> {
     private Expression expression;
-    private long id;
+    private String id;
     private String ef;
     private String efv;
     private String[] efo;
     private double pvalue;
     private static final long serialVersionUID = 1L;
 
-    Experiment(Expression expression, long id, String ef, String efv, String[] efo, double pvalue) {
+    Experiment(Expression expression, String id, String ef, String efv, String[] efo, double pvalue) {
         this.expression = expression;
         this.id = id;
         this.ef = ef;
@@ -27,7 +27,7 @@ public class Experiment implements Serializable, Comparable<Experiment> {
         return expression;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
