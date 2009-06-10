@@ -770,7 +770,7 @@ public class AtlasStructuredQueryService {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getId(), aexp.getAerExpName(),
+                map.get(key).add(new ListResultRowExperiment(exp.getId(), aexp.getDwExpDescription(),
                         aexp.getDwExpAccession(),
                         aexp.getDwExpDescription(),
                         exp.getPvalue(), exp.getExpression()));

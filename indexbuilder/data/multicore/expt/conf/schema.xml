@@ -297,7 +297,7 @@
   <field name="dwe_txt_exptype" type="string" indexed="false" stored="true" multiValued="true"/>  
     -->
    
-   	<field name="dwe_exp_id" type="string" indexed="true" stored="true" multiValued="false"/>  
+   	<field name="dwe_exp_id" type="long" indexed="true" stored="true" multiValued="false"/>  
   	<field name="dwe_exp_accession" type="string" indexed="true" stored="true" multiValued="false"/>  
   	<field name="dwe_exp_description" type="text" indexed="true" stored="true" multiValued="false"/>  
   	<field name="dwe_exp_type" type="string" indexed="true" stored="true" multiValued="true"/>

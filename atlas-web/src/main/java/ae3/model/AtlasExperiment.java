@@ -56,7 +56,7 @@ public class AtlasExperiment implements java.io.Serializable {
     private Collection aerDescId; 
     private Collection aerDescText; 
 
-    private String dwExpId;
+    private Long dwExpId;
     private String dwExpAccession;
     private String dwExpDescription;
     private Collection dwExpType;
@@ -69,6 +69,8 @@ public class AtlasExperiment implements java.io.Serializable {
     
     private Collection<String> experimentFactorValues;
     private HashSet<String> experimentFactors;
+    private HashSet<String> sampleCharacteristics;
+    private TreeMap<String, List<String>> sampleCharacterisitcValues;
     private Map<String, List<String>> experimentHighlights;
 
     private SolrDocument exptSolrDocument;
@@ -132,7 +134,7 @@ public class AtlasExperiment implements java.io.Serializable {
             this.aerDescId  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_ID);
             this.aerDescText  = exptDoc.getFieldValues(Constants.FIELD_AER_DESC_TEXT);      
 	}
-        this.setDwExpId(exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID).toString());
+        this.setDwExpId((Long.parseLong(exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID).toString())));
         if (loadDwe)
         {
             this.dwExpAccession = (String)exptDoc.getFieldValue(Constants.FIELD_DWEXP_ACCESSION);
@@ -165,6 +167,8 @@ public class AtlasExperiment implements java.io.Serializable {
             //this.setExperimentDescription((String) exptDoc.getFieldValue("exp_description"));
             this.setExperimentFactorValues(exptDoc.getFieldValues(Constants.FIELD_DWEXP_FV));
             this.setExperimentFactors(exptDoc.getFieldValues(Constants.FIELD_DWEXP_EF));
+            
+            
         }
     }
 
@@ -193,7 +197,15 @@ public class AtlasExperiment implements java.io.Serializable {
         this.experimentFactors = experimentFactors != null ? new HashSet<String>(experimentFactors) : new HashSet<String>();
     }
 
-    public Long getAerExpId () {
+    public HashSet<String> getSampleCharacteristics() {
+		return sampleCharacteristics;
+	}
+
+	public void setSampleCharacteristics(HashSet<String> sampleCharacteristics) {
+		this.sampleCharacteristics = sampleCharacteristics != null ? new HashSet<String>(sampleCharacteristics) : new HashSet<String>();
+	}
+
+	public Long getAerExpId () {
         return aerExpId ;
     }
 
@@ -225,12 +237,12 @@ public class AtlasExperiment implements java.io.Serializable {
         return experimentHighlights;
     }
 
-	public String getDwExpId()
+	public Long getDwExpId()
 	{
 		return dwExpId;
 	}
 
-	public void setDwExpId(String dwExpId)
+	public void setDwExpId(Long dwExpId)
 	{
 		this.dwExpId = dwExpId;
 	}

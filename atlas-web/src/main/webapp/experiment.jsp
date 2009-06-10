@@ -235,31 +235,28 @@ function removeGene(gname){
 		<table width="100%" style="background-color: white">
 
 			<tr>
-				<td align="left" class="geneName">${exp.dwExpAccession}</td>
+				<td align="left" class="geneName"><a title="Show experiment details in the archive"
+					target="_blank"
+					href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}">${exp.dwExpAccession}</a></td>
 				<td style="vertical-align: text-bottom"></td>
 			</tr>
 			<tr>
-				<td class="geneAnnotHeader" colspan="2">${exp.dwExpDescription}</td>
+				<td class="geneAnnotHeader" colspan="2" style="border-bottom: 1px solid #dedede;">${exp.dwExpDescription}</td>
 			</tr>
-			
+			<!-- 
 			<tr>
 				<td class="geneAnnotHeader">ArrayExpress Archive</td>
 				<td align="left"><a title="Show experiment details"
 					target="_blank"
 					href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}">
 				${exp.dwExpAccession} </a></td>
-
-				<!-- td width="8%">&nbsp;</td-->
-
 			</tr>
-
-			<tr>
-				<td colspan="2"></td>
-			</tr>
+ -->
+			
 		</table>
 		<div id = "result_cont" style="width: 100%" >
 		
-		<table id="twocol" style="margin-top:5px; width:100%; ">
+		<table id="twocol" style="margin-top:20px; width:100%; ">
 			<tr>
 				<td colspan="1">
 								<div class="sectionHeader" style="">Expression profile sorted by <fmt:message key="head.ef.${topRankEF}"/></div>
