@@ -392,62 +392,58 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     </td>
 </c:if>
 
-                
+
 <td id="resultpane" width="100%">
+<c:set var="numPaths" value="0"/>
+<c:forEach var="c" items="${result.conditions}"><c:set var="numPaths" value="${numPaths + f:length(c.efoPaths)}"/></c:forEach>
+
+<c:if test="${numPaths > 0 || result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+    <div style="font-size:11px">
+        <b>
+            <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a></c:if>
+            <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
+            <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());return false;">EXPAND</a></c:if>
+            YOUR QUERY
+        </b>
+    </div>
+</c:if>
+<c:if test="${numPaths > 0}">
+    <div id="efopaths" style="display:none; font-size:9px;margin-bottom:9px">
+        <c:forEach var="c" items="${result.conditions}" varStatus="cs">
+            <c:url var="condUrl" value="/qrs">
+                <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
+                    <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
+                    <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
+                    <c:param name="gprop_${gs.index}" value="${g.factor}" />
+                </c:forEach>
+                <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
+                <c:forEach varStatus="ucs" var="uc" items="${result.conditions}">
+                    <c:param name="fact_${ucs.index}" value="${uc.factor}"/>
+                    <c:param name="fexp_${ucs.index}" value="${uc.expression}"/>
+                    <c:if test="${c != uc}">
+                        <c:param name="fval_${ucs.index}" value="${uc.jointFactorValues}"/>
+                    </c:if>
+                </c:forEach>
+                <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
+            </c:url>
+            <c:forEach var="path" items="${c.efoPaths}">
+                <c:forEach var="term" items="${path}" varStatus="s">
+                    <a href="${condUrl}&fval_${cs.index}=${u:escapeURL(term.id)}"><c:out value="${term.term}" /></a><c:if test="${!s.last}">&nbsp;&gt;&nbsp;</c:if>
+                </c:forEach><br />
+            </c:forEach>
+        </c:forEach>
+    </div>
+</c:if>
+<div id="summary">
+    <span id="pagetop" class="pagination_ie page_long"></span>
+    Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
+</div>
+
 <c:choose>
 <c:when test="${heatmap}">
-    <c:if test="${result.size > 0}">
-        <c:set var="numPaths" value="0"/>
-        <c:forEach var="c" items="${result.conditions}"><c:set var="numPaths" value="${numPaths + f:length(c.efoPaths)}"/></c:forEach>
-
-        <c:if test="${numPaths > 0 || result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
-            <div style="font-size:11px">
-                <b>
-                    <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a></c:if>
-                    <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
-                    <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());return false;">EXPAND</a></c:if>
-                    YOUR QUERY
-                </b>
-            </div>
-        </c:if>
-        <c:if test="${numPaths > 0}">
-            <div id="efopaths" style="display:none; font-size:9px;margin-bottom:9px">
-                <c:forEach var="c" items="${result.conditions}" varStatus="cs">
-                    <c:url var="condUrl" value="/qrs">
-                        <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
-                            <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
-                            <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
-                            <c:param name="gprop_${gs.index}" value="${g.factor}" />
-                        </c:forEach>
-                        <c:forEach var="i" varStatus="s" items="${query.species}"><c:param name="specie_${s.index}" value="${i}"/></c:forEach>
-                        <c:forEach varStatus="ucs" var="uc" items="${result.conditions}">
-                            <c:param name="fact_${ucs.index}" value="${uc.factor}"/>
-                            <c:param name="fexp_${ucs.index}" value="${uc.expression}"/>
-                            <c:if test="${c != uc}">
-                                <c:param name="fval_${ucs.index}" value="${uc.jointFactorValues}"/>
-                            </c:if>
-                        </c:forEach>
-                        <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
-                    </c:url>
-                    <c:forEach var="path" items="${c.efoPaths}">
-                        <c:forEach var="term" items="${path}" varStatus="s">
-                            <a href="${condUrl}&fval_${cs.index}=${u:escapeURL(term.id)}"><c:out value="${term.term}" /></a><c:if test="${!s.last}">&nbsp;&gt;&nbsp;</c:if>
-                        </c:forEach><br />
-                    </c:forEach>
-                </c:forEach>
-            </div>
-        </c:if>
-
-        <div id="summary">
-            <span id="pagetop" class="pagination_ie page_long"></span>
-            Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
-        </div>
-		
-        <div id="legendexpand" style="width:850px;height:30px">
-            Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
-        </div>
-    </c:if>
-
+    <div id="legendexpand" style="width:850px;height:30px">
+        Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
+    </div>
 
     <table id="squery">
         <tbody>
@@ -600,17 +596,11 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     </p>
 </c:when>
 <c:otherwise>
-    <c:if test="${result.size > 0}">
-        <div id="summary">
-            <span id="pagetop" class="pagination_ie page_long"></span>
-            Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
-        </div>
-									
-        <div id="legendexpand" style="width:850px;height:30px">
-            Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
-        </div>
-        <div style="text-align:right" id="downloads"><a id="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
-    </c:if>
+
+    <div id="legendexpand" style="width:850px;height:30px">
+        Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
+    </div>
+    <div style="text-align:right" id="downloads"><a id="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
     <table id="grid" class="tablesorter" cellspacing="0" width="100%">
         <colgroup>
             <col width="15" />
