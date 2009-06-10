@@ -125,7 +125,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         return result;
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit) {
+    public Iterable<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String,String> filters) {
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)

@@ -306,11 +306,12 @@ var atlas = {};
     atlas.initSimpleForm = function() {
         var gpropfield = $('input[name=gprop_0]');
         var factfield = $('input[name=fact_0]');
-        var genefield = $('input[name=gval_0]');
+        var gvalfield = $('input[name=gval_0]');
         var fvalfield = $('input[name=fval_0]');
-        var form = genefield.parents('form:first');
-        var oldval = genefield.val();
-        genefield
+        var speciessel = $('select[name=specie_0]');
+        var form = gvalfield.parents('form:first');
+        var oldval = gvalfield.val();
+        gvalfield
                 .defaultvalue("(all genes)","(all genes)")
                 .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
                 .result(function (unused, res) {
@@ -343,6 +344,10 @@ var atlas = {};
         form.bind('submit', function () {
             $('input.ac_input', form).hideResults();
             atlas.startSearching(form);
+        });
+
+        speciessel.bind('change', function () {
+            gvalfield.hideResults().setOptions({extraParams:{ type: 'gene', 'factor' : '', f: 'species', species: $(this).val() }}).flushCache();
         });
     };
 

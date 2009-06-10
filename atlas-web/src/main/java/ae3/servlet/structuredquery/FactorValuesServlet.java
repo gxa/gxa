@@ -10,6 +10,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 import ae3.service.structuredquery.IValueListHelper;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
@@ -74,12 +76,21 @@ public class FactorValuesServlet extends HttpServlet {
             if (query.endsWith("\"")) {
                 query = query.substring(0, query.length() - 1);
             }
+
+            Map<String,String> filters = new HashMap<String,String>();
+            String[] filtps = request.getParameterValues("f");
+            if(filtps != null)
+                for(String filter : filtps) {
+                    filters.put(filter, request.getParameter(filter));
+                }
+
             for(IValueListHelper lister : listers) {
                 Iterable<AutoCompleteItem> ac =
                         lister.autoCompleteValues(
                                 factor,
                                 query,
-                                nlimit
+                                nlimit,
+                                filters
                         );
                 for(AutoCompleteItem s : ac) {
                     response.getWriter().println(

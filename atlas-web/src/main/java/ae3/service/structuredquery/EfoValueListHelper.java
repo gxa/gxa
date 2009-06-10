@@ -58,7 +58,7 @@ public class EfoValueListHelper implements IValueListHelper {
         return counts.get(id);
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
+    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
 
         Efo efo = getEfo();
 

@@ -115,7 +115,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return result;
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
+    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)
@@ -126,6 +126,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         try {
             if(anyProp) {
+
                 EnumMap<PropType, List<AutoCompleteItem>> resmap = new EnumMap<PropType, List<AutoCompleteItem>>(PropType.class);
                 for(PropType e : PropType.values())
                     resmap.put(e, new ArrayList<AutoCompleteItem>());
@@ -134,7 +135,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                     resmap.get(p.type).addAll(treeAutocomplete(p.id, query, p.type.limit));
                 }
 
-                joinGeneNames(query, result, resmap.get(PropType.NAME));
+                joinGeneNames(query, result, resmap.get(PropType.NAME), filters.get("species"));
 
                 for(PropType p : PropType.values())
                     if(p != PropType.NAME)
@@ -159,7 +160,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
                 if(GeneProperties.isNameProperty(property)) {
                     List<AutoCompleteItem> list = new ArrayList<AutoCompleteItem>();
-                    joinGeneNames(query, list, result);
+                    joinGeneNames(query, list, result, null);
                     result = list;
                 }
 
@@ -174,7 +175,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return result;
     }
 
-    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<AutoCompleteItem> source) throws SolrServerException {
+    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<AutoCompleteItem> source, String speciesFilter) throws SolrServerException {
         if(!source.iterator().hasNext())
             return;
 
@@ -192,6 +193,9 @@ public class GenePropValueListHelper implements IValueListHelper {
             if(--num == 0)
                 break;
         }
+
+        if(speciesFilter != null && speciesFilter.length() > 0)
+            sb.insert(0, "(").append(") AND gene_species:(").append(EscapeUtil.escapeSolr(speciesFilter)).append(")");
 
         q = new SolrQuery(sb.toString());
         q.setStart(0);
