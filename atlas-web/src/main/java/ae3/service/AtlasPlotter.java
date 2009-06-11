@@ -225,6 +225,7 @@ public class AtlasPlotter {
 			double[][] data = eds.getExpressionMatrix();
 			Object[] assay_fvs = eds.getAssayFVs(EF); //fvs ordered by assay_id_key
 			Integer[] sortedAssayFVindexes = sortFVs(assay_fvs);//indexes of fvs sorted alphabetically
+			
 			for(int j=0; j<data.length; j++){
 				double[] deData = data[j];
 				series = new JSONObject();
@@ -261,32 +262,26 @@ public class AtlasPlotter {
 				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:\""+fv.replaceAll("'", "").replaceAll(",", "")+"\" ,color: '"+altColors[i%2]+"' }";
 				
 			}
+			
+			JSONStringer sortedAssayIds = new JSONStringer();
+			sortedAssayIds.array();
+			int[] unSortedAssayIds = eds.getAssayList();
+			for(int i=0; i<unSortedAssayIds.length; i++){
+				sortedAssayIds.value(unSortedAssayIds[sortedAssayFVindexes[i]]);
+			}
+			sortedAssayIds.endArray();
+			
 
 			plotData.put("series", seriesList);
 			plotData.put("markings",markings);
-			
+			plotData.put("assay_ids", sortedAssayIds);
 			///////////////////////////////////////////////////////////////
+			JSONStringer sampleChars = new JSONStringer();
+			JSONStringer sampleCharValues = new JSONStringer();
+			getCharacteristics(eds,sampleChars,sampleCharValues);
 			
 			plotData.put("sAttrs", getSampleAttributes(eds,EF));
 			plotData.put("assay2samples", getSampleAssayMap(eds,EF));
-			
-			JSONStringer sampleChars = new JSONStringer();
-			JSONStringer sampleCharValues = new JSONStringer();
-			sampleChars.array();
-			sampleCharValues.object();
-			for(String sampChar: eds.getSampleCharacteristics()){
-				sampleChars.value(sampChar.substring(3));
-				sampleCharValues.key(sampChar.substring(3));
-				sampleCharValues.array();
-				TreeSet charValuesSet = new TreeSet(Arrays.asList(eds.getSampleCharValues(sampChar)));
-			
-				for(Object charValue: charValuesSet){
-					sampleCharValues.value(charValue.toString());
-				}
-				sampleCharValues.endArray();
-			}
-			sampleCharValues.endObject();
-			sampleChars.endArray();
 			plotData.put("characteristics", sampleChars);
 			plotData.put("charValues", sampleCharValues);
 			plotData.put("currEF", EF.substring(3));
@@ -294,6 +289,7 @@ public class AtlasPlotter {
 			plotData.put("geneNames", getJSONarray(geneNames));
 			plotData.put("DEids", getJSONarray(eds.getDElist()));
 			plotData.put("GNids", getJSONarray(eds.getGNids()));
+//			plotData.put("assay_ids", getJSONarray(eds.getAssayList()));
 			
 			
 			
@@ -320,6 +316,22 @@ public class AtlasPlotter {
 			}
 			sampleAttrs.endObject();
 		}
+		
+		int[] assay_ids=eds.getAssayList();
+		String[] EFs = eds.getFactors();
+		for(int i=0; i<assay_ids.length; i++){
+			int assay_id = assay_ids[i];
+			sampleAttrs.key("a"+Integer.toString(assay_id));
+			sampleAttrs.object();
+			for(String ef: EFs){
+				if(!characteristics.contains("bs_"+ef.substring(3))){
+					String factorValue = eds.getAssayFVs(ef)[i].toString();
+					sampleAttrs.key(ef.substring(3)).value(factorValue);
+				}
+			}
+			sampleAttrs.endObject();
+		}
+		
 		sampleAttrs.endObject();
 		return sampleAttrs;
 	}
@@ -343,6 +355,25 @@ public class AtlasPlotter {
 		}
 		map.endArray();
 		return map;
+	}
+	
+	private void getCharacteristics(ExpressionDataSet eds, JSONStringer sampleChars, JSONStringer sampleCharValues) throws JSONException{
+		
+		sampleChars.array();
+		sampleCharValues.object();
+		for(String sampChar: eds.getSampleCharacteristics()){
+			sampleChars.value(sampChar.substring(3));
+			sampleCharValues.key(sampChar.substring(3));
+			sampleCharValues.array();
+			TreeSet charValuesSet = new TreeSet(Arrays.asList(eds.getSampleCharValues(sampChar)));
+		
+			for(Object charValue: charValuesSet){
+				sampleCharValues.value(charValue.toString());
+			}
+			sampleCharValues.endArray();
+		}
+		sampleCharValues.endObject();
+		sampleChars.endArray();
 	}
 	
 	private Integer[] sortFVs(final Object[] fvs){
@@ -412,6 +443,7 @@ public class AtlasPlotter {
 		JSONarray.endArray();
 		return JSONarray;
 	}
+
 	
 	
 }

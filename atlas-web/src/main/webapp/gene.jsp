@@ -413,8 +413,11 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 			</tr>
 			
 			<tr>
-				<td align="left" colspan="2" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+				<td align="left"  valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
 					<div id="pagingSummary" class="header"></div>
+				</td>
+				<td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+					<div id="expSelect"></div>
 				</td>
 				
 			</tr>

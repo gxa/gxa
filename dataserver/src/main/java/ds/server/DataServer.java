@@ -269,31 +269,23 @@ public class DataServer implements DataServerMonitor {
 		    	quantitationType = ncfile.findGlobalAttribute("quantitationType").getStringValue();
 		    
 
-		    //Get index of current EF
-		    Object[] EFarr = (Object[])((ArrayChar)ef.read()).make1DStringArray().get1DJavaArray(String.class); //there should be a better way to read array of strings from netcdf
-		    int EFindex = Arrays.asList(EFarr).indexOf(factor);
+		    //Get Experimental Factors
+		    TreeMap<String, Object[]> assayFVs = new TreeMap<String, Object[]>();
+		    Object[] EFarr = (Object[])((ArrayChar)ef.read()).make1DStringArray().get1DJavaArray(String.class);
+		    for(int EFindex=0; EFindex<EFarr.length; EFindex++){
+		    	Object[] EFVarr = (Object[])((ArrayChar)efv.read().slice(0,EFindex)).make1DStringArray().get1DJavaArray(String.class);
+		    	String EF = Arrays.asList(EFarr).get(EFindex).toString();
+		    	assayFVs.put(EF, EFVarr);
+		    }
 		    
-		    //Get FVs for the current EF
-//		    int[] shapeEFV = efv.getShape();      int[] originEFV = new int[ efv.getRank()];
-//		    originEFV[0] = EFindex; 
-//		    shapeEFV[0] = 1;   
-//		     EFVarr= (Object[])((ArrayChar)efv.read(originEFV,shapeEFV)).make1DStringArray().get1DJavaArray(String.class); 
-		    Object[] EFVarr = (Object[])((ArrayChar)efv.read().slice(0,EFindex)).make1DStringArray().get1DJavaArray(String.class);
-		    TreeMap assayFVs = new TreeMap<String, Object[]>();
-		    assayFVs.put(factor, EFVarr);
-		     
-		    TreeMap sampleCharacters = new TreeMap<String, Object[]>();
 		    //Get sampleCharacteristics
+		    TreeMap sampleCharacters = new TreeMap<String, Object[]>();
 		    if(scv != null){
 		    	
 		    	Object[] charArr = (Object[])((ArrayChar)sc.read()).make1DStringArray().get1DJavaArray(String.class);
-		    	int[] shapeSCV = scv.getShape();
-		    	shapeSCV[0] = 1;
-		    	int[] originSCV = new int[ efv.getRank()];
-		    	for(int i=0; i<charArr.length; i++){
-		    		originSCV[0] = i; 
-		    		Object[] SCVarr= (Object[])((ArrayChar)scv.read(originSCV,shapeSCV)).make1DStringArray().get1DJavaArray(String.class);
-		    		String SC = Arrays.asList(charArr).get(i).toString();
+		    	for(int charindex=0; charindex<charArr.length; charindex++){
+		    		Object[] SCVarr= (Object[])((ArrayChar)scv.read().slice(0,charindex)).make1DStringArray().get1DJavaArray(String.class);
+		    		String SC = Arrays.asList(charArr).get(charindex).toString();
 		    		sampleCharacters.put(SC,SCVarr);
 		    	}
 		    }
@@ -337,10 +329,11 @@ public class DataServer implements DataServerMonitor {
 			    DEsData[i] =  (double[])bdc.read(originBDC,shapeBDC).reduce().get1DJavaArray(double.class);
 		    }
 		    
-		      
+		    
+		    Object[] currentFVs = assayFVs.get(factor);
 		    TreeMap<String, ArrayList[] > dataPerFV_map = new TreeMap<String, ArrayList[]>();
-		    for(int i=0; i<EFVarr.length; i++){
-		    	String fv = EFVarr[i].toString();
+		    for(int i=0; i<currentFVs.length; i++){
+		    	String fv = currentFVs[i].toString();
 		    	ArrayList[] dataPerFV;
 		    	if(dataPerFV_map.containsKey(fv)){
 		    		dataPerFV  = dataPerFV_map.get(fv);

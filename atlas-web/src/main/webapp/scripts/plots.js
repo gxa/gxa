@@ -248,8 +248,8 @@ function drawPlot(jsonObj, plot_id){
     
     function plotZoomOverview(jsonObj){
     	var divElt = $('#plot_thm');
-		divElt.width(600);divElt.height(55);
-		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{yaxis: {ticks: 1 },legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
+		divElt.width(550);divElt.height(55);
+		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{yaxis: {ticks: 0 },points:{show: true}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
 		$("#plot_thm #plotHeader").remove();
 		bindZooming(overview,jsonObj);
     }
@@ -322,20 +322,32 @@ function drawPlot(jsonObj, plot_id){
     	}
     }
     
-    function highlightSamples(sc,scv,scText){
+    function highlightSamples(sc,scv,scText,assay){
     	var sampleAttrJSON = eval('(' + sampleAttrs+ ')' );
     	var assay2samplesJSON = eval('(' + assay2samples+ ')' );
     	
     	clearSelections();
-    	 
     	
-    	for (i = 0; i < assay2samplesJSON.length; ++i){
-    		var sample_id = assay2samplesJSON[i][0];
-    		var value = eval("sampleAttrJSON."+sample_id+"."+sc);
-    		
-    		if(value==scv){
-    			plot.highlight(0, i);
-    			prevSelections.push(i);
+    	if(!assay){
+    	
+	    	for (i = 0; i < assay2samplesJSON.length; ++i){
+	    		var sample_id = assay2samplesJSON[i][0];
+	    		var value = eval("sampleAttrJSON."+sample_id+"."+sc);
+	    		
+	    		if(value==scv){
+	    			plot.highlight(0, i);
+	    			prevSelections.push(i);
+	    		}
+    		}
+    	}else{
+    		var assays = eval('(' + assayIds+ ')' ); 
+    		for (i = 0; i < assays.length; ++i){
+	    		var assay_id = assays[i];
+	    		var value = eval("sampleAttrJSON.a"+assay_id+"."+sc);
+	    		if(value==scv){
+	    			plot.highlight(0, i);
+	    			prevSelections.push(i);
+	    		}
     		}
     	}
     	$("#bioSampleData").html('<div> <ul> <li><span style="font-weight: bold">'+scText+'</span>:'+scv+'</li></ul></div>');
@@ -364,13 +376,14 @@ function drawPlot(jsonObj, plot_id){
    					plot = $.plot($('#plot'), jsonObj.series,jsonObj.options);
    					plotZoomOverview(jsonObj);
    					drawEFpagination(eid,gid,ef,'large');
-   					 
+   					assayIds = jsonObj.assay_ids;
    					if(initial){
    						
 	   					sampleAttrs = jsonObj.sAttrs; 
 	   					assay2samples = jsonObj.assay2samples;
 	   					characteristics = jsonObj.characteristics;
 	   					charValues = jsonObj.charValues;
+	   					
 	   					
 	   					//var charJSON = eval('('+characteristics+')');
 	            		//var charValuesJSON = eval('('+charValues+')');

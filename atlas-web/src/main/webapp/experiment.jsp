@@ -77,6 +77,7 @@ Gene Expression
 var genesToPlot = new Array("${gid}");
 
 var sampleAttrs;
+var assayIds;
 var assay2samples;
 var characteristics;
 var charValues;
@@ -303,7 +304,7 @@ function removeGene(gname){
 							<td align="left">
 								<div class="bigplot" id="plot" style="width: 600px; height: 300px;top: 10px;"></div>
 								<!-- <div style="font-size:x-small; color: gray;padding-top: 10px;">Click and drag a selection below to zoom in above <span style="cursor: pointer; text-decoration: underline" id="zoom">(hide)</span></div> -->
-								<div id="plot_thm" style="width: 600px; height: 100px;top: 00px;"> </div>
+								<div id="plot_thm" style="border:thin; width: 600px; height: 100px;top:0px;left:25px"> </div>
 							</td>
 							<td nowrap="nowrap">
 								<div id="legend"></div>
@@ -337,7 +338,7 @@ function removeGene(gname){
 															<div>
 																<ul>
 															 	<c:forEach var="value" items="${exp.factorValuesForEF[EF]}">
-															 		<li><a href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>')">${value}</a></li>
+															 		<li><a href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true)">${value}</a></li>
 															 	</c:forEach>
 															 	</ul>
 															</div>
@@ -369,8 +370,8 @@ function removeGene(gname){
 								<div id="gene_menu" style="">
 									<div><a href="#">Top Differentially expressed genes</a></div>
 									<div>
-										<div id="Pagination" class="pagination_ie" style="padding-bottom: 10px;text-align:right;"></div>
-										<div id="topGenes" style="overflow-y: auto; height:450px"></div>
+										<!--  <div id="Pagination" class="pagination_ie" style="padding-bottom: 10px;text-align:right;"></div>-->
+										<div id="topGenes" style="height:250px"></div>
 									</div>
 									
 									<div><a href="#">Search by gene name</a></div>

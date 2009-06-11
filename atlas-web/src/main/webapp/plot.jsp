@@ -77,9 +77,11 @@
         		JSONObject options = new JSONObject(
                         "{  xaxis: { ticks:0, autoscaleMargin: 0.05    }, " +
                          "  yaxis: { ticks:3    }, " +
+                         "  points: { show:true, fill:false    }, " +
+                         "  lines: { show:true, steps:true    }, " +
                          " legend: {     show: true," +
                          "          	 container: '#legend', " +
-                         "               extContainer: '#legend', labelFormatter:TEST}, " +
+                         "             labelFormatter:TEST}, " +
                          "   grid: {  " +
                          "    backgroundColor: '#fafafa',	" +
                          "      autoHighlight: true, " +
