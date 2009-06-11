@@ -1028,7 +1028,7 @@
         }
         
         function insertHeaders(){
-        	var html = '<div class="tickLabels" style="position:relative; cursor:pointer; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
+        	var html = '<div class="tickLabels" id="plotHeader" style="position:relative; cursor:pointer; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
         	var offset =0;
         	 if (options.grid.markings) {
                 var markings = options.grid.markings;
@@ -1050,8 +1050,11 @@
                 		
                     xrange.from = xrange.axis.p2c(xrange.from);
                     xrange.to = xrange.axis.p2c(xrange.to);
-                    var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ (Math.floor(xrange.to)-Math.floor(xrange.from)) + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' + m.label + "</div>";
-                    html += header;
+                    var width = (Math.floor(xrange.to)-Math.floor(xrange.from));
+                    //if(width>50){
+                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' +  m.label  + "</div>";
+                    	html += header;
+                    //}
                     offset+= xrange.from;    
                 }
                 html += '</div>';

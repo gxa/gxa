@@ -248,8 +248,9 @@ function drawPlot(jsonObj, plot_id){
     
     function plotZoomOverview(jsonObj){
     	var divElt = $('#plot_thm');
-		divElt.width(800);divElt.height(75);
-		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
+		divElt.width(600);divElt.height(55);
+		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{yaxis: {ticks: 1 },legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
+		$("#plot_thm #plotHeader").remove();
 		bindZooming(overview,jsonObj);
     }
     
@@ -321,7 +322,7 @@ function drawPlot(jsonObj, plot_id){
     	}
     }
     
-    function highlightSamples(sc,scv){
+    function highlightSamples(sc,scv,scText){
     	var sampleAttrJSON = eval('(' + sampleAttrs+ ')' );
     	var assay2samplesJSON = eval('(' + assay2samples+ ')' );
     	
@@ -337,7 +338,7 @@ function drawPlot(jsonObj, plot_id){
     			prevSelections.push(i);
     		}
     	}
-    	$("#bioSampleData").html('<div> <ul> <li><span style="font-weight: bold">'+sc+'</span>:'+scv+'</li></ul></div>');
+    	$("#bioSampleData").html('<div> <ul> <li><span style="font-weight: bold">'+scText+'</span>:'+scv+'</li></ul></div>');
     }
     
     
@@ -371,9 +372,10 @@ function drawPlot(jsonObj, plot_id){
 	   					characteristics = jsonObj.characteristics;
 	   					charValues = jsonObj.charValues;
 	   					
-	   					var charJSON = eval('('+characteristics+')');
-	            		var charValuesJSON = eval('('+charValues+')');
+	   					//var charJSON = eval('('+characteristics+')');
+	            		//var charValuesJSON = eval('('+charValues+')');
 	   					
+	   					/*
 	   					var contents = '';
 			            for (i = 0; i < charJSON.length; ++i) {
 			            	 var characteristic = charJSON[i];
@@ -387,13 +389,8 @@ function drawPlot(jsonObj, plot_id){
 			            	 contents+= '</ul></div>';
 			            }
 	            
-			            $("#accordion").html(contents);
-			            $("#accordion").accordion({
-							collapsible: true,
-							active:false,
-							autoHeight: false
-						
-						});
+			            //$("#accordion").html(contents);
+			            */
 						
 						var names= eval('('+jsonObj.geneNames+')');
 						var gids= eval('('+jsonObj.GNids+')');
@@ -422,10 +419,9 @@ function drawPlot(jsonObj, plot_id){
 				            for (i = 0; i < charJSON.length; ++i) {
 				            	 var characteristic = charJSON[i];
 				            	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
-				            	 var key = "head.ef."+characteristic; 
-				            	 //contents+= '<li>: '+value+'</li>';
-				            	 
-				            	 contents+= '<li><span style="font-weight: bold">'+characteristic+'</span>: '+value+'</li>';
+
+				            	 var txtChar = curatedChars[characteristic];
+				            	 contents+= '<li><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
 				            }
 				            
 				            contents+='</ul></div>';
@@ -512,7 +508,7 @@ function drawPlot(jsonObj, plot_id){
     		}
     		else{
     			if(plotType=="large"){
-    				panelContent.push('<a id="'+ef+'" onclick="redrawForEF( \''+eid+'\',\''+ef+'\')">'+ef_txt+'</a>');
+    				panelContent.push('<a id="'+ef+'" onclick="redrawForEF( \''+eid+'\',\''+ef+'\',\''+ef_txt+'\')">'+ef_txt+'</a>');
     			}else
     				panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'\',\''+gid+'\',\''+ef+'\',\''+plotType+'\',false)">'+ef_txt+'</a>');
     		}

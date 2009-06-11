@@ -31,6 +31,7 @@ public class AtlasExperiment implements java.io.Serializable {
     private HashSet<String> experimentFactors;
     private HashSet<String> sampleCharacteristics;
     private TreeMap<String, List<String>> sampleCharacterisitcValues;
+    private TreeMap<String, List<String>> factorValues;
     private Map<String, List<String>> experimentHighlights;
 
     private SolrDocument exptSolrDocument;
@@ -59,6 +60,22 @@ public class AtlasExperiment implements java.io.Serializable {
 
         this.setExperimentFactorValues(exptDoc.getFieldValues(Constants.FIELD_DWEXP_FV));
         this.setExperimentFactors(exptDoc.getFieldValues(Constants.FIELD_DWEXP_EF));
+        
+        this.setSampleCharacteristics(exptDoc.getFieldValues(Constants.FIELD_DWSAMPLE_CHAR));
+        
+        if(getSampleCharacteristics().size()!=0){
+        	for(String characteristic: getSampleCharacteristics()){
+        		ArrayList<String> values = (ArrayList)exptDoc.getFieldValues(Constants.PREFIX_SAMPLE+characteristic);
+        		addSampleCharacterisitcValue(characteristic,values);
+        	}
+        }
+        
+        if(getExperimentFactors().size()!=0){
+        	for(String factor: getExperimentFactors()){
+        		ArrayList<String> values = (ArrayList)exptDoc.getFieldValues(Constants.PREFIX_ASSAY+factor);
+        		addFactorValue(factor,values);
+        	}
+        }
 
     }
 
@@ -90,6 +107,30 @@ public class AtlasExperiment implements java.io.Serializable {
     public void setSampleCharacteristics(HashSet<String> sampleCharacteristics) {
         this.sampleCharacteristics = sampleCharacteristics != null ? new HashSet<String>(sampleCharacteristics) : new HashSet<String>();
     }
+    
+    public void setSampleCharacteristics(Collection sampleCharacteristics) {
+		this.sampleCharacteristics = sampleCharacteristics != null ? new HashSet<String>(sampleCharacteristics) : new HashSet<String>();
+	}
+
+	public TreeMap<String, List<String>> getSampleCharacterisitcValues() {
+		return sampleCharacterisitcValues;
+	}
+
+	public void addSampleCharacterisitcValue(String characterisitc, ArrayList<String>values) {
+		if(sampleCharacterisitcValues==null)
+			sampleCharacterisitcValues = new TreeMap<String, List<String>>();
+		this.sampleCharacterisitcValues.put(characterisitc, values);
+	}
+	
+	public void addFactorValue(String characterisitc, ArrayList<String>values) {
+		if(factorValues==null)
+			factorValues = new TreeMap<String, List<String>>();
+		this.factorValues.put(characterisitc, values);
+	}
+	
+	public TreeMap<String, List<String>> getFactorValuesForEF() {
+		return factorValues;
+	}
 
     public Collection<String> getDwExpType() {
         return dwExpType;

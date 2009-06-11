@@ -19,5 +19,9 @@ public class CuratedTexts {
     public static String get(String key) {
         return props.getProperty(key) != null ? props.getProperty(key) : key;
     }
+    
+    public static String getCurated(String key){
+    	return props.getProperty("head.ef."+key) != null ? props.getProperty("head.ef."+key) : key;
+    }
 
 }

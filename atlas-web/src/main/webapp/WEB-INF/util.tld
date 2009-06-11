@@ -82,6 +82,14 @@
             java.lang.String getProperty(java.lang.String)
         </function-signature>
     </function>
+    
+     <function>
+        <name>getCurated</name>
+        <function-class>ae3.util.CuratedTexts</function-class>
+        <function-signature>
+            java.lang.String getCurated(java.lang.String)
+        </function-signature>
+    </function>
 
     <function>
         <name>getIntProp</name>

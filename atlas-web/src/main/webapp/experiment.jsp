@@ -93,6 +93,12 @@ $(document).ready(function()
         	initPaging();
         });
         
+        $("#accordion").accordion({
+							collapsible: true,
+							active:false,
+							autoHeight: false
+						
+						});
 
         initExpPageAutoComplete();
         $("#gene_menu").accordion({
@@ -156,10 +162,11 @@ function addGeneToPlot(gid,gname,eid,ef){
 	plotBigPlot(genesToPlot.toString(),eid,ef,false,geneIndeces.toString());
 } 
 
-function redrawForEF(eid, ef){
+function redrawForEF(eid, ef, efTxt){
 	
 	//redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
 	plotBigPlot(genesToPlot.toString(),eid,ef,false,geneIndeces.toString()); 
+	$('#sortHeader').text("Expression profile sorted by "+efTxt);
 }
 
 
@@ -214,7 +221,12 @@ function removeGene(gname){
 </div>
 <script type="text/javascript">
 
-        
+    var curatedChars = new Array();
+    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
+    	curatedChars['${char}']= '${u:getCurated(char)}';
+   	</c:forEach>
+    
+
 </script>
 
 
@@ -241,7 +253,7 @@ function removeGene(gname){
 				<td style="vertical-align: text-bottom"></td>
 			</tr>
 			<tr>
-				<td class="geneAnnotHeader" colspan="2" style="border-bottom: 1px solid #dedede;">${exp.dwExpDescription}</td>
+				<td class="header" colspan="2" style="border-bottom: 1px solid #dedede;">${exp.dwExpDescription}</td>
 			</tr>
 			<!-- 
 			<tr>
@@ -256,12 +268,12 @@ function removeGene(gname){
 		</table>
 		<div id = "result_cont" style="width: 100%" >
 		
-		<table id="twocol" style="margin-top:20px; width:100%; ">
+		<table id="twocol" style="margin-top:5px; width:100%; ">
 			<tr>
 				<td colspan="1">
-								<div class="sectionHeader" style="">Expression profile sorted by <fmt:message key="head.ef.${topRankEF}"/></div>
+								<div id="sortHeader" class="sectionHeader" style="">Expression profile sorted by <fmt:message key="head.ef.${ef}"/></div>
 								<!--  <div class="header">Other Experimental Factors</div>-->
-								<div class="header"  style="padding-bottom: 10px; padding-top: 10px;">
+								<div class="header"  style="padding-bottom: 10px; padding-top: 5px;">
 									<span></span>
 										 
 										<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
@@ -271,7 +283,7 @@ function removeGene(gname){
 													<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
 												</c:when>
 												<c:otherwise>
-													<a id="${EF}" onclick="redrawForEF('${exp.dwExpId}','${EF}')" ><fmt:message key="head.ef.${EF}"/></a>	
+													<a id="${EF}" onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')" ><fmt:message key="head.ef.${EF}"/></a>	
 												</c:otherwise>
 											</c:choose>
 										</c:forEach>
@@ -285,13 +297,13 @@ function removeGene(gname){
 			</tr>
 			<tr>
 				
-				<td style="width:850px; padding-right: 0px;">
+				<td style="width:650px; padding-right: 0px;">
 					<table>
 						<tr>
-							<td align="center">
-								<div class="bigplot" id="plot" style="width: 800px; height: 400px;top: 10px;"></div>
-								<div style="font-size:x-small; color: gray;padding-top: 10px;">Click and drag a selection below to zoom in above <span style="cursor: pointer" id="zoom">(hide)</span></div>
-								<div id="plot_thm" style="width: 800px; height: 100px;top: 10px;"> </div>
+							<td align="left">
+								<div class="bigplot" id="plot" style="width: 600px; height: 300px;top: 10px;"></div>
+								<!-- <div style="font-size:x-small; color: gray;padding-top: 10px;">Click and drag a selection below to zoom in above <span style="cursor: pointer; text-decoration: underline" id="zoom">(hide)</span></div> -->
+								<div id="plot_thm" style="width: 600px; height: 100px;top: 00px;"> </div>
 							</td>
 							<td nowrap="nowrap">
 								<div id="legend"></div>
@@ -306,12 +318,40 @@ function removeGene(gname){
 										<td>
 											<div class="header">Select attribues to highlight on graph</div>
 											<div style="overflow-y: auto; height:350px">
-												<div id="accordion" style="width:400px"></div>
+												<div id="accordion" style="width:250px">
+
+													<c:forEach var="char" items="${exp.sampleCharacteristics}" >
+														<div><a href="#"><fmt:message key="head.ef.${char}"/><c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
+														</div>
+														<div>
+															<ul>
+														 	<c:forEach var="value" items="${exp.sampleCharacterisitcValues[char]}">
+														 		<li><a href="javascript:highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>')">${value}</a></li>
+														 	</c:forEach>
+														 	</ul>
+														</div>
+													</c:forEach>
+													<c:forEach var="EF" items="${exp.experimentFactors}">
+														<c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
+															<div><a href="#"><fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a></div>
+															<div>
+																<ul>
+															 	<c:forEach var="value" items="${exp.factorValuesForEF[EF]}">
+															 		<li><a href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>')">${value}</a></li>
+															 	</c:forEach>
+															 	</ul>
+															</div>
+														</c:if>
+													</c:forEach>
+												
+												
+												
+												</div>
 											</div>
 										</td>			
 										<td>
 											<div class="header">Selected sample attributes</div>
-											<div id="bioSampleData" style="font-size:small; color: gray; width: 360px">
+											<div id="bioSampleData" style="font-size:small; color: gray;">
 												<span style="font-size:xx-small; color: gray"> Click data points on plot to show corresponding sample attributes</span>
 											</div>
 										</td>
