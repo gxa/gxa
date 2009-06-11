@@ -56,7 +56,7 @@ public class GenePropValueListHelperTest extends TestCase {
 
     @Test
     public void testAutocompleteLimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", 1);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", 1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -70,7 +70,7 @@ public class GenePropValueListHelperTest extends TestCase {
 
     @Test
     public void testAutocompleteUnlimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", -1);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -88,7 +88,7 @@ public class GenePropValueListHelperTest extends TestCase {
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("name", "asp", -1);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("name", "asp", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
