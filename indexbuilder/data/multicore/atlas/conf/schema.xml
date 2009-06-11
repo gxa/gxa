@@ -313,9 +313,10 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="cnt_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="s_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="minpval_*" type="float" indexed="true" stored="true" multiValued="false" />
-        <field name="exp_up_ids" type="string" indexed="true" stored="true" multiValued="true" />
-        <field name="exp_dn_ids" type="string" indexed="true" stored="true" multiValued="true" />
-        <field name="exp_ud_ids" type="string" indexed="true" stored="true" multiValued="true" />
+        
+        <field name="exp_up_ids" type="long" indexed="true" stored="false" multiValued="true" />
+        <field name="exp_dn_ids" type="long" indexed="true" stored="false" multiValued="true" />
+        <field name="exp_ud_ids" type="long" indexed="true" stored="false" multiValued="true" />
 
         <dynamicField name="efvs_up_*" type="string" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="true" multiValued="true" />

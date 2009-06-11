@@ -61,10 +61,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     }
 
     private class UpDnSet {
-        Set<Integer> up = new HashSet<Integer>();
-        Set<Integer> dn = new HashSet<Integer>();
-        Set<Integer> childrenUp = new HashSet<Integer>();
-        Set<Integer> childrenDn = new HashSet<Integer>();
+        Set<Long> up = new HashSet<Long>();
+        Set<Long> dn = new HashSet<Long>();
+        Set<Long> childrenUp = new HashSet<Long>();
+        Set<Long> childrenDn = new HashSet<Long>();
         boolean processed = false;
         double minpvalUp = 1;
         double minpvalDn = 1;
@@ -144,8 +144,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
 
         log.info("Querying genes...");
         PreparedStatement listAtlasGenesStmt = getDataSource().getConnection().prepareStatement("select xml.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
-                "from gene_xml xml " +
-                (isUpdateMode() ? " where xml.status<>'fresh' and xml.status is not null" : ""));
+                "from gene_xml xml where xml.gene_id_key<>0 " +
+                (isUpdateMode() ? " AND xml.status<>'fresh' and xml.status is not null" : ""));
 
         List<String[]> queue = new ArrayList<String[]>(BURST_SIZE);
 
@@ -244,8 +244,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     private boolean addEfoCounts(SolrInputDocument solrDoc, String geneId, PreparedStatement countGeneEfoStmt) throws SQLException {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
-        Set<Integer> upexp = new HashSet<Integer>();
-        Set<Integer> dnexp = new HashSet<Integer>();
+        Set<Long> upexp = new HashSet<Long>();
+        Set<Long> dnexp = new HashSet<Long>();
         Map<String,Set<String>> upefv = new HashMap<String,Set<String>>();
         Map<String,Set<String>> dnefv = new HashMap<String,Set<String>>();
 
@@ -256,7 +256,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         ResultSet efos = countGeneEfoStmt.executeQuery();
 
         while(efos.next()) {
-            Integer experimentId = efos.getInt("experiment_id_key");
+            Long experimentId = efos.getLong("experiment_id_key");
             if(experimentId == 0) {
                 log.error("Found experimentId=0 for gene " + geneId);
                 continue;
@@ -346,14 +346,14 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
                 solrDoc.addField("efvs_ud_" + IndexField.encode(factor), i);
     }
 
-    private void storeExperimentIds(SolrInputDocument solrDoc, Set<Integer> upexp, Set<Integer> dnexp) {
-        for(Integer i : upexp)
-            solrDoc.addField("exp_up_ids", i.toString());
-        for(Integer i : dnexp)
-            solrDoc.addField("exp_dn_ids", i.toString());
+    private void storeExperimentIds(SolrInputDocument solrDoc, Set<Long> upexp, Set<Long> dnexp) {
+        for(Long i : upexp)
+            solrDoc.addField("exp_up_ids", i);
+        for(Long i : dnexp)
+            solrDoc.addField("exp_dn_ids", i);
 
-        for(Integer i : union(upexp,dnexp))
-            solrDoc.addField("exp_ud_ids", i.toString());
+        for(Long i : union(upexp,dnexp))
+            solrDoc.addField("exp_ud_ids", i);
     }
 
     private void storeEfoCounts(SolrInputDocument solrDoc, Map<String, UpDnSet> efoupdn) {
