@@ -134,7 +134,7 @@ public class AtlasDao {
      * @throws MultipleGeneException
      */
     public static AtlasGene getGeneByIdentifier(String gene_identifier) throws AtlasObjectNotFoundException, MultipleGeneException {
-        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier));
+        QueryResponse queryResponse = ArrayExpressSearchService.instance().fullTextQueryGenes("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_identifier:" + EscapeUtil.escapeSolr(gene_identifier));
 
         SolrDocumentList documentList = queryResponse.getResults();
 
