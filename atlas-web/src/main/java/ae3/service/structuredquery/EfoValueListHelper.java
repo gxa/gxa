@@ -58,7 +58,7 @@ public class EfoValueListHelper implements IValueListHelper {
         return counts.get(id);
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
 
         Efo efo = getEfo();
 
@@ -78,12 +78,12 @@ public class EfoValueListHelper implements IValueListHelper {
 
             Long pcount = getCount(term.getId());
             if(pcount != null)
-                result.add(new AutoCompleteItem(Constants.EFO_FACTOR_NAME, term.getTerm(), pcount, term.getId() + "$" + term.getDepth()));
+                result.add(new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME, term.getId(), term.getTerm(), pcount, term.getDepth()));
         }
         return result;
     }
 
-    public Iterable<String> listAllValues(String property) {
+    public Collection<String> listAllValues(String property) {
         List<String> result = new ArrayList<String>();
         for(Efo.Term term : getEfo().getAllTerms()) {
             result.add(term.getTerm());

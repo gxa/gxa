@@ -1,6 +1,7 @@
 package ae3.service.structuredquery;
 
 import java.util.Map;
+import java.util.Collection;
 
 /**
  * Interface for value listers, allowing to listing and autocompletion of values for gene properties or EFs
@@ -14,14 +15,14 @@ public interface IValueListHelper {
      * @param limit maximum number of values to find
      * @return map of values and counters
      */
-    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters);
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters);
 
     /**
      * Returns list of all values for specific factor or property
      * @param property factor
      * @return iterable list of strings
      */
-    public Iterable<String> listAllValues(String property);
+    public Collection<String> listAllValues(String property);
 
     /**
      * Utility method called after creation to populate internal data structures with cached values

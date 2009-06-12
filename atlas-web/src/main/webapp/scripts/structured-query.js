@@ -174,12 +174,12 @@
              .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions(property))
              .flushCache()
              .result(function (unused, res) {
-                         var newprop = res[0];
+                         var newprop = res.property;
                          var tr = $(this).parents('tr:first');
                          var propi = tr.find('input[type=hidden]');
                          if(propi.val() == '' && newprop == 'name') {
                              newprop = 'identifier';
-                             $(this).val(res[3].split('$')[2]);
+                             $(this).val(res.id);
                          }
                          propi.val(newprop);
                          tr.find('td.gprop').text(getPropLabel(newprop));

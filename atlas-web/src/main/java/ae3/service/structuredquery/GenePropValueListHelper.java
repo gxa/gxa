@@ -3,15 +3,14 @@ package ae3.service.structuredquery;
 import ae3.service.structuredquery.GeneProperties.Prop;
 import ae3.service.structuredquery.GeneProperties.PropType;
 import ae3.util.EscapeUtil;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -31,14 +30,14 @@ public class GenePropValueListHelper implements IValueListHelper {
         this.solrAtlas = solrAtlas;
     }
 
-    private Collection<AutoCompleteItem> treeAutocomplete(final String property, final String prefix, final int limit) {
+    private Collection<GeneAutoCompleteItem> treeAutocomplete(final String property, final String prefix, final int limit) {
         PrefixNode root = treeGetOrLoad(property);
 
-        final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+        final List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
         if(root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new AutoCompleteItem(property, name, (long)count, ""));
+                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null));
                 }
                 public boolean enough() {
                     return limit >=0 && result.size() >= limit;
@@ -91,7 +90,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return root;
     }
 
-    public Iterable<String> listAllValues(String property) {
+    public Collection<String> listAllValues(String property) {
         final List<String> result = new ArrayList<String>();
         PrefixNode.WalkResult rc = new PrefixNode.WalkResult() {
             public void put(String name, int count) {
@@ -115,7 +114,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return result;
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)
@@ -127,9 +126,9 @@ public class GenePropValueListHelper implements IValueListHelper {
         try {
             if(anyProp) {
 
-                EnumMap<PropType, List<AutoCompleteItem>> resmap = new EnumMap<PropType, List<AutoCompleteItem>>(PropType.class);
+                EnumMap<PropType, List<GeneAutoCompleteItem>> resmap = new EnumMap<PropType, List<GeneAutoCompleteItem>>(PropType.class);
                 for(PropType e : PropType.values())
-                    resmap.put(e, new ArrayList<AutoCompleteItem>());
+                    resmap.put(e, new ArrayList<GeneAutoCompleteItem>());
 
                 for(Prop p : GeneProperties.allProperties()) {
                     resmap.get(p.type).addAll(treeAutocomplete(p.id, query, p.type.limit));
@@ -140,7 +139,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                 for(PropType p : PropType.values())
                     if(p != PropType.NAME)
                     {
-                        List<AutoCompleteItem> l = p.limit > 0 && p.limit < resmap.get(p).size()
+                        List<GeneAutoCompleteItem> l = p.limit > 0 && p.limit < resmap.get(p).size()
                                 ? resmap.get(p).subList(0, p.limit) : resmap.get(p);
 
                         Collections.sort(l);
@@ -156,13 +155,12 @@ public class GenePropValueListHelper implements IValueListHelper {
                 if(GeneProperties.isNameProperty(property))
                     property = "name";
 
-                result.addAll(treeAutocomplete(property, query, limit));
-
                 if(GeneProperties.isNameProperty(property)) {
                     List<AutoCompleteItem> list = new ArrayList<AutoCompleteItem>();
-                    joinGeneNames(query, list, result, null);
+                    joinGeneNames(query, list, treeAutocomplete(property, query, limit), null);
                     result = list;
-                }
+                } else
+                    result.addAll(treeAutocomplete(property, query, limit));
 
                 Collections.sort(result);
                 if(limit > 0)
@@ -175,7 +173,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return result;
     }
 
-    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<AutoCompleteItem> source, String speciesFilter) throws SolrServerException {
+    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<GeneAutoCompleteItem> source, String speciesFilter) throws SolrServerException {
         if(!source.iterator().hasNext())
             return;
 
@@ -235,10 +233,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                 }
 
             if(name != null)
-                res.add(new AutoCompleteItem("name", name, 1L,
-                        (names.size() > 0 ? "(" + StringUtils.join(names, ",").replace("$","") + ")" : "") +
-                                "$" + species + "$" + geneId
-                ));
+                res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names));
         }
         Collections.sort(res);
         result.addAll(res.subList(0, Math.min(PropType.NAME.limit, res.size())));

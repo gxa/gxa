@@ -23,8 +23,6 @@ var atlas = {};
                             var ul = $('<ul/>').hide();
                             c.append(ul);
 
-                            var origul = ul;
-                        
                             var currentDepth = 0;
                             var n;
                             var maxDepth = 0;
@@ -172,9 +170,29 @@ var atlas = {};
         return closebox;
     };
 
+    function optionalQuote(s) {
+        return s.indexOf(' ') >= 0 ? '"' + s + '"' : s;
+    }
+
+    function parseAcJson(formatResult) {
+        return function (json) {
+            var rows = json.values;
+            for (var i=0; i < rows.length; i++) {
+                var row = rows[i];
+                rows[i] = {
+                    data: row,
+                    value: row.value,
+                    result: formatResult(row)
+                };
+            }
+            return rows;
+        }
+    }
+
     atlas.makeGeneAcOptions = function (property, dumbmode) {
         var acoptions = {
             minChars: property == "" ? 1 : 0,
+            width: property == "" ? '500px' : '300px',
             matchCase: false,
             matchSubset: false,
             selectFirst: false,
@@ -184,31 +202,28 @@ var atlas = {};
             scroll: false,
             scrollHeight: 180,
             max: 15,
+            dataType: "json",
             extraContent: atlas.makeHideAutocompleteCode,
             extraParams: { type: 'gene', 'factor' : property },
-            formatResult: function(row) { return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1]; }
+            parse: parseAcJson(function(r) { return optionalQuote(r.value); }),
+            highlight: function (value,term) { return value; }
         };
 
         if(property == '') {
             acoptions.formatItem = function(row, num, max, val, term) {
-                var text = $.Autocompleter.defaults.highlight(row[1].length > 30 ? row[1] + '...' : row[1], term);
-                if(row[0] == 'name') {
-                    var ext = row[3].split('$');
-                    ext = ext[0] + ' ' + ext[1];
+                var text = $.Autocompleter.defaults.highlight(row.value.length > 30 ? row.value + '...' : row.value, term);
+                if(row.property == 'name') {
+                    var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
                     return '<nobr><em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em></nobr>';
                 } else {
-                    return '<nobr><em>' + row[0] + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row[2] + ')</em></nobr>';
+                    return '<nobr><em>' + row.property + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em></nobr>';
                 }
             };
-            acoptions.highlight = function (value,term) { return value; };
-            acoptions.width = '500px';
         } else {
             acoptions.formatItem = function(row, num, max, val, term) {
-                var text = $.Autocompleter.defaults.highlight(row[1].length > 50 ? row[1] + '...' : row[1], term);
-                return text + ' (' + row[2] + ')';
+                var text = $.Autocompleter.defaults.highlight(row.value.length > 50 ? row.value + '...' : row.value, term);
+                return '<nobr>' + text + ' (' + row.count + ')</nobr>';
             };
-            acoptions.highlight = function (value,term) { return value; };
-            acoptions.width = '300px';
         }
 
         return acoptions;
@@ -221,7 +236,7 @@ var atlas = {};
         } else if(factor == 'efo') {
             actype = 'efo';
         }
-        var acoptions = {
+        return {
             minChars: 1,
             matchCase: false,
             matchSubset: false,
@@ -234,27 +249,24 @@ var atlas = {};
             width: '300px',
             max: 100,
             queryMax: 15,
+            dataType: "json",
             extraParams: { type: actype, factor: factor },
             extraContent: atlas.makeHideAutocompleteCode,
+            parse: parseAcJson(function(row) {
+                if(row.property == 'efo')
+                    return row.id;
+                return optionalQuote(row.value);
+            }),
             formatItem: function(row, num, max, val, term) {
-                if(row[0] == 'efo') {
-                    var ext = row[3].split('$');
+                if(row.property == 'efo') {
                     var indent = '';
-                    for(var i = 0; i < ext[1]; ++i)
+                    for(var i = 0; i < row.depth; ++i)
                         indent += '&nbsp;&nbsp;&nbsp;';                    
-                    return '<nobr>' + indent + row[1] + ' <em>(' + row[2] + ' genes) ' + ext[0] + '</em></nobr>';
+                    return '<nobr>' + indent + row.value + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
                 }
-                return '<nobr>' + row[1] + ' <em>(' + row[2] + ' genes)</em></nobr>';
-            },
-            formatResult: function(row) {
-                if(row[0] == 'efo') {
-                    var ext = row[3].split('$');
-                    return ext[0];
-                }
-                return row[1].indexOf(' ') >= 0 ? '"' + row[1] + '"' : row[1];
+                return '<nobr>' + row.value + ' <em>(' + row.count + ' genes)</em></nobr>';
             }
         };
-        return acoptions;
     };
 
     atlas.bindEfoTree = function(fvalfield, appender) {
@@ -315,9 +327,9 @@ var atlas = {};
                 .defaultvalue("(all genes)","(all genes)")
                 .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
                 .result(function (unused, res) {
-            var newprop = res[0];
-            if(res[0] == 'name') {
-                location.href = atlas.homeUrl + 'gene?gid=' + res[3].split('$')[2];
+            var newprop = res.property;
+            if(res.property == 'name') {
+                location.href = atlas.homeUrl + 'gene?gid=' + res.id;
                 atlas.startSearching(form);
                 return;
             }
@@ -331,7 +343,7 @@ var atlas = {};
                 .defaultvalue("(all conditions)")
                 .autocomplete(atlas.homeUrl +"fval", atlas.makeFvalAcOptions('', true))
                 .result(function (unused, res) {
-                            var newprop = res[0];
+                            var newprop = res.property;
                             if(newprop != 'efo')
                                 newprop = '';
                             factfield.val(newprop);
@@ -364,7 +376,7 @@ var atlas = {};
         genefield
                 .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
                 .result(function (unused, res) {
-            var newprop = res[0];
+            var newprop = res.property;
                 gpropfield.val(newprop);
             var oldval = $(this).val();
             this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); };

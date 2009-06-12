@@ -100,7 +100,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         return root;
     }
 
-    public Iterable<String> listAllValues(String property) {
+    public Collection<String> listAllValues(String property) {
         final List<String> result = new ArrayList<String>();
         PrefixNode.WalkResult rc = new PrefixNode.WalkResult() {
             public void put(String name, int count) {
@@ -125,7 +125,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         return result;
     }
 
-    public Iterable<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String,String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String,String> filters) {
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)
@@ -150,7 +150,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         if(root != null) {
             root.walk(query, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new AutoCompleteItem(property, name, (long) count, ""));
+                    result.add(new AutoCompleteItem(property, name, name, (long) count));
                 }
 
                 public boolean enough() {

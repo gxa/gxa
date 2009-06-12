@@ -1,39 +1,24 @@
 package ae3.servlet.structuredquery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-
-import ae3.service.structuredquery.IValueListHelper;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.AutoCompleteItem;
+import ae3.service.structuredquery.IValueListHelper;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author pashky
  */
-public class FactorValuesServlet extends HttpServlet {
-    private Logger log = LoggerFactory.getLogger(getClass());
+public class FactorValuesServlet extends JsonServlet {
 
-    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        doIt(httpServletRequest, httpServletResponse);
-    }
-
-    protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        doIt(httpServletRequest, httpServletResponse);
-    }
-
-    private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain");
-        response.setCharacterEncoding("utf-8");
+    public JSONObject process(HttpServletRequest request) throws JSONException {
 
         AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService();
@@ -51,12 +36,16 @@ public class FactorValuesServlet extends HttpServlet {
             listers.add(service.getEfoListHelper());
             listers.add(service.getEfvListHelper());
         }
-        
+
+        JSONObject result = new JSONObject();
+
         if("all".equals(request.getParameter("mode")))
         {
+
+            List<String> resultList = new ArrayList<String>();
             for(IValueListHelper lister : listers)
-                for(String fv : lister.listAllValues(request.getParameter("factor")))
-                    response.getWriter().println(fv);
+                resultList.addAll(lister.listAllValues(request.getParameter("factor")));
+            result.put("values", new JSONArray(resultList));
         } else {
             int nlimit = 100;
             try {
@@ -84,21 +73,18 @@ public class FactorValuesServlet extends HttpServlet {
                     filters.put(filter, request.getParameter(filter));
                 }
 
+            List<AutoCompleteItem> resultList = new ArrayList<AutoCompleteItem>();
             for(IValueListHelper lister : listers) {
-                Iterable<AutoCompleteItem> ac =
-                        lister.autoCompleteValues(
+                resultList.addAll(lister.autoCompleteValues(
                                 factor,
                                 query,
                                 nlimit,
                                 filters
-                        );
-                for(AutoCompleteItem s : ac) {
-                    response.getWriter().println(
-                            (s.getProperty() == null ? "" : s.getProperty() + "|") +
-                                    s.getValue() + "|" + s.getCount() +
-                                    (s.getComment() == null ? "" : "|" + s.getComment()));
-                }
+                        ));
             }
+            result.put("values", new JSONArray(resultList, true));
         }
+
+        return result;
     }
 }
