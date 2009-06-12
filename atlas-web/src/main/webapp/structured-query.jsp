@@ -12,7 +12,6 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <link rel="stylesheet" href="atlas.css" type="text/css" />
-<link rel="stylesheet" href="listView.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
@@ -263,10 +262,13 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
             }
             , debug: false
         });
-					
-					
-            
-            
+
+        <c:if test="${list}">
+        var cont = $('#resultpane');
+		if(cont.get(0).offsetWidth > 900)
+            cont.css({ width: '900px' });
+        </c:if>
+
     });
     var preloads = [ 'expp.gif', 'expm.gif', 'indicator.gif' ]; var img = [];
     for(var i = 0; i < preloads.length; ++i) {
@@ -443,13 +445,15 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
 </div>
+<div id="legendexpand" style="width:100%;height:30px">
+    <c:if test="${list}">
+        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a> (<span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>)</div>
+    </c:if>
+    <div style="line-height:30px;">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
+</div>
 
 <c:choose>
 <c:when test="${heatmap}">
-    <div id="legendexpand" style="width:850px;height:30px">
-        Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
-    </div>
-
     <table id="squery">
         <tbody>
         <tr class="header">
@@ -593,135 +597,123 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
         </tbody>
     </table>
 
-    <div class="pagination_ie page_long"></div>
-		
-    <c:set var="timeFinish" value="${u:currentTime()}"/>
-    <p>
-        Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
-    </p>
 </c:when>
 <c:otherwise>
 
-    <div id="legendexpand" style="width:850px;height:30px">
-        Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
-    </div>
-    <div style="text-align:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a>&nbsp;||&nbsp;<a  href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">Downloads (<span id="dwnldCounter">${noDownloads}</span>)</a> </div>
-    <table id="grid" class="tablesorter" cellspacing="0" width="100%">
+    <table id="squery" class="tablesorter" style="width:100%;table-layout:fixed;">
         <colgroup>
-            <col width="15" />
-            <col width="110" />
-            <col  />
-            <col  />
-            <col  />
-            <col width="110"/>
-            <col width="90"/>
+            <col style="width:20px" />
+            <col style="width:110px" />
+            <col style="width:150px" />
+            <col style="width:180px"  />
+            <col style="width:100%" />
+            <col style="width:26px" />
+            <col style="width:80px" />
         </colgroup>
-					
+
         <thead>
-        <tr>
-            <th style="padding: 0; margin: 0;"></th>
-            <th>Gene</th>
-            <th>Organism</th>
-            <th>Experimental Factor</th>
-            <th>Factor Value</th>
-            <th>Expression</th>
-            <th>P-value</th>
-        </tr>
+            <tr class="header">
+                <th></th>
+                <th class="padded">Gene</th>
+                <th class="padded">Organism</th>
+                <th class="padded">Experimental Factor</th>
+                <th class="padded">Factor Value</th>
+                <th></th>
+                <th class="padded">P-value</th>
+            </tr>
         </thead>
 					
         <tbody>
 						
         <c:forEach var="row" items="${result.listResults}" varStatus="r">
             <tr id="${row.gene_id}_${row.ef}_${r.index}">
-            <input type="hidden" id="ef" value="${row.ef}">
-            <input type="hidden" id="efv" value="${row.fv}">
-            <input type="hidden" id="gene" value="${row.gene_id}">
-                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="vertical-align:top"></td>
-                <td style="border-bottom:1px solid #CDCDCD; padding-left: 4px" class="collapsible_alt genename">
-                    <a style="font-weight: bold"onclick="window.open('gene?gid=${f:escapeXml(row.gene.geneIdentifier)}')" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
-                    <div class="gtooltip" style="display: none;">
+                <input type="hidden" id="ef" value="${row.ef}">
+                <input type="hidden" id="efv" value="${row.fv}">
+                <input type="hidden" id="gene" value="${row.gene_id}">
+                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible"></td>
+                <td class="collapsible_alt padded genename">
+                    <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
+                    <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
                         <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
                         <c:if test="${!empty row.gene.goTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
                         <c:if test="${!empty row.gene.interProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
                     </div>
                 </td>
-                <td style="border-bottom:1px solid #CDCDCD">${row.gene_species}</td>
-                <td style="border-bottom:1px solid #CDCDCD"><fmt:message key="head.ef.${row.ef}"/></td>
-                <td style="border-bottom:1px solid #CDCDCD">${row.fv}</td>
-                <td style="border-bottom:1px solid #CDCDCD" class="acounter">
+                <td class="padded wrapok">${row.gene_species}</td>
+                <td class="padded wrapok"><fmt:message key="head.ef.${row.ef}"/></td>
+                <td class="padded wrapok">${row.fv}</td>
+                <td class="acounter">
                     <c:choose>
                         <c:when test="${row.mixedCell}">
-                            <div style="width:26px; padding-left: 25px;position:relative">
                                 <div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
                                     <div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
                                     <div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
-                            </div>
                         </c:when>
                         <c:otherwise>
-                            <div style="width:26px;position: relative; left: 25px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
-                                <div class="osq"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
+                                <div class="osq" style="background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
                                     <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
-                            </div>
                         </c:otherwise>
                     </c:choose>
                 </td>
-                <td style="border-bottom:1px solid #CDCDCD"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
+                <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
-            <tr class="expand-child" style="background-color:#C3C3C3;">
-                <td colspan="6" style="height: 22px;">
-                    <span style="padding-left: 5px; color: white; font-weight: bold; ">Experiments</span>
-                </td>
+            <tr class="expand-child">
+                <th colspan="6" class="header padded" style="text-align: left;">Experiments</th>
             </tr>
             <c:forEach var="exp" items="${row.exp_list}">
 
-                <tr class="expand-child" style="background-color: #F5F5DC;">
+                <tr class="expand-child">
 
 
-                    <td style="padding-left: 5px;">
-                        <div><a target="_blank" style="font-weight: bold" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a></div>
+                    <td class="padded genename">
+                        <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
                     </td>
-                    
-                    <td colspan="3">
-                    	<span>${exp.experimentName}</span>
+                    <td class="padded wrapok" colspan="3" style="padding-right:70px">
+                    	${exp.experimentName}
                     </td>
-
-                    <td> <div onclick="window.open('experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}')" 
-                    	id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"  class="thumb" style="width:90px;height:45px;">
-                        <img align="center" src="images/indicator.gif"/>
-                    </div>
-                       
+                    <td>
+                        <div style="position:relative;height:100%;min-height:45px;width:100%;">
+                            <div style="position:absolute;right:0;top:0;min-height:45px;height:100%;width:90px;background:white;">
+                                <div onclick="window.open('experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}')"
+                                     id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"
+                                     class="thumb" style="width:90px;height:45px;">
+                                    <img alt="Waiting..." src="images/indicator.gif"/>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
-                            <td style="color: red">
+                            <td style="color: red" class="padded">
                                 &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
                         <c:otherwise>
-                            <td style="color: blue">
+                            <td style="color: blue" class="padded">
                                 &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>
                     </c:choose>
                 </tr>
             </c:forEach>
-             <tr class="expand-child" style="background-color:#C3C3C3; color: white; font-weight: bold; ">
-                <td colspan="6" style="height:22px;">
-                    &nbsp;
-                </td>
+            <tr class="expand-child">
+                <th colspan="6" style="padding:1px 0 0 0;background:#cdcdcd;"></th>
             </tr>
         </c:forEach>
         </tbody>
-        <tfoot>
-        <tr>
-            <td colspan="7" align="left"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a></td>
-        </tr>
-        </tfoot>
     </table>
 </c:otherwise>
 </c:choose>
+
+<div class="pagination_ie page_long"></div>
+
+<c:set var="timeFinish" value="${u:currentTime()}"/>
+<p>
+    Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.
+</p>
+
 </td><!-- /id="resultpane" -->
 
 </tr>

@@ -55,7 +55,7 @@
 							}
 						}
 						// show all the table cells
-						$("td", $trc)[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
+						$("td,th", $trc)[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
 						// get the next row
 						$trc = $trc.next();
 					}
@@ -76,7 +76,7 @@
 						var $tr = $(this).next();
 						while( $tr.hasClass(settings.classChildRow) ){
 							// hide each table cell
-							$tr = $tr.find("td").hide().end().next();
+							$tr = $tr.find("td,th").hide().end().next();
 						}
 					});
 	  	}

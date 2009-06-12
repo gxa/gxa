@@ -341,3 +341,49 @@ div.efoinput {
 .ac_results .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
 
 .ac_results .tree a.hl { color: #005555; }
+
+.tablesorter tr.expand-child td, .tablesorter tr.expand-child th {
+    display: none;
+}
+
+.tablesorter thead th.header {
+    background: no-repeat center right;
+}
+
+.tablesorter thead th.header {
+	background-image: url(images/bg.gif);
+}
+
+.tablesorter thead th.headerSortUp {
+    background-image: url(images/asc.gif);
+}
+
+.tablesorter thead th.headerSortDown {
+    background-image: url(images/desc.gif);
+}
+
+#squery td.wrapok { white-space: normal; }
+
+/* expand/collapse */
+#squery td.collapsible {
+    padding: 0 0 3px 0;
+    vertical-align:top;
+}
+
+.collapsible a.collapsed {
+    margin: 2px;
+    display: block;
+    width: 15px;
+    height: 15px;
+    background: url(images/tablesorter_expand.png) no-repeat 3px 3px;
+    outline: 0;
+}
+
+.collapsible a.expanded {
+    margin: 2px;
+    display: block;
+    width: 15px;
+    height: 15px;
+    background: url(images/tablesorter_expand.png) no-repeat -24px 3px;
+    outline: 0;
+}

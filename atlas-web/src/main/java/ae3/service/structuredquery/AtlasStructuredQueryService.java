@@ -792,6 +792,11 @@ public class AtlasStructuredQueryService {
 
             ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, pup, pdn);
             row.setGene(gene);
+            Collections.sort(e.getValue(), new Comparator<ListResultRowExperiment>() {
+                public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {
+                    return Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
+                }
+            });
             row.setExp_list(e.getValue());
             result.addListResult(row);
 

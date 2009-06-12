@@ -13,8 +13,7 @@
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <script type="text/javascript" src="scripts/jquery.progressbar.js"></script>
 <link rel="stylesheet" href="atlas.css" type="text/css" />
-<link rel="stylesheet" href="listView.css" type="text/css" />
-<link rel="stylesheet" href="geneView.css" type="text/css" />
+<link rel="stylesheet" href="structured-query.css" type="text/css" />
 <script type="text/javascript">
 	$(document).ready(function() {
 	var empty=true;
@@ -64,19 +63,19 @@
 <c:choose>
 	<c:when test="${!empty downloads}">
 		 <div style="position: relative; padding-left: 3px; top: 35px;" class="header"> List of your current downloads </div> 
-	       <table id="grid" cellpadding="2" style="position: relative; top: 40px;">
+	       <table id="squery" style="position: relative; top: 40px;">
 	       	<thead>
-	       		<th style="padding-left: 3px;">ID</th>
-	       		<th style="padding-left: 3px;">Query</th>
-	       		<th style="padding-left: 3px;">Download Progress</th>
-	       		<th style="padding-left: 3px;">File</th>
+	       		<th class="padded header">ID</th>
+	       		<th class="padded header">Query</th>
+	       		<th class="padded header">Download Progress</th>
+	       		<th class="padded header">File</th>
 	       	</thead>
 	       		<c:forEach items="${downloads}" var="download" varStatus="i">
 	        		<tr>
-	        			<td style="padding-left: 3px;">${i.index+1}</td>
-	        			<td style="padding-left: 3px;"><c:out value="${download.query}"></c:out> </td>
-	        			<td style="padding-left: 3px;"><span class="progressBar" id="query${i.index}"><c:out value="${download.progress}"></c:out></span></td>
-	        			<td style="padding-left: 3px;"><input id="btn_${i.index}" disabled="disabled" type="button" onclick="getFile(${i.index})" value="Get file" /></td>
+	        			<td class="padded">${i.index+1}</td>
+	        			<td class="padded"><c:out value="${download.query}"></c:out> </td>
+	        			<td class="padded"><span class="progressBar" id="query${i.index}"><c:out value="${download.progress}"></c:out></span></td>
+	        			<td class="padded"><input id="btn_${i.index}" disabled="disabled" type="button" onclick="getFile(${i.index})" value="Get file" /></td>
 	        		</tr>
 	        		
 	        	</c:forEach>
