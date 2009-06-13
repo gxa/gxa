@@ -52,6 +52,7 @@ Gene Expression
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <link rel="stylesheet" href="atlas.css" type="text/css" />
+<link rel="stylesheet" href="listview.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 <script type="text/javascript" src="scripts/common-query.js"></script>
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/ui-lightness/jquery-ui.css" type="text/css" media="screen" />

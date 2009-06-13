@@ -11,14 +11,15 @@ function initPaging(){
             	callback: pageselectCallback
          	});
          	
-    $("#squery").tablesorter({headers: { 0: { sorter: false}}});
+    $("#grid").tablesorter({headers: { 0: { sorter: false}}});
+
 }
 
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id * ${result.rowsPerPage});
 		//$('#topGenes').html("<img src='images/indicator.gif' />");
 		$('#topGenes').load("expGenes",{eid:'${eid}',eAcc:'${eAcc}',gid:'${gid}',query:'top',from:fromPage}, function(){
-			 $("#squery").tablesorter({headers: { 0: { sorter: false}}});
+			 $("#grid").tablesorter({headers: { 0: { sorter: false}}});
 			//$('#topGenes').fadeIn("slow");
 		});
 
