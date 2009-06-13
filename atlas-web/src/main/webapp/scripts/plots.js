@@ -43,22 +43,16 @@ function drawPlot(jsonObj, plot_id){
 			//Tooltip
 			var previousPoint = null;
 			$('#'+plot_id).bind("plothover", function (event, pos, item) {
-
         		if (item) {
           			if (previousPoint != item.datapoint) {
-          			
 				          previousPoint = item.datapoint;
 				                $("#tooltip").remove();
-				                 var x = item.datapoint[0].toFixed(2),
-				                     y = item.datapoint[1].toFixed(2);
-				                     
-				                 showTooltip(item.pageX, item.pageY,item.series.label,plot_id);
-				                    
+				                 showThumbTooltip(item.pageX, item.pageY,item.series.label);   
 				                }
         		}else {
 				          $("#tooltip").remove();
 				           previousPoint = null;            
-				       }
+				      }
 			});
         				
         			/*	
@@ -74,7 +68,6 @@ function drawPlot(jsonObj, plot_id){
         				$("#"+eid+'_'+gid+'_'+label+'_td').css('background-color',color);
         			}*/	
    					 
-
 				return plot;	
 				}// if(o.series)
 	}
@@ -210,18 +203,18 @@ function drawPlot(jsonObj, plot_id){
                       	}
 	}
 	
-	function showTooltip(x, y, contents, plot_id) {
+	function showThumbTooltip(x, y, contents) {
 		if(contents!='Mean'){
 	        $('<div id="tooltip">' + contents + '</div>').css( {
 		            position: 'absolute',
 		            display: 'none',
-		            top: 50,
-		            left:x-500,
+		            top: y+5,
+		            left:x+5,
 		            border: '1px solid #fdd',
 		            padding: '2px',
 		            'background-color': '#fee',
 		            opacity: 0.80
-	       	 }).appendTo("#"+plot_id).fadeIn(200);
+	       	 }).appendTo("body").fadeIn(200);
     	}
     }
     
@@ -246,15 +239,20 @@ function drawPlot(jsonObj, plot_id){
  			drawEFpagination(eid,gid,ef,'bar');
     }
     
-    function plotZoomOverview(jsonObj){
+    function plotZoomOverview(jsonObj,plot){
     	var divElt = $('#plot_thm');
 		divElt.width(550);divElt.height(55);
 		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{yaxis: {ticks: 0 },points:{show: true}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
 		$("#plot_thm #plotHeader").remove();
-		bindZooming(overview,jsonObj);
+		bindZooming(overview,jsonObj,plot);
+		
     }
     
+    
     function bindZooming(overview,jsonObj){
+    	$("#zoomin").show();
+    	$("#zoomout").show();
+    	
     	$('#plot').unbind("plotselected");
     	$('#plot').bind("plotselected", function (event, ranges) {
 			// do the zooming
@@ -264,11 +262,83 @@ function drawPlot(jsonObj, plot_id){
 
 			// don't fire event on the overview to prevent eternal loop
 			overview.setSelection(ranges, true);
+			return plot;
 							
 	    });
 	    $('#plot_thm').unbind("plotselected");
 		$('#plot_thm').bind("plotselected", function (event, ranges) {
 			plot.setSelection(ranges);
+		});
+		
+		$("#zoomin").unbind("click");
+		$("#zoomin").bind("click",function(){
+			var f,t,max,range,oldf,oldt;
+			max = plot.getData()[0].data.length;
+			if(overview.getSelection() != null ){
+				oldf=overview.getSelection().xaxis.from;
+				oldt=overview.getSelection().xaxis.to;
+				range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
+			}else{
+				range = max;
+				oldt=max;
+				oldf=0;
+			}
+			var windowSize = Math.floor(2/3*range);
+			var offset = Math.floor((range-windowSize)/2);
+			f=oldf+offset;
+			t=Math.floor(oldt-offset);
+			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});
+					   		
+		});
+		$("#zoomout").unbind("click");
+		$("#zoomout").bind("click",function(){
+			var f,t,max,range,oldf,oldt;
+			max = plot.getData()[0].data.length;
+			if(overview.getSelection() != null ){
+				range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
+				oldf=overview.getSelection().xaxis.from;
+				oldt=overview.getSelection().xaxis.to;
+			}else{
+				return;
+			}
+			var windowSize = Math.floor(3/2*range);//alert(windowSize);
+			var offset = Math.max(Math.floor((windowSize-range)/2),2);
+			f= Math.max(oldf-offset,0);
+			t= Math.min(Math.floor(oldt+offset),max);
+			
+			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});
+					   		
+		});
+		$("#panright > img").unbind("click");
+		$("#panright > img").bind("click",function(){
+			var f,t,max,range,oldf,oldt;
+			max = plot.getData()[0].data.length;
+			if(overview.getSelection() != null ){
+				range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
+				oldf=overview.getSelection().xaxis.from;
+				oldt=overview.getSelection().xaxis.to;
+			}else{
+				return;
+			}
+			t= Math.min(oldt+3,max);
+			f= t-range;
+			
+			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});		   		
+		});
+		$("#panleft > img").unbind("click");
+		$("#panleft > img ").bind("click",function(){
+			var f,t,max,range,oldf,oldt;
+			max = plot.getData()[0].data.length;
+			if(overview.getSelection() != null ){
+				range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
+				oldf=overview.getSelection().xaxis.from;
+				oldt=overview.getSelection().xaxis.to;
+			}else{
+				return;
+			}
+			f= Math.max(oldf-3,0);
+			t= f+range;
+			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});		   		
 		});
     }
     
@@ -374,7 +444,7 @@ function drawPlot(jsonObj, plot_id){
     		success: function(jsonObj){
     			if(jsonObj.series){
    					plot = $.plot($('#plot'), jsonObj.series,jsonObj.options);
-   					plotZoomOverview(jsonObj);
+   					
    					drawEFpagination(eid,gid,ef,'large');
    					assayIds = jsonObj.assay_ids;
    					if(initial){
@@ -411,7 +481,9 @@ function drawPlot(jsonObj, plot_id){
 						var gID = gids[0];
 						
 						genesToPlot[gName]=gID;
-						
+						$("#plot").bind("mouseleave",function(){
+							$("#tooltip").remove();
+						});
 	   					
 	   					$("#plot").bind("plotclick", function (event, pos, item) {
 				        if (item) {
@@ -441,11 +513,26 @@ function drawPlot(jsonObj, plot_id){
 				            $("#bioSampleData").html(contents);
 				        }
 					    });
+					    var previousPoint = null;
+					    $("#plot").bind("plothover",function(event,pos,item){
+					    	if(item){
+					    		if (previousPoint != item.datapoint) {
+                    				previousPoint = item.datapoint;
+                    				$("#tooltip").remove();
+                    				showSampleTooltip(item.dataIndex,item.pageX,item.pageY);
+					    		}
+					    		
+					    	} else {
+					                $("#tooltip").remove();
+					                previousPoint = null;            
+					            }
+					    	
+					    });
 					    
-					   
+					   drawZoomControls();
 				        
    					}
-   					
+   					plotZoomOverview(jsonObj,plot);
    					populateSimMenu(jsonObj);
    					 $(".rmButton").hover(function(){
 				        	$(this).attr("src","images/closeButtonO.gif");
@@ -463,6 +550,87 @@ function drawPlot(jsonObj, plot_id){
     	});
     }
     
+    
+    function drawZoomControls(){
+    	var contents="";
+    	contents= 	'<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px; display:hidden"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>' +
+    				'<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer; display:hidden"><img src="images/zoomout.gif" title="Zoom out"></div>' +
+    				'<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer; display:hidden"><img src="images/panright.gif" title="pan right"></div>' +
+    				'<div id="panleft" style="z-index:0;position: relative; left: -15px; top: -69px;cursor:pointer; display:hidden"><img src="images/panleft.gif" title="pan left"></div>';
+    	$("#zoomControls").html(contents);
+    	
+    	$("#zoomin > img").hover(
+				function(){
+						$(this).attr("src","images/zoominO.gif");},
+				function(){
+				        	$(this).attr("src","images/zoomin.gif");
+				        }).mousedown(function(){
+      						$(this).attr("src","images/zoominC.gif");
+    					}).mouseup(function(){
+      						$(this).attr("src","images/zoominO.gif");
+    					});
+		$("#zoomout > img").hover(
+				function(){
+						$(this).attr("src","images/zoomoutO.gif");},
+				function(){
+				        	$(this).attr("src","images/zoomout.gif");
+				        }).mousedown(function(){
+      						$(this).attr("src","images/zoomoutC.gif");
+    					}).mouseup(function(){
+      						$(this).attr("src","images/zoomoutO.gif");
+    					});
+    	$("#panright > img").hover(
+				function(){
+						$(this).attr("src","images/panrightO.gif");},
+				function(){
+				        	$(this).attr("src","images/panright.gif");
+				        }).mousedown(function(){
+      						$(this).attr("src","images/panrightC.gif");
+    					}).mouseup(function(){
+      						$(this).attr("src","images/panrightO.gif");
+    					});
+		$("#panleft > img").hover(
+				function(){
+						$(this).attr("src","images/panleftO.gif");},
+				function(){
+				        	$(this).attr("src","images/panleft.gif");
+				        }).mousedown(function(){
+      						$(this).attr("src","images/panleftC.gif");
+    					}).mouseup(function(){
+      						$(this).attr("src","images/panleftO.gif");
+    					});
+    }
+    
+    function showSampleTooltip(i,x,y){
+    	var sampleAttrJSON = eval('(' + sampleAttrs+ ')' );
+		var assay2samplesJSON = eval('(' + assay2samples+ ')' );
+		var charJSON = eval('('+characteristics+')');
+		var charValuesJSON = eval('('+charValues+')');
+			            
+		var sample_id = assay2samplesJSON[i][0];            
+		var contents = '<div> <ul>';
+			for (i = 0; i < charJSON.length; ++i) {
+			  	 var characteristic = charJSON[i];
+			   	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
+            	 var txtChar = curatedChars[characteristic];
+            	 contents+= '<li><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
+            }
+       contents+='</ul></div>';
+      
+		$('<div id="tooltip">' + contents + '</div>').css( {
+            position: 'absolute',
+            display: 'none',
+            top: y + 5,
+            'text-align':'left',
+            left: x + 5,
+            border: '1px solid #005555',
+            padding: '10px',
+            'background-color': '#EEF5F5',
+            opacity: 0.80
+        }).appendTo("body").fadeIn("fast");
+		
+		
+    }
 
 	function populateSimMenu(jsonObj){
 		var names = eval('(' + jsonObj.geneNames+ ')' );

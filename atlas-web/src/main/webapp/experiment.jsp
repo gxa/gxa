@@ -143,9 +143,7 @@ $(document).ready(function()
         	$("#qryResult").load("expGenes",{eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search' });
         	return false;
         });
-
-        
-        
+       
     } 
 );
 
@@ -173,7 +171,6 @@ function redrawForEF(eid, ef, efTxt){
 function radioLabel(label){
 	return label + '&nbsp;<img id="'+label+'"class="rmButton" height="8" src="images/closeButton.gif"/>';
 }
-
 
 function removeGene(gname){
 	if(genesToPlot.length == 1)
@@ -301,9 +298,11 @@ function removeGene(gname){
 					<table>
 						<tr>
 							<td align="left">
+							<!-- <div><img src="plotHeader.jsp" usemap="#efvmap"> </div> -->
 								<div class="bigplot" id="plot" style="width: 600px; height: 300px;top: 10px;"></div>
 								<!-- <div style="font-size:x-small; color: gray;padding-top: 10px;">Click and drag a selection below to zoom in above <span style="cursor: pointer; text-decoration: underline" id="zoom">(hide)</span></div> -->
 								<div id="plot_thm" style="border:thin; width: 600px; height: 100px;top:0px;left:25px"> </div>
+								<div id ="zoomControls" style="position:absolute; left:616px; top:435px;"></div>
 							</td>
 							<td nowrap="nowrap">
 								<div id="legend"></div>
@@ -312,7 +311,7 @@ function removeGene(gname){
 						
 						<tr>
 							<td>
-								<div class="sectionHeader" style="padding-top: 25px; padding-bottom: 10px">Sample Attributes</div>
+								<div class="sectionHeader" style="padding-top: 20px; padding-bottom: 10px">Sample Attributes</div>
 								<table>
 									<tr>
 										<td>
@@ -326,7 +325,7 @@ function removeGene(gname){
 														<div>
 															<ul>
 														 	<c:forEach var="value" items="${exp.sampleCharacterisitcValues[char]}">
-														 		<li><a href="javascript:highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>')">${value}</a></li>
+														 		<li><a style="text-transform: capitalize;" href="javascript:highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>')">${value}</a></li>
 														 	</c:forEach>
 														 	</ul>
 														</div>
@@ -337,7 +336,7 @@ function removeGene(gname){
 															<div>
 																<ul>
 															 	<c:forEach var="value" items="${exp.factorValuesForEF[EF]}">
-															 		<li><a href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true)">${value}</a></li>
+															 		<li><a style="text-transform: capitalize;" href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true)">${value}</script></a></li>
 															 	</c:forEach>
 															 	</ul>
 															</div>

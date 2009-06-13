@@ -1,3 +1,5 @@
+<%@page import="java.awt.image.WritableRenderedImage"%>
+<%@page import="output.DiagonalTextRenderer"%>
 <%@page import="org.json.JSONStringer"%>
 <%@ page import="org.json.JSONObject"%>
 <%@ page import="org.json.JSONException" %>

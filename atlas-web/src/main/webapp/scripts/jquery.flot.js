@@ -114,6 +114,9 @@
         this.draw = draw;
         this.clearSelection = clearSelection;
         this.setSelection = setSelection;
+        this.getSelection = getSelection;
+        this.width = function () { return plotWidth; }
+        this.height = function () { return plotHeight; }
         this.getCanvas = function() { return canvas; };
         this.getPlotOffset = function() { return plotOffset; };
         this.getData = function() { return series; };
@@ -233,7 +236,7 @@
 
                 // copy the rest
                 s.lines = $.extend(true, {}, options.lines, s.lines);
-                s.points = $.extend(true, {}, options.points, s.points);
+                s.points = $.extend(true, {}, s.points,options.points);
                 s.bars = $.extend(true, {}, options.bars, s.bars);
                 if (s.shadowSize == null)
                     s.shadowSize = options.shadowSize;
@@ -1036,6 +1039,8 @@
                 	
                     var m = markings[i],
                     xrange = extractRange(m, "x");
+                    yrange = extractRange(m, "y");
+                    
                     if(!m.label)
                 		continue;
                 		
@@ -1045,16 +1050,28 @@
                     xrange.from = Math.max(xrange.from, xrange.axis.min);
                     xrange.to = Math.min(xrange.to, xrange.axis.max);
                     
+                    yrange.from = Math.max(yrange.from, yrange.axis.min);
+                    
                     if (xrange.from == xrange.to)
                         continue;	
                 		
                     xrange.from = xrange.axis.p2c(xrange.from);
                     xrange.to = xrange.axis.p2c(xrange.to);
+                    yrange.from = yrange.axis.p2c(yrange.to);
                     var width = (Math.floor(xrange.to)-Math.floor(xrange.from));
-                    //if(width>50){
-                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' +  m.label  + "</div>";
+                    if(width>50){
+                    	var header = '<div style="text-transform: capitalize;background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' +  m.label  + "</div>";
                     	html += header;
-                    //}
+                    }else{
+                    	var width_exp= m.label.length*10;
+                    	var header_exp = '<div style=\'position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 20) +'px;left:' + ((plotOffset.left + Math.floor(xrange.from))-(width_exp/2)) + 'px;width:'+ width_exp + 'px;text-align:center; height:15px; overflow:hidden;\' title=\''+m.label+'\' class=\'tickLabel\'>'+m.label+' </div>';
+                    	header_exp="";
+                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">'+
+                    					'<img src="images/i.gif"></div>';
+                    	
+                    	html += header;
+                    	//html += header_exp;
+                    }
                     offset+= xrange.from;    
                 }
                 html += '</div>';
@@ -2022,6 +2039,27 @@
             triggerRedrawOverlay();
             if (!preventEvent)
                 triggerSelectedEvent();
+        }
+        
+        function getSelection() {
+            if (!selectionIsSane())
+                return null;
+            
+            var x1 = Math.min(selection.first.x, selection.second.x),
+                x2 = Math.max(selection.first.x, selection.second.x),
+                y1 = Math.max(selection.first.y, selection.second.y),
+                y2 = Math.min(selection.first.y, selection.second.y);
+
+            var r = {};
+            if (axes.xaxis.used)
+                r.xaxis = { from: axes.xaxis.c2p(x1), to: axes.xaxis.c2p(x2) };
+            if (axes.x2axis.used)
+                r.x2axis = { from: axes.x2axis.c2p(x1), to: axes.x2axis.c2p(x2) };
+            if (axes.yaxis.used)
+                r.yaxis = { from: axes.yaxis.c2p(y1), to: axes.yaxis.c2p(y2) };
+            if (axes.y2axis.used)
+                r.y2axis = { from: axes.y2axis.c2p(y1), to: axes.y2axis.c2p(y2) };
+            return r;
         }
         
         function selectionIsSane() {
