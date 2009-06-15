@@ -403,7 +403,7 @@ function drawPlot(jsonObj, plot_id){
     	}
     }
     
-    function highlightSamples(sc,scv,scText,assay){
+    function highlightSamples(sc,scv,scText,assay, self){
     	var sampleAttrJSON = eval('(' + sampleAttrs+ ')' );
     	var assay2samplesJSON = eval('(' + assay2samples+ ')' );
     	
@@ -432,6 +432,9 @@ function drawPlot(jsonObj, plot_id){
     		}
     	}
     	$("#bioSampleData").html('<div> <ul> <li><span style="font-weight: bold">'+scText+'</span>:'+scv+'</li></ul></div>');
+
+	$(".sample_attr_value").each(function() { $(this).css('font-weight','normal') });
+	$(self).css('font-weight', 'bold');
     }
     
     
