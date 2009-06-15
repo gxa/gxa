@@ -630,7 +630,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     <td style="border-left:none">
                         <div style="position:relative;height:100%;min-height:45px;width:100%;">
                             <div style="position:absolute;right:0;top:0;min-height:45px;height:100%;width:90px;background:white;">
-                                <a href="experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}" style="border:none;text-decoration:none;outline:none;">
+                                <a title="Show expression profile" href="experiment?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}" style="border:none;text-decoration:none;outline:none;">
                                     <div
                                      id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"
                                      class="thumb" style="width:90px;height:45px;text-align:center" title="Click to view experiment detail">
@@ -708,12 +708,12 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <span class="expname"></span>
 
                         <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..." /><a class="proflink" href="" style="border:none;outline:none;text-decoration:none" target="_blank"><div style="display:none" class="plot"></div></a></td>
+                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..." /><a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none" target="_blank"><div style="display:none" class="plot"></div></a></td>
                             <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                         </tr></table>
                 
                         <div style="margin-top:5px;font-size:10px;">
-                            Show <a class="proflink" target="_blank" title="Show expression profile in ArrayExpress Warehouse" href="">expression profile</a>
+                            Show <a class="proflink" target="_blank" title="Show expression profile" href="">expression profile</a>
                             &nbsp;/&nbsp;
                             <a class="detailink" target="_blank" title="Show experiment details in ArrayExpress Archive" href="">experiment details</a>
                         </div>

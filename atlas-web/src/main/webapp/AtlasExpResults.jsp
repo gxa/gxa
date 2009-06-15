@@ -151,7 +151,7 @@ if (geneId != null) {
 					<!-- div style="position:relative"-->
 					<tr align="left">
 						<td align="center">
-							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div>
+							<a  title="Show expression profile" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div></a>
 							<span style="font-size:xx-small; color: gray;">Click and drag selection to zoom in above</span>
 							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm"> </div>
 						</td>
@@ -181,7 +181,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
+			Show <a target="_blank" title="Show expression profile in detail" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>
