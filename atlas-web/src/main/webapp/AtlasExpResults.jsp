@@ -181,7 +181,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a target="_blank" title="Show expression profile in detail" href="experiment.jsp?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
+			Show <a title="Show expression profile in detail" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>

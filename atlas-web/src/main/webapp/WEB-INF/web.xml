@@ -87,6 +87,14 @@
     </servlet>
 
     <servlet>
+        <display-name>Experiment View</display-name>
+        <servlet-name>experiment</servlet-name>
+        <jsp-file>/experiment.jsp</jsp-file>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+
+    <servlet>
         <display-name>Search JSP Servlet</display-name>
         <servlet-name>qr</servlet-name>
         <jsp-file>/search.jsp</jsp-file>
@@ -152,6 +160,11 @@
     <servlet-mapping>
         <servlet-name>gene</servlet-name>
         <url-pattern>/gene</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>experiment</servlet-name>
+        <url-pattern>/experiment</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
