@@ -161,6 +161,8 @@ public class AtlasStructuredQueryService {
             StringBuffer sb = new StringBuffer(solrq);
             if(scores.length() > 0)
                 sb.append(" AND _val_:\"sum(").append(scores).append(")\"");
+            else
+                sb.append(" AND _val_:\"sum(cnt_efo_EFO_0000001_up,cnt_efo_EFO_0000001_dn)\"");
             return sb.toString();
         }
 
