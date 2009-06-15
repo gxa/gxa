@@ -53,9 +53,10 @@ function initPaging(){
 	<tbody>
 		<c:forEach var="row" items="${f_genes}" varStatus="r">
 			<tr id="${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}">
-				<td style="vertical-align: top;padding-top:2px"><img src="images/iconf.png"
-					alt="plot" title="Click to plot profile"
-					onclick="addGeneToPlot('${row.gene_id}','${row.gene_name}','${eid}','${row.ef}')" />
+				<td style="vertical-align: top;padding-top:2px"><a href="#" onclick="addGeneToPlot('${row.gene_id}','${row.gene_name}','${eid}','${row.ef}')" alt="plot" title="Click to plot profile">
+				<img border="0" src="images/iconf.png"/>
+				</a>
+				</td>
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px"
 					class="padded" ><a class="genename" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
 					<div class="gtooltip" style="display: none;">

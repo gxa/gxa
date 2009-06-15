@@ -33,7 +33,10 @@
 Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp"/>
 
-<script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
+<script src="scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
+
+
+
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
 
 <script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
@@ -45,23 +48,16 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 <script type="text/javascript" src="scripts/feedback.js"></script>
 <script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="scripts/jquery.selectboxes.min.js"></script>
+<script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+<script type="text/javascript" src="scripts/common-query.js"></script>
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 <link rel="stylesheet" href="structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="atlas.css" type="text/css"/>
 <link rel="stylesheet" href="listview.css" type="text/css"/>
 <link rel="stylesheet" href="geneView.css" type="text/css"/>
-<script type="text/javascript" src="scripts/common-query.js"></script>
+<link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css" />
 
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/ui-lightness/jquery-ui.css"
-      type="text/css" media="screen"/>
-<link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css"
-      media="screen"/>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js" type="text/javascript"></script>
-<script src="http://jquery-ui.googlecode.com/svn/tags/latest/external/bgiframe/jquery.bgiframe.min.js"
-        type="text/javascript"></script>
-<script src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/minified/i18n/jquery-ui-i18n.min.js"
-        type="text/javascript"></script>
 
 <style type="text/css">
     .contents {
@@ -357,13 +353,13 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                             </tr>
                             <tr valign="top">
                                 <td valign="top">
-                                    <table width="600" style="border:1px solid #CDCDCD;margin-top:30px;height:200px" cellpadding="0" cellspacing="0">
+                                    <table width="600" style="border:1px solid #5E9E9E;margin-top:30px;height:200px" cellpadding="0" cellspacing="0">
 					<tr>
-                                            <th style="background-color:#EDF6F5;padding:5px;border-right:1px solid #CDCDCD" class="header">Sample Attributes</th>
+                                            <th style="background-color:#EDF6F5;padding:5px;border-right:0px solid #CDCDCD" class="header">Sample Attributes</th>
 			                    <th style="background-color:#EDF6F5;padding:5px" class="header">Attribute Values</th>
 					</tr>
                                         <tr>
-                                            <td width="200" style="border-right:1px solid #CDCDCD">
+                                            <td width="200" style="border-bottom:0px solid #CDCDCD">
                                                 <ul style="margin: 0px; padding: 5px">
                                                     <c:forEach var="char" items="${exp.sampleCharacteristics}">
                                                         <li style="list-style-type: none; padding-left: 0px" id="${char}_title" class="sample_attr_title"><a href="#">
