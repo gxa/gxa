@@ -48,10 +48,10 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
             efos.put(id, plCreator.make());
 
         if(withChildren)
-            for(Efo.Term c : efo.getTermChildren(id)) {
-                if (!efos.containsKey(c.getId()))
-                    efos.put(c.getId(), plCreator.make());
-                autoChildren.add(c.getId());
+            for(String c : efo.getTermAndAllChildrenIds(id)) {
+                if (!c.equals(id) && !efos.containsKey(c))
+                    efos.put(c, plCreator.make());
+                autoChildren.add(c);
             }
     }
 
