@@ -630,12 +630,12 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     <td style="border-left:none">
                         <div style="position:relative;height:100%;min-height:45px;width:100%;">
                             <div style="position:absolute;right:0;top:0;min-height:45px;height:100%;width:90px;background:white;">
-                                <a href="experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}">
+                                <a href="experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}" style="border:none;text-decoration:none;outline:none;">
                                     <div
                                      id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"
                                      class="thumb" style="width:90px;height:45px;text-align:center" title="Click to view experiment detail">
                                       <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
-			            </div>
+                                    </div>
                                 </a>
                             </div>
                         </div>
