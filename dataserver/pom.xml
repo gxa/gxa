@@ -6,7 +6,7 @@
 	<groupId>uk.ac.ebi.microarray.atlas</groupId>
 	<artifactId>dataserver</artifactId>
 	<version>1.0</version>
-	<name>ArrayExpress Atlas Dataserver</name>
+	<name>Gene Expression Atlas Dataserver</name>
 
 	<parent>
 		<groupId>uk.ac.ebi.microarray.atlas</groupId>

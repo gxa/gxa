@@ -10,7 +10,7 @@
 %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas
+Gene Expression Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />

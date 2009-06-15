@@ -6,7 +6,7 @@
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
-    <name>ArrayExpress Atlas</name>
+    <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <scm>
@@ -176,7 +176,7 @@
         <profile>
             <id>prod-smithers</id>
             <properties>
-                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR</solr.data.directory>
+                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR.SMITHERS</solr.data.directory>
                 <indexbuilder.ftp>nowhere</indexbuilder.ftp>
                 <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
                 <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
@@ -189,7 +189,7 @@
                 <atlas.dbName>AEDWP_SMITHERS</atlas.dbName>
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
-                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.smithers/</atlas.netCDFlocation>
+                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.ATLAS.SMITHERS/</atlas.netCDFlocation>
 
                 <atlas.googleanalytics.script><![CDATA[
     <script type="text/javascript">
@@ -208,7 +208,7 @@
         <profile>
             <id>prod-otto</id>
             <properties>
-                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR</solr.data.directory>
+                <solr.data.directory>/ebi/ArrayExpress-files/ATLAS.SOLR.OTTO</solr.data.directory>
                 <indexbuilder.ftp>nowhere</indexbuilder.ftp>
                 <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
                 <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
@@ -221,7 +221,7 @@
                 <atlas.dbName>AEDWP_OTTO</atlas.dbName>
                 <atlas.log.priority>INFO</atlas.log.priority>
                 <atlas.log.appender>atlas-log</atlas.log.appender>
-                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWP.otto/</atlas.netCDFlocation>
+                <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.ATLAS.OTTO/</atlas.netCDFlocation>
 
                 <atlas.googleanalytics.script><![CDATA[
     <script type="text/javascript">
@@ -380,13 +380,14 @@
         <jdbc.dw.username>aemart</jdbc.dw.username>
         <jdbc.dw.password>marte</jdbc.dw.password>
         <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
-        <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.DWDEV/</atlas.netCDFlocation>
+        <atlas.netCDFlocation>/ebi/ArrayExpress-files/NetCDFs.ATLAS/</atlas.netCDFlocation>
         <atlas.log.priority>INFO</atlas.log.priority>
         <atlas.log.appender>atlas-log</atlas.log.appender>
 
         <atlas.googleanalytics.script/>
         <atlas.protonotes.script/>
-        <atlas.last.experiment>700377881</atlas.last.experiment>
-        <atlas.data.release>9.3</atlas.data.release>
+	<!--<atlas.last.experiment>700377881</atlas.last.experiment>-->
+	<atlas.last.experiment>799549701</atlas.last.experiment>
+        <atlas.data.release>9.6</atlas.data.release>
     </properties>
 </project>

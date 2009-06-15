@@ -5,7 +5,7 @@
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <img src="images/atlas-logo.png" alt="Atlas of Gene Expression" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
+            <img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
         </td>
 
         <td width="100%" valign="bottom" align="right">
@@ -96,21 +96,5 @@
         </tr>
     </table>
 
-<!--
-    <div id="newexplist">
-        ArrayExpress Atlas Version <c:out value="${u:getProp('atlas.buildNumber')}"/> covers <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, and <c:out value="${service.stats.numEfvs}"/> conditions. <c:out value="${f:length(service.stats.newExperiments)}"/> new experiments were loaded since the last data release:
-        <table>
-            <c:forEach var="e" items="${service.stats.newExperiments}" varStatus="i">
-                <c:if test="${i.index < 5}">
-                    <tr>
-                        <td><nobr><b><a href="qrs?gprop_0=&gval_0=&fexp_0=UP_DOWN&fact_0=experiment&specie_0=&fval_0=${u:escapeURL(e.accession)}"><c:out value="${e.accession}"/></a></b></nobr></td>
-                        <td><c:out value="${e.assayCount}"/></td>
-                        <td><c:out value="${e.descr}" escapeXml="false"/></td>
-                    </tr>
-                </c:if>
-            </c:forEach>
-        </table>
-    </div>
--->
     <input type="hidden" name="view" value="hm"/>
 </form>

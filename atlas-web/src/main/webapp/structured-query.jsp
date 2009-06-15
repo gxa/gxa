@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-Atlas Search Results - ArrayExpress Atlas of Gene Expression
+Gene Expression Atlas Search Results - Gene Expression Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
 <!-- <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" /> -->
@@ -41,7 +41,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <table style="position:relative; z-index:1; top:58px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
         <tr>
             <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                <a href="index.jsp" title="ArrayExpress Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/></a>
+                <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
             </td>
             <td align="right" valign="bottom">
                 <a href="./">home</a> |
@@ -339,8 +339,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 			        atlas.popup('downloads.jsp');           
                 }
             });
-                    	
-            
+
+	    alert("Your download has been started! It may take a while, please be patient...");
         });
     });
                 

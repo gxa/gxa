@@ -5,7 +5,7 @@
     <artifactId>atlas-index-api</artifactId>
     <version>1.2</version>
     <packaging>jar</packaging>
-    <name>ArrayExpress Atlas Index Common API</name>
+    <name>Gene Expression Atlas Index Common API</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <parent>

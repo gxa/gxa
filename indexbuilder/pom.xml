@@ -5,7 +5,7 @@
     <artifactId>indexbuilder</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>ArrayExpress Atlas Indexbuilder</name>
+    <name>Gene Expression Atlas Indexbuilder</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <parent>

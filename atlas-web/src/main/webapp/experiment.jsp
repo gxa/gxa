@@ -215,10 +215,10 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             style="position: relative; z-index: 1; top: 58px; border-bottom: 1px solid #dedede; width: 100%; height: 30px">
         <tr>
             <td align="left" valign="bottom" width="55"
-                style="padding-right: 10px;"><a href="index.jsp"
-                                                title="ArrayExpress Atlas Homepage"><img border="0" width="55"
+                style="padding-right: 10px;"><a href="./"
+                                                title="Gene Expression Atlas Homepage"><img border="0" width="55"
                                                                                          src="images/atlas-logo.png"
-                                                                                         alt="Atlas of Gene Expression"/></a>
+                                                                                         alt="Gene Expression Atlas"/></a>
             </td>
             <td align="right" valign="bottom"><a href="./">home</a> | <a
                     href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
@@ -358,7 +358,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                             </tr>
                             <tr valign="top">
                                 <td valign="top">
-                                    <table width="600" style="border:1px solid #5E9E9E;margin-top:30px;height:200px" cellpadding="0" cellspacing="0">
+                                    <table width="600" style="border:1px solid #5E9E9E;margin-top:30px;height:150px" cellpadding="0" cellspacing="0">
 					<tr>
                                             <th style="background-color:#EDF6F5;padding:5px;border-right:0px solid #CDCDCD" class="header">Sample Attributes</th>
 			                    <th style="background-color:#EDF6F5;padding:5px" class="header">Attribute Values</th>

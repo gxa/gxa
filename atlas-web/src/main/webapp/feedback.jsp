@@ -30,7 +30,7 @@
             msg.setReplyTo(new InternetAddress[] {new InternetAddress(request.getParameter("e"))});
 
         // Setting the Subject and Content Type
-        msg.setSubject("ArrayExpress Atlas Feedback");
+        msg.setSubject("Gene Expression Atlas Feedback");
         msg.setContent(request.getParameter("f"), "text/plain");
 
         Transport.send(msg);

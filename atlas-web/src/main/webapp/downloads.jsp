@@ -58,7 +58,7 @@
             <table style="position:absolute; top:5px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
                 <tr>
                     <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                        <img border="0" width="55" src="images/atlas-logo.png" alt="Atlas of Gene Expression"/>
+                        <img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/>
                     </td>
                 </tr>
             </table>

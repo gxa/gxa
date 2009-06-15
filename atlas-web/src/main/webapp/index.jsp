@@ -10,10 +10,10 @@
 %>
 
 <jsp:include page="start_head.jsp"></jsp:include>
-ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Microarray Data
+Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 <jsp:include page="end_head.jsp"></jsp:include>
 
-	<meta name="Description" content="ArrayExpress Atlas of Gene Expression is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
+	<meta name="Description" content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
     <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
@@ -193,9 +193,9 @@ ArrayExpress Atlas of Gene Expression - Large Scale Meta-Analysis of Public Micr
 
   <div class="rcsfg">
    <div style="padding:10px">
-    <div style="font-weight:bold;margin-bottom:5px">ArrayExpress Atlas of Gene Expression</div>
+    <div style="font-weight:bold;margin-bottom:5px">Gene Expression Atlas</div>
 	
-ArrayExpress Atlas is a semantically enriched database of
+The Gene Expression Atlas is a semantically enriched database of
 meta-analysis based summary statistics over a curated subset of
 ArrayExpress Archive, servicing queries for condition-specific gene
 expression patterns as well as broader exploratory searches for

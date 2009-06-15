@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas-web</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <packaging>war</packaging>
-    <name>ArrayExpress Atlas WebApp</name>
+    <name>Gene Expression Atlas WebApp</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
     <parent>
