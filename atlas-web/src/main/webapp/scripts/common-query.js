@@ -341,15 +341,7 @@ var atlas = {};
 
         fvalfield
                 .defaultvalue("(all conditions)")
-                .autocomplete(atlas.homeUrl +"fval", atlas.makeFvalAcOptions('', true))
-                .result(function (unused, res) {
-                            var newprop = res.property;
-                            if(newprop != 'efo')
-                                newprop = '';
-                            factfield.val(newprop);
-                            var oldval = $(this).val();
-                            this.onkeyup = function () { if(oldval != this.value) factfield.val(''); };
-                        });
+                .autocomplete(atlas.homeUrl +"fval", atlas.makeFvalAcOptions('', true));
 
         atlas.bindEfoTree(fvalfield);
 
