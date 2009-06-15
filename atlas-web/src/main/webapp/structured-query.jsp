@@ -113,12 +113,12 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 </td>
                 <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
                     <c:if test="${heatmap}">
-                        <input type="radio" id="view" name="view" style="vertical-align:bottom" value="hm" checked="checked">Heatmap<br>
-                        <input type="radio" name="view" style="vertical-align:bottom" value="list">List
+                        <input type="radio" id="view_hm" name="view" style="vertical-align:bottom" value="hm" checked="checked"><label for="view_hm">Heatmap</label><br>
+                        <input type="radio" id="view_ls" name="view" style="vertical-align:bottom" value="list"><label for="view_ls">List</label>
                     </c:if>
                     <c:if test="${list}">
-                        <input type="radio" id="view" name="view" style="vertical-align:bottom" value="hm">Heatmap<br>
-                        <input type="radio" name="view" style="vertical-align:bottom" value="list" checked="checked">List
+                        <input type="radio" id="view_hm" name="view" style="vertical-align:bottom" value="hm"><label for="view_hm">Heatmap</label><br>
+                        <input type="radio" id="view_ls" name="view" style="vertical-align:bottom" value="list" checked="checked"><label for="view_ls">List</label>
                     </c:if>
                 </td>
                 <td align="right">

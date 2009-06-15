@@ -61,10 +61,6 @@
             <td>
                 <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
             </td>
-            <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
-                <input type="radio" id="view" name="view" value="hm" style="vertical-align:bottom" checked="checked">Heatmap<br>
-                <input type="radio" style="vertical-align:bottom" name="view" value="list">List
-            </td>
             <td align="right">
                 <input type="submit" value="Search Atlas" class="searchatlas">
                 <div style="position:relative;width:100%;">
