@@ -287,6 +287,7 @@
              '.expaccession': 'experiment.accession',
              '.expname': 'experiment.name',
              'table.oneplot': 'ef <- experiment.efs',
+             'table.oneplot[id]+': function(a) { return 'oneplot_' + a.context.counter++; },
              '.efname': 'ef.eftext',
              'a.proflink[href]': 'experiment.jsp?gid=#{gene.id}&eid=#{experiment.accession}',
              'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
@@ -456,6 +457,7 @@
                             alert(resp.error);
                             return;
                         }
+                        resp.counter = 0;
                         var popup = $('<div id="expopup" />')
                             .html($p.render('experimentsTemplate', resp))
                             .prepend($("<div/>").addClass('closebox')
@@ -489,9 +491,9 @@
                                         type: 'bar' 
                                     },
                                     dataType: "json",
-                                    success: (function(x) { return function(o) {
-                                        drawPlot(o, plots.eq(c++), x);
-                                    } })(resp.experiments[iexp].efs[ief].efvs)
+                                    success: (function(x,cc) { return function(o) {
+                                        drawPlot(o, plots.filter(cc), x);
+                                    } })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
                                 });
                             }
                     }
