@@ -449,7 +449,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     <c:if test="${list}">
-        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a> (<span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>)</div>
+        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a> - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></div>
     </c:if>
     <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
 </div>
@@ -632,8 +632,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 <input type="hidden" id="ef" value="${row.ef}">
                 <input type="hidden" id="efv" value="${row.fv}">
                 <input type="hidden" id="gene" value="${row.gene_id}">
-                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="border-right:none"></td>
-                <td class="collapsible_alt padded genename" style="border-left:none">
+                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="border-right:none" title="Click here to show experiments..."></td>
+                <td class="padded genename" style="border-left:none">
                     <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
@@ -661,13 +661,13 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
             <tr class="expand-child">
-              	<th colspan="6" class="header padded" style="text-align: left;padding:2px 0 0 0;background-color:lightgrey"></th>
+              	<th colspan="6" class="header padded" style="text-align: left;padding:2px 0 0 0;background-color:#cdcdcd"></th>
             </tr>
             <c:forEach var="exp" items="${row.exp_list}">
 
                 <tr class="expand-child">
 
-                    <td class="padded genename" style="border-left: 4px solid lightgrey; border-right:none">
+                    <td class="padded genename" style="border-left: 4px solid #cdcdcd; border-right:none">
                         <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
                     </td>
                     <td class="padded wrapok" colspan="3" style="padding-right:70px;border-left:none">
@@ -689,12 +689,12 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                     <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
-                            <td style="color: red;border-right:2px solid lightgrey" class="padded">
+                            <td style="color: red;border-right:2px solid #cdcdcd" class="padded">
                                 &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
                         <c:otherwise>
-                            <td style="color: blue;border-right:2px solid lightgrey" class="padded">
+                            <td style="color: blue;border-right:2px solid #cdcdcd" class="padded">
                                 &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>

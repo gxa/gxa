@@ -366,24 +366,22 @@ div.efoinput {
 
 /* expand/collapse */
 #squery td.collapsible {
-    padding: 0 0 3px 0;
-    vertical-align:top;
+    padding: 9px 0 0 7px;
+    vertical-align: top;
 }
 
 .collapsible a.collapsed {
-    margin: 2px;
     display: block;
-    width: 15px;
-    height: 15px;
-    background: url(images/tablesorter_expand.png) no-repeat 3px 3px;
+    width: 9px;
+    height: 9px;
+    background: url(images/expp.gif) no-repeat top left;
     outline: 0;
 }
 
 .collapsible a.expanded {
-    margin: 2px;
     display: block;
-    width: 15px;
-    height: 15px;
-    background: url(images/tablesorter_expand.png) no-repeat -24px 3px;
+    width: 9px;
+    height: 9px;
+    background: url(images/expm.gif) no-repeat top left;
     outline: 0;
 }
