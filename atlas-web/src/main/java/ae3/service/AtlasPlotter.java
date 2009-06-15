@@ -104,7 +104,7 @@ public class AtlasPlotter {
 						JSONArray point = new JSONArray();
 						point.put(sampleIndex);
                         Double v = (Double) DEdata[k].get(j);
-						point.put(v < -1000000 ? null : v);// loop over available DEs and add data points to the same x point
+						point.put(v <= -1000000 ? null : v);// loop over available DEs and add data points to the same x point
 						seriesData.put(point);
 						
 						
