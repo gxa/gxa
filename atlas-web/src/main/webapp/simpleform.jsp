@@ -32,9 +32,6 @@
             <td>
                 <label class="label" for="fval0">Conditions</label>
             </td>
-            <td>
-               <label class="label" for="view">View</label>
-            </td>
             <td></td>
         </tr>
         <tr>
