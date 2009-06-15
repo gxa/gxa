@@ -708,7 +708,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                         <span class="expname"></span>
 
                         <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..." /><div style="display:none" class="plot"></div></td>
+                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..." /><a class="proflink" href="" style="border:none;outline:none;text-decoration:none" target="_blank"><div style="display:none" class="plot"></div></a></td>
                             <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                         </tr></table>
                 
