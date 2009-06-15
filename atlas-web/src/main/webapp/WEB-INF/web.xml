@@ -165,6 +165,10 @@
         <servlet-name>experiment</servlet-name>
         <url-pattern>/experiment</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>experiments</servlet-name>
+        <url-pattern>/experiments</url-pattern>
+    </servlet-mapping>
 
     <mime-mapping>
         <extension>wsdl</extension>
