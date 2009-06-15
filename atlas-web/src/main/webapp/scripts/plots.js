@@ -398,9 +398,9 @@ function drawPlot(jsonObj, plot_id){
     
     
     function clearSelections(){
-    	for(i=0; i<prevSelections.length; ++i){
-    		plot.unhighlight(0,prevSelections[i]);
-    	}
+    	for(j=0; j<plot.getData().length; j++)
+    		for(i=0; i<prevSelections.length; ++i)
+    			plot.unhighlight(j,prevSelections[i]);
     }
     
     function highlightSamples(sc,scv,scText,assay, self){
@@ -416,7 +416,8 @@ function drawPlot(jsonObj, plot_id){
 	    		var value = eval("sampleAttrJSON."+sample_id+"."+sc);
 	    		
 	    		if(value==scv){
-	    			plot.highlight(0, i);
+	    			for(j=0; j<plot.getData().length; ++j)
+	    				plot.highlight(j, i);
 	    			prevSelections.push(i);
 	    		}
     		}
@@ -426,7 +427,8 @@ function drawPlot(jsonObj, plot_id){
 	    		var assay_id = assays[i];
 	    		var value = eval("sampleAttrJSON.a"+assay_id+"."+sc);
 	    		if(value==scv){
-	    			plot.highlight(0, i);
+	    			for(j=0; j<plot.getData().length; ++j)
+	    				plot.highlight(j, i);
 	    			prevSelections.push(i);
 	    		}
     		}
@@ -466,7 +468,7 @@ function drawPlot(jsonObj, plot_id){
 	   					assay2samples = jsonObj.assay2samples;
 	   					characteristics = jsonObj.characteristics;
 	   					charValues = jsonObj.charValues;
-	   					
+	   					EFs = jsonObj.EFs;
 	   					
 	   					//var charJSON = eval('('+characteristics+')');
 						
@@ -601,15 +603,30 @@ function drawPlot(jsonObj, plot_id){
 		var assay2samplesJSON = eval('(' + assay2samples+ ')' );
 		var charJSON = eval('('+characteristics+')');
 		var charValuesJSON = eval('('+charValues+')');
+		var assays = eval('(' + assayIds+ ')' ); 
+    		//for (i = 0; i < assays.length; ++i){
+	   
 			            
 		var sample_id = assay2samplesJSON[i][0];            
 		var contents = '<ul style="padding-left:0px;margin:0px;list-style-type:none">';
-			for (i = 0; i < charJSON.length; ++i) {
-			  	 var characteristic = charJSON[i];
-			   	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
-            	 var txtChar = curatedChars[characteristic];
-            	 contents+= '<li style="padding:0px"><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
-            }
+		for (i = 0; i < charJSON.length; ++i) {
+		 	 var characteristic = charJSON[i];
+		  	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
+          	 var txtChar = curatedChars[characteristic];
+          	 contents+= '<li style="padding:0px"><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
+        }
+        
+        var assay_id = assays[i];
+	    var EFsJSON = eval('('+EFs+')');
+	    		
+        for(i=0; i<EFsJSON.length; i++){
+        	var ef = EFsJSON[i].substring(3);
+        	var value = eval("sampleAttrJSON.a"+assay_id+"."+ef); 
+        	if(value != null){
+        		var txtChar = curatedEFs[ef];
+          	 	contents+= '<li style="padding:0px"><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
+        	}
+        }
        contents+='</ul>';
       
 		$('<div id="tooltip">' + contents + '</div>').css( {

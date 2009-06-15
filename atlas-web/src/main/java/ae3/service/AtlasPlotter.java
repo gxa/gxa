@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.lucene.analysis.compound.hyphenation.CharVector;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -290,6 +291,7 @@ public class AtlasPlotter {
 			plotData.put("geneNames", getJSONarray(geneNames));
 			plotData.put("DEids", getJSONarray(eds.getDElist()));
 			plotData.put("GNids", getJSONarray(eds.getGNids()));
+			plotData.put("EFs", getJSONarray(Arrays.asList(eds.getFactors())));
 //			plotData.put("assay_ids", getJSONarray(eds.getAssayList()));
 			
 			
@@ -438,7 +440,7 @@ public class AtlasPlotter {
 		return geneNames;
 	}
 	
-	private JSONStringer getJSONarray(ArrayList<String> geneNames) throws JSONException{
+	private JSONStringer getJSONarray(List<String> geneNames) throws JSONException{
 		JSONStringer JSONarray = new JSONStringer();
 		JSONarray.array();
 		for(String gene:geneNames){

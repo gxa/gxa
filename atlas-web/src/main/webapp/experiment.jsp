@@ -83,6 +83,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     var assay2samples;
     var characteristics;
     var charValues;
+    var EFs;
     var plot;
     var prevSelections = new Array();
     var geneCounter = 0;
@@ -236,8 +237,12 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 <script type="text/javascript">
 
     var curatedChars = new Array();
+    var curatedEFs = new Array();
     <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
     curatedChars['${char}'] = '${u:getCurated(char)}';
+    </c:forEach>
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
+        curatedEFs['${ef}'] = '${u:getCurated(ef)}';
     </c:forEach>
 
 
