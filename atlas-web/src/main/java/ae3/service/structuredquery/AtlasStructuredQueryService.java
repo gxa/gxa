@@ -564,12 +564,12 @@ public class AtlasStructuredQueryService {
 
         for(SolrDocument doc : qr.getResults())
         {
-            String id = (String)doc.getFieldValue(exptIdField);
+            Object id = doc.getFieldValue(exptIdField);
             if(id != null) {
                 for(String f : factors) {
                     Collection fvs = doc.getFieldValues(FIELD_FACTOR_PREFIX + f);
                     if(fvs != null) {
-                        Map<String,List<String>> hl = qr.getHighlighting().get(id);
+                        Map<String,List<String>> hl = qr.getHighlighting().get(id.toString());
                         if(hl != null)
                             for(Collection<String> hls : hl.values())
                                 if(hls != null)
