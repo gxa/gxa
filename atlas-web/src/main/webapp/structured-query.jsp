@@ -629,9 +629,6 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 						
         <c:forEach var="row" items="${result.listResults}" varStatus="r">
             <tr id="${row.gene_id}_${row.ef}_${r.index}">
-                <input type="hidden" id="ef" value="${row.ef}">
-                <input type="hidden" id="efv" value="${row.fv}">
-                <input type="hidden" id="gene" value="${row.gene_id}">
                 <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="border-right:none" title="Click here to show experiments..."></td>
                 <td class="padded genename" style="border-left:none">
                     <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
@@ -644,7 +641,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 </td>
                 <td class="padded wrapok">${row.gene_species}</td>
                 <td class="padded wrapok"><fmt:message key="head.ef.${row.ef}"/></td>
-                <td class="padded wrapok">${row.fv}</td>
+                <td class="padded wrapok lvrowefv">${row.fv}</td>
                 <td class="acounter">
                     <c:choose>
                         <c:when test="${row.mixedCell}">

@@ -355,15 +355,15 @@ function drawPlot(jsonObj, plot_id){
     
     function showExps(row){
     	
-    	
-    	var gid = $("#"+row.id+" #gene").val();
-        var ef = "ba_"+$("#"+row.id+" #ef").val();
-        var efv = $("#"+row.id+" #efv").val();
+        var efv = $("#"+row.id+" .lvrowefv").text();
     	
     	//$("div[id*=_"+i+"]")
     	
-    	
-    	var i = row.id.split("_")[2];
+
+        var data = row.id.split("_");
+        var gid = data[0];
+        var ef = "ba_" + data[1];
+    	var i = data[2];
     	$("div[id$=_"+i+"]").each(function(){
     	
     	var plot_id = this.id;
@@ -373,9 +373,9 @@ function drawPlot(jsonObj, plot_id){
         var divEle = $(this);
         if(!$(this).hasClass("done")){
         $.ajax({
-   			type: "POST",
+   			type: "GET",
    			url:"plot.jsp",
-   			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&efv="+efv+"&updn="+updn+"&plot=thumb",
+   			data: { gid: gid, eid: eid, ef: ef, efv: efv, updn: updn, plot: 'thumb' },
    			dataType:"json",
    			
    			success: function(jsonObj){
