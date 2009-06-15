@@ -10,4 +10,4 @@
     <link rel="SHORTCUT ICON" href="http://www.ebi.ac.uk/bookmark.ico" />
 
     <!--  start meta tags, css , javascript here   -->
-    <link rel="stylesheet"  href="http://www.ebi.ac.uk/inc/css/sidebars.css"   type="text/css" />
+

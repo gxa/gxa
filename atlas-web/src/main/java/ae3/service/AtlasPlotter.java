@@ -103,7 +103,8 @@ public class AtlasPlotter {
 					for(int k=0; k<DEdata.length; k++){//rows <==> DEs
 						JSONArray point = new JSONArray();
 						point.put(sampleIndex);
-						point.put(DEdata[k].get(j));// loop over available DEs and add data points to the same x point
+                        Double v = (Double) DEdata[k].get(j);
+						point.put(v < -1000000 ? null : v);// loop over available DEs and add data points to the same x point
 						seriesData.put(point);
 						
 						
@@ -417,11 +418,14 @@ public class AtlasPlotter {
 	
 	private double getMean(ArrayList<Double> test ){
 		double sum=0.0;
-		for(int i=0; i<test.size(); i++){
-			sum+= test.get(i);
-		}
-		return sum/test.size();
 
+		for(int i=0; i<test.size(); i++){
+            double v = test.get(i);
+            if (v > -1000000 )
+			    sum += test.get(i);
+		}
+
+		return sum/test.size();
 	}
 	
 	private ArrayList<String> getGeneNames(String gids){

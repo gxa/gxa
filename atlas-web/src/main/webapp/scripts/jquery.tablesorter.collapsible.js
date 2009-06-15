@@ -33,10 +33,10 @@
 				
 				$tr = $a.parent().parent()
 					
-				$tr.bind("click", function(){
+				$a.bind("click", function(){
 					
-					var $self = $("#"+this.id + " a:first "), 
-						$tr = $(this),
+					var $self = $(this),//"#"+this.id + " a:first "), 
+						$tr = $(this).parent().parent(),
 						$trc = $tr.next(), 
 						bIsCollapsed = $self.hasClass(settings.classExpand);//alert($self.length)
 					// change the css class
@@ -61,7 +61,7 @@
 					}
 					
 					if(!bIsCollapsed)
-						settings.callback(this);
+						settings.callback($tr[0]);
 					
 					return false;
 					

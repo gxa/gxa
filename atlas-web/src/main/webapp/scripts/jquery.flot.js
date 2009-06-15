@@ -1031,8 +1031,8 @@
         }
         
         function insertHeaders(){
-        	var html = '<div class="tickLabels" id="plotHeader" style="position:relative; cursor:pointer; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
-        	var offset =0;
+        	var html = '<div class="tickLabels" id="plotHeader" style="position:relative; cursor: default; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
+        	var offset = 0;
         	 if (options.grid.markings) {
                 var markings = options.grid.markings;
                 for (i = 0; i < markings.length; ++i) {
@@ -1064,13 +1064,9 @@
                     	html += header;
                     }else{
                     	var width_exp= m.label.length*10;
-                    	var header_exp = '<div style=\'position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 20) +'px;left:' + ((plotOffset.left + Math.floor(xrange.from))-(width_exp/2)) + 'px;width:'+ width_exp + 'px;text-align:center; height:15px; overflow:hidden;\' title=\''+m.label+'\' class=\'tickLabel\'>'+m.label+' </div>';
-                    	header_exp="";
-                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">'+
-                    					'<img src="images/i.gif"></div>';
+                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">&#9670;</div>';
                     	
                     	html += header;
-                    	//html += header_exp;
                     }
                     offset+= xrange.from;    
                 }

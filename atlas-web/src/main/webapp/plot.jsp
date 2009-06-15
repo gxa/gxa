@@ -1,5 +1,3 @@
-<%@page import="java.awt.image.WritableRenderedImage"%>
-<%@page import="output.DiagonalTextRenderer"%>
 <%@page import="org.json.JSONStringer"%>
 <%@ page import="org.json.JSONObject"%>
 <%@ page import="org.json.JSONException" %>
@@ -42,7 +40,7 @@
         	if(plotType.equals("bar")){
         	
         	JSONObject options = new JSONObject(
-                           "{  xaxis: {  ticks: 0, autoscaleMargin: 0.05 }, " +
+                           "{  xaxis: {  ticks: 0 }, " +
                             " legend: {     show: true, " +
                             "           position: 'sw', " +
                             "          container: '#" + eid + "_" + gid + "_legend', " +
@@ -60,7 +58,7 @@
         	else if(plotType.equals("thumb")){
         		String color = updn.equals("UP") ? "#FE2E2E" : "#2E2EFE";
         		JSONObject options = new JSONObject(
-                        "{  xaxis: {    ticks: 0, autoscaleMargin: 0.05 }, " +
+                        "{  xaxis: {    ticks: 0 }, " +
                          "  yaxis: {    ticks: 0 }, "+	
                          "  colors: ['#edc240'],    "+
                          " legend: {     show: false }," +
@@ -77,7 +75,7 @@
  
         	}else if(plotType.equals("large")){
         		JSONObject options = new JSONObject(
-                        "{  xaxis: { ticks:0, autoscaleMargin: 0.05    }, " +
+                        "{  xaxis: { ticks:0    }, " +
                          "  yaxis: { ticks:3    }, " +
                          "  points: { show:true, fill:false    }, " +
                          "  lines: { show:true, steps:true    }, " +

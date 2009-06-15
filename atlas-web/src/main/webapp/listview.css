@@ -18,7 +18,7 @@ font-family: Arial, Helvetica, sans-serif;
 	                }
 	               
 	                #grid thead, .collapsible {
-	                        background-color: #deebeb;
+/*	                        background-color: #deebeb;*/
 	                }
 	
 	                #grid .osq{
@@ -68,7 +68,7 @@ font-family: Arial, Helvetica, sans-serif;
 	               
 	
 	               
-	                #grid tbody tr:hover  {
+/*	                #grid tbody tr:hover  {
 	                        background-color: #deebeb;
 	                        color: #404040;
 	                        cursor: pointer;
@@ -80,7 +80,7 @@ font-family: Arial, Helvetica, sans-serif;
 	                table.grid tr.header_2 {
 	                        background-color: #deebeb;
 	                }
-	
+	*/
 	
 	
 	

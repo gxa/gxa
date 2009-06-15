@@ -250,7 +250,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 
         $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,
-            callback:showExps
+            callback: showExps
         })
           .tablesorter({
             // don't sort by first column
@@ -265,8 +265,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 
         <c:if test="${list}">
         var cont = $('#resultpane');
-		if(cont.get(0).offsetWidth > 900)
-            cont.css({ width: '900px' });
+	//	if(cont.get(0).offsetWidth > 900)
+        //    cont.css({ width: '900px' });
         </c:if>
 
     });
@@ -346,7 +346,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 
 </script>
 
-<div id = "result_cont" style="width: 100%" >
+<div id = "result_cont">
 <table id="twocol" style="margin-top:20px">
 <tr class="top">
 <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
@@ -395,7 +395,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 </c:if>
 
 
-<td id="resultpane" width="100%">
+<td id="resultpane" width="900px">
 <c:set var="numPaths" value="0"/>
 <c:forEach var="c" items="${result.conditions}"><c:set var="numPaths" value="${numPaths + f:length(c.efoPaths)}"/></c:forEach>
 
@@ -403,14 +403,16 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <div style="font-size:11px">
         <b>
             <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
-                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE</a>
+                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).add($(this).next('span')).remove();return false;">REFINE YOUR QUERY</a>
             </c:if>
+<!--
             <c:if test="${numPaths == 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
-                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">REFINE</a>
+                <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">REFINE YOUR QUERY</a>
             </c:if>
             <c:if test="${numPaths > 0 && result.total >= u:getIntProp('atlas.drilldowns.mingenes')}"><span> or </span></c:if>
             <c:if test="${numPaths > 0}"><a href="#" onclick="$('#efopaths').slideDown();$(this).replaceWith($(this).text());return false;">EXPAND</a></c:if>
             YOUR QUERY
+-->
         </b>
     </div>
 </c:if>
@@ -449,7 +451,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
     <c:if test="${list}">
         <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="javascript:void(0)" >Download all results</a> (<span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>)</div>
     </c:if>
-    <div style="line-height:30px;">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
+    <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
 </div>
 
 <c:choose>
@@ -613,8 +615,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
 
         <thead>
             <tr class="header">
-                <th></th>
-                <th class="padded">Gene</th>
+                <th style="border-right:none"></th>
+                <th style="border-left:none" class="padded">Gene</th>
                 <th class="padded">Organism</th>
                 <th class="padded">Experimental Factor</th>
                 <th class="padded">Factor Value</th>
@@ -630,8 +632,8 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 <input type="hidden" id="ef" value="${row.ef}">
                 <input type="hidden" id="efv" value="${row.fv}">
                 <input type="hidden" id="gene" value="${row.gene_id}">
-                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible"></td>
-                <td class="collapsible_alt padded genename">
+                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="border-right:none"></td>
+                <td class="collapsible_alt padded genename" style="border-left:none">
                     <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
@@ -659,39 +661,40 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
             <tr class="expand-child">
-                <th colspan="6" class="header padded" style="text-align: left;">Experiments</th>
+              	<th colspan="6" class="header padded" style="text-align: left;padding:2px 0 0 0;background-color:lightgrey"></th>
             </tr>
             <c:forEach var="exp" items="${row.exp_list}">
 
                 <tr class="expand-child">
 
-
-                    <td class="padded genename">
+                    <td class="padded genename" style="border-left: 4px solid lightgrey; border-right:none">
                         <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
                     </td>
-                    <td class="padded wrapok" colspan="3" style="padding-right:70px">
+                    <td class="padded wrapok" colspan="3" style="padding-right:70px;border-left:none">
                     	${exp.experimentName}
                     </td>
-                    <td>
+                    <td style="border-left:none">
                         <div style="position:relative;height:100%;min-height:45px;width:100%;">
                             <div style="position:absolute;right:0;top:0;min-height:45px;height:100%;width:90px;background:white;">
-                                <div onclick="window.open('experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}')"
+                                <a href="experiment.jsp?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}">
+                                    <div
                                      id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"
-                                     class="thumb" style="width:90px;height:45px;">
-                                    <img alt="Waiting..." src="images/indicator.gif"/>
-                                </div>
+                                     class="thumb" style="width:90px;height:45px;text-align:center" title="Click to view experiment detail">
+                                      <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
+			            </div>
+                                </a>
                             </div>
                         </div>
                     </td>
                     <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
-                            <td style="color: red" class="padded">
+                            <td style="color: red;border-right:2px solid lightgrey" class="padded">
                                 &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
                         <c:otherwise>
-                            <td style="color: blue" class="padded">
+                            <td style="color: blue;border-right:2px solid lightgrey" class="padded">
                                 &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>
@@ -699,7 +702,7 @@ Atlas Search Results - ArrayExpress Atlas of Gene Expression
                 </tr>
             </c:forEach>
             <tr class="expand-child">
-                <th colspan="6" style="padding:1px 0 0 0;background:#cdcdcd;"></th>
+                <th colspan="6" style="padding:2px 0 0 0;background:#cdcdcd;"></th>
             </tr>
         </c:forEach>
         </tbody>

@@ -33,8 +33,7 @@ ArrayList<String> genesToPlot = new ArrayList<String>();
 
 <%@page import="ae3.service.structuredquery.AtlasStructuredQueryResult"%>
 <jsp:include page="start_head.jsp" />
-Atlas Gene Expression Summary for experiment ${exp.dwExpAccession} - ArrayExpress Atlas of
-Gene Expression
+Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp" />
 
 <script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
@@ -55,6 +54,7 @@ Gene Expression
 <link rel="stylesheet" href="listview.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 <script type="text/javascript" src="scripts/common-query.js"></script>
+
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/ui-lightness/jquery-ui.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css" media="screen" />
 			
@@ -69,6 +69,7 @@ Gene Expression
 .ui-tabs .ui-tabs-hide {
      display: none;
 }
+ .legendColorBox { margin:1px; padding:0px; }
 </style>
 
 
@@ -90,7 +91,6 @@ $(document).ready(function()
     { 
         
         $("#topGenes").load("expGenes",{eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function(){
-        	 
         	initPaging();
         });
         
@@ -104,7 +104,7 @@ $(document).ready(function()
         initExpPageAutoComplete();
         $("#gene_menu").accordion({
 							collapsible: true,
-							active:false,
+							active: 2,
 							autoHeight: false
 						});
         
@@ -128,20 +128,23 @@ $(document).ready(function()
         $("#simForm").submit(function(){
         	$("#simResult").empty();
          	var name = $('select option:selected').text();
-        	$("#simHeader").html("<img src='images/indicator.gif' />&nbsp;Searching similar profiles to "+name);
+        	$("#simHeader").html("<img src='images/indicator.gif' />&nbsp;Searching for profiles similar to " + name + "...");
+        	$("#simHeader").show();
         	var DEid_ADid = $("select option:selected").val();
         	var tokens = DEid_ADid.split('_');
         	var DEid = tokens[0];
         	var ADid = tokens[1];
         	$("#simResult").load("expGenes",{eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'},function(){
-        		$("#simHeader").text("Genes with similar profile to "+ name);
+        		$("#simHeader").hide()
         	});
         	return false;
         });
         
         $("#searchForm").submit(function(){
         	var qry = $("#geneInExp_qry").val();
-        	$("#qryResult").load("expGenes",{eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search' });
+        	$("#qryHeader").html("<img src='images/indicator.gif' />&nbsp;Loading...");
+        	$("#qryHeader").show();
+        	$("#qryResult").load("expGenes",{eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'},function() {$("#qryHeader").hide()});
         	return false;
         });
        
@@ -242,119 +245,129 @@ function removeGene(gname){
 		</td>
 		<td class="contentsarea" id="contentsarea">
 		<div id="ae_pagecontainer">
-		<table width="100%" style="background-color: white">
 
-			<tr>
-				<td align="left" class="geneName"><a title="Show experiment details in the archive"
-					target="_blank"
-					href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}">${exp.dwExpAccession}</a></td>
-				<td style="vertical-align: text-bottom"></td>
-			</tr>
-			<tr>
-				<td class="header" colspan="2" style="border-bottom: 1px solid #dedede;">${exp.dwExpDescription}</td>
-			</tr>
-			<!-- 
-			<tr>
-				<td class="geneAnnotHeader">ArrayExpress Archive</td>
-				<td align="left"><a title="Show experiment details"
-					target="_blank"
-					href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}">
-				${exp.dwExpAccession} </a></td>
-			</tr>
- -->
-			
-		</table>
-		<div id = "result_cont" style="width: 100%" >
+		<a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.dwExpAccession}" target="_blank" 
+			title="Experiment information and full data in ArrayExpress Archive" class="geneName" style="vertical-align: baseline">${exp.dwExpAccession}</a>
+    		<span class="sectionHeader" style="vertical-align: baseline">${exp.dwExpDescription}</span>
+
+		<div id="result_cont" style="margin-top:20px">
 		
-		<table id="twocol" style="margin-top:5px; width:100%; ">
+		<table id="twocol" style="margin-top:5px">
 			<tr>
-				<td colspan="1">
-								<div id="sortHeader" class="sectionHeader" style="">Expression profile sorted by <fmt:message key="head.ef.${ef}"/></div>
-								<!--  <div class="header">Other Experimental Factors</div>-->
-								<div class="header"  style="padding-bottom: 10px; padding-top: 5px;">
-									<span></span>
-										 
-										<div id="${exp.dwExpId}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
-										<c:forEach var="EF" items="${exp.experimentFactors}">
-											<c:choose>
-												<c:when test="${EF == topRankEF}">
-													<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
-												</c:when>
-												<c:otherwise>
-													<a id="${EF}" onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')" ><fmt:message key="head.ef.${EF}"/></a>	
-												</c:otherwise>
-											</c:choose>
-										</c:forEach>
-									</div> 
-								</div>
-								
-							</td>
-							<td>
-								<div class="sectionHeader">Add more profiles</div>
-							</td>
+				<td style="padding:0px">
+					<div class="header" style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
+				  	<div id="${exp.dwExpId}_EFpagination" class="pagination_ie">
+							<c:forEach var="EF" items="${exp.experimentFactors}">
+								<c:choose>
+									<c:when test="${EF == topRankEF}">
+										<span class="current" id="${EF}"><fmt:message key="head.ef.${EF}"/></span>
+									</c:when>
+									<c:otherwise>
+										<a id="${EF}" onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')" ><fmt:message key="head.ef.${EF}"/></a>	
+									</c:otherwise>
+								</c:choose>
+							</c:forEach>
+						</div> 
+					</div>
+
+					<div style="position:relative;width:100%">
+						<table cellpadding="0" cellspacing="0" style="padding:0px;width:650px">
+							<tr>
+								<td style="padding:0px;width:500px">
+									<div class="bigplot" id="plot" style="width:500px;height:150px;padding:0px"></div>
+									<div id="plot_thm" style="border:thin; height: 120px;padding:0px"></div>
+								</td>
+								<td align="left" style="padding:0px;width:150px" valign="top">
+						   			<div id="zoomControls" style="position:absolute;top:153px;right:120px"></div>
+									<div id="legend" style="position:relative;top:-10px;text-align:left"/>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</td>
+
+				<td rowspan="2" >
+					<div id="gene_menu" style="width:500px">
+						<div><a href="#" style="font-size:12px">Display genes matching by name or attribute</a></div>
+            <div>
+             <form id="searchForm" class="visinsimple" action="javascript:void()">
+		<label for="geneInExp_qry" style="font-size:12px">Find genes</label>
+                <input type="text" class="value" name="gval_0" id="geneInExp_qry" style="width:200px" />
+                <button type="submit">Search</button>
+              </form>
+              <div id="qryHeader" style="padding-top: 10px;"></div>
+              <div id="qryResult" style="padding-top: 10px;"></div>
+						</div>
+
+            <div><a href="#" style="font-size:12px">Display genes with similar expression profiles</a></div>
+            <div>
+             <form class="visinsimple" id="simForm" action="javascript:void()">
+               <label for="simSelect" style="font-size:12px">Show ten genes similar (Pearson correlation) to</label>
+               <select id="simSelect" style="font-size:12px"></select>
+                <button type="submit">Search</button>
+              </form>
+       
+              <div id="simHeader" style="padding-top: 10px;font-size:12px"></div>
+              <div id="simResult" style="padding-top: 10px;"></div>
+						</div>
+
+
+						<div><a href="#" style="font-size:12px">Choose from top ten differentially expressed genes</a></div>
+						<div>
+                <div id="topGenes"><img src='images/indicator.gif' />&nbsp;Loading gene list...</div>
+            </div>
+
+			    </div> <!--/gene_menu-->
+
+				</td>
 			</tr>
-			<tr>
-				
-				<td style="width:650px; padding-right: 0px;">
-					<table>
+			<tr valign="top">
+				<td valign="top">
+					<table cellspacing="0" cellpadding="5" width="600" style="border:1px solid #CDCDCD;margin-top:20px">
 						<tr>
-							<td align="left">
-							<!-- <div><img src="plotHeader.jsp" usemap="#efvmap"> </div> -->
-								<div class="bigplot" id="plot" style="width: 600px; height: 300px;top: 10px;"></div>
-								<!-- <div style="font-size:x-small; color: gray;padding-top: 10px;">Click and drag a selection below to zoom in above <span style="cursor: pointer; text-decoration: underline" id="zoom">(hide)</span></div> -->
-								<div id="plot_thm" style="border:thin; width: 600px; height: 100px;top:0px;left:25px"> </div>
-								<div id ="zoomControls" style="position:absolute; left:616px; top:435px;"></div>
-							</td>
-							<td nowrap="nowrap">
-								<div id="legend"></div>
-							</td>
+							<th style="background-color:#EDF6F5;border-bottom:1px solid #CDCDCD" class="header" colspan="2">
+								Sample Attributes	
+							</th>
 						</tr>
+							<c:forEach var="char" items="${exp.sampleCharacteristics}">
+								<tr>
+									<td style="padding:5px;border-right:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD"><fmt:message key="head.ef.${char}"/><c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a></td>
+									<td style="padding:5px;border-bottom:1px solid #CDCDCD">
+										<c:forEach var="value" items="${exp.sampleCharacterisitcValues[char]}">
+											<a style="text-transform: capitalize;" href="javascript:highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>')">${value}</a>
+											<br/>
+										</c:forEach>
+									</td>
+								</tr>
+							</c:forEach>
+							<c:forEach var="EF" items="${exp.experimentFactors}">
+								<tr>
+									<c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
+										<td style="padding:5px;border-right:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD"><fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</td>
+										<td style="padding:5px;border-bottom:1px solid #CDCDCD">
+											<c:forEach var="value" items="${exp.factorValuesForEF[EF]}">
+												<a style="text-transform: capitalize;" href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true)">${value}</script></a>
+												<br/>
+											</c:forEach>
+										</td>
+									</c:if>
+								</tr>
+								</c:forEach>
+							</table>
+					<table>
 						
 						<tr>
 							<td>
-								<div class="sectionHeader" style="padding-top: 20px; padding-bottom: 10px">Sample Attributes</div>
-								<table>
+							<table>
 									<tr>
 										<td>
-											<div class="header">Select attribues to highlight on graph</div>
-											<div style="overflow-y: auto; height:350px">
-												<div id="accordion" style="width:250px">
-
-													<c:forEach var="char" items="${exp.sampleCharacteristics}" >
-														<div><a href="#"><fmt:message key="head.ef.${char}"/><c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
-														</div>
-														<div>
-															<ul>
-														 	<c:forEach var="value" items="${exp.sampleCharacterisitcValues[char]}">
-														 		<li><a style="text-transform: capitalize;" href="javascript:highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>')">${value}</a></li>
-														 	</c:forEach>
-														 	</ul>
-														</div>
-													</c:forEach>
-													<c:forEach var="EF" items="${exp.experimentFactors}">
-														<c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
-															<div><a href="#"><fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a></div>
-															<div>
-																<ul>
-															 	<c:forEach var="value" items="${exp.factorValuesForEF[EF]}">
-															 		<li><a style="text-transform: capitalize;" href="javascript:highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true)">${value}</script></a></li>
-															 	</c:forEach>
-															 	</ul>
-															</div>
-														</c:if>
-													</c:forEach>
-												
-												
-												
-												</div>
-											</div>
 										</td>			
-										<td>
+<!--										<td>
 											<div class="header">Selected sample attributes</div>
 											<div id="bioSampleData" style="font-size:small; color: gray;">
 												<span style="font-size:xx-small; color: gray"> Click data points on plot to show corresponding sample attributes</span>
 											</div>
-										</td>
+										</td>-->
 									</tr>
 								</table>
 							</td>
@@ -362,46 +375,11 @@ function removeGene(gname){
 						</tr>
 					</table>
 				</td>
-				<td>
-					<table>
-						<tr>
-							<td nowrap="nowrap">
-								<div id="gene_menu" style="">
-									<div><a href="#">Top Differentially expressed genes</a></div>
-									<div>
-										<!--  <div id="Pagination" class="pagination_ie" style="padding-bottom: 10px;text-align:right;"></div>-->
-										<div id="topGenes" style="height:250px"></div>
-									</div>
-									
-									<div><a href="#">Search by gene name</a></div>
-									<div>
-										<form id="searchForm" class="visinsimple" action="javascript:void()">
-											<input type="text" class="value" name="gval_0" id="geneInExp_qry" style="width:200px" />
-											<button type="submit">Search</button>
-										</form>
-										<div id="qryResult" style="padding-top: 10px;">
-											
-										</div>										
-									</div>
-									<div><a href="#">Search for similar profiles</a></div>
-									<div>
-										<form class="visinsimple" id="simForm" action="javascript:void()">
-											<select id="simSelect">
-												<option selected="selected">Select gene</option>
-											</select>
-											<button type="submit">Search</button>
-										</form>
-										<div id="simHeader" style="padding-top: 10px;"></div>
-										<div id="simResult" style="padding-top: 10px;"></div>										
-									</div>
-								</div>
-							</td>
-						</tr>
-					</table>							
-				</td>
 			</tr>
 		</table>
 		</div>
+</div>
+</td></tr></tbody></table>
 					
 		
-		<jsp:include page='end_body.jsp' />
+<jsp:include page='end_body.jsp' />

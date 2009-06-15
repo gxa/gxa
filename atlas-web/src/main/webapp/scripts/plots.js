@@ -1,6 +1,6 @@
 function drawPlot(jsonObj, plot_id){
 	   	if(jsonObj.series){
-   			var plot = $.plot($('#'+plot_id), jsonObj.series,jsonObj.options); 
+   			var plot = $.plot($('#'+plot_id), jsonObj.series, jsonObj.options);
 			var overview;
 			var allSeries = plot.getData();
 			var tokens = plot_id.split('_');
@@ -187,13 +187,14 @@ function drawPlot(jsonObj, plot_id){
             }
             plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
                         grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
-                        xaxis: { min: xMin-10, max: xMax+10 }
+                        xaxis: { min: xMin-10, max: xMax+10  }, yaxis: {labelWidth:40}
                         }));
         }
         else{
 
         plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
-                        grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]}
+                        grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
+			 yaxis: {labelWidth:40}
                         }));
                         if(overviewDiv.height()!=0){
             overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']}));
@@ -211,9 +212,7 @@ function drawPlot(jsonObj, plot_id){
 		            top: y+5,
 		            left:x+5,
 		            border: '1px solid #fdd',
-		            padding: '2px',
-		            'background-color': '#fee',
-		            opacity: 0.80
+		            'background-color': '#fee'
 	       	 }).appendTo("body").fadeIn(200);
     	}
     }
@@ -241,8 +240,10 @@ function drawPlot(jsonObj, plot_id){
     
     function plotZoomOverview(jsonObj,plot){
     	var divElt = $('#plot_thm');
-		divElt.width(550);divElt.height(55);
-		overview = $.plot($('#plot_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{yaxis: {ticks: 0 },points:{show: true}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
+		divElt.width(500);
+		divElt.height(60);
+		
+		overview = $.plot($('#plot_thm'), jsonObj.series, $.extend(true,{},jsonObj.options,{yaxis: {ticks: 0, labelWidth: 40, min: -plot.getData()[0].yaxis.datamax*0.25},points:{show: false}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
 		$("#plot_thm #plotHeader").remove();
 		bindZooming(overview,jsonObj,plot);
 		
@@ -257,7 +258,7 @@ function drawPlot(jsonObj, plot_id){
     	$('#plot').bind("plotselected", function (event, ranges) {
 			// do the zooming
 			plot = $.plot($('#plot'), jsonObj.series,	$.extend(true, {}, jsonObj.options, {
-			  					xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }
+			  					xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to }, yaxis: { labelWidth: 40 }
 			       	 	}));
 
 			// don't fire event on the overview to prevent eternal loop
@@ -307,8 +308,17 @@ function drawPlot(jsonObj, plot_id){
 			t= Math.min(Math.floor(oldt+offset),max);
 			
 			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});
-					   		
+			if(f==0 && t == max) overview.clearSelection(true);
 		});
+
+                // zoom out completely on double click
+		$("#zoomout").unbind("dblclick");
+		$("#zoomout").bind("dblclick", function() {
+			var max = plot.getData()[0].data.length;
+			$('#plot').trigger("plotselected",{ xaxis: { from: 0, to: max }});
+                        overview.clearSelection(true);
+                });
+
 		$("#panright > img").unbind("click");
 		$("#panright > img").bind("click",function(){
 			var f,t,max,range,oldf,oldt;
@@ -325,6 +335,7 @@ function drawPlot(jsonObj, plot_id){
 			
 			$('#plot').trigger("plotselected",{ xaxis: { from: f, to: t }});		   		
 		});
+
 		$("#panleft > img").unbind("click");
 		$("#panleft > img ").bind("click",function(){
 			var f,t,max,range,oldf,oldt;
@@ -443,12 +454,11 @@ function drawPlot(jsonObj, plot_id){
     		dataType:"json",
     		success: function(jsonObj){
     			if(jsonObj.series){
-   					plot = $.plot($('#plot'), jsonObj.series,jsonObj.options);
-   					
+   					plot = $.plot($('#plot'), jsonObj.series,$.extend(true, {}, jsonObj.options, {yaxis:{labelWidth:40}} ));
+
    					drawEFpagination(eid,gid,ef,'large');
    					assayIds = jsonObj.assay_ids;
    					if(initial){
-   						
 	   					sampleAttrs = jsonObj.sAttrs; 
 	   					assay2samples = jsonObj.assay2samples;
 	   					characteristics = jsonObj.characteristics;
@@ -456,24 +466,6 @@ function drawPlot(jsonObj, plot_id){
 	   					
 	   					
 	   					//var charJSON = eval('('+characteristics+')');
-	            		//var charValuesJSON = eval('('+charValues+')');
-	   					
-	   					/*
-	   					var contents = '';
-			            for (i = 0; i < charJSON.length; ++i) {
-			            	 var characteristic = charJSON[i];
-			            	 contents+= '<div><a href="#">'+characteristic+'</a></div> <div> <ul>';
-			            	 
-			            	 var values = eval("charValuesJSON."+characteristic);
-			            	 for(j=0; j<values.length; ++j){
-			            	 	contents= contents+'<li><a href="javascript:highlightSamples(\''+characteristic+'\',\''+values[j]+'\')" >'+values[j]+'</a></li>';
-			            	 }
-			            	  
-			            	 contents+= '</ul></div>';
-			            }
-	            
-			            //$("#accordion").html(contents);
-			            */
 						
 						var names= eval('('+jsonObj.geneNames+')');
 						var gids= eval('('+jsonObj.GNids+')');
@@ -553,12 +545,12 @@ function drawPlot(jsonObj, plot_id){
     
     function drawZoomControls(){
     	var contents="";
-    	contents= 	'<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px; display:hidden"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>' +
-    				'<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer; display:hidden"><img src="images/zoomout.gif" title="Zoom out"></div>' +
-    				'<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer; display:hidden"><img src="images/panright.gif" title="pan right"></div>' +
-    				'<div id="panleft" style="z-index:0;position: relative; left: -15px; top: -69px;cursor:pointer; display:hidden"><img src="images/panleft.gif" title="pan left"></div>';
+    	contents= '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px;cursor:pointer;display:hidden"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>' +
+    		  '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer; display:hidden"><img src="images/zoomout.gif" title="Zoom out"></div>' +
+    		  '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer; display:hidden"><img src="images/panright.gif" title="pan right"></div>' +
+    		  '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer; display:hidden"><img src="images/panleft.gif" title="pan left"></div>';
     	$("#zoomControls").html(contents);
-    	
+
     	$("#zoomin > img").hover(
 				function(){
 						$(this).attr("src","images/zoominO.gif");},
@@ -608,14 +600,14 @@ function drawPlot(jsonObj, plot_id){
 		var charValuesJSON = eval('('+charValues+')');
 			            
 		var sample_id = assay2samplesJSON[i][0];            
-		var contents = '<div> <ul>';
+		var contents = '<ul style="padding-left:0px;margin:0px;list-style-type:none">';
 			for (i = 0; i < charJSON.length; ++i) {
 			  	 var characteristic = charJSON[i];
 			   	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
             	 var txtChar = curatedChars[characteristic];
-            	 contents+= '<li><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
+            	 contents+= '<li style="padding:0px"><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
             }
-       contents+='</ul></div>';
+       contents+='</ul>';
       
 		$('<div id="tooltip">' + contents + '</div>').css( {
             position: 'absolute',
@@ -624,9 +616,8 @@ function drawPlot(jsonObj, plot_id){
             'text-align':'left',
             left: x + 5,
             border: '1px solid #005555',
-            padding: '10px',
-            'background-color': '#EEF5F5',
-            opacity: 0.80
+	    margin: '0px',
+            'background-color': '#EEF5F5'
         }).appendTo("body").fadeIn("fast");
 		
 		
@@ -638,7 +629,7 @@ function drawPlot(jsonObj, plot_id){
 		var DEs = eval('(' + jsonObj.DEids+ ')' );
 		var AD = jsonObj.ADid;
 		$("#simSelect").empty();
-		$("#simSelect").addOption("", "select gene");
+//		$("#simSelect").addOption("", "select gene");
 		for(i=0; i<GNs.length; i++){
 			var gnName = names[i];
 			var DE = DEs[i];

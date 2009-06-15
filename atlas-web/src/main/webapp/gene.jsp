@@ -351,12 +351,12 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 					<table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
 						<thead>
 						<tr style="height:26px;border-top:1px solid #CDCDCD">
-							<th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor Value</th>
-							<th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Factor</th>
-							<th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD">Up/Down</th>
+							<th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Factor Value</th>
+							<th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Factor</th>
+							<th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Up/Down</th>
 						</tr>
 						<tr>
-						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white">
+						   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white;border-left:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
 							Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in
 						   </td>
 						</tr>
@@ -367,17 +367,17 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 							style="border-bottom:1px solid #CDCDCD"
 						    onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px">
+							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-right:1px solid #CDCDCD;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>
 							</td>
 								
-							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px ">
+							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
 								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 
-							<td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD">
+							<td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
 							<c:choose>
 								<c:when test="${row.mixedCell}">
 							        <div style="width:26px">
@@ -449,5 +449,8 @@ Atlas Gene Expression Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 	value="${(timeFinish - timeStart) / 1000.0}" /> secs.</div>
 
 </div>
+
+</td></tr></tbody></table>
+
 <!-- end page contents here -->
 <jsp:include page='end_body.jsp' />
