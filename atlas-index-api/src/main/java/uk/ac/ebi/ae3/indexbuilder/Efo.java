@@ -150,7 +150,6 @@ public class Efo {
         private OWLOntology ontology;
         private OWLReasoner reasoner;
         private Map<String,EfoNode> efomap;
-        private Set<String> orgnodes;
 
         private Loader()
         {
@@ -172,11 +171,14 @@ public class Efo {
             public void visit(OWLConstantAnnotation annotation) {
                 if (annotation.isLabel()) {
                     OWLConstant c = annotation.getAnnotationValue();
-                    term = c.getLiteral();
+                    if(term == null)
+                        term = c.getLiteral();
                 } else if(annotation.getAnnotationURI().toString().contains("branch_class")) {
                     branchRoot = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
                 } else if(annotation.getAnnotationURI().toString().contains("organizational_class")) {
                     organizational = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
+                } else if(annotation.getAnnotationURI().toString().contains("ArrayExpress_label")) {
+                    term = annotation.getAnnotationValue().getLiteral();
                 }
             }
 
