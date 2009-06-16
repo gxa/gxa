@@ -290,6 +290,7 @@
              'table.oneplot[id]+': function(a) { return 'oneplot_' + a.context.counter++; },
              '.efname': 'ef.eftext',
              'a.proflink[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
+             'a.proflink2[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
              'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
          }).remove();
      };
