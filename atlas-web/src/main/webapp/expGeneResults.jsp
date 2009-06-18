@@ -57,7 +57,7 @@ function initPaging(){
 				<img border="0" src="images/iconf.png"/>
 				</a>
 				</td>
-				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px"
+				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px; white-space:nowrap"
 					class="padded" ><a class="genename" href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
 					<div class="gtooltip" style="display: none;">
 						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
