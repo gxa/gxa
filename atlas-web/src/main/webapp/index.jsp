@@ -13,7 +13,7 @@
 Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 <jsp:include page="end_head.jsp"></jsp:include>
 
-	<meta name="Description" content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
+    <meta name="Description" content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
     <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
     <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
@@ -150,7 +150,7 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
-<div id="ae_pagecontainer">
+<div id="ae_pagecontainer"  style="position:absolute;z-index:2;width:100%;padding:0;">
     <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;" >
     <jsp:include page="simpleform.jsp"></jsp:include>
         
@@ -210,17 +210,24 @@ biologically interesting genes/samples.
   <b class="rcs3"></b>
   <b class="rcs2"><b></b></b>
   <b class="rcs1"><b></b></b></b>
-</div>
-</div>
-    </div>
+
+
+
+
+
 </div>
 
         <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-            <div style="font-family: Verdana, helvetica, arial, sans-serif;position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
+            <div style="font-family: Verdana, helvetica, arial, sans-serif; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center; position: relative; top:250px">
                             For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
                             <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
                             <input type="submit" name="email-button" value="Subscribe" />
             </div>
         </form>
+
+</div>
+    </div>
+</div>
+
 
 <jsp:include page="end_body.jsp"></jsp:include>
