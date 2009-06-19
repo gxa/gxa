@@ -8,6 +8,7 @@ import ae3.model.AtlasTuple;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.compute.AtlasComputeService;
 import ae3.util.AtlasProperties;
 import ae3.util.QueryHelper;
 import org.apache.commons.dbutils.QueryRunner;
@@ -63,6 +64,8 @@ public class ArrayExpressSearchService {
     private AtlasStructuredQueryService squeryService;
     private AtlasStatisticsService.Stats stats;
 
+    private AtlasComputeService computeService;
+
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
 
@@ -89,6 +92,7 @@ public class ArrayExpressSearchService {
             solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
 
             squeryService = new AtlasStructuredQueryService(multiCore);
+            computeService = new AtlasComputeService();
 
             AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
 
@@ -118,7 +122,7 @@ public class ArrayExpressSearchService {
      */
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
-
+        computeService.shutdown();
         squeryService = null;
 
         log.info("Shutting down DB connections and indexes");
@@ -667,5 +671,13 @@ public class ArrayExpressSearchService {
 
     public QueryRunner getTheAEQueryRunner() {
         return theAEQueryRunner;
+    }
+
+    public AtlasComputeService getComputeService() {
+        return computeService;
+    }
+
+    public void setComputeService(AtlasComputeService computeService) {
+        this.computeService = computeService;
     }
 }

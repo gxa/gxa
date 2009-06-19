@@ -1,9 +1,8 @@
 package ds.R;
 
 
-import org.bioconductor.packages.rservices.RMatrix;
-
-import remoting.RServices;
+import org.kchine.r.server.RServices;
+import org.kchine.r.RMatrix;
 
 
 import ds.server.SimilarityResultSet;
@@ -66,8 +65,8 @@ public class RSimilarityPearson extends Thread implements RSimilarityPackage{
 	public String getMethod() {
 		return method;
 	}
-	
-	public SimilarityResultSet getSimilarityResult() {
+
+    public SimilarityResultSet getSimilarityResult() {
 		return srs;
 	}
 

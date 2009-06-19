@@ -8,14 +8,13 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
-import org.bioconductor.packages.rservices.RArray;
-import org.bioconductor.packages.rservices.RChar;
-import org.bioconductor.packages.rservices.RInteger;
-import org.bioconductor.packages.rservices.RLogical;
+import org.kchine.r.server.RServices;
+import org.kchine.r.RLogical;
+import org.kchine.r.RChar;
+import org.kchine.r.RInteger;
+import org.kchine.r.RArray;
 
 import ds.server.ExpressionDataSet;
-
-import remoting.RServices;
 
 /**
  * 
@@ -92,7 +91,7 @@ public class RPlotTimeSeries implements RPlotPackage {
 		
 		
 		// System.out.println("A.1.2");
-		RInteger dimEf = (RInteger) r.getObject("length(ef);"); 
+		RInteger dimEf = (RInteger) r.getObject("length(ef);");
 		RInteger dimBS = (RInteger) r.getObject("length(bs);");	
 		RInteger geneSize = (RInteger) r.getObject("length(bdcIds);"); 
 		

@@ -3,8 +3,7 @@ package ds.R;
 import java.util.Vector;
 
 import ds.server.ExpressionDataSet;
-
-import remoting.RServices;
+import org.kchine.r.server.RServices;
 
 public interface RPlotPackage {
 	

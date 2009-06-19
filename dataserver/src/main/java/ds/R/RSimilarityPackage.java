@@ -1,7 +1,7 @@
 package ds.R;
 
-import remoting.RServices;
 import ds.server.SimilarityResultSet;
+import org.kchine.r.server.RServices;
 
 public interface RSimilarityPackage {
 	

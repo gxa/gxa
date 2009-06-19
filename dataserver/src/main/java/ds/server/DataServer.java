@@ -19,15 +19,14 @@ import org.apache.commons.lang.ArrayUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.kchine.rpf.TimeoutException;
 
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import uk.ac.ebi.microarray.pools.TimeoutException;
 
 import ds.R.RUtilities;
 

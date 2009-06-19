@@ -1,24 +1,24 @@
 package ae3.servlet;
 
 import java.io.IOException;
-import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.kchine.rpf.TimeoutException;
+import org.kchine.r.server.RServices;
+import org.kchine.r.RDataFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ds.biocep.Similarity;
 import ds.server.SimilarityResultSet;
 
-import ae3.service.ArrayExpressSearchService;
 import ae3.service.ExperimentService;
+import ae3.service.compute.AtlasComputeService;
+import ae3.service.compute.ComputeTask;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.util.EscapeUtil;
 
@@ -50,17 +50,27 @@ public class ExpGeneListServlet extends HttpServlet {
 		if(qryType.equals("sim")){
 			String DEid = request.getParameter("deid");
 			String ADid = request.getParameter("adid");
-			SimilarityResultSet simRS = new SimilarityResultSet(eid,DEid,ADid);
+			final SimilarityResultSet simRS = new SimilarityResultSet(eid,DEid,ADid);
 
 			try {
-				if(Similarity.getSimilarDEs(simRS)){
+                AtlasComputeService computeService = ae3.service.ArrayExpressSearchService.instance().getComputeService();
+                RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
+
+                    public RDataFrame compute(RServices R) throws RemoteException {
+                        String callSim = "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
+                        return (RDataFrame) R.getObject(callSim);
+                    }
+                });
+
+                if(null != sim) {
+                    simRS.loadResult(sim);
 					ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
 					result = ExperimentService.getGenesForExperiment(simGeneIds,eAcc,start);
 					request.setAttribute("genes",result.getListResults());
 					request.setAttribute("simRS", simRS);
 				}
 			} catch (Exception e) {
-				log.error(e.getMessage());
+				log.error("Problem computing similarity!", e.getMessage());
 				return;
 			} 
 

@@ -13,7 +13,7 @@ import java.util.Vector;
 import ds.R.RUtilities;
 import ds.utils.DS_DBconnection;
 
-import uk.ac.ebi.microarray.pools.TimeoutException;
+import org.kchine.rpf.TimeoutException;
 
 /**
  * 

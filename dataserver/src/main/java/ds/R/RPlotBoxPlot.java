@@ -1,20 +1,15 @@
 package ds.R;
 
-import graphics.pop.GDDevice;
-//import graphics.rmi.JGDPanelPop;
-
 import java.io.File;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
-
-import org.bioconductor.packages.rservices.RChar;
-import org.bioconductor.packages.rservices.RInteger;
-import org.bioconductor.packages.rservices.RLogical;
+import org.kchine.r.server.RServices;
+import org.kchine.r.server.graphics.GDDevice;
+import org.kchine.r.RChar;
+import org.kchine.r.RLogical;
+import org.kchine.r.RInteger;
 
 import ds.server.ExpressionDataSet;
-
-import remoting.RServices;
 
 public class RPlotBoxPlot implements RPlotPackage {
 	

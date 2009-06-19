@@ -1,21 +1,16 @@
 package ds.R;
 
-import graphics.pop.GDDevice;
-//import graphics.rmi.JGDPanelPop;
-
 import java.io.File;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
-
-import org.bioconductor.packages.rservices.RChar;
-import org.bioconductor.packages.rservices.RInteger;
-import org.bioconductor.packages.rservices.RLogical;
+import org.kchine.r.server.RServices;
+import org.kchine.r.server.graphics.GDDevice;
+import org.kchine.r.RChar;
+import org.kchine.r.RLogical;
+import org.kchine.r.RInteger;
 
 import ds.server.ExpressionDataSet;
 
-
-import remoting.RServices;
 
 /**
  * 
@@ -53,7 +48,7 @@ public class RPlotAtlas implements RPlotPackage {
 
 		// for all the selected de ids
 		for (int a = 0; a < eds.getAr_DE().length; a++) {
-			RLogical rl = (RLogical) r.getObject("any(de=='"+ eds.getAr_DE()[a] + "');"); // test to see if any selected de ids exists in this netcdf 
+			RLogical rl = (RLogical) r.getObject("any(de=='"+ eds.getAr_DE()[a] + "');"); // test to see if any selected de ids exists in this netcdf
 			boolean brl = rl.getValue()[0]; // boolean: is the de found in the file ?
 
 			// if Design Element Ids is in bdc matrix then we add ids to the bdcIds variable

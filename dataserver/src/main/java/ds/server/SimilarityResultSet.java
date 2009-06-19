@@ -2,15 +2,7 @@ package ds.server;
 
 import java.util.*;
 
-import org.bioconductor.packages.rservices.RChar;
-import org.bioconductor.packages.rservices.RMatrix;
-import org.bioconductor.packages.rservices.RNumeric;
-import org.kchine.r.RArray;
-import org.kchine.r.RDataFrame;
-import org.kchine.r.RInteger;
-import org.kchine.r.RList;
-import org.kchine.r.RObject;
-import org.kchine.r.RVector;
+import org.kchine.r.*;
 
 /**
  * 

@@ -7,24 +7,15 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Vector;
 
-import org.bioconductor.packages.rservices.RArray;
-import org.bioconductor.packages.rservices.RChar;
-import org.bioconductor.packages.rservices.RInteger;
-import org.bioconductor.packages.rservices.RList;
-import org.bioconductor.packages.rservices.RLogical;
-import org.bioconductor.packages.rservices.RMatrix;
-import org.bioconductor.packages.rservices.RNumeric;
-import org.bioconductor.packages.rservices.RObject;
-import org.bioconductor.packages.rservices.RVector;
+import org.kchine.r.server.RServices;
+import org.kchine.r.*;
+import org.kchine.rpf.TimeoutException;
+import org.kchine.rpf.ServantProviderFactory;
 
 import ds.server.ExpressionDataSet;
 import ds.server.SimilarityResultSet;
 import ds.utils.DSConstants;
 
-import remoting.RServices;
-import uk.ac.ebi.microarray.pools.RemoteLogListener;
-import uk.ac.ebi.microarray.pools.ServantProviderFactory;
-import uk.ac.ebi.microarray.pools.TimeoutException;
 
 /**
  * 
@@ -71,7 +62,7 @@ public class RUtilities implements Serializable {
 	private void fetchServices() throws MalformedURLException, RemoteException,
 	NotBoundException, TimeoutException {
 
-		r = (RServices) uk.ac.ebi.microarray.pools.ServantProviderFactory.getFactory()
+		r = (RServices) ServantProviderFactory.getFactory()
 		.getServantProvider().borrowServantProxy(); // Request a R Resource from the ServantProviderFactory
 
 	}
@@ -103,8 +94,6 @@ public class RUtilities implements Serializable {
 	 * Method that create a RPlotter object and draws thumbnails in a thread
 	 * context
 	 * 
-	 * @param deIds
-	 * @param ncdfs
 	 * @throws Exception
 	 */
 
@@ -249,7 +238,7 @@ public class RUtilities implements Serializable {
 		private void fetchServices() throws MalformedURLException,
 		RemoteException, NotBoundException, TimeoutException {
 
-			r = (RServices) uk.ac.ebi.microarray.pools.ServantProviderFactory.getFactory()
+			r = (RServices) ServantProviderFactory.getFactory()
 			.getServantProvider().borrowServantProxy(); // Request a R Ressource from the ServantProviderFactory
 
 		}
@@ -385,7 +374,7 @@ public class RUtilities implements Serializable {
 		private void fetchServices() throws MalformedURLException,
 		RemoteException, NotBoundException, TimeoutException {
 
-			r = (RServices) uk.ac.ebi.microarray.pools.ServantProviderFactory.getFactory()
+			r = (RServices) ServantProviderFactory.getFactory()
 			.getServantProvider().borrowServantProxy(); // Request a R Ressource from the ServantProviderFactory
 
 		}

@@ -5,8 +5,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-import uk.ac.ebi.microarray.pools.TimeoutException;
 import ds.utils.DSConstants;
+import org.kchine.rpf.TimeoutException;
 
 public class DataServerAPI {
 	

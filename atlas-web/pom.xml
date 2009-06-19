@@ -17,6 +17,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbyclient</artifactId>
+            <version>10.3.2.1</version>
+        </dependency>
+        <dependency>
             <groupId>uk.ac.ebi.microarray.atlas</groupId>
             <artifactId>dataserver</artifactId>
             <version>1.0</version>
@@ -77,6 +82,11 @@
             <groupId>commons-discovery</groupId>
             <artifactId>commons-discovery</artifactId>
             <version>0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>1.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.axis</groupId>
