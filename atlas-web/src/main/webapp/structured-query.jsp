@@ -335,14 +335,14 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 url: '${pageUrl}&export=true',
                 cache: false,
                 complete: function() {
-			atlas.popup('downloads.jsp');           
+			atlas.popup('downloads.jsp');
                 }
             });
 */
 	    alert("We are sorry, this functionality has been temporarily disabled due to system overload. It will be back soon!");
         });
     });
-                
+
 </script>
 
 <div id = "result_cont">
@@ -364,7 +364,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         </nobr></li>
                     </c:forEach></ul>
                 </div>
-				
+
             </c:forEach>
             <c:if test="${!empty result.geneFacets['species']}">
                 <div class="drillsect">
@@ -580,12 +580,12 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <th class="padded">P-value</th>
             </tr>
         </thead>
-					
+
         <tbody>
-						
+
         <c:forEach var="row" items="${result.listResults}" varStatus="r">
             <tr id="${row.gene_id}_${row.ef}_${r.index}">
-                <td rowspan="${f:length(row.exp_list)+3}" class="collapsible" style="border-right:none" title="Click here to show experiments..."></td>
+                <td class="collapsible" style="border-right:none;border-bottom:none;" title="Click here to show experiments..."></td>
                 <td class="padded genename" style="border-left:none">
                     <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
@@ -614,40 +614,36 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
             <tr class="expand-child">
-              	<th colspan="6" class="header padded" style="text-align: left;padding:2px 0 0 0;background-color:#cdcdcd"></th>
+                <td class="empty"></td>
+              	<th colspan="6" class="thickborder"></th>
             </tr>
             <c:forEach var="exp" items="${row.exp_list}">
 
                 <tr class="expand-child">
-
-                    <td class="padded genename" style="border-left: 4px solid #cdcdcd; border-right:none">
+                    <td class="empty"></td>
+                    <td class="padded genename">
                         <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
                     </td>
-                    <td class="padded wrapok" colspan="3" style="padding-right:70px;border-left:none">
+                    <td class="expdesc wrapok" colspan="3">
                     	${exp.experimentName}
                     </td>
-                    <td style="border-left:none">
-                        <div style="position:relative;height:100%;min-height:45px;width:100%;">
-                            <div style="position:absolute;right:0;top:0;min-height:45px;height:100%;width:90px;background:white;">
-                                <a title="Show expression profile" href="experiment?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}" style="border:none;text-decoration:none;outline:none;">
-                                    <div
-                                     id="${exp.experimentId}_${exp.updn}_${r.index}" name="${exp.experimentId}_${r.index}"
-                                     class="thumb" style="width:90px;height:45px;text-align:center" title="Click to view experiment detail">
-                                      <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
+                    <td class="expthumb">
+                        <div class="outer">
+                                <a title="Show expression profile" href="experiment?eid=${exp.experimentAccession}&gid=${row.gene_id}&ef=${row.ef}">
+                                    <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
+                                        <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
                                     </div>
                                 </a>
-                            </div>
                         </div>
                     </td>
-                    <!-- <td><div style="width:26px;background-color:${row.cellColor[row.expr]}"></div></td> -->
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
-                            <td style="color: red;border-right:2px solid #cdcdcd" class="padded">
+                            <td style="color: red;" class="pvalue padded">
                                 &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
                         <c:otherwise>
-                            <td style="color: blue;border-right:2px solid #cdcdcd" class="padded">
+                            <td style="color: blue;" class="pvalue padded">
                                 &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>
@@ -655,7 +651,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 </tr>
             </c:forEach>
             <tr class="expand-child">
-                <th colspan="6" style="padding:2px 0 0 0;background:#cdcdcd;"></th>
+                <td class="empty"></td>
+                <th colspan="6" class="thickborder"></th>
             </tr>
         </c:forEach>
         </tbody>
@@ -683,7 +680,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 </c:if><!-- /!query.none -->
 
-<div id="question" style="display:none; cursor: default"> 
+<div id="question" style="display:none; cursor: default">
     <input  type="button" id="no" value="Get file" />
 </div>
 
@@ -710,7 +707,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                             <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none" target="_blank"><div style="display:none" class="plot"></div></a></td>
                             <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                         </tr></table>
-                
+
                         <div style="margin-top:5px;font-size:10px;">
                             Show <a class="proflink2" target="_blank" title="Show expression profile" href="">expression profile</a>
                             &nbsp;/&nbsp;

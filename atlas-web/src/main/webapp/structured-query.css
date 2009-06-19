@@ -342,23 +342,60 @@ div.efoinput {
 
 .ac_results .tree a.hl { color: #005555; }
 
-.tablesorter tr.expand-child td, .tablesorter tr.expand-child th {
+#squery tr.expand-child td, #squery tr.expand-child th {
     display: none;
 }
 
-.tablesorter thead th.header {
-    background: no-repeat center right;
+#squery tr.expand-child td.empty {
+    border-right:none;border-top:none;border-bottom:none;
 }
 
-.tablesorter thead th.header {
+#squery tr.expand-child .thickborder {
+    padding:2px 0 0 0;background-color:#cdcdcd;    
+}
+
+#squery tr.expand-child td.genename {
+    border-left: 4px solid #cdcdcd; border-right:none;    
+}
+
+#squery tr.expand-child td.expdesc {
+    padding:1px 70px 1px 4px;border-left:none;border-right:none;
+}
+
+#squery tr.expand-child .expthumb {
+    border-left:none;
+}
+
+#squery tr.expand-child .expthumb div.outer {
+    position:relative;height:45px;width:100%;line-height:45px;
+}
+
+#squery tr.expand-child .expthumb a {
+    border:none;text-decoration:none;outline:none;position:absolute;display:block;right:0;text-align:center;
+}
+
+#squery tr.expand-child .expthumb div.thumb {
+    height:45px;width:90px;
+}
+
+#squery tr.expand-child .pvalue {
+    border-right:2px solid #cdcdcd;
+}
+
+#squery thead th.header {
+    background-repeat: no-repeat;
+    background-position: center right;
+}
+
+#squery thead th.header {
 	background-image: url(images/bg.gif);
 }
 
-.tablesorter thead th.headerSortUp {
+#squery thead th.headerSortUp {
     background-image: url(images/asc.gif);
 }
 
-.tablesorter thead th.headerSortDown {
+#squery thead th.headerSortDown {
     background-image: url(images/desc.gif);
 }
 
@@ -385,3 +422,128 @@ div.efoinput {
     background: url(images/expm.gif) no-repeat top left;
     outline: 0;
 }
+
+#simpleform td { vertical-align: top; }
+
+
+
+
+/* token */
+
+
+ul.token-input-list-facebook {
+    overflow: hidden;
+    width: 150px;
+    height: 17px;
+    border: 1px solid #8496ba;
+    cursor: text;
+    font-size: 12px;
+    font-family: Verdana;
+    min-height: 1px;
+    z-index: 999;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+
+ul.token-input-list-facebook {
+    list-style-type: none;
+}
+
+ul.token-input-list-facebook li input {
+    border: 0;
+    width: 100px;
+    padding: 3px 8px;
+    background-color: white;
+    margin: 2px 0;
+}
+
+li.token-input-token-facebook {
+    overflow: hidden;
+    height: auto !important;
+    height: 1%;
+    margin: 1px 3px 1px 3px;
+    padding: 1px 1px;
+    background-color: #eff2f7;
+    color: #000;
+    cursor: default;
+    border: 1px solid #ccd5e4;
+    font-size: 8px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    float: left;
+}
+
+li.token-input-token-facebook p {
+    display: inline;
+    padding: 0;
+    margin: 0;
+}
+
+li.token-input-token-facebook span {
+    color: #a6b3cf;
+    margin-left: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+li.token-input-selected-token-facebook {
+    background-color: #5670a6;
+    border: 1px solid #3b5998;
+    color: #fff;
+}
+
+li.token-input-input-token-facebook {
+    float: left;
+}
+
+div.token-input-dropdown-facebook {
+    position: absolute;
+    width: 150px;
+    background-color: #fff;
+    overflow: hidden;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    cursor: default;
+    font-size: 8px;
+    font-family: Verdana;
+    z-index: 1;
+}
+
+div.token-input-dropdown-facebook p {
+    margin: 0;
+    padding: 5px;
+    font-weight: bold;
+    color: #777;
+}
+
+div.token-input-dropdown-facebook ul {
+    margin: 0;
+    padding: 0;
+}
+
+div.token-input-dropdown-facebook ul li {
+    background-color: #fff;
+    padding: 3px;
+}
+
+div.token-input-dropdown-facebook ul li.token-input-dropdown-item-facebook {
+    background-color: #fff;
+}
+
+div.token-input-dropdown-facebook ul li.token-input-dropdown-item2-facebook {
+    background-color: #fff;
+}
+
+div.token-input-dropdown-facebook ul li em {
+    font-weight: bold;
+    font-style: none;
+}
+
+div.token-input-dropdown-facebook ul li.token-input-selected-dropdown-item-facebook {
+    background-color: #3b5998;
+    color: #fff;
+}
+
