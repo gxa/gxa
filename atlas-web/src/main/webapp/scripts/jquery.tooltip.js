@@ -146,7 +146,7 @@
 		if ( settings(this).bodyHandler ) {
 			helper.title.hide();
 			var bodyContent = settings(this).bodyHandler.call(this);
-			if (bodyContent.nodeType || bodyContent.jquery) {
+			if (typeof(bodyContent) == 'object' && (bodyContent.nodeType || bodyContent.jquery)) {
 				helper.body.empty().append(bodyContent)
 			} else {
 				helper.body.html( bodyContent );
