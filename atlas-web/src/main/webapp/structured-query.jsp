@@ -704,12 +704,12 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <span class="expname"></span>
 
                         <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none" target="_blank"><div style="display:none" class="plot"></div></a></td>
+                            <td><img src="images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
                             <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                         </tr></table>
 
                         <div style="margin-top:5px;font-size:10px;">
-                            Show <a class="proflink2" target="_blank" title="Show expression profile" href="">expression profile</a>
+                            Show <a class="proflink2" title="Show expression profile" href="">expression profile</a>
                             &nbsp;/&nbsp;
                             <a class="detailink" target="_blank" title="Show experiment details in ArrayExpress Archive" href="">experiment details</a>
                         </div>
