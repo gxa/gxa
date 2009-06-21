@@ -61,7 +61,7 @@ public class GoogleSitemapXmlServletTest {
         svt.setBasePath(System.getProperty("java.io.tmpdir"));
         svt.writeGeneSitemap(core);
 
-        File geneSitemapIndex = new File(svt.getBasePath() + File.separator + "geneSitemapIndex.xml.gz");
+        File geneSitemapIndex = new File(svt.getBasePath() + File.separator + "geneSitemapIndex.xml");
         assertTrue(geneSitemapIndex.exists());
 
         File geneSitemap0 = new File(svt.getBasePath() + File.separator + "geneSitemap0.xml.gz");
