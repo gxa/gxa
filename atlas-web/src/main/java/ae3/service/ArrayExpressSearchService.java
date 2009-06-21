@@ -65,6 +65,7 @@ public class ArrayExpressSearchService {
     private AtlasStatisticsService.Stats stats;
 
     private AtlasComputeService computeService;
+    private AtlasDownloadService downloadService;
 
     private ArrayExpressSearchService() {};
     private static ArrayExpressSearchService _instance = null;
@@ -92,7 +93,9 @@ public class ArrayExpressSearchService {
             solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
 
             squeryService = new AtlasStructuredQueryService(multiCore);
+
             computeService = new AtlasComputeService();
+            downloadService = new AtlasDownloadService();
 
             AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
 
@@ -122,7 +125,11 @@ public class ArrayExpressSearchService {
      */
     public void shutdown() {
         log.info("Shutting down ArrayExpressSearchService.");
+
         computeService.shutdown();
+        computeService = null;
+
+        downloadService.shutdown();
         squeryService = null;
 
         log.info("Shutting down DB connections and indexes");
@@ -677,7 +684,7 @@ public class ArrayExpressSearchService {
         return computeService;
     }
 
-    public void setComputeService(AtlasComputeService computeService) {
-        this.computeService = computeService;
+    public AtlasDownloadService getDownloadService() {
+        return downloadService;
     }
 }

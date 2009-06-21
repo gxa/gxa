@@ -78,6 +78,20 @@
       <servlet-class>ae3.servlet.GeneIdentifiersDumpDownloadServlet</servlet-class>
       <load-on-startup>1</load-on-startup>
     </servlet>
+
+     <servlet>
+      <display-name>Google Sitemap</display-name>
+      <servlet-name>GoogleSitemap</servlet-name>
+      <servlet-class>ae3.servlet.GoogleSitemapXmlServlet</servlet-class>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>List view download servlet</display-name>
+        <servlet-name>ListviewDownloadServlet</servlet-name>
+        <servlet-class>ae3.servlet.ListviewDownloadServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
  
     <servlet>
         <display-name>Gene View</display-name>
@@ -127,6 +141,16 @@
     </servlet-mapping>
 
     <servlet-mapping>
+	    <servlet-name>GoogleSitemap</servlet-name>
+	    <url-pattern>/sitemap/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ListviewDownloadServlet</servlet-name>
+        <url-pattern>/listviewdownload/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>expGenes</servlet-name>
         <url-pattern>/expGenes</url-pattern>
     </servlet-mapping>
@@ -165,6 +189,7 @@
         <servlet-name>experiment</servlet-name>
         <url-pattern>/experiment</url-pattern>
     </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>experiments</servlet-name>
         <url-pattern>/experiments</url-pattern>

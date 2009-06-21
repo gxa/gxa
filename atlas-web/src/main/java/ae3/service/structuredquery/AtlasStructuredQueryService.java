@@ -709,7 +709,7 @@ public class AtlasStructuredQueryService {
             }
 
             if(query.getViewType() == ViewType.LIST) {
-                getListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
+                loadListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
                 ++numOfListGenes;
             }
 
@@ -728,7 +728,15 @@ public class AtlasStructuredQueryService {
 
     }
 
-    private void getListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
+    /**
+     * TODO
+     * @param result
+     * @param gene
+     * @param efvTree
+     * @param efoTree
+     * @param experiments
+     */
+    private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
         Iterable<String> efviter = new Iterable<String>() {
             public Iterator<String> iterator() {
                 return new Iterator<String>() {
@@ -739,6 +747,7 @@ public class AtlasStructuredQueryService {
                 };
             }
         };
+
         Iterable<String> efoiter = new Iterable<String>() {
             public Iterator<String> iterator() {
                 return new Iterator<String>() {

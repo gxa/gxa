@@ -2,7 +2,11 @@ package ae3.service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.zip.GZIPOutputStream;
+import java.io.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
@@ -14,104 +18,128 @@ import ae3.util.AtlasProperties;
  * @author iemam
  *
  */
-public class Download {
-	private String file;
-	private double progress=0;
-	private AtlasStructuredQuery query;
-	private long size=1;
-	private StringBuilder strBuf;
-	
-	public Download(AtlasStructuredQuery query){
+public class Download implements Runnable {
+    protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private int id;
+	private final AtlasStructuredQuery query;
+
+    private File outputFile;
+
+    private long totalResults = 0;
+    private long resultsRetrieved = 0;
+
+	public Download(int id, AtlasStructuredQuery query) throws IOException {
 		this.query = query;
-		strBuf = new StringBuilder();
-		this.file = StringUtils.replaceChars(query.toString(), "\\\"()", "'").replaceAll(" ","_");
-		
+        this.id = id;
+
+        this.outputFile =  File.createTempFile("listdl", ".tab.gz", new File(System.getProperty("java.io.tmpdir")));
+        this.outputFile.deleteOnExit();
 	}
 
 	public String getQuery() {
 		return query.toString();
 	}
 
-	public void setQuery(AtlasStructuredQuery query) {
-		this.query = query;
-	}
-
-	public String getFile() {
-		return file;
-	}
-
-	public void setFile(String file) {
-		this.file = file;
-	}
-
 	public double getProgress() {
-		return Math.ceil((progress/size) * 100);
+        if(0 == getTotalResults()) return 0;
+        if(getResultsRetrieved() == getTotalResults()) return 100;
+
+        return Math.floor(100 * getResultsRetrieved() / getTotalResults());
 	}
-	
-	public void setProgress(int progress) {
-		this.progress = progress;
-	}
-	
-	public StringBuilder getFileContents(){
-		return strBuf;
-	}
-	
-	public void doDownload(){
-		if(query != null){
-			
-			AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(query);
-			appendHeader(strBuf);
-			appendResults(atlasResult, strBuf);
-			progress++;
-			long total = atlasResult.getTotal();
-			size = (long)Math.ceil(total/query.getRowsPerPage()+0.5);
-			if(total > query.getRowsPerPage()){
-				
-				for(int i=1; i<size; i++){
-					query.setStart(i*query.getRowsPerPage());
 
-					AtlasStructuredQueryResult atlasResult2 = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(query);
-					appendResults(atlasResult2, strBuf);
-					progress++;
-				}
+	public void run() {
+		if(query != null) {
+            try {
+                GZIPOutputStream gzout =
+                        new GZIPOutputStream(
+                        new BufferedOutputStream(
+                        new FileOutputStream(getOutputFile())));
 
-			}
+                query.setStart(0);
+                query.setRowsPerPage(0);
 
-//			FileOutputStream fos = new FileOutputStream("/Volumes/Workspace/Projects/atlas-1.0/out.csv");
-//			OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF8");
-//			PrintWriter pw = new PrintWriter(osw);
-//			pw.print(strBuf);
-//			pw.close();
-//			request.setAttribute("filename", "out.csv");
+                AtlasStructuredQueryResult atlasResult =
+                        ArrayExpressSearchService
+                        .instance()
+                        .getStructQueryService()
+                        .doStructuredAtlasQuery(query);
 
+                setTotalResults(atlasResult.getTotal());
+
+                log.info("Downloading query {}, expect total {} results", query.toString(), getTotalResults());
+                outputHeader(gzout);
+
+                while(getTotalResults() > getResultsRetrieved()) {
+                    query.setStart((int) getResultsRetrieved());
+                    query.setRowsPerPage((int) Math.min(1000, getTotalResults() - getResultsRetrieved()));
+                    atlasResult =
+                            ArrayExpressSearchService
+                            .instance()
+                            .getStructQueryService()
+                            .doStructuredAtlasQuery(query);
+
+                    outputResults(atlasResult, gzout);
+                    incrementResultsRetrieved(atlasResult.getSize());
+                }
+
+                gzout.close();
+            } catch (IOException e) {
+                log.error("Error executing download for query {}, error {}", query, e.getMessage());
+            }
 		}
 	}
+
+    /**
+     * Implement equality on query; prevents identical queries (within session) from being downloaded multiple times.
+     */
+    public boolean equals(Download d) {
+        return d.getQuery().equals(this.getQuery());
+    }
+
+    /**
+     * {@see {@link #equals}}
+     */
+    public int hashCode() {
+        return getQuery().hashCode();
+    }
 	
-	private void appendHeader(StringBuilder strBuf){
+	private void outputHeader(OutputStream out) throws IOException {
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
-		strBuf.append("Atlas data version: ").append(AtlasProperties.getProperty("atlas.data.release")).append("\n");
-		strBuf.append("Query: ").append(query.toString()).append("\n");
-		strBuf.append("Timestamp: ").append( formatter.format(today)).append("\n\n");
+        StringBuilder strBuf = new StringBuilder();
+
+		strBuf.append("# Atlas data version: ").append(AtlasProperties.getProperty("atlas.data.release")).append("\n");
+		strBuf.append("# Query: ").append(query.toString()).append("\n");
+		strBuf.append("# Timestamp: ").append( formatter.format(today)).append("\n");
 		
-		strBuf.append("Gene Name").append("\t").append("Gene Identifier").append("\t").append("Organism").append("\t");
+		strBuf.append("Gene name").append("\t").append("Gene identifier").append("\t").append("Organism").append("\t");
 		strBuf.append("Experimental factor").append("\t").append("Factor value").append("\t");
 		strBuf.append("Experiment accession").append("\t").append("Expression").append("\t").append("P-value").append("\n");
+
+        out.write(strBuf.toString().getBytes("UTF-8"));
 	}
 	
 	
-	private void appendResults(AtlasStructuredQueryResult result, StringBuilder strBuf ){
-    	for (ListResultRow row: result.getListResults()){
-        	for(ListResultRowExperiment expRow: row.getExp_list()){
-        		strBuf.append(row.getGene_name());
+	private void outputResults(AtlasStructuredQueryResult result, OutputStream out ) throws IOException {
+        StringBuilder strBuf = new StringBuilder();
+    	for (ListResultRow row : result.getListResults()) {
+            String geneName = row.getGene_name();
+            String geneIdentifier = row.getGene().getGeneIdentifier();
+            String geneSpecies = row.getGene_species();
+            String ef = row.getEf();
+            String efv = row.getFv();
+
+        	for(ListResultRowExperiment expRow: row.getExp_list()) {
+        		strBuf.append(geneName);
 	        	strBuf.append("\t");
-	        	strBuf.append(row.getGene().getGeneIdentifier());
+	        	strBuf.append(geneIdentifier);
 	        	strBuf.append("\t");
-	        	strBuf.append(row.getGene_species());
+	        	strBuf.append(geneSpecies);
 	        	strBuf.append("\t");
-	        	strBuf.append(row.getEf());
+	        	strBuf.append(ef);
 	        	strBuf.append("\t");
-	        	strBuf.append(row.getFv());
+	        	strBuf.append(efv);
 	        	strBuf.append("\t");
 	        	strBuf.append(expRow.getExperimentAccession());
 	        	strBuf.append("\t");
@@ -120,6 +148,47 @@ public class Download {
 	        	strBuf.append(expRow.getPvalue());
 	        	strBuf.append("\n");
         	}
+
+            out.write(strBuf.toString().getBytes("UTF-8"));
+            strBuf.setLength(0);
         }
+    }
+
+    private void incrementResultsRetrieved(long size) {
+        resultsRetrieved += size;
+    }
+
+    public long getTotalResults() {
+        return totalResults;
+    }
+
+    public void setTotalResults(long total) {
+        this.totalResults = total;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public long getResultsRetrieved() {
+        return resultsRetrieved;
+    }
+
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
+
+    @Override
+    public void finalize() {
+        if(getOutputFile().exists())
+            getOutputFile().delete();
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

@@ -26,7 +26,7 @@ import ds.server.DataServerAPI;
 import ds.utils.DS_DBconnection;
 
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.DownloadService;
+import ae3.service.AtlasDownloadService;
 import ae3.util.AtlasProperties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
@@ -72,8 +72,6 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
             as.setAEDataSource(ds);
             as.initialize();
             
-            DownloadService.instance().initialize();
-
             DataServerAPI.setNetCDFPath(netCDFlocation);
         } catch (Exception e) {
             log.error("Error in initialization", e);
@@ -88,8 +86,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        ArrayExpressSearchService as = ArrayExpressSearchService.instance();
-        as.shutdown();
+        ArrayExpressSearchService.instance().shutdown();
 
         SLF4JBridgeHandler.uninstall();
     }
@@ -102,7 +99,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     }
 
     public void sessionDestroyed(HttpSessionEvent se) {
-        /* Sesssion is destroyed */
+        ArrayExpressSearchService.instance().getDownloadService().cleanupDownloads(se.getSession().getId());
     }
 
     // -------------------------------------------------------

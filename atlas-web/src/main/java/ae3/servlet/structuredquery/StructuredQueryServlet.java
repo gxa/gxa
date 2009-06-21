@@ -11,7 +11,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.DownloadService;
+import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
 
@@ -35,15 +35,14 @@ public class StructuredQueryServlet extends HttpServlet {
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
         
         if(!atlasQuery.isNone()) {
-            
         	if(atlasQuery.isExport()){
-        		DownloadService.requestDownload(request.getSession(),atlasQuery);
+        		int queryId = ArrayExpressSearchService.instance().getDownloadService().requestDownload(request.getSession(),atlasQuery);
+                response.getOutputStream().print("{qid:" + queryId + "}");
     	        return;
-            }else{
+            } else {
             	AtlasStructuredQueryResult atlasResult = ArrayExpressSearchService.instance().getStructQueryService().doStructuredAtlasQuery(atlasQuery);
             	request.setAttribute("result", atlasResult);
-                
-                
+
                 if(atlasResult.getSize() == 1) {
                     StructuredResultRow row = atlasResult.getResults().iterator().next();
                     String url = "gene?gid=" + row.getGene().getGeneIdentifier();
@@ -60,7 +59,8 @@ public class StructuredQueryServlet extends HttpServlet {
         request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("service", ArrayExpressSearchService.instance());
-        request.setAttribute("noDownloads", DownloadService.getNumOfDownloads(request.getSession().getId()));
+        request.setAttribute("noDownloads", ArrayExpressSearchService.instance()
+                .getDownloadService().getNumOfDownloads(request.getSession().getId()));
 
         request.getRequestDispatcher("structured-query.jsp").forward(request, response);
     }

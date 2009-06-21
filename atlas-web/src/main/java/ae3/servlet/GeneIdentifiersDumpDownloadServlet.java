@@ -81,6 +81,8 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
             }
         }
 
+	    log.info("Gene identifiers dump download request");
+
         return getDumpGeneIdsFilename();
     }
 

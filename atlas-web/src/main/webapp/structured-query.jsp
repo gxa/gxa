@@ -328,18 +328,21 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     </c:if>
 
         $(".export_lnk").bind("click",function() {
-/*
-       	var count = parseInt($("#dwnldCounter").text())+1;
-       	$("#dwnldCounter").text(count);
             $.ajax({
                 url: '${pageUrl}&export=true',
                 cache: false,
-                complete: function() {
-			atlas.popup('downloads.jsp');
+                dataType: "json",
+                success: function(qry, status) {
+                    if(qry.qid > 0) {
+                        var count = parseInt($("#dwnldCounter").text())+1;
+                        $("#dwnldCounter").text(count);                        
+                    }
+			        atlas.popup('downloads.jsp');
                 }
             });
-*/
-	    alert("We are sorry, this functionality has been temporarily disabled due to system overload. It will be back soon!");
+
+            alert("Download request sent. Please check the downloads window for status.");
+            return false;
         });
     });
 
@@ -405,7 +408,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     <c:if test="${list}">
-        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a><!-- - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>--></div>
+        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a> - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></div>
     </c:if>
     <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
 </div>

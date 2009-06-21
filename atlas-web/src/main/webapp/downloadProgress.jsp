@@ -1,25 +1,23 @@
-<%@page import = "java.util.Date" session="true"%>
-<%@ page import="org.json.JSONArray"%>
 <%@ page import="org.json.JSONObject"%>
-<%@ page import="org.json.JSONException" %>
-<%@page import="java.util.ArrayList"%>
-<%@page import="ae3.service.DownloadService"%>
-<%@page import="ae3.service.Download"%>
+<%@ page import="ae3.service.Download"%>
+<%@ page import="java.util.Map" %>
+<%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ page language="java" contentType="application/json; charset=UTF-8"%>
 <% 
-ArrayList<Download> downloads = DownloadService.getDownloads(session.getId());
-JSONObject result = new JSONObject();		
-if(downloads != null){
-	request.setAttribute("downloads",downloads);
-	JSONArray progress = new JSONArray();
-	JSONObject dn = new JSONObject();
-	for(Download download:downloads){
-		dn = new JSONObject();
-		dn.put("progress",download.getProgress());
-		progress.put(dn);
-	}	
-	result.put("results",progress);
-}
-response.setContentType("text/javascript");
-response.getWriter().print(result);
+    Map<Integer, Download> downloads = ArrayExpressSearchService.instance().getDownloadService().getDownloads(session.getId());
+    JSONObject result = new JSONObject();
+
+    if(downloads != null){
+	    request.setAttribute("downloads",downloads);
+    	JSONObject progress = new JSONObject();
+    	JSONObject dn;
+    	for(Map.Entry<Integer,Download> download : downloads.entrySet()){
+    		dn = new JSONObject();
+    		dn.put("progress", download.getValue().getProgress());
+    		progress.put(download.getKey().toString(), dn);
+    	}
+    	result.put("results",progress);
+    }
+
+    out.print(result);
 %>

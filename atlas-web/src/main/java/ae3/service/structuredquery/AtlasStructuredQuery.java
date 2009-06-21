@@ -189,7 +189,7 @@ public class AtlasStructuredQuery {
 			if(c.isAnything())
 				sb.append("(all conditions)");
 			else
-				sb.append(c.getJointFactorValues()).append("\n");
+				sb.append(c.getJointFactorValues());
 		}
 		return sb.toString();
 	}
