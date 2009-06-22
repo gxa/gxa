@@ -71,9 +71,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
 <script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
+<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>

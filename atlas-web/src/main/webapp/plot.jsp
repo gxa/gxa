@@ -44,15 +44,14 @@
                             " legend: {     show: true, " +
                             "           position: 'sw', " +
                             "          container: '#" + eid + "_" + gid + "_legend', " +
-                           // "       extContainer: '#" + eid + "_" + gid + "_legend_ext', " +
+                            "       insigLegend: {show: "+jsonString.getBoolean("insigLegend")+" }, " +
                             "          noColumns: 1 }," +
                             "   grid: {  " +
                             "    backgroundColor: '#fafafa',	" +
                             "      autoHighlight: false, " +
                             "          hoverable: true, " +
                             "          clickable: true, " +
-                            "        borderWidth: 1}," +
-                            " selection: {  mode: 'x' } }");
+                            "        borderWidth: 1}}");
         		jsonString.put("options", options);
         	}
         	else if(plotType.equals("thumb")){

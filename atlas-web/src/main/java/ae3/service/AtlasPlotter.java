@@ -30,7 +30,8 @@ public class AtlasPlotter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static AtlasPlotter _instance = null;
-	private static final String[] altColors= {"#F0FFFF","#F5F5DC"};  
+	private static final String[] altColors= {"#D8D8D8","#E8E8E8"};  
+	private static final String[] markingColors= {"#F0FFFF","#F5F5DC"};  
 	final java.util.regex.Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
 	public static AtlasPlotter instance() {
 		if(null == _instance) {
@@ -93,6 +94,7 @@ public class AtlasPlotter {
 			HashMap<String, Double>  fvMean_map = new HashMap<String, Double>(); 
 			int sampleIndex=1;
 			int c=0;
+			boolean inSigSeriesPresent = false;
 			for (int i=0; i<fvs_arr.length; i++){
 				
 				String fv = fvs_arr[sortedFVindexes[i]].toString();
@@ -122,8 +124,8 @@ public class AtlasPlotter {
 				}
 				series.put("data", seriesData);
 				series.put("bars", new JSONObject("{show:true, align: \"center\", fill:true}"));
-				series.put("lines", new JSONObject("{show:false,lineWidth:2, fill:true}"));
-				series.put("points", new JSONObject("{show:false,radius:1}"));
+				series.put("lines", new JSONObject("{show:false}"));
+//				series.put("points", new JSONObject("{show:false,radius:1}"));
 				series.put("label", fv);
 				series.put("legend",new JSONObject("{show:true}"));
 				
@@ -132,6 +134,7 @@ public class AtlasPlotter {
 					series.put("color", altColors[c%2]);
 					series.put("legend",new JSONObject("{show:false}"));
 					c++;
+					inSigSeriesPresent = true;
 				}
 
 				seriesList.put(series);
@@ -139,7 +142,8 @@ public class AtlasPlotter {
 			//Create mean series
 			
 			meanSeries.put("data", meanSeriesData);
-			meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0}"));
+			meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
+			meanSeries.put("bars", new JSONObject("{show:false}"));
 			meanSeries.put("points", new JSONObject("{show:false}"));
 			meanSeries.put("color", "#5e5e5e");
 			meanSeries.put("label", "Mean");
@@ -150,6 +154,7 @@ public class AtlasPlotter {
 
 			
 			plotData.put("series", seriesList);
+			plotData.put("insigLegend", inSigSeriesPresent);
 		} catch (JSONException e) {
             log.error("Error construction JSON!", e);
 		}
@@ -241,7 +246,7 @@ public class AtlasPlotter {
 				series.put("data", seriesData);
 				
 			
-				series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:true}"));
+				series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:false}"));
 				series.put("points", new JSONObject("{show:true,fill:true}"));
 				series.put("legend",new JSONObject("{show:true}"));
 				series.put("label", geneNames.get(j));
@@ -261,7 +266,7 @@ public class AtlasPlotter {
 				sampleIndex=endMark;
 				if(fv.equals(""))fv="unannotated";
 				markings= markings.equals("") ? markings : markings+",";
-				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:\""+fv.replaceAll("'", "").replaceAll(",", "")+"\" ,color: '"+altColors[i%2]+"' }";
+				markings+= "{xaxis:{from: "+startMark+", to: "+endMark+"},label:\""+fv.replaceAll("'", "").replaceAll(",", "")+"\" ,color: '"+markingColors[i%2]+"' }";
 				
 			}
 			

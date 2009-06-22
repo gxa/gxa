@@ -152,7 +152,6 @@ if (geneId != null) {
 					<tr align="left">
 						<td align="center">
 							<a  title="Show expression profile" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div></a>
-							<span style="font-size:xx-small; color: gray;">Click and drag selection to zoom in above</span>
 							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm"> </div>
 						</td>
 					</tr>

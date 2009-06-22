@@ -349,7 +349,7 @@
             jsonObj.options.legend.container = root.find('.legend');
             jsonObj.options.legend.extContainer = null;
             jsonObj.options.selection = null;
-
+			
             var height = 1;
             var nlegs = 0;
             var markings = [];
@@ -407,7 +407,8 @@
 
             $.plot(plotel, jsonObj.series,
                     $.extend(true, {}, jsonObj.options, {
-                        grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: markings}
+                        grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: markings},
+                        legend:{insigLegend:{show:jsonObj.insigLegend}}
                     }));
 
         }

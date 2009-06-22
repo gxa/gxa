@@ -21,8 +21,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript" src="scripts/jquery.tooltip.js"></script>
 <script type="text/javascript" src="scripts/jquery.dimensions.js"></script>
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
-<script type="text/javascript" src="scripts/jquery.flot.js"></script>
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/common-query.js"></script>

@@ -1,3 +1,5 @@
+
+
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -29,6 +31,7 @@
     ArrayList<String> genesToPlot = new ArrayList<String>();
 %>
 
+
 <jsp:include page="start_head.jsp"/>
 Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp"/>
@@ -37,9 +40,9 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 
 
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.js"></script><![endif]-->
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.js"></script>
+<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
