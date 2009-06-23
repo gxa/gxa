@@ -349,7 +349,7 @@
             jsonObj.options.legend.container = root.find('.legend');
             jsonObj.options.legend.extContainer = null;
             jsonObj.options.selection = null;
-			
+
             var height = 1;
             var nlegs = 0;
             var markings = [];
@@ -405,12 +405,9 @@
             root.find('.waiter').remove();
             root.find('.efname,.plot').show();
 
-            $.plot(plotel, jsonObj.series,
-                    $.extend(true, {}, jsonObj.options, {
-                        grid:{ backgroundColor: '#fafafa', autoHighlight: true, hoverable: false, clickable: true, borderWidth: 1, markings: markings},
-                        legend:{insigLegend:{show:jsonObj.insigLegend}}
-                    }));
+            jsonObj.options.grid.markings = markings;
 
+            $.plot(plotel, jsonObj.series, jsonObj.options);
         }
     }
 
@@ -490,7 +487,7 @@
                                         gid: gene.geneAtlasId,
                                         eid: resp.experiments[iexp].id,
                                         ef: 'ba_' + resp.experiments[iexp].efs[ief].ef,
-                                        type: 'bar' 
+                                        plot: 'bar' 
                                     },
                                     dataType: "json",
                                     success: (function(x,cc) { return function(o) {
