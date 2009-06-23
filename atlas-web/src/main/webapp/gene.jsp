@@ -73,13 +73,14 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/feedback.js"></script>
 <script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script> 
+<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
+
 <link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 
@@ -241,7 +242,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 						<c:forEach var="ortholog" items="${atlasGene.orthoGenes}">
 						 	<a href="gene?gid=${ortholog.geneEnsembl}" target="_self">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
 						</c:forEach>
-							(<a href="qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+							(<a href="qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}+${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
 										target="_self">Compare orthologs</a>)
 					</td>
 				</tr>
@@ -364,16 +365,16 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 						<tbody>
 						<c:forEach var="row" items="${heatMapRows}" varStatus="i">
 						<tr class="heatmap_row"
-							style="border-bottom:1px solid #CDCDCD"
+							
 						    onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')" 
 						    title="${atlasGene.geneName}${row.text}">
-							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-right:1px solid #CDCDCD;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
+							<td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
 								<span style="font-weight: bold">
 									${row.shortFv}
 								</span>
 							</td>
 								
-							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
+							<td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px;padding-left:4px;padding-top:1px;padding-bottom:1px">
 								<fmt:message key="head.ef.${row.ef}"/>
 							</td>
 

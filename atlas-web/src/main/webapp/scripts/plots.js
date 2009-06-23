@@ -212,9 +212,10 @@ function drawPlot(jsonObj, plot_id){
 		            display: 'none',
 		            top: y+5,
 		            left:x+5,
-		            border: '1px solid #fdd',
-		            'background-color': '#fee'
-	       	 }).appendTo("body").fadeIn(200);
+		            border: '1px solid #005555',
+	    			margin: '0px',
+            		'background-color': '#EEF5F5'
+	       	 }).appendTo("body").fadeIn('fast');
     	}
     }
 
@@ -626,7 +627,7 @@ function drawPlot(jsonObj, plot_id){
             'text-align':'left',
             left: x + 5,
             border: '1px solid #005555',
-	    margin: '0px',
+	    	margin: '0px',
             'background-color': '#EEF5F5'
         }).appendTo("body").fadeIn("fast");
 

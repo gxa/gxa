@@ -125,7 +125,7 @@ public class AtlasPlotter {
 				series.put("data", seriesData);
 				series.put("bars", new JSONObject("{show:true, align: \"center\", fill:true}"));
 				series.put("lines", new JSONObject("{show:false}"));
-//				series.put("points", new JSONObject("{show:false,radius:1}"));
+				series.put("points", new JSONObject("{show:false}"));
 				series.put("label", fv);
 				series.put("legend",new JSONObject("{show:true}"));
 				
@@ -149,7 +149,7 @@ public class AtlasPlotter {
 			meanSeries.put("label", "Mean");
 			meanSeries.put("legend",new JSONObject("{show:false}"));
 			meanSeries.put("hoverable", "false");
-			meanSeries.put("shadowSize","1");
+			meanSeries.put("shadowSize",2);
 			seriesList.put(meanSeries);
 
 			
