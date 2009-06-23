@@ -39,12 +39,15 @@ public class FactorValuesServlet extends JsonServlet {
 
         JSONObject result = new JSONObject();
 
+        String factor = request.getParameter("factor");
+        result.put("factor", factor);
+
         if("all".equals(request.getParameter("mode")))
         {
 
             List<String> resultList = new ArrayList<String>();
             for(IValueListHelper lister : listers)
-                resultList.addAll(lister.listAllValues(request.getParameter("factor")));
+                resultList.addAll(lister.listAllValues(factor));
             result.put("values", new JSONArray(resultList));
         } else {
             int nlimit = 100;
@@ -55,34 +58,39 @@ public class FactorValuesServlet extends JsonServlet {
             } catch(Exception e) {
                 // just ignore
             }
-            String factor = request.getParameter("factor");
-            String query = request.getParameter("q");
-            if (query == null)
-                query = "";
-            if (query.startsWith("\"")) {
-                query = query.substring(1);
-            }
-            if (query.endsWith("\"")) {
-                query = query.substring(0, query.length() - 1);
-            }
-
-            Map<String,String> filters = new HashMap<String,String>();
-            String[] filtps = request.getParameterValues("f");
-            if(filtps != null)
-                for(String filter : filtps) {
-                    filters.put(filter, request.getParameter(filter));
+            String[] queries = request.getParameterValues("q");
+            JSONObject values = new JSONObject();
+            result.put("completions", values);
+            
+            for(String query : queries) {
+                if (query == null)
+                    query = "";
+                if (query.startsWith("\"")) {
+                    query = query.substring(1);
+                }
+                if (query.endsWith("\"")) {
+                    query = query.substring(0, query.length() - 1);
                 }
 
-            List<AutoCompleteItem> resultList = new ArrayList<AutoCompleteItem>();
-            for(IValueListHelper lister : listers) {
-                resultList.addAll(lister.autoCompleteValues(
+                Map<String,String> filters = new HashMap<String,String>();
+                String[] filtps = request.getParameterValues("f");
+                if(filtps != null)
+                    for(String filter : filtps) {
+                        filters.put(filter, request.getParameter(filter));
+                    }
+
+                List<AutoCompleteItem> resultList = new ArrayList<AutoCompleteItem>();
+                for(IValueListHelper lister : listers)
+                    if(resultList.size() < nlimit) {
+                        resultList.addAll(lister.autoCompleteValues(
                                 factor,
                                 query,
-                                nlimit,
+                                nlimit - resultList.size(),
                                 filters
                         ));
+                    }
+                values.put(query, new JSONArray(resultList, true));
             }
-            result.put("values", new JSONArray(resultList, true));
         }
 
         return result;
