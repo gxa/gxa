@@ -49,11 +49,11 @@ class PrefixNode {
 
 
     public void collect(String sofar, WalkResult result) {
+        if(result.enough())
+            return;
         if(this.count >= 0) {
             result.put(sofar, this.count);
         }
-        if(result.enough())
-            return;
         if(this.chars != null)
             for(int i = 0; i < this.chars.length; ++i)
                 this.children[i].collect(sofar + this.chars[i], result);
