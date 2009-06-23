@@ -541,10 +541,10 @@ function drawPlot(jsonObj, plot_id){
 
     function drawZoomControls(){
     	var contents="";
-    	contents= '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 6px;cursor:pointer;display:hidden"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>' +
-    		  '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 3px;cursor:pointer; display:hidden"><img src="images/zoomout.gif" title="Zoom out"></div>' +
-    		  '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -40px;cursor:pointer; display:hidden"><img src="images/panright.gif" title="pan right"></div>' +
-    		  '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -77px;cursor:pointer; display:hidden"><img src="images/panleft.gif" title="pan left"></div>';
+    	contents= '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px;cursor:pointer;display:hidden"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>' +
+    		  '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer; display:hidden"><img src="images/zoomout.gif" title="Zoom out"></div>' +
+    		  '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer; display:hidden"><img src="images/panright.gif" title="pan right"></div>' +
+    		  '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer; display:hidden"><img src="images/panleft.gif" title="pan left"></div>';
     	$("#zoomControls").html(contents);
 
     	$("#zoomin > img").hover(
