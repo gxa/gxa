@@ -18,7 +18,7 @@ Gene Expression Atlas
     <link rel="stylesheet" href="structured-query.css" type="text/css" />
     <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 
-    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
     <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
     <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>

@@ -70,7 +70,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
-<script src="scripts/jquery-1.2.6.js" type="text/javascript"></script>
+<script src="scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
 <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
