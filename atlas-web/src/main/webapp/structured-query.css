@@ -4,13 +4,13 @@
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-#expopup, #expopup .exptable, #tooltip, #waiter { border: 1px solid #5E9E9E }
+#expopup, #expopup .exptable, #tooltip, #waiter, .tokeninput { border: 1px solid #5E9E9E }
 fieldset, #drill {  border: none }
 
-#squery th, #tooltip, #expopup, .diaghead
+#squery th, #tooltip, #expopup, .diaghead, .tokeninput
       { background-color: #EEF5F5; }
 
-.closebox { color: #006666; }
+.closebox, .tokeninput span { color: #006666; }
 
 #drilldowns { display: none; }
 #drilldowns .name, #drill h2 { color: #005555;  }
@@ -112,11 +112,11 @@ legend { font-weight: bold; }
 
 #simpleform table, #structform table { width: 100%;border:none;margin:0;padding:0; }
 #conditions select { width: 120px; }
-#conditions td { vertical-align: middle; white-space:nowrap; text-align:left; padding-right:10px;padding-top:3px; }
+#conditions td { vertical-align: top; white-space:nowrap; text-align:left; padding: 2px 10px 2px 0; }
 #conditions td.left { width: 40%; }
 #conditions td.value { width: 50%; }
-#conditions td.rm { text-align: right;padding:0;width:10%; }
-#structform input.value { width:340px;  }
+#conditions td.rm { text-align: right;padding: 2px;width:10%; }
+#structform input.value, #structform ul.tokeninput { width:340px;  }
 
 .label {
     font-size: 10px;
@@ -244,104 +244,6 @@ legend { font-weight: bold; }
 
 .plot { position: relative; width: 240px; height: 100px; }
 
-#efotext,.ignoretext {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin-bottom: 3px;
-}
-
-#efoexpand {
-    display: none;
-    margin: 10px 0 0 0;
-    padding:0;
-    border: none;
-}
-
-#efoexpand td { border: none; padding: 0 0 5px 10px;vertical-align:top; }
-#efoexpand th { border: none; padding: 0 0 5px 0;vertical-align:top; }
-
-#efotoggle {
-    cursor:pointer;
-    border: none; width:9px; height: 9px;
-    vertical-align: baseline;
-    padding-right: 2px;
-}
-
-div.efoinput div {
-    position:absolute;
-    right:0;
-    top:0;
-    width:16px;
-    height:100%;
-    background:  url(images/expp.gif) no-repeat scroll 2px center;
-    cursor:pointer;
-}
-
-#structform div.efoinput input.value {
-    width: 323px;
-}
-
-div.efoinput input {
-    padding-right: 17px;
-}
-
-div.efoinput {
-    position:relative;
-    *display: inline;
-    display:inline-block;
-}
-
-.ac_results .tree {
-    font-size: 10px;
-    height: auto;
-    max-height: 200px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 5px 25px 5px 5px;
-    margin-left: -10px;
-
-}
-
-.ac_results .tree UL {
-    padding: 0px 0px 0px 13px;
-    margin: 0px;
-}
-
-.ac_results .tree LI {
-    line-height: 20px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    white-space: nowrap;
-}
-
-.ac_results .tree LI a, .ac_results .tree LI a:hover {
-    cursor: pointer;
-    padding-left: 1px;
-    padding-right: 1px;
-    border: 1px solid white;
-}
-
-.ac_results .tree li.selected a.selected {
-    padding-left: 1px;
-    padding-right: 1px;
-    border: 1px solid #006666;
-    background: #99cccc;
-}
-
-/* Core Styles */
-.ac_results .tree LI i {
-    display: inline-block;
-    width: 11px;
-    height: auto;
-    cursor: pointer;
-}
-.ac_results .tree LI.collapsed { background: url(images/expp.gif) left 7px no-repeat; }
-.ac_results .tree LI.expanded { background: url(images/expm.gif) left 7px no-repeat; }
-.ac_results .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
-
-.ac_results .tree a.hl { color: #005555; }
-
 #squery tr.expand-child td, #squery tr.expand-child th {
     display: none;
 }
@@ -430,120 +332,193 @@ div.efoinput {
 
 /* token */
 
+#structform ul.tokeninput li input {
+    width: 320px;
+}
 
-ul.token-input-list-facebook {
-    overflow: hidden;
+ul.tokeninput {
+    position: relative;
     width: 150px;
-    height: 17px;
-    border: 1px solid #8496ba;
+    overflow: hidden;
+    height: auto !important;
     cursor: text;
-    font-size: 12px;
-    font-family: Verdana;
     min-height: 1px;
     z-index: 999;
     margin: 0;
     padding: 0;
     background-color: #fff;
-}
-
-ul.token-input-list-facebook {
     list-style-type: none;
 }
 
-ul.token-input-list-facebook li input {
-    border: 0;
-    width: 100px;
-    padding: 3px 8px;
-    background-color: white;
-    margin: 2px 0;
+ul.tokeninputsearching {
+    background: url(images/indicator.gif) no-repeat bottom right;
 }
 
-li.token-input-token-facebook {
-    overflow: hidden;
-    height: auto !important;
-    height: 1%;
-    margin: 1px 3px 1px 3px;
-    padding: 1px 1px;
-    background-color: #eff2f7;
-    color: #000;
-    cursor: default;
-    border: 1px solid #ccd5e4;
-    font-size: 8px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
+ul.tokeninput li input {
+    border: 0;
+    width: 130px;
+    padding: 1px 5px 1px 0px;
+    background-color: white;
+}
+
+li.tokeninputinput {
     float: left;
 }
 
-li.token-input-token-facebook p {
+li.tokeninput {
+    overflow: hidden;
+    height: auto !important;
+    height: 1%;
+    float: left;
+    margin: 1px 1px 1px 1px;
+    padding: 0px 3px;
+    background-color: #eff2f7;
+    color: #000;
+    cursor: default;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    white-space:nowrap;
+}
+
+li.tokeninput p {
+    font-size: 10px;
     display: inline;
     padding: 0;
     margin: 0;
 }
 
-li.token-input-token-facebook span {
-    color: #a6b3cf;
-    margin-left: 5px;
+li.tokeninput span {
+    margin-left: 2px;
     font-weight: bold;
+    line-height: 8px;
     cursor: pointer;
 }
 
-li.token-input-selected-token-facebook {
-    background-color: #5670a6;
-    border: 1px solid #3b5998;
+li.tokeninputsel {
+    background-color: #5E9E9E;
     color: #fff;
 }
 
-li.token-input-input-token-facebook {
-    float: left;
-}
-
-div.token-input-dropdown-facebook {
-    position: absolute;
-    width: 150px;
-    background-color: #fff;
+div.tokeninputdrop {
+    border: 1px solid black;
+    background-color: white;
     overflow: hidden;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    z-index: 99999;
+    position: absolute;
+    width: 500px;
+    font-size: 12px;
     cursor: default;
-    font-size: 8px;
-    font-family: Verdana;
-    z-index: 1;
 }
 
-div.token-input-dropdown-facebook p {
-    margin: 0;
-    padding: 5px;
+div.tokeninputdrop p {
+    padding: 5px 5px 5px 5px;
+    text-align: left;
+    color: #005555;
+    background-color: #cdcdcd;
     font-weight: bold;
-    color: #777;
+    font-size: 10px;
+    cursor: default;
+    display: block;
+    margin: 0;
 }
 
-div.token-input-dropdown-facebook ul {
+div.tokeninputdrop ul {
     margin: 0;
     padding: 0;
 }
 
-div.token-input-dropdown-facebook ul li {
+div.tokeninputdrop ul li {
+    cursor: pointer;
     background-color: #fff;
     padding: 3px;
 }
 
-div.token-input-dropdown-facebook ul li.token-input-dropdown-item-facebook {
+div.tokeninputdrop ul li.tokendropitem {
     background-color: #fff;
 }
 
-div.token-input-dropdown-facebook ul li.token-input-dropdown-item2-facebook {
-    background-color: #fff;
+div.tokeninputdrop ul li.tokendropitem2 {
+    background-color: #eee;
 }
 
-div.token-input-dropdown-facebook ul li em {
-    font-weight: bold;
-    font-style: none;
+div.tokeninputdrop ul li em {
+    font-size: 10px;
+    font-style: normal;
+    color: #999999;
 }
 
-div.token-input-dropdown-facebook ul li.token-input-selected-dropdown-item-facebook {
-    background-color: #3b5998;
-    color: #fff;
+div.tokeninputdrop ul li.tokendropitemsel {
+    background-color: #408c8c;
+    color: white;
 }
 
+div.tokeninputdrop p.tokendrophide {
+    border-top: 1px solid #5E9E9E;
+    cursor: pointer;
+}
+
+div.tokeninputdrop p.tokendrophide:hover {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+
+li.efoexpand {
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:16px;
+    height:16px;
+    background:  url(images/expp.gif) no-repeat scroll center center;
+    cursor:pointer;
+}
+
+div.tokeninputdrop .tree {
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px 25px 5px 5px;
+    margin-left: -10px;
+
+}
+
+div.tokeninputdrop .tree UL {
+    padding: 0px 0px 0px 13px;
+    margin: 0px;
+}
+
+div.tokeninputdrop .tree LI {
+    line-height: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+div.tokeninputdrop .tree LI a, div.tokeninputdrop .tree LI a:hover {
+    cursor: pointer;
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid white;
+}
+
+div.tokeninputdrop li.selected a.selected {
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid #006666;
+    background: #99cccc;
+}
+
+div.tokeninputdrop .tree LI i {
+    display: inline-block;
+    width: 11px;
+    height: auto;
+    cursor: pointer;
+}
+div.tokeninputdrop .tree LI.collapsed { background: url(images/expp.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.expanded { background: url(images/expm.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
+
+div.tokeninputdrop .tree a.hl { color: #005555; }

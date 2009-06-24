@@ -111,8 +111,7 @@
 
          var input = $('<input type="text" class="value"/>')
              .attr('name', "fval_" + atlas.counter)
-             .autocomplete(atlas.homeUrl + "fval", atlas.makeFvalAcOptions(factor, false))                 
-             .flushCache();
+             .val(values != null ? values : "");
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td class="left" />')
@@ -128,22 +127,14 @@
                                             hasConditions(false);
                                         }));
 
-         if(values != null) {
-             input.val(values);
-             input.keyup(function () { if(values != this.value) tr.find("td.expansion").text(''); });
-         }
-
-         if(factor == "" || factor == "efo")
-             atlas.bindEfoTree(input, true);
-
+         atlas.tokenizeConditionInput(input, factor, '(all ' + (factor != '' ? factorLabel : 'condition') + 's)');
+         
          var t = $('tr.efvcond:last,tr.speccond:last', $('#conditions'));
          if(t.length)
              t.eq(0).after(tr);
          else
              $('#conditions').append(tr);
 
-         input.defaultvalue('(all ' + (factor != '' ? factorLabel.toLowerCase() : 'condition') + 's)');
-         
          hasConditions(true);
      }
 

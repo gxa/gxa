@@ -16,18 +16,10 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
     <meta name="Description" content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
     <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
-    <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-    <link rel="stylesheet" href="atlas.css" type="text/css" />
-    <link rel="stylesheet" href="structured-query.css" type="text/css" />
-    <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 
-    <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
-    <script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
-    <script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
-    <script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
+    <jsp:include page="query-includes.jsp" />
+    <link rel="stylesheet" href="structured-query.css" type="text/css" />
     <script type="text/javascript" src="scripts/common-query.js"></script>
-    <script type="text/javascript" src="scripts/feedback.js"></script>
 
     <script type="text/javascript">
         function toggleAtlasHelp(e) {
@@ -217,13 +209,13 @@ biologically interesting genes/samples.
 
 </div>
 
-        <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-            <div style="font-family: Verdana, helvetica, arial, sans-serif; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center; position: relative; top:250px">
+            <div style="color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center; position: absolute; top:250px">
+                <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
                             For news and updates, subscribe to the <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
                             <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
                             <input type="submit" name="email-button" value="Subscribe" />
+                </form>
             </div>
-        </form>
 
 </div>
     </div>

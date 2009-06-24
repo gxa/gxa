@@ -412,7 +412,7 @@ $.Autocompleter = function(input, options) {
 					limit: options.queryMax || options.max
 				}, extraParams),
 				success: function(data) {
-					var parsed = options.parse && options.parse(data) || parse(data);
+					var parsed = options.parse && options.parse(data, term) || parse(data);
 					cache.add(term, parsed);
 					success(term, parsed);
 				}

@@ -50,11 +50,12 @@ var atlas = {};
                                 }
                                 currentDepth = dc.depth;
                                 var a = $('<a />').text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
-                                if(hl[dc.id])
+                                if(hl && hl[dc.id])
                                     a.addClass("hl");
                                 n = $('<li />')
                                     .append($('<i>&nbsp;</i>'))
-                                    .append(a).attr('id', generateId(dc.id));
+                                    .append(a);
+                                $.data(n.get(0), "efotree", dc);
                                 if(dc.expandable) {
                                     n.addClass('expandable').addClass('collapsed');
                                 }
@@ -84,10 +85,6 @@ var atlas = {};
                             } else {
                                 ul.show().parent().removeClass('collapsed').addClass('expanded');
                                 scrollIt();
-                            //                            ul.slideDown(o.slideSpeed, function () {
-                            //                                $(this).parent().removeClass('collapsed').addClass('expanded');
-                            //                                scrollIt();
-                            //                            });
                             }
 
                         });
@@ -104,18 +101,12 @@ var atlas = {};
                             // Expand
                             if( !o.multiFolder ) {
                                 diz.siblings('li.expanded').children('UL').parent().removeClass('expanded').addClass('collapsed').end().remove();
-                                showTree( diz, diz.get(0).id.substr(treeel.get(0).id.length + 1) );
-//                                    tocoll.slideUp(o.slideSpeed, function () {
-//                                        $(this).parent().removeClass('expanded').addClass('collapsed').end().remove();
-//                                        load();
-//                                    });
+                                var dc = $.data(diz.get(0), "efotree");
+                                showTree( diz, dc.id );
                             }
                         } else {
                             // Collapse
                             diz.find('UL').parent().removeClass('expanded').addClass('collapsed').end().remove();
-//                            .slideUp(o.slideSpeed, function () {
-//                                $(this).parent().removeClass('expanded').addClass('collapsed').end().remove();
-//                            });
                         }
                         event.stopPropagation();
                         return false;
@@ -123,7 +114,8 @@ var atlas = {};
                     t.find('a').click(function (event) {
                         if(handler) {
                             $(this).parent().andSelf().addClass('selected');
-                            handler.call(treeel, $(this).parent().get(0).id.substr(treeel.get(0).id.length + 1));
+                            var dc = $.data($(this).parent().get(0), "efotree");
+                            handler.call(treeel, dc);
                         } else {
                             if(event.ctrlKey || event.metaKey) {
                                 $(this).parent().andSelf().toggleClass('selected');
@@ -147,9 +139,8 @@ var atlas = {};
                 }
                 treeel.bind('startselect', killevent).bind('dblclick', killevent);
                 treeel.bind('mousedown', function (e) {
-                    atlas.preventBlur = true;
                     if(e.shiftKey) e.stopPropagation(); return false;
-                }).bind('mouseup', function () { atlas.preventBlur = false; });
+                });
 
                 showTree( treeel, o.root, o.downTo );
             });
@@ -175,8 +166,8 @@ var atlas = {};
     }
 
     function parseAcJson(formatResult) {
-        return function (json) {
-            var rows = json.values;
+        return function (json, query) {
+            var rows = json.completions[query];
             for (var i=0; i < rows.length; i++) {
                 var row = rows[i];
                 rows[i] = {
@@ -269,50 +260,74 @@ var atlas = {};
         };
     };
 
-    atlas.bindEfoTree = function(fvalfield, appender) {
-
-        var fvalexpicon = $('<div/>');
-        fvalfield = fvalfield.wrap('<div class="efoinput" />').before(fvalexpicon);
-
-
-        function fvalexpfunc () {
-            fvalfield.hideResults();
-            var downTo = fvalfield.lastWord();
-            var offset = fvalfield.offset();
-            var hider;
-            var efotree = $('<div/>')
-                    .addClass('ac_results')
-                    .css({
-                        position: 'absolute',
-                        minWidth: '300px',
-                        maxWidth: '600px',
-                        top: offset.top + fvalfield.get(0).offsetHeight,
-                        left: offset.left
-                    })
-                    .append($('<div/>').addClass('tree').efoTree({ slideSpeed: 200, downTo: downTo, highlight: fvalfield.val() }, function(newv) {
-                                 $(this).next().click();
-                                 if(appender) {
-                                    fvalfield.focus();
-                                    var v = fvalfield.val();
-                                    if(v.length > 0 && v.substr(v.length - 1) != ' ')
-                                       v += ' ';
-                                    newv = v + newv + ' ';
-                                 }
-                                 fvalfield.val(newv);
-                            }))
-                    .append(hider = $('<div class="ac_hide">hide tree</div>')
-                            .click(function () {
-                                 fvalfield.before($('<div/>').click(fvalexpfunc)).unbind('.efo');
-                                 $(this).parent().remove();
-                            }))
-                    .appendTo(document.body);
-                    
-            function close () { hider.click(); }
-            fvalfield.focus().bind('keydown.efo', close).bind('blur.efo', function() { if(atlas.preventBlur) fvalfield.focus(); else close();  }).bind('click.efo', close);
-            $(this).remove();
+    atlas.tokenizeConditionInput = function (fvalfield, factor, defaultvalue) {
+        var actype = 'efv';
+        if(factor == '') {
+            actype = 'efoefv';
+        } else if(factor == 'efo') {
+            actype = 'efo';
         }
-        
-        fvalexpicon.click(fvalexpfunc);
+
+        fvalfield.tokenInput(atlas.homeUrl + "fval",
+        {
+            extraParams: {
+                property: factor,
+                type: actype,
+                limit: 15
+            },
+
+            defaultValue: defaultvalue,
+
+            formatListItem: function(row, q, i) {
+                var text = $.highlightTerm(row.value.length > 50 ? row.value.substr(0, 50) + '...' : row.value, q, 'b');
+                if(row.property == 'efo') {
+                    var indent = '';
+                    for(var i = 0; i < row.depth; ++i)
+                        indent += '&nbsp;&nbsp;&nbsp;';
+                    return '<nobr>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
+                }
+                return '<nobr>' + text + ' <em>(' + row.count + ' genes)</em></nobr>';
+            },
+
+            formatToken: function(row) {
+                return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
+            },
+
+            formatId: function(res) {
+                if(res.property == 'efo')
+                    return res.id;
+                else
+                    return res.value;
+            },
+
+            getItemList:  function (json, query) {
+                return json.completions[query];
+            },
+
+            browser: factor == "" || factor == "efo" ? function (onResult, lastId, values) {
+                return $('<div/>').addClass('tree').efoTree({ slideSpeed: 200, downTo: lastId, highlight: values }, function(dc) {
+                    onResult({ id: dc.id,  count: dc.count, property: 'efo', value: dc.term, depth: dc.depth });
+                });
+            } : null,
+
+            hideText: "hide suggestions",
+            noResultsText: "no results found",
+
+            classes: {
+                tokenList: "tokeninput",
+                token: "tokeninput",
+                selectedToken: "tokeninputsel",
+                highlightedToken: "token-input-highlighted-token-facebook",
+                dropdown: "tokeninputdrop",
+                dropdownItem: "tokendropitem",
+                dropdownItem2: "tokendropitem2",
+                selectedDropdownItem: "tokendropitemsel",
+                inputToken: "tokeninputinput",
+                hideText: "tokendrophide",
+                searching: "tokeninputsearching",
+                browseIcon: "efoexpand"
+            }
+        });
     };
 
     atlas.initSimpleForm = function() {
@@ -339,11 +354,7 @@ var atlas = {};
             //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
         }).each(function () { this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); }; });
 
-        fvalfield
-                .defaultvalue("(all conditions)")
-                .autocomplete(atlas.homeUrl +"fval", atlas.makeFvalAcOptions('', true));
-
-        atlas.bindEfoTree(fvalfield);
+        atlas.tokenizeConditionInput(fvalfield, '', '(all conditions)');
 
         form.bind('submit', function () {
             $('input.ac_input', form).hideResults();

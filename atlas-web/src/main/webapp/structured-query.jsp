@@ -8,26 +8,17 @@
 Gene Expression Atlas Search Results - Gene Expression Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
-<!-- <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" /> -->
-<link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
+<jsp:include page="query-includes.jsp" />
+
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
-<link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="geneView.css" type="text/css" />
 
-<script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
-<script type="text/javascript" src="scripts/jquery.cookie.js"></script>
-<script type="text/javascript" src="scripts/jquery-impromptu.1.5.js"></script>
-<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="scripts/jquery.tooltip.js"></script>
-<script type="text/javascript" src="scripts/jquery.dimensions.js"></script>
-<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
-<script type="text/javascript" src="scripts/feedback.js"></script>
 <script type="text/javascript" src="scripts/jquery.tablesorter.mod.js"></script>
 <!-- >script type="text/javascript" src="scripts/jquery.tablesorter.pager.js"></script-->
 <script type="text/javascript" src="scripts/jquery.tablesorter.collapsible.js"></script>
@@ -262,12 +253,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             }
             , debug: false
         });
-
-        <c:if test="${list}">
-        var cont = $('#resultpane');
-	//	if(cont.get(0).offsetWidth > 900)
-        //    cont.css({ width: '900px' });
-        </c:if>
 
     });
     var preloads = [ 'expp.gif', 'expm.gif', 'indicator.gif' ]; var img = [];
