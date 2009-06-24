@@ -116,7 +116,7 @@ legend { font-weight: bold; }
 #conditions td.left { width: 40%; }
 #conditions td.value { width: 50%; }
 #conditions td.rm { text-align: right;padding: 2px;width:10%; }
-#structform input.value, #structform ul.tokeninput { width:340px;  }
+#structform input.value { width:340px;  }
 
 .label {
     font-size: 10px;
@@ -336,6 +336,10 @@ legend { font-weight: bold; }
     width: 320px;
 }
 
+#structform ul.tokeninput {
+    width: 342px;
+}
+
 ul.tokeninput {
     position: relative;
     width: 150px;
@@ -346,8 +350,8 @@ ul.tokeninput {
     z-index: 999;
     margin: 0;
     padding: 0;
-    background-color: #fff;
     list-style-type: none;
+    background: white;
 }
 
 ul.tokeninputsearching {
@@ -355,23 +359,26 @@ ul.tokeninputsearching {
 }
 
 ul.tokeninput li input {
-    border: 0;
+    border:0;
     width: 130px;
-    padding: 1px 5px 1px 0px;
-    background-color: white;
+    padding: 1px 5px 1px 1px;
+    margin:0px;
+    outline:none;
 }
 
 li.tokeninputinput {
     float: left;
+    padding:0;
+    margin:0;
 }
 
 li.tokeninput {
-    overflow: hidden;
+    overflow: visible;
     height: auto !important;
     height: 1%;
     float: left;
     margin: 1px 1px 1px 1px;
-    padding: 0px 3px;
+    padding: 1px 3px;
     background-color: #eff2f7;
     color: #000;
     cursor: default;
@@ -464,13 +471,13 @@ div.tokeninputdrop p.tokendrophide:hover {
 }
 
 
-li.efoexpand {
+ul.tokeninput li.efoexpand {
     position:absolute;
     right:0;
     bottom:0;
     width:16px;
     height:16px;
-    background:  url(images/expp.gif) no-repeat scroll center center;
+    background: url(images/expp.gif) no-repeat scroll center center;
     cursor:pointer;
 }
 

@@ -68,9 +68,6 @@ $.TokenList = function (input, settings) {
 
     // Create a new text input an attach keyup events
     var input_box = $("<input type=\"text\">")
-        .css({
-            outline: "none"
-        })
         .val(settings.defaultValue ? settings.defaultValue : '')
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
@@ -80,7 +77,7 @@ $.TokenList = function (input, settings) {
         })
         .blur(function () {
             if(prevent_blur) {
-                prevent_blur = false;
+                $(this).focus();
                 return false;
             }        
 
@@ -252,10 +249,11 @@ $.TokenList = function (input, settings) {
     var input_token = $("<li />")
         .addClass(settings.classes.inputToken)
         .appendTo(token_list)
-        .append(input_box);
+        .append($('<span/>').append(input_box));
 
+    var browser_icon;
     if(settings.browser) {
-        var browser_icon = $("<li />")
+        browser_icon = $("<li />")
                 .addClass(settings.classes.browseIcon)
                 .appendTo(token_list);
     }
@@ -296,10 +294,10 @@ $.TokenList = function (input, settings) {
     function dropdown_add_hidetext() {
         dropdown.append($('<p/>').addClass(settings.classes.hideText).html(settings.hideText).mousedown(function (e) {
             prevent_blur = true;
-        })).click(function () {
+        }).click(function () {
             hide_dropdown();
             prevent_blur = false;
-        });
+        }));
     }
 
     function open_browser() {
@@ -320,10 +318,10 @@ $.TokenList = function (input, settings) {
             hide_dropdown();
         }, lastId, hidden_input.val());
 
-        browse_el.mousedown(function () { prevent_blur = true; }).mouseup(function () { prevent_blur = false; });
         dropdown.empty().append(browse_el);
 
         dropdown_add_hidetext();
+        dropdown.mousedown(function () { prevent_blur = true; }).mouseup(function () { /*prevent_blur = false;*/ });
         dropdown.show();
     }
 
@@ -355,6 +353,7 @@ $.TokenList = function (input, settings) {
 
     // Add a token to the token list
     function add_token (li_data, init) {
+
         // Clear input box and make sure it keeps focus
         input_box
             .val("")
@@ -364,12 +363,14 @@ $.TokenList = function (input, settings) {
         hide_dropdown();
 
         var newid = settings.formatId(li_data);
+
         var vals = splitQuotes(hidden_input.val());
-        for(var i in vals)
-            if(vals[i] == newid) {
+        for(var i = 0; i < vals.length; ++i)
+            if(vals[i] == newid)
                 return;
-            } else
+            else
                 vals[i] = optionalQuote(vals[i]);
+
 
         var this_token = $("<li><p>"+ settings.formatToken(li_data) +"</p> </li>")
             .addClass(settings.classes.token)
@@ -414,6 +415,8 @@ $.TokenList = function (input, settings) {
             input_token.insertBefore(token);
         } else if(position == POSITION.AFTER) {
             input_token.insertAfter(token);
+        } else if(browser_icon) {
+            input_token.insertBefore(browser_icon);
         } else {
             input_token.appendTo(token_list);
         }
@@ -445,7 +448,7 @@ $.TokenList = function (input, settings) {
         var p = 0;
         var inQuotes = false;
         while(p < value.length) {
-            var c = value[p++];
+            var c = value.charAt(p++);
             if(inQuotes)
             {
                 if(c == '\\') {
@@ -493,12 +496,13 @@ $.TokenList = function (input, settings) {
         // Delete this token's id from hidden input
         var vals = splitQuotes(hidden_input.val());
         var toremove = settings.formatId(token_data);
+
         for(var i in vals)
             if(toremove == vals[i]) {
                 vals.splice(i, 1);
                 break;
             }
-        for(var i in vals)
+        for(i = 0; i < vals.length; ++i)
             vals[i] = optionalQuote(vals[i]);
         hidden_input.val(vals.join(' '));
     }

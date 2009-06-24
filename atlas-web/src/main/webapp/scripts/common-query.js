@@ -139,7 +139,8 @@ var atlas = {};
                 }
                 treeel.bind('startselect', killevent).bind('dblclick', killevent);
                 treeel.bind('mousedown', function (e) {
-                    if(e.shiftKey) e.stopPropagation(); return false;
+                    if(e.shiftKey) e.stopPropagation();
+                    return true;
                 });
 
                 showTree( treeel, o.root, o.downTo );

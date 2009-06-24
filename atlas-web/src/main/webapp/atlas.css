@@ -24,6 +24,8 @@
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
+input { margin:0; padding:1px; }
+
 a:link, a:visited, #ae_pagecontainer a:link, #ae_pagecontainer a:visited {
 	text-decoration: none;
 	color: #006666;
