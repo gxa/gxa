@@ -304,6 +304,27 @@
             </properties>
         </profile>
 
+
+        <profile>
+            <id>azorin</id>
+            <properties>
+                <solr.data.directory>/Work/solrindex</solr.data.directory>
+                <atlas.netCDFlocation>/Work/NetCDFs.ATLAS/</atlas.netCDFlocation>
+                <indexbuilder.ftp>nowhere</indexbuilder.ftp>
+                <jdbc.ae.url>jdbc:oracle:thin:@otto.ebi.ac.uk:1521:AEPUB1</jdbc.ae.url>
+                <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
+                <jdbc.ae.username>aequery</jdbc.ae.username>
+                <jdbc.ae.password>aeq007tt</jdbc.ae.password>
+                <jdbc.dw.url>jdbc:oracle:thin:@moe.ebi.ac.uk:1521:AEDWDEV</jdbc.dw.url>
+                <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
+                <jdbc.dw.username>aemart</jdbc.dw.username>
+                <jdbc.dw.password>marte</jdbc.dw.password>
+                <atlas.dbName>AEDWDEV_MOE</atlas.dbName>
+                <atlas.log.priority>INFO</atlas.log.priority>
+                <atlas.log.appender>console</atlas.log.appender>
+            </properties>
+        </profile>
+
         <profile>
             <id>ostolop</id>
             <build>
