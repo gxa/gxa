@@ -11,3 +11,7 @@
 <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="atlas.css" type="text/css" />
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
+
+<!--[if IE]>
+<style type="text/css">input { margin-top:-1px;margin-bottom:-1px; padding:1px; }</style>
+<![endif]-->

@@ -362,7 +362,7 @@ ul.tokeninput li input {
     border:0;
     width: 130px;
     padding: 1px 5px 1px 1px;
-    margin:0px;
+    /*margin:0px;*/
     outline:none;
 }
 
@@ -481,14 +481,18 @@ ul.tokeninput li.efoexpand {
     cursor:pointer;
 }
 
+
 div.tokeninputdrop .tree {
-    height: auto;
     max-height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 5px 25px 5px 5px;
     margin-left: -10px;
 
+}
+
+* html div.tokeninputdrop .tree {
+    height: expression( this.scrollHeight > 199 ? "200px" : "auto" ) !important; /* set min-width for IE */
 }
 
 div.tokeninputdrop .tree UL {
