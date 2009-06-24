@@ -107,7 +107,9 @@ Gene Expression Atlas
 
 <div id="ae_pagecontainer">
     <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;" >
-        <jsp:include page="simpleform.jsp"></jsp:include>
+        <jsp:include page="simpleform.jsp">
+            <jsp:param name="logolink" value="true"/>
+        </jsp:include>
     </div>
 </div>
 

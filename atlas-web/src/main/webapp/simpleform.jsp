@@ -5,7 +5,9 @@
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release <c:out value="${service.stats.dataRelease}"/>: <c:out value="${service.stats.numExperiments}"/> experiments, <c:out value="${service.stats.numAssays}"/> assays, <c:out value="${service.stats.numEfvs}"/> conditions"/>
+            <c:if test="${param.logolink}"><a href="./"></c:if>
+            <img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0">
+            <c:if test="${param.logolink}"></a></c:if>
         </td>
 
         <td width="100%" valign="bottom" align="right">
