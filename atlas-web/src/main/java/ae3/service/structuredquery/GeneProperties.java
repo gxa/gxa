@@ -7,7 +7,7 @@ import java.util.*;
  */
 public class GeneProperties {
     public static enum PropType {
-        NAME(5), ID(3), DESC(-1);
+        NAME(5), ID(3), DESC(-1), IGNORE(0);
 
         public int limit;
         private PropType(int limit) {
@@ -62,6 +62,7 @@ public class GeneProperties {
         new Prop("interproterm", "gene_interproterm_exact", "gene_interproterm", PropType.DESC, true),
         new Prop("keyword", "gene_keyword_exact", "gene_keyword", PropType.DESC, true),
         new Prop("protein", "gene_protein_exact", "gene_protein", PropType.DESC, true),
+        new Prop("species", "gene_species", "gene_species", PropType.IGNORE, false),
     };
 
     public static String convertPropertyToFacetField(String id)

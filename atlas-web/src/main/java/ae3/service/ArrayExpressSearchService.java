@@ -522,28 +522,23 @@ public class ArrayExpressSearchService {
     	return squeryService.getGeneProperties();
     }
 
-    @SuppressWarnings("unchecked")
     public SortedSet<String> getAllAvailableAtlasSpecies() {
-        SortedSet<String> species = null;
+        SortedSet<String> species = new TreeSet<String>();
+        for(String s : squeryService.getGeneListHelper().listAllValues("species")) {
+            SolrQuery q = new SolrQuery("gene_species:(" + s + ")");
+            q.setRows(1);
+            try {
+                QueryResponse qr = solr_atlas.query(q);
+                if(qr.getResults() != null && qr.getResults().size() > 0) {
+                    String specie = (String)qr.getResults().get(0).getFieldValue("gene_species");
+                    if(specie.length() > 1)
+                        species.add(specie.substring(0, 1).toUpperCase() + specie.substring(1).toLowerCase());
+                }
+            } catch(SolrServerException e) {
+                throw new RuntimeException("can't get species list", e);
+            }
 
-        try {
-            species = (SortedSet<String>) theAEQueryRunner.query(
-                    "SELECT DISTINCT value FROM ae2__arraydesign_species WHERE arraydesign_id_key IN (SELECT DISTINCT arraydesign_id FROM ae1__sample__main) ORDER BY value DESC",
-                    new ResultSetHandler() {
-                        public Object handle(ResultSet rs) throws SQLException {
-                            SortedSet<String> species = new TreeSet<String>();
-                            while(rs.next()) {
-                                species.add(rs.getString(1));
-                            }
-
-                            return species;
-                        }
-                    }
-                );
-        } catch (SQLException e) {
-            log.error("Problem querying Atlas database", e);
         }
-
         return species;
     }
 
