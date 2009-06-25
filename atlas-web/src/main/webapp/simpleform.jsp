@@ -2,6 +2,76 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<script type="text/javascript">
+    function toggleAtlasHelp(e) {
+        if ($("div.atlasHelp").is(":hidden")) {
+            showAtlasHelp();
+        } else {
+            hideAtlasHelp();
+        }
+        return false;
+    }
+
+    function showAtlasHelp() {
+        if ($("div.atlasHelp").is(":hidden")) {
+            $("div.atlasHelp").slideToggle();
+            $("#atlasHelpToggle").text("hide help");
+        }
+        $.cookie('atlas_help_state', 'shown');
+    }
+
+    function hideAtlasHelp() {
+        if ($("div.atlasHelp").is(":visible")) {
+            $("div.atlasHelp").slideToggle();
+            $("#atlasHelpToggle").text("show help");
+        }
+        $.cookie('atlas_help_state', 'hidden');
+    }
+
+    $(document).ready(function() {
+        $("div.roundCorner").corner();
+
+        atlas.initSimpleForm();
+
+        $("#atlasHelpToggle").click(toggleAtlasHelp);
+
+
+        if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
+            showAtlasHelp();
+        } else if (($.cookie('atlas_help_state') == "hidden") && ($("div.atlasHelp").is(":visible"))) {
+            hideAtlasHelp();
+        }
+
+    });
+</script>
+<style type="text/css">
+    .label {
+        font-size: 10px;
+    }
+
+    .atlasHelp {
+        display: none;
+        text-align: center;
+    }
+
+    .atlasHelp .div1 {
+        font-size: 0px;
+        line-height: 0%;
+        width: 0px;
+        border-bottom: 20px solid #EEF5F5;
+        border-left: 10px solid white;
+        border-right: 10px solid white;
+    }
+
+    .atlasHelp .div2 {
+        background-color: #EEF5F5;
+        text-align: left;
+        height: 100%;
+        width: 140px;
+        padding: 5px;
+    }
+
+</style>
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">

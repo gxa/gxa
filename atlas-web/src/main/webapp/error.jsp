@@ -14,91 +14,9 @@ Gene Expression Atlas
 <jsp:include page="end_head.jsp"></jsp:include>
 
 
-    <jsp:include page="query-includes.jsp" />
-    <link rel="stylesheet" href="structured-query.css" type="text/css" />
-    <script type="text/javascript" src="scripts/common-query.js"></script>
-
-    <script type="text/javascript">
-        function toggleAtlasHelp(e) {
-            if($("div.atlasHelp").is(":hidden")) {
-                showAtlasHelp();
-            } else {
-                hideAtlasHelp();
-            }
-            if(e && typeof(e.stopPropagation) == 'function')
-                e.stopPropagation();
-            return false;
-        }
-
-        function showAtlasHelp() {
-            if($("div.atlasHelp").is(":hidden")) {
-                $("div.atlasHelp").slideToggle();
-                $("#atlasHelpToggle").text("hide help");
-            }
-            $.cookie('atlas_help_state','shown');
-        }
-
-        function hideAtlasHelp() {
-            if($("div.atlasHelp").is(":visible")) {
-                $("div.atlasHelp").slideToggle();
-                $("#atlasHelpToggle").text("show help");
-            }
-            $.cookie('atlas_help_state','hidden');
-        }
-
-        $(document).ready(function()
-            {
-                atlas.initSimpleForm();
-
-                $("#atlasHelpToggle").click(toggleAtlasHelp);
-
-
-                if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
-                   showAtlasHelp();
-                } else if (($.cookie('atlas_help_state') == "hidden") && ($("div.atlasHelp").is(":visible"))) {
-                   hideAtlasHelp();
-                }
-            }
-        );
-    </script>
-
-    <style type="text/css">
-        .label {
-            font-size: 10px;
-        }
-
-        .atlasHelp {
-            display: none;
-            text-align:center;
-        }
-
-        .atlasHelp .div1 {
-            font-size: 0px; line-height: 0%; width: 0px;
-            border-bottom: 20px solid #EEF5F5;
-            border-left: 10px solid white;border-right: 10px solid white;
-        }
-
-        .atlasHelp .div2 {
-            background-color: #EEF5F5; text-align:left; height:100%; width: 140px;padding:5px;
-        }
-
-        #newexplist {
-            font-size: 10px;
-            text-align:left;margin-top:70px;margin-right:auto;margin-left:auto;width:740px;
-        }
-
-        #newexplist table {
-            border: none;
-            padding: 0;
-            margin: 10px 0 0 0;
-        }
-
-        #newexplist td {
-            padding: 5px 10px 0 0;
-            vertical-align:top;
-            font-size: 10px;
-        }
-    </style>
+<jsp:include page="query-includes.jsp" />
+<link rel="stylesheet" href="structured-query.css" type="text/css" />
+<script type="text/javascript" src="scripts/common-query.js"></script>
 
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>

@@ -63,10 +63,6 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 
 <style type="text/css">
-    .contents {
-        top: 87px
-    }
-
     .ui-tabs .ui-tabs-hide {
         display: none;
     }
@@ -208,20 +204,32 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', false, geneIndeces.toString());
     }
 
+
+    var curatedChars = new Array();
+    var curatedEFs = new Array();
+    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
+    curatedChars['${char}'] = '${u:getCurated(char)}';
+    </c:forEach>
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
+    curatedEFs['${ef}'] = '${u:getCurated(ef)}';
+    </c:forEach>
+
+
 </script>
 
 
 <jsp:include page='start_body_no_menus.jsp'/>
 
-<div style="padding-left: 15px; padding-right: 15px;">
-    <table
-            style="position: relative; z-index: 1; top: 58px; border-bottom: 1px solid #dedede; width: 100%; height: 30px">
+<div class="contents" id="contents">
+<div id="ae_pagecontainer">
+
+    <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
         <tr>
             <td align="left" valign="bottom" width="55"
                 style="padding-right: 10px;"><a href="./"
                                                 title="Gene Expression Atlas Homepage"><img border="0" width="55"
-                                                                                         src="images/atlas-logo.png"
-                                                                                         alt="Gene Expression Atlas"/></a>
+                                                                                            src="images/atlas-logo.png"
+                                                                                            alt="Gene Expression Atlas"/></a>
             </td>
             <td align="right" valign="bottom"><a href="./">home</a> | <a
                     href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
@@ -236,182 +244,151 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                         href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a></td>
         </tr>
     </table>
-</div>
-<script type="text/javascript">
-
-    var curatedChars = new Array();
-    var curatedEFs = new Array();
-    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
-    curatedChars['${char}'] = '${u:getCurated(char)}';
-    </c:forEach>
-    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
-        curatedEFs['${ef}'] = '${u:getCurated(ef)}';
-    </c:forEach>
 
 
-</script>
 
+    <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.dwExpAccession}" target="_blank"
+       title="Experiment information and full data in ArrayExpress Archive" class="geneName"
+       style="vertical-align: baseline">${exp.dwExpAccession}</a>
+    <span class="sectionHeader" style="vertical-align: baseline">${exp.dwExpDescription}</span>
 
-<div class="contents" id="contents">
-    <table class="contentspane" id="contentspane" summary="The main content pane of the page" style="width: 100%">
-        <tr>
-            <td class="leftmargin"><img
-                    src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
-                    alt="spacer"/></td>
-            <td class="leftmenucell" id="leftmenucell">
-                <div class="leftmenu" id="leftmenu"
-                     style="visibility: hidden; display: none;"><img
-                        src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
-                        alt="spacer"/></div>
-            </td>
-            <td class="contentsarea" id="contentsarea">
-                <div id="ae_pagecontainer">
+    <div id="result_cont" style="margin-top:20px">
 
-                    <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.dwExpAccession}" target="_blank"
-                       title="Experiment information and full data in ArrayExpress Archive" class="geneName"
-                       style="vertical-align: baseline">${exp.dwExpAccession}</a>
-                    <span class="sectionHeader" style="vertical-align: baseline">${exp.dwExpDescription}</span>
+        <table id="twocol" style="margin-top:5px">
+            <tr>
+                <td style="padding:0px">
+                    <div class="header"
+                         style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
+                        <div id="${exp.dwExpId}_EFpagination" class="pagination_ie">
+                            <c:forEach var="EF" items="${exp.experimentFactors}">
+                                <c:choose>
+                                    <c:when test="${EF == topRankEF}">
+                                        <span class="current" id="${EF}"><fmt:message
+                                                key="head.ef.${EF}"/></span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a id="${EF}"
+                                           onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')"><fmt:message
+                                                key="head.ef.${EF}"/></a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+                        </div>
+                    </div>
 
-                    <div id="result_cont" style="margin-top:20px">
-
-                        <table id="twocol" style="margin-top:5px">
+                    <div style="position:relative;width:100%">
+                        <table cellpadding="0" cellspacing="0" style="padding:0px;width:650px">
                             <tr>
-                                <td style="padding:0px">
-                                    <div class="header"
-                                         style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
-                                        <div id="${exp.dwExpId}_EFpagination" class="pagination_ie">
-                                            <c:forEach var="EF" items="${exp.experimentFactors}">
-                                                <c:choose>
-                                                    <c:when test="${EF == topRankEF}">
-                                                        <span class="current" id="${EF}"><fmt:message
-                                                                key="head.ef.${EF}"/></span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <a id="${EF}"
-                                                           onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')"><fmt:message
-                                                                key="head.ef.${EF}"/></a>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
-                                        </div>
-                                    </div>
-
-                                    <div style="position:relative;width:100%">
-                                        <table cellpadding="0" cellspacing="0" style="padding:0px;width:650px">
-                                            <tr>
-                                                <td style="padding:0px;width:500px">
-                                                    <div class="bigplot" id="plot"
-                                                         style="width:500px;height:150px;padding:0px"></div>
-                                                    <div id="plot_thm"
-                                                         style="border:thin; height: 120px;padding:0px"></div>
-                                                </td>
-                                                <td align="left" style="padding:0px;width:150px" valign="top">
-                                                    <div id="zoomControls"
-                                                         style="position:absolute;top:153px;right:120px"></div>
-                                                    <div id="legend"
-                                                         style="position:relative;top:-10px;text-align:left"/>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
+                                <td style="padding:0px;width:500px">
+                                    <div class="bigplot" id="plot"
+                                         style="width:500px;height:150px;padding:0px"></div>
+                                    <div id="plot_thm"
+                                         style="border:thin; height: 120px;padding:0px"></div>
                                 </td>
-
-                                <td rowspan="2">
-                                    <div id="gene_menu" style="width:500px">
-                                        <div><a href="#" style="font-size:12px">Display genes matching by name or
-                                            attribute</a></div>
-                                        <div>
-                                            <form id="searchForm" class="visinsimple" action="javascript:void()">
-                                                <label for="geneInExp_qry" style="font-size:12px">Find genes</label>
-                                                <input type="text" class="value" name="gval_0" id="geneInExp_qry"
-                                                       style="width:200px"/>
-                                                <button type="submit">Search</button>
-                                            </form>
-                                            <div id="qryHeader" style="padding-top: 10px;"></div>
-                                            <div id="qryResult" style="padding-top: 10px;"></div>
-                                        </div>
-
-                                        <div><a href="#" style="font-size:12px">Display genes with similar expression
-                                            profiles</a></div>
-                                        <div>
-                                            <form class="visinsimple" id="simForm" action="javascript:void()">
-                                                <label for="simSelect" style="font-size:12px">Show ten genes similar
-                                                    (Pearson correlation) to</label>
-                                                <select id="simSelect" style="font-size:12px"></select>
-                                                <button type="submit">Search</button>
-                                            </form>
-
-                                            <div id="simHeader" style="padding-top: 10px;font-size:12px"></div>
-                                            <div id="simResult" style="padding-top: 10px;"></div>
-                                        </div>
-
-
-                                        <div><a href="#" style="font-size:12px">Choose from top ten differentially
-                                            expressed genes</a></div>
-                                        <div>
-                                            <div id="topGenes"><img src='images/indicator.gif'/>&nbsp;Loading gene
-                                                list...
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    <!--/gene_menu-->
-
-                                </td>
-                            </tr>
-                            <tr valign="top">
-                                <td valign="top">
-                                    <table width="600" style="border:1px solid #5E9E9E;margin-top:30px;height:150px" cellpadding="0" cellspacing="0">
-					<tr>
-                                            <th style="background-color:#EDF6F5;padding:5px;border-right:0px solid #CDCDCD" class="header">Sample Attributes</th>
-			                    <th style="background-color:#EDF6F5;padding:5px" class="header">Attribute Values</th>
-					</tr>
-                                        <tr>
-                                            <td width="200" style="border-bottom:0px solid #CDCDCD">
-                                                <ul style="margin: 0px; padding: 5px">
-                                                    <c:forEach var="char" items="${exp.sampleCharacteristics}">
-                                                        <li style="list-style-type: none; padding-left: 0px" id="${char}_title" class="sample_attr_title"><a href="#">
-                                                            <fmt:message key="head.ef.${char}"/>
-                                                            <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
-                                                        </li>
-                                                        <div id="${char}_values" class="sample_attr_values">
-                                                            <c:forEach var="value"
-                                                                items="${exp.sampleCharacterisitcValues[char]}" varStatus="r">
-                                                                <a style="text-transform: capitalize;" class="sample_attr_value" id="${char}_${r.count}"
-                                                                   onclick="highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>', false, this);return false;" href="#">${value}</a>
-                                                                <br/>
-                                                                </c:forEach>
-                                                        </div>
-                                                    </c:forEach>
-                                                    <c:forEach var="EF" items="${exp.experimentFactors}">
-                                                        <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
-                                                            <li style="list-style-type: none; padding-left: 0px" id="${EF}_title" class="sample_attr_title"><a href="#">
-                                                                <fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a>
-                                                            </li>
-                                                            <div id="${EF}_values" class="sample_attr_values">
-                                                                <c:forEach var="value" items="${exp.factorValuesForEF[EF]}" varStatus="r">
-                                                                    <a style="text-transform: capitalize;" class="sample_attr_value" id="${EF}_${r.count}" href="#"
-                                                                       onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</script></a>
-                                                                    <br/>
-                                                                </c:forEach>
-                                                             </div>
-                                                        </c:if>
-                                                    </c:forEach>
-                                                </ul>
-                                            </td>
-                                            <td style="padding:5px">
-                                                <div id="display_attr_values" style="height:200px;overflow:auto">Select a sample attribute...</div>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                <td align="left" style="padding:0px;width:150px" valign="top">
+                                    <div id="zoomControls"
+                                         style="position:absolute;top:153px;right:120px"></div>
+                                    <div id="legend"
+                                         style="position:relative;top:-10px;text-align:left"/>
                                 </td>
                             </tr>
                         </table>
                     </div>
-                </div>
-            </td>
-        </tr>
-      </tbody>
-    </table>
+                </td>
 
-    <jsp:include page='end_body.jsp'/>
+                <td rowspan="2">
+                    <div id="gene_menu" style="width:500px">
+                        <div><a href="#" style="font-size:12px">Display genes matching by name or
+                            attribute</a></div>
+                        <div>
+                            <form id="searchForm" class="visinsimple" action="javascript:void()">
+                                <label for="geneInExp_qry" style="font-size:12px">Find genes</label>
+                                <input type="text" class="value" name="gval_0" id="geneInExp_qry"
+                                       style="width:200px"/>
+                                <button type="submit">Search</button>
+                            </form>
+                            <div id="qryHeader" style="padding-top: 10px;"></div>
+                            <div id="qryResult" style="padding-top: 10px;"></div>
+                        </div>
+
+                        <div><a href="#" style="font-size:12px">Display genes with similar expression
+                            profiles</a></div>
+                        <div>
+                            <form class="visinsimple" id="simForm" action="javascript:void()">
+                                <label for="simSelect" style="font-size:12px">Show ten genes similar
+                                    (Pearson correlation) to</label>
+                                <select id="simSelect" style="font-size:12px"></select>
+                                <button type="submit">Search</button>
+                            </form>
+
+                            <div id="simHeader" style="padding-top: 10px;font-size:12px"></div>
+                            <div id="simResult" style="padding-top: 10px;"></div>
+                        </div>
+
+
+                        <div><a href="#" style="font-size:12px">Choose from top ten differentially
+                            expressed genes</a></div>
+                        <div>
+                            <div id="topGenes"><img src='images/indicator.gif'/>&nbsp;Loading gene
+                                list...
+                            </div>
+                        </div>
+
+                    </div>
+                    <!--/gene_menu-->
+
+                </td>
+            </tr>
+            <tr valign="top">
+                <td valign="top">
+                    <table width="600" style="border:1px solid #5E9E9E;margin-top:30px;height:150px" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <th style="background-color:#EDF6F5;padding:5px;border-right:0px solid #CDCDCD" class="header">Sample Attributes</th>
+                            <th style="background-color:#EDF6F5;padding:5px" class="header">Attribute Values</th>
+                        </tr>
+                        <tr>
+                            <td width="200" style="border-bottom:0px solid #CDCDCD">
+                                <ul style="margin: 0px; padding: 5px">
+                                    <c:forEach var="char" items="${exp.sampleCharacteristics}">
+                                        <li style="list-style-type: none; padding-left: 0px" id="${char}_title" class="sample_attr_title"><a href="#">
+                                            <fmt:message key="head.ef.${char}"/>
+                                            <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
+                                        </li>
+                                        <div id="${char}_values" class="sample_attr_values">
+                                            <c:forEach var="value"
+                                                       items="${exp.sampleCharacterisitcValues[char]}" varStatus="r">
+                                                <a style="text-transform: capitalize;" class="sample_attr_value" id="${char}_${r.count}"
+                                                   onclick="highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>', false, this);return false;" href="#">${value}</a>
+                                                <br/>
+                                            </c:forEach>
+                                        </div>
+                                    </c:forEach>
+                                    <c:forEach var="EF" items="${exp.experimentFactors}">
+                                        <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
+                                            <li style="list-style-type: none; padding-left: 0px" id="${EF}_title" class="sample_attr_title"><a href="#">
+                                                <fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a>
+                                            </li>
+                                            <div id="${EF}_values" class="sample_attr_values">
+                                                <c:forEach var="value" items="${exp.factorValuesForEF[EF]}" varStatus="r">
+                                                    <a style="text-transform: capitalize;" class="sample_attr_value" id="${EF}_${r.count}" href="#"
+                                                       onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</script></a>
+                                                    <br/>
+                                                </c:forEach>
+                                            </div>
+                                        </c:if>
+                                    </c:forEach>
+                                </ul>
+                            </td>
+                            <td style="padding:5px">
+                                <div id="display_attr_values" style="height:200px;overflow:auto">Select a sample attribute...</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div><!-- /id="ae_pagecontainer" -->
+</div><!-- /id="contents" -->
+
+<jsp:include page='end_body.jsp'/>

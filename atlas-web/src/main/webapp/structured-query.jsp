@@ -24,41 +24,28 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript" src="scripts/jquery.tablesorter.collapsible.js"></script>
 <script type="text/javascript" src="scripts/pure.js"></script>
 
-<style type="text/css">.contents{top: 87px}</style>
-
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
-<div style="padding-left:15px; padding-right:15px;">
-    <table style="position:relative; z-index:1; top:58px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
-        <tr>
-            <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
-            </td>
-            <td align="right" valign="bottom">
-                <a href="./">home</a> |
-                <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-                <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
-                <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-                <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-                <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
-            </td>
-        </tr>
-    </table>
-</div>
-
 <div class="contents" id="contents">
-<table class="contentspane" id="contentspane" summary="The main content pane of the page" style="width: 100%">
-<tr>
-<td class="leftmargin"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></td>
-<td class="leftmenucell" id="leftmenucell">
-    <div class="leftmenu" id="leftmenu" style="1px; visibility: hidden; display: none;">
-
-        <img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" />
-    </div>
-</td>
-<td class="contentsarea" id="contentsarea">
 <div id="ae_pagecontainer">
+
+<table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
+    <tr>
+        <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+        </td>
+        <td align="right" valign="bottom">
+            <a href="./">home</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
+            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+        </td>
+    </tr>
+</table>
+
 <div id="topcontainer">
     <form id="simpleform" class="visinsimple" action="qrs">
         <table style="width:850px">
@@ -673,12 +660,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 </div>
 
 </div><!-- /id="ae_pagecontainer" -->
-</td>
-</tr>
-</table><!-- /id="contentspane" -->
 </div><!-- /id="contents" -->
 
-<div  style="display:none">
+<div style="display:none">
     <div id="experimentsTemplate">
         <div class="head">
             <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>

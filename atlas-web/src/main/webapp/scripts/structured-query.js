@@ -283,7 +283,7 @@
              'a.proflink[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
              'a.proflink2[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
              'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
-         }).remove();
+         }).parent().remove();
      };
 
      atlas.structSubmit = function() {
