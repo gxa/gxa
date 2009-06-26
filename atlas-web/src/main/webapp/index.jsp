@@ -120,4 +120,3 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
 
 <jsp:include page="end_body.jsp"></jsp:include>
-<script type="text/javascript">alert(document.body.scrollHeight + ' ' + document.body.clientHeight)</script>
