@@ -54,7 +54,7 @@ function initPaging(){
 		<c:forEach var="row" items="${f_genes}" varStatus="r">
 			<tr id="${row.gene_id}_${row.ef}_${u:escapeURL(row.fv)}">
 				<td style="vertical-align: top;padding-top:2px"><a href="#" onclick="addGeneToPlot('${row.gene_id}','${row.gene_name}','${eid}','${row.ef}')" alt="plot" title="Click to plot profile">
-				<img border="0" src="images/iconf.png"/>
+				<img border="0" src="images/iconf.png" onload="addGeneToPlotIfEmpty('${row.gene_id}','${row.gene_name}','${eid}','${row.ef}')" />
 				</a>
 				</td>
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px; white-space:nowrap"

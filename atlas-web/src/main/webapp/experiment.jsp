@@ -88,6 +88,11 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     var geneCounter = 0;
     var geneIndeces = new Array();
     geneIndeces.push(geneCounter);
+
+    //AZ:2009-06-09:carry highlighted EF for removeGene
+    var currentEF = '${ef}';
+
+
     $(document).ready(function()
     {
 
@@ -109,7 +114,10 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             autoHeight: false
         });
 
-        plotBigPlot('${gid}', '${eid}', '${ef}', true, geneIndeces.toString());
+        //AZ:2009-06-26:only plot if gid is not supplyed
+        if(window.location.href.indexOf('gid=')>0){
+            plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', true, geneIndeces.toString());
+        }
 
         $("button").click(function() {
 
@@ -173,6 +181,28 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         genesToPlot[gname] = gid;
         geneIndeces.push(geneCounter);
         plotBigPlot(genesToPlot.toString(), eid, ef, false, geneIndeces.toString());
+        currentEF = ef;
+    }
+
+
+    //function called on each added gene, and draw plot for first 5 of them
+       function addGeneToPlotIfEmpty(gid, gname, eid, ef) {
+
+         if(window.location.href.indexOf("gid=")<=0) {
+             if(geneCounter>4)
+                return;
+
+            geneCounter++;
+            genesToPlot.push(gid);
+            genesToPlot[gname] = gid;
+            geneIndeces.push(geneCounter);
+
+            if(geneCounter==5){
+                plotBigPlot(genesToPlot.toString(), eid, ef, true, geneIndeces.toString());
+                currentEF = ef;
+            }
+         }
+
     }
 
     function redrawForEF(eid, ef, efTxt) {
@@ -180,6 +210,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         //redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
         plotBigPlot(genesToPlot.toString(), eid, ef, false, geneIndeces.toString());
         $('#sortHeader').text("Expression profile sorted by " + efTxt);
+        currentEF = ef;
     }
 
 
@@ -201,7 +232,8 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             }
         }
         //$("#"+gname+":parent").hide();
-        plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', false, geneIndeces.toString());
+        //AZ:2009-06-26:do not jump to default EF (use curentEF)
+        plotBigPlot(genesToPlot.toString(), '${eid}', currentEF, false, geneIndeces.toString());
     }
 
 

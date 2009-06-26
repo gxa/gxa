@@ -16,6 +16,12 @@
     String updn="up";
     String gplotIds="";
 
+
+    //AZ:2009-06-26:trim leading ',' in CSV
+    if (gid.startsWith(",")){
+           gid = gid.substring(1);
+    }
+
     if(request.getParameter("plot") != null)
     	plotType=request.getParameter("plot");
     
@@ -33,7 +39,8 @@
     
 
     try {
-        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(request.getParameter("gid"),request.getParameter("eid"),ef,efv,plotType,gplotIds);
+        //AZ:2009-06-26:mirorefactoring - use already calculated gid variable
+        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(gid,eid,ef,efv,plotType,gplotIds);
 
         if (jsonString != null) {
             
@@ -100,4 +107,11 @@
     } catch (JSONException e) {
         log.error("Error constructing JSON when plotting gene " + gid + ", experiment " + eid + ", ef " + ef, e);
     }
+    //AZ:2009-06-26:add umbrella exception handler (TBD)
+    catch (Exception e)
+    {
+       log.error("Error creating plot for: " + gid + ", experiment " + eid + ", ef " + ef, e);
+       throw e; 
+    }
+
 %>

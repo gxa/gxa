@@ -623,6 +623,15 @@ public class ArrayExpressSearchService {
     }
 
     public HashMap getHighestRankEF(String expIdKey, String geneIdKey) {
+
+        //AZ:2009-06-26:if geneID is not specified - show highest rank EFs for all, if geneIdKey is CSV - show highest for first gene
+        if(null==geneIdKey)
+                 geneIdKey = "gene_id_key";
+
+        if(geneIdKey.contains(","))
+            geneIdKey = geneIdKey.split(",")[0];
+
+        
         String rank_query = "select nvl(atlas.fpvaladj,999.0) as rank, atlas.ef as expfactor " +
                             "from aemart.atlas atlas " +
                             "where atlas.experiment_id_key = "+expIdKey +
