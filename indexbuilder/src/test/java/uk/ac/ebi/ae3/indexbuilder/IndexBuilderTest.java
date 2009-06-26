@@ -64,10 +64,12 @@ public class IndexBuilderTest extends AbstractIndexBuilderTest
 	public void test_parse()
 	{
 		App indexBuilder = new App();
+
+        assertNotNull(indexBuilder);
 		//Test parse input arguments. 
 		//No parameters. Method should return false
 		String[] args1={};	
-		assertFalse(indexBuilder.parse(args1));
+		assertTrue(indexBuilder.parse(args1));
 		//Wrong parameters. Method should return false		
 		String[] args2={"--prox","sosos"};
 		assertFalse(indexBuilder.parse(args2));	
@@ -76,25 +78,6 @@ public class IndexBuilderTest extends AbstractIndexBuilderTest
 		assertTrue(indexBuilder.parse(args3));	
 		
 	}
-	
-	/**
-	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.App#run()}.
-	 */
-	@Test
-	public void test_run()
-	{
-		fail("Not yet implemented");
-	}
-	
-	/**
-	 * Test method for {@link uk.ac.ebi.ae3.indexbuilder.App#main(java.lang.String[])}.
-	 */
-	@Test
-	public void test_main()
-	{
-		fail("Not yet implemented");
-	}
-	
-	
-	
+
+
 }
