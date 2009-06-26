@@ -29,7 +29,7 @@ public class TableHeaderServlet extends HttpServlet {
     }
     private static Color stoc(String str, Color def) {
         try {
-            return Color.decode(str);
+            return Color.decode("#" + str);
         } catch(Exception e) {
             return def;
         }

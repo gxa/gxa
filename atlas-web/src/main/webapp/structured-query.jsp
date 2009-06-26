@@ -409,9 +409,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="fs" value="11" />
                     <c:param name="h" value="150" />
                     <c:param name="lh" value="15" />
-                    <c:param name="lc" value="#cdcdcd" />
-                    <c:param name="tc" value="#000000" />
-                    <c:param name="tlc" value="#000000" />
+                    <c:param name="lc" value="cdcdcd" />
+                    <c:param name="tc" value="000000" />
+                    <c:param name="tlc" value="000000" />
                     <c:param name="tds" value="4" />
                     <c:param name="tsx" value="7" />
                     <c:param name="tsy" value="5" />
@@ -422,7 +422,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
                     </c:forEach>
                 </map>
-                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efomap"></div></div></td>
+                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div></div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
                 <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.nameSortedList}" />
@@ -434,8 +434,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="fs" value="11" />
                     <c:param name="h" value="150" />
                     <c:param name="lh" value="15" />
-                    <c:param name="lc" value="#cdcdcd" />
-                    <c:param name="tc" value="#000000" />
+                    <c:param name="lc" value="cdcdcd" />
+                    <c:param name="tc" value="000000" />
                 </c:url>
                 <map name="efvmap">
                     <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
@@ -443,7 +443,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},${efvhgt-20},${s.index*27+efvhgt-20},0,${s.index*27+efvhgt-1+17},0,${s.index*27+17},${efvhgt-1},${s.index*27},${efvhgt-1},${s.index*27},${efvhgt-20}" onclick="return false;">
                     </c:forEach>
                 </map>
-                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img src="${efoImgUrl}" usemap="#efvmap"></div></div></td>
+                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efvmap" alt=""></div></div></td>
             </c:if>
         </tr>
         <tr>
