@@ -47,6 +47,10 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
         height: 100%;
     }
 
+    .roundCorner {
+        background-color: #EEF5F5;
+    }
+
 </style>
 
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
