@@ -20,7 +20,6 @@ public class AtlasComputeServiceTest {
     @Before
     public void setUp() {
         svc = new AtlasComputeService();
-
     }
 
     @After

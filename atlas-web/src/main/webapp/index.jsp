@@ -62,13 +62,14 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 <div id="centeredMain">
     <jsp:include page="simpleform.jsp"></jsp:include>
 
-    <div class="alertNotice">
+<!--    <div class="alertNotice">
         <p class="alertHeader">Downtime Notice!</p>
 
         <p>
             Gene Expression Atlas will be unavailable Friday June 26, 12:00-13:00 due to a hardware upgrade.
         </p>
     </div>
+-->
 
     <div style="margin-top:50px">
         <div style="float:left; width:200px;" class="roundCorner">

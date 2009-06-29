@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
+import java.rmi.RemoteException;
 
 import ae3.util.AtlasProperties;
 
@@ -45,6 +46,8 @@ public class AtlasComputeService implements Compute {
         workerPoolConfig.maxActive = 4;
         workerPoolConfig.minIdle = 4;
         workerPoolConfig.maxWait = 1000;
+        workerPoolConfig.testOnBorrow = true;
+        workerPoolConfig.testOnReturn = true;
     }
 
     /**
@@ -97,15 +100,24 @@ public class AtlasComputeService implements Compute {
     public <T> T computeTask(ComputeTask<T> task) {
         T res = null;
 
+        RServices R = null;
+
         try {
             log.info("Borrowing worker from local pool");
-            RServices R = (RServices) workerPool.borrowObject();
+            R = (RServices) workerPool.borrowObject();
             log.info("Computing on " + R.getServantName());
             res = task.compute(R);
-            log.info("Returning worker " + R.getServantName() + " to local pool");
-            workerPool.returnObject(R);
         } catch (Exception e) {
             log.error("Problem computing task!", e.getMessage());
+        } finally {
+            if(null != R) {
+                try {
+                    log.info("Returning worker " + R.getServantName() + " to local pool");
+                    workerPool.returnObject(R);
+                } catch (Exception e) {
+                    log.error("Problem returning worker! {}", e.getMessage());
+                }
+            }
         }
 
         return res;
@@ -138,8 +150,11 @@ public class AtlasComputeService implements Compute {
 
         private void initializeServantProvider() {
             System.setProperty("naming.mode",                    AtlasProperties.getProperty("biocep.naming.mode"));
-            System.setProperty("pools.dbmode.host",              AtlasProperties.getProperty("biocep.pools.dbmode.host"));
             System.setProperty("pools.provider.factory",         AtlasProperties.getProperty("biocep.pools.provider.factory"));
+            System.setProperty("pools.dbmode.type",              AtlasProperties.getProperty("biocep.pools.dbmode.type"));
+            System.setProperty("pools.dbmode.name",              AtlasProperties.getProperty("biocep.pools.dbmode.name"));
+            System.setProperty("pools.dbmode.port",              AtlasProperties.getProperty("biocep.pools.dbmode.port"));
+            System.setProperty("pools.dbmode.host",              AtlasProperties.getProperty("biocep.pools.dbmode.host"));
             System.setProperty("pools.dbmode.driver",            AtlasProperties.getProperty("biocep.pools.dbmode.driver"));
             System.setProperty("pools.dbmode.user",              AtlasProperties.getProperty("biocep.pools.dbmode.user"));
             System.setProperty("pools.dbmode.password",          AtlasProperties.getProperty("biocep.pools.dbmode.password"));
@@ -171,6 +186,14 @@ public class AtlasComputeService implements Compute {
         }
 
         public boolean validateObject(Object o) {
+            RServices R = (RServices) o;
+            try {
+                R.ping();
+            } catch(RemoteException e) {
+                log.info("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
+                return false;
+            }
+
             return true;
         }
 
