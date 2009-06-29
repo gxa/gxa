@@ -179,7 +179,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 </table>
             </div>
         </fieldset>
-        </fieldset>
     </form>
 
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
@@ -387,17 +386,33 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 <c:choose>
 <c:when test="${heatmap}">
+    <c:set var="efoSubTree" value="${result.resultEfos.markedSubTreeList}" />
+    <c:set var="efoSubTreeLength" value="${f:length(efoSubTree)}" />
+
+    <c:if test="${efoSubTreeLength > 0}">
+        <map id="efomap" name="efomap">
+            <c:set var="efohgt" value="${150 - 9 - 4 * u:max(efoSubTree, 'getDepth')}"/>
+            <c:forEach var="i" items="${efoSubTree}" varStatus="s">
+                <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
+            </c:forEach>
+        </map>
+    </c:if>
+    <c:if test="${result.resultEfvs.numEfvs > 0}">
+        <map id="efvmap" name="efvmap">
+            <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
+                <c:set var="efvhgt" value="150"/>
+                <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},${efvhgt-20},${s.index*27+efvhgt-20},0,${s.index*27+efvhgt-1+17},0,${s.index*27+17},${efvhgt-1},${s.index*27},${efvhgt-1},${s.index*27},${efvhgt-20}" onclick="return false;">
+            </c:forEach>
+        </map>
+    </c:if>
+
     <table id="squery">
         <tbody>
         <tr class="header">
-            <c:set var="efoSubTree" value="${result.resultEfos.markedSubTreeList}" />
-            <c:set var="efoSubTreeLength" value="${f:length(efoSubTree)}" />
             <th class="padded" rowspan="2">Gene</th>
             <c:if test="${f:length(query.species) != 1}">
                 <th class="padded" rowspan="2">Organism</th>
             </c:if>
-
-
             <c:if test="${efoSubTreeLength > 0}">
                 <c:set scope="session" var="resultEfos" value="${efoSubTree}" />
                 <c:url var="efoImgUrl" value="/thead">
@@ -416,12 +431,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="tsx" value="7" />
                     <c:param name="tsy" value="5" />
                 </c:url>
-                <map name="efomap">
-                    <c:set var="efohgt" value="${150 - 9 - 4 * u:max(efoSubTree, 'getDepth')}"/>
-                    <c:forEach var="i" items="${efoSubTree}" varStatus="s">
-                        <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
-                    </c:forEach>
-                </map>
                 <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div></div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
@@ -437,12 +446,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="lc" value="cdcdcd" />
                     <c:param name="tc" value="000000" />
                 </c:url>
-                <map name="efvmap">
-                    <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
-                        <c:set var="efvhgt" value="150"/>
-                        <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},${efvhgt-20},${s.index*27+efvhgt-20},0,${s.index*27+efvhgt-1+17},0,${s.index*27+17},${efvhgt-1},${s.index*27},${efvhgt-1},${s.index*27},${efvhgt-20}" onclick="return false;">
-                    </c:forEach>
-                </map>
                 <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efvmap" alt=""></div></div></td>
             </c:if>
         </tr>
