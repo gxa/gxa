@@ -74,7 +74,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
             
             DataServerAPI.setNetCDFPath(netCDFlocation);
         } catch (Exception e) {
-            log.error("Error in initialization", e);
+            throw new RuntimeException("Error in initialization", e);
         }
     }
 

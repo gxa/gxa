@@ -84,8 +84,6 @@ public class ArrayExpressSearchService {
     }
 
     public void initialize() {
-        Connection conn = null;
-
         try {
 	        multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
 
@@ -94,28 +92,34 @@ public class ArrayExpressSearchService {
 
             squeryService = new AtlasStructuredQueryService(multiCore);
 
-            computeService = new AtlasComputeService();
+            try {
+                computeService = new AtlasComputeService();
+            } catch (Exception e) {
+                log.error("Compute service initialization failed", e);
+            }
+
             downloadService = new AtlasDownloadService();
 
-            AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
+            try {
+                AtlasStatisticsService sserv = new AtlasStatisticsService(theAEDS.getConnection(), solr_expt);
 
-            int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
-            String dataRelease = AtlasProperties.getProperty("atlas.data.release");
-            stats = sserv.getStats(lastExpId, dataRelease);
+                int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
+                String dataRelease = AtlasProperties.getProperty("atlas.data.release");
+                stats = sserv.getStats(lastExpId, dataRelease);
+            } catch (Exception e) {
+                log.error("Statistics failed", e);
+            }
 
             new Thread() { public void run() { squeryService.getEfvListHelper().preloadData(); } }.start();
             new Thread() { public void run() { squeryService.getEfoListHelper().preloadData(); } }.start();
             new Thread() { public void run() { squeryService.getGeneListHelper().preloadData(); } }.start();
 
+            theAEQueryRunner = new QueryRunner(theAEDS);
+            
         } catch (Exception e) {
-            log.error("Initialization error", e);
-        } finally {
-            if (conn != null) try {
-                conn.close();
-            } catch (SQLException e) {}
+            throw new RuntimeException("Fatal initialization error", e);
         }
 
-        theAEQueryRunner = new QueryRunner(theAEDS);
     }
 
 
