@@ -7,8 +7,8 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
 import ae3.ols.webservice.axis.Query;
 import ae3.ols.webservice.axis.QueryServiceLocator;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.compute.AtlasComputeService;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import ae3.util.QueryHelper;
 import org.apache.commons.dbutils.QueryRunner;
@@ -29,7 +29,6 @@ import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import javax.sql.DataSource;
 import java.io.File;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
