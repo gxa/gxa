@@ -166,6 +166,7 @@ $.TokenList = function (input, settings) {
                         add_token(li_data);
                         return false;
                     }
+                    hidden_input.trigger('preSubmit');
                     break;
 
                 default:
@@ -196,6 +197,14 @@ $.TokenList = function (input, settings) {
         if(xhr && typeof(xhr.abort) == 'function')
             xhr.abort();
         hide_dropdown();
+    }).bind('preSubmit', function () {
+        if(input_box.val() != '') {
+            var val = hidden_input.val();
+            if(val != '')
+                val += ' ';
+            val += optionalQuote(input_box.val());
+            hidden_input.val(val);
+        }
     });
 
     // Keep a reference to the selected token and dropdown item

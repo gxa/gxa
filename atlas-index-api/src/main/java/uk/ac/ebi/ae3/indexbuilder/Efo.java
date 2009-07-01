@@ -85,7 +85,7 @@ public class Efo {
             this(node, 0);
         }
 
-        private Term(Term other, int depth) {
+        public Term(Term other, int depth) {
             this.id = other.getId();
             this.term = other.getTerm();
             this.expandable = other.isExpandable();

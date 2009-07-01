@@ -1,10 +1,13 @@
 package ae3.util;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 
 /**
  * @author pashky
@@ -56,7 +59,7 @@ public class EscapeUtil {
 
         try {
             Reader r = new StringReader(value);
-            StringBuffer curVal = new StringBuffer();
+            StringBuilder curVal = new StringBuilder();
             boolean inQuotes = false;
             while(true) {
                 int c = r.read();
@@ -97,5 +100,15 @@ public class EscapeUtil {
             throw new RuntimeException("Unexpected exception!", e);
         }
         return values;
+    }
+
+    public static String escapeJSArray(Collection c) {
+        StringBuilder sb = new StringBuilder();
+        for(Object o : c) {
+            if(sb.length() > 0)
+                sb.append(',');
+            sb.append('\'').append(StringEscapeUtils.escapeJavaScript(o.toString())).append('\'');
+        }
+        return sb.toString();
     }
 }

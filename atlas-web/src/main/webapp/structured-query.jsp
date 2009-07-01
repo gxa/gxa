@@ -214,9 +214,11 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:forEach var="c" varStatus="s" items="${result.conditions}">
             { factor: '${u:escapeJS(c.factor)}',
                 expression: '${u:escapeJS(c.expression)}',
-                values: '${u:escapeJS(c.jointFactorValues)}'
+                values: '${u:escapeJS(c.jointFactorValues)}',
+                efos: [ ${u:escapeJSArray(c.efoIds)} ]
             }<c:if test="${!s.last}">,</c:if></c:forEach>
-        ]
+        ],
+        view: '${heatmap ? 'hm' : 'list'}' 
     };
     </c:if>
     $(document).ready(function () {
@@ -394,6 +396,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:set var="efohgt" value="${150 - 9 - 4 * u:max(efoSubTree, 'getDepth')}"/>
             <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                 <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
+                <c:if test="${i.depth == 0}">
+                    <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" href="#">
+                </c:if>
             </c:forEach>
         </map>
     </c:if>
@@ -431,7 +436,14 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="tsx" value="7" />
                     <c:param name="tsy" value="5" />
                 </c:url>
-                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div></div></td>
+                <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;">
+                    <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
+                    <c:forEach var="i" items="${efoSubTree}" varStatus="s">
+                        <c:if test="${i.depth == 0}">
+                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="images/goup.gif" width="5" height="12">
+                        </c:if>
+                    </c:forEach>
+                </div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
                 <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.nameSortedList}" />

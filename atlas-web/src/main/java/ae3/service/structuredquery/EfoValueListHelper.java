@@ -160,19 +160,19 @@ public class EfoValueListHelper implements IValueListHelper {
 
         List<List<EfoTermCount>> result = new ArrayList<List<EfoTermCount>>();
         for(List<Efo.Term> path : paths) {
+            int depth = 0;
             List<EfoTermCount> current = new ArrayList<EfoTermCount>();
             Collections.reverse(path);
             for(Efo.Term term : path) {
                 Long count = getCount(term.getId());
                 if(count != null) {
-                    current.add(new EfoTermCount(term, count));
+                    current.add(new EfoTermCount(new Efo.Term(term, depth++), count));
                 }
             }
             if(!current.isEmpty()) {
-                Efo.Term term = getEfo().getTermById(id);
-                Long count = getCount(term.getId());
+                Long count = getCount(id);
                 if(count != null) {
-                    current.add(new EfoTermCount(term, count));
+                    current.add(new EfoTermCount(new Efo.Term(getEfo().getTermById(id), depth), count));
                     result.add(current);
                 }
             }

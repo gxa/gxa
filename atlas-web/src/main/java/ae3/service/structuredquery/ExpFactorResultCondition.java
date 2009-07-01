@@ -3,6 +3,8 @@ package ae3.service.structuredquery;
 import ae3.service.structuredquery.EfoValueListHelper.EfoTermCount;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
      * Structured query condition expanded by query service
@@ -15,7 +17,8 @@ public class ExpFactorResultCondition {
     /**
      * Constructor for condition
      * @param condition original query condition
-     * @param expansion EFV expansion tree
+     * @param efoPaths EFO paths rendered by condition
+     * @param ignored if condition is ignored
      */
     public ExpFactorResultCondition(ExpFactorQueryCondition condition, Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths, boolean ignored) {
         this.condition = condition;
@@ -63,6 +66,12 @@ public class ExpFactorResultCondition {
         return efoPaths;
     }
 
+    public Set<String> getEfoIds() {
+        Set<String> result = new HashSet<String>();
+        for(List<EfoTermCount> l : getEfoPaths())
+            result.add(l.get(l.size() - 1).getId());
+        return result;
+    }
 
     /**
      * Convenience method to check whether conditions is for any factor

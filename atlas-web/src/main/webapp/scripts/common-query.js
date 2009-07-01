@@ -14,11 +14,13 @@ var atlas = {};
                 function showTree(c, t, downTo) {
                     c.addClass('wait');
                     $.getJSON('efo',
-                        {
-                            id: t,
-                            downTo: o.root == t ? downTo : '' ,
-                            hl: o.root == t ? o.highlight : ''
-                        }, function(result) {
+                        o.root == t ? {
+                            downTo: downTo,
+                            hl: o.highlight
+                        } : {
+                            childrenOf: t
+                        },
+                            function(result) {
                             c.removeClass('wait');
                             var ul = $('<ul/>').hide();
                             c.append(ul);
@@ -370,6 +372,7 @@ var atlas = {};
     atlas.startSearching = function(form) {
         var v = $(form).find('input[type=submit]');
         v.val('Searching...');
+        $(form).find('input:hidden').trigger('preSubmit');
     };
     
     initExpPageAutoComplete = function(){

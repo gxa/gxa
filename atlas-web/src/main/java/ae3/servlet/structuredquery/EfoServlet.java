@@ -7,6 +7,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author pashky
@@ -16,9 +19,24 @@ public class EfoServlet extends JsonServlet {
         EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService().getEfoListHelper();
 
-        String id = request.getParameter("id");
-        if(id != null && id.length() == 0)
-            id = null;
+        Collection result = null;
+        String id = request.getParameter("childrenOf");
+        if(id != null && id.length() != 0)
+            result = service.getTermChildren(id);
+        else {
+            id = request.getParameter("downTo");
+            if(id != null && id.length() != 0)
+                result = service.getTreeDownToTerm(id);
+            else {
+                id = request.getParameter("parentsOf");
+                if(id != null && id.length() != 0) {
+                    result = new ArrayList();
+                    for(List<EfoValueListHelper.EfoTermCount> i : service.getTermParentPaths(id))
+                        result.addAll(i);
+                }
+
+            }
+        }
 
         String downTo = null;
         if(id == null) {
@@ -35,7 +53,8 @@ public class EfoServlet extends JsonServlet {
 
         JSONObject o = new JSONObject();
         o.putOpt("hl", highlights != null ? new JSONArray(service.searchTerms(EscapeUtil.parseQuotedList(highlights)), false) : null);
-        o.put("tree", new JSONArray(downTo == null ? service.getTermChildren(id) : service.getTreeDownToTerm(downTo), false));
+        if(result != null)
+            o.put("tree", new JSONArray(result, false));
 
         return o;
     }

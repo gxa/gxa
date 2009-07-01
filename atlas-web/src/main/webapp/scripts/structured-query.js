@@ -504,11 +504,6 @@
          $('.visinstruct').hide();
      };
 
-     atlas.startSearching = function(form) {
-         var v = $(form).find('input[type=submit]');
-         v.val('Searching...');
-     };
-
     atlas.popup = function  (url) {
         var width  = 600;
         var height = 200;
@@ -527,5 +522,115 @@
         if (window.focus) {newwin.focus()}
         return false;
     };
+
+    atlas.expandEfo = function (xoffset, yoffset, id) {
+        var offset = $('#efoheader').offset();
+        offset.top += yoffset;
+        offset.left += xoffset;
+
+        var waiter = $('<div />').append($('<img/>').attr('src','images/indicator.gif'))
+                .css({ left: offset.left + 'px', top: offset.top + 'px' }).appendTo(document.body);
+
+        $.ajax({
+            type: "GET",
+            url: 'efo',
+            dataType: "json",
+            data: { parentsOf: id },
+            success: function(resp) {
+                waiter.remove();
+                if(resp.error) {
+                    alert(resp.error);
+                    return;
+                }
+
+                var entered = false;
+                var timeout;
+                var popup = $('<div/>').addClass('tokeninputdrop')
+                        .css({ width: 'auto', top: offset.top + 'px', left: offset.left + 'px' })
+                        .appendTo(document.body)
+                        .mouseleave(function (e) {
+                            timeout = setTimeout(function () { popup.remove(); }, 300);
+                        })
+                        .mouseenter(function () {
+                            if(timeout) {
+                                clearTimeout(timeout);
+                                timeout = null;
+                            }
+                            entered = true;
+                        });
+
+                var ul = $('<ul/>')
+                    .mouseover(function (e) {
+                        var t = $(e.target);
+                        var li = t.is('li') ? t : t.parents('li:first');
+                        if(li.length) {
+                            ul.find('li').removeClass('tokendropitemsel');
+                            li.addClass('tokendropitemsel');
+                        }
+                    })
+                    .click(function (e) {
+                        var t = $(e.target);
+                        var li = t.is('li') ? t : t.parents('li:first');
+                        if(li.length) {
+                            var d = $.data(li.get(0), "efoup");
+                            popup.remove();
+
+                            if(lastquery) {
+                                var url = 'qrs?';
+                                var i;
+                                for(i = 0; i < lastquery.genes.length; ++i) {
+                                    url += 'gnot_' + i + '=' + escape(lastquery.genes[i].not) + '&';
+                                    url += 'gprop_' + i + '=' + escape(lastquery.genes[i].property) + '&';
+                                    url += 'gval_' + i + '=' + escape(lastquery.genes[i].query) + '&';
+                                }
+                                for(i = 0; i < lastquery.species.length; ++i)
+                                    url += 'specie_' + i + '=' + escape(lastquery.species[i]) + '&';
+
+                                for(i = 0; i < lastquery.conditions.length; ++i) {
+                                    var fval = lastquery.conditions[i].values;
+                                    for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
+                                        if(lastquery.conditions[i].efos[j] == id) {
+                                            fval += ' ' + d.id;
+                                            break;
+                                        }
+                                    }
+                                    url += 'fexp_' + i + '=' + escape(lastquery.conditions[i].expression) + '&';
+                                    url += 'fval_' + i + '=' + escape(fval) + '&';
+                                    url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
+                                }
+
+                                if(lastquery.conditions.length == 0) {
+                                    url += 'fexp_0=UP_DOWN&fact_0=&';
+                                    url += 'fval_0' + '=' + escape(d.id) + '&';
+                                }
+
+                                url += 'view=' + escape(lastquery.view);
+                                
+                                atlas.startSearching($('#simpleform:visible,#structform:visible'));
+                                window.location.href = url;
+                            }
+                        }
+                    });
+
+                var k = 0;
+                for(var i in resp.tree) {
+                    var indent = '';
+                    for(var j = 0; j < resp.tree[i].depth; ++j)
+                        indent += '&nbsp;&nbsp;&nbsp;';
+
+                    var li = $('<li />')
+                        .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
+                        .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
+                        .appendTo(ul);
+                    $.data(li.get(0), "efoup", resp.tree[i]);
+                }
+
+                ul.find('li:first').addClass('tokendropitemsel');
+
+                popup.append(ul);
+
+            }});
+    };
+
 
  })(jQuery);

@@ -100,7 +100,7 @@ fieldset, #drill {  border: none }
 
 #squery .gtooltip { display: none; }
 
-#squery img, #squery img:hover, map, area, map:hover, area:hover { border: none; cursor:default; }
+#squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
 
 /* form */
 
@@ -439,6 +439,7 @@ div.tokeninputdrop ul li {
     cursor: pointer;
     background-color: #fff;
     padding: 3px;
+    white-space: nowrap;
 }
 
 div.tokeninputdrop ul li.tokendropitem {

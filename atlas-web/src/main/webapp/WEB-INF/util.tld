@@ -20,6 +20,14 @@
     </function>
 
     <function>
+      <name>escapeJSArray</name>
+      <function-class>ae3.util.EscapeUtil</function-class>
+      <function-signature>
+        java.lang.String escapeJSArray( java.util.Collection )
+      </function-signature>
+    </function>
+
+    <function>
       <name>escapeURL</name>
       <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
