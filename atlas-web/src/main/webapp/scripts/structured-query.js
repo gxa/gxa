@@ -564,6 +564,9 @@
                         var t = $(e.target);
                         var li = t.is('li') ? t : t.parents('li:first');
                         if(li.length) {
+                            var d = $.data(li.get(0), "efoup");
+                            if(d.id == id)
+                                return;
                             ul.find('li').removeClass('tokendropitemsel');
                             li.addClass('tokendropitemsel');
                         }
@@ -574,6 +577,9 @@
                         if(li.length) {
                             var d = $.data(li.get(0), "efoup");
                             popup.remove();
+
+                            if(d.id == id)
+                                return;
 
                             if(lastquery) {
                                 var url = 'qrs?';
@@ -619,7 +625,7 @@
                         indent += '&nbsp;&nbsp;&nbsp;';
 
                     var li = $('<li />')
-                        .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
+                        .html(indent).append($('<span/>').addClass(resp.tree[i].id == id ? 'disabled' : '').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
                         .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
                         .appendTo(ul);
                     $.data(li.get(0), "efoup", resp.tree[i]);

@@ -456,6 +456,10 @@ div.tokeninputdrop ul li em {
     color: #999999;
 }
 
+span.disabled {
+    color: #999999;
+}
+
 div.tokeninputdrop ul li.tokendropitemsel {
     background-color: #408c8c;
     color: white;
