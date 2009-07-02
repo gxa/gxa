@@ -158,109 +158,32 @@ var atlas = {};
         }
     });
 
-    atlas.makeHideAutocompleteCode = function (input) {
-        var closebox = $('<div class="ac_hide">hide suggestions</div>');
-        closebox.click(function () { input.hideResults(); });
-        return closebox;
-    };
+    var commonTokenOptions = {
+        hideText: "hide suggestions",
+        noResultsText: "no results found",
 
-    function optionalQuote(s) {
-        return s.indexOf(' ') >= 0 ? '"' + s + '"' : s;
-    }
+        classes: {
+            tokenList: "tokeninput",
+            token: "tokeninput",
+            selectedToken: "tokeninputsel",
+            highlightedToken: "token-input-highlighted-token-facebook",
+            dropdown: "tokeninputdrop",
+            dropdownItem: "tokendropitem",
+            dropdownItem2: "tokendropitem2",
+            selectedDropdownItem: "tokendropitemsel",
+            inputToken: "tokeninputinput",
+            hideText: "tokendrophide",
+            searching: "tokeninputsearching",
+            browseIcon: "efoexpand"
+        },
 
-    function parseAcJson(formatResult) {
-        return function (json, query) {
-            var rows = json.completions[query];
-            for (var i=0; i < rows.length; i++) {
-                var row = rows[i];
-                rows[i] = {
-                    data: row,
-                    value: row.value,
-                    result: formatResult(row)
-                };
-            }
-            return rows;
+        getItemList:  function (json, query) {
+            return json.completions[query];
+        },
+
+        formatToken: function(row) {
+            return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
         }
-    }
-
-    atlas.makeGeneAcOptions = function (property, dumbmode) {
-        var acoptions = {
-            minChars: property == "" ? 1 : 0,
-            width: property == "" ? '500px' : '300px',
-            matchCase: false,
-            matchSubset: false,
-            selectFirst: false,
-            multiple: false,
-            multipleSeparator: " ",
-            multipleQuotes: true,
-            scroll: false,
-            scrollHeight: 180,
-            max: 15,
-            dataType: "json",
-            extraContent: atlas.makeHideAutocompleteCode,
-            extraParams: { type: 'gene', 'factor' : property },
-            parse: parseAcJson(function(r) { return optionalQuote(r.value); }),
-            highlight: function (value,term) { return value; }
-        };
-
-        if(property == '') {
-            acoptions.formatItem = function(row, num, max, val, term) {
-                var text = $.Autocompleter.defaults.highlight(row.value.length > 30 ? row.value + '...' : row.value, term);
-                if(row.property == 'name') {
-                    var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
-                    return '<nobr><em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em></nobr>';
-                } else {
-                    return '<nobr><em>' + row.property + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em></nobr>';
-                }
-            };
-        } else {
-            acoptions.formatItem = function(row, num, max, val, term) {
-                var text = $.Autocompleter.defaults.highlight(row.value.length > 50 ? row.value + '...' : row.value, term);
-                return '<nobr>' + text + ' (' + row.count + ')</nobr>';
-            };
-        }
-
-        return acoptions;
-    };
-
-    atlas.makeFvalAcOptions = function (factor, dumbmode) {
-        var actype = 'efv';
-        if(factor == '') {
-            actype = 'efoefv';
-        } else if(factor == 'efo') {
-            actype = 'efo';
-        }
-        return {
-            minChars: 1,
-            matchCase: false,
-            matchSubset: false,
-            multiple: !dumbmode,
-            selectFirst: false,
-            multipleQuotes: true,
-            multipleSeparator: " ",
-            scroll: false,
-            scrollHeight: 180,
-            width: '300px',
-            max: 100,
-            queryMax: 15,
-            dataType: "json",
-            extraParams: { type: actype, factor: factor },
-            extraContent: atlas.makeHideAutocompleteCode,
-            parse: parseAcJson(function(row) {
-                if(row.property == 'efo')
-                    return row.id;
-                return optionalQuote(row.value);
-            }),
-            formatItem: function(row, num, max, val, term) {
-                if(row.property == 'efo') {
-                    var indent = '';
-                    for(var i = 0; i < row.depth; ++i)
-                        indent += '&nbsp;&nbsp;&nbsp;';                    
-                    return '<nobr>' + indent + row.value + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
-                }
-                return '<nobr>' + row.value + ' <em>(' + row.count + ' genes)</em></nobr>';
-            }
-        };
     };
 
     atlas.tokenizeConditionInput = function (fvalfield, factor, defaultvalue) {
@@ -271,7 +194,7 @@ var atlas = {};
             actype = 'efo';
         }
 
-        fvalfield.tokenInput(atlas.homeUrl + "fval",
+        fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
                 property: factor,
@@ -292,10 +215,6 @@ var atlas = {};
                 return '<nobr>' + text + ' <em>(' + row.count + ' genes)</em></nobr>';
             },
 
-            formatToken: function(row) {
-                return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
-            },
-
             formatId: function(res) {
                 if(res.property == 'efo')
                     return res.id;
@@ -303,61 +222,64 @@ var atlas = {};
                     return res.value;
             },
 
-            getItemList:  function (json, query) {
-                return json.completions[query];
-            },
-
             browser: factor == "" || factor == "efo" ? function (onResult, lastId, values) {
                 return $('<div/>').addClass('tree').efoTree({ slideSpeed: 200, downTo: lastId, highlight: values }, function(dc) {
                     onResult({ id: dc.id,  count: dc.count, property: 'efo', value: dc.term, depth: dc.depth });
                 });
-            } : null,
+            } : null
+        }));
+    };
 
-            hideText: "hide suggestions",
-            noResultsText: "no results found",
+    atlas.tokenizeGeneInput = function (fvalfield, property, defaultvalue) {
+        fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
+        {
+            extraParams: {
+                property: property,
+                type: 'gene',
+                limit: 15
+            },
 
-            classes: {
-                tokenList: "tokeninput",
-                token: "tokeninput",
-                selectedToken: "tokeninputsel",
-                highlightedToken: "token-input-highlighted-token-facebook",
-                dropdown: "tokeninputdrop",
-                dropdownItem: "tokendropitem",
-                dropdownItem2: "tokendropitem2",
-                selectedDropdownItem: "tokendropitemsel",
-                inputToken: "tokeninputinput",
-                hideText: "tokendrophide",
-                searching: "tokeninputsearching",
-                browseIcon: "efoexpand"
+            defaultValue: defaultvalue,
+
+            formatListItem: function(row, q, i) {
+                var text = $.highlightTerm(row.value.length > 50 ? row.value.substr(0, 50) + '...' : row.value, q, 'b');
+                if(property == '') {
+                    if(row.property == 'name') {
+                        var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
+                        return '<em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em>';
+                    } else {
+                        return '<em>' + row.property + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em>';
+                    }
+                } else {
+                    return '<nobr>' + text + ' (' + row.count + ')</nobr>';
+                }
+            },
+
+            formatId: function(res) {
+                return res.value;
             }
-        });
+
+        }));
     };
 
     atlas.initSimpleForm = function() {
-        var gpropfield = $('input[name=gprop_0]');
-        var factfield = $('input[name=fact_0]');
         var gvalfield = $('input[name=gval_0]');
         var fvalfield = $('input[name=fval_0]');
         var speciessel = $('select[name=specie_0]');
         var form = gvalfield.parents('form:first');
-        var oldval = gvalfield.val();
+
+        atlas.tokenizeConditionInput(fvalfield, '', '(all conditions)');
+        atlas.tokenizeGeneInput(gvalfield, '', '(all genes)');
+
         gvalfield
-                .defaultvalue("(all genes)","(all genes)")
-                .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
-                .result(function (unused, res) {
+                .bind('addResult', function (e, res) {
             var newprop = res.property;
             if(res.property == 'name') {
-                location.href = atlas.homeUrl + 'gene?gid=' + res.id;
+                window.location.href = atlas.homeUrl + 'gene?gid=' + res.id;
                 atlas.startSearching(form);
                 return;
             }
-            gpropfield.val(newprop);
-            var oldval = $(this).val();
-            this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); };
-            //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
-        }).each(function () { this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); }; });
-
-        atlas.tokenizeConditionInput(fvalfield, '', '(all conditions)');
+        });
 
         form.bind('submit', function () {
             $('input.ac_input', form).hideResults();
@@ -365,7 +287,10 @@ var atlas = {};
         });
 
         speciessel.bind('change', function () {
-            gvalfield.hideResults().setOptions({extraParams:{ type: 'gene', 'factor' : '', f: 'species', species: $(this).val() }}).flushCache();
+            gvalfield
+                    .hideResults()
+                    .setOptions({extraParams: { property: '', type: 'gene', limit: 15, f: 'species', species: $(this).val() }})
+                    .flushCache();
         });
     };
 
@@ -375,20 +300,5 @@ var atlas = {};
         $(form).find('input:hidden').trigger('preSubmit');
     };
     
-    initExpPageAutoComplete = function(){
-    	var genefield = $("#geneInExp_qry");
-    	var form = genefield.parents('form:first');
-        var oldval = genefield.val();
-        var gpropfield;
-        genefield
-                .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions('', true))
-                .result(function (unused, res) {
-            var newprop = res.property;
-                gpropfield.val(newprop);
-            var oldval = $(this).val();
-            this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); };
-            //  $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
-        }).each(function () { this.onkeyup = function () { if(oldval != this.value) gpropfield.val(''); }; });
-    };
 })(jQuery);
 

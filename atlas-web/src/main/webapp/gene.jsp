@@ -73,8 +73,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <script src="scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/feedback.js"></script>
@@ -183,7 +181,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
 
 <link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-<link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 

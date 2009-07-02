@@ -43,8 +43,6 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
 <script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
-<script type="text/javascript" src="scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/jquery-ui.min.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
@@ -52,8 +50,8 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 <script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+<script type="text/javascript" src="scripts/jquery.token.autocomplete.js"></script>
 <script type="text/javascript" src="scripts/common-query.js"></script>
-<link rel="stylesheet" href="jquery.autocomplete.css" type="text/css"/>
 <link rel="stylesheet" href="structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="atlas.css" type="text/css"/>
 <link rel="stylesheet" href="listview.css" type="text/css"/>
@@ -62,6 +60,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 
 
+<link rel="stylesheet" href="structured-query.css" type="text/css"/>
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
         display: none;
@@ -70,10 +69,11 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     .sample_attr_values {
         display: none;
     }
+
+    #searchForm td { vertical-align: middle; }
 </style>
 
 
-<link rel="stylesheet" href="structured-query.css" type="text/css"/>
 <script id="source" language="javascript" type="text/javascript">
     var genesToPlot = new Array("${gid}");
 
@@ -107,7 +107,8 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
         });
 
-        initExpPageAutoComplete();
+        atlas.tokenizeGeneInput($("#geneInExp_qry"), '', '(all genes)');
+        
         $("#gene_menu").accordion({
             collapsible: true,
             active: 2,
@@ -321,7 +322,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                     <div id="zoomControls"
                                          style="position:absolute;top:153px;right:120px"></div>
                                     <div id="legend"
-                                         style="position:relative;top:-10px;text-align:left"/>
+                                         style="position:relative;top:-10px;text-align:left"></div>
                                 </td>
                             </tr>
                         </table>
@@ -333,11 +334,17 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                         <div><a href="#" style="font-size:12px">Display genes matching by name or
                             attribute</a></div>
                         <div>
-                            <form id="searchForm" class="visinsimple" action="javascript:void()">
-                                <label for="geneInExp_qry" style="font-size:12px">Find genes</label>
-                                <input type="text" class="value" name="gval_0" id="geneInExp_qry"
-                                       style="width:200px"/>
-                                <button type="submit">Search</button>
+                            <form id="searchForm" action="javascript:void()">
+                                <table><tr><td>
+                                    <label for="geneInExp_qry" style="font-size:12px">Find genes</label>
+                                </td><td>
+                                    <input type="text" class="value" name="gval_0" id="geneInExp_qry"
+                                           style="width:200px">
+                                </td>
+                                    <td>
+                                        <input type="submit" value="Search">
+                                    </td>
+                                </tr></table>
                             </form>
                             <div id="qryHeader" style="padding-top: 10px;"></div>
                             <div id="qryResult" style="padding-top: 10px;"></div>
@@ -403,7 +410,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                             <div id="${EF}_values" class="sample_attr_values">
                                                 <c:forEach var="value" items="${exp.factorValuesForEF[EF]}" varStatus="r">
                                                     <a style="text-transform: capitalize;" class="sample_attr_value" id="${EF}_${r.count}" href="#"
-                                                       onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</script></a>
+                                                       onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</a>
                                                     <br/>
                                                 </c:forEach>
                                             </div>

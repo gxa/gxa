@@ -26,6 +26,7 @@ $.fn.tokenInput = function (url, options) {
 
 $.fn.hideResults = function () { this.trigger('hideResults');return this; };
 $.fn.flushCache = function () { this.trigger('flushCache');return this; };
+$.fn.setOptions = function (options) { this.trigger('setOptions', [options]);return this; };
 
     // Highlight the query part of the search term
 $.highlightTerm = function (value, term, tag) {
@@ -204,6 +205,9 @@ $.TokenList = function (input, settings) {
             val += optionalQuote(input_box.val());
             hidden_input.val(val);
         }
+    }).bind('setOptions', function () {
+        $.extend(settings, arguments[1]);
+        console.log(settings);
     });
 
     // Keep a reference to the selected token and dropdown item
@@ -247,25 +251,24 @@ $.TokenList = function (input, settings) {
         token_list.append(settings.plugins);
 
 
-    // The list to store the dropdown items in
-    var dropdown = $("<div>")
-        .addClass(settings.classes.dropdown)
-        .insertAfter(token_list)
-        .hide();
-
     // The token holding the input box
     var input_token = $("<li />")
         .addClass(settings.classes.inputToken)
         .appendTo(token_list)
         .append($('<span/>').append(input_box));
 
-    var browser_icon;
+    var browser_icon = $([]);
     if(settings.browser) {
         browser_icon = $("<li />")
                 .addClass(settings.classes.browseIcon)
                 .appendTo(token_list);
     }
-    
+
+    // The list to store the dropdown items in
+    var dropdown = $("<div>")
+        .addClass(settings.classes.dropdown)
+        .appendTo(document.body)
+        .hide();
 
     if(hidden_input.val() != '') {
         var vals = splitQuotes(hidden_input.val());
@@ -308,6 +311,14 @@ $.TokenList = function (input, settings) {
         }));
     }
 
+    function show_dropdown() {
+        var temp = $('<div/>').insertAfter(token_list);
+        var offset = temp.offset();
+        temp.remove();
+        dropdown.css({ top: offset.top + 'px', left: offset.left + 'px'})
+        dropdown.show();
+    }
+
     function open_browser() {
         if(!settings.browser)
             return;
@@ -330,7 +341,8 @@ $.TokenList = function (input, settings) {
 
         dropdown_add_hidetext();
         dropdown.mousedown(function () { prevent_blur = true; }).mouseup(function () { /*prevent_blur = false;*/ });
-        dropdown.show();
+
+        show_dropdown();
     }
 
     function is_printable_character(keycode) {
@@ -526,16 +538,15 @@ $.TokenList = function (input, settings) {
 
     function show_dropdown_searching () {
         browser_icon.show();
-        if(settings.searchingText)
-            dropdown
-                    .html("<p>"+settings.searchingText+"</p>")
-                    .show();
+        if(settings.searchingText) {
+            dropdown.html("<p>"+settings.searchingText+"</p>");
+            show_dropdown();
+        }
     }
 
     function show_dropdown_hint () {
-        dropdown
-            .html("<p>"+settings.hintText+"</p>")
-            .show();
+        dropdown.html("<p>"+settings.hintText+"</p>");
+        show_dropdown();
     }
 
     // Populate the results dropdown with some results
@@ -579,13 +590,13 @@ $.TokenList = function (input, settings) {
 
             dropdown_add_hidetext();
 
-            dropdown.show();
+            show_dropdown();
             dropdown_ul.show();
 
         } else {
-            dropdown
-                .html("<p>"+settings.noResultsText+"</p>")
-                .show();
+
+            dropdown.html("<p>"+settings.noResultsText+"</p>");
+            show_dropdown();
         }
     }
 

@@ -161,21 +161,7 @@
          var label = getPropLabel(property);
          var input = $('<input type="text" class="value"/>')
              .attr('name', "gval_" + atlas.counter)
-             .val(values != null ? values : "")
-             .autocomplete(atlas.homeUrl + "fval", atlas.makeGeneAcOptions(property))
-             .flushCache()
-             .result(function (unused, res) {
-                         var newprop = res.property;
-                         var tr = $(this).parents('tr:first');
-                         var propi = tr.find('input[type=hidden]');
-                         if(propi.val() == '' && newprop == 'name') {
-                             newprop = 'identifier';
-                             $(this).val(res.id);
-                         }
-                         propi.val(newprop);
-                         tr.find('td.gprop').text(getPropLabel(newprop));
-                         $(this).setOptions({extraParams: { type: 'gene', factor: newprop }}).flushCache();
-                     })
+             .val(values != null ? values : "");
 
          var tr = $('<tr class="genecond" />')
              .append($('<td class="left" />')
@@ -187,13 +173,13 @@
              .append($('<td class="value" />').append(input))
              .append(createRemoveButton(function () {
                                             var tr = $(this).parents('tr:first');
-                                            var tbody = tr.parents('tbody:first').get(0);
                                             tr.remove();
                                             hasConditions(false);
                                         }));
 
          $('#conditions').append(tr);
-         input.defaultvalue('(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
+
+         atlas.tokenizeGeneInput(input, property, '(all ' + (property != "" ? label.toLowerCase() : 'gene') +'s)');
 
          hasConditions(true);
      }
