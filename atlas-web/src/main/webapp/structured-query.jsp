@@ -46,8 +46,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     </tr>
 </table>
 
+<c:set var="simpleformvisible" value="${(query.none && !forcestruct) || (!query.none && query.simple)}" />
 <div id="topcontainer">
-    <form id="simpleform" class="visinsimple" action="qrs">
+    <form id="simpleform" action="qrs" style="display:${simpleformvisible ? 'inherit' : 'none'}">
         <table style="width:850px">
             <tr>
                 <td><label class="label" for="gene0">Genes</label></td>
@@ -106,11 +107,11 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <tr>
                 <td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
                 <td class="label"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
-                <td valign="top" align="right" nowrap="nowrap"><a class="smallgreen" class="visinsimple" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
+                <td valign="top" align="right" nowrap="nowrap"><a class="smallgreen" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
             </tr>
         </table>
     </form>
-    <form id="structform" class="visinstruct" name="atlasform" action="qrs" style="display:none">
+    <form id="structform" name="atlasform" action="qrs" style="display:${simpleformvisible ? 'none' : 'inherit'}">
         <fieldset style="border:1px solid #DEDEDE;width: 850px">
             <legend  style="padding-left:5px;padding-right:5px;color: black">Find genes matching all of the following conditions</legend>
             <table >
@@ -174,7 +175,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     </tr>
                     <tr>
                         <td colspan="5" align="right">
-                            <a class="visinstruct smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
+                            <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
                         </td>
                 </table>
             </div>
@@ -223,9 +224,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     </c:if>
     $(document).ready(function () {
         atlas.initStructForm(lastquery);
-
-        $('#simpleform, #structform').css('display', '');
-        $('.visin${(query.none && !forcestruct) || (!query.none && query.simple) ? 'struct' : 'simple'}').hide();
 
         $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,

@@ -166,7 +166,6 @@ $.TokenList = function (input, settings) {
                         add_token(li_data);
                         return false;
                     }
-                    hidden_input.trigger('preSubmit');
                     break;
 
                 default:

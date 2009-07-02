@@ -491,17 +491,17 @@
      };
 
      atlas.structMode = function() {
-         if($('.visinstruct:visible').length)
+         if($('#structform:visible').length)
             return;
-         $('.visinsimple').hide();
-         $('.visinstruct').show();
+         $('#simpleform').hide();
+         $('#structform').show();
      };
 
      atlas.simpleMode = function() {
          if($('#simpleform:visible').length)
             return;
-         $('.visinsimple').show();
-         $('.visinstruct').hide();
+         $('#simpleform').show();
+         $('#structform').hide();
      };
 
     atlas.popup = function  (url) {
@@ -592,11 +592,13 @@
                                 for(i = 0; i < lastquery.species.length; ++i)
                                     url += 'specie_' + i + '=' + escape(lastquery.species[i]) + '&';
 
+                                var shouldadd = true;
                                 for(i = 0; i < lastquery.conditions.length; ++i) {
                                     var fval = lastquery.conditions[i].values;
                                     for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
                                         if(lastquery.conditions[i].efos[j] == id) {
                                             fval += ' ' + d.id;
+                                            shouldadd = false;
                                             break;
                                         }
                                     }
@@ -605,9 +607,10 @@
                                     url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
                                 }
 
-                                if(lastquery.conditions.length == 0) {
-                                    url += 'fexp_0=UP_DOWN&fact_0=&';
-                                    url += 'fval_0' + '=' + escape(d.id) + '&';
+                                if(shouldadd) {
+                                    i = lastquery.conditions.length;
+                                    url += 'fexp_' + i + '=UP_DOWN&fact_' + i + '=&';
+                                    url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
                                 }
 
                                 url += 'view=' + escape(lastquery.view);
