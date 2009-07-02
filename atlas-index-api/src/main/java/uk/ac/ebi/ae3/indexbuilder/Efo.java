@@ -385,6 +385,16 @@ public class Efo {
         return parents;
     }
 
+    public Set<String> getTermFirstParents(String id) {
+        EfoNode node = efomap.get(id);
+        if(node == null)
+            return null;
+        Set<String> parents = new HashSet<String>();
+        for(EfoNode p : node.parents)
+            parents.add(p.id);
+        return parents;
+    }
+
     public Set<String> getTermParents(String id, boolean stopOnBranchRoot) {
         EfoNode node = efomap.get(id);
         if(node == null)
@@ -403,28 +413,30 @@ public class Efo {
         }
     }
     
-    private void collectSubTree(EfoNode currentNode, List<Term> result, Set<String> allNodes, int depth, boolean printing) {
+    private void collectSubTree(EfoNode currentNode, List<Term> result, Set<String> allNodes, Set<String> visited, int depth, boolean printing) {
         if(printing && !allNodes.contains(currentNode.id))
             return;
 
-        if(!printing && allNodes.contains(currentNode.id))
+        if(!printing && allNodes.contains(currentNode.id) && !visited.contains(currentNode.id))
             printing = true;
 
         if(printing) {
             result.add(new Term(currentNode, depth));
+            visited.add(currentNode.id);
             for (EfoNode child : currentNode.children)
-                collectSubTree(child, result, allNodes, depth + 1, true);
+                collectSubTree(child, result, allNodes, visited, depth + 1, true);
         } else {
             for (EfoNode child : currentNode.children)
-                collectSubTree(child, result, allNodes, 0, false);
+                collectSubTree(child, result, allNodes, visited, 0, false);
         }
     }
 
     public List<Term> getSubTree(Set<String> ids) {
         List<Term> result = new ArrayList<Term>();
 
+        Set<String> visited = new HashSet<String>();
         for(EfoNode root : roots) {
-            collectSubTree(root, result, ids, 0, false);
+            collectSubTree(root, result, ids, visited, 0, false);
         }
         return result;
     }

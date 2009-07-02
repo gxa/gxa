@@ -34,12 +34,15 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         if(efos.containsKey(id) && explicitEfos.contains(id))
             return;
 
-        Iterable<String> parents = efo.getTermParents(id, true);
+        Iterable<String> parents = efo.getTermFirstParents(id);
         if(parents == null) // it's not in EFO, don't add it
             return;
 
         explicitEfos.add(id);
 
+        for(String pId : parents)
+            if (!efos.containsKey(pId))
+                efos.put(pId, plCreator.make());
 
         if (!efos.containsKey(id))
             efos.put(id, plCreator.make());
@@ -165,6 +168,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
             return;
 
         if(explicitEfos.contains(id)) {
+            for(String p : efo.getTermFirstParents(id))
+                 marked.add(p);
             marked.add(id);
         } else if(autoChildren.contains(id)) {
             marked.add(id);
