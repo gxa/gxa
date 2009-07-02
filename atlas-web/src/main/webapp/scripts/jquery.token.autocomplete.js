@@ -198,7 +198,7 @@ $.TokenList = function (input, settings) {
             xhr.abort();
         hide_dropdown();
     }).bind('preSubmit', function () {
-        if(input_box.val() != '') {
+        if(input_box.val() != '' && input_box.val() != settings.defaultValue) {
             var val = hidden_input.val();
             if(val != '')
                 val += ' ';
