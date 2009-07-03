@@ -567,6 +567,7 @@ $.TokenList = function (input, settings) {
                     add_token(li_data);
                 })
                 .mousedown(function (event) {
+                    prevent_blur = true;
                     // Stop user selecting text on tokens
                     return false;
                 })
