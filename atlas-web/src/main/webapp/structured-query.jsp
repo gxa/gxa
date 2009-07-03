@@ -437,7 +437,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;">
                     <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
-                        <c:if test="${i.depth == 0}">
+                        <c:if test="${i.depth == 0 && !i.root}">
                             <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="images/goup.gif" width="5" height="12">
                         </c:if>
                     </c:forEach>

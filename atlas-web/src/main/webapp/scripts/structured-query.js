@@ -551,8 +551,6 @@
                         var li = t.is('li') ? t : t.parents('li:first');
                         if(li.length) {
                             var d = $.data(li.get(0), "efoup");
-                            if(d.id == id)
-                                return;
                             ul.find('li').removeClass('tokendropitemsel');
                             li.addClass('tokendropitemsel');
                         }
@@ -563,9 +561,6 @@
                         if(li.length) {
                             var d = $.data(li.get(0), "efoup");
                             popup.remove();
-
-                            if(d.id == id)
-                                return;
 
                             if(lastquery) {
                                 var url = 'qrs?';
@@ -581,13 +576,14 @@
                                 var shouldadd = true;
                                 for(i = 0; i < lastquery.conditions.length; ++i) {
                                     var fval = lastquery.conditions[i].values;
-                                    for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
-                                        if(lastquery.conditions[i].efos[j] == id) {
-                                            fval += ' ' + d.id;
-                                            shouldadd = false;
-                                            break;
+                                    if(values.indexOf(id) == -1)
+                                        for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
+                                            if(lastquery.conditions[i].efos[j] == id) {
+                                                fval += ' ' + d.id;
+                                                shouldadd = false;
+                                                break;
+                                            }
                                         }
-                                    }
                                     url += 'fexp_' + i + '=' + escape(lastquery.conditions[i].expression) + '&';
                                     url += 'fval_' + i + '=' + escape(fval) + '&';
                                     url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
@@ -614,7 +610,7 @@
                         indent += '&nbsp;&nbsp;&nbsp;';
 
                     var li = $('<li />')
-                        .html(indent).append($('<span/>').addClass(resp.tree[i].id == id ? 'disabled' : '').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
+                        .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
                         .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
                         .appendTo(ul);
                     $.data(li.get(0), "efoup", resp.tree[i]);

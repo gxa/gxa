@@ -131,6 +131,10 @@ public class EfoValueListHelper implements IValueListHelper {
         public int getDepth() {
             return term.getDepth();
         }
+
+        public boolean isRoot() {
+            return term.isRoot();
+        }
     }
 
     public Collection<EfoTermCount> getTermChildren(String id) {

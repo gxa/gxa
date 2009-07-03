@@ -79,10 +79,11 @@ public class Efo {
         private String term;
         private boolean expandable;
         private boolean branchRoot;
+        private boolean root;
         private int depth;
 
-        private Term(EfoNode node) {
-            this(node, 0);
+        private Term(EfoNode node, boolean root) {
+            this(node, 0, root);
         }
 
         public Term(Term other, int depth) {
@@ -91,14 +92,16 @@ public class Efo {
             this.expandable = other.isExpandable();
             this.branchRoot = other.isBranchRoot();
             this.depth = depth;
+            this.root = other.isRoot();
         }
 
-        private Term(EfoNode node, int depth) {
+        private Term(EfoNode node, int depth, boolean root) {
             this.id = node.id;
             this.term = node.term;
             this.expandable = !node.children.isEmpty();
             this.branchRoot = node.branchRoot;
             this.depth = depth;
+            this.root = root;
         }
 
         public String getId() {
@@ -115,6 +118,10 @@ public class Efo {
 
         public boolean isBranchRoot() {
             return branchRoot;
+        }
+
+        public boolean isRoot() {
+            return root;
         }
 
         public int getDepth() {
@@ -142,6 +149,14 @@ public class Efo {
         public String toString() {
             return id + "(" + term + ")";
         }
+    }
+
+    private Term newTerm(EfoNode node) {
+        return new Term(node, roots.contains(node));
+    }
+
+    private Term newTerm(EfoNode node, int depth) {
+        return new Term(node, depth, roots.contains(node));
     }
 
     private static class Loader {
@@ -279,7 +294,7 @@ public class Efo {
 
     public Term getTermById(String id) {
         EfoNode node = efomap.get(id);
-        return node == null ? null : new Term(node);
+        return node == null ? null : newTerm(node);
     }
 
     private void collectChildren(Collection<String> result, EfoNode node) {
@@ -306,7 +321,7 @@ public class Efo {
 
         List<Term> result = new ArrayList<Term>(node.children.size());
         for(EfoNode n : node.children)
-            result.add(new Term(n));
+            result.add(newTerm(n));
 
         return result;
     }
@@ -314,7 +329,7 @@ public class Efo {
     public Collection<Term> getAllTerms() {
         List<Term> result = new ArrayList<Term>(efomap.size());
         for(EfoNode n : efomap.values())
-            result.add(new Term(n));
+            result.add(newTerm(n));
         return result;
     }
 
@@ -338,9 +353,9 @@ public class Efo {
         List<Term> result = new ArrayList<Term>(efomap.size());
         for(EfoNode n : efomap.values()) {
             if(n.id.toLowerCase().equals(ltext) || n.term.toLowerCase().equals(ltext))
-                result.add(0, new Term(n)); // exact matches go first
+                result.add(0, newTerm(n)); // exact matches go first
             else if(n.term.toLowerCase().matches(regex))
-                result.add(new Term(n));
+                result.add(newTerm(n));
         }
         return result;
     }
@@ -353,7 +368,7 @@ public class Efo {
     {
         for(EfoNode p : node.parents) {
             List<Term> next = new ArrayList<Term>(current);
-            next.add(new Term(p));
+            next.add(newTerm(p));
             if(stopOnBranchRoot && p.branchRoot)
                 result.add(next);
             else
@@ -421,7 +436,7 @@ public class Efo {
             printing = true;
 
         if(printing) {
-            result.add(new Term(currentNode, depth));
+            result.add(newTerm(currentNode, depth));
             visited.add(currentNode.id);
             for (EfoNode child : currentNode.children)
                 collectSubTree(child, result, allNodes, visited, depth + 1, true);
@@ -445,7 +460,7 @@ public class Efo {
     {
         EfoNode next = path.pop();
         for(EfoNode n : nodes) {
-            result.add(new Term(n, depth));
+            result.add(newTerm(n, depth));
             if(n.equals(next) && !path.empty())
                 collectTreeDownTo(n.children, path, result, depth + 1);
         }
@@ -478,7 +493,7 @@ public class Efo {
     public List<Term> getRoots() {
         List<Term> result = new ArrayList<Term>(roots.size());
         for(EfoNode n : roots)
-            result.add(new Term(n));
+            result.add(newTerm(n));
 
         return result;
     }

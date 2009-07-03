@@ -72,26 +72,22 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     }
 
     public static class EfoItem<PayLoad extends Comparable<PayLoad>> {
-        private String id;
-        private String term;
-        private int depth;
+        private Efo.Term term;
         private PayLoad payload;
         private boolean explicit;
 
-        private EfoItem(String id, String term, int depth, PayLoad payload, boolean explicit) {
-            this.id = id;
+        private EfoItem(Efo.Term term, PayLoad payload, boolean explicit) {
             this.term = term;
-            this.depth = depth;
             this.payload = payload;
             this.explicit = explicit;
         }
 
         public int getDepth() {
-            return depth;
+            return term.getDepth();
         }
 
         public String getId() {
-            return id;
+            return term.getId();
         }
 
         public PayLoad getPayload() {
@@ -99,7 +95,15 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         }
 
         public String getTerm() {
-            return term;
+            return term.getTerm();
+        }
+
+        public boolean isRoot() {
+            return term.isRoot();
+        }
+
+        public boolean isBranchRoot() {
+            return term.isBranchRoot();
         }
 
         public boolean isExplicit() {
@@ -111,7 +115,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (Efo.Term t : efo.getSubTree(efos.keySet())) {
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -120,7 +124,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (Efo.Term t : efo.getSubTree(marked)) {
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -136,7 +140,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         });
         for (String id : ids) {
             Efo.Term t = efo.getTermById(id);
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }
@@ -146,7 +150,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (String id : explicitEfos) {
             Efo.Term t = efo.getTermById(id);
-            result.add(new EfoItem<PayLoad>(t.getId(), t.getTerm(), t.getDepth(), efos.get(t.getId()), explicitEfos.contains(t.getId())));
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
     }

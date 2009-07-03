@@ -69,7 +69,8 @@ public class ExpFactorResultCondition {
     public Set<String> getEfoIds() {
         Set<String> result = new HashSet<String>();
         for(List<EfoTermCount> l : getEfoPaths())
-            result.add(l.get(l.size() - 1).getId());
+            for(EfoTermCount tc : l)
+                result.add(tc.getId());
         return result;
     }
 
