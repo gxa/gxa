@@ -15,12 +15,17 @@ import org.slf4j.LoggerFactory;
 
 
 /**
+ * Class representing EFO heirarchy
  * @author pashky
  */
 public class Efo {
 
     private static Efo instance = new Efo();
 
+    /**
+     * Returns current EFO instance (this class is singleton)
+     * @return Efo instance
+     */
     public static Efo getEfo() {
         return instance;
     }
@@ -28,6 +33,9 @@ public class Efo {
     private Map<String,EfoNode> efomap = new HashMap<String,EfoNode>();
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
 
+    /**
+     * Internal node representation structure
+     */
     private static class EfoNode {
         private String id;
         private String term;
@@ -74,6 +82,9 @@ public class Efo {
         }
     }
 
+    /**
+     * External view for node class
+     */
     public static class Term {
         private String id;
         private String term;
@@ -86,6 +97,11 @@ public class Efo {
             this(node, 0, root);
         }
 
+        /**
+         * Constructor to create a term from another one and custom depth
+         * @param other original node to clone
+         * @param depth depth to set (we can have depth relative to something, not from real root all the time)
+         */
         public Term(Term other, int depth) {
             this.id = other.getId();
             this.term = other.getTerm();
@@ -95,6 +111,12 @@ public class Efo {
             this.root = other.isRoot();
         }
 
+        /**
+         * Constructor to create term from internal node
+         * @param node original node
+         * @param depth required depth
+         * @param root true if this node is root
+         */
         private Term(EfoNode node, int depth, boolean root) {
             this.id = node.id;
             this.term = node.term;
@@ -104,30 +126,59 @@ public class Efo {
             this.root = root;
         }
 
+        /**
+         * Return id of the term
+         * @return id of the term
+         */
         public String getId() {
             return id;
         }
 
+        /**
+         * Returns term description string of the term
+         * @return term description string of the term
+         */
         public String getTerm() {
             return term;
         }
 
+        /**
+         * Returns if node is expandable (contains children)
+         * @return if node is expandable (contains children)
+         */
         public boolean isExpandable() {
             return expandable;
         }
 
+        /**
+         * Returns if node is branch root node
+         * @return if node is branch root node
+         */
         public boolean isBranchRoot() {
             return branchRoot;
         }
 
+        /**
+         * Returns if node is root node
+         * @return if node is root node
+         */
         public boolean isRoot() {
             return root;
         }
 
+        /**
+         * Returns node depth
+         * @return node depth
+         */
         public int getDepth() {
             return depth;
         }
 
+        /**
+         * Equality check method
+         * @param o other term
+         * @return true if equal
+         */
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -140,25 +191,47 @@ public class Efo {
             return true;
         }
 
+        /**
+         * Returns hash code
+         * @return hash code
+         */
         @Override
         public int hashCode() {
             return id != null ? id.hashCode() : 0;
         }
 
+        /**
+         * Returns nice string representation
+         * @return printable string
+         */
         @Override
         public String toString() {
             return id + "(" + term + ")";
         }
     }
 
+    /**
+     * Helper factory method to make term classes
+     * @param node internal node to make it from
+     * @return external term object
+     */
     private Term newTerm(EfoNode node) {
         return new Term(node, roots.contains(node));
     }
 
+    /**
+     * Helper factory method to make term classes
+     * @param node internal node to make it from
+     * @param depth required depth
+     * @return external term object
+     */
     private Term newTerm(EfoNode node, int depth) {
         return new Term(node, depth, roots.contains(node));
     }
 
+    /**
+     * Ontology loader class reading OWL files
+     */
     private static class Loader {
         final private Logger log = LoggerFactory.getLogger(getClass());
         private OWLOntologyManager manager;
@@ -214,6 +287,10 @@ public class Efo {
         }
 
 
+        /**
+         * Loads ontology into map id -> internal node implementation
+         * @param efomap map to load into
+         */
         private void load(Map<String,EfoNode> efomap) {
             try {
                 this.efomap = efomap;
@@ -273,6 +350,9 @@ public class Efo {
 
     }
 
+    /**
+     * Private constructor loading data from OWl
+     */
     private Efo() {
         Loader loader = new Loader();
         loader.load(this.efomap);
@@ -282,16 +362,31 @@ public class Efo {
         }
     }
 
+    /**
+     * Fetch term string by id
+     * @param id term id
+     * @return term string
+     */
     public String getTermNameById(String id) {
         EfoNode node = efomap.get(id);
         return node == null ? null : node.term;
     }
 
+    /**
+     * Check if term is here
+     * @param id term id
+     * @return true if yes
+     */
     public boolean hasTerm(String id) {
         EfoNode node = efomap.get(id);
         return node != null;
     }
 
+    /**
+     * Fetch term by id
+     * @param id term id
+     * @return external term representation if found in ontology, null otherwise
+     */
     public Term getTermById(String id) {
         EfoNode node = efomap.get(id);
         return node == null ? null : newTerm(node);
@@ -304,6 +399,11 @@ public class Efo {
         }
     }
 
+    /**
+     * Returns collection of IDs of node itself and all its children recursively
+     * @param id term id
+     * @return collection of IDs, empty if term is not found
+     */
     public Collection<String> getTermAndAllChildrenIds(String id) {
         EfoNode node = efomap.get(id);
         List<String> ids = new ArrayList<String>(node == null ? 0 : node.children.size());
@@ -314,6 +414,11 @@ public class Efo {
         return ids;
     }
 
+    /**
+     * Returns collection of term's direct children
+     * @param id term id
+     * @return collection of terms, null if term is not found
+     */
     public Collection<Term> getTermChildren(String id) {
         EfoNode node = efomap.get(id);
         if(node == null)
@@ -326,6 +431,10 @@ public class Efo {
         return result;
     }
 
+    /**
+     * Returns collection of all terms (depth=0)
+     * @return collection of all terms
+     */
     public Collection<Term> getAllTerms() {
         List<Term> result = new ArrayList<Term>(efomap.size());
         for(EfoNode n : efomap.values())
@@ -333,10 +442,19 @@ public class Efo {
         return result;
     }
 
+    /**
+     * Returns collection of all term IDs
+     * @return set of all term IDs
+     */
     public Set<String> getAllTermIds() {
         return new HashSet<String>(efomap.keySet());
     }
 
+    /**
+     * Searches for prefix in ontology
+     * @param prefix prefix to search
+     * @return set of string IDs
+     */
     public Set<String> searchTermPrefix(String prefix) {
         String lprefix = prefix.toLowerCase();
         Set<String> result = new HashSet<String>();
@@ -347,6 +465,11 @@ public class Efo {
         return result;
     }
 
+    /**
+     * Searches for text in ontology
+     * @param text words to search
+     * @return collection of terms
+     */
     public Collection<Term> searchTerm(String text) {
         final String ltext = text.trim().toLowerCase();
         String regex = ".*\\b\\Q" + ltext.replace("\\E", "").replaceAll("\\s+", "\\\\E\\\\b\\\\s+\\\\b\\\\Q") + "\\E\\b.*";
@@ -358,10 +481,6 @@ public class Efo {
                 result.add(newTerm(n));
         }
         return result;
-    }
-
-    public List<List<Term>> getTermParentPaths(Term term, boolean stopOnBranchRoot) {
-        return getTermParentPaths(term.getId(), stopOnBranchRoot);
     }
 
     private void collectPaths(EfoNode node, Collection<List<Term>> result, List<Term> current, boolean stopOnBranchRoot)
@@ -378,6 +497,12 @@ public class Efo {
             result.add(current);
     }
 
+    /**
+     * Returns list of term parent paths (represented as list string from node ending at root)
+     * @param id term id to search
+     * @param stopOnBranchRoot if true, stops on branch root, not going to real root
+     * @return list of lists of Term's
+     */
     public List<List<Term>> getTermParentPaths(String id, boolean stopOnBranchRoot) {
         EfoNode node = efomap.get(id);
         if(node == null)
@@ -388,18 +513,21 @@ public class Efo {
         return result;
     }
 
-    public Set<String> getTermFirstParents(String id, boolean stopOnBranchRoot) {
-        EfoNode node = efomap.get(id);
-        Set<String> parents = new HashSet<String>();
-        while(!node.parents.isEmpty()) {
-            node = node.parents.first();
-            parents.add(node.id);
-            if(node.branchRoot && stopOnBranchRoot)
-                break;
-        }
-        return parents;
+    /**
+     * Returns list of term parent paths (represented as list string from node ending at root)
+     * @param term term to search
+     * @param stopOnBranchRoot if true, stops on branch root, not going to real root
+     * @return list of lists of Term's
+     */
+    public List<List<Term>> getTermParentPaths(Term term, boolean stopOnBranchRoot) {
+        return getTermParentPaths(term.getId(), stopOnBranchRoot);
     }
 
+    /**
+     * Returns set of term's direct parent IDs
+     * @param id term id
+     * @return set of string IDs
+     */
     public Set<String> getTermFirstParents(String id) {
         EfoNode node = efomap.get(id);
         if(node == null)
@@ -410,6 +538,12 @@ public class Efo {
         return parents;
     }
 
+    /**
+     * Returns set of term's parent IDs
+     * @param id term id
+     * @param stopOnBranchRoot if true, stops on branch root, not going to real root
+     * @return set of string IDs
+     */
     public Set<String> getTermParents(String id, boolean stopOnBranchRoot) {
         EfoNode node = efomap.get(id);
         if(node == null)
@@ -446,6 +580,12 @@ public class Efo {
         }
     }
 
+    /**
+     * Creates flat subtree representation ordered in natural print order,
+     * each self-contained sub-tree starts from depth=0
+     * @param ids marked IDs
+     * @return list of Term's
+     */
     public List<Term> getSubTree(Set<String> ids) {
         List<Term> result = new ArrayList<Term>();
 
@@ -466,6 +606,12 @@ public class Efo {
         }
     }
 
+    /**
+     * Creates flat subtree representation of tree "opened" down to specified node,
+     * hence displaying all its parents first and then a tree level, containing specified node
+     * @param id term id
+     * @return list of Term's
+     */
     public List<Term> getTreeDownTo(String id) {
         List<Term> result = new ArrayList<Term>();
 
@@ -482,6 +628,10 @@ public class Efo {
         return result;
     }
 
+    /**
+     * Returns set of root node IDs
+     * @return set of root node IDs
+     */
     public Set<String> getRootIds() {
         Set<String> result = new HashSet<String>();
         for(EfoNode n : roots) {
@@ -490,6 +640,10 @@ public class Efo {
         return result;
     }
 
+    /**
+     * Returns list of root terms
+     * @return list of terms
+     */
     public List<Term> getRoots() {
         List<Term> result = new ArrayList<Term>(roots.size());
         for(EfoNode n : roots)
@@ -499,8 +653,12 @@ public class Efo {
     }
 
 
-    public Collection<String> getBranchRootIds() {
-        List<String> result = new ArrayList<String>();
+    /**
+     * Returns set of branch root IDs
+     * @return set of branch root IDs
+     */
+    public Set<String> getBranchRootIds() {
+        Set<String> result = new HashSet<String>();
         for(EfoNode n : efomap.values())
             if(n.branchRoot)
                 result.add(n.id);
