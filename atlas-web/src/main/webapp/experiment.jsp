@@ -314,7 +314,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                             <tr>
                                 <td style="padding:0px;width:500px">
                                     <div class="bigplot" id="plot"
-                                         style="width:500px;height:150px;padding:0px"></div>
+                                         style="width:500px;height:150px;padding:0px;background:url('images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
                                     <div id="plot_thm"
                                          style="border:thin; height: 120px;padding:0px"></div>
                                 </td>
