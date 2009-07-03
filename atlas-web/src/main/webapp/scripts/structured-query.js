@@ -576,7 +576,7 @@
                                 var shouldadd = true;
                                 for(i = 0; i < lastquery.conditions.length; ++i) {
                                     var fval = lastquery.conditions[i].values;
-                                    if(values.indexOf(id) == -1)
+                                    if(fval.indexOf(d.id) == -1)
                                         for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
                                             if(lastquery.conditions[i].efos[j] == id) {
                                                 fval += ' ' + d.id;
