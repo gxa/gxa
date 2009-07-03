@@ -68,7 +68,8 @@ $.TokenList = function (input, settings) {
     var xhr;
 
     // Create a new text input an attach keyup events
-    var input_box = $("<input type=\"text\">")
+    var input_box = $("<input type='text'>")
+        .attr('autocomplete', 'off')
         .val(settings.defaultValue ? settings.defaultValue : '')
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
@@ -194,8 +195,10 @@ $.TokenList = function (input, settings) {
     }).bind('flushCache', function () {
         cache.clear();
     }).bind('hideResults', function () {
-        if(xhr && typeof(xhr.abort) == 'function')
+        if(xhr && typeof(xhr.abort) == 'function') {
             xhr.abort();
+            xhr = null;
+        }
         hide_dropdown();
     }).bind('preSubmit', function () {
         if(input_box.val() != '' && input_box.val() != settings.defaultValue) {
@@ -636,6 +639,8 @@ $.TokenList = function (input, settings) {
                 populate_dropdown(query, cached_results);
             } else {
                 token_list.addClass(settings.classes.searching);
+                if(xhr && typeof(xhr.abort) == 'function')
+                    xhr.abort();
                 xhr = $.get(settings.url, $.extend({"q": query }, settings.extraParams), function (results) {
                     token_list.removeClass(settings.classes.searching);
                     cache.add(query, results);
