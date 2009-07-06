@@ -245,7 +245,7 @@ function drawPlot(jsonObj, plot_id){
 		divElt.width(500);
 		divElt.height(60);
 
-		overview = $.plot($('#plot_thm'), jsonObj.series, $.extend(true,{},jsonObj.options,{yaxis: {ticks: 0, labelWidth: 40, min: -plot.getData()[0].yaxis.datamax*0.25},points:{show: false}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
+		overview = $.plot($('#plot_thm'), jsonObj.series, $.extend(true,{},jsonObj.options,{yaxis: {ticks: 0, labelWidth: 40, min: -plot.getData()[0].yaxis.datamax*0.25},series:{points:{show: false}}, grid:{backgroundColor:'#F2F2F2', markings:null,autoHighlight: false},legend:{show:false}, colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']}));
 		$("#plot_thm #plotHeader").remove();
 		bindZooming(overview,jsonObj,plot);
 

@@ -83,8 +83,8 @@
         		JSONObject options = new JSONObject(
                         "{  xaxis: { ticks:0    }, " +
                          "  yaxis: { ticks:3    }, " +
-                         "  points: { show:true, fill:false    }, " +
-                         "  lines: { show:true, steps:true    }, " +
+                         "  series: {points:{ show:true, fill:true,radius:1.5 }, "+ 
+                         "           lines: { show:true, steps:false }}, " +
                          " legend: {     show: true," +
                          "          	 container: '#legend', " +
                          "             labelFormatter:TEST}, " +

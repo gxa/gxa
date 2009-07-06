@@ -294,6 +294,10 @@
                 if (s.lines.show == null && !s.bars.show && !s.points.show)
                     s.lines.show = true;
 
+				s.lines = $.extend(true, {}, s.lines, options.series.lines );
+                s.points = $.extend(true, {}, options.series.points,s.points);
+                s.bars = $.extend(true, {}, options.series.bars,s.bars);
+
                 // setup axes
                 if (!s.xaxis)
                     s.xaxis = axes.xaxis;
@@ -1230,7 +1234,7 @@
                 drawSeriesLines(series);
             if (series.bars.show)
                 drawSeriesBars(series);
-            if (series.points.show)
+            if ((series.points.show) && (options.series.points.show))
                 drawSeriesPoints(series);
         }
         

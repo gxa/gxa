@@ -369,7 +369,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 
 <td id="resultpane" width="900px">
-
+<div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a> - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></div
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
@@ -378,9 +378,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     </c:if>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
-    <c:if test="${list}">
-        <div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a> - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></div>
-    </c:if>
+    
     <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
 </div>
 
