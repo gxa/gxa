@@ -1,9 +1,8 @@
 package ae3.service.structuredquery;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Iterator;
+import ae3.util.EscapeUtil;
+
+import java.util.*;
 
 /**
  * Atlas structured query container class for parsed parameters
@@ -11,9 +10,9 @@ import java.util.Iterator;
  */
 public class AtlasStructuredQuery {
 
-    private Iterable<String> species;
-    private Iterable<ExpFactorQueryCondition> conditions;
-    private Iterable<GeneQueryCondition> geneConditions;
+    private Collection<String> species;
+    private Collection<ExpFactorQueryCondition> conditions;
+    private Collection<GeneQueryCondition> geneConditions;
     private int start;
     private int rowsPerPage;
     private Set<String> expandColumns;
@@ -23,6 +22,9 @@ public class AtlasStructuredQuery {
     public AtlasStructuredQuery() {
         conditions = new ArrayList<ExpFactorQueryCondition>(0);
         geneConditions = new ArrayList<GeneQueryCondition>(0);
+        species = new ArrayList<String>(0);
+        expandColumns = new HashSet<String>();
+        viewType = ViewType.HEATMAP;
         start = 0;
         rowsPerPage = 100;
     }
@@ -31,7 +33,7 @@ public class AtlasStructuredQuery {
      * sets lists of gene queries represented by each row added to the query
      * @param geneConditions
      */
-    public void setGeneConditions(List<GeneQueryCondition> geneConditions){
+    public void setGeneConditions(Collection<GeneQueryCondition> geneConditions){
     	this.geneConditions = geneConditions;
     }
     
@@ -39,7 +41,7 @@ public class AtlasStructuredQuery {
      * Returns gene queries for the current query. Includes for each query (query, query operator and gene property)
      * @return geneQueries
      */
-    public Iterable<GeneQueryCondition> getGeneConditions(){
+    public Collection<GeneQueryCondition> getGeneConditions(){
     	return geneConditions;
     }
     
@@ -47,7 +49,7 @@ public class AtlasStructuredQuery {
      * Returns list of species
      * @return list of species
      */
-    public Iterable<String> getSpecies() {
+    public Collection<String> getSpecies() {
         return species;
     }
 
@@ -55,16 +57,16 @@ public class AtlasStructuredQuery {
      * Sets list of species
      * @param species list of species
      */
-    public void setSpecies(Iterable<String> species) {
+    public void setSpecies(Collection<String> species) {
         this.species = species;
     }
 
     /**
-     * Returns iterable of all conditions
-     * @return iterable of all conditions
+     * Returns Collection of all conditions
+     * @return Collection of all conditions
      * @see ExpFactorQueryCondition
      */
-    public Iterable<ExpFactorQueryCondition> getConditions() {
+    public Collection<ExpFactorQueryCondition> getConditions() {
         return conditions;
     }
 
@@ -73,7 +75,7 @@ public class AtlasStructuredQuery {
      * @param conditions list of EFV conditions
      * @see QueryCondition
      */
-    public void setConditions(Iterable<ExpFactorQueryCondition> conditions) {
+    public void setConditions(Collection<ExpFactorQueryCondition> conditions) {
         this.conditions = conditions;
     }
 
