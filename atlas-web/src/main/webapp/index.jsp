@@ -83,9 +83,15 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
                         <td align="right"><c:out value="${f:length(service.stats.newExperiments)}"/></td>
                     </tr>
                     <tr>
-                        <td align="left">total experiments</td>
+                        <td align="left">total <a href="<%= request.getContextPath() %>/experiment/index.htm" title="Atlas Gene Index">experiments</a></td>
                         <td align="right"><c:out value="${service.stats.numExperiments}"/></td>
                     </tr>
+
+                    <tr>
+                        <td align="left">total <a href="<%= request.getContextPath() %>/gene/index.htm" title="Atlas Gene Index">genes</a></td>
+                        <td align="right"><c:out value="${service.stats.numGenes}"/></td>
+                    </tr>
+
                     <tr>
                         <td align="left">assays</td>
                         <td align="right"><c:out value="${service.stats.numAssays}"/></td>

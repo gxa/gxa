@@ -36,31 +36,31 @@
 Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp"/>
 
-<script src="scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
+<script src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 
 
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
-<script type="text/javascript" src="scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="scripts/jquery-ui.min.js"></script>
-<script type="text/javascript" src="scripts/plots.js"></script>
-<script type="text/javascript" src="scripts/feedback.js"></script>
-<script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="scripts/jquery.selectboxes.min.js"></script>
-<script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
-<script type="text/javascript" src="scripts/jquery.token.autocomplete.js"></script>
-<script type="text/javascript" src="scripts/common-query.js"></script>
-<link rel="stylesheet" href="structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="atlas.css" type="text/css"/>
-<link rel="stylesheet" href="listview.css" type="text/css"/>
-<link rel="stylesheet" href="geneView.css" type="text/css"/>
-<link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css" />
+<script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery-ui.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.selectboxes.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.token.autocomplete.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/common-query.js"></script>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css"/>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/listview.css" type="text/css"/>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css"/>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/jquery-ui-1.7.2.atlas.css" type="text/css" />
 
 
 
-<link rel="stylesheet" href="structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/structured-query.css" type="text/css"/>
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
         display: none;
@@ -96,7 +96,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     $(document).ready(function()
     {
 
-        $("#topGenes").load("expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
+        $("#topGenes").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
             initPaging();
         });
 
@@ -138,13 +138,13 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         $("#simForm").submit(function() {
             $("#simResult").empty();
             var name = $('select option:selected').text();
-            $("#simHeader").html("<img src='images/indicator.gif' />&nbsp;Searching for profiles similar to " + name + "...");
+            $("#simHeader").html("<img src='<%=request.getContextPath()%>/images/indicator.gif' />&nbsp;Searching for profiles similar to " + name + "...");
             $("#simHeader").show();
             var DEid_ADid = $("select option:selected").val();
             var tokens = DEid_ADid.split('_');
             var DEid = tokens[0];
             var ADid = tokens[1];
-            $("#simResult").load("expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
+            $("#simResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
                 $("#simHeader").hide()
             });
             return false;
@@ -152,9 +152,9 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
         $("#searchForm").submit(function() {
             var qry = $("#geneInExp_qry").val();
-            $("#qryHeader").html("<img src='images/indicator.gif' />&nbsp;Loading...");
+            $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
             $("#qryHeader").show();
-            $("#qryResult").load("expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
+            $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
                 $("#qryHeader").hide()
             });
             return false;
@@ -259,9 +259,9 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
         <tr>
             <td align="left" valign="bottom" width="55"
-                style="padding-right: 10px;"><a href="./"
+                style="padding-right: 10px;"><a href="<%= request.getContextPath()%>/"
                                                 title="Gene Expression Atlas Homepage"><img border="0" width="55"
-                                                                                            src="images/atlas-logo.png"
+                                                                                            src="<%= request.getContextPath()%>/images/atlas-logo.png"
                                                                                             alt="Gene Expression Atlas"/></a>
             </td>
             <td align="right" valign="bottom"><a href="./">home</a> | <a
@@ -314,7 +314,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                             <tr>
                                 <td style="padding:0px;width:500px">
                                     <div class="bigplot" id="plot"
-                                         style="width:500px;height:150px;padding:0px;background:url('images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
+                                         style="width:500px;height:150px;padding:0px;background:url('<%= request.getContextPath()%>/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
                                     <div id="plot_thm"
                                          style="border:thin; height: 120px;padding:0px"></div>
                                 </td>
@@ -368,7 +368,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                         <div><a href="#" style="font-size:12px">Choose from top ten differentially
                             expressed genes</a></div>
                         <div>
-                            <div id="topGenes"><img src='images/indicator.gif'/>&nbsp;Loading gene
+                            <div id="topGenes"><img src='<%= request.getContextPath()%>/images/indicator.gif'/>&nbsp;Loading gene
                                 list...
                             </div>
                         </div>

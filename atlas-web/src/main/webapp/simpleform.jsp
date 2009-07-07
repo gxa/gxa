@@ -76,7 +76,7 @@
     <tr>
         <td align="left" valign="bottom">
             <c:if test="${param.logolink}"><a href="./"></c:if>
-            <img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0">
+            <img src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0">
             <c:if test="${param.logolink}"></a></c:if>
         </td>
 
@@ -137,6 +137,7 @@
                         <a id="atlasHelpToggle" class="smallgreen" style="font-size:12px" href="#">show help</a>
                         <!--<a class="smallgreen" href="decounts.jsp">gene counts</a><br/>-->
                         <a class="smallgreen" style="font-size:12px" href="qrs?struct"><nobr>advanced search</nobr></a>
+                        
                     </div>
                 </div>
             </td>

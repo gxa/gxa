@@ -8,6 +8,9 @@
 <%@page import="ae3.service.ArrayExpressSearchService"%>
 <c:set var="timeStart" value="${u:currentTime()}" />
 
+<jsp:include page="AtlasHomeUrl.jsp" />
+
+
 <%
 	AtlasGene atlasGene = null;
 	String geneId = request.getParameter("gid");
@@ -16,7 +19,7 @@
 
 
 		if(AtlasGeneService.hitMultiGene(geneId)){
-	        response.sendRedirect("qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
+	        response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
 	        return;
 		}
 
@@ -31,7 +34,7 @@
     if(atlasGene == null) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
-        request.getRequestDispatcher("/error.jsp").forward(request,response);
+        request.getRequestDispatcher(request.getContextPath() + "/error.jsp").forward(request,response);
         return;
     }
 
@@ -70,17 +73,19 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
-<script src="scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
+<script type="text/javascript" language="javascript" src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script type="text/javascript" src="scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="scripts/plots.js"></script>
-<script type="text/javascript" src="scripts/feedback.js"></script>
-<script type="text/javascript" src="scripts/jquery.tablesorter.min.js"></script>
-<script language="javascript" type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
+<script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
 
-<link rel="stylesheet" href="atlas.css" type="text/css" />
-<link rel="stylesheet" href="geneView.css" type="text/css" />
+<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css" />
+<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css" />
 
 
 <script type="text/javascript">
@@ -112,10 +117,10 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         divElt.slideToggle("fast");
         if (lnkElt.hasClass("expanded")) {
             lnkElt.removeClass("expanded");
-            lnkElt.attr("src", "images/plus.gif");
+            lnkElt.attr("src", "<%=request.getContextPath()%>/images/plus.gif");
         } else {
             lnkElt.addClass("expanded");
-            lnkElt.attr("src", "images/minus.gif");
+            lnkElt.attr("src", "<%=request.getContextPath()%>/images/minus.gif");
         }
     }
 
@@ -124,7 +129,13 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <script type="text/javascript">
 
 	function loadExps(){
-		 $('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:"1", to:"5"},drawPlots);
+
+        return;
+    }
+
+    function reloadExps(){
+
+		 $('#ExperimentResult').load("<%=request.getContextPath()%>/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:"1", to:"5"},drawPlots);
          $('#pagingSummary').empty();
          $(".heatmap_over").removeClass("heatmap_over");
          // Create pagination element
@@ -133,6 +144,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 				num_edge_entries: 2,
 				num_display_entries: 5,
 				items_per_page:5,
+                link_to : "#?Page=__id__",
             	callback: pageselectCallback
          	});
          </c:if>
@@ -143,24 +155,36 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id*5) +1;
 		var toPage = (page_id*5) + 5;
-		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:fromPage, to: toPage},drawPlots);
+		$('#ExperimentResult').load("<%=request.getContextPath()%>/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:fromPage, to: toPage},drawPlots);
 		//$('#pagingSummary').text("Showing experiments "+fromPage+"-"+toPage);
 		//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 	}
 
 
 	function FilterExps(el,fv,ef){
-		$('#ExperimentResult').load("AtlasExpResults.jsp",{gid:${atlasGene.geneId}, efv: uni2ent(fv), factor:ef},
+
+        $('#ExperimentResult').empty();
+
+		$('#ExperimentResult').load("<%=request.getContextPath()%>/AtlasExpResults.jsp",{gid:${atlasGene.geneId}, efv: uni2ent(fv), factor:ef},
 							function(){
+
+                                //alert(exps.length);
+
 								for (var i = 0; i < exps.length; ++i){
 									eid = jQuery.trim(exps[i].id);
 									redrawPlotForFactor(eid,'${atlasGene.geneId}',ef,true,fv);
 								}
 								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
-								var lnk = $("<a>Show all studies</a>").bind("click", loadExps);
+								var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
 								$("#Pagination").empty().append(lnk);
 							});
+
+        //$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
+        //$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
+        //var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
+        //$("#Pagination").empty().append(lnk);
+
 
         old = $(".heatmap_over");
 		old.removeClass("heatmap_over");
@@ -180,8 +204,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 </script>
 
 
-<link rel="stylesheet" href="blue/style.css" type="text/css" media="print, projection, screen" />
-<link rel="stylesheet" href="structured-query.css" type="text/css" />
+<link rel="stylesheet" href="<%= request.getContextPath() %>/blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="<%= request.getContextPath() %>/jquery.autocomplete.css" type="text/css" />
+<link rel="stylesheet" href="<%= request.getContextPath() %>/structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 
 <div class="contents" id="contents">
@@ -190,7 +215,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
         <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+            <a href="<%= request.getContextPath() %>/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%=request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
             <a href="./">home</a> |
@@ -223,9 +248,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
             <td align="left">
                 <c:forEach var="ortholog" items="${atlasGene.orthoGenes}">
-                    <a href="gene?gid=${ortholog.geneEnsembl}" target="_self">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
+                    <a href="${u:GeneUrl(pageContext.request,ortholog.geneEnsembl)}" target="_self" title="Gene Atlas Data For ${ortholog.geneName} (${ortholog.geneSpecies})">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
                 </c:forEach>
-                (<a href="qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}+${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+                (<a href="<%= request.getContextPath() %>/qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}+${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
                     target="_self">Compare orthologs</a>)
             </td>
         </tr>
@@ -341,7 +366,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                             </tr>
                                             <tr>
                                                 <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white;border-left:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
-                                                    Legend: <img style="position:relative;top:6px" src="images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in
+                                                    Legend: <img style="position:relative;top:6px" src="<%=request.getContextPath()%>/images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in
                                                 </td>
                                             </tr>
                                         </thead>
@@ -388,29 +413,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                         </table>
                     </td>
                     <td valign="top" align="left">
-                        <table align="left">
-                            <tr>
-                                <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
-                                <td align="right">
-                                    <div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td align="left"  valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                                    <div id="pagingSummary" class="header"></div>
-                                </td>
-                                <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                                    <div id="expSelect"></div>
-                                </td>
-
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <div id="ExperimentResult"></div>
-                                </td>
-                            </tr>
-                        </table>
+                        <jsp:include page="AtlasExpResultsTable.jsp">
+                            <jsp:param name="GeneId" value="<%=atlasGene.getGeneId()%>" />
+                        </jsp:include>
                     </td>
                 </tr>
             </table>

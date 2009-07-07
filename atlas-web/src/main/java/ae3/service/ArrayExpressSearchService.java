@@ -185,6 +185,41 @@ public class ArrayExpressSearchService {
         return null;
    }
 
+   /*
+   * simple list of genes for the index page
+   * */
+    public QueryResponse getGeneList(String start, int Start, int Rows) {
+       try{
+
+           if(null==start)
+            start = "a";
+
+           if("" == start)
+            start = "a";
+
+         SolrQuery q = new SolrQuery("gene_name_exact:"+start+"*");
+
+           if(Start>0)
+               q.setStart(Start);
+
+           if(Rows>0)
+                q.setRows(Rows);
+
+           //q.set
+
+           q.setSortField("gene_name", SolrQuery.ORDER.asc);
+
+         QueryResponse queryResponse = solr_atlas.query(q);
+         return queryResponse;
+       }
+       catch(Exception Ex)
+       {
+           log.error("Solr error querying genes", Ex);
+       }
+       return null;
+   }
+    
+
     /**
      * Performs a full text SOLR search on experiments.
      *

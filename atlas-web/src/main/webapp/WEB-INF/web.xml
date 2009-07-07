@@ -4,6 +4,17 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
     <display-name>Gene Expression Atlas ${version}-r${buildNumber}</display-name>
 
+
+    <filter>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    </filter>
+    <filter-mapping>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+
     <!-- CXF -->
     <context-param>
         <param-name>contextConfigLocation</param-name>

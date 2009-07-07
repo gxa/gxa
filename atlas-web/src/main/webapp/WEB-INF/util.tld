@@ -123,4 +123,12 @@
         </function-signature>
     </function>
 
+       <function>
+        <name>GeneUrl</name>
+        <function-class>ae3.util.URLUtil</function-class>
+        <function-signature>
+            java.lang.String getGeneURL(javax.servlet.http.HttpServletRequest, java.lang.String)
+        </function-signature>
+    </function>
+
 </taglib>

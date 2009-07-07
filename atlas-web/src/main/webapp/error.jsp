@@ -15,8 +15,8 @@ Gene Expression Atlas
 
 
 <jsp:include page="query-includes.jsp" />
-<link rel="stylesheet" href="structured-query.css" type="text/css" />
-<script type="text/javascript" src="scripts/common-query.js"></script>
+<link rel="stylesheet" href="<%= request.getContextPath()%>/structured-query.css" type="text/css" />
+<script type="text/javascript" src="<%= request.getContextPath()%>/scripts/common-query.js"></script>
 
 <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals=" />
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>

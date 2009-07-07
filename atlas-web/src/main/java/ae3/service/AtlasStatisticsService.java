@@ -20,6 +20,7 @@ public class AtlasStatisticsService {
     private PreparedStatement sqlGetNewExperiments;
     private PreparedStatement sqlNumExperiments;
     private PreparedStatement sqlNumAssays;
+    private PreparedStatement sqlNumGenes;
     private SolrServer solrExpt;
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -38,6 +39,9 @@ public class AtlasStatisticsService {
                         "order by e.experiment_id_key");
         sqlNumExperiments = sql.prepareStatement("select count(e.experiment_id_key) from ae1__experiment__main e");
         sqlNumAssays = sql.prepareStatement("select count(a.assay_id_key) from ae1__assay__main a");
+
+        sqlNumGenes = sql.prepareStatement("select count(1) from ae2__gene__main");
+
         this.solrExpt = solrExpt;
     }
 
@@ -70,6 +74,7 @@ public class AtlasStatisticsService {
         private int numExperiments;
         private int numAssays;
         private int numEfvs;
+        private int numGenes;
         private String dataRelease;
 
         public Stats(int numExperiments, int numAssays, int numEfvs, String dataRelease) {
@@ -102,6 +107,10 @@ public class AtlasStatisticsService {
 
         public String getDataRelease() {
             return dataRelease;
+        }
+
+        public int getNumGenes() {
+            return numGenes;
         }
     };
 
@@ -145,7 +154,7 @@ public class AtlasStatisticsService {
             if(rs.next())
                 numAsss = rs.getInt(1);
             rs.close();
-            
+
             numEfvs = countEfvs();
 
             final Stats stats = new Stats(numExps, numAsss, numEfvs, dataRelease);
@@ -155,6 +164,13 @@ public class AtlasStatisticsService {
             while (rs.next()) {
                 stats.addNewExperiment(new Exp(rs.getString(1), rs.getInt(2), rs.getString(3)));
             }
+
+            //AZ:2009-07-06:caclulate number of genes
+            rs = sqlNumGenes.executeQuery();
+            if(rs.next())
+                stats.numGenes = rs.getInt(1);
+            rs.close();
+
 
             return stats;
         } catch (SQLException e) {
@@ -168,6 +184,7 @@ public class AtlasStatisticsService {
             sqlGetNewExperiments.close();
             sqlNumAssays.close();
             sqlNumExperiments.close();
+            sqlNumGenes.close();
         } catch(SQLException e) {
             log.error("Error querying Atlas database", e);
         }

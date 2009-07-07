@@ -32,7 +32,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
         <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
             <a href="./">home</a> |

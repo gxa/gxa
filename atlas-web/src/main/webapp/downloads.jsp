@@ -52,7 +52,7 @@
         <table style="position:absolute; top:5px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
             <tr>
                 <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                    <img border="0" width="55" src="images/atlas-logo.png" alt="Gene Expression Atlas"/>
+                    <img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/>
                 </td>
             </tr>
         </table>
@@ -72,7 +72,7 @@
                             <td class="padded"><c:out value="${download.value.query}"></c:out> </td>
                             <td class="padded"><span class="progressBar" id="query${download.key}"><c:out value="${download.value.progress}"></c:out></span></td>
                             <td class="padded">
-                                <span id="nodl${download.key}"><img src="images/indicator.gif" alt="please wait for data export to complete..."/></span>
+                                <span id="nodl${download.key}"><img src="<%= request.getContextPath()%>/images/indicator.gif" alt="please wait for data export to complete..."/></span>
                                 <a id="dl${download.key}" style="display:none" href="listviewdownload/${download.value.outputFile.name}">Get file</a></td>
                         </tr>
 

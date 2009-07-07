@@ -459,7 +459,7 @@
                             for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
                                 $.ajax({
                                     type: "GET",
-                                    url: "plot.jsp",
+                                    url: ""+ atlas.homeUrl +"/plot.jsp",
                                     data: {
                                         gid: gene.geneAtlasId,
                                         eid: resp.experiments[iexp].id,

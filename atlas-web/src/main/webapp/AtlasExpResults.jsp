@@ -151,8 +151,8 @@ if (geneId != null) {
 					<!-- div style="position:relative"-->
 					<tr align="left">
 						<td align="center">
-							<a  title="Show expression profile" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px;"></div></a>
-							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm"> </div>
+							<a  title="Show expression profile" href="<%= request.getContextPath() %>/experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('<%= request.getContextPath()%>/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
+							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm" > </div>
 						</td>
 					</tr>
 
@@ -180,7 +180,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="experiment?eid=${exp.dwExpAccession}&gid=${atlasGene.geneId}">expression profile</a>
+			Show <a title="Show expression profile in detail" href="<%= request.getContextPath() %>/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneId}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>
@@ -188,10 +188,15 @@ if (geneId != null) {
 	</tr>
 
 	<tr>
-		<td colspan="3" style="border-bottom:1px solid #CDCDCD">&nbsp; </td>
+		<td colspan="3" style="border-bottom:1px solid #CDCDCD">&nbsp;</td>
 	</tr>
 	
 	</c:forEach>
 
-
 </table>
+
+<img src="<%= request.getContextPath() %>/images/pixel.gif" onload="drawPlots();" /> 
+
+
+
+
