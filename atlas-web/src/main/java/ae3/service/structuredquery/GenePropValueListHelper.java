@@ -240,6 +240,6 @@ public class GenePropValueListHelper implements IValueListHelper {
             }
         }
         Collections.sort(res);
-        result.addAll(res.subList(0, Math.min(limit, res.size())));
+        result.addAll(res.subList(0, Math.min(limit >= 0 ? limit : res.size(), res.size())));
     }
 }

@@ -5,29 +5,36 @@ import ae3.util.AtlasProperties;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
 import java.util.Iterator;
 
 import junit.framework.TestCase;
+import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 /**
  * @author pashky
  */
-public class GenePropValueListHelperTest extends TestCase {
-    private IValueListHelper service;
+public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
-    @Override
-    protected void setUp() throws Exception {
-        final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
-        final CoreContainer multiCore = new CoreContainer(solrIndexLocation,
-                new File(solrIndexLocation, "solr.xml"));
-        service = new GenePropValueListHelper(new EmbeddedSolrServer(multiCore,"atlas"));
+    private static CoreContainer container;
+    private static IValueListHelper service;
+
+    @BeforeClass
+    public static  void initContainer() throws Exception {
+        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
+        service = new GenePropValueListHelper(new EmbeddedSolrServer(container, "atlas"));
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @AfterClass
+    public static void shutdownContainer() throws Exception {
         service = null;
+        container.shutdown();
     }
 
     @Test
