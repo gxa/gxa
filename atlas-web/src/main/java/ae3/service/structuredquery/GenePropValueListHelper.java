@@ -174,66 +174,70 @@ public class GenePropValueListHelper implements IValueListHelper {
     }
 
     private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<GeneAutoCompleteItem> source, String speciesFilter, int limit) throws SolrServerException {
-        if(!source.iterator().hasNext())
+        Iterator<GeneAutoCompleteItem> iterator = source.iterator();
+        if(!iterator.hasNext())
             return;
 
-        SolrQuery q;
-        StringBuffer sb = new StringBuffer();
-
-        int num = 50;
-        for(AutoCompleteItem i : source) {
-            if(sb.length() > 0)
-                sb.append(" ");
-
-            sb.append(GeneProperties.convertPropertyToFacetField(i.getProperty()))
-                    .append(":")
-                    .append(EscapeUtil.escapeSolr(i.getValue()));
-            if(--num == 0)
-                break;
-        }
-
-        if(speciesFilter != null && speciesFilter.length() > 0)
-            sb.insert(0, "(").append(") AND gene_species:(").append(EscapeUtil.escapeSolr(speciesFilter)).append(")");
-
-        q = new SolrQuery(sb.toString());
-        q.setStart(0);
-        q.setRows(50);
-        for(Prop p : GeneProperties.allProperties())
-            if(p.type == PropType.NAME)
-                q.addField(p.searchField);
-        q.addField("gene_species");
-        q.addField("gene_identifier");
-        QueryResponse qr = solrAtlas.query(q);
         List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
-        for(SolrDocument doc : qr.getResults())
-        {
-            String name = null;
-            String species = (String)doc.getFieldValue("gene_species");
-            if(species == null)
-                species = "";
-            else
-                species = species.substring(0,1).toUpperCase().concat(species.substring(1).toLowerCase()).replace("$","");
+        while(iterator.hasNext()) {
+            SolrQuery q;
+            StringBuffer sb = new StringBuffer();
 
-            String geneId = (String)doc.getFieldValue("gene_identifier");
+            int num = 0;
+            while(num++ < 50 && iterator.hasNext()) {
+                GeneAutoCompleteItem i = iterator.next();
+                if(sb.length() > 0)
+                    sb.append(" ");
 
-            Set<String> names = new HashSet<String>();
-            for(String s : doc.getFieldNames())
-                if(!s.equals("gene_species")) {
-                    Collection c = doc.getFieldValues(s);
-                    if(c != null)
-                        for(String v : (Collection<String>)c) {
-                            if(name == null && v.toLowerCase().startsWith(query))
-                                name = v;
-                            else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
-                                names.add(name);
-                                name = v;
-                            } else
-                                names.add(v);
-                        }
-                }
+                sb.append(GeneProperties.convertPropertyToFacetField(i.getProperty()))
+                        .append(":")
+                        .append(EscapeUtil.escapeSolr(i.getValue()));
+                if(--num == 0)
+                    break;
+            }
 
-            if(name != null)
-                res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names));
+            if(speciesFilter != null && speciesFilter.length() > 0)
+                sb.insert(0, "(").append(") AND gene_species:(").append(EscapeUtil.escapeSolr(speciesFilter)).append(")");
+
+            q = new SolrQuery(sb.toString());
+            q.setStart(0);
+            q.setRows(50);
+            for(Prop p : GeneProperties.allProperties())
+                if(p.type == PropType.NAME)
+                    q.addField(p.searchField);
+            q.addField("gene_species");
+            q.addField("gene_identifier");
+            QueryResponse qr = solrAtlas.query(q);
+            for(SolrDocument doc : qr.getResults())
+            {
+                String name = null;
+                String species = (String)doc.getFieldValue("gene_species");
+                if(species == null)
+                    species = "";
+                else
+                    species = species.substring(0,1).toUpperCase().concat(species.substring(1).toLowerCase()).replace("$","");
+
+                String geneId = (String)doc.getFieldValue("gene_identifier");
+
+                Set<String> names = new HashSet<String>();
+                for(String s : doc.getFieldNames())
+                    if(!s.equals("gene_species")) {
+                        Collection c = doc.getFieldValues(s);
+                        if(c != null)
+                            for(String v : (Collection<String>)c) {
+                                if(name == null && v.toLowerCase().startsWith(query))
+                                    name = v;
+                                else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
+                                    names.add(name);
+                                    name = v;
+                                } else
+                                    names.add(v);
+                            }
+                    }
+
+                if(name != null)
+                    res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names));
+            }
         }
         Collections.sort(res);
         result.addAll(res.subList(0, Math.min(limit, res.size())));
