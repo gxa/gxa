@@ -64,22 +64,14 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>java.net</id>
-            <url>http://www.ibiblio.org/maven2/</url>
-            <layout>legacy</layout>
-        </repository>
+	<repository>
+		<id>java.net</id>
+		<url>http://download.java.net/maven/2/</url>
+	</repository>
         <repository>
             <id>repo1</id>
             <url>http://repo1.maven.org/maven2/</url>
         </repository>
-<!--        <repository>
-            <id>codehaus.org</id>
-            <url>http://repository.codehaus.org/org/codehaus</url>
-            <releases>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>-->
         <repository>
             <id>geotools</id>
             <url>http://maven.geotools.fr/repository</url>
