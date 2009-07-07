@@ -683,8 +683,6 @@ $.TokenList.Cache = function (options) {
             delete data[order[0]];
             order.splice(0, 1);
         }
-        console.log(data);
-        console.log(order);
     };
 
     this.get = function (query) {
