@@ -37,7 +37,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         if(root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null));
+                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null, property));
                 }
                 public boolean enough() {
                     return limit >=0 && result.size() >= limit;
@@ -211,6 +211,8 @@ public class GenePropValueListHelper implements IValueListHelper {
             for(SolrDocument doc : qr.getResults())
             {
                 String name = null;
+                String nameSource = null;
+
                 String species = (String)doc.getFieldValue("gene_species");
                 if(species == null)
                     species = "";
@@ -219,24 +221,26 @@ public class GenePropValueListHelper implements IValueListHelper {
 
                 String geneId = (String)doc.getFieldValue("gene_identifier");
 
-                Set<String> names = new HashSet<String>();
+                List<String> names = new ArrayList<String>();
                 for(String s : doc.getFieldNames())
                     if(!s.equals("gene_species")) {
                         Collection c = doc.getFieldValues(s);
                         if(c != null)
                             for(String v : (Collection<String>)c) {
-                                if(name == null && v.toLowerCase().startsWith(query))
+                                if(name == null && v.toLowerCase().startsWith(query)) {
+                                    nameSource = GeneProperties.findPropBySearchField(s).id;
                                     name = v;
-                                else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
+                                } else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
                                     names.add(name);
+                                    nameSource = GeneProperties.findPropBySearchField(s).id;
                                     name = v;
-                                } else
+                                } else if(!v.equals(name) && !names.contains(v))
                                     names.add(v);
                             }
                     }
 
                 if(name != null)
-                    res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names));
+                    res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names, nameSource));
             }
         }
         Collections.sort(res);

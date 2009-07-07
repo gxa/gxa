@@ -67,10 +67,12 @@ $.TokenList = function (input, settings) {
 
     var xhr;
 
+    var previousValue;
+
     // Create a new text input an attach keyup events
     var input_box = $("<input type='text'>")
         .attr('autocomplete', 'off')
-        .val(settings.defaultValue ? settings.defaultValue : '')
+        .val((previousValue = settings.defaultValue ? settings.defaultValue : ''))
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
                 $(this).val('');
@@ -125,7 +127,7 @@ $.TokenList = function (input, settings) {
                         }
                     } else if(event.keyCode == KEY.DOWN && !resultsVisible()) {
                         show_dropdown_searching();
-                        do_search(0);
+                        do_search();
                     } else {
 
                         var dropdown_item = null;
@@ -158,7 +160,8 @@ $.TokenList = function (input, settings) {
                         hide_dropdown();
                     } else {
                         show_dropdown_searching();
-                        do_search(1);
+                        clearTimeout(timeout);
+    				    timeout = setTimeout(on_change, settings.searchDelay);
                     }
                     break;
 
@@ -178,7 +181,7 @@ $.TokenList = function (input, settings) {
                     if(is_printable_character(event.keyCode)) {
                         show_dropdown_searching();
                         clearTimeout(timeout);
-    				    timeout = setTimeout(do_search, settings.searchDelay);
+    				    timeout = setTimeout(on_change, settings.searchDelay);
 				    }
 
                     break;
@@ -205,7 +208,7 @@ $.TokenList = function (input, settings) {
             var val = hidden_input.val();
             if(val != '')
                 val += ' ';
-            val += optionalQuote(input_box.val());
+            val += input_box.val();
             hidden_input.val(val);
         }
     }).bind('setOptions', function () {
@@ -275,6 +278,7 @@ $.TokenList = function (input, settings) {
 
     if(hidden_input.val() != '') {
         var vals = splitQuotes(hidden_input.val());
+        console.log(vals);
         hidden_input.val('');
         var others = [];
         $.get(settings.url, $.extend({"q": vals, limit: vals.length }, settings.extraParams), function (results) {
@@ -282,7 +286,7 @@ $.TokenList = function (input, settings) {
                 var res = settings.getItemList(results, vals[qi]);
                 var b = false;
                 for(var ri in res)
-                    if(settings.formatId(res[ri]) == vals[qi]) {
+                    if(settings.formatId(res[ri]).toLowerCase() == vals[qi].toLowerCase()) {
                         add_token(res[ri], true);
                         b = true;
                         break;
@@ -622,13 +626,20 @@ $.TokenList = function (input, settings) {
         selected_dropdown_item = null;
     }
 
-    // Do a search
-    function do_search(trim_last_char) {
-        var query = input_box.val().toLowerCase();
+    function on_change() {
+        var newval = input_box.val();
+        console.log('change: ' + newval + ' prev: ' + previousValue);
+        if(previousValue != newval && newval.length > 0)
+            do_search();
+        else if(newval.length == 0)
+            hide_dropdown();
+        
+        previousValue = newval;
+    }
 
-        if(trim_last_char == 1) {
-            query = query.substring(0, query.length-1);
-        }
+    // Do a search
+    function do_search() {
+        var query = input_box.val().toLowerCase();
 
         if(query && query.length) {
             if(selected_token) {
@@ -667,6 +678,8 @@ $.TokenList.Cache = function (options) {
     this.clear = function () {
         size = 0;
         data = {};
+        num = 0;
+        evictNum = 1;
     };
 
     var flush = function () {

@@ -255,8 +255,13 @@ var atlas = {};
                 }
             },
 
+            formatToken: function(row) {
+                var text = row.property == 'name' && row.nameSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                return text.length > 20 ? text.substr(0, 20) + '...' : text;
+            },
+
             formatId: function(res) {
-                return res.value;
+                return res.property == 'name' ? res.id : res.value;
             }
 
         }));
@@ -270,16 +275,6 @@ var atlas = {};
 
         atlas.tokenizeConditionInput(fvalfield, '', '(all conditions)');
         atlas.tokenizeGeneInput(gvalfield, '', '(all genes)');
-
-        gvalfield
-                .bind('addResult', function (e, res) {
-            var newprop = res.property;
-            if(res.property == 'name') {
-                window.location.href = atlas.homeUrl + 'gene?gid=' + res.id;
-                atlas.startSearching(form);
-                return;
-            }
-        });
 
         form.bind('submit', function () {
             $('input.ac_input', form).hideResults();

@@ -8,11 +8,13 @@ import java.util.Collection;
 public class GeneAutoCompleteItem extends AutoCompleteItem {
     private String species;
     private Collection<String> otherNames;
-    
-    public GeneAutoCompleteItem(String property, String value, Long count, final String species, final String geneId, final Collection<String> otherNames) {
+    private String nameSource;
+
+    public GeneAutoCompleteItem(String property, String value, Long count, final String species, final String geneId, final Collection<String> otherNames, String nameSource) {
         super(property, geneId != null ? geneId : value, value, count);
         this.species = species;
         this.otherNames = otherNames;
+        this.nameSource = nameSource;
     }
 
     public String getSpecies() {
@@ -21,5 +23,9 @@ public class GeneAutoCompleteItem extends AutoCompleteItem {
 
     public Collection<String> getOtherNames() {
         return otherNames;
+    }
+
+    public String getNameSource() {
+        return nameSource;
     }
 }

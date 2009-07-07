@@ -34,7 +34,6 @@ public class GeneProperties {
     private static final Prop[] GENE_PROPS = {
         new Prop("dbxref", "gene_dbxref", "gene_dbxref", PropType.ID, false),
         new Prop("embl", "gene_embl", "gene_embl", PropType.ID, false),
-        new Prop("identifier", "gene_identifier", "gene_identifier", PropType.ID, false),
         new Prop("ensfamily", "gene_ensfamily", "gene_ensfamily", PropType.ID, false),
         new Prop("ensgene", "gene_ensgene", "gene_ensgene", PropType.ID, false),
         new Prop("ensprotein", "gene_ensprotein", "gene_ensprotein", PropType.ID, false),
@@ -56,6 +55,7 @@ public class GeneProperties {
 
         new Prop("name", "gene_name_exact", "gene_name", PropType.NAME, false),
         new Prop("synonym", "gene_synonym", "gene_synonym", PropType.NAME, false),
+        new Prop("identifier", "gene_identifier", "gene_identifier", PropType.NAME, false),
 
         new Prop("disease", "gene_disease_exact", "gene_disease", PropType.DESC, true),
         new Prop("goterm", "gene_goterm_exact", "gene_goterm", PropType.DESC, true),
@@ -109,6 +109,14 @@ public class GeneProperties {
     {
         for(Prop p : GeneProperties.allProperties())
             if(p.facetField.equals(field))
+                return p;
+        return null;
+    }
+
+    public static Prop findPropBySearchField(String field)
+    {
+        for(Prop p : GeneProperties.allProperties())
+            if(p.searchField.equals(field))
                 return p;
         return null;
     }
