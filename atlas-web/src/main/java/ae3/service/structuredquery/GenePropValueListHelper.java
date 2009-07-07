@@ -106,6 +106,13 @@ public class GenePropValueListHelper implements IValueListHelper {
                 if(root != null)
                     root.collect("", rc);
             }
+        } else if(GeneProperties.isNameProperty(property) || GeneProperties.GENE_PROPERTY_NAME.equals(property))  {
+            for(Prop p : GeneProperties.allProperties())
+                if(p.type == PropType.NAME) {
+                    PrefixNode root = treeGetOrLoad(p.id);
+                    if(root != null)
+                        root.collect("", rc);
+                }
         } else {
             PrefixNode root = treeGetOrLoad(property);
             if(root != null)
