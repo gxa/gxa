@@ -134,7 +134,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                     resmap.get(p.type).addAll(treeAutocomplete(p.id, query, p.type.limit));
                 }
 
-                joinGeneNames(query, result, resmap.get(PropType.NAME), filters.get("species"));
+                joinGeneNames(query, result, resmap.get(PropType.NAME), filters.get("species"), PropType.NAME.limit);
 
                 for(PropType p : PropType.values())
                     if(p != PropType.NAME)
@@ -157,7 +157,7 @@ public class GenePropValueListHelper implements IValueListHelper {
 
                 if(GeneProperties.isNameProperty(property)) {
                     List<AutoCompleteItem> list = new ArrayList<AutoCompleteItem>();
-                    joinGeneNames(query, list, treeAutocomplete(property, query, limit), null);
+                    joinGeneNames(query, list, treeAutocomplete(property, query, limit), null, limit);
                     result = list;
                 } else
                     result.addAll(treeAutocomplete(property, query, limit));
@@ -173,7 +173,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         return result;
     }
 
-    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<GeneAutoCompleteItem> source, String speciesFilter) throws SolrServerException {
+    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<GeneAutoCompleteItem> source, String speciesFilter, int limit) throws SolrServerException {
         if(!source.iterator().hasNext())
             return;
 
@@ -236,6 +236,6 @@ public class GenePropValueListHelper implements IValueListHelper {
                 res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names));
         }
         Collections.sort(res);
-        result.addAll(res.subList(0, Math.min(PropType.NAME.limit, res.size())));
+        result.addAll(res.subList(0, Math.min(limit, res.size())));
     }
 }
