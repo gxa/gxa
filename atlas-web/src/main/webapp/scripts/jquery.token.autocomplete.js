@@ -213,7 +213,6 @@ $.TokenList = function (input, settings) {
         }
     }).bind('setOptions', function () {
         $.extend(settings, arguments[1]);
-        console.log(settings);
     });
 
     // Keep a reference to the selected token and dropdown item
