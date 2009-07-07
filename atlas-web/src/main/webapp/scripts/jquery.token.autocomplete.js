@@ -277,7 +277,6 @@ $.TokenList = function (input, settings) {
 
     if(hidden_input.val() != '') {
         var vals = splitQuotes(hidden_input.val());
-        console.log(vals);
         hidden_input.val('');
         var others = [];
         $.get(settings.url, $.extend({"q": vals, limit: vals.length }, settings.extraParams), function (results) {
@@ -627,7 +626,6 @@ $.TokenList = function (input, settings) {
 
     function on_change() {
         var newval = input_box.val();
-        console.log('change: ' + newval + ' prev: ' + previousValue);
         if(previousValue != newval && newval.length > 0)
             do_search();
         else if(newval.length == 0)
@@ -664,49 +662,33 @@ $.TokenList = function (input, settings) {
 
 // Really basic cache for the results
 $.TokenList.Cache = function (options) {
-    var num = 0;
-    var evictNum = 1;
-    
+
     var settings = $.extend({
         max_size: 10
     }, options);
 
     var data = {};
-    var size = 0;
+    var order = [];
 
     this.clear = function () {
-        size = 0;
         data = {};
-        num = 0;
-        evictNum = 1;
-    };
-
-    var flush = function () {
-        while(size > settings.max_size) {
-            for(var i = 0; i < data.length; ++i)
-                if(data[i].n == evictNum) {
-                    data.splice(i, 1);
-                    --size;
-                    ++evictNum;
-                    break;
-                }
-        }
+        order = [];
     };
 
     this.add = function (query, results) {
-        if(size > settings.max_size) {
-            flush();
-        }
+        data[query] = results;
+        order.push(query);
 
-        if(!data[query]) {
-            size++;
+        while(order.length > settings.max_size) {
+            delete data[order[0]];
+            order.splice(0, 1);
         }
-
-        data[query] = { r: results, n: ++num };
+        console.log(data);
+        console.log(order);
     };
 
     this.get = function (query) {
-        return data[query] ? data[query].r : null;
+        return data[query];
     };
 };
 

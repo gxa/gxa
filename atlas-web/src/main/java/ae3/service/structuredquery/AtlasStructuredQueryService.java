@@ -1028,6 +1028,6 @@ public class AtlasStructuredQueryService {
     }
 
     public Iterable<String> getGeneProperties() {
-        return GeneProperties.allPropertyIds();
+        return GeneProperties.optionPropertyIds();
     }
 }

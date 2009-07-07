@@ -6,6 +6,8 @@ import java.util.*;
  * @author pashky
  */
 public class GeneProperties {
+    public static final String GENE_PROPERTY_NAME = "gene";
+
     public static enum PropType {
         NAME(5), ID(3), DESC(-1), IGNORE(0);
 
@@ -97,11 +99,21 @@ public class GeneProperties {
 
     public static Iterable<String> allPropertyIds()
     {
-        Collection<String> s = new TreeSet<String>();
+        Collection<String> s = new ArrayList<String>();
         for(Prop p : GENE_PROPS)
             if(p.type != PropType.NAME)
                 s.add(p.id);
-        s.add("name");
+        s.add(GENE_PROPERTY_NAME);
+        return s;
+    }
+
+    public static Iterable<String> optionPropertyIds()
+    {
+        Collection<String> s = new ArrayList<String>();
+        s.add(GENE_PROPERTY_NAME);
+        for(Prop p : GENE_PROPS)
+            if(p.type != PropType.NAME && p.type != PropType.IGNORE)
+                s.add(p.id);
         return s;
     }
 

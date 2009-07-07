@@ -244,7 +244,7 @@ var atlas = {};
             formatListItem: function(row, q, i) {
                 var text = $.highlightTerm(row.value.length > 50 ? row.value.substr(0, 50) + '...' : row.value, q, 'b');
                 if(property == '') {
-                    if(row.property == 'name') {
+                    if(row.property == 'gene') {
                         var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
                         return '<em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em>';
                     } else {
@@ -256,12 +256,12 @@ var atlas = {};
             },
 
             formatToken: function(row) {
-                var text = row.property == 'name' && row.nameSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text = row.property == 'gene' && row.valueSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
             },
 
             formatId: function(res) {
-                return res.property == 'name' ? res.id : res.value;
+                return res.property == 'gene' ? res.id : res.value;
             }
 
         }));

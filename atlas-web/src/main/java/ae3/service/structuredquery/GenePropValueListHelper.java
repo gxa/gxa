@@ -37,7 +37,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         if(root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null, property));
+                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null, null));
                 }
                 public boolean enough() {
                     return limit >=0 && result.size() >= limit;
@@ -153,7 +153,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                     return result;
 
                 if(GeneProperties.isNameProperty(property))
-                    property = "name";
+                    property = GeneProperties.GENE_PROPERTY_NAME;
 
                 if(GeneProperties.isNameProperty(property)) {
                     List<AutoCompleteItem> list = new ArrayList<AutoCompleteItem>();
@@ -240,7 +240,7 @@ public class GenePropValueListHelper implements IValueListHelper {
                     }
 
                 if(name != null)
-                    res.add(new GeneAutoCompleteItem("name", name, 1L, species, geneId, names, nameSource));
+                    res.add(new GeneAutoCompleteItem(GeneProperties.GENE_PROPERTY_NAME, name, 1L, species, geneId, names, nameSource));
             }
         }
         Collections.sort(res);

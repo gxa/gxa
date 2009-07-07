@@ -50,9 +50,9 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_getGeneProperties() {
         Iterable<String> gprops = service.getGeneProperties();
         assertTrue(gprops.iterator().hasNext());
-        assertTrue(containsString(gprops, "name"));
-        assertTrue(containsString(gprops, "identifier"));
-        assertTrue(containsString(gprops, "goterm"));        
+        assertTrue(containsString(gprops, "gene"));
+        assertTrue(containsString(gprops, "keyword"));
+        assertTrue(containsString(gprops, "goterm"));
     }
 
 

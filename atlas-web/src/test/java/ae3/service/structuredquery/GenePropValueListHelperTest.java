@@ -1,21 +1,15 @@
 package ae3.service.structuredquery;
 
-import ae3.AtlasAbstractTest;
-import ae3.util.AtlasProperties;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
-import org.junit.Test;
-import org.junit.BeforeClass;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 import java.io.File;
 import java.util.Iterator;
-
-import junit.framework.TestCase;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 /**
  * @author pashky
@@ -47,7 +41,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testListAllValuesName() {
-        Iterable<String> all = service.listAllValues("name");
+        Iterable<String> all = service.listAllValues("gene");
         assertNotNull(all);
         assertNotNull(all.iterator());
         assertTrue(all.iterator().hasNext());
@@ -95,7 +89,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("name", "asp", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME, "asp", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -103,6 +97,6 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
         AutoCompleteItem aci = i.next();
         assertTrue(aci.getValue().toLowerCase().startsWith("asp"));
         assertTrue(aci.getCount() > 0);
-        assertTrue(aci.getProperty().equals("name"));
+        assertTrue(aci.getProperty().equals(GeneProperties.GENE_PROPERTY_NAME));
     }
 }
