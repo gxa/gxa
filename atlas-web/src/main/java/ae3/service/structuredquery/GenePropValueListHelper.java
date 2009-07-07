@@ -149,18 +149,17 @@ public class GenePropValueListHelper implements IValueListHelper {
                     }
                 result = result.subList(0, Math.min(result.size(), limit));
             } else {
-                if(null == GeneProperties.convertPropertyToFacetField(property))
+                if(GeneProperties.isNameProperty(property) || GeneProperties.GENE_PROPERTY_NAME.equals(property)) {
+                    List<GeneAutoCompleteItem> list = new ArrayList<GeneAutoCompleteItem>();
+                    for(Prop p : GeneProperties.allProperties())
+                        if(p.type == PropType.NAME)
+                            list.addAll(treeAutocomplete(p.id, query, limit));
+                    joinGeneNames(query, result, list, null, limit);
+                } else if(null == GeneProperties.convertPropertyToFacetField(property)) {
                     return result;
-
-                if(GeneProperties.isNameProperty(property))
-                    property = GeneProperties.GENE_PROPERTY_NAME;
-
-                if(GeneProperties.isNameProperty(property)) {
-                    List<AutoCompleteItem> list = new ArrayList<AutoCompleteItem>();
-                    joinGeneNames(query, list, treeAutocomplete(property, query, limit), null, limit);
-                    result = list;
-                } else
+                } else {
                     result.addAll(treeAutocomplete(property, query, limit));
+                }
 
                 Collections.sort(result);
                 if(limit > 0)
