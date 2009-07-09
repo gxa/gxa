@@ -11,6 +11,8 @@
     top:0;
 }
 
+body, td { font-size: 12px; }
+
 #ae_pagecontainer {
 	padding-left: 20px;
 	padding-top: 0;
