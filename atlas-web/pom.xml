@@ -155,6 +155,14 @@
             <version>1.1.1</version>
             <scope>runtime</scope>
         </dependency>
+
+        <dependency>
+            <groupId>uk.ac.ebi.mydas</groupId>
+            <artifactId>mydas</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+       
+
     </dependencies>
 
     <build>

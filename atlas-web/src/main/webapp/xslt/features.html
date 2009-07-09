@@ -1,0 +1,239 @@
+<!--
+  ~ Copyright 2007 Antony Quinn, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the mydas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://code.google.com/p/mydas/
+  ~
+  -->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="The European Bioinformatics Institute" />
+<meta name="author" content="EBI Web Team" />
+<meta http-equiv="Content-Language" content="en-GB" />
+<meta http-equiv="Window-target" content="_top" />
+<meta name="no-email-collection" content="http://www.unspam.com/noemailcollection/" />
+<meta name="generator" content="Dreamweaver 8" />
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>MyDAS: Data Sources</title>
+<!-- InstanceEndEditable -->
+
+<link rel="stylesheet"  href="http://www.ebi.ac.uk/inc/css/contents.css"     type="text/css" />
+<link rel="stylesheet"  href="http://www.ebi.ac.uk/inc/css/userstyles.css"   type="text/css" />
+<!--script  src="http://www.ebi.ac.uk/inc/js/contents.js" type="text/javascript"></script-->
+<script type="text/javascript">
+	function do_onload(){
+		if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true};
+	}
+</script>
+<!-- InstanceBeginEditable name="head" -->
+<!--  start meta tags, css , javascript here   -->
+<style type="text/css">
+@media print {
+	body, .contents, .header, .contentsarea, .head {
+		position: relative;
+	}
+}
+</style>
+    <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="http://www.ebi.ac.uk/~aquinn/xsl/mydas/uniprot/styles/common.css"/>
+    <script type="text/javascript">
+        var image_path = "http://www.ebi.ac.uk/~aquinn/xsl/mydas/uniprot/images/";
+    </script>
+    <script type="text/javascript" src="http://www.ebi.ac.uk/~aquinn/xsl/mydas/uniprot/scripts/main.js"></script>
+    <script type="text/javascript" src="http://www.ebi.ac.uk/~aquinn/xsl/mydas/uniprot/scripts/sortable.js"></script>
+<!--  end meta tags, css , javascript here  -->
+<!-- InstanceEndEditable -->
+</head>
+<body onload="do_onload()">
+	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
+
+		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
+	</div>
+	<div class="contents" id="contents">
+			<table id="contentspane" summary="The main content pane of the page" >
+				<tr>
+				  <td class="leftmargin"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></td>
+				  <td class="leftmenucell" id="leftmenucell">
+				  	<div class="leftmenu" id="leftmenu"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></div>
+				  </td>
+
+				  <td class="contentsarea" id="contentsarea">
+
+    <div class="header">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td class="banner">
+                    <span style="font-size:170%; color:white;">
+                        mydas
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div><p/></div>
+
+    <div class="features">
+
+        <!-- Summary information -->
+        <h3>Summary <span class="switch" id="summary-switch" onclick="toggle('summary')">[hide]</span></h3>
+        <table id="summary" class="summary">
+            <tr>
+                <th>ID</th>
+                <td class="molecule-id">P12345</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td class="molecule-description">
+                    Sample protein
+                </td>
+            </tr>
+            <tr>
+                <th>Length</th>
+                <td class="sequence-length">123</td>
+            </tr>
+        </table>
+
+        <!-- Positional features -->
+        <h3>
+            Positional features
+            <span class="switch" id="positional-features-switch" onclick="toggle('positional-features')">[hide]</span>
+        </h3>
+        <table id="positional-features"
+               class="sortable"
+               cellpadding="0"
+               cellspacing="0"
+               width="100%">
+            <!-- Column headings -->
+            <tr class="head">
+                <th>Category</th>
+                <th>Type</th>
+                <th>Feature</th>
+                <th></th>
+            </tr>
+            <!-- Row template -->
+            <tr class="template">
+                <td class="category">Molecule Processing</td>
+                <td class="type">HELIX</td>
+                <td class="feature">BRCA1_HUMAN_HELIX_3_50</td>
+                <td class="graphic">
+                    <span class="graphic-padding" style="width: 0.322%;"></span>
+                    <span class="graphic" style="width:5.4%; background-color:red; border-color:maroon;"></span>
+                </td>
+            </tr>
+            <!-- Sample data (will be ignored by XSLT) -->
+            <tr class="ignore">
+                <td class="ignore">ignore</td>
+                <td class="ignore">STRAND</td>
+                <td class="ignore">BRCA1_HUMAN_STRAND_52_70</td>
+                <td class="ignore">
+                    <span class="graphic-line" style="width: 5%;"></span>
+                    <span class="graphic" style="width:3%; background-color:blue; border-color:navy;"></span>
+                    <span class="graphic-line" style="width: 10%;"></span>
+                    <span class="graphic" style="width:22%; background-color:blue; border-color:navy;"></span>
+                    <span class="graphic-line" style="width: 58%;"></span>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Non-positional features -->
+        <h3>
+            Non-positional features
+            <span class="switch" id="non-positional-features-switch" onclick="toggle('non-positional-features')">[hide]</span>
+        </h3>
+        <table id="non-positional-features"
+               class="sortable"
+               cellpadding="0"
+               cellspacing="0"
+               width="100%">
+            <!-- Column headings -->
+            <tr class="head">
+                <th>Source</th>
+                <th>Type</th>
+                <th>Feature</th>
+                <th>Method</th>
+                <th>Score</th>
+                <th>Notes</th>
+            </tr>
+            <!-- Row template -->
+            <tr class="template">
+                <td class="source">uniprot</td>
+                <td class="type">reference</td>
+                <td class="feature">
+                    <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=PubMed&amp;cmd=Retrieve&amp;dopt=Citation&amp;list_uids=9760198">
+                        pubmed:9760198
+                    </a>
+                </td>
+                <td class="method">reference</td>
+                <td class="score" align="right">-</td>
+                <td class="notes">
+                    Dong J., Chang-Claude J., Wu Y., Schumacher V., Debatin I., Tonin P., Royer-Pokora B. (1998).
+                    "A high proportion of mutations in the BRCA1 gene in German breast/ovarian cancer families with
+                    clustering of mutations in the 3' third of the gene.", Hum. Genet. 103:154-161
+                </td>
+            </tr>
+            <!-- Sample data (will ignored by XSLT) -->
+            <tr class="ignore">
+                <td class="ignore">ignore</td>
+                <td class="ignore">reference</td>
+                <td class="ignore">
+                    <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=PubMed&amp;cmd=Retrieve&amp;dopt=Citation&amp;list_uids=10500182">
+                        pubmed:10500182
+                    </a>
+                </td>
+                <td class="ignore">reference</td>
+                <td class="ignore" align="right">3.3</td>
+                <td class="ignore">
+                    Lorick K.L., Jensen J.P., Fang S., Ong A.M., Hatakeyama S., Weissman A.M. (1999).
+                    "RING fingers mediate ubiquitin-conjugating enzyme (E2)-dependent ubiquitination.",
+                    Proc. Natl. Acad. Sci. U.S.A. 96:11364-11369
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div><p/></div>
+
+    <div class="footer" align="right">
+        European Bioinformatics Institute &#169; 2007. All rights reserved.
+    </div>
+<!-- end contents here -->
+					<!-- InstanceEndEditable -->
+					<img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></td>
+					<td class="rightmenucell" id="rightmenucell">
+					  <div class="rightmenu" id="rightmenu"><img src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer" alt="spacer" /></div>
+				  	</td>
+
+				</tr>
+				</table>
+				<table class="footerpane" id="footerpane" summary="The main footer pane of the page">
+				<tr>
+				  <td colspan ="4" class="footerrow">
+					<div class="footerdiv" id="footerdiv"  style="z-index:2;">
+						<iframe src="http://www.ebi.ac.uk/inc/foot.html" name="foot" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  height="22px" width="100%"  style="z-index:2;"></iframe>
+					</div>
+				  </td>
+
+				</tr>
+	  </table>
+	</div>
+	 <script  src="http://www.ebi.ac.uk/inc/js/footer.js" type="text/javascript"></script>
+</body>
+</html>

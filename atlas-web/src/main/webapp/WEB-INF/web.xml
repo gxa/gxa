@@ -146,6 +146,41 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <!-- DAS integration -->
+    <servlet>
+         <servlet-name>MydasServlet</servlet-name>
+         <servlet-class>uk.ac.ebi.mydas.controller.MydasServlet</servlet-class>
+     </servlet>
+
+     <servlet>
+         <servlet-name>EmptyCache</servlet-name>
+         <servlet-class>uk.ac.ebi.mydas.controller.EmptyCache</servlet-class>
+     </servlet>
+
+    <servlet>
+        <display-name>DasDsn</display-name>
+        <servlet-name>DasDsn</servlet-name>
+        <jsp-file>/DasDsn.jsp</jsp-file>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DasDsn</servlet-name>
+        <url-pattern>/das/dsn</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>MydasServlet</servlet-name>
+        <url-pattern>/das/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>EmptyCache</servlet-name>
+        <url-pattern>/das_flushcache</url-pattern>
+    </servlet-mapping>
+    <!-- //DAS integration -->
+
+
     <servlet-mapping>
         <servlet-name>GeneIdentifiersDump</servlet-name>
         <url-pattern>/download/gene_identifiers.txt</url-pattern>
