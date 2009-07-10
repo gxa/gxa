@@ -1,6 +1,7 @@
 package ae3.servlet;
 
-import org.junit.Test;
+import org.junit.*;
+import static org.junit.Assert.assertTrue;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
@@ -12,25 +13,38 @@ import ae3.util.AtlasProperties;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.io.FilenameFilter;
+
+import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 /**
  * @author ostolop
  */
-public class GeneIdentifiersDumpDownloadServletTest extends TestCase {
+public class GeneIdentifiersDumpDownloadServletTest extends AbstractOnceIndexTest {
+
     final private Logger log = LoggerFactory.getLogger(getClass());
+
+    private static CoreContainer container;
+
+    @BeforeClass
+    public static  void initContainer() throws Exception {
+        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
+    }
+
+    @AfterClass
+    public static void shutdownContainer() throws Exception {
+        container.shutdown();
+    }
 
     private SolrCore core;
 
-    @Override
-    protected void setUp() throws IOException, ParserConfigurationException, SAXException {
-        final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
-        final CoreContainer multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
-
-        core = multiCore.getCore("atlas");
+    @Before
+    public void setUp() throws IOException, ParserConfigurationException, SAXException {
+        core = container.getCore("atlas");
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         core.close();
         core = null;
     }
