@@ -1,14 +1,13 @@
 package ae3.servlet;
 
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.*;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import ae3.util.AtlasProperties;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -16,21 +15,31 @@ import java.io.IOException;
 import java.io.FilenameFilter;
 
 import static org.junit.Assert.*;
+import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 /**
  * @author ostolop
  */
-public class GoogleSitemapXmlServletTest {
+public class GoogleSitemapXmlServletTest extends AbstractOnceIndexTest {
     final private Logger log = LoggerFactory.getLogger(getClass());
+
+    private static CoreContainer container;
+
+    @BeforeClass
+    public static  void initContainer() throws Exception {
+        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
+    }
+
+    @AfterClass
+    public static void shutdownContainer() throws Exception {
+        container.shutdown();
+    }
 
     private SolrCore core;
 
     @Before
     public void setUp() throws IOException, ParserConfigurationException, SAXException {
-        final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
-        final CoreContainer multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
-
-        core = multiCore.getCore("atlas");
+        core = container.getCore("atlas");
     }
 
     @After
