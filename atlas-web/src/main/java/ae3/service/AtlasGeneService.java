@@ -55,7 +55,7 @@ public class AtlasGeneService {
                     orthoGene = AtlasDao.getGeneByIdentifier(orth);
                     atlasGene.addOrthoGene(orthoGene);
                 } catch(AtlasObjectNotFoundException e) {
-                    log.error("Could not find ortholog", e);
+                    log.debug("Could not find ortholog", e);
                 } catch(MultipleGeneException e) {
                     log.error("Multiple genes found for ortholog", e);
                 }

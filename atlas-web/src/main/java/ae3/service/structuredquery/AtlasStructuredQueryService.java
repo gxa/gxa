@@ -708,7 +708,7 @@ public class AtlasStructuredQueryService {
                 }
             }
 
-            if(query.getViewType() == ViewType.LIST) {
+            if(query.getViewType() == ViewType.LIST || query.isExport()) {
                 loadListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
                 ++numOfListGenes;
             }
