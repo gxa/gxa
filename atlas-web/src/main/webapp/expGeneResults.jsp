@@ -1,3 +1,4 @@
+<%@ page import="ae3.model.ListResultRow" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -41,9 +42,9 @@ function initPaging(){
 	</thead>
 
  <%
-	java.util.Collection<ae3.service.ListResultRow> f_genes = new java.util.ArrayList<ae3.service.ListResultRow>();
+	java.util.Collection<ListResultRow> f_genes = new java.util.ArrayList<ListResultRow>();
   java.util.HashSet<String> h = new java.util.HashSet<String>();
-  for(ae3.service.ListResultRow row : (java.util.Collection<ae3.service.ListResultRow>) request.getAttribute("genes")) {
+  for(ListResultRow row : (java.util.Collection<ListResultRow>) request.getAttribute("genes")) {
     if(!h.contains(row.getGene().getGeneIdentifier())) f_genes.add(row);
 		h.add(row.getGene().getGeneIdentifier());
   }

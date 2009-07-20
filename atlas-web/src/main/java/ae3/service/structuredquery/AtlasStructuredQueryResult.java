@@ -3,7 +3,7 @@ package ae3.service.structuredquery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ae3.service.ListResultRow;
+import ae3.model.ListResultRow;
 
 import java.util.*;
 

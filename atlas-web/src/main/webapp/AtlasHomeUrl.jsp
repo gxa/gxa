@@ -2,7 +2,7 @@
 
     atlas=new Object();
 
-    atlas.homeUrl='<%= request.getContextPath() %>'
+    atlas.homeUrl='<%= request.getContextPath() %>/'
 </script>
 
 

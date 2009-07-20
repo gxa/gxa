@@ -98,6 +98,52 @@ public class ExperimentsTable implements Serializable {
         return makeIterable(bs);
     }
 
+    public Iterable<Experiment> getAll() {
+        return experiments;
+    }
+
+
+    public Iterable<Experiment> findByExperimentId(final long experimentId) {
+        return new Iterable<Experiment>() {
+            public Iterator<Experiment> iterator() {
+                return new Iterator<Experiment>() {
+                    private final Iterator<Experiment> all = experiments.iterator();
+                    private Experiment next;
+                    private boolean hasNext;
+
+                    public boolean hasNext() {
+                        if (hasNext)
+                            return true;
+                        return advance();
+                    }
+
+                    public Experiment next() {
+                        if (!hasNext) {
+                            if (!advance())
+                                throw new NoSuchElementException();
+                        }
+                        hasNext = false;
+                        return next;
+                    }
+
+                    public void remove() { }
+
+                    private boolean advance() {
+                        while (all.hasNext()) {
+                            final Experiment nnext = all.next();
+                            if (nnext.getId() == experimentId) {
+                                next = nnext;
+                                hasNext = true;
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                };
+            }
+        };
+    }
+
     public String serialize() {
         try {
             return Base64.encodeObject(this, Base64.GZIP);

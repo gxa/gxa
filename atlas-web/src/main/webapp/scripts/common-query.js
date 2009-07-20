@@ -1,7 +1,11 @@
-var atlas = {};
+var atlas;
+
+if(!atlas)
+    atlas = {};
 
 (function($){
-    atlas.homeUrl = '';
+    if(!atlas.homeUrl)
+        atlas.homeUrl = '';
 
     $.extend($.fn, {
         efoTree: function(o, handler) {

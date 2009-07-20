@@ -1,86 +1,114 @@
 package ae3.dao;
 
-import java.util.List;
-
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrDocumentList;
-import org.junit.Test;
-
-import ae3.AtlasAbstractTest;
-import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
-public class AtlasDaoTest extends AtlasAbstractTest
+import java.util.ArrayList;
+import java.util.List;
+
+public class AtlasDaoTest extends AbstractOnceIndexTest
 {
+    private AtlasDao dao;
+
+    @Before
+    public void initDao() {
+        dao = new AtlasDao(getContainer());
+    }
+
+    @Test
+    public void testGetAtlasGene() {
+        AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier("ENSG00000066279");
+        assertNotNull(atlasGene);
+        assertTrue(atlasGene.isFound());
+        assertFalse(atlasGene.isMulti());
+        assertNotNull(atlasGene.getGene());
+        assertTrue(atlasGene.getGene().getGeneName().equals("ASPM"));
+    }
+
+    @Test
+    public void testRetrieveOrthoGenes() {
+        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier("ENSG00000066279");
+        assertNotNull(result);
+        assertTrue(result.isFound());
+        assertFalse(result.isMulti());
+        assertNotNull(result.getGene());
+
+        AtlasGene atlasGene = result.getGene();
+        assertNotNull(atlasGene.getOrthologsIds());
+
+        dao.retrieveOrthoGenes(atlasGene);
+
+        assertNotNull(atlasGene.getOrthoGenes());
+        ArrayList<AtlasGene> orthos = atlasGene.getOrthoGenes();
+
+        //Test successful retrieval of gene documents from the index corresponding to the gene's list of orthologs
+        assertNotNull(orthos);
+
+        for (AtlasGene ortho: orthos){
+            String orthoENSid = ortho.getGeneEnsembl();
+            //Test retrieved gene documents retrieved to match those in the ortholog list of the gene
+            assertTrue("Gene mismatch between gene ortholog ids and the corresponding retrieved genes from index",atlasGene.getOrthologs().contains(orthoENSid));
+        }
+
+        //Make sure the gene's id is not listed in its own ortholog list
+        assertFalse("Gene's id is listed in its own orthologs list",atlasGene.getOrthologs().contains("ENSG00000066279"));
+    }
 
 	@Test
 	public void test_getExperimentByIdDw() throws AtlasObjectNotFoundException
 	{
-		  AtlasExperiment exp=AtlasDao.getExperimentByIdDw("334420710");
+		  AtlasExperiment exp = dao.getExperimentById("334420710");
 		  assertNotNull(exp);
 		  assertNotNull(exp.getDwExpAccession());
 		  assertNotNull(exp.getDwExpType());
-		  log.info("######################## Experiment name: " + exp.getDwExpAccession());
-		  log.info("######################## Experiment id: " + exp.getDwExpId());
-		  
 	}
 
 	@Test	
 	public void test_getExperimentByAccession() throws AtlasObjectNotFoundException
 	{
-		AtlasExperiment exp=AtlasDao.getExperimentByAccession("E-MEXP-980");
+		AtlasExperiment exp = dao.getExperimentByAccession("E-MEXP-980");
+        assertNotNull(exp);
+        assertNotNull(exp.getDwExpType());
+        assertEquals("E-MEXP-980", exp.getDwExpAccession());
 	}
-	
-	@Test
-	public void test_getGeneByIdentifier(){
-		boolean notFound_thrown = false;
-		boolean multi_thrown = false;
-		
-			
-		//Test normal gene query
-		try{
-			AtlasGene gene = AtlasDao.getGeneByIdentifier("ENSG00000066279");
-			assertNotNull(gene);
-		}catch (AtlasObjectNotFoundException ex){
-			notFound_thrown = true;
-		}catch (MultipleGeneException ex){
-			multi_thrown = true;
-		}
-		assertFalse(notFound_thrown);
-		assertFalse(multi_thrown);
-		
-		//Test multiple gene hit exception
-		multi_thrown = false;
-		notFound_thrown = false;
-		try{
-			AtlasGene gene2 = AtlasDao.getGeneByIdentifier("P08898");
-		}catch (MultipleGeneException ex){
-			multi_thrown = true;
-		}catch (AtlasObjectNotFoundException ex){
-			notFound_thrown = true;
-		}
-		assertTrue(multi_thrown);
-		assertFalse(notFound_thrown);
-		
-		//Test gene not found exception
-		notFound_thrown = false;
-		multi_thrown = false;
-		try{
-			AtlasGene gene2 = AtlasDao.getGeneByIdentifier("mysteriousGene");
-		}catch (AtlasObjectNotFoundException ex){
-			notFound_thrown = true;
-		}catch (MultipleGeneException ex){
-			multi_thrown = true;
-		}
-		assertTrue(notFound_thrown);
-		assertFalse(multi_thrown);
 
-		
-		
-	}
-	
+    @Test
+    public void testGetAtlasGeneMulti() {
+        AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier("P08898");
+        assertNotNull(atlasGene);
+        assertTrue(atlasGene.isFound());
+        assertTrue(atlasGene.isMulti());
+        assertNotNull(atlasGene.getGene());
+    }
 
-	
+    @Test
+    public void testGetAtlasGeneUnknown() {
+        AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier("noName");
+        assertNotNull(atlasGene);
+        assertFalse(atlasGene.isFound());
+        assertFalse(atlasGene.isMulti());
+        assertNull(atlasGene.getGene());
+    }
+
+    @Test
+    public void test_getRankedGeneExperiments() {
+        AtlasDao.AtlasGeneResult r = dao.getGeneByIdentifier("ENSG00000066279");
+
+        List<AtlasExperiment> list = dao.getRankedGeneExperiments(r.getGene(), null, null, -1, -1);
+        assertNotNull(list);
+        assertTrue(list.size() > 0);
+
+        List<AtlasExperiment> list2 = dao.getRankedGeneExperiments(r.getGene(), null, null, 1, 5);
+        assertNotNull(list2);
+        assertEquals(5, list2.size());
+
+        List<AtlasExperiment> list3 = dao.getRankedGeneExperiments(r.getGene(), "cellline", "BT474", -1, -1);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+    }
 }

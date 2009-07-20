@@ -225,8 +225,8 @@ function drawPlot(jsonObj, plot_id){
         ef = "ba_"+ef;
         plot_id= eid+"_"+gid+"_plot";
         $.ajax({
-   			type: "POST",
-   			url:"" + atlas.homeUrl + "/plot.jsp",
+   			type: "GET",
+   			url:"" + atlas.homeUrl + "plot.jsp",
    			data:"gid="+gid+"&eid="+eid+"&ef="+ef+"&plot=bar",
    			dataType:"json",
    			success: function(o){
@@ -372,7 +372,7 @@ function drawPlot(jsonObj, plot_id){
             var divEle = $(this);
             $.ajax({
                 type: "GET",
-                url:"" + atlas.homeUrl + "/plot.jsp",
+                url:"" + atlas.homeUrl + "plot.jsp",
                 data: { gid: gid, eid: eid, ef: ef, efv: efv, updn: updn, plot: 'thumb' },
                 dataType:"json",
 
@@ -444,8 +444,8 @@ function drawPlot(jsonObj, plot_id){
 
 
     	$.ajax({
-    		type: "POST",
-    		url: "" + atlas.homeUrl+ "/plot.jsp",
+    		type: "GET",
+    		url: "" + atlas.homeUrl+ "plot.jsp",
     		data: "gid="+gid+"&eid="+eid+"&ef="+ef+"&plot=large"+"&gplotIds="+geneIndeces,
     		dataType:"json",
     		success: function(jsonObj){
@@ -659,8 +659,8 @@ function drawPlot(jsonObj, plot_id){
         	var eid = tokens[0];
         	var gid = tokens[1];
         	$.ajax({
-   			type: "POST",
-   			url:"" + atlas.homeUrl + "/plot.jsp",
+   			type: "GET",
+   			url:"" + atlas.homeUrl + "plot.jsp",
    			data:"gid="+gid+"&eid="+eid+"&plot=bar",
    			dataType:"json",
 

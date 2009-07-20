@@ -23,23 +23,11 @@ import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 public class GoogleSitemapXmlServletTest extends AbstractOnceIndexTest {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private static CoreContainer container;
-
-    @BeforeClass
-    public static  void initContainer() throws Exception {
-        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
-    }
-
-    @AfterClass
-    public static void shutdownContainer() throws Exception {
-        container.shutdown();
-    }
-
     private SolrCore core;
 
     @Before
     public void setUp() throws IOException, ParserConfigurationException, SAXException {
-        core = container.getCore("atlas");
+        core = getContainer().getCore("atlas");
     }
 
     @After

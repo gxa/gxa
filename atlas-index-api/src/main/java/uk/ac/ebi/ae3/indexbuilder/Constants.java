@@ -8,7 +8,10 @@ package uk.ac.ebi.ae3.indexbuilder;
  */
 public class Constants
 {
-	/** **/
+    public static final String CORE_ATLAS = "atlas";
+    public static final String CORE_EXPT = "expt";
+
+    /** **/
 	public static enum ExperimentSource { DW, AE}
 	/*Constants*/
 	public static final String KEY_INDEXDIR="indexdir";

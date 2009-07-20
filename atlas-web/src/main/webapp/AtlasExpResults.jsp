@@ -1,25 +1,29 @@
 <%@page contentType="text/plain;encoding=UTF-8"%>
 <%
-AtlasGene atlasGene = null;
 String geneId = request.getParameter("gid");
-String fromRow = request.getParameter("from");
-String toRow = request.getParameter("to");
+int fromRow = -1;
+try { fromRow = Integer.valueOf(request.getParameter("from")); } catch (Exception e) { }
+int toRow = -1;
+try { toRow = Integer.valueOf(request.getParameter("to")); } catch (Exception e) { }
+
 String ef = request.getParameter("factor");
 String efv = request.getParameter("efv");
 
 if (geneId != null) {
-    atlasGene = AtlasDao.getGeneByIdentifier(geneId);
-    ArrayList<AtlasExperiment> exps = ArrayExpressSearchService.instance().getRankedGeneExperiments(geneId, efv, ef, fromRow, toRow);
-    request.setAttribute("exps",exps);
-    request.setAttribute("atlasGene",atlasGene);
+    AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+    AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
+    if(atlasGene.isFound()) {
+        List<AtlasExperiment> exps = dao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
+        request.setAttribute("exps",exps);
+        request.setAttribute("atlasGene", atlasGene.getGene());
+    }
 }    
 
 %>
-<%@page import="java.util.ArrayList"%>
-<%@page import="ae3.service.ArrayExpressSearchService"%>
-<%@page import="ae3.model.AtlasExperiment"%>
-<%@page import="ae3.model.AtlasGene"%>
 <%@page import="ae3.dao.AtlasDao"%>
+<%@page import="ae3.model.AtlasExperiment"%>
+<%@page import="ae3.service.ArrayExpressSearchService"%>
+<%@page import="java.util.List"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
@@ -195,7 +199,7 @@ if (geneId != null) {
 
 </table>
 
-<img src="<%= request.getContextPath() %>/images/pixel.gif" onload="drawPlots();" /> 
+<img src="<%= request.getContextPath() %>/images/1.gif" onload="drawPlots();" /> 
 
 
 

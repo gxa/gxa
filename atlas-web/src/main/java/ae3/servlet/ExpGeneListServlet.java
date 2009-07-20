@@ -1,26 +1,24 @@
 package ae3.servlet;
 
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
+import ae3.service.ArrayExpressSearchService;
+import ae3.service.compute.AtlasComputeService;
+import ae3.service.compute.ComputeTask;
+import ae3.service.structuredquery.AtlasStructuredQueryResult;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.util.EscapeUtil;
+import ds.server.SimilarityResultSet;
+import org.kchine.r.RDataFrame;
+import org.kchine.r.server.RServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.kchine.r.server.RServices;
-import org.kchine.r.RDataFrame;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ds.server.SimilarityResultSet;
-
-import ae3.service.ExperimentService;
-import ae3.service.compute.AtlasComputeService;
-import ae3.service.compute.ComputeTask;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.util.EscapeUtil;
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 public class ExpGeneListServlet extends HttpServlet {
 	final private Logger log = LoggerFactory.getLogger(getClass());
@@ -47,6 +45,8 @@ public class ExpGeneListServlet extends HttpServlet {
 			start = 0;
 		}
 
+        AtlasStructuredQueryService service = ArrayExpressSearchService.instance().getStructQueryService();
+
 		if(qryType.equals("sim")){
 			String DEid = request.getParameter("deid");
 			String ADid = request.getParameter("adid");
@@ -65,7 +65,7 @@ public class ExpGeneListServlet extends HttpServlet {
                 if(null != sim) {
                     simRS.loadResult(sim);
 					ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
-					result = ExperimentService.getGenesForExperiment(simGeneIds,eAcc,start);
+					result = service.findGenesForExperiment(simGeneIds,eAcc,start);
 					request.setAttribute("genes",result.getListResults());
 					request.setAttribute("simRS", simRS);
 				}
@@ -76,12 +76,12 @@ public class ExpGeneListServlet extends HttpServlet {
 
 		}else if(qryType.equals("top")){
 
-			result = ExperimentService.getGenesForExperiment(new ArrayList<String>(), eAcc,start);
+			result = service.findGenesForExperiment("", eAcc,start);
 			request.setAttribute("genes", result.getListResults());
 
 		}else if(qryType.equals("search")){
 			String geneQuery = request.getParameter("gene");
-			result = ExperimentService.getGenesForExperiment((ArrayList)EscapeUtil.parseQuotedList(geneQuery),eAcc,start);
+			result = service.findGenesForExperiment(geneQuery != null ? geneQuery : "",eAcc,start);
 			request.setAttribute("genes",result.getListResults());
 		}
 		request.setAttribute("result", result);

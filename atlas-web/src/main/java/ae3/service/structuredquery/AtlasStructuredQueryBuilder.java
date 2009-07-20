@@ -4,6 +4,7 @@ import ae3.util.EscapeUtil;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 
 
 /**
@@ -14,89 +15,113 @@ public class AtlasStructuredQueryBuilder {
 
     private AtlasStructuredQuery q = new AtlasStructuredQuery();
 
-    public AtlasStructuredQuery toQuery() {
+    public AtlasStructuredQuery query() {
         return q;
     }
 
-    public AtlasStructuredQueryBuilder andGene(String values) {
+    public AtlasStructuredQueryBuilder andGene(Object values) {
         return andGene("", values);
     }
 
-    public AtlasStructuredQueryBuilder andGene(String property, String values) {
-        List<GeneQueryCondition> conds = new ArrayList<GeneQueryCondition>(q.getGeneConditions());
-        GeneQueryCondition cond = new GeneQueryCondition();
-        cond.setFactor(property);
-        cond.setNegated(false);
-        cond.setFactorValues(EscapeUtil.parseQuotedList(values));
-        conds.add(cond);
-        q.setGeneConditions(conds);
-        return this;
+    public AtlasStructuredQueryBuilder andGene(String property, Object values) {
+        return andGene(property, false, values);
     }
 
-    public AtlasStructuredQueryBuilder andNotGene(String values) {
+    public AtlasStructuredQueryBuilder andNotGene(Object values) {
         return andNotGene("", values);
     }
 
-    public AtlasStructuredQueryBuilder andNotGene(String property, String values) {
+    public AtlasStructuredQueryBuilder andNotGene(String property, Object values) {
+        return andGene(property, true, values);
+    }
+
+    private List<String> optionalParseList(Object values) {
+        final List<String> vlist;
+        if(values instanceof String)
+            vlist = EscapeUtil.parseQuotedList((String)values);
+        else if(values instanceof List)
+            vlist = (List<String>)values;
+        else 
+            throw new ClassCastException("Unknown type of parameter - should be either String or List<String>, got " + values.getClass());
+        return vlist;
+    }
+
+    public AtlasStructuredQueryBuilder andGene(String property, boolean has, Object values) {
+
+        List<String> vlist = optionalParseList(values);
+        if(vlist.isEmpty())
+            return this;
+
         List<GeneQueryCondition> conds = new ArrayList<GeneQueryCondition>(q.getGeneConditions());
         GeneQueryCondition cond = new GeneQueryCondition();
         cond.setFactor(property);
-        cond.setNegated(true);
-        cond.setFactorValues(EscapeUtil.parseQuotedList(values));
+        cond.setNegated(!has);
+        cond.setFactorValues(vlist);
         conds.add(cond);
         q.setGeneConditions(conds);
         return this;
     }
 
-    public AtlasStructuredQueryBuilder andUpdnIn(String values) {
+
+    public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
+        List<String> vlist = optionalParseList(values);
+        if(vlist.isEmpty())
+            return this;
+
+        List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
+        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
+        cond.setFactor(factor);
+        cond.setExpression(expr);
+        cond.setFactorValues(vlist);
+        conds.add(cond);
+        q.setConditions(conds);
+        return this;
+    }
+
+
+    public AtlasStructuredQueryBuilder andUpdnIn(Object values) {
         return andUpdnIn("", values);
     }
 
-    public AtlasStructuredQueryBuilder andUpdnIn(String factor, String values) {
-        List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
-        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
-        cond.setFactor(factor);
-        cond.setExpression(QueryExpression.UP_DOWN);
-        cond.setFactorValues(EscapeUtil.parseQuotedList(values));
-        conds.add(cond);
-        q.setConditions(conds);
-        return this;
+    public AtlasStructuredQueryBuilder andUpdnIn(String factor, Object values) {
+        return andExprIn(factor, QueryExpression.UP_DOWN, values);
     }
 
-    public AtlasStructuredQueryBuilder andUpIn(String values) {
+    public AtlasStructuredQueryBuilder andUpIn(Object values) {
         return andUpIn("", values);
     }
 
-    public AtlasStructuredQueryBuilder andUpIn(String factor, String values) {
-        List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
-        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
-        cond.setFactor(factor);
-        cond.setExpression(QueryExpression.UP_DOWN);
-        cond.setFactorValues(EscapeUtil.parseQuotedList(values));
-        conds.add(cond);
-        q.setConditions(conds);
-        return this;
+    public AtlasStructuredQueryBuilder andUpIn(String factor, Object values) {
+        return andExprIn(factor, QueryExpression.UP, values);
     }
 
-    public AtlasStructuredQueryBuilder andDnIn(String values) {
+    public AtlasStructuredQueryBuilder andDnIn(Object values) {
         return andDnIn("", values);
     }
 
-    public AtlasStructuredQueryBuilder andDnIn(String factor, String values) {
-        List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
-        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
-        cond.setFactor(factor);
-        cond.setExpression(QueryExpression.UP_DOWN);
-        cond.setFactorValues(EscapeUtil.parseQuotedList(values));
-        conds.add(cond);
-        q.setConditions(conds);
-        return this;
+    public AtlasStructuredQueryBuilder andDnIn(String factor, Object values) {
+        return andExprIn(factor, QueryExpression.DOWN, values);
     }
 
     public AtlasStructuredQueryBuilder andSpecies(String specie) {
         List<String> species = new ArrayList<String>(q.getSpecies());
         species.add(specie);
         q.setSpecies(species);
+        return this;
+    }
+
+    public AtlasStructuredQueryBuilder viewAs(ViewType viewtype) {
+        q.setViewType(viewtype);
+        return this;
+    }
+
+    public AtlasStructuredQueryBuilder rowsPerPage(int rows) {
+        q.setRowsPerPage(rows);
+        return this;
+    }
+
+    public AtlasStructuredQueryBuilder startFrom(int start) {
+        q.setStart(start);
         return this;
     }
 }

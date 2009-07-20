@@ -5,6 +5,7 @@ import ae3.service.AtlasResult;
 import ae3.dao.AtlasDao;
 import ae3.dao.AtlasObjectNotFoundException;
 import ae3.dao.MultipleGeneException;
+import ae3.model.AtlasExperiment;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.commons.lang.StringUtils;
@@ -75,23 +76,23 @@ public class AtlasWebServiceImpl implements AtlasWebService {
     }
 
     public HashMap getAtlasGene(String geneIdentifier) throws RemoteException {
-        log.info("Atlas Web Service Gene Query for {}", geneIdentifier);
-        try {
-            return AtlasDao.getGeneByIdentifier(geneIdentifier).serializeForWebServices();
-        } catch (AtlasObjectNotFoundException e) {
-            throw new RemoteException(e.getMessage());
-        } catch (MultipleGeneException e) {
-        	throw new RemoteException(e.getMessage());
-        }
+        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneIdentifier);
+        if(result.isMulti())
+            throw new RemoteException("Multiple results found");
+        if(!result.isFound())
+            throw new RemoteException("No gene found");
+
+        return result.getGene().serializeForWebServices();
     }
 
     public HashMap getAtlasExperiment(String exptAccession) throws RemoteException {
         log.info("Atlas Web Service Experiment Query for {}", exptAccession);
 
-        try {
-            return AtlasDao.getExperimentByAccession(exptAccession).serializeForWebServices();
-        } catch (AtlasObjectNotFoundException e) {
-            throw new RemoteException(e.getMessage());
-        }
+        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasExperiment experiment = dao.getExperimentByAccession(exptAccession);
+        if(experiment == null)
+            throw new RemoteException("Experiment not found");
+        return experiment.serializeForWebServices();
     }
 }

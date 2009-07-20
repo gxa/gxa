@@ -1,3 +1,8 @@
+var atlas;
+
+if(!atlas)
+    atlas = {};
+
 (function($){
      atlas.counter = 0;
      atlas.helprow = null;

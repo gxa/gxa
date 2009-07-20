@@ -3,15 +3,20 @@ package ae3.model;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.IndexField;
+import static uk.ac.ebi.ae3.indexbuilder.IndexField.nullzero;
 
 import java.util.*;
+
+import ae3.util.Pair;
 
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
     private ArrayList<AtlasGene> orthoGenes = new ArrayList<AtlasGene>();
+    private ExperimentsTable expTable;
 
     public AtlasGene(SolrDocument geneDoc) {
         this.geneSolrDocument = geneDoc;
@@ -164,41 +169,41 @@ public class AtlasGene {
         return h;
     }
 
-	public HashSet<Object> getAllFactorValues(String ef) {
-		HashSet<Object> efvs = new HashSet<Object>();;
+	public Set<String> getAllFactorValues(String ef) {
+		Set<String> efvs = new HashSet<String>();;
 
-		Collection<Object> fields = geneSolrDocument.getFieldValues("efvs_up_" + IndexField.encode(ef));
+		Collection<String> fields = (Collection)geneSolrDocument.getFieldValues("efvs_up_" + IndexField.encode(ef));
 		if(fields!=null)
 			efvs.addAll(fields);
-		fields = geneSolrDocument.getFieldValues("efvs_dn_" + IndexField.encode(ef));
+		fields = (Collection)geneSolrDocument.getFieldValues("efvs_dn_" + IndexField.encode(ef));
 		if(fields!=null)
 			efvs.addAll(fields);
 		return efvs;
 	}
 
-	public String getOrthologsIds(){
+	public String getOrthologsIds() {
 		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
-		return StringUtils.join(orths,"+");
+		return StringUtils.join(orths, "+");
 	}
 
-	public ArrayList<String> getOrthologs(){
-		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
-		return orths;
+	public List<String> getOrthologs() {
+        Collection orths = geneSolrDocument.getFieldValues("gene_ortholog");
+		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
 	}
 
-    public int getCount_up(String ef, String efv){
+    public int getCount_up(String ef, String efv) {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + IndexField.encode(ef, efv) + "_up"));
     }
 
-    public int getCount_dn(String ef, String efv){
+    public int getCount_dn(String ef, String efv) {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + IndexField.encode(ef, efv) + "_dn"));
     }
 
-    public double getMin_up(String ef, String efv){
+    public double getMin_up(String ef, String efv) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + IndexField.encode(ef, efv) + "_up"));
     }
 
-    public double getMin_dn(String ef, String efv){
+    public double getMin_dn(String ef, String efv) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + IndexField.encode(ef, efv) + "_dn"));
     }
 
@@ -218,16 +223,6 @@ public class AtlasGene {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + IndexField.encode(efo) + "_dn"));
     }
 
-	private static int nullzero(Short i)
-	{
-		return i == null ? 0 : i;
-	}
-
-	private static double nullzero(Float d)
-	{
-		return d == null ? 0.0d : d;
-	}
-	
 	public void addOrthoGene(AtlasGene ortho){
 		this.orthoGenes.add(ortho);
 	}
@@ -236,8 +231,75 @@ public class AtlasGene {
 		return this.orthoGenes;
 	}
 
-
     public ExperimentsTable getExpermientsTable() {
-        return ExperimentsTable.deserialize((String)geneSolrDocument.getFieldValue("exp_info"));
+        if(expTable != null)
+            return expTable;
+        return expTable = ExperimentsTable.deserialize((String)geneSolrDocument.getFieldValue("exp_info"));
     }
+
+    public int getNumberOfExperiments() {
+        Set<Long> exps = new HashSet<Long>();
+        for(Experiment e : getExpermientsTable().getAll())
+            exps.add(e.getId());
+        return exps.size();
+    }
+
+    public Set<String> getAllEfs() {
+        Set<String> efs = new HashSet<String>();
+        for (String field : getGeneSolrDocument().getFieldNames()) {
+            if(field.startsWith("efvs_"))
+                efs.add(field.substring(8));
+        }
+        return efs;
+    }
+
+    private static final String omittedEFs = "age,individual,time,dose,V1";
+
+    public List<ListResultRow> getHeatMapRows() {
+        ListResultRow heatmapRow;
+        ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
+        for(String ef : getAllEfs()) {
+            Set<String> efvs = getAllFactorValues(ef);
+            if(!efvs.isEmpty()){
+                for(String efv : efvs) {
+                    if(!omittedEFs.contains(efv) && !omittedEFs.contains(ef)){
+                        heatmapRow = new ListResultRow(ef, efv,
+                                getCount_up(ef, efv),
+                                getCount_dn(ef, efv),
+                                getMin_up(ef, efv),
+                                getMin_dn(ef, efv));
+                        heatmap.add(heatmapRow);
+                    }
+                }
+            }
+        }
+
+        Collections.sort(heatmap,Collections.reverseOrder());
+        return heatmap;
+    }
+
+    public List<AtlasTuple> getTopFVs(long exp_id_key) {
+        List<AtlasTuple> result = new ArrayList<AtlasTuple>();
+        for(Experiment e : getExpermientsTable().findByExperimentId(exp_id_key)) {
+            result.add(new AtlasTuple(e.getEf(), e.getEfv(), e.getExpression().isUp() ? 1 : -1, e.getPvalue()));
+        }
+        Collections.sort(result, new Comparator<AtlasTuple>() {
+            public int compare(AtlasTuple o1, AtlasTuple o2) {
+                return o1.getPval().compareTo(o2.getPval());
+            }
+        });
+        return result;
+    }
+
+    public Pair<String,Double> getHighestRankEF(long experimentId) {
+        String ef = null;
+        Double pvalue = null;
+        for(Experiment e : getExpermientsTable().findByExperimentId(experimentId))
+            if(pvalue == null || pvalue > e.getPvalue()) {
+                pvalue = e.getPvalue();
+                ef = e.getEf();
+            }
+        return new Pair<String,Double>(ef, pvalue);
+    }
+
 }

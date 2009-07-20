@@ -16,19 +16,16 @@ import java.util.Iterator;
  */
 public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
-    private static CoreContainer container;
     private static IValueListHelper service;
 
     @BeforeClass
     public static  void initContainer() throws Exception {
-        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
-        service = new GenePropValueListHelper(new EmbeddedSolrServer(container, "atlas"));
+        service = new GenePropValueListHelper(new EmbeddedSolrServer(getContainer(), "atlas"));
     }
 
     @AfterClass
     public static void shutdownContainer() throws Exception {
         service = null;
-        container.shutdown();
     }
 
     @Test

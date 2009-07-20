@@ -3,10 +3,11 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.service.ListResultRow;
-import ae3.service.ListResultRowExperiment;
+import ae3.model.ListResultRow;
+import ae3.model.ListResultRowExperiment;
 import ae3.util.AtlasProperties;
 import ae3.util.Pair;
+import ae3.util.EscapeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -37,8 +38,6 @@ import java.util.*;
 public class AtlasStructuredQueryService {
 
     private static final int MAX_EFV_COLUMNS = 120;
-    private static final String CORE_ATLAS = "atlas";
-    private static final String CORE_EXPT = "expt";
     public static final String FIELD_FACTOR_PREFIX = "dwe_ba_";
     private final static String[] EXP_SEARCH_FIELDS = {
             "aer_txt_expaccession",
@@ -51,7 +50,9 @@ public class AtlasStructuredQueryService {
 
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
+
     private Set<String> allFactors = new TreeSet<String>();
+    
     private final ExpFactorValueListHelper efvListHelper;
     private final GenePropValueListHelper geneListHelper;
     private final EfoValueListHelper efoListHelper;
@@ -59,14 +60,15 @@ public class AtlasStructuredQueryService {
     private final String atlasIdField;
     private final String exptIdField;
 
+    private final AtlasDao atlasDao;
 
     /**
      * Constructor. Requires SOLR core container reference to work.
      * @param coreContainer reference to core container with cores "expt" and "atlas"
      */
     public AtlasStructuredQueryService(CoreContainer coreContainer) {
-        SolrCore coreExpt = coreContainer.getCore(CORE_EXPT);
-        SolrCore coreAtlas = coreContainer.getCore(CORE_ATLAS);
+        SolrCore coreExpt = coreContainer.getCore(Constants.CORE_EXPT);
+        SolrCore coreAtlas = coreContainer.getCore(Constants.CORE_ATLAS);
 
         RefCounted<SolrIndexSearcher> searcher = coreAtlas.getSearcher();
         atlasIdField = searcher.get().getSchema().getUniqueKeyField().getName();
@@ -87,12 +89,18 @@ public class AtlasStructuredQueryService {
         coreExpt.close();
         coreAtlas.close();
 
-        this.solrAtlas = new EmbeddedSolrServer(coreContainer, CORE_ATLAS);
-        this.solrExpt = new EmbeddedSolrServer(coreContainer, CORE_EXPT);
+        this.solrAtlas = new EmbeddedSolrServer(coreContainer, Constants.CORE_ATLAS);
+        this.solrExpt = new EmbeddedSolrServer(coreContainer, Constants.CORE_EXPT);
 
         this.efvListHelper = new ExpFactorValueListHelper(solrAtlas, solrExpt, getExperimentalFactorOptions());
         this.geneListHelper = new GenePropValueListHelper(solrAtlas);
         this.efoListHelper = new EfoValueListHelper(solrAtlas);
+
+        this.atlasDao = new AtlasDao(solrAtlas, solrExpt);
+    }
+
+    public AtlasDao getAtlasDao() {
+        return atlasDao;
     }
 
     private static class SolrQueryBuilder {
@@ -277,7 +285,14 @@ public class AtlasStructuredQueryService {
         }
 
         return result;
-    }    
+    }
+
+    public AtlasStructuredQueryResult findGenesForExperiment(Object geneIds, String eAcc, int start) {
+        return doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
+                .andGene(geneIds)
+                .andUpdnIn(Constants.EXP_FACTOR_NAME, EscapeUtil.optionalQuote(eAcc))
+                .viewAs(ViewType.LIST).rowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize")).startFrom(start).query());
+    }
         
     private Efo getEfo() {
         return Efo.getEfo();
@@ -652,7 +667,7 @@ public class AtlasStructuredQueryService {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
+                        if(IndexField.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -660,7 +675,7 @@ public class AtlasStructuredQueryService {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
+                        if(IndexField.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -688,10 +703,10 @@ public class AtlasStructuredQueryService {
                 }
 
                 UpdownCounter counter = new UpdownCounter(
-                        nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_up")),
-                        nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_dn")),
-                        nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_up")),
-                        nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_dn")));
+                        IndexField.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_up")),
+                        IndexField.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_dn")),
+                        IndexField.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_up")),
+                        IndexField.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_dn")));
 
                 counters.add(counter);
 
@@ -776,7 +791,7 @@ public class AtlasStructuredQueryService {
         for(Experiment exp : gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter)) {
         	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
         		continue;
-            AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(exp.getId()));
+            AtlasExperiment aexp = getAtlasDao().getExperimentById(String.valueOf(exp.getId()));
             if(aexp != null) {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))
@@ -947,7 +962,7 @@ public class AtlasStructuredQueryService {
                     for (FacetField.Count ffc : ff.getValues())
                         if(!qstate.getExperiments().contains(ffc.getName()))
                         {
-                            AtlasExperiment exp = AtlasDao.getExperimentByIdDw(ffc.getName());
+                            AtlasExperiment exp = getAtlasDao().getExperimentById(ffc.getName());
                             if(exp != null) {
                                 String expName = exp.getDwExpAccession();
                                 if(expName != null)
@@ -962,16 +977,6 @@ public class AtlasStructuredQueryService {
             }
         }
         return efvFacet;
-    }
-
-    private static int nullzero(Short i)
-    {
-        return i == null ? 0 : i;
-    }
-
-    private static double nullzero(Float d)
-    {
-        return d == null ? 0.0 : d;
     }
 
 

@@ -18,21 +18,9 @@ import java.io.File;
  */
 public class TestIndexTest extends AbstractOnceIndexTest {
 
-    private static CoreContainer container;
-
-    @BeforeClass
-    public static  void initContainer() throws Exception {
-        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
-    }
-
-    @AfterClass
-    public static void shutdownContainer() throws Exception {
-        container.shutdown();
-    }
-
     @Test
     public void testAtlasIndex() throws Exception {
-        SolrServer solr = new EmbeddedSolrServer(container, "atlas");
+        SolrServer solr = new EmbeddedSolrServer(getContainer(), "atlas");
         
         SolrQuery q = new SolrQuery("gene_id:[* TO *]");
         QueryResponse qr = solr.query(q);
@@ -43,7 +31,7 @@ public class TestIndexTest extends AbstractOnceIndexTest {
 
     @Test
     public void testExptIndex() throws Exception {
-        SolrServer solr = new EmbeddedSolrServer(container, "expt");
+        SolrServer solr = new EmbeddedSolrServer(getContainer(), "expt");
         SolrQuery q = new SolrQuery("dwe_exp_id:[* TO *]");
         QueryResponse qr = solr.query(q);
 

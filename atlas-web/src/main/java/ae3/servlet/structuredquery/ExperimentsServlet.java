@@ -5,6 +5,7 @@ import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.util.CuratedTexts;
+import ae3.service.ArrayExpressSearchService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,8 +43,12 @@ public class ExperimentsServlet extends JsonServlet {
                     jsResult.put("efv", term.getTerm());
             }
 
-            try {
-            AtlasGene gene = AtlasDao.getGene(geneIdKey);
+            AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+            AtlasDao.AtlasGeneResult result = dao.getGeneById(geneIdKey);
+            if(!result.isFound())
+                throw new IllegalArgumentException("Atlas gene " + geneIdKey + " not found");
+
+            AtlasGene gene = result.getGene();
 
             JSONObject jsGene = new JSONObject();
 
@@ -97,7 +102,7 @@ public class ExperimentsServlet extends JsonServlet {
 
             JSONArray jsExps = new JSONArray();
             for(Map.Entry<Long,Map<String, List<Experiment>>> e : exps) {
-                AtlasExperiment aexp = AtlasDao.getExperimentByIdDw(String.valueOf(e.getKey()));
+                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(e.getKey()));
                 if(aexp != null) {
                     JSONObject jsExp = new JSONObject();
                     jsExp.put("accession", aexp.getDwExpAccession());
@@ -138,9 +143,6 @@ public class ExperimentsServlet extends JsonServlet {
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);
 
-            } catch (AtlasObjectNotFoundException e) {
-                throw new IllegalArgumentException("Atlas gene " + geneIdKey + " not found", e);
-            }
         }
 
         return jsResult;

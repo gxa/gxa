@@ -13,24 +13,12 @@ import java.io.File;
  */
 public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
-    private static CoreContainer container;
-
-    @BeforeClass
-    public static  void initContainer() throws Exception {
-        container = new CoreContainer(getSolrPath().toString(), new File(getSolrPath(), "solr.xml"));
-    }
-
-    @AfterClass
-    public static void shutdownContainer() throws Exception {
-        container.shutdown();
-    }
-
     AtlasStructuredQueryService service;
 
     @Before
     public void createService()
     {
-        service = new AtlasStructuredQueryService(container);
+        service = new AtlasStructuredQueryService(getContainer());
     }
 
     @After
@@ -61,7 +49,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
                         .andGene("aspm")
-                        .toQuery()
+                        .query()
         );
 
         assertNotNull(result);

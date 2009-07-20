@@ -1,36 +1,38 @@
-
-
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@page import="ae3.dao.AtlasDao" %>
 <%@page import="ae3.model.AtlasExperiment" %>
-<%@page import="ae3.service.ExperimentService" %>
-<%@page import="java.util.*" %>
 <%@page import="ae3.service.ArrayExpressSearchService" %>
+<%@page import="org.apache.commons.lang.StringUtils" %>
 <%
-    AtlasExperiment exp = null;
     String expAcc = request.getParameter("eid");
     String geneId = request.getParameter("gid");
     String ef = request.getParameter("ef");
-    if (expAcc != null && expAcc != "") {
-        exp = ExperimentService.getAtlasExperiment(expAcc);
-        request.setAttribute("exp", exp);
+    AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+    if (expAcc != null && !"".equals(expAcc)) {
+        AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
+        if(exp != null) {
+            request.setAttribute("exp", exp);
+            request.setAttribute("eid", exp.getDwExpId());
 
-        if (ef == null || ef == "") {
-            HashMap rankInfo = ArrayExpressSearchService.instance().getHighestRankEF(exp.getDwExpId().toString(), geneId);
-            request.setAttribute("topRankEF", rankInfo.get("expfactor").toString());
-            ef = rankInfo.get("expfactor").toString();
+            if (ef == null || "".equals(ef)) {
+                AtlasDao.AtlasGeneResult result = dao.getGeneById(StringUtils.split(geneId, ",")[0]);
+                if(result.isFound()) {
+                    ef = result.getGene().getHighestRankEF(exp.getDwExpId()).getFirst();
+                    request.setAttribute("topRankEF", ef);
+                }
+            }
         }
     }
-
+    
     request.setAttribute("gid", geneId);
     request.setAttribute("ef", ef);
-    request.setAttribute("eid", exp.getDwExpId());
     request.setAttribute("eAcc", expAcc);
-    ArrayList<String> genesToPlot = new ArrayList<String>();
 %>
 
+<jsp:include page="AtlasHomeUrl.jsp" />
 
 <jsp:include page="start_head.jsp"/>
 Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
@@ -151,10 +153,14 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         });
 
         $("#searchForm").submit(function() {
-            var qry = $("#geneInExp_qry").val();
+            var qry = $("#geneInExp_qry").trigger('preSubmit').val();
             $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
             $("#qryHeader").show();
             $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
+                var inp = $("#geneInExp_qry");
+                inp.next('ul').remove();
+                inp.show();
+                atlas.tokenizeGeneInput(inp, '', '(all genes)');
                 $("#qryHeader").hide()
             });
             return false;

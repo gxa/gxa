@@ -25,5 +25,15 @@ public class IndexField {
         } catch(UnsupportedEncodingException e){
             throw new IllegalArgumentException("Unable to encode EFV in UTF-8", e);
         }
-    }    
+    }
+
+    public static int nullzero(Short i)
+    {
+        return i == null ? 0 : i;
+    }
+
+    public static double nullzero(Float d)
+    {
+        return d == null ? 0.0 : d;
+    }
 }

@@ -2,69 +2,70 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f"%>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@page import="ae3.dao.AtlasDao"%>
 <%@page import="ae3.model.AtlasGene"%>
-<%@page import="java.util.*"%>
-<%@page import="ae3.service.AtlasGeneService"%>
 <%@page import="ae3.service.ArrayExpressSearchService"%>
+<%@page import="java.util.Collection"%>
+<%@ page import="java.util.Map" %>
 <c:set var="timeStart" value="${u:currentTime()}" />
 
 <jsp:include page="AtlasHomeUrl.jsp" />
 
 
 <%
-	AtlasGene atlasGene = null;
 	String geneId = request.getParameter("gid");
-	String noAtlasExps = null;
+
+    AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+
 	if (geneId != null || geneId!="") {
-
-
-		if(AtlasGeneService.hitMultiGene(geneId)){
+        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);
+		if(result.isMulti()) {
 	        response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
 	        return;
 		}
 
-		atlasGene = AtlasGeneService.getAtlasGene(geneId);
-		if ( atlasGene!=null){
-			noAtlasExps = ArrayExpressSearchService.instance().getNumOfAtlasExps(atlasGene.getGeneId());
-			request.setAttribute("heatMapRows", AtlasGeneService.getHeatMapRows(geneId));
-			request.setAttribute("atlasGene",atlasGene);
-			request.setAttribute("noAtlasExps",noAtlasExps);
-		}
-	}
-    if(atlasGene == null) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
-        request.getRequestDispatcher(request.getContextPath() + "/error.jsp").forward(request,response);
-        return;
-    }
+        if(!result.isFound()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
+            request.getRequestDispatcher(request.getContextPath() + "/error.jsp").forward(request,response);
+            return;
+        }
 
-	if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
-		//TODO: set this right (via REST WS perhaps)
-		response.setContentType("text/xml");
-		response.setCharacterEncoding("UTF-8");
-		Map<String, Collection<Object>> props = atlasGene.getGeneSolrDocument().getFieldValuesMap();
+        AtlasGene gene = result.getGene();
+        dao.retrieveOrthoGenes(gene);
+
+        request.setAttribute("heatMapRows", gene.getHeatMapRows());
+        request.setAttribute("atlasGene", gene);
+        request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
+
+        if (request.getParameter("format") != null	&& request.getParameter("format").equals("xml")) {
+            //TODO: set this right (via REST WS perhaps)
+            response.setContentType("text/xml");
+            response.setCharacterEncoding("UTF-8");
+            Map<String, Collection<Object>> props = result.getGene().getGeneSolrDocument().getFieldValuesMap();
 %>
 <atlasGene>
-<%
-	for (String prop : props.keySet()) {
-%>
-<geneProperty name="<%=prop%>">
-<%
-	Collection propVals = props.get(prop);
-			for (Object propVal : propVals) {
-%><value><%=propVal%></value>
-<%
-	}
-%>
-</geneProperty>
-<%
-	}
-%>
+    <%
+        for (String prop : props.keySet()) {
+    %>
+    <geneProperty name="<%=prop%>">
+        <%
+            Collection propVals = props.get(prop);
+            for (Object propVal : propVals) {
+        %><value><%=propVal%></value>
+        <%
+            }
+        %>
+    </geneProperty>
+    <%
+        }
+    %>
 </atlasGene>
 <%
-	response.flushBuffer();
-		return;
-	}
+            response.flushBuffer();
+            return;
+        }
+    }
 %>
 <jsp:include page="start_head.jsp" />
 Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
@@ -413,9 +414,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                         </table>
                     </td>
                     <td valign="top" align="left">
-                        <jsp:include page="AtlasExpResultsTable.jsp">
-                            <jsp:param name="GeneId" value="<%=atlasGene.getGeneId()%>" />
-                        </jsp:include>
+                        <c:import url="AtlasExpResultsTable.jsp">
+                            <c:param name="GeneId" value="${atlasGene.geneId}" />
+                        </c:import>
                     </td>
                 </tr>
             </table>

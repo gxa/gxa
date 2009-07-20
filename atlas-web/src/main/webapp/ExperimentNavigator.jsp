@@ -1,7 +1,4 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.service.AtlasGeneService" %>
-<%@ page import="ae3.model.AtlasGene" %>
-<%@ page import="java.util.ArrayList" %>
 <%@ page import="ae3.service.structuredquery.AtlasStructuredQueryService" %>
 <%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
 <%@ page import="java.util.Collection" %>

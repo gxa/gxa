@@ -7,11 +7,12 @@ import java.io.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.util.AtlasProperties;
+import ae3.model.ListResultRow;
+import ae3.model.ListResultRowExperiment;
 
 /**
  * Represents a download event for exporting atlas list results to files

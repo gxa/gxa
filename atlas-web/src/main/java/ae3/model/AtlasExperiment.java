@@ -38,17 +38,9 @@ public class AtlasExperiment implements java.io.Serializable {
 
     private HashMap<String, String> highestRankEF = new HashMap<String, String>();
 
-    public AtlasExperiment() {
-
-    }
-
-    public static AtlasExperiment load(SolrDocument exptdoc)
-    {
-        AtlasExperiment expt = new AtlasExperiment();
-        expt.doload(exptdoc);
-        expt.setExptSolrDocument(exptdoc);
-
-        return expt;
+    public AtlasExperiment(SolrDocument exptdoc) {
+        doload(exptdoc);
+        setExptSolrDocument(exptdoc);
     }
 
     public void doload(SolrDocument exptDoc)

@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.compound.hyphenation.CharVector;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +23,7 @@ import org.springframework.web.util.HtmlUtils;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
 import ae3.util.HtmlHelper;
+import ae3.dao.AtlasDao;
 
 import ds.server.DataServerAPI;
 import ds.server.ExpressionDataSet;
@@ -44,11 +46,13 @@ public class AtlasPlotter {
 	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType, final String gplotIds) {
         String efToPlot = null;
 
-		if(EF.equals("default")){
-            HashMap rankInfo = ArrayExpressSearchService.instance().getHighestRankEF(expIdKey, geneIdKey);
+        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasGene atlasGene = dao.getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
 
-            if (null != rankInfo)
-                efToPlot = "ba_" + rankInfo.get("expfactor").toString();
+		if(EF.equals("default")){
+            String highestEf = atlasGene.getHighestRankEF(Long.valueOf(expIdKey)).getFirst();
+
+            efToPlot = "ba_" + highestEf;
 		} else {
             efToPlot = EF;
         }
@@ -68,9 +72,10 @@ public class AtlasPlotter {
 			return createBigPlotJSON(ds, efToPlot, EFV,geneNames,gplotIds);
 		
 		ArrayList<String> topFVs = new ArrayList<String>();
-		List<AtlasTuple> atlusTuples = AtlasGeneService.getTopFVs(geneIdKey, expIdKey);
 
-        for (AtlasTuple at : atlusTuples) {
+        List<AtlasTuple> atlasTuples = atlasGene.getTopFVs(Long.valueOf(expIdKey));
+
+        for (AtlasTuple at : atlasTuples) {
             if (at.getEf().equalsIgnoreCase(efToPlot.substring(3)) && !at.getEfv().equals("V1")) {
                 topFVs.add(at.getEfv().toLowerCase());
             }
@@ -436,11 +441,14 @@ public class AtlasPlotter {
 	}
 	
 	private ArrayList<String> getGeneNames(String gids){
+        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+
 		ArrayList<String> geneNames = new ArrayList<String>();
 		String[] ids = gids.split(",");
 		for(String gid:ids){
-			AtlasGene gene = AtlasGeneService.getAtlasGene(gid);
-			geneNames.add(gene.getGeneName());
+			AtlasDao.AtlasGeneResult gene = dao.getGeneById(gid);
+            if(gene.isFound())
+                geneNames.add(gene.getGene().getGeneName());
 		}
 		return geneNames;
 	}
