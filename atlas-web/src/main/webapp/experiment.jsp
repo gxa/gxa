@@ -17,7 +17,7 @@
             request.setAttribute("exp", exp);
             request.setAttribute("eid", exp.getDwExpId());
 
-            if (ef == null || "".equals(ef)) {
+            if ((ef == null || "".equals(ef)) && (geneId != null)) {
                 AtlasDao.AtlasGeneResult result = dao.getGeneById(StringUtils.split(geneId, ",")[0]);
                 if(result.isFound()) {
                     ef = result.getGene().getHighestRankEF(exp.getDwExpId()).getFirst();

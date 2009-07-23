@@ -21,6 +21,12 @@
 
 
     <rule>
+        <note>all images - root images</note>
+        <from>(.+)/images/(.+)</from>
+        <to>/images/$2</to>
+    </rule>
+
+    <rule>
         <note>Gene Index</note>
         <from>/gene/index.htm</from>
         <to>/GeneNavigator.jsp</to>
@@ -51,8 +57,6 @@
         <from>/experiment/([a-zA-Z0-9]+)</from>
         <to>/experiment?eid=$1</to>
     </rule>
-
-
 
     <outbound-rule>
         <note>
