@@ -1,12 +1,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="ae3.service.structuredquery.*" %>
+<%@ page import="ae3.servlet.GeneListCacheServlet" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-
     //GenePropValueListHelper.Instance.treeAutocomplete("name",request.getParameter("start"),-1);
 
     //AtlasStructuredQueryService
@@ -19,23 +19,13 @@
     if(null == prefix)
                prefix = "a";
 
-    int RecordCount = 1000;
+    int RecordCount = GeneListCacheServlet.PageSize;
 
+    //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
     if(null != Rec)
         RecordCount= 100000;
 
-    AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
-
-    Collection<AutoCompleteItem> Genes = service.getGeneListHelper().autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME,prefix,RecordCount,null);
-
-    //AZ:2008-07-07 "0" means all numbers
-    if(prefix.equals("0"))
-    {
-        for(int i=1;i!=10;i++)
-        {
-            Genes.addAll(service.getGeneListHelper().autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME,String.valueOf(i),RecordCount,null));
-        }
-    }
+    Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
 
     request.setAttribute("Genes",Genes);
 %>
@@ -75,7 +65,7 @@
 
 
 <jsp:include page="start_head.jsp" />
-Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
+Gene Expression Atlas - Gene Index
 <jsp:include page="end_head.jsp" />
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
@@ -107,7 +97,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <a href="<%= request.getContextPath()%>/" title="Home"><img src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0"></a>          
+            <a href="<%= request.getContextPath()%>/" title="Home"><img width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0"></a>          
         </td>
 
         <td width="100%" valign="bottom" align="right">
@@ -165,9 +155,12 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         if(null == prefix)
                prefix = "a";
         
-        String NextURL = "index.htm?start="+prefix+"&rec=1000" ;
+        String NextURL = "index.htm?start="+prefix+"&rec="+Integer.toString(GeneListCacheServlet.PageSize) ;
 
-        boolean more = ((Genes.size() > 999) & (Rec==null));
+        boolean more = (Genes.size() > (GeneListCacheServlet.PageSize-1)) & (Rec==null);
+
+        //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.          
+        more = true;
 
         request.setAttribute("more",more);
     %>

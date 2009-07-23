@@ -2,16 +2,33 @@
 <%@ page import="ae3.service.structuredquery.AtlasStructuredQueryService" %>
 <%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
 <%@ page import="java.util.Collection" %>
+<%@ page import="ae3.service.ArrayExpressSearchService" %>
+<%@ page import="ae3.model.AtlasExperiment" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.HashMap" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-     AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
+    AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
 
     Collection<AutoCompleteItem> Genes = service.getEfvListHelper().autoCompleteValues("experiment","",1000,null);
 
     request.setAttribute("Genes",Genes);
+
+    List<AtlasExperiment> expz = (ArrayExpressSearchService.instance().getAtlasDao()).getExperiments();
+
+    HashMap<String,String> ExperimentNames = new HashMap<String,String>();
+
+    for(AtlasExperiment e : expz)
+    {
+
+        String s1 = e.getDwExpDescription();
+        String s2 = e.getDwExpAccession();
+
+        ExperimentNames.put(s2,s1);
+    }
 %>
 
 <style type="text/css">
@@ -49,7 +66,7 @@
 
 
 <jsp:include page="start_head.jsp" />
-Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
+Gene Expression Atlas - Experiment Index
 <jsp:include page="end_head.jsp" />
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
@@ -81,7 +98,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <a href="<%= request.getContextPath()%>/" title="Home"><img src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0"></a>          
+            <a href="<%= request.getContextPath()%>/" title="Home"><img width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0"></a>
         </td>
 
         <td width="100%" valign="bottom" align="right">
@@ -102,10 +119,24 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
 
 
-    <c:forEach var="gene" items="${Genes}">
+    <table cellspacing="0" cellpadding="2" border="0">
 
-         <a href="<%=request.getContextPath()%>/experiment/${gene.value}" title="Experiment Data For ${gene.value}" target="_self">${gene.value}</a>&nbsp;
-    </c:forEach>
+
+    <% for ( AutoCompleteItem i : Genes ) { %>
+
+        <tr>
+        <td>
+         <a href="<%=request.getContextPath()%>/experiment/<%= i.getValue() %>" title="Experiment Data For <%= i.getValue() %>" target="_self"><%= i.getValue() %></a>&nbsp;
+        </td>
+            <td>
+              <%= ExperimentNames.get(i.getValue()) %>
+
+            </td>
+        </tr>
+    <% } %>
+
+
+        </table>
 
     <%
         String s = request.getRequestURI();

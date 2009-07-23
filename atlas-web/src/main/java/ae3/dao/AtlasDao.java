@@ -78,6 +78,33 @@ public class AtlasDao {
         }
     }
 
+       
+    public List<AtlasExperiment> getExperiments(){
+        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
+
+        SolrQuery q = new SolrQuery("*:*");
+        q.setRows(10000);
+        q.setFields("");
+        try {
+            QueryResponse queryResponse = solrExpt.query(q);
+            SolrDocumentList documentList = queryResponse.getResults();
+
+            if (documentList == null || documentList.size() < 1)
+                return null;
+
+            for(SolrDocument exptDoc : documentList)
+            {
+                 result.add(new AtlasExperiment(exptDoc));
+            }
+
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying for experiment", e);
+        }
+
+        return result;          
+    }
+
+
     public AtlasGeneResult getGeneById(String gene_id_key) {
         return getGeneByQuery("gene_id:" + EscapeUtil.escapeSolr(gene_id_key));
     }

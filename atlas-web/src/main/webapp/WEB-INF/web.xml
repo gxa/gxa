@@ -98,6 +98,13 @@
     </servlet>
 
     <servlet>
+     <display-name>GeneListCacheServlet</display-name>
+     <servlet-name>GeneListCacheServlet</servlet-name>
+     <servlet-class>ae3.servlet.GeneListCacheServlet</servlet-class>
+     <load-on-startup>1</load-on-startup>
+   </servlet>
+
+    <servlet>
         <display-name>List view download servlet</display-name>
         <servlet-name>ListviewDownloadServlet</servlet-name>
         <servlet-class>ae3.servlet.ListviewDownloadServlet</servlet-class>
