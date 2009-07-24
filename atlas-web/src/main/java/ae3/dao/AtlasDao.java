@@ -27,6 +27,8 @@ import java.util.*;
  */
 public class AtlasDao {
     final private Logger log = LoggerFactory.getLogger(getClass());
+    final private int MAX_GENES = 100000;
+    final private int MAX_EXPERIMENTS = 10000;
 
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
@@ -83,7 +85,7 @@ public class AtlasDao {
         List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
         SolrQuery q = new SolrQuery("*:*");
-        q.setRows(10000);
+        q.setRows(MAX_EXPERIMENTS);
         q.setFields("");
         try {
             QueryResponse queryResponse = solrExpt.query(q);
@@ -148,6 +150,28 @@ public class AtlasDao {
         }
     }
 
+    public List<AtlasGene> getGenes() {
+        List<AtlasGene> result = new ArrayList<AtlasGene>(); 
+
+        SolrQuery q = new SolrQuery("*:*");
+        q.setRows(1000);
+        q.setFields("gene_name,gene_id,gene_identifier");
+        try {
+            QueryResponse queryResponse = solrAtlas.query(q);
+            SolrDocumentList documentList = queryResponse.getResults();
+
+            for(SolrDocument d : documentList)
+            {
+                AtlasGene g = new AtlasGene(d);
+                result.add(g);
+            }
+
+            return result;
+
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying list of genes");
+        }
+    }
 
     /**
      * Returns the AtlasGene corresponding to the specified gene identifier, i.e. matching one of the terms in the

@@ -90,6 +90,13 @@
       <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet>
+      <display-name>Gene Ebeye Dump</display-name>
+      <servlet-name>GeneEbeyeDump</servlet-name>
+      <servlet-class>ae3.servlet.GeneEbeyeDumpDownloadServlet</servlet-class>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+
      <servlet>
       <display-name>Google Sitemap</display-name>
       <servlet-name>GoogleSitemap</servlet-name>
@@ -192,6 +199,12 @@
         <servlet-name>GeneIdentifiersDump</servlet-name>
         <url-pattern>/download/gene_identifiers.txt</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>GeneEbeyeDump</servlet-name>
+        <url-pattern>/download/ebeye_export.xml</url-pattern>
+    </servlet-mapping>
+
 
     <servlet-mapping>
 	    <servlet-name>GoogleSitemap</servlet-name>
