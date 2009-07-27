@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
  * Date: Jul 15, 2009
  * Time: 2:05:16 PM
  * To change this template use File | Settings | File Templates.
+ * just for test
  */
 public class XML4dbDumps  {
     public static class Document{
