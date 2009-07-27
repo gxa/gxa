@@ -19,8 +19,14 @@ public class EfoServlet extends JsonServlet {
         EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService().getEfoListHelper();
 
+
         Collection result = null;
         String id = request.getParameter("childrenOf");
+
+        //AZ:shortcut to make drop down show something first time 
+        if((id == null)&&("".equals(request.getParameter("downTo"))))
+            id="EFO_0000001";
+
         if(id != null && id.length() != 0)
             result = service.getTermChildren(id);
         else {
@@ -48,6 +54,8 @@ public class EfoServlet extends JsonServlet {
         String highlights = request.getParameter("hl");
         if(highlights != null && highlights.length() == 0)
             highlights = null;
+
+
 
         log.info("EFO request for <" + id + "> expand down to <" + downTo + ">");
 
