@@ -23,19 +23,24 @@ public class EfoServlet extends JsonServlet {
         Collection result = null;
         String id = request.getParameter("childrenOf");
 
-        //AZ:shortcut to make drop down show something first time 
-        if((id == null)&&("".equals(request.getParameter("downTo"))))
-            id="EFO_0000001";
-
-        if(id != null && id.length() != 0)
+        if(id != null) {
+            if(id.length() == 0)
+                id = null;
+            log.info("EFO request for children of " + id);
             result = service.getTermChildren(id);
-        else {
+        } else {
             id = request.getParameter("downTo");
-            if(id != null && id.length() != 0)
+            if(id != null && id.length() != 0) {
                 result = service.getTreeDownToTerm(id);
-            else {
+                log.info("EFO request for tree down to " + id);
+            } else if(id != null && id.length() == 0) {
+                // just show roots if nothing is down to
+                log.info("EFO request for tree root");
+                result = service.getTermChildren(null);
+            } else {
                 id = request.getParameter("parentsOf");
                 if(id != null && id.length() != 0) {
+                    log.info("EFO request for parents of " + id);
                     result = new ArrayList();
                     for(List<EfoValueListHelper.EfoTermCount> i : service.getTermParentPaths(id))
                         result.addAll(i);
@@ -44,20 +49,9 @@ public class EfoServlet extends JsonServlet {
             }
         }
 
-        String downTo = null;
-        if(id == null) {
-            downTo = request.getParameter("downTo");
-            if(downTo != null && downTo.length() == 0)
-                downTo = null;
-        }
-
         String highlights = request.getParameter("hl");
         if(highlights != null && highlights.length() == 0)
             highlights = null;
-
-
-
-        log.info("EFO request for <" + id + "> expand down to <" + downTo + ">");
 
         JSONObject o = new JSONObject();
         o.putOpt("hl", highlights != null ? new JSONArray(service.searchTerms(EscapeUtil.parseQuotedList(highlights)), false) : null);
