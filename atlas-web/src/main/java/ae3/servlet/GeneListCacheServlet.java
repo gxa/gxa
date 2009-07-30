@@ -162,7 +162,7 @@ public class GeneListCacheServlet extends HttpServlet{
 
     private static Collection<AutoCompleteItem> QueryIndex(String prefix, Integer recordCount) throws Exception{
 
-        AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
+        final AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
 
         Collection<AutoCompleteItem> Genes = service.getGeneListHelper().autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME,prefix,recordCount,null);
 
@@ -182,24 +182,14 @@ public class GeneListCacheServlet extends HttpServlet{
         {
             String s = a.getValue();
 
-            class c implements Comparator<AutoCompleteItem>{
+                int iPos = Collections.binarySearch(result, a, new Comparator<AutoCompleteItem>() {
                     public int compare(AutoCompleteItem t1, AutoCompleteItem t2){
                         return t1.getValue().compareTo( t2.getValue() );
                     }
-             }
+                    });
 
-            c c = new c();
-
-            //AZ: can not fimd duplicates if run without predicate 
-            if(true/*a.getValue().startsWith("Abh")*/){
-                if(Collections.binarySearch(result, a, c)<0) {
-                  //System.out.println(a.getValue()+" not found ID="+ a.getId());
-                  result.add(a);
-                }
-                else{
-                  //System.out.println(a.getValue()+" found ID=" + a.getId());
-                }
-            }
+            if(iPos<0)
+                result.add(-1*(iPos+1),a);
         }
 
         return result;
