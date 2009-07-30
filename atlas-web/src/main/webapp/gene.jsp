@@ -150,8 +150,13 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
          	});
          </c:if>
          //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
-         $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
+         //$("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
+        countExperiments();
 	}
+
+    function countExperiments(){
+       $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");  
+    }
 
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id*5) +1;
