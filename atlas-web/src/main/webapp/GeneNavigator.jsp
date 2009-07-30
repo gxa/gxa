@@ -2,9 +2,14 @@
 <%@ page import="java.util.Collection" %>
 <%@ page import="ae3.service.structuredquery.*" %>
 <%@ page import="ae3.servlet.GeneListCacheServlet" %>
+<%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<%
+    request.setAttribute("service", ArrayExpressSearchService.instance());
+%>
 
 <%
     //GenePropValueListHelper.Instance.treeAutocomplete("name",request.getParameter("start"),-1);

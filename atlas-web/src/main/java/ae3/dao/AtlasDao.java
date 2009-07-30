@@ -87,6 +87,8 @@ public class AtlasDao {
         SolrQuery q = new SolrQuery("*:*");
         q.setRows(MAX_EXPERIMENTS);
         q.setFields("");
+        q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
+        
         try {
             QueryResponse queryResponse = solrExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();

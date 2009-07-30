@@ -9,6 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import java.util.*;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -69,6 +71,9 @@ public class AtlasExperiment implements java.io.Serializable {
         	}
         }
 
+        Object o = exptDoc.getFieldValue("timestamp");
+        
+        setLoadDate((Date)o);
     }
 
     public void setDwExpType(Collection<String> experimentTypes) {
@@ -192,5 +197,26 @@ public class AtlasExperiment implements java.io.Serializable {
 
     public void addHighestRankEF(String geneIdentifier, String highestRankEF) {
         this.highestRankEF.put(geneIdentifier, highestRankEF);
+    }
+
+    private Date loadDate;
+
+    public void setLoadDate(Date value){
+            loadDate = value;
+    }
+
+    public Date getLoadDate(){
+
+        return loadDate;
+        /*
+        try{
+            //exptSolrDocument.getFieldValue("")
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
+                //new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.US);
+
+        return sdf.parse("2008-01-01");
+        }
+        catch(ParseException ex){ return null; } //TODO
+        */
     }
 }

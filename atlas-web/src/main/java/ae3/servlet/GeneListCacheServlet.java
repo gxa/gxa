@@ -26,9 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 import com.sun.org.apache.xpath.internal.NodeSet;
 
@@ -84,7 +82,7 @@ public class GeneListCacheServlet extends HttpServlet{
                 {
                     String prefix = String.valueOf(letters.charAt(i));
 
-                    Collection<AutoCompleteItem> Genes = QueryIndex(prefix, PageSize); 
+                    Collection<AutoCompleteItem> Genes = QueryIndex(prefix, PageSize);
 
                     if(prefix.equals("0"))
                         prefix = "num";
@@ -178,7 +176,34 @@ public class GeneListCacheServlet extends HttpServlet{
             
         }
 
-        return new LinkedHashSet<AutoCompleteItem>(Genes);
+        ArrayList<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+
+        for(AutoCompleteItem a : Genes)
+        {
+            String s = a.getValue();
+
+            class c implements Comparator<AutoCompleteItem>{
+                    public int compare(AutoCompleteItem t1, AutoCompleteItem t2){
+                        return t1.getValue().compareTo( t2.getValue() );
+                    }
+             }
+
+            c c = new c();
+
+            //AZ: can not fimd duplicates if run without predicate 
+            if(true/*a.getValue().startsWith("Abh")*/){
+                if(Collections.binarySearch(result, a, c)<0) {
+                  //System.out.println(a.getValue()+" not found ID="+ a.getId());
+                  result.add(a);
+                }
+                else{
+                  //System.out.println(a.getValue()+" found ID=" + a.getId());
+                }
+            }
+        }
+
+        return result;
     }
+        //return result; //new LinkedHashSet<AutoCompleteItem>(Genes);
 }
 

@@ -6,6 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.Set;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
 import org.springframework.beans.MethodInvocationException;
 
 /**
@@ -107,5 +110,11 @@ public class HtmlHelper {
             }
         }
         return r;
+    }
+
+    public static String FormatDate(String format, Date date ){
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        //System.out.println("Date is : " + formatter.format(date));
+        return formatter.format(date); 
     }
 }

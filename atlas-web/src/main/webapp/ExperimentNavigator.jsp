@@ -6,20 +6,28 @@
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="ae3.dao.AtlasDao" %>
+<%@ page import="ae3.util.HtmlHelper" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
+    request.setAttribute("service", ArrayExpressSearchService.instance());
+%>
 
-    Collection<AutoCompleteItem> Genes = service.getEfvListHelper().autoCompleteValues("experiment","",1000,null);
+<%
+    //AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
 
-    request.setAttribute("Genes",Genes);
+    //Collection<AutoCompleteItem> Genes = service.getEfvListHelper().autoCompleteValues("experiment","",1000,null);
+
+    //getExperiments
+
+    //request.setAttribute("Genes",Genes);
 
     List<AtlasExperiment> expz = (ArrayExpressSearchService.instance().getAtlasDao()).getExperiments();
 
-    HashMap<String,String> ExperimentNames = new HashMap<String,String>();
+    HashMap<String,AtlasExperiment> ExperimentNames = new HashMap<String,AtlasExperiment>();
 
     for(AtlasExperiment e : expz)
     {
@@ -27,7 +35,7 @@
         String s1 = e.getDwExpDescription();
         String s2 = e.getDwExpAccession();
 
-        ExperimentNames.put(s2,s1);
+        ExperimentNames.put(s2,e/*s1*/);
     }
 %>
 
@@ -114,7 +122,8 @@ Gene Expression Atlas - Experiment Index
     </tr>
 </table>
 
-    <div style="margin:100px; font-weight:bold; font-size:larger; text-align:center;">
+    <div style="margin:40px; font-weight:bold; font-size:larger; text-align:center;">
+        Complete list of experiments curated and loaded in the Gene Expression Atlas
     </div>
 
 
@@ -122,16 +131,23 @@ Gene Expression Atlas - Experiment Index
     <table cellspacing="0" cellpadding="2" border="0">
 
 
-    <% for ( AutoCompleteItem i : Genes ) { %>
+    <% for ( AtlasExperiment i : expz ) { %>
 
         <tr>
         <td>
-         <a href="<%=request.getContextPath()%>/experiment/<%= i.getValue() %>" title="Experiment Data For <%= i.getValue() %>" target="_self"><%= i.getValue() %></a>&nbsp;
+         <a href="<%=request.getContextPath()%>/experiment/<%= i.getDwExpAccession() %>" title="Experiment Data For <%= i.getDwExpAccession() %>" target="_self"><%= i.getDwExpAccession() %></a>&nbsp;
         </td>
             <td>
-              <%= ExperimentNames.get(i.getValue()) %>
+                
+              <%= i.getDwExpDescription() %>
 
             </td>
+            <td>
+
+              <%= HtmlHelper.FormatDate("dd/MM/yyyy", i.getLoadDate()) %>
+
+            </td>
+
         </tr>
     <% } %>
 
