@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -90,7 +91,7 @@ public class GeneListCacheServlet extends HttpServlet{
                     for(AutoCompleteItem j : Genes){
                          String geneName = j.getValue();
 
-                        bfind.write(String.format("<%1$s>%2$s</%1$s>\n", prefix, geneName).getBytes());
+                        bfind.write(String.format("<%1$s id=\"%3$s\">%2$s</%1$s>\n", prefix, geneName, j.getId()).getBytes());
                     }
                 }
                 
@@ -141,10 +142,11 @@ public class GeneListCacheServlet extends HttpServlet{
                         Node n = nodes.item(i);
 
                         String name = n.getTextContent();
+                        String id = ((Element) n).getAttribute("id");
 
                         Long count = 1L;
 
-                        AutoCompleteItem ai = new AutoCompleteItem(name,name,name,count);
+                        AutoCompleteItem ai = new AutoCompleteItem(name,id,name,count);
 
                         result.add(ai);
                     }
