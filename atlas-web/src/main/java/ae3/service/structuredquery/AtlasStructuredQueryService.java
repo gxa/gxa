@@ -62,11 +62,35 @@ public class AtlasStructuredQueryService {
 
     private final AtlasDao atlasDao;
 
+    private final CoreContainer coreContainer;
+    private final Set<String> cacheFill = new HashSet<String>();
+
+    private void controlCache() {
+        synchronized (cacheFill) {
+            if(cacheFill.size() > 500) {
+                SolrCore core = coreContainer.getCore(Constants.CORE_ATLAS);
+                if( core != null ) {
+                    core.closeSearcher();
+                    core.close();
+                }
+                cacheFill.clear();
+            }
+        }
+    }
+
+    private void notifyCache(String field) {
+        synchronized (cacheFill) {
+            cacheFill.add(field);
+        }
+    }
+
     /**
      * Constructor. Requires SOLR core container reference to work.
      * @param coreContainer reference to core container with cores "expt" and "atlas"
      */
     public AtlasStructuredQueryService(CoreContainer coreContainer) {
+        this.coreContainer = coreContainer;
+
         SolrCore coreExpt = coreContainer.getCore(Constants.CORE_EXPT);
         SolrCore coreAtlas = coreContainer.getCore(Constants.CORE_ATLAS);
 
@@ -231,7 +255,8 @@ public class AtlasStructuredQueryService {
             return "SOLR query: <" + solrq.toString() + ">, Experiments: [" + StringUtils.join(experiments, ", ") + "], "
                     + "EFVs: [" + efvs.toString() + "], EFOs: [" + efos.toString() + "]";
         }
-    };
+    }
+
 
     /**
      * Process structured Atlas query
@@ -255,6 +280,9 @@ public class AtlasStructuredQueryService {
         if(!qstate.isEmpty())
         {
             try {
+
+                controlCache();
+
                 SolrQuery q = setupSolrQuery(query, qstate);
                 QueryResponse response = solrAtlas.query(q);
                 
@@ -415,6 +443,8 @@ public class AtlasStructuredQueryService {
                             String efefvId = condEfv.getEfEfvId();
                             solrq.appendExpFields("cnt_", efefvId, c.getExpression());
                             solrq.appendExpScores("s_", efefvId, c.getExpression());
+
+                            notifyCache(efefvId + c.getExpression());
                             
                             if(Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv());

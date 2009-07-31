@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
@@ -29,8 +30,9 @@ public class Download implements Runnable {
 
     private long totalResults = 0;
     private long resultsRetrieved = 0;
+    private static final int FRAME_SIZE = 1000;
 
-	public Download(int id, AtlasStructuredQuery query) throws IOException {
+    public Download(int id, AtlasStructuredQuery query) throws IOException {
 		this.query = query;
         this.id = id;
 
@@ -57,28 +59,25 @@ public class Download implements Runnable {
                         new BufferedOutputStream(
                         new FileOutputStream(getOutputFile())));
 
-                query.setStart(0);
-                query.setRowsPerPage(0);
 
-                AtlasStructuredQueryResult atlasResult =
-                        ArrayExpressSearchService
+                final AtlasStructuredQueryService sqs = ArrayExpressSearchService
                         .instance()
-                        .getStructQueryService()
-                        .doStructuredAtlasQuery(query);
+                        .getStructQueryService();
 
-                setTotalResults(atlasResult.getTotal());
+                boolean first = true;
 
-                log.info("Downloading query {}, expect total {} results", query.toString(), getTotalResults());
-                outputHeader(gzout);
-
-                while(getTotalResults() > getResultsRetrieved()) {
+                while(first || getTotalResults() > getResultsRetrieved()) {
                     query.setStart((int) getResultsRetrieved());
-                    query.setRowsPerPage((int) Math.min(1000, getTotalResults() - getResultsRetrieved()));
-                    atlasResult =
-                            ArrayExpressSearchService
-                            .instance()
-                            .getStructQueryService()
-                            .doStructuredAtlasQuery(query);
+                    query.setRowsPerPage(first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved()));
+                    AtlasStructuredQueryResult atlasResult = sqs.doStructuredAtlasQuery(query);
+
+                    if(first) {
+                        setTotalResults(atlasResult.getTotal());
+
+                        log.info("Downloading query {}, expect total {} results", query.toString(), getTotalResults());
+                        outputHeader(gzout);
+                        first = false;
+                    }
 
                     outputResults(atlasResult, gzout);
                     incrementResultsRetrieved(atlasResult.getSize());

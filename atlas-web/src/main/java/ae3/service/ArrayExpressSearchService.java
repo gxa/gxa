@@ -87,8 +87,8 @@ public class ArrayExpressSearchService {
         try {
 	        multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
 
-            solr_expt = new EmbeddedSolrServer(multiCore,"expt");
-            solr_atlas = new EmbeddedSolrServer(multiCore,"atlas");
+            solr_expt = new EmbeddedSolrServer(multiCore, Constants.CORE_EXPT);
+            solr_atlas = new EmbeddedSolrServer(multiCore, Constants.CORE_ATLAS);
 
             atlasDao = new AtlasDao(multiCore);
 
