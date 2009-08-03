@@ -3,6 +3,7 @@
 <%@ page import="ae3.service.structuredquery.*" %>
 <%@ page import="ae3.servlet.GeneListCacheServlet" %>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
+<%@ page import="ae3.dao.AtlasDB" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -25,12 +26,17 @@
                prefix = "a";
 
     int RecordCount = GeneListCacheServlet.PageSize;
+    int StartRecord = 0;
 
     //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
     if(null != Rec)
+    {
         RecordCount= 100000;
+        StartRecord = GeneListCacheServlet.PageSize; 
+    }
 
-    Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
+    //Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
+    Collection<AtlasDB.Gene> Genes = AtlasDB.getGenes(prefix, StartRecord, RecordCount);
 
     request.setAttribute("Genes",Genes);
 %>
@@ -151,7 +157,7 @@ Gene Expression Atlas - Gene Index
 
 
     <c:forEach var="gene" items="${Genes}">
-         <a href="<%=request.getContextPath()%>/gene/${gene.id}" title="Gene Expression Atlas Data For ${gene.value}" target="_self">${gene.value}</a>&nbsp;
+         <a href="<%=request.getContextPath()%>/gene/${gene.id}" title="Gene Expression Atlas Data For ${gene.name}" target="_self">${gene.name}</a>&nbsp;
     </c:forEach>
 
     <%

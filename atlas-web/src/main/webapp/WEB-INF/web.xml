@@ -108,7 +108,7 @@
      <display-name>GeneListCacheServlet</display-name>
      <servlet-name>GeneListCacheServlet</servlet-name>
      <servlet-class>ae3.servlet.GeneListCacheServlet</servlet-class>
-     <load-on-startup>1</load-on-startup>
+     <load-on-startup>0</load-on-startup>
    </servlet>
 
     <servlet>
