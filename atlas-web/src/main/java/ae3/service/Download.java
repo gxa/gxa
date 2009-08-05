@@ -2,7 +2,8 @@ package ae3.service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.io.*;
 
 import org.slf4j.Logger;
@@ -30,13 +31,13 @@ public class Download implements Runnable {
 
     private long totalResults = 0;
     private long resultsRetrieved = 0;
-    private static final int FRAME_SIZE = 1000;
+    private static final int FRAME_SIZE = 50;
 
     public Download(int id, AtlasStructuredQuery query) throws IOException {
 		this.query = query;
         this.id = id;
 
-        this.outputFile =  File.createTempFile("listdl", ".tab.gz", new File(System.getProperty("java.io.tmpdir")));
+        this.outputFile =  File.createTempFile("listdl", ".zip", new File(System.getProperty("java.io.tmpdir")));
         this.outputFile.deleteOnExit();
 	}
 
@@ -54,10 +55,8 @@ public class Download implements Runnable {
 	public void run() {
 		if(query != null) {
             try {
-                GZIPOutputStream gzout =
-                        new GZIPOutputStream(
-                        new BufferedOutputStream(
-                        new FileOutputStream(getOutputFile())));
+                ZipOutputStream zout =
+                        new ZipOutputStream(new FileOutputStream(getOutputFile()));
 
 
                 final AtlasStructuredQueryService sqs = ArrayExpressSearchService
@@ -70,20 +69,20 @@ public class Download implements Runnable {
                     query.setStart((int) getResultsRetrieved());
                     query.setRowsPerPage(first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved()));
                     AtlasStructuredQueryResult atlasResult = sqs.doStructuredAtlasQuery(query);
-
                     if(first) {
                         setTotalResults(atlasResult.getTotal());
 
                         log.info("Downloading query {}, expect total {} results", query.toString(), getTotalResults());
-                        outputHeader(gzout);
+                        zout.putNextEntry(new ZipEntry("listdl.tab"));
+                        outputHeader(zout);
                         first = false;
                     }
 
-                    outputResults(atlasResult, gzout);
+                    outputResults(atlasResult, zout);
                     incrementResultsRetrieved(atlasResult.getSize());
                 }
-
-                gzout.close();
+                zout.closeEntry();
+                zout.close();
             } catch (IOException e) {
                 log.error("Error executing download for query {}, error {}", query, e.getMessage());
             }

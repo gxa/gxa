@@ -15,6 +15,7 @@ public class AtlasStructuredQuery {
     private Collection<GeneQueryCondition> geneConditions;
     private int start;
     private int rowsPerPage;
+    private int expsPerGene;
     private Set<String> expandColumns;
     private ViewType viewType;
     private boolean export;
@@ -194,5 +195,22 @@ public class AtlasStructuredQuery {
 				sb.append(c.getJointFactorValues());
 		}
 		return sb.toString();
+	}
+
+	
+	/**
+	 * Retrieves number of experiments to retrieve for each gene
+	 * @return number of experiments set for each gene
+	 */
+	public int getExpsPerGene() {
+		return expsPerGene;
+	}
+	/**
+	 * Sets number of experiments to retrieve for each gene
+	 * @param expsPerGene
+	 */
+
+	public void setExpsPerGene(int expsPerGene) {
+		this.expsPerGene = expsPerGene;
 	}
 }

@@ -37,13 +37,13 @@ public class AtlasStructuredQueryResult {
      * @param start starting position in paging
      * @param rowsPerPage number of rows in page
      */
-    public AtlasStructuredQueryResult(long start, long rowsPerPage) {
+    public AtlasStructuredQueryResult(long start, long rowsPerPage, int expsPerGene) {
         this.results = new ArrayList<StructuredResultRow>();
         this.listResults = new ArrayList<ListResultRow>();
         this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
         this.rowsPerPage = rowsPerPage;
-        this.rowsPerGene = 10;
+        this.rowsPerGene = expsPerGene;
     }
 
     /**

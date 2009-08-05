@@ -158,13 +158,16 @@ public class AtlasStructuredQueryParser {
         
         if(httpRequest.getParameter("export")!=null){
         	request.setExport(httpRequest.getParameter("export").equals("true"));
+        	request.setExpsPerGene(Integer.MAX_VALUE);
         }
         
         if(!request.isNone()){
         	if(request.getViewType() == ViewType.HEATMAP || request.isExport())
             	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
-            else 
-            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize")); //TO DO: put value in atlas properties
+            else{ 
+            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize"));
+            	request.setExpsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene"));
+            }
         }
         
         

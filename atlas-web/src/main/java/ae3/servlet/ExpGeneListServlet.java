@@ -38,7 +38,7 @@ public class ExpGeneListServlet extends HttpServlet {
 		String geneId = request.getParameter("gid");
 		String startRow = request.getParameter("from");
 		Integer start;
-		AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(0,0);
+		AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(0,0,0);
 		try{
 			start = Integer.valueOf(startRow);
 		}catch (NumberFormatException e){

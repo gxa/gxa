@@ -124,4 +124,9 @@ public class AtlasStructuredQueryBuilder {
         q.setStart(start);
         return this;
     }
+    
+    public AtlasStructuredQueryBuilder expsPerGene(int exps) {
+    	q.setExpsPerGene(exps);
+    	return this;
+    }
 }

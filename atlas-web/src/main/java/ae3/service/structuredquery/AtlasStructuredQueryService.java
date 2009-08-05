@@ -274,7 +274,7 @@ public class AtlasStructuredQueryService {
 
         log.info("Structured query is: " + qstate.toString());
 
-        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage());
+        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
         result.setConditions(conditions);
 
         if(!qstate.isEmpty())
@@ -319,7 +319,10 @@ public class AtlasStructuredQueryService {
         return doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                 .andGene(geneIds)
                 .andUpdnIn(Constants.EXP_FACTOR_NAME, EscapeUtil.optionalQuote(eAcc))
-                .viewAs(ViewType.LIST).rowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize")).startFrom(start).query());
+                .viewAs(ViewType.LIST)
+                .rowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize"))
+                .startFrom(start)
+                .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
     }
         
     private Efo getEfo() {

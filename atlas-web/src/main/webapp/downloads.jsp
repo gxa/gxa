@@ -28,19 +28,25 @@
 			setTimeout("updateProgress()",1000);
 		
 	});
-	
+	var count=0;
 	function updateProgress(){
-		$.getJSON("downloadProgress.jsp",
-        function(data){
-          $.each(data.results, function(i, result) {
-          		$("#query"+i).progressBar(result.progress)
-          		if(result.progress == 100){
-                      $("#nodl" + i).hide();
-                      $("#dl" + i).show();
-          		}          							
-          	});
-        });
-		
+	
+		$.ajax({
+			url:"downloadProgress.jsp",
+			cache:false,
+			dataType:"json",
+			success: function(data){
+				          	$.each(data.results, function(i, result) {
+          					$("#query"+i).progressBar(result.progress)
+          					if(result.progress == 100){
+                      			$("#nodl" + i).hide();
+                      			$("#dl" + i).show();
+          					}          							
+          					});
+			}
+		});
+        
+		count++;
 		setTimeout("updateProgress()",1000);
 	}
 	
@@ -60,12 +66,10 @@
             <c:when test="${!empty downloads}">
                 <div style="position: relative; padding-left: 3px; top: 35px;" class="header"> List of your current downloads </div>
                 <table id="squery" style="position: relative; top: 40px;">
-                    <thead>
                         <th class="padded header">ID</th>
                         <th class="padded header">Query</th>
                         <th class="padded header">Download Progress</th>
                         <th class="padded header">File</th>
-                    </thead>
                     <c:forEach items="${downloads}" var="download" varStatus="i">
                         <tr>
                             <td class="padded">${i.index+1}</td>
