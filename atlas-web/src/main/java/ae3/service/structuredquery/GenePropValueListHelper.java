@@ -184,6 +184,7 @@ public class GenePropValueListHelper implements IValueListHelper {
         if(!iterator.hasNext())
             return;
 
+        Set<String> ids = new HashSet<String>();
         List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
         while(iterator.hasNext()) {
             SolrQuery q;
@@ -198,8 +199,6 @@ public class GenePropValueListHelper implements IValueListHelper {
                 sb.append(GeneProperties.convertPropertyToFacetField(i.getProperty()))
                         .append(":")
                         .append(EscapeUtil.escapeSolr(i.getValue()));
-                if(--num == 0)
-                    break;
             }
 
             if(speciesFilter != null && speciesFilter.length() > 0)
@@ -245,8 +244,10 @@ public class GenePropValueListHelper implements IValueListHelper {
                             }
                     }
 
-                if(name != null)
+                if(name != null && !ids.contains(geneId)) {
+                    ids.add(geneId);
                     res.add(new GeneAutoCompleteItem(GeneProperties.GENE_PROPERTY_NAME, name, 1L, species, geneId, names, nameSource));
+                }
             }
         }
         Collections.sort(res);
