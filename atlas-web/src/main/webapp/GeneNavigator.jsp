@@ -35,8 +35,8 @@
         StartRecord = GeneListCacheServlet.PageSize; 
     }
 
-    //Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
-    Collection<AtlasDB.Gene> Genes = AtlasDB.getGenes(prefix, StartRecord, RecordCount);
+    Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
+    //Collection<AtlasDB.Gene> Genes = AtlasDB.getGenes(prefix, StartRecord, RecordCount);
 
     request.setAttribute("Genes",Genes);
 %>
@@ -157,7 +157,7 @@ Gene Expression Atlas - Gene Index
 
 
     <c:forEach var="gene" items="${Genes}">
-         <a href="<%=request.getContextPath()%>/gene/${gene.id}" title="Gene Expression Atlas Data For ${gene.name}" target="_self">${gene.name}</a>&nbsp;
+         <a href="<%=request.getContextPath()%>/gene/${gene.id}" title="Gene Expression Atlas Data For ${gene.value}" target="_self">${gene.value}</a>&nbsp;
     </c:forEach>
 
     <%

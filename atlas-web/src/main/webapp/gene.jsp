@@ -13,6 +13,7 @@
 
 
 <%
+
 	String geneId = request.getParameter("gid");
 
     AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
@@ -20,14 +21,14 @@
 	if (geneId != null || geneId!="") {
         AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);
 		if(result.isMulti()) {
-	        response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
+	        response.sendRedirect("/"+request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
 	        return;
 		}
 
         if(!result.isFound()) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
-            request.getRequestDispatcher(request.getContextPath() + "/error.jsp").forward(request,response);
+            request.getRequestDispatcher("/"+request.getContextPath() + "/error.jsp").forward(request,response);
             return;
         }
 
