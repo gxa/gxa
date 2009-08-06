@@ -96,11 +96,9 @@ $.TokenList = function (input, settings) {
             switch(event.keyCode) {
                 case KEY.ESC:
                     if(resultsVisible())
-                        hide_dropdown();
+                        hide_dropdown(false);
                     break;
             
-                case KEY.UP:
-                case KEY.DOWN:
                 case KEY.LEFT:
                 case KEY.RIGHT:
                     if(!$(this).val()) {
@@ -113,37 +111,41 @@ $.TokenList = function (input, settings) {
 
                         if((previous_token.length && previous_token.get(0) === selected_token) || (next_token.length && next_token.get(0) === selected_token)) {
                             // Check if there is a previous/next token and it is selected
-                            if(event.keyCode == KEY.LEFT || event.keyCode == KEY.UP) {
+                            if(event.keyCode == KEY.LEFT) {
                                 deselect_token($(selected_token), POSITION.BEFORE);
                             } else {
                                 deselect_token($(selected_token), POSITION.AFTER);
                             }
-                        } else if((event.keyCode == KEY.LEFT || event.keyCode == KEY.UP) && previous_token.length) {
+                        } else if((event.keyCode == KEY.LEFT) && previous_token.length) {
                             // We are moving left, select the previous token if it exists
                             select_token($(previous_token.get(0)));
-                        } else if((event.keyCode == KEY.RIGHT || event.keyCode == KEY.DOWN) && next_token.length) {
+                        } else if((event.keyCode == KEY.RIGHT) && next_token.length) {
                             // We are moving right, select the next token if it exists
                             select_token($(next_token.get(0)));
                         }
-                    } else if(event.keyCode == KEY.DOWN && !resultsVisible()) {
-                        show_dropdown_searching();
-                        do_search();
-                    } else {
+                        return false;
+                    }
+                    break;
 
+                case KEY.UP:
+                case KEY.DOWN:
+                    if(resultsVisible()) {
                         var dropdown_item = null;
 
-                        if(event.keyCode == KEY.DOWN || event.keyCode == KEY.RIGHT) {
-                            dropdown_item = $(selected_dropdown_item).next();
+                        if(event.keyCode == KEY.DOWN) {
+                            dropdown_item = selected_dropdown_item == null ? dropdown_ul.children(':first') : $(selected_dropdown_item).next();
                         } else {
-                            dropdown_item = $(selected_dropdown_item).prev();
+                            dropdown_item = selected_dropdown_item == null ? dropdown_ul.children(':last') : $(selected_dropdown_item).prev();
                         }
 
                         if(dropdown_item.length) {
                             select_dropdown_item(dropdown_item);
                         }
-                        return false;
+                    } else if(event.keyCode == KEY.DOWN) {
+                        show_dropdown_searching();
+                        do_search(true);
                     }
-                    break;
+                    return false;
 
                 case KEY.BACKSPACE:
                     previous_token = input_token.prev();
@@ -157,7 +159,7 @@ $.TokenList = function (input, settings) {
 
                         return false;
                     } else if($(this).val().length == 1) {
-                        hide_dropdown();
+                        hide_dropdown(false);
                     } else {
                         show_dropdown_searching();
                         clearTimeout(timeout);
@@ -170,6 +172,8 @@ $.TokenList = function (input, settings) {
                         var li_data = $.data($(selected_dropdown_item).get(0), "tokeninput");
                         add_token(li_data);
                         return false;
+                    } else {
+                        hide_dropdown(true);
                     }
                     break;
 
@@ -202,7 +206,7 @@ $.TokenList = function (input, settings) {
             xhr.abort();
             xhr = null;
         }
-        hide_dropdown();
+        hide_dropdown(false);
     }).bind('preSubmit', function () {
         if(input_box.val() != '' && input_box.val() != settings.defaultValue) {
             var val = hidden_input.val();
@@ -218,6 +222,7 @@ $.TokenList = function (input, settings) {
     // Keep a reference to the selected token and dropdown item
     var selected_token = null;
     var selected_dropdown_item = null;
+    var dropdown_ul = null;
 
     // The list to store the token items in
     var token_list = $("<ul />")
@@ -247,7 +252,7 @@ $.TokenList = function (input, settings) {
         .mousedown(function (event) {
             // Stop user selecting text on tokens
             var li = get_element_from_event(event, "li");
-            if(li){
+            if(li && !li.is('.' + settings.classes.inputToken)) {
                 return false;
             }
         });
@@ -311,7 +316,7 @@ $.TokenList = function (input, settings) {
         dropdown.append($('<p/>').addClass(settings.classes.hideText).html(settings.hideText).mousedown(function (e) {
             prevent_blur = true;
         }).click(function () {
-            hide_dropdown();
+            hide_dropdown(false);
             prevent_blur = false;
         }));
     }
@@ -339,7 +344,7 @@ $.TokenList = function (input, settings) {
 
         var browse_el = settings.browser(function (data) {
             add_token(data);
-            hide_dropdown();
+            hide_dropdown(false);
         }, lastId, hidden_input.val());
 
         dropdown.empty().append(browse_el);
@@ -385,7 +390,7 @@ $.TokenList = function (input, settings) {
             .focus();
 
         // Don't show the help dropdown, they've got the idea
-        hide_dropdown();
+        hide_dropdown(false);
 
         var newid = settings.formatId(li_data);
 
@@ -428,7 +433,7 @@ $.TokenList = function (input, settings) {
         input_box.val("");
 
         // Hide dropdown if it is visible (eg if we clicked to select token)
-        hide_dropdown();
+        hide_dropdown(false);
     }
 
     // Deselect a token in the token list
@@ -555,11 +560,11 @@ $.TokenList = function (input, settings) {
     }
 
     // Populate the results dropdown with some results
-    function populate_dropdown (query, results) {
+    function populate_dropdown (query, results, select_first) {
         results = settings.getItemList(results, query);
         if(results.length) {
             dropdown.empty();
-            var dropdown_ul = $("<ul>")
+            dropdown_ul = $("<ul>")
                 .appendTo(dropdown)
                 .mouseover(function (event) {
                     select_dropdown_item(get_element_from_event(event, "li"));
@@ -586,13 +591,14 @@ $.TokenList = function (input, settings) {
                         this_li.addClass(settings.classes.dropdownItem2);
                     }
 
-                    if(i == 0) {
-                        select_dropdown_item(this_li);
-                    }
-
                     $.data(this_li.get(0), "tokeninput", results[i]);
                 }
             }
+
+            if(select_first)
+                select_dropdown_item(dropdown_ul.children(':first'));
+            else
+                selected_dropdown_item = null;
 
             dropdown_add_hidetext();
 
@@ -627,15 +633,15 @@ $.TokenList = function (input, settings) {
     function on_change() {
         var newval = input_box.val();
         if(previousValue != newval && newval.length > 0)
-            do_search();
+            do_search(false);
         else if(newval.length == 0)
-            hide_dropdown();
+            hide_dropdown(false);
         
         previousValue = newval;
     }
 
     // Do a search
-    function do_search() {
+    function do_search(select_first) {
         var query = input_box.val().toLowerCase();
 
         if(query && query.length) {
@@ -645,7 +651,7 @@ $.TokenList = function (input, settings) {
 
             var cached_results = cache.get(query);
             if(cached_results) {
-                populate_dropdown(query, cached_results);
+                populate_dropdown(query, cached_results, select_first);
             } else {
                 token_list.addClass(settings.classes.searching);
                 if(xhr && typeof(xhr.abort) == 'function')
@@ -653,7 +659,7 @@ $.TokenList = function (input, settings) {
                 xhr = $.get(settings.url, $.extend({"q": query }, settings.extraParams), function (results) {
                     token_list.removeClass(settings.classes.searching);
                     cache.add(query, results);
-                    populate_dropdown(query, results);
+                    populate_dropdown(query, results, select_first);
                 }, "json");
             }
         }
