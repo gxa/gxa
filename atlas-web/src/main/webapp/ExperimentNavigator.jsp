@@ -130,11 +130,10 @@ Gene Expression Atlas - Experiment Index
 
     <table cellspacing="0" cellpadding="2" border="0">
 
-
     <% for ( AtlasExperiment i : expz ) { %>
 
         <tr>
-        <td>
+        <td style="white-space:nowrap;">
          <a href="<%=request.getContextPath()%>/experiment/<%= i.getDwExpAccession() %>" title="Experiment Data For <%= i.getDwExpAccession() %>" target="_self"><%= i.getDwExpAccession() %></a>&nbsp;
         </td>
             <td>
@@ -143,8 +142,9 @@ Gene Expression Atlas - Experiment Index
 
             </td>
             <td>
-
+              <!--
               <%= HtmlHelper.FormatDate("dd/MM/yyyy", i.getLoadDate()) %>
+              -->
 
             </td>
 
