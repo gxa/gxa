@@ -32,4 +32,13 @@ public enum QueryExpression {
         }
         return result;
     }
+
+    static public QueryExpression parseFuzzyString(String s) {
+        s = s.toLowerCase();
+        boolean hasUp = s.contains("up");
+        boolean hasDn = s.contains("dn") || s.contains("down");
+        if(!(hasUp ^ hasDn))
+            return UP_DOWN;
+        return hasUp ? UP : DOWN;
+    }
 }

@@ -97,7 +97,7 @@ public class GeneProperties {
         return s;
     }
 
-    public static Iterable<String> allPropertyIds()
+    public static Collection<String> allPropertyIds()
     {
         Collection<String> s = new ArrayList<String>();
         for(Prop p : GENE_PROPS)

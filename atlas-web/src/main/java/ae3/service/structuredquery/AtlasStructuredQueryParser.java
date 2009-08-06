@@ -2,6 +2,7 @@ package ae3.service.structuredquery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -182,6 +183,56 @@ public class AtlasStructuredQueryParser {
        
 
         return request;
+    }
+
+    static private int num(String s, int def, int min, int max) {
+        try {
+            int r = Integer.valueOf(s);
+            return Math.max(Math.min(r, min), max);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties, Collection<String> factors) {
+        AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
+        for(Object e  : request.getParameterMap().entrySet()) {
+            String name = ((Map.Entry)e).getKey().toString();
+            for(String v : ((String[])((Map.Entry)e).getValue())) {
+                if(name.matches("^gene.*Is(Not)?$")) {
+                    boolean not = name.endsWith("Not");
+                    String propName = name.substring(4, name.length() - (not ? 5 : 2)).toLowerCase();
+                    if(propName.startsWith("any"))
+                        propName = "";
+                    else if(propName.length() > 0)
+                        for(String p : properties)
+                            if(p.equalsIgnoreCase(propName))
+                                propName = p;
+
+                    qb.andGene(propName, !not, EscapeUtil.parseQuotedList(v));
+                } else if(name.matches("^(up|d(ow)?n|up([Oo]r)?[Dd]own)In.*$")) {
+                    int inPos = name.indexOf("In");
+                    QueryExpression qexp = QueryExpression.parseFuzzyString(name.substring(0, inPos));
+                    String factName = name.substring(inPos + 2).toLowerCase();
+                    if(factName.startsWith("any"))
+                        factName = "";
+                    else if(factName.length() > 0)
+                        for(String p : factors)
+                            if(p.equalsIgnoreCase(factName))
+                                factName = p;
+
+                    qb.andExprIn(factName, qexp, EscapeUtil.parseQuotedList(v));
+                } else if(name.equalsIgnoreCase("species")) {
+                    for(String s : EscapeUtil.parseQuotedList(v))
+                        qb.andSpecies(s);
+                } else if(name.equalsIgnoreCase("rows")) {
+                    qb.rowsPerPage(num(v, 10, 1, 200));
+                } else if(name.equalsIgnoreCase("start")) {
+                    qb.startFrom(num(v, 0, 0, Integer.MAX_VALUE));
+                }
+            }
+        }
+        return qb.viewAs(ViewType.HEATMAP).query();
     }
 
 }

@@ -146,6 +146,13 @@
     </servlet>
 
     <servlet>
+        <display-name>API Search JSP Servlet</display-name>
+        <servlet-name>apiqrs</servlet-name>
+        <servlet-class>ae3.servlet.structuredquery.ApiStructuredQueryServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
         <display-name>Experiments servlet</display-name>
         <servlet-name>experiments</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.ExperimentsServlet</servlet-class>
@@ -228,6 +235,11 @@
     <servlet-mapping>
         <servlet-name>qrs</servlet-name>
         <url-pattern>/qrs</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>apiqrs</servlet-name>
+        <url-pattern>/apiqrs</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
