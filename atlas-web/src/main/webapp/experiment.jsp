@@ -95,12 +95,21 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     //AZ:2009-06-09:carry highlighted EF for removeGene
     var currentEF = '${ef}';
 
+    function addToolTips() {
+        $("#grid a.genename").tooltip({
+            bodyHandler: function () {
+                return $(this).next('.gtooltip').html();
+            },
+            showURL: false
+        });
+    }
 
     $(document).ready(function()
     {
 
         $("#topGenes").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
             initPaging();
+            addToolTips();
         });
 
         $("#accordion").accordion({
@@ -148,7 +157,8 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             var DEid = tokens[0];
             var ADid = tokens[1];
             $("#simResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
-                $("#simHeader").hide()
+                $("#simHeader").hide();
+                addToolTips();
             });
             return false;
         });
@@ -158,12 +168,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
             $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
                 $("#qryHeader").hide()
-                $("#grid a.genename").tooltip({
-                    bodyHandler: function () {
-                        return $(this).next('.gtooltip').html();
-                    },
-                    showURL: false
-                });
+                addToolTips();
             });
             return false;
         });
