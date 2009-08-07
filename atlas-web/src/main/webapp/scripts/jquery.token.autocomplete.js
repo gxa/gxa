@@ -27,6 +27,7 @@ $.fn.tokenInput = function (url, options) {
 $.fn.hideResults = function () { this.trigger('hideResults');return this; };
 $.fn.flushCache = function () { this.trigger('flushCache');return this; };
 $.fn.setOptions = function (options) { this.trigger('setOptions', [options]);return this; };
+$.fn.fullVal = function () { var r = ['']; this.trigger('fullVal', [r]);return r[0]; };
 
     // Highlight the query part of the search term
 $.highlightTerm = function (value, term, tag) {
@@ -202,24 +203,18 @@ $.TokenList = function (input, settings) {
     }).bind('flushCache', function () {
         cache.clear();
     }).bind('hideResults', function () {
-        if(xhr && typeof(xhr.abort) == 'function') {
-            xhr.abort();
-            xhr = null;
-        }
-        hide_dropdown(false);
+        stop_results();
     }).bind('preSubmit', function () {
-        if(input_box.val() != '' && input_box.val() != settings.defaultValue) {
-            var val = hidden_input.val();
-            if(val != '')
-                val += ' ';
-            val += input_box.val();
-            hidden_input.val(val);
-        }
+        stop_results();
+        hidden_input.val(full_value());
     }).bind('setOptions', function () {
         $.extend(settings, arguments[1]);
     }).bind('restore', function () {
         token_list.remove();
         hidden_input.unbind().show();
+        dropdown.remove();
+    }).bind('fullVal', function () {
+        arguments[1][0] = full_value();
     });
 
     // Keep a reference to the selected token and dropdown item
@@ -311,6 +306,23 @@ $.TokenList = function (input, settings) {
     //
     // Functions
     //
+
+    function full_value() {
+        var val = hidden_input.val();
+        if(val != '')
+            val += ' ';
+        if(input_box.val() != '' && input_box.val() != settings.defaultValue)
+            val += input_box.val();
+        return val;
+    }
+
+    function stop_results() {
+        if(xhr && typeof(xhr.abort) == 'function') {
+            xhr.abort();
+            xhr = null;
+        }
+        hide_dropdown(false);
+    }
 
     function resultsVisible() {
         return dropdown && dropdown.is(":visible");        
