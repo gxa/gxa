@@ -53,6 +53,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.token.autocomplete.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tooltip.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/common-query.js"></script>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css"/>
@@ -157,6 +158,12 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
             $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
                 $("#qryHeader").hide()
+                $("#grid a.genename").tooltip({
+                    bodyHandler: function () {
+                        return $(this).next('.gtooltip').html();
+                    },
+                    showURL: false
+                });
             });
             return false;
         });
