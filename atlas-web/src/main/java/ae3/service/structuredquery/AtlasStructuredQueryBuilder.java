@@ -24,7 +24,7 @@ public class AtlasStructuredQueryBuilder {
     }
 
     public AtlasStructuredQueryBuilder andGene(String property, Object values) {
-        return andGene(property, false, values);
+        return andGene(property, true, values);
     }
 
     public AtlasStructuredQueryBuilder andNotGene(Object values) {
@@ -32,7 +32,7 @@ public class AtlasStructuredQueryBuilder {
     }
 
     public AtlasStructuredQueryBuilder andNotGene(String property, Object values) {
-        return andGene(property, true, values);
+        return andGene(property, false, values);
     }
 
     private List<String> optionalParseList(Object values) {
