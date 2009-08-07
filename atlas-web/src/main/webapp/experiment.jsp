@@ -154,13 +154,10 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
         $("#searchForm").submit(function() {
             var qry = $("#geneInExp_qry").trigger('preSubmit').val();
+            atlas.tokenizeGeneInput($("#geneInExp_qry").trigger('restore'), '', '(all genes)');
             $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
             $("#qryHeader").show();
             $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
-                var inp = $("#geneInExp_qry");
-                inp.next('ul').remove();
-                inp.show();
-                atlas.tokenizeGeneInput(inp, '', '(all genes)');
                 $("#qryHeader").hide()
             });
             return false;

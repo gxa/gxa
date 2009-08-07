@@ -72,7 +72,7 @@ $.TokenList = function (input, settings) {
     // Create a new text input an attach keyup events
     var input_box = $("<input type='text'>")
         .attr('autocomplete', 'off')
-        .val((previousValue = settings.defaultValue ? settings.defaultValue : ''))
+        .val(previousValue = (settings.defaultValue ? settings.defaultValue : ''))
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
                 $(this).val('');
@@ -217,6 +217,9 @@ $.TokenList = function (input, settings) {
         }
     }).bind('setOptions', function () {
         $.extend(settings, arguments[1]);
+    }).bind('restore', function () {
+        token_list.remove();
+        hidden_input.unbind().show();
     });
 
     // Keep a reference to the selected token and dropdown item
@@ -281,6 +284,7 @@ $.TokenList = function (input, settings) {
         .hide();
 
     if(hidden_input.val() != '') {
+        input_box.val('');
         var vals = splitQuotes(hidden_input.val());
         hidden_input.val('');
         var others = [];
