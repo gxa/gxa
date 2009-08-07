@@ -102,4 +102,11 @@ public class EfoTest extends TestCase {
         assertTrue(isTermInCollection(result, "EFO_0000635"));
         assertTrue(!isTermInCollection(result, "EFO_0000001"));
     }
+
+    public void testTermsWithoutId() {
+        Efo efo = Efo.getEfo();
+
+        Set<String> terms = efo.getAllTermIds();
+        assertFalse(terms.contains(""));
+    }
 }
