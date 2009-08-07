@@ -31,7 +31,7 @@ public class SimilarityResultSet {
 		targetExperimentId = eid;
 		targetArrayDesignId = adid;
 		targetDesignElementId = deid;
-		netCDFsPath = "/ebi/ArrayExpress-files/NetCDFs.DWDEV";//DataServerAPI.getNetCDFPath();
+		netCDFsPath = "/ebi/ArrayExpress-files/NetCDFs.ATLAS";//DataServerAPI.getNetCDFPath();
 		if(eid!=""&&deid!=""&&adid!="")
 			sourceNetCDF = netCDFsPath+"/"+targetExperimentId+"_"+targetArrayDesignId+".nc";
 		results = new Vector<SimilarityResult>();
