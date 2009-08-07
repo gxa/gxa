@@ -4,10 +4,14 @@ import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
 import org.kchine.r.RNumeric;
+import org.kchine.r.RDataFrame;
 import org.kchine.r.server.RServices;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
+import ds.server.SimilarityResultSet;
 
 
 /**
@@ -40,5 +44,26 @@ public class AtlasComputeServiceTest {
 
         RNumeric i = svc.computeTask(task);
         assertEquals(i.getValue()[0], 4);
+    }
+
+    @Test
+    public void testComputeSimilarityTask() {
+        // do a similarity over E-AFMX-5 for an arbitrary design element/array design
+        final SimilarityResultSet simRS = new SimilarityResultSet("226010852","153094131","153069949");
+
+        RDataFrame sim = svc.computeTask(new ComputeTask<RDataFrame>() {
+            public RDataFrame compute(RServices R) throws RemoteException {
+                String callSim = "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
+                return (RDataFrame) R.getObject(callSim);
+            }
+        });
+
+        if(null != sim) {
+            simRS.loadResult(sim);
+            ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
+            assertEquals(simGeneIds.get(0), "153069988");
+        } else {
+            fail("Similarity search returned null");
+        }
     }
 }
