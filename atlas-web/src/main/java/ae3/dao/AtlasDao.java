@@ -220,7 +220,8 @@ public class AtlasDao {
             }
         });
 
-        for(int i = minRows > 0 ? minRows - 1 : 0; i < (maxRows > 0 ? maxRows : aexps.length); ++i) {
+        //AZ: crashed at aexps.length=0
+        for(int i = minRows > 0 ? minRows - 1 : 0; i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
             @SuppressWarnings("unchecked")
             Long experimentId = ((Map.Entry<Long, Double>)aexps[i]).getKey();
             AtlasExperiment atlasExperiment = getExperimentById(experimentId.toString());

@@ -18,10 +18,13 @@ import uk.ac.ebi.mydas.model.*;
 import javax.servlet.ServletContext;
 import java.net.URL;
 import java.net.MalformedURLException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Collections;
-import java.util.ArrayList;
+import java.util.*;
+
+import ae3.model.AtlasGene;
+import ae3.model.AtlasExperiment;
+import ae3.model.ListResultRow;
+import ae3.dao.AtlasDao;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Created Using IntelliJ IDEA.
@@ -120,7 +123,72 @@ public class GxaDasDataSource implements AnnotationDataSource {
     public DasAnnotatedSegment getFeatures(String segmentReference) throws BadReferenceObjectException, DataSourceException {
 
         try{
-                    if (segmentReference.equals ("ENSP00000369497")){
+                  if(1==1)
+                  {
+                      String geneId = segmentReference;
+
+                      //AtlasGeneService.getAtlasGene(geneId);
+                      AtlasGene atlasGene = ArrayExpressSearchService.instance().getAtlasDao().getGeneByIdentifier(geneId).getGene();
+
+                      if(null==atlasGene)
+                      {
+                          throw new DataSourceException("can not find gene with ID="+geneId);
+                      }
+
+                      List<ListResultRow> heatmaps = atlasGene.getHeatMapRows();
+                      
+                      ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
+
+                      for(ListResultRow i: heatmaps)
+                      {
+                          String notes = "many experiments has been done to prove genetic feature:";
+                          String featureLabel = "feature label";
+
+                          String FactorValue = i.getShortFv();
+                          String ExperimentFactor = i.getEf();
+
+                          featureLabel= ExperimentFactor + ":" + FactorValue;  
+
+                          List<AtlasExperiment> exps = ArrayExpressSearchService.instance().getAtlasDao().getRankedGeneExperiments(atlasGene, FactorValue, ExperimentFactor, 0, 100);
+
+                          if(null!=exps)
+                          {
+                          for(AtlasExperiment e : exps)
+                          {
+                              notes += e.getDwExpDescription();
+                              //e.toString();
+                          }
+                         }
+
+                          notes += "omg 6'6''";
+
+                          feat.add(new DasFeature(
+                                  "oneFeatureIdOne",
+                                  featureLabel,
+                                  "oneFeatureTypeIdOne",
+                                  "oneFeatureCategoryOne",
+                                  featureLabel,
+                                  "oneFeatureMethodIdOne",
+                                  "one Feature Method Label One",
+                                  0,
+                                  0,
+                                  0.0,
+                                  DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                                  DasPhase.PHASE_NOT_APPLICABLE,
+                                  Collections.singleton(notes),
+                                  Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene?gid=ENSG00000066279"), "Gene Expression Atlas Summary for ASPM (Homo sapiens) - Gene Expression Atlas"),
+                                  null,
+                                  null
+                          ));
+                      }
+
+
+                      DasAnnotatedSegment result = new DasAnnotatedSegment("hello p30pl3",1,1,"string1","string2",feat);
+
+                      return result;
+
+                  }
+                  else  if (segmentReference.equals ("ENSP00000369497")){
                         Collection<DasFeature> oneFeatures = new ArrayList<DasFeature>(2);
                         DasTarget target = new DasTarget("oneTargetId", 20, 30, "oneTargetName");
                         DasGroup group = new DasGroup(

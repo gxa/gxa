@@ -132,6 +132,8 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
 	function loadExps(){
 
+        countExperiments();
+        paginateExperiments();
         return;
     }
 
@@ -140,16 +142,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 		 $('#ExperimentResult').load("<%=request.getContextPath()%>/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:"1", to:"5"},drawPlots);
          $('#pagingSummary').empty();
          $(".heatmap_over").removeClass("heatmap_over");
-         // Create pagination element
-         <c:if test="${noAtlasExps > 5}">
-        	$("#Pagination").pagination(${noAtlasExps}, {
-				num_edge_entries: 2,
-				num_display_entries: 5,
-				items_per_page:5,
-                link_to : "#?Page=__id__",
-            	callback: pageselectCallback
-         	});
-         </c:if>
+         paginateExperiments();
          //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
          //$("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
         countExperiments();
@@ -157,6 +150,19 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
     function countExperiments(){
        $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");  
+    }
+
+    function paginateExperiments(){
+         // Create pagination element
+         <c:if test="${noAtlasExps > 5}">
+        	$("#Pagination").pagination(${noAtlasExps}, {
+				num_edge_entries: 2,
+				num_display_entries: 5,
+				items_per_page:5,
+                //link_to : "#?Page=__id__",
+                callback: pageselectCallback
+         	});
+         </c:if>
     }
 
 	function pageselectCallback(page_id, jq){

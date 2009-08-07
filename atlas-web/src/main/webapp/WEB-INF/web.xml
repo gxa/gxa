@@ -178,15 +178,28 @@
      </servlet>
 
     <servlet>
-        <display-name>DasDsn</display-name>
-        <servlet-name>DasDsn</servlet-name>
-        <jsp-file>/DasDsn.jsp</jsp-file>
+        <display-name>DasSources</display-name>
+        <servlet-name>DasSources</servlet-name>
+        <jsp-file>/DasSources.jsp</jsp-file>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <display-name>DasTypes</display-name>
+        <servlet-name>DasTypes</servlet-name>
+        <jsp-file>/DasTypes.jsp</jsp-file>
         <load-on-startup>0</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>DasDsn</servlet-name>
-        <url-pattern>/das/dsn</url-pattern>
+        <servlet-name>DasSources</servlet-name>
+        <url-pattern>/das/sources</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet-mapping>
+        <servlet-name>DasTypes</servlet-name>
+        <url-pattern>/das/types</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

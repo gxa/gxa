@@ -184,7 +184,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="<%= request.getContextPath() %>/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneId}">expression profile</a>
+			Show <a title="Show expression profile in detail" href="<%= request.getContextPath() %>/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneIdentifier}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>
@@ -199,7 +199,7 @@ if (geneId != null) {
 
 </table>
 
-<img src="<%= request.getContextPath() %>/images/pixel.gif" onload="drawPlots();countExperiments();" /> 
+<img src="<%= request.getContextPath() %>/images/pixel.gif" onload="drawPlots();" /> 
 
 
 
