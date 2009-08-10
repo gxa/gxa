@@ -6,6 +6,7 @@ import ae3.service.compute.ComputeTask;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.EscapeUtil;
+import ae3.model.ListResultRow;
 import ds.server.SimilarityResultSet;
 import org.kchine.r.RDataFrame;
 import org.kchine.r.server.RServices;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class ExpGeneListServlet extends HttpServlet {
 	final private Logger log = LoggerFactory.getLogger(getClass());
@@ -77,7 +79,10 @@ public class ExpGeneListServlet extends HttpServlet {
 		}else if(qryType.equals("top")){
 
 			result = service.findGenesForExperiment("", eAcc,start);
-			request.setAttribute("genes", result.getListResults());
+
+            Collection<ListResultRow> a = result.getListResults();
+
+			request.setAttribute("genes", a);
 
 		}else if(qryType.equals("search")){
 			String geneQuery = request.getParameter("gene");

@@ -88,8 +88,9 @@ public class AtlasDao {
         q.setRows(MAX_EXPERIMENTS);
         q.setFields("");
         q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
-        
+
         try {
+
             QueryResponse queryResponse = solrExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
@@ -98,9 +99,15 @@ public class AtlasDao {
 
             for(SolrDocument exptDoc : documentList)
             {
-                 result.add(new AtlasExperiment(exptDoc));
-            }
+                SolrQuery q1 = new SolrQuery("exp_ud_ids:" + exptDoc.getFieldValue("dwe_exp_id"));
+                q1.setRows(1);
+                q1.setFields("gene_id");
 
+                QueryResponse qr1 = solrAtlas.query(q1);
+
+                if(!qr1.getResults().isEmpty())
+                    result.add(new AtlasExperiment(exptDoc));
+            }
         } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
         }

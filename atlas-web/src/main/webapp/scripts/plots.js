@@ -74,6 +74,14 @@ function drawPlot(jsonObj, plot_id){
 	}
 
 
+    function OnJsonError()
+    {
+       //window.location.pathname = "/"+atlas.homeUrl + "/error.jsp?hello";
+       // alert("error");
+
+        document.getElementById("plot").style.background = document.getElementById("plot").style.background.replace("indicator.gif","iconf.png");
+    }
+
 	function bindMarkings(jsonObj,plot, plot_id){
 
 					//Markings
@@ -235,7 +243,10 @@ function drawPlot(jsonObj, plot_id){
 					if(mark){
 						markClicked(eid,gid,ef,uni2ent(efv),plot,o);
 					}
-			}
+			},
+            error: function(){
+                      OnJsonError();
+                    }
  			});
  			drawEFpagination(eid,gid,ef,'bar');
     }
@@ -380,7 +391,10 @@ function drawPlot(jsonObj, plot_id){
                     if(jsonObj.series){
                         var plot = $.plot(divEle, jsonObj.series,jsonObj.options);
                     }
-                }
+                },
+            error: function(){
+              OnJsonError();
+                    }
             });//ajax
 
             $(this).addClass("done");
@@ -535,6 +549,10 @@ function drawPlot(jsonObj, plot_id){
 				        });
 	   			}
     		}
+            ,
+            error: function(){
+              OnJsonError();
+                    }
     	});
     }
 
@@ -667,7 +685,10 @@ function drawPlot(jsonObj, plot_id){
    			success: function(o){
    				var plot = drawPlot(o,plot_id);//success
    				//bindMarkings(o,plot,plot_id);
-   				}
+   				},
+            error: function(){
+              OnJsonError();
+                    }
  			});//ajax
 
         }); //each
