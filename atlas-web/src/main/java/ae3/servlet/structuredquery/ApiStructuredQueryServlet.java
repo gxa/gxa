@@ -13,36 +13,36 @@ import java.util.*;
  */
 public class ApiStructuredQueryServlet extends RestServlet {
 
-    public static class Result {
+    public static class HeatmapResultAdapter {
         private final AtlasStructuredQueryResult r;
 
-        public Result(AtlasStructuredQueryResult r) {
+        public HeatmapResultAdapter(AtlasStructuredQueryResult r) {
             this.r = r;
         }
 
-        public long getTotalResults() {
+        public long getTotalResultGenes() {
             return r.getTotal();
         }
 
-        public long getRows() {
+        public long getNumberOfResultGenes() {
             return r.getSize();
         }
 
         public long getStartingFrom() {
             return r.getStart();
         }
-
+                
         public class ResultGene {
             private final StructuredResultRow row;
 
             public class Expression {
                 UpdownCounter counter;
 
-                public int getUp() {
+                public int getUpExperiments() {
                     return counter.getUps();
                 }
 
-                public int getDown() {
+                public int getDownExperiments() {
                     return counter.getDowns();
                 }
 
@@ -210,7 +210,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
 
         if(!atlasQuery.isNone()) {
             AtlasStructuredQueryResult atlasResult = asqs.doStructuredAtlasQuery(atlasQuery);
-            return new Result(atlasResult);
+            return atlasQuery.getViewType() == ViewType.HEATMAP ? new HeatmapResultAdapter(atlasResult) : atlasResult;
         } else {
             return new ErrorResult("Empty query specified");
         }

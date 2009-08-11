@@ -1,6 +1,7 @@
 package ae3.model;
 
 import uk.ac.ebi.ae3.indexbuilder.Expression;
+import ae3.restresult.RestOut;
 
 /**
  * @author pashky
@@ -36,6 +37,7 @@ public class ListResultRowExperiment {
      * Returns p-value
      * @return p-value
      */
+    @RestOut(name="pvalue")
     public double getPvalue() {
         return pvalue;
     }
@@ -52,6 +54,7 @@ public class ListResultRowExperiment {
      * Return experiment accession
      * @return experiment accession
      */
+    @RestOut(name="accession")
     public String getExperimentAccession() {
         return experimentAccession;
     }
@@ -60,6 +63,7 @@ public class ListResultRowExperiment {
      * Returns experiment description
      * @return experiment description
      */
+    @RestOut(name="description")
     public String getExperimentDescription() {
         return experimentDescription;
     }
@@ -68,6 +72,7 @@ public class ListResultRowExperiment {
      * Returns experiment name
      * @return experiment name
      */
+    @RestOut(name="name")
     public String getExperimentName() {
         return experimentName;
     }
@@ -76,6 +81,7 @@ public class ListResultRowExperiment {
      * Returns up or down
      * @return UP or DOWN
      */
+    @RestOut(name="expression")
     public Expression getUpdn() {
         return updn;
     }

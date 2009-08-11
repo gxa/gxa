@@ -47,6 +47,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.ae3.indexbuilder.Base64;
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 /**
  * XML Builder is a utility that creates simple XML documents using relatively
@@ -616,53 +618,41 @@ public class XMLBuilder {
      *
      * @param writer
      * a writer to which the serialized document is written.
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
+     * @param indent indent or not
+     * @param indentAmount how much
+     * @throws IOException if can't write
      *
-     * @throws TransformerException
      */
-    public void toWriter(Writer writer, Properties outputProperties)
-        throws TransformerException
+    public void toWriter(Writer writer, boolean indent, int indentAmount)
+        throws IOException
     {
-        StreamResult streamResult = new StreamResult(writer);
-
-        DOMSource domSource = new DOMSource(getDocument());
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer serializer = tf.newTransformer();
-
-        if (outputProperties != null) {
-            Iterator iter = outputProperties.entrySet().iterator();
-            while (iter.hasNext()) {
-                Entry entry = (Entry) iter.next();
-                serializer.setOutputProperty((String) entry.getKey(), (String) entry.getValue());
-            }
-        }
-        serializer.transform(domSource, streamResult);
+        OutputFormat of = new OutputFormat("XML","utf-8",true);
+        of.setIndent(indentAmount);
+        of.setIndenting(indent);
+        XMLSerializer serializer = new XMLSerializer(writer, of);
+        serializer.asDOMSerializer();
+        serializer.serialize(getDocument());
     }
 
     /**
      * Serialize the XML document to a string by delegating to the
-     * {@link #toWriter(Writer, Properties)} method. If output options are
+     * {@link #toWriter(Writer, boolean, int)} method. If output options are
      * provided, these options are provided to the {@link Transformer}
      * serializer.
      *
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
+     * @param indent indent or not
+     * @param indentAmount how much
+     * @throws IOException if can't write
      *
      * @return
      * the XML document as a string
      *
-     * @throws TransformerException
      */
-    public String asString(Properties outputProperties)
-        throws TransformerException
+    public String asString(boolean indent, int indentAmount)
+        throws IOException
     {
         StringWriter writer = new StringWriter();
-        toWriter(writer, outputProperties);
+        toWriter(writer, indent, indentAmount);
         return writer.toString();
     }
 

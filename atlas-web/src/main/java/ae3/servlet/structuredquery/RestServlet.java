@@ -57,15 +57,15 @@ public abstract class RestServlet extends HttpServlet {
             } catch (final RuntimeException e) {
                 log.error("Exception in servlet process()", e);
                 o = new Object() {
-                    @RestOut String getError() { return "Exception occured"; }
-                    @RestOut String getException() { return exceptionToString(e); }
+                    public String getError() { return "Exception occured"; }
+                    public String getException() { return exceptionToString(e); }
                 };
             }
 
             RestResultRenderer renderer;
             switch (format) {
                 case XML: {
-                    response.setContentType("text/plain");
+                    response.setContentType("text/xml");
                     response.setCharacterEncoding("utf-8");
                     renderer = new XmlRestResultRenderer(indent, 4);
                 }

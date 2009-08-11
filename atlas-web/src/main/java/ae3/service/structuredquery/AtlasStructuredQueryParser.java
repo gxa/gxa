@@ -229,10 +229,16 @@ public class AtlasStructuredQueryParser {
                     qb.rowsPerPage(num(v, 10, 1, 200));
                 } else if(name.equalsIgnoreCase("start")) {
                     qb.startFrom(num(v, 0, 0, Integer.MAX_VALUE));
+                } else if(name.equalsIgnoreCase("viewAs")) {
+                    try {
+                        qb.viewAs(ViewType.valueOf(v.toUpperCase()));
+                    } catch(Exception ee) {
+                        // do nothing
+                    }
                 }
             }
         }
-        return qb.viewAs(ViewType.HEATMAP).query();
+        return qb.query();
     }
 
 }

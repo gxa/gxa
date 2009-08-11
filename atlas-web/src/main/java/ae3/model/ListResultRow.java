@@ -1,12 +1,11 @@
 package ae3.model;
 
-import java.util.HashMap;
-import java.util.Collection;
-
+import ae3.restresult.RestOut;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
-import ae3.model.AtlasGene;
+import java.util.Collection;
+import java.util.HashMap;
 
 /**
  * This class represents the data structure used for atlas list views
@@ -33,6 +32,8 @@ public class ListResultRow implements Comparable<ListResultRow> {
 		this.minPval_dn = min_dn;
 		this.minPval_up = min_up;
 	}
+
+    @RestOut(name="efv")
 	public String getFv() {
 		return fv;
 	}
@@ -40,6 +41,8 @@ public class ListResultRow implements Comparable<ListResultRow> {
 		String fv_short = StringUtils.capitalize(fv);
 		return fv_short.length() > 30 ? fv_short.substring(0,30)+"..." : fv_short;
 	}
+
+    @RestOut(name="ef")
 	public String getEf() {
 		return ef;
 	}
@@ -121,12 +124,19 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	public void setGene(AtlasGene gene) {
 		this.gene = gene;
 	}
+
+    @RestOut(name="geneName")
 	public String getGene_name() {
 		return gene.getGeneName();
 	}
+    @RestOut(name="geneSpecies")
 	public String getGene_species() {
 		return gene.getGeneSpecies();
 	}
+    @RestOut(name="geneId")
+    public String getGene_identifier() {
+        return gene.getGeneIdentifier();
+    }
 	public String getGene_id() {
 		return gene.getGeneId();
 	}
@@ -144,7 +154,8 @@ public class ListResultRow implements Comparable<ListResultRow> {
         }
         return colorMap;
     }
-    
+
+    @RestOut(name="experiments")
     public Collection<ListResultRowExperiment> getExp_list() {
 		return exp_list;
 	}

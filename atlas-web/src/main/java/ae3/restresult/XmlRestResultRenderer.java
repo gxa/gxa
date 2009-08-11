@@ -36,10 +36,8 @@ public class XmlRestResultRenderer implements RestResultRenderer {
                 props.put("{http://xml.apache.org/xalan}indent-amount", String.valueOf(indentAmount));
             }
 
-            where.append(xml.asString(props));
+            where.append(xml.asString(indent, indentAmount));
         } catch (ParserConfigurationException e) {
-            throw new RenderException(e);
-        } catch (TransformerException e) {
             throw new RenderException(e);
         }
     }

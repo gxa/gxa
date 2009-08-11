@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ae3.model.ListResultRow;
+import ae3.restresult.RestOut;
 
 import java.util.*;
 
@@ -58,6 +59,7 @@ public class AtlasStructuredQueryResult {
      * Returns number of results
      * @return number of results in result list
      */
+    @RestOut(name="numberOfResultGenes")
     public int getSize() {
         return results.size();
     }
@@ -82,6 +84,7 @@ public class AtlasStructuredQueryResult {
      * Returns sorted list of atlas list view results sorted by number of studies and p-value
      * @return
      */
+    @RestOut(name="results")
     public Collection<ListResultRow> getListResults() {
     	Collections.sort((ArrayList<ListResultRow>)listResults,Collections.reverseOrder());
 		return listResults;
@@ -123,6 +126,7 @@ public class AtlasStructuredQueryResult {
      * Returns results start position in paging
      * @return start position
      */
+    @RestOut(name="startingFrom")
     public long getStart() {
         return start;
     }
@@ -131,6 +135,7 @@ public class AtlasStructuredQueryResult {
      * Returns total number of results
      * @return total number of results
      */
+    @RestOut(name="totalResultGenes")
     public long getTotal() {
         return total;
     }
