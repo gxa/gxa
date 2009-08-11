@@ -199,8 +199,4 @@ if (geneId != null) {
 
 </table>
 
-<img src="<%= request.getContextPath() %>/images/pixel.gif" onload="drawPlots();" /> 
-
-
-
-
+<img src="<%=request.getContextPath() %>/images/1.gif" onload="drawPlots();"/>
