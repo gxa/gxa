@@ -112,7 +112,7 @@ public class GeneListCacheServlet extends HttpServlet{
                     //no op
                 }
             }
-        } };//.start();
+        } }.start();
     }
 
     public static Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception{
