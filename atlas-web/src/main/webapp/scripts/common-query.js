@@ -187,6 +187,10 @@ if(!atlas)
 
         formatToken: function(row) {
             return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
+        },
+
+        formatTokenTooltip: function(row) {
+            return row.value;
         }
     };
 
@@ -262,6 +266,10 @@ if(!atlas)
             formatToken: function(row) {
                 var text = row.property == 'gene' && row.valueSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
+            },
+
+            formatTokenTooltip: function(row) {
+                return row.property == 'gene' && row.valueSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
             },
 
             formatId: function(res) {

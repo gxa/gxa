@@ -422,6 +422,9 @@ $.TokenList = function (input, settings) {
             .addClass(settings.classes.token)
             .insertBefore(input_token);
 
+        if(settings.formatTokenTooltip)
+            this_token.attr('title', settings.formatTokenTooltip(li_data));
+
         $("<span>x</span>")
             .appendTo(this_token)
             .click(function () {
