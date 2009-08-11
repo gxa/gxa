@@ -409,7 +409,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                         <div id="${char}_values" class="sample_attr_values">
                                             <c:forEach var="value"
                                                        items="${exp.sampleCharacterisitcValues[char]}" varStatus="r">
-                                                <a style="text-transform: capitalize;" class="sample_attr_value" id="${char}_${r.count}"
+                                                <a class="sample_attr_value" id="${char}_${r.count}"
                                                    onclick="highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>', false, this);return false;" href="#">${value}</a>
                                                 <br/>
                                             </c:forEach>
@@ -422,7 +422,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                             </li>
                                             <div id="${EF}_values" class="sample_attr_values">
                                                 <c:forEach var="value" items="${exp.factorValuesForEF[EF]}" varStatus="r">
-                                                    <a style="text-transform: capitalize;" class="sample_attr_value" id="${EF}_${r.count}" href="#"
+                                                    <a class="sample_attr_value" id="${EF}_${r.count}" href="#"
                                                        onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</a>
                                                     <br/>
                                                 </c:forEach>

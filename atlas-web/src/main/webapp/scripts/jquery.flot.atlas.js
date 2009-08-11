@@ -1213,7 +1213,7 @@
                     yrange.from = yrange.axis.p2c(yrange.to);
                     var width = (Math.floor(xrange.to)-Math.floor(xrange.from));
                     if(width>50){
-                    	var header = '<div style="text-transform: capitalize;background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' +  m.label  + "</div>";
+                    	var header = '<div style="background-color:'+m.color+' ;position:absolute;bottom:'+ (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) +'px;left:' + (plotOffset.left + Math.floor(xrange.from)) + 'px;width:'+ width + 'px;text-align:center; height:15px; overflow:hidden;" title="'+m.label+'" class="tickLabel">' +  m.label  + "</div>";
                     	html += header;
                     }else{
                     	var width_exp= m.label.length*10;
