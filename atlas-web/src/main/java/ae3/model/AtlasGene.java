@@ -11,6 +11,9 @@ import static uk.ac.ebi.ae3.indexbuilder.IndexField.nullzero;
 import java.util.*;
 
 import ae3.util.Pair;
+import ae3.restresult.RestOut;
+import ae3.restresult.AsArray;
+import ae3.dao.AtlasDao;
 
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
@@ -48,14 +51,17 @@ public class AtlasGene {
         return getValue("gene_id");
     }
 
+    @RestOut(name="name")
     public String getGeneName() {
         return getValue("gene_name");
     }
 
+    @RestOut(name="id")
     public String getGeneIdentifier() {
         return getValue("gene_identifier");
     }
 
+    @RestOut(name="ensembl")
     public String getGeneEnsembl() {
         return getValue("gene_ensgene");
     }
@@ -64,6 +70,7 @@ public class AtlasGene {
         return getValue("gene_goterm");
     }
 
+    @RestOut(name="goTerms")
     public Collection<String> getGoTerms() {
         return getValues("gene_goterm");
     }
@@ -84,6 +91,7 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
+    @RestOut(name="interProTerms")
     public Collection<String> getInterProTerms() {
         return getValues("gene_interproterm");
     }
@@ -92,6 +100,7 @@ public class AtlasGene {
         return getValue("gene_keyword");
     }
 
+    @RestOut(name="keyword")
     public Collection<String> getKeywords() {
         return getValues("gene_keyword");
     }
@@ -100,6 +109,7 @@ public class AtlasGene {
     	return getValue("gene_disease");
     }
 
+    @RestOut(name="diseases")
     public Collection<String> getDiseases(){
     	return getValues("gene_disease");
     }
@@ -151,6 +161,7 @@ public class AtlasGene {
     	return getValue("gene_uniprot");
     }
 
+    @RestOut(name="uniprotIds")
     public Collection<String> getUniprotIds(){
     	return getValues("gene_uniprot");
     }
@@ -159,6 +170,7 @@ public class AtlasGene {
     	return getValue("gene_synonym");
     }
 
+    @RestOut(name="synonyms")
     public Collection<String> getSynonyms(){
     	return getValues("gene_synonym");
     }
@@ -215,6 +227,7 @@ public class AtlasGene {
 		return StringUtils.join(orths, "+");
 	}
 
+    @RestOut(name="orthologs")
 	public List<String> getOrthologs() {
         Collection orths = geneSolrDocument.getFieldValues("gene_ortholog");
 		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
@@ -284,6 +297,20 @@ public class AtlasGene {
 
     private static final String omittedEFs = "age,individual,time,dose,V1";
 
+    private Map<Long,AtlasExperiment> experimentsMap;
+
+    public void loadGeneExperiments(AtlasDao dao) {
+        experimentsMap = new HashMap<Long, AtlasExperiment>();
+        for(Experiment exp : getExpermientsTable().getAll())
+            if(!experimentsMap.containsKey(exp.getId())) {
+                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(exp.getId()));
+                if(aexp != null)
+                    experimentsMap.put(exp.getId(), aexp);
+            }
+    }
+
+    @RestOut(name="expressionSummary")
+    @AsArray(item="result")
     public List<ListResultRow> getHeatMapRows() {
         ListResultRow heatmapRow;
         ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
@@ -297,6 +324,22 @@ public class AtlasGene {
                                 getCount_dn(ef, efv),
                                 getMin_up(ef, efv),
                                 getMin_dn(ef, efv));
+                        heatmapRow.setGene(this);
+
+                        if(experimentsMap != null) {
+                            List<ListResultRowExperiment> exps = new ArrayList<ListResultRowExperiment>();
+                            for(Experiment exp : getExpermientsTable().findByEfEfv(ef, efv)) {
+                                AtlasExperiment aexp = experimentsMap.get(exp.getId());
+                                if(aexp != null) {
+                                    exps.add(new ListResultRowExperiment(exp.getId(), aexp.getDwExpDescription(),
+                                            aexp.getDwExpAccession(),
+                                            aexp.getDwExpDescription(),
+                                            exp.getPvalue(), exp.getExpression()));
+                                }
+                            }
+                            heatmapRow.setExp_list(exps);
+                        }
+
                         heatmap.add(heatmapRow);
                     }
                 }

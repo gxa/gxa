@@ -13,14 +13,16 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     private int currentIndent = 0;
     private Appendable where;
     private final static char NL = '\n';
+    private Class profile;
 
     public JsonRestResultRenderer(boolean indent, int indentAmount) {
         this.indent = indent;
         this.indentAmount = indentAmount;
     }
 
-    public void render(Object o, Appendable where) throws RenderException, IOException {
+    public void render(Object o, Appendable where, final Class profile) throws RenderException, IOException {
         this.where = where;
+        this.profile = profile;
         process(o);
     }
 
@@ -47,7 +49,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         }
         
         boolean first = true;
-        for(Util.Prop p : Util.iterableProperties(o)) {
+        for(Util.Prop p : Util.iterableProperties(o, profile)) {
             if(p.value == null)
                 continue;
 

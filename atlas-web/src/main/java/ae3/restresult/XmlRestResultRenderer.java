@@ -3,7 +3,6 @@ package ae3.restresult;
 import com.jamesmurty.utils.XMLBuilder;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Iterator;
@@ -17,6 +16,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
     private boolean indent = false;
     private int indentAmount = 4;
+    private Class profile;
 
     public XmlRestResultRenderer(boolean indent, int indentAmount) {
         this.indent = indent;
@@ -24,10 +24,11 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     }
 
 
-    public void render(Object object, Appendable where) throws RenderException, IOException {
+    public void render(Object object, Appendable where, final Class profile) throws RenderException, IOException {
         try {
             xml = XMLBuilder.create("atlasResponse");
 
+            this.profile = profile;
             process(object, null, null);
 
             Properties props = new Properties();
@@ -90,7 +91,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
         else
             wrapped = false;
 
-        for(Util.Prop p : Util.iterableProperties(o)) {
+        for(Util.Prop p : Util.iterableProperties(o, profile)) {
             if(p.value == null)
                 continue;
             

@@ -35,7 +35,7 @@ public class JsonResultRendererTest {
 
         StringBuffer sb = new StringBuffer();
         try {
-            r.render(o, sb);
+            r.render(o, sb, Object.class);
             System.out.println(sb);
         } catch (RenderException e) {
             fail("Unexpected render exception");

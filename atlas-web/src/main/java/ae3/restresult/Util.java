@@ -39,7 +39,7 @@ class Util {
         }
     }
 
-    static Iterable<Prop> iterableProperties(final Object o) {
+    static Iterable<Prop> iterableProperties(final Object o, final Class profile) {
         if(o instanceof Map)
             return new Iterable<Prop>() {
                 public Iterator<Prop> iterator() {
@@ -107,7 +107,8 @@ class Util {
                     private void skip() {
                         while(i < methods.length &&
                                 (methods[i].getParameterTypes().length > 0 ||
-                                        (checkAnno && !methods[i].isAnnotationPresent(RestOut.class)) ||
+                                        (checkAnno && (!methods[i].isAnnotationPresent(RestOut.class)
+                                                || !methods[i].getAnnotation(RestOut.class).profile().isAssignableFrom(profile))) ||
                                         (!checkAnno && !methods[i].getName().startsWith("get") && !methods[i].getName().startsWith("is")) ||
                                         (!checkAnno && methods[i].getName().equals("getClass"))
                                 ))

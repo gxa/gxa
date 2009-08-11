@@ -252,7 +252,7 @@
 
     <servlet-mapping>
         <servlet-name>apiqrs</servlet-name>
-        <url-pattern>/apiqrs</url-pattern>
+        <url-pattern>/api</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

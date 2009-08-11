@@ -5,6 +5,9 @@ import javax.servlet.http.HttpServletRequest;
 import ae3.service.structuredquery.*;
 import ae3.service.ArrayExpressSearchService;
 import ae3.restresult.RestOut;
+import ae3.dao.AtlasDao;
+import ae3.model.ListViewRestProfile;
+import ae3.model.GeneViewRestProfile;
 
 import java.util.*;
 
@@ -202,17 +205,33 @@ public class ApiStructuredQueryServlet extends RestServlet {
     }
 
     public Object process(HttpServletRequest request) {
-        final AtlasStructuredQueryService asqs = ArrayExpressSearchService.instance().getStructQueryService();
-
-        AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(request,
-                GeneProperties.allPropertyIds(),
-                asqs.getExperimentalFactors());
-
-        if(!atlasQuery.isNone()) {
-            AtlasStructuredQueryResult atlasResult = asqs.doStructuredAtlasQuery(atlasQuery);
-            return atlasQuery.getViewType() == ViewType.HEATMAP ? new HeatmapResultAdapter(atlasResult) : atlasResult;
+        final String oneGeneId = request.getParameter("oneGene");
+        if(oneGeneId != null) {            
+            AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+            AtlasDao.AtlasGeneResult geneResult = dao.getGeneByIdentifier(oneGeneId);
+            if(!geneResult.isFound()) {
+                return new ErrorResult("No such gene found for " + oneGeneId);
+            } else if(geneResult.isMulti()) {
+                return new ErrorResult("Multiple gene found for " + oneGeneId);
+            } else {
+                geneResult.getGene().loadGeneExperiments(dao);
+                setRestProfile(GeneViewRestProfile.class);
+                return geneResult.getGene();
+            }            
         } else {
-            return new ErrorResult("Empty query specified");
+            final AtlasStructuredQueryService asqs = ArrayExpressSearchService.instance().getStructQueryService();
+
+            AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(request,
+                    GeneProperties.allPropertyIds(),
+                    asqs.getExperimentalFactors());
+
+            if(!atlasQuery.isNone()) {
+                AtlasStructuredQueryResult atlasResult = asqs.doStructuredAtlasQuery(atlasQuery);
+                setRestProfile(ListViewRestProfile.class);
+                return atlasQuery.getViewType() == ViewType.HEATMAP ? new HeatmapResultAdapter(atlasResult) : atlasResult;
+            } else {
+                return new ErrorResult("Empty query specified");
+            }
         }
     }
 
