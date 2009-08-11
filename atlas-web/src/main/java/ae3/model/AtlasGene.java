@@ -39,6 +39,11 @@ public class AtlasGene {
         return "";
     }
 
+    private Collection<String> getValues(String name)
+    {
+        return (Collection)geneSolrDocument.getFieldValues(name);
+    }
+
     public String getGeneId() {
         return getValue("gene_id");
     }
@@ -59,6 +64,10 @@ public class AtlasGene {
         return getValue("gene_goterm");
     }
 
+    public Collection<String> getGoTerms() {
+        return getValues("gene_goterm");
+    }
+
     public String getShortValue(String name){
     	ArrayList fval = (ArrayList)geneSolrDocument.getFieldValues(name);
     	if(fval.size()>5)
@@ -75,12 +84,24 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
+    public Collection<String> getInterProTerms() {
+        return getValues("gene_interproterm");
+    }
+
     public String getKeyword() {
         return getValue("gene_keyword");
     }
 
+    public Collection<String> getKeywords() {
+        return getValues("gene_keyword");
+    }
+
     public String getDisease(){
     	return getValue("gene_disease");
+    }
+
+    public Collection<String> getDiseases(){
+    	return getValues("gene_disease");
     }
 
     private String getHilitValue(String name) {
@@ -126,15 +147,23 @@ public class AtlasGene {
         return geneSolrDocument;
     }
 
-    public String getUniprotIds(){
+    public String getUniprotId(){
     	return getValue("gene_uniprot");
     }
 
-    public String getSynonyms(){
+    public Collection<String> getUniprotIds(){
+    	return getValues("gene_uniprot");
+    }
+
+    public String getSynonym(){
     	return getValue("gene_synonym");
     }
 
-    public String getHilitSynonyms(){
+    public Collection<String> getSynonyms(){
+    	return getValues("gene_synonym");
+    }
+
+    public String getHilitSynonym(){
     	return getHilitValue("gene_synonym");
     }
 

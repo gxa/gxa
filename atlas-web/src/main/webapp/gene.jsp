@@ -250,7 +250,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
     </tr>
     <tr>
         <td class="geneAnnotHeader">Synonyms</td>
-        <td align="left">${atlasGene.synonyms}</td>
+        <td align="left">${atlasGene.synonym}</td>
     </tr>
 
     <c:if test="${!empty atlasGene.orthologs}">
@@ -307,7 +307,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.uniprotIds}">
+    <c:if test="${!empty atlasGene.uniprotId}">
         <tr>
             <td></td>
             <td>
@@ -317,7 +317,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         <tr>
             <td class="geneAnnotHeader">Uniprot</td>
             <td align="left">
-                <c:forEach var="uniprot" items="${atlasGene.geneSolrDocument.fieldValuesMap['gene_uniprot']}">
+                <c:forEach var="uniprot" items="${atlasGene.uniprotIds}">
                     <a href="http://www.uniprot.org/uniprot/${uniprot}" target="_blank">${uniprot}</a>&nbsp;
                 </c:forEach>
             </td>

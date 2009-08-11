@@ -1,14 +1,10 @@
 package ae3.servlet.structuredquery;
 
 import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.util.CuratedTexts;
 import ae3.service.ArrayExpressSearchService;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import ae3.util.CuratedTexts;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
@@ -19,10 +15,10 @@ import java.util.*;
 /**
  * @author pashky
  */
-public class ExperimentsServlet extends JsonServlet {
+public class ExperimentsServlet extends RestServlet {
 
-    public JSONObject process(HttpServletRequest request) throws JSONException {
-        JSONObject jsResult = new JSONObject();
+    public Object process(HttpServletRequest request) {
+        Map<String,Object> jsResult = new HashMap<String,Object>();
 
         String geneIdKey = request.getParameter("gene");
         String factor = request.getParameter("ef");
@@ -50,7 +46,7 @@ public class ExperimentsServlet extends JsonServlet {
 
             AtlasGene gene = result.getGene();
 
-            JSONObject jsGene = new JSONObject();
+            Map<String,Object> jsGene = new HashMap<String,Object>();
 
             jsGene.put("id", geneIdKey);
             jsGene.put("identifier", gene.getGeneIdentifier());
@@ -100,41 +96,41 @@ public class ExperimentsServlet extends JsonServlet {
 
             int numUp = 0, numDn = 0;
 
-            JSONArray jsExps = new JSONArray();
+            List<Map> jsExps = new ArrayList<Map>();
             for(Map.Entry<Long,Map<String, List<Experiment>>> e : exps) {
                 AtlasExperiment aexp = dao.getExperimentById(String.valueOf(e.getKey()));
                 if(aexp != null) {
-                    JSONObject jsExp = new JSONObject();
+                    Map<String,Object> jsExp = new HashMap<String,Object>();
                     jsExp.put("accession", aexp.getDwExpAccession());
                     jsExp.put("name", aexp.getDwExpDescription());
                     jsExp.put("id", e.getKey());
 
                     boolean wasup = false;
                     boolean wasdn = false;
-                    JSONArray jsEfs = new JSONArray();
+                    List<Map> jsEfs = new ArrayList<Map>();
                     for(Map.Entry<String, List<Experiment>> ef : e.getValue().entrySet()) {
-                        JSONObject jsEf = new JSONObject();
+                        Map<String,Object> jsEf = new HashMap<String,Object>();
                         jsEf.put("ef", ef.getKey());
                         jsEf.put("eftext", CuratedTexts.get("head.ef." + ef.getKey()));
 
-                        JSONArray jsEfvs = new JSONArray();
+                        List<Map> jsEfvs = new ArrayList<Map>();
                         for(Experiment exp : ef.getValue()) {
-                            JSONObject jsEfv = new JSONObject();
+                            Map<String,Object> jsEfv = new HashMap<String,Object>();
                             jsEfv.put("efv", exp.getEfv());
                             jsEfv.put("isup", exp.getExpression().isUp());
                             jsEfv.put("pvalue", exp.getPvalue());
-                            jsEfvs.put(jsEfvs.length(), jsEfv);
+                            jsEfvs.add(jsEfv);
 
                             if(exp.getExpression().isUp()) wasup = true;else wasdn = true;
                         }
                         jsEf.put("efvs", jsEfvs);
-                        jsEfs.put(jsEfs.length(), jsEf);
+                        jsEfs.add(jsEf);
                     }
                     jsExp.put("efs", jsEfs);
 
                     if(wasup) ++numUp;
                     if(wasdn) ++numDn;
-                    jsExps.put(jsExps.length(), jsExp);
+                    jsExps.add(jsExp);
                 }
             }
 

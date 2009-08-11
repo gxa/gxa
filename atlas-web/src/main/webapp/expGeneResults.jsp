@@ -61,7 +61,7 @@ function initPaging(){
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px; white-space:nowrap"
 					class="padded" ><a class="genename" href="${u:GeneUrl(pageContext.request, row.gene.geneIdentifier)}">${row.gene_name}</a>
 					<div class="gtooltip" style="display: none;">
-						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonyms}">${row.gene.hilitSynonyms},</c:if>${row.gene.geneIdentifier})</div>
+						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
 						<c:if test="${!empty row.gene.keyword}">
 							<b>Keyword:</b> ${row.gene.hilitKeyword}<br>
 						</c:if> <c:if test="${!empty row.gene.goTerm}">

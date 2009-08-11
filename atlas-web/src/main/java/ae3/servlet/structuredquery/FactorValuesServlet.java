@@ -3,6 +3,8 @@ package ae3.servlet.structuredquery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.IValueListHelper;
+import ae3.restresult.AsMap;
+import ae3.restresult.AsArray;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,9 +18,14 @@ import java.util.Map;
 /**
  * @author pashky
  */
-public class FactorValuesServlet extends JsonServlet {
+public class FactorValuesServlet extends RestServlet {
 
-    public JSONObject process(HttpServletRequest request) throws JSONException {
+    @AsArray(item = "completion")
+    public static class ACList extends ArrayList<AutoCompleteItem> {}
+    @AsMap(item = "query", attr = "id")
+    public static class ACMap extends HashMap<String,List<AutoCompleteItem>> {}
+
+    public Object process(HttpServletRequest request) {
 
         AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService();
@@ -37,7 +44,7 @@ public class FactorValuesServlet extends JsonServlet {
             listers.add(service.getEfvListHelper());
         }
 
-        JSONObject result = new JSONObject();
+        Map<String,Object> result = new HashMap<String,Object>();
 
         String factor = request.getParameter("factor");
         result.put("factor", factor);
@@ -48,7 +55,7 @@ public class FactorValuesServlet extends JsonServlet {
             List<String> resultList = new ArrayList<String>();
             for(IValueListHelper lister : listers)
                 resultList.addAll(lister.listAllValues(factor));
-            result.put("values", new JSONArray(resultList));
+            result.put("values", resultList);
         } else {
             int nlimit = 100;
             try {
@@ -59,17 +66,17 @@ public class FactorValuesServlet extends JsonServlet {
                 // just ignore
             }
             String[] queries = request.getParameterValues("q");
-            JSONObject values = new JSONObject();
+
+            Map<String,List<AutoCompleteItem>> values = new ACMap();
             result.put("completions", values);
             
             for(String query : queries) {
-                if (query == null)
-                    query = "";
-                if (query.startsWith("\"")) {
-                    query = query.substring(1);
+                String q = query != null ? query : "";
+                if (q.startsWith("\"")) {
+                    q = q.substring(1);
                 }
-                if (query.endsWith("\"")) {
-                    query = query.substring(0, query.length() - 1);
+                if (q.endsWith("\"")) {
+                    q = q.substring(0, q.length() - 1);
                 }
 
                 Map<String,String> filters = new HashMap<String,String>();
@@ -79,7 +86,7 @@ public class FactorValuesServlet extends JsonServlet {
                         filters.put(filter, request.getParameter(filter));
                     }
 
-                List<AutoCompleteItem> resultList = new ArrayList<AutoCompleteItem>();
+                List<AutoCompleteItem> resultList = new ACList();
                 for(IValueListHelper lister : listers)
                     if(resultList.size() < nlimit) {
                         resultList.addAll(lister.autoCompleteValues(
@@ -89,7 +96,7 @@ public class FactorValuesServlet extends JsonServlet {
                                 filters
                         ));
                     }
-                values.put(query, new JSONArray(resultList, true));
+                values.put(query != null ? query : "", resultList);
             }
         }
 

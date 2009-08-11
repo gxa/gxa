@@ -2,6 +2,8 @@ package ae3.servlet.structuredquery;
 
 import ae3.service.structuredquery.EfoValueListHelper;
 import ae3.util.EscapeUtil;
+import ae3.restresult.RestOut;
+import ae3.restresult.AsArray;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,9 +16,22 @@ import java.util.List;
 /**
  * @author pashky
  */
-public class EfoServlet extends JsonServlet {
-    public JSONObject process(HttpServletRequest request) throws JSONException {
-        EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()
+public class EfoServlet extends RestServlet {
+    public static class Result {
+        private Collection hls;
+        private Collection res;
+
+        public Result(Collection hls, Collection res) {
+            this.hls = hls;
+            this.res = res;
+        }
+
+        public @RestOut Collection hl() { return hls; }
+        public @RestOut @AsArray(item="efo") Collection tree() { return res; }
+
+    }
+    public Object process(HttpServletRequest request) {
+        final EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()
                 .getStructQueryService().getEfoListHelper();
 
 
@@ -49,15 +64,12 @@ public class EfoServlet extends JsonServlet {
             }
         }
 
-        String highlights = request.getParameter("hl");
-        if(highlights != null && highlights.length() == 0)
-            highlights = null;
 
-        JSONObject o = new JSONObject();
-        o.putOpt("hl", highlights != null ? new JSONArray(service.searchTerms(EscapeUtil.parseQuotedList(highlights)), false) : null);
-        if(result != null)
-            o.put("tree", new JSONArray(result, false));
+        final String highlights = request.getParameter("hl");
+        final Collection hls =
+                highlights != null && highlights.length() != 0
+                        ? service.searchTerms(EscapeUtil.parseQuotedList(highlights)) : null;
 
-        return o;
+        return new Result(hls, result);
     }
 }

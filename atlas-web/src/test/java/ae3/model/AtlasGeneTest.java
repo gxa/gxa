@@ -1,19 +1,14 @@
 package ae3.model;
 
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import ae3.dao.AtlasDao;
 import ae3.util.Pair;
-import ae3.service.AtlasResult;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.solr.common.SolrDocument;
 
 import java.util.*;
@@ -108,14 +103,14 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getUniprotIds(){
-        assertNotNull(gene.getUniprotIds());
-        assertTrue(gene.getUniprotIds().matches("^[A-Z0-9, ]+$"));
+        assertNotNull(gene.getUniprotId());
+        assertTrue(gene.getUniprotId().matches("^[A-Z0-9, ]+$"));
     }
 
     @Test
     public void getSynonyms(){
-        assertNotNull(gene.getSynonyms());
-        assertTrue(gene.getSynonyms().contains("ASPM"));
+        assertNotNull(gene.getSynonym());
+        assertTrue(gene.getSynonym().contains("ASPM"));
     }
 
     @Test
@@ -123,7 +118,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
         Map<String, List<String>> highlights = new HashMap<String, List<String>>();
         highlights.put("gene_synonym", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
         gene.setGeneHighlights(highlights);
-        assertTrue(gene.getHilitSynonyms().matches(".*<em>.*"));
+        assertTrue(gene.getHilitSynonym().matches(".*<em>.*"));
         assertNotNull(gene.getGeneHighlightStringForHtml());
         assertTrue(gene.getGeneHighlightStringForHtml().matches(".*<em>.*"));
     }
