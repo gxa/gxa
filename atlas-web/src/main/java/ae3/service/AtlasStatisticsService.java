@@ -34,10 +34,10 @@ public class AtlasStatisticsService {
                 "select e.experiment_identifier, count(a.assay_id_key), e.experiment_description\n" +
                         "from ae1__experiment__main e\n" +
                         "join ae1__assay__main a on a.experiment_id_key = e.experiment_id_key\n" +
-                        "where e.experiment_identifier not in ('E-HD4D-1','E-HD4D-2','E-HD4D-2') and e.experiment_id_key>?\n" +
+                        "where e.experiment_identifier not in ('E-MTAB-24','E-MTAB-25','E-HD4D-1','E-HD4D-2','E-HD4D-3','E-TABM-145a','E-TABM-145b','E-TABM-145c') and e.experiment_id_key>?\n" +
                         "group by e.experiment_id_key, e.experiment_identifier, e.experiment_description\n" +
                         "order by e.experiment_id_key");
-        sqlNumExperiments = sql.prepareStatement("select count(e.experiment_id_key) from ae1__experiment__main e");
+        sqlNumExperiments = sql.prepareStatement("select count(e.experiment_id_key) from ae1__experiment__main e where experiment_accession not in ('E-MTAB-24','E-MTAB-25','E-HD4D-1','E-HD4D-2','E-HD4D-3','E-TABM-145a','E-TABM-145b','E-TABM-145c')");
         sqlNumAssays = sql.prepareStatement("select count(a.assay_id_key) from ae1__assay__main a");
 
         sqlNumGenes = sql.prepareStatement("select count(1) from ae2__gene__main");

@@ -105,8 +105,12 @@ public class AtlasDao {
 
                 QueryResponse qr1 = solrAtlas.query(q1);
 
-                if(!qr1.getResults().isEmpty())
-                    result.add(new AtlasExperiment(exptDoc));
+                AtlasExperiment ae = new AtlasExperiment(exptDoc);
+
+                if(qr1.getResults().isEmpty())
+                    ae.setDEGStatus(AtlasExperiment.DEGStatus.EMPTY);
+
+                result.add(ae);
             }
         } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);

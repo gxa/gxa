@@ -40,6 +40,9 @@ public class AtlasExperiment implements java.io.Serializable {
 
     private HashMap<String, String> highestRankEF = new HashMap<String, String>();
 
+    public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
+    private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
+
     public AtlasExperiment(SolrDocument exptdoc) {
         doload(exptdoc);
         setExptSolrDocument(exptdoc);
@@ -218,5 +221,18 @@ public class AtlasExperiment implements java.io.Serializable {
         }
         catch(ParseException ex){ return null; } //TODO
         */
+    }
+
+    public void setDEGStatus(DEGStatus degStatus) {
+        this.exptDEGStatus = degStatus;
+    }
+
+    /**
+     * Returns one of DEGStatus.EMPTY, DEGStatus.NONEMPTY, DEGStatus.UNKNOWN,
+     * if experiment doesn't have any d.e. genes, has some d.e. genes, or if this is unknown
+     * @return one of DEGStatus.EMPTY, DEGStatus.NONEMPTY, DEGStatus.UNKNOWN
+     */
+    public DEGStatus getDEGStatus() {
+        return this.exptDEGStatus;
     }
 }

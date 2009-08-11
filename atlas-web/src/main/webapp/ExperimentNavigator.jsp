@@ -1,41 +1,17 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.service.structuredquery.AtlasStructuredQueryService" %>
-<%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
-<%@ page import="java.util.Collection" %>
 <%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.HashMap" %>
-<%@ page import="ae3.dao.AtlasDao" %>
-<%@ page import="ae3.util.HtmlHelper" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    request.setAttribute("service", ArrayExpressSearchService.instance());
-%>
+    List<AtlasExperiment> expz = (List<AtlasExperiment>) application.getAttribute("allexpts");
 
-<%
-    //AtlasStructuredQueryService service = ae3.service.ArrayExpressSearchService.instance().getStructQueryService();
-
-    //Collection<AutoCompleteItem> Genes = service.getEfvListHelper().autoCompleteValues("experiment","",1000,null);
-
-    //getExperiments
-
-    //request.setAttribute("Genes",Genes);
-
-    List<AtlasExperiment> expz = (ArrayExpressSearchService.instance().getAtlasDao()).getExperiments();
-
-    HashMap<String,AtlasExperiment> ExperimentNames = new HashMap<String,AtlasExperiment>();
-
-    for(AtlasExperiment e : expz)
-    {
-
-        String s1 = e.getDwExpDescription();
-        String s2 = e.getDwExpAccession();
-
-        ExperimentNames.put(s2,e/*s1*/);
+    if(null == expz) {
+        expz = (ArrayExpressSearchService.instance().getAtlasDao()).getExperiments();
+        application.setAttribute("allexpts", expz);
     }
 %>
 
@@ -71,7 +47,6 @@
     }
 
 </style>
-
 
 <jsp:include page="start_head.jsp" />
 Gene Expression Atlas - Experiment Index
@@ -129,44 +104,24 @@ Gene Expression Atlas - Experiment Index
 
 
     <table cellspacing="0" cellpadding="2" border="0">
-
+    <% int j = 0; %>
     <% for ( AtlasExperiment i : expz ) { %>
 
         <tr>
         <td style="white-space:nowrap;">
-         <a href="<%=request.getContextPath()%>/experiment/<%= i.getDwExpAccession() %>" title="Experiment Data For <%= i.getDwExpAccession() %>" target="_self"><%= i.getDwExpAccession() %></a>&nbsp;
+        <%=++j%>.
+            <% if(AtlasExperiment.DEGStatus.EMPTY == i.getDEGStatus()) { %>
+                <span title="No differentially expressed genes found for this experiment"><%=i.getDwExpAccession()%>&nbsp;</span>       
+            <% } else { %>
+                <a href="<%=request.getContextPath()%>/experiment/<%= i.getDwExpAccession() %>" title="Experiment Data For <%= i.getDwExpAccession() %>" target="_self"><%= i.getDwExpAccession() %></a>&nbsp;
+            <% } %>
         </td>
             <td>
-                
               <%= i.getDwExpDescription() %>
-
             </td>
-            <td>
-              <!--
-              <%= HtmlHelper.FormatDate("dd/MM/yyyy", i.getLoadDate()) %>
-              -->
-
-            </td>
-
         </tr>
     <% } %>
-
-
-        </table>
-
-    <%
-        String s = request.getRequestURI();
-
-        String Start = request.getParameter("start");
-        String Rec = request.getParameter("rec");
-
-        String NextURL = "index.htm" ;
-
-    %>
-
-    <c:if test="${fn:length(Genes) > 999}">
-            <a href="<%= NextURL %>">more&gt;&gt;</a>        
-    </c:if>
+    </table>
 
 </div>
 
