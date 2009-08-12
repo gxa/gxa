@@ -121,7 +121,7 @@ public class AtlasDao {
 
 
     public AtlasGeneResult getGeneById(String gene_id_key) {
-        log.info("getGeneById:"+gene_id_key);
+        log.debug("getGeneById:"+gene_id_key);
         return getGeneByQuery("gene_id:" + EscapeUtil.escapeSolr(gene_id_key));
     }
 
@@ -195,7 +195,7 @@ public class AtlasDao {
      * @return AtlasGene
      */
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
-        log.info("getGeneByIdentifier:"+gene_identifier);
+        log.debug("getGeneByIdentifier:"+gene_identifier);
         return getGeneByQuery("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_identifier:" + EscapeUtil.escapeSolr(gene_identifier));
     }
 
