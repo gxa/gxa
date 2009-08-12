@@ -616,7 +616,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
                     </td>
                     <td class="expdesc wrapok" colspan="3">
-                    	${exp.experimentName}
+                    	${exp.experimentDescription}
                     </td>
                     <td class="expthumb">
                         <div class="outer">

@@ -1,16 +1,15 @@
 package ae3.servlet.structuredquery;
 
-import javax.servlet.http.HttpServletRequest;
-
-import ae3.service.structuredquery.*;
-import ae3.service.ArrayExpressSearchService;
-import ae3.restresult.RestOut;
 import ae3.dao.AtlasDao;
-import ae3.model.ListViewRestProfile;
-import ae3.model.GeneViewRestProfile;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.model.ListViewRestProfile;
+import ae3.restresult.RestOut;
+import ae3.service.ArrayExpressSearchService;
+import ae3.service.structuredquery.*;
 
-import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Iterator;
 
 /**
  * @author pashky
@@ -174,19 +173,15 @@ public class ApiStructuredQueryServlet extends RestServlet {
     }
 
     public Object process(HttpServletRequest request) {
-        final String oneGeneId = request.getParameter("oneGene");
-        if(oneGeneId != null) {            
+        final String experimentId = request.getParameter("experiment");
+        if(experimentId != null) {
             AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
-            AtlasDao.AtlasGeneResult geneResult = dao.getGeneByIdentifier(oneGeneId);
-            if(!geneResult.isFound()) {
-                return new ErrorResult("No such gene found for " + oneGeneId);
-            } else if(geneResult.isMulti()) {
-                return new ErrorResult("Multiple gene found for " + oneGeneId);
+            AtlasExperiment exp = dao.getExperimentByAccession(experimentId);
+            if(exp == null) {
+                return new ErrorResult("No such experiment found for " + experimentId);
             } else {
-                geneResult.getGene().loadGeneExperiments(dao);
-                setRestProfile(GeneViewRestProfile.class);
-                return geneResult.getGene();
-            }            
+                return exp;
+            }
         } else {
             final AtlasStructuredQueryService asqs = ArrayExpressSearchService.instance().getStructQueryService();
 

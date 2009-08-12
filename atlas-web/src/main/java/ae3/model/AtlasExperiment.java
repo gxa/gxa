@@ -12,6 +12,10 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
+import ae3.restresult.RestOut;
+import ae3.restresult.AsMap;
+import ae3.restresult.AsArray;
+
 /**
  * Created by IntelliJ IDEA.
  * User: ostolop, mdylag
@@ -48,6 +52,12 @@ public class AtlasExperiment implements java.io.Serializable {
         setExptSolrDocument(exptdoc);
     }
 
+    @AsArray(item="factorValue")
+    public static class FactorValueList extends ArrayList<String> {}
+
+    @AsArray(item="value")
+    public static class SampleValueList extends ArrayList<String> {}
+
     public void doload(SolrDocument exptDoc)
     {
         setDwExpId(Long.parseLong(exptDoc.getFieldValue(Constants.FIELD_DWEXP_ID).toString()));
@@ -62,14 +72,16 @@ public class AtlasExperiment implements java.io.Serializable {
         
         if(getSampleCharacteristics().size()!=0){
         	for(String characteristic: getSampleCharacteristics()){
-        		ArrayList<String> values = (ArrayList)exptDoc.getFieldValues(Constants.PREFIX_SAMPLE+characteristic);
+                List<String> values = new SampleValueList();
+        		values.addAll((Collection)exptDoc.getFieldValues(Constants.PREFIX_SAMPLE+characteristic));
         		addSampleCharacterisitcValue(characteristic,values);
         	}
         }
         
         if(getExperimentFactors().size()!=0){
         	for(String factor: getExperimentFactors()){
-        		ArrayList<String> values = (ArrayList)exptDoc.getFieldValues(Constants.PREFIX_ASSAY+factor);
+                List<String> values = new FactorValueList();
+                values.addAll((Collection)exptDoc.getFieldValues(Constants.PREFIX_ASSAY+factor));
         		addFactorValue(factor,values);
         	}
         }
@@ -112,34 +124,41 @@ public class AtlasExperiment implements java.io.Serializable {
 		this.sampleCharacteristics = sampleCharacteristics != null ? new HashSet<String>(sampleCharacteristics) : new HashSet<String>();
 	}
 
+    @RestOut(name="samples")
+    @AsMap(item="sampleCharacteristic", attr="id")
 	public TreeMap<String, List<String>> getSampleCharacterisitcValues() {
 		return sampleCharacterisitcValues;
 	}
 
-	public void addSampleCharacterisitcValue(String characterisitc, ArrayList<String>values) {
+	public void addSampleCharacterisitcValue(String characterisitc, List<String>values) {
 		if(sampleCharacterisitcValues==null)
 			sampleCharacterisitcValues = new TreeMap<String, List<String>>();
 		this.sampleCharacterisitcValues.put(characterisitc, values);
 	}
 	
-	public void addFactorValue(String characterisitc, ArrayList<String>values) {
+	public void addFactorValue(String characterisitc, List<String>values) {
 		if(factorValues==null)
 			factorValues = new TreeMap<String, List<String>>();
 		this.factorValues.put(characterisitc, values);
 	}
-	
+
+    @RestOut(name="factors")
+    @AsMap(item="factor", attr="id")
 	public TreeMap<String, List<String>> getFactorValuesForEF() {
 		return factorValues;
 	}
 
+    @RestOut(name="types")
     public Collection<String> getDwExpType() {
         return dwExpType;
     }
 
+    @RestOut(name="accession")
     public String getDwExpAccession() {
         return dwExpAccession;
     }
 
+    @RestOut(name="description")
     public String getDwExpDescription() {
         return dwExpDescription;
     }

@@ -35,7 +35,7 @@ public class StructuredQueryServlet extends HttpServlet {
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
         
         if(!atlasQuery.isNone()) {
-        	if(atlasQuery.isExport()){
+            if(request.getParameter("export") != null && request.getParameter("export").equals("true")) {
         		int queryId = ArrayExpressSearchService.instance().getDownloadService().requestDownload(request.getSession(),atlasQuery);
                 response.getOutputStream().print("{qid:" + queryId + "}");
     	        return;

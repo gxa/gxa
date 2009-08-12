@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.ViewType;
 import ae3.util.AtlasProperties;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
@@ -65,6 +66,8 @@ public class Download implements Runnable {
 
                 boolean first = true;
 
+                query.setExpsPerGene(Integer.MAX_VALUE);
+                query.setViewType(ViewType.LIST);
                 while(first || getTotalResults() > getResultsRetrieved()) {
                     query.setStart((int) getResultsRetrieved());
                     query.setRowsPerPage(first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved()));

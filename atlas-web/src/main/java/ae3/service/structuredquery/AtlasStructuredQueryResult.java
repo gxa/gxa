@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ae3.model.ListResultRow;
+import ae3.model.AtlasGene;
 import ae3.restresult.RestOut;
 
 import java.util.*;
@@ -18,7 +19,7 @@ public class AtlasStructuredQueryResult {
     private EfvTree<Integer> resultEfvs;
     private EfoTree<Integer> resultEfos;
     private Collection<StructuredResultRow> results;
-    private Collection<ListResultRow> listResults;
+    private Map<AtlasGene,List<ListResultRow>> listResults;
     private Iterable<ExpFactorResultCondition> conditions;
     private Set<String> expandableEfs;
 
@@ -26,7 +27,6 @@ public class AtlasStructuredQueryResult {
     private long start;
     private long rowsPerPage;
     private int rowsPerGene;
-    private int numListGenes;
 
     private EfvTree<FacetUpDn> efvFacet;
     private Map<String,Iterable<FacetCounter>> geneFacets;
@@ -40,7 +40,7 @@ public class AtlasStructuredQueryResult {
      */
     public AtlasStructuredQueryResult(long start, long rowsPerPage, int expsPerGene) {
         this.results = new ArrayList<StructuredResultRow>();
-        this.listResults = new ArrayList<ListResultRow>();
+        this.listResults = new HashMap<AtlasGene,List<ListResultRow>>();
         this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
         this.rowsPerPage = rowsPerPage;
@@ -84,10 +84,12 @@ public class AtlasStructuredQueryResult {
      * Returns sorted list of atlas list view results sorted by number of studies and p-value
      * @return
      */
-    @RestOut(name="results")
-    public Collection<ListResultRow> getListResults() {
-    	Collections.sort((ArrayList<ListResultRow>)listResults,Collections.reverseOrder());
-		return listResults;
+    public List<ListResultRow> getListResults() {
+        List<ListResultRow> allRows = new ArrayList<ListResultRow>();
+        for(List<ListResultRow> rows : listResults.values())
+            allRows.addAll(rows);
+    	Collections.sort(allRows,Collections.reverseOrder());
+		return allRows;
 	}
 
     /**
@@ -95,8 +97,28 @@ public class AtlasStructuredQueryResult {
      * @param listRow to add
      */
 	public void addListResult(ListResultRow listRow) {
-		this.listResults.add(listRow);
+        List<ListResultRow> list = listResults.get(listRow.getGene());
+        if(list == null)
+            listResults.put(listRow.getGene(), list = new ArrayList<ListResultRow>());
+		list.add(listRow);
 	}
+
+    public static class ListResultGene {
+        private List<ListResultRow> rows;
+        public ListResultGene(List<ListResultRow> rows) { this.rows = rows; }
+        public AtlasGene getGene() { return rows.get(0).getGene(); }
+        public List<ListResultRow> getExpressions() { return rows; }
+    }
+
+    @RestOut(name="genes")
+    public Iterator<ListResultGene> getListResultsGenes() {
+        final Iterator<List<ListResultRow>> i = listResults.values().iterator();
+        return new Iterator<ListResultGene>() {
+            public boolean hasNext() { return i.hasNext(); }
+            public ListResultGene next() { return new ListResultGene(i.next()); }
+            public void remove() { }
+        };
+    }
 
 	/**
      * Set results EFVs tree
@@ -158,15 +180,6 @@ public class AtlasStructuredQueryResult {
 
 	public void setRowsPerGene(int listRowsPerGene) {
 		this.rowsPerGene = listRowsPerGene;
-	}
-
-
-	public int getNumListGenes() {
-		return numListGenes;
-	}
-
-	public void setNumListGenes(int numListGenes) {
-		this.numListGenes = numListGenes;
 	}
 
 	/**

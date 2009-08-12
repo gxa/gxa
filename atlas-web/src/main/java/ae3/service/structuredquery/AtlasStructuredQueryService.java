@@ -638,7 +638,6 @@ public class AtlasStructuredQueryService {
 
         SolrDocumentList docs = response.getResults();
         result.setTotal(docs.getNumFound());
-        int numOfListGenes = 0;
         EfvTree<Integer> resultEfvs = new EfvTree<Integer>();
         EfoTree<Integer> resultEfos = qstate.getEfos();
 
@@ -672,7 +671,7 @@ public class AtlasStructuredQueryService {
                 }
             };
 
-            if(!hasQueryEfvs) {
+            if(!hasQueryEfvs && query.getViewType() != ViewType.LIST) {
                 Collection<Object> values;
 
                 for(String ef : autoFactors) {
@@ -756,9 +755,8 @@ public class AtlasStructuredQueryService {
                 }
             }
 
-            if(query.getViewType() == ViewType.LIST || query.isExport()) {
+            if(query.getViewType() == ViewType.LIST) {
                 loadListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
-                ++numOfListGenes;
             }
 
             result.addResult(new StructuredResultRow(gene, counters));
@@ -766,7 +764,6 @@ public class AtlasStructuredQueryService {
 
         result.setResultEfvs(resultEfvs);
         result.setResultEfos(resultEfos);
-        result.setNumListGenes(numOfListGenes);
 
         log.info("Retrieved query completely: " + result.getSize() + " records of " +
                 result.getTotal() + " total starting from " + result.getStart() );
@@ -785,43 +782,50 @@ public class AtlasStructuredQueryService {
      * @param experiments
      */
     private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
-        Iterable<String> efviter = new Iterable<String>() {
-            public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    private Iterator<EfvTree.EfEfv<Integer>> treeit = efvTree.getNameSortedList().iterator();
-                    public boolean hasNext() { return treeit.hasNext(); }
-                    public String next() { return treeit.next().getEfEfvId(); }
-                    public void remove() { }
-                };
-            }
-        };
+        Iterable<Experiment> exps = null;
 
-        Iterable<String> efoiter = new Iterable<String>() {
-            public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    private Iterator<String> explit = efoTree.getExplicitEfos().iterator();
-                    private Iterator<String> childit;
-                    public boolean hasNext() {
-                        return explit.hasNext() || (childit != null && childit.hasNext());
-                    }
-                    public String next() {
-                        if(childit != null) {
-                            String r = childit.next();                                                                                                  
-                            if(!childit.hasNext() && explit.hasNext())
-                                childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
-                            return r;
-                        } else {
-                            childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
-                            return next();
+        if(efvTree.getNumEfvs() + efoTree.getNumExplicitEfos() > 0) {
+            Iterable<String> efviter = new Iterable<String>() {
+                public Iterator<String> iterator() {
+                    return new Iterator<String>() {
+                        private Iterator<EfvTree.EfEfv<Integer>> treeit = efvTree.getNameSortedList().iterator();
+                        public boolean hasNext() { return treeit.hasNext(); }
+                        public String next() { return treeit.next().getEfEfvId(); }
+                        public void remove() { }
+                    };
+                }
+            };
+
+            Iterable<String> efoiter = new Iterable<String>() {
+                public Iterator<String> iterator() {
+                    return new Iterator<String>() {
+                        private Iterator<String> explit = efoTree.getExplicitEfos().iterator();
+                        private Iterator<String> childit;
+                        public boolean hasNext() {
+                            return explit.hasNext() || (childit != null && childit.hasNext());
                         }
-                    }
-                    public void remove() { }
-                };
-            }
-        };
+                        public String next() {
+                            if(childit != null) {
+                                String r = childit.next();
+                                if(!childit.hasNext() && explit.hasNext())
+                                    childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                                return r;
+                            } else {
+                                childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                                return next();
+                            }
+                        }
+                        public void remove() { }
+                    };
+                }
+            };
+            exps = gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter);
+        } else {
+            exps = gene.getExpermientsTable().getAll();
+        }
 
         Map<Pair<String,String>,List<ListResultRowExperiment>> map = new HashMap<Pair<String,String>, List<ListResultRowExperiment>>();
-        for(Experiment exp : gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter)) {
+        for(Experiment exp : exps) {
         	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
         		continue;
             AtlasExperiment aexp = getAtlasDao().getExperimentById(String.valueOf(exp.getId()));
@@ -829,7 +833,7 @@ public class AtlasStructuredQueryService {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getId(), aexp.getDwExpDescription(),
+                map.get(key).add(new ListResultRowExperiment(exp.getId(), 
                         aexp.getDwExpAccession(),
                         aexp.getDwExpDescription(),
                         exp.getPvalue(), exp.getExpression()));
@@ -838,6 +842,9 @@ public class AtlasStructuredQueryService {
 
         int listRowsPerGene = 0;
         for(Map.Entry<Pair<String,String>,List<ListResultRowExperiment>> e : map.entrySet()) {
+            if(listRowsPerGene++ >= result.getRowsPerGene())
+                break;
+            
             int cup = 0, cdn = 0;
             double pup = 1, pdn = 1;
             for(ListResultRowExperiment exp : e.getValue())
@@ -859,8 +866,6 @@ public class AtlasStructuredQueryService {
             row.setExp_list(e.getValue());
             result.addListResult(row);
 
-            if(++listRowsPerGene >= result.getRowsPerGene())
-                break;
         }
     }
 

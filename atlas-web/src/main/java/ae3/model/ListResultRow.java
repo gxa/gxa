@@ -125,15 +125,12 @@ public class ListResultRow implements Comparable<ListResultRow> {
 		this.gene = gene;
 	}
 
-    @RestOut(name="geneName", profile = ListViewRestProfile.class)
 	public String getGene_name() {
 		return gene.getGeneName();
 	}
-    @RestOut(name="geneSpecies", profile = ListViewRestProfile.class)
 	public String getGene_species() {
 		return gene.getGeneSpecies();
 	}
-    @RestOut(name="geneId", profile = ListViewRestProfile.class)
     public String getGene_identifier() {
         return gene.getGeneIdentifier();
     }

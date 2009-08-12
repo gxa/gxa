@@ -10,25 +10,22 @@ public class ListResultRowExperiment {
     private long experimentId;
     private String experimentAccession;
     private String experimentDescription;
-    private String experimentName;
     private Expression updn;
     private double pvalue;
 
     /**
      * Constructor
      * @param experimentId experiment id
-     * @param experimentName experimnet name
      * @param experimentAccession experiment accessment
      * @param experimentDescription experimnet description
      * @param pvalue p-value
      * @param updn up or down
      */
-    public ListResultRowExperiment(long experimentId, String experimentName, String experimentAccession, String experimentDescription,
+    public ListResultRowExperiment(long experimentId, String experimentAccession, String experimentDescription,
                                    double pvalue, Expression updn) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
-        this.experimentName = experimentName;
         this.pvalue = pvalue;
         this.updn = updn;
     }
@@ -66,15 +63,6 @@ public class ListResultRowExperiment {
     @RestOut(name="description")
     public String getExperimentDescription() {
         return experimentDescription;
-    }
-
-    /**
-     * Returns experiment name
-     * @return experiment name
-     */
-    @RestOut(name="name")
-    public String getExperimentName() {
-        return experimentName;
     }
 
     /**

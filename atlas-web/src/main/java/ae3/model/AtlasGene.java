@@ -314,8 +314,6 @@ public class AtlasGene {
             }
     }
 
-    @RestOut(name="expressionSummary", profile=GeneViewRestProfile.class)
-    @AsArray(item="result")
     public List<ListResultRow> getHeatMapRows() {
         ListResultRow heatmapRow;
         ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
@@ -336,7 +334,7 @@ public class AtlasGene {
                             for(Experiment exp : getExpermientsTable().findByEfEfv(ef, efv)) {
                                 AtlasExperiment aexp = experimentsMap.get(exp.getId());
                                 if(aexp != null) {
-                                    exps.add(new ListResultRowExperiment(exp.getId(), aexp.getDwExpDescription(),
+                                    exps.add(new ListResultRowExperiment(exp.getId(), 
                                             aexp.getDwExpAccession(),
                                             aexp.getDwExpDescription(),
                                             exp.getPvalue(), exp.getExpression()));
@@ -379,4 +377,15 @@ public class AtlasGene {
         return new Pair<String,Double>(ef, pvalue);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == this)
+            return true;
+        return obj != null && getGeneId().equals(((AtlasGene)obj).getGeneId());
+    }
+
+    @Override
+    public int hashCode() {
+        return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
+    }
 }
