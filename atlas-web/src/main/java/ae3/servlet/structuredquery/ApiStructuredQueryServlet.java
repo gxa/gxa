@@ -8,6 +8,7 @@ import ae3.restresult.RestOut;
 import ae3.dao.AtlasDao;
 import ae3.model.ListViewRestProfile;
 import ae3.model.GeneViewRestProfile;
+import ae3.model.AtlasGene;
 
 import java.util.*;
 
@@ -34,8 +35,8 @@ public class ApiStructuredQueryServlet extends RestServlet {
         public long getStartingFrom() {
             return r.getStart();
         }
-                
-        public class ResultGene {
+
+        public class ResultRow {
             private final StructuredResultRow row;
 
             public class Expression {
@@ -93,45 +94,13 @@ public class ApiStructuredQueryServlet extends RestServlet {
 
             }
 
-            public ResultGene(StructuredResultRow row) {
+            public ResultRow(StructuredResultRow row) {
                 this.row = row;
             }
 
-            public String getId() {
-                return row.getGene().getGeneIdentifier();
+            public AtlasGene getGene() {
+                return row.getGene();
             }
-
-            public String getName() {
-                return row.getGene().getGeneName();
-            }
-
-            public String getEnsemblGeneId() {
-                return row.getGene().getGeneEnsembl();
-            }
-
-            public String getSpecies() {
-                return row.getGene().getGeneSpecies();
-            }
-
-            public Collection<String> getGoTerms() {
-                return row.getGene().getGoTerms();
-            }
-
-            public Collection<String> getInterProTerms() {
-                return row.getGene().getInterProTerms();
-            }
-
-            public Collection<String> getKeywords() {
-                return row.getGene().getKeywords();
-            }
-
-            public Collection<String> getDiseases(){
-                return row.getGene().getDiseases();
-            }
-
-            public Collection<String> getSynonyms(){
-                return row.getGene().getSynonyms();
-            }          
 
             public Iterator<Expression> getExpressions() {
                 return new Iterator<Expression>() {
@@ -176,15 +145,15 @@ public class ApiStructuredQueryServlet extends RestServlet {
             }
         }
 
-        public Iterator<ResultGene> getGenes() {
-            return new Iterator<ResultGene>() {
+        public Iterator<ResultRow> getResults() {
+            return new Iterator<ResultRow>() {
                 Iterator<StructuredResultRow> sri = r.getResults().iterator();
                 public boolean hasNext() {
                     return sri.hasNext();
                 }
 
-                public ResultGene next() {
-                    return new ResultGene(sri.next());
+                public ResultRow next() {
+                    return new ResultRow(sri.next());
                 }
 
                 public void remove() {}

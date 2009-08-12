@@ -91,6 +91,11 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
+    @RestOut(name="interProIds")
+    public Collection<String> getInterProIds() {
+        return getValues("gene_interproid");
+    }
+
     @RestOut(name="interProTerms")
     public Collection<String> getInterProTerms() {
         return getValues("gene_interproterm");
@@ -309,7 +314,7 @@ public class AtlasGene {
             }
     }
 
-    @RestOut(name="expressionSummary")
+    @RestOut(name="expressionSummary", profile=GeneViewRestProfile.class)
     @AsArray(item="result")
     public List<ListResultRow> getHeatMapRows() {
         ListResultRow heatmapRow;
