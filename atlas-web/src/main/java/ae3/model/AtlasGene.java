@@ -61,7 +61,7 @@ public class AtlasGene {
         return getValue("gene_identifier");
     }
 
-    @RestOut(name="ensembl")
+    @RestOut(name="ensemblGeneId")
     public String getGeneEnsembl() {
         return getValue("gene_ensgene");
     }

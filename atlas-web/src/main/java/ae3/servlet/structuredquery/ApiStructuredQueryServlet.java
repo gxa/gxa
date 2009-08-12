@@ -105,7 +105,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
                 return row.getGene().getGeneName();
             }
 
-            public String getEnsembl() {
+            public String getEnsemblGeneId() {
                 return row.getGene().getGeneEnsembl();
             }
 

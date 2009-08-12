@@ -188,7 +188,7 @@ public class AtlasStructuredQueryParser {
     static private int num(String s, int def, int min, int max) {
         try {
             int r = Integer.valueOf(s);
-            return Math.max(Math.min(r, min), max);
+            return Math.min(Math.max(r, min), max);
         } catch (Exception e) {
             return def;
         }
