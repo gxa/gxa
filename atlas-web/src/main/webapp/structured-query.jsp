@@ -369,7 +369,12 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 
 <td id="resultpane" width="900px">
-<div style="line-height:30px;float:right" id="downloads"><a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a> - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></div
+<div style="line-height:30px;float:right" id="downloads">
+    <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
+    - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>
+    | <a title="Get API URL for this result set in XML format" href="${query.apiUrl}&format=xml">XML</a>    
+    | <a title="Get API URL for this result set in JSON format" href="${query.apiUrl}&format=json">JSON</a>
+</div>
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found

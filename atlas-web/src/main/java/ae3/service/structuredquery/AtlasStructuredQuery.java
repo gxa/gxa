@@ -1,6 +1,6 @@
 package ae3.service.structuredquery;
 
-import ae3.util.EscapeUtil;
+import ae3.util.HtmlHelper;
 
 import java.util.*;
 
@@ -197,7 +197,49 @@ public class AtlasStructuredQuery {
 		return sb.toString();
 	}
 
-	
+    private String camelcase(String s) {
+        return s.length() > 1 ? s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase() : s.toUpperCase();
+    }
+
+    public String getApiUrl() {
+        StringBuilder sb = new StringBuilder();
+
+        for (GeneQueryCondition c : geneConditions){
+            if(sb.length() > 0)
+                sb.append("&");
+            sb.append("gene").append(HtmlHelper.escapeURL(camelcase(c.getFactor()))).append("Is");
+            if(c.isNegated())
+                sb.append("Not");
+            sb.append("=");
+            sb.append(HtmlHelper.escapeURL(c.getJointFactorValues()));
+            
+        }
+
+        for(String s : species) {
+            if(sb.length() > 0)
+                sb.append("&");
+            sb.append("species=").append(HtmlHelper.escapeURL(s));
+        }
+
+        for(ExpFactorQueryCondition c : conditions){
+            if(sb.length() > 0)
+                sb.append("&");
+
+            sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""))
+                    .append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
+                    .append("=").append(HtmlHelper.escapeURL(c.getJointFactorValues()));
+        }
+
+        if(sb.length() > 0)
+            sb.append("&");
+        sb.append("viewAs=").append(viewType.toString().toLowerCase())
+                .append("&rows=").append(rowsPerPage)
+                .append("&startingFrom=").append(start);
+
+        sb.insert(0, "api?");
+        return sb.toString();
+    }
+
 	/**
 	 * Retrieves number of experiments to retrieve for each gene
 	 * @return number of experiments set for each gene
