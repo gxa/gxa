@@ -628,5 +628,16 @@ if(!atlas)
             }});
     };
 
+    atlas.showApiLinks = function () {
+        var p = $('#apilinks').show();
+        p.find('.closebox').click(function () { p.hide(); });
+    };
+
+    atlas.copyText = function(e) {
+        e.focus();
+        e.select();
+        var t = e.createTextRange();
+        t.execCommand("Copy");
+    };
 
  })(jQuery);

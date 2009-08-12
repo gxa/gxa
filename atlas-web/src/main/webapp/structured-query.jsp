@@ -306,7 +306,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 success: function(qry, status) {
                     if(qry.qid > 0) {
                         var count = parseInt($("#dwnldCounter").text())+1;
-                        $("#dwnldCounter").text(count);                        
+                        $("#dwnldCounter").text(count);
+                        $("#dwnldCounter").parent().show();
                     }
 			        atlas.popup('downloads.jsp');
                 }
@@ -369,18 +370,28 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 
 <td id="resultpane" width="900px">
-<div style="line-height:30px;float:right" id="downloads">
-    <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
-    - <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a>
-    | <a title="Get API URL for this result set in XML format" href="${query.apiUrl}&format=xml">XML</a>    
-    | <a title="Get API URL for this result set in JSON format" href="${query.apiUrl}&format=json">JSON</a>
-</div>
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
     <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
         <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
+    &nbsp;•&nbsp;
+    <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
+    <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></span>
+    &nbsp;•&nbsp; <a title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks();return false;">REST API</a>
+    <div id="apilinks"><div class="abs">
+        <div class="closebox">close</div>
+        <p>Please copy/paste those URLs into your code to get same results in machine-readable formats:</p>
+        <p><form action="" onsubmit="return false;">
+            <c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/${query.apiUrl}" var="apiUrl" />
+            <table>
+            <tr><td>for <a href="http://www.json.org">JSON</a>&nbsp;</td><td style="width:90%"><input class="value" type="text" value="${apiUrl}&format=json" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
+            <tr><td>for <a href="http://www.w3.org/XML/">XML</a>&nbsp;</td><td style="width:90%"><input class="value" type="text" value="${apiUrl}&format=xml" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
+            </table>
+        </form></p>
+        <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on how to handle this output from your code.</p>
+    </div></div>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     

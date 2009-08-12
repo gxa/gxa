@@ -204,16 +204,16 @@ public class AtlasStructuredQuery {
     public String getApiUrl() {
         StringBuilder sb = new StringBuilder();
 
-        for (GeneQueryCondition c : geneConditions){
-            if(sb.length() > 0)
-                sb.append("&");
-            sb.append("gene").append(HtmlHelper.escapeURL(camelcase(c.getFactor()))).append("Is");
-            if(c.isNegated())
-                sb.append("Not");
-            sb.append("=");
-            sb.append(HtmlHelper.escapeURL(c.getJointFactorValues()));
-            
-        }
+        for (GeneQueryCondition c : geneConditions)
+            if(!c.isAnything()) {
+                if(sb.length() > 0)
+                    sb.append("&");
+                sb.append("gene").append(HtmlHelper.escapeURL(camelcase(c.getFactor()))).append("Is");
+                if(c.isNegated())
+                    sb.append("Not");
+                sb.append("=");
+                sb.append(HtmlHelper.escapeURL(c.getJointFactorValues()));
+            }
 
         for(String s : species) {
             if(sb.length() > 0)
@@ -221,14 +221,15 @@ public class AtlasStructuredQuery {
             sb.append("species=").append(HtmlHelper.escapeURL(s));
         }
 
-        for(ExpFactorQueryCondition c : conditions){
-            if(sb.length() > 0)
-                sb.append("&");
+        for(ExpFactorQueryCondition c : conditions)
+            if(!c.isAnything()) {
+                if(sb.length() > 0)
+                    sb.append("&");
 
-            sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""))
-                    .append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
-                    .append("=").append(HtmlHelper.escapeURL(c.getJointFactorValues()));
-        }
+                sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""))
+                        .append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
+                        .append("=").append(HtmlHelper.escapeURL(c.getJointFactorValues()));
+            }
 
         if(sb.length() > 0)
             sb.append("&");

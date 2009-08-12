@@ -4,10 +4,10 @@
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-#expopup, #expopup .exptable, #tooltip, #waiter, .tokeninput { border: 1px solid #5E9E9E }
+#apilinks div.abs, #expopup, #expopup .exptable, #tooltip, #waiter, .tokeninput { border: 1px solid #5E9E9E }
 fieldset, #drill {  border: none }
 
-#squery th, #tooltip, #expopup, .diaghead, .tokeninput
+#apilinks div.abs, #squery th, #tooltip, #expopup, .diaghead, .tokeninput
       { background-color: #EEF5F5; }
 
 .closebox, .tokeninput span { color: #006666; }
@@ -537,3 +537,20 @@ div.tokeninputdrop .tree LI.expanded { background: url(images/expm.gif) left 7px
 div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
 
 div.tokeninputdrop .tree a.hl { color: #005555; }
+
+#apilinks  {
+    position:relative;
+    display:none;
+    line-height:normal;
+}
+
+#apilinks div.abs {
+    position:absolute;
+    padding: 10px;
+    margin:0;
+    z-index:1000;
+}
+
+#apilinks p { margin-bottom: 5px; }
+#apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%; }
+#apilinks td { padding: 0;border:none;margin:0; }
