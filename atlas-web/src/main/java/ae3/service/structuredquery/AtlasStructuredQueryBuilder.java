@@ -65,7 +65,7 @@ public class AtlasStructuredQueryBuilder {
 
     public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
         List<String> vlist = optionalParseList(values);
-        if(vlist.isEmpty())
+        if(vlist.isEmpty() && "".equals(factor))
             return this;
 
         List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
