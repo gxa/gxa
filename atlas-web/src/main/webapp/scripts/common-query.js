@@ -205,7 +205,7 @@ if(!atlas)
         fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
-                property: factor,
+                factor: factor,
                 type: actype,
                 limit: 15
             },
@@ -242,7 +242,7 @@ if(!atlas)
         fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
-                property: property,
+                factor: property,
                 type: 'gene',
                 limit: 15
             },
