@@ -237,7 +237,7 @@ $.TokenList = function (input, settings) {
                 open_browser();
                 return false;
             } else if(li && li.get(0) != input_token.get(0)) {
-                toggle_select_token(li);
+//                toggle_select_token(li);
                 return false;
             } else {
                 input_box.focus();
