@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Iterator;
+import java.util.Collection;
 
 /**
  * @author pashky
@@ -39,6 +40,20 @@ class Util {
         }
     }
 
+    static boolean isEmpty(Object o) {
+        if(o instanceof String)
+            return "".equals(o);
+        if(o instanceof Collection)
+            return ((Collection)o).isEmpty();
+        if(o instanceof Iterable)
+            return ((Iterable)o).iterator().hasNext();
+        if(o instanceof Iterator)
+            return ((Iterator)o).hasNext();
+        if(o instanceof Map)
+            return ((Map)o).isEmpty();
+        return false;
+    }
+
     static Iterable<Prop> iterableProperties(final Object o, final Class profile) {
         if(o instanceof Map)
             return new Iterable<Prop>() {
@@ -70,6 +85,7 @@ class Util {
                 final boolean checkAnno = !noAnnos;
                 return new Iterator<Prop>() {
                     int i;
+                    Object v;
 
                     {
                         i = 0;
@@ -82,21 +98,13 @@ class Util {
 
                     public Prop next() {
                         Method m = methods[i];
-                        RestOut ak = m.getAnnotation(RestOut.class);
+                        Object value = v;
+                        RestOut a = m.getAnnotation(RestOut.class);
                         String name;
-                        if(ak != null && ak.name().length() != 0)
-                            name = ak.name();
+                        if(a != null && a.name().length() != 0)
+                            name = a.name();
                         else
                             name = methodToProperty(m.getName());
-
-                        Object value;
-                        try {
-                            value = m.invoke(o, (Object[])null);
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        } catch (InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
 
                         ++i;
                         skip();
@@ -105,14 +113,42 @@ class Util {
                     }
 
                     private void skip() {
-                        while(i < methods.length &&
-                                (methods[i].getParameterTypes().length > 0 ||
-                                        (checkAnno && (!methods[i].isAnnotationPresent(RestOut.class)
-                                                || !methods[i].getAnnotation(RestOut.class).profile().isAssignableFrom(profile))) ||
-                                        (!checkAnno && !methods[i].getName().startsWith("get") && !methods[i].getName().startsWith("is")) ||
-                                        (!checkAnno && methods[i].getName().equals("getClass"))
-                                ))
+                        while(i < methods.length) {
+                            if(methods[i].getParameterTypes().length == 0) {
+                                if(checkAnno) {
+                                    if(methods[i].isAnnotationPresent(RestOut.class)) {
+                                        RestOut a = methods[i].getAnnotation(RestOut.class);
+                                        if(a.profile() == Object.class || a.profile().isAssignableFrom(profile)) {
+                                            try {
+                                                v = methods[i].invoke(o, (Object[])null);
+                                                if(v != null) {
+                                                    if(a.empty() || !isEmpty(v))
+                                                        return;
+                                                }
+                                            } catch (IllegalAccessException e) {
+                                                throw new RuntimeException(e);
+                                            } catch (InvocationTargetException e) {
+                                                throw new RuntimeException(e);
+                                            }
+
+                                        }
+                                    }
+                                } else if((methods[i].getName().startsWith("get") || methods[i].getName().startsWith("is"))
+                                                && !methods[i].getName().equals("getClass")) {
+                                    i = i;
+                                    try {
+                                        v = methods[i].invoke(o, (Object[])null);
+                                        if(v != null)
+                                            return;
+                                    } catch (IllegalAccessException e) {
+                                        throw new RuntimeException(e);
+                                    } catch (InvocationTargetException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            }
                             ++i;
+                        }
                     }
 
                     public void remove() { }

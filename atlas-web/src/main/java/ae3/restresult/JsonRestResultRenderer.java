@@ -50,9 +50,6 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         
         boolean first = true;
         for(Util.Prop p : Util.iterableProperties(o, profile)) {
-            if(p.value == null)
-                continue;
-
             if(first)
                 first = false;
             else {

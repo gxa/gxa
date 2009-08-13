@@ -61,7 +61,7 @@ public class AtlasGene {
         return getValue("gene_identifier");
     }
 
-    @RestOut(name="ensemblGeneId")
+    @RestOut(name="ensemblGeneId", empty = false)
     public String getGeneEnsembl() {
         return getValue("gene_ensgene");
     }
@@ -70,7 +70,7 @@ public class AtlasGene {
         return getValue("gene_goterm");
     }
 
-    @RestOut(name="goTerms")
+    @RestOut(name="goTerms", empty = false)
     public Collection<String> getGoTerms() {
         return getValues("gene_goterm");
     }
@@ -91,12 +91,12 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
-    @RestOut(name="interProIds")
+    @RestOut(name="interProIds", empty = false)
     public Collection<String> getInterProIds() {
         return getValues("gene_interproid");
     }
 
-    @RestOut(name="interProTerms")
+    @RestOut(name="interProTerms", empty = false)
     public Collection<String> getInterProTerms() {
         return getValues("gene_interproterm");
     }
@@ -105,7 +105,7 @@ public class AtlasGene {
         return getValue("gene_keyword");
     }
 
-    @RestOut(name="keyword")
+    @RestOut(name="keyword", empty = false)
     public Collection<String> getKeywords() {
         return getValues("gene_keyword");
     }
@@ -114,7 +114,7 @@ public class AtlasGene {
     	return getValue("gene_disease");
     }
 
-    @RestOut(name="diseases")
+    @RestOut(name="diseases", empty = false)
     public Collection<String> getDiseases(){
     	return getValues("gene_disease");
     }
@@ -166,7 +166,7 @@ public class AtlasGene {
     	return getValue("gene_uniprot");
     }
 
-    @RestOut(name="uniprotIds")
+    @RestOut(name="uniprotIds", empty = false)
     public Collection<String> getUniprotIds(){
     	return getValues("gene_uniprot");
     }
@@ -175,7 +175,7 @@ public class AtlasGene {
     	return getValue("gene_synonym");
     }
 
-    @RestOut(name="synonyms")
+    @RestOut(name="synonyms", empty = false)
     public Collection<String> getSynonyms(){
     	return getValues("gene_synonym");
     }
@@ -232,11 +232,56 @@ public class AtlasGene {
 		return StringUtils.join(orths, "+");
 	}
 
-    @RestOut(name="orthologs")
+    @RestOut(name="orthologs", empty = false)
 	public List<String> getOrthologs() {
         Collection orths = geneSolrDocument.getFieldValues("gene_ortholog");
 		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
 	}
+
+    @RestOut(name="proteins", empty = false)
+	public Collection<String> getProteins() { return getValues("gene_proteins"); }
+
+    @RestOut(name="goIds", empty = false)
+	public Collection<String> getGoIds() { return getValues("gene_goid"); }
+
+    @RestOut(name="dbxrefs", empty = false)
+	public Collection<String> getDbxRefs() { return getValues("gene_dbxref"); }
+
+    @RestOut(name="emblIds", empty = false)
+	public Collection<String> getEmblIds() { return getValues("gene_embl"); }
+
+    @RestOut(name="ensemblFamilyIds", empty = false)
+	public Collection<String> getEnsFamilies() { return getValues("gene_ensfamily"); }
+
+    @RestOut(name="ensemblProteinIds", empty = false)
+	public Collection<String> getEnsProteins() { return getValues("gene_ensprotein"); }
+
+    @RestOut(name="images", empty = false)
+	public Collection<String> getImages() { return getValues("gene_image"); }
+
+    @RestOut(name="locuslinks", empty = false)
+	public Collection<String> getLocuslinks() { return getValues("gene_locuslink"); }
+
+    @RestOut(name="omimiIds", empty = false)
+	public Collection<String> getOmimiIds() { return getValues("gene_omimid"); }
+
+    @RestOut(name="orfIds", empty = false)
+	public Collection<String> getOrfs() { return getValues("gene_orf"); }
+
+    @RestOut(name="refseqIds", empty = false)
+	public Collection<String> getRefseqIds() { return getValues("gene_refseq"); }
+
+    @RestOut(name="unigeneIds", empty = false)
+	public Collection<String> getUnigeneIds() { return getValues("gene_unigene"); }
+
+    @RestOut(name="hmdbIds", empty = false)
+	public Collection<String> getHmdbIds() { return getValues("gene_hmdb"); }
+
+    @RestOut(name="cas", empty = false)
+	public Collection<String> getCass() { return getValues("gene_cas"); }
+
+    @RestOut(name="uniprotMetenzs", empty = false)
+	public Collection<String> getChebiIds() { return getValues("gene_uniprotmetenz"); }
 
     public int getCount_up(String ef, String efv) {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + IndexField.encode(ef, efv) + "_up"));

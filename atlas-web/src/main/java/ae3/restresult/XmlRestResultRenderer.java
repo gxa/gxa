@@ -92,9 +92,6 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             wrapped = false;
 
         for(Util.Prop p : Util.iterableProperties(o, profile)) {
-            if(p.value == null)
-                continue;
-            
             if(am != null)
                 xml = xml.e(itemName).a(am.attr(), p.name);
             else

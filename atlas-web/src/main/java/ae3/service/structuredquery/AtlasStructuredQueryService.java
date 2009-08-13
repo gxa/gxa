@@ -921,7 +921,7 @@ public class AtlasStructuredQueryService {
             q.addField("gene_identifier");
             q.addField("gene_species");
             q.addField("exp_info");
-            for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+            for(GeneProperties.Prop p : GeneProperties.allProperties()) {
                 q.addField(p.searchField.replace("_exact", ""));
             }
         } else {

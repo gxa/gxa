@@ -10,4 +10,5 @@ import java.lang.annotation.RetentionPolicy;
 public @interface RestOut {
     String name() default "";
     Class profile() default Object.class;
+    boolean empty() default true;
 }
