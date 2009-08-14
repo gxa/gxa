@@ -1,6 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas</artifactId>
@@ -47,6 +46,7 @@
     <module>indexbuilder</module>
     <module>dataserver</module>
     <module>atlas-web</module>
+    <module>atlas-archetype</module>
   </modules>
 
   <dependencies>
@@ -100,8 +100,8 @@
     <atlas.log.priority>INFO</atlas.log.priority>
     <atlas.log.appender>atlas-log</atlas.log.appender>
 
-    <atlas.googleanalytics.script />
-    <atlas.protonotes.script />
+    <atlas.googleanalytics.script/>
+    <atlas.protonotes.script/>
     <atlas.last.experiment>868548824</atlas.last.experiment>
     <atlas.data.release>9.8</atlas.data.release>
 

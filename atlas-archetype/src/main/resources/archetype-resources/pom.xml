@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>${groupId}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
+  <name>Gene Expression Atlas customized for ${groupId}</name>
+  <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+  <packaging>war</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>uk.ac.ebi.microarray.atlas</groupId>
+      <artifactId>atlas-web</artifactId>
+      <version>1.1.1</version>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+
+</project>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context swallowOutput="true">
+  <!-- fixme: these properties pointed to arrayexpress databases, need to be configured for new DB -->
+  <Resource
+    name="jdbc/AEATLAS"
+    type="javax.sql.DataSource"
+    username="user"
+    password="password"
+    driverClassName="oracle.jdbc.OracleDriver"
+    maxIdle="2"
+    maxWait="5000"
+    url="${atlasDatasourceURL}"
+    maxActive="50"
+  />
+</Context>
