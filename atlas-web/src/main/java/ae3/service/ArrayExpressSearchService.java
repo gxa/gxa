@@ -85,6 +85,10 @@ public class ArrayExpressSearchService {
 
     public void initialize() {
         try {
+          File solrIndexDir = new File(solrIndexLocation);
+          log.info("SOLR Index at: " + solrIndexDir.getAbsolutePath());
+          solrIndexLocation = solrIndexDir.getAbsolutePath();
+
 	        multiCore = new CoreContainer(solrIndexLocation, new File(solrIndexLocation, "solr.xml"));
 
             solr_expt = new EmbeddedSolrServer(multiCore, Constants.CORE_EXPT);
