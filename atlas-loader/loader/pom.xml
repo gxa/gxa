@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>atlas-loader</artifactId>
@@ -12,4 +13,26 @@
   <version>0.1-SNAPSHOT</version>
   <name>Loader application for Gene Expression Atlas</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+
+  <dependencies>
+    <!-- magetab parser -->
+    <dependency>
+      <groupId>uk.ac.ebi.arrayexpress2</groupId>
+      <artifactId>limpopo</artifactId>
+      <version>1.0-alpha</version>
+    </dependency>
+    <!-- loader API and db utils -->
+    <dependency>
+      <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
+      <artifactId>loader-oracle-db</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.3</version>
+    </dependency>
+
+  </dependencies>
+
 </project>
