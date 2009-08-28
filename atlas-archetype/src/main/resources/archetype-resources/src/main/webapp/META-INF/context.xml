@@ -2,14 +2,28 @@
 <Context swallowOutput="true">
   <!-- fixme: these properties pointed to arrayexpress databases, need to be configured for new DB -->
   <Resource
-    name="jdbc/AEATLAS"
-    type="javax.sql.DataSource"
-    username="user"
-    password="password"
-    driverClassName="oracle.jdbc.OracleDriver"
-    maxIdle="2"
-    maxWait="5000"
-    url="${atlasDatasourceURL}"
-    maxActive="50"
-  />
+      name="jdbc/AEATLAS"
+      type="javax.sql.DataSource"
+      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+      driverClassName="oracle.jdbc.OracleDriver"
+      url="${atlasDatasourceURL}"
+      username="${atlasUser}"
+      password="${atlasPassword}"
+      maxIdle="2"
+      maxWait="5000"
+      maxActive="50"
+      removeAbandoned="true" />
+
+  <Resource
+      name="file/AEINDEX"
+      type="java.util.File"
+      path="${atlasIndexLocation}"
+      />
+
+  <Resource
+      name="file/AEDATASERVER"
+      type="java.util.File"
+      path="${atlasDataserverLocation}"
+      />
+
 </Context>

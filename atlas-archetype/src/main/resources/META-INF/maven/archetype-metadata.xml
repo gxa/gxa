@@ -21,6 +21,8 @@
     <requiredProperty key="version" />
     <!-- todo: atlas properties? -->
     <requiredProperty key="atlasDatasourceURL" />
+    <requiredProperty key="atlasUser" />
+    <requiredProperty key="atlasPassword" />
     <requiredProperty key="atlasIndexLocation" />
     <requiredProperty key="atlasDataserverLocation" />
   </requiredProperties>
