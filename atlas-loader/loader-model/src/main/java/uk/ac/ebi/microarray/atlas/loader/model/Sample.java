@@ -93,4 +93,22 @@ public class Sample {
 
     return result;
   }
+
+  public boolean addProperty(Property p) {
+    if (properties == null) {
+      properties = new ArrayList<Property>();
+    }
+
+    return properties.add(p);
+  }
+
+  @Override
+  public String toString() {
+    return "Sample{" +
+        "accession='" + accession + '\'' +
+        ", assayAccessions=" + assayAccessions +
+        ", species='" + species + '\'' +
+        ", channel='" + channel + '\'' +
+        '}';
+  }
 }

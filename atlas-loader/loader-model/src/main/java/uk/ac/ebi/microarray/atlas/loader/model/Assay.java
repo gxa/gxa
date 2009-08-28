@@ -80,6 +80,14 @@ public class Assay {
     return result;
   }
 
+  public boolean addProperty(Property p) {
+    if (null == properties) {
+      properties = new ArrayList<Property>();
+    }
+
+    return properties.add(p);
+  }
+
   public ExpressionValue addExpressionValue(String designElementAccession,
                                             float value) {
     ExpressionValue result = new ExpressionValue();
@@ -93,5 +101,14 @@ public class Assay {
     expressionValues.add(result);
 
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Assay{" +
+        "accession='" + accession + '\'' +
+        ", experimentAccession='" + experimentAccession + '\'' +
+        ", arrayDesignAcession='" + arrayDesignAcession + '\'' +
+        '}';
   }
 }

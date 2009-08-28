@@ -28,6 +28,7 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
+import uk.ac.ebi.microarray.atlas.loader.model.Property;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,6 +65,8 @@ public class TestExperimentConstruction extends TestCase {
 
   protected void tearDown() throws Exception {
     AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+    investigation = null;
+    cache = null;
   }
 
   @Test
@@ -119,9 +122,7 @@ public class TestExperimentConstruction extends TestCase {
     Experiment expt = cache.fetchExperiment("E-MEXP-986");
     assertNotNull("Experiment is null", expt);
 
-    System.out.println("Experiment:\n\taccession: " + expt.getAccession() +
-        "\n\tdescription: " + expt.getDescription() + "\n\tperformer: " +
-        expt.getPerformer() + "\n\tlab: " + expt.getLab());
+    System.out.println(expt.toString());
   }
 
 
@@ -169,13 +170,17 @@ public class TestExperimentConstruction extends TestCase {
                       .fetchAllAssays().size(), 0);
 
     for (Sample s : cache.fetchAllSamples()) {
-      System.out.println("Sample:\n\taccession: " + s.getAccession() +
-          "\n\tlinks to " + s.getAssayAccessions().size() + " assays");
+      System.out.println(s.toString());
+      for (Property p : s.getProperties()) {
+        System.out.println(p.toString());
+      }
     }
 
     for (Assay a : cache.fetchAllAssays()) {
-      System.out.println("Sample:\n\taccession: " + a.getAccession() +
-          "\n\tlinks to experiment: " + a.getExperimentAccession());
+      System.out.println(a.toString());
+      for (Property p : a.getProperties()) {
+        System.out.println(p.toString());
+      }
     }
   }
 }

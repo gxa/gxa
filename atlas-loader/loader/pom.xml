@@ -14,6 +14,14 @@
   <name>Loader application for Gene Expression Atlas</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
+  <repositories>
+    <repository>
+      <id>limpopo-repo</id>
+      <name>Limpopo Mini-SF Repository</name>
+      <url>http://limpopo.sourceforge.net/maven/repo</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <!-- magetab parser -->
     <dependency>

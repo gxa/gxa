@@ -2,14 +2,15 @@ package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
 
 /**
  * todo: Javadocs go here!
@@ -26,19 +27,39 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
     if (investigation.accession != null) {
       SDRFNode node;
       while ((node = getNextNodeForCompilation()) != null) {
-        Assay assay = new Assay();
-        assay.setAccession(
-            AtlasLoaderUtils.getNodeAccession(investigation, node));
-        assay.setExperimentAccession(investigation.accession);
+        if (node instanceof HybridizationNode) {
+          Assay assay = new Assay();
+          assay.setAccession(
+              AtlasLoaderUtils.getNodeAccession(investigation, node));
+          assay.setExperimentAccession(investigation.accession);
 
-        // todo - add properties to this assay (attributes of hyb node)
+          // todo - set properties of this assay (attributes of assay node)
+          SDRFWritingUtils.writeProperties(investigation, assay,
+                                           (HybridizationNode) node);
 
-        // add the experiment to the cache
-        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
-            .retrieveAtlasLoadCache(investigation);
-        cache.addAssay(assay);
+          // add the experiment to the cache
+          AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
+              .retrieveAtlasLoadCache(investigation);
+          cache.addAssay(assay);
 
-        // todo - read data files for expression values
+          // todo - read data files for expression values
+
+        }
+        else {
+          // generate error item and throw exception
+          String message =
+              "Unexpected node type - HybridizationHandler should only make " +
+                  "hyb nodes available for writing, but actually " +
+                  "got " + node.getNodeType();
+          ErrorItem error =
+              ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                  .generateErrorItem(
+                      message,
+                      999,
+                      this.getClass());
+
+          throw new ObjectConversionException(error);
+        }
       }
     }
     else {

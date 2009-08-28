@@ -41,4 +41,14 @@ public class Experiment {
   public void setLab(String lab) {
     this.lab = lab;
   }
+
+  @Override
+  public String toString() {
+    return "Experiment{" +
+        "accession='" + accession + '\'' +
+        ", description='" + description + '\'' +
+        ", performer='" + performer + '\'' +
+        ", lab='" + lab + '\'' +
+        '}';
+  }
 }

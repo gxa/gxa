@@ -13,6 +13,7 @@ import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,6 @@ import java.util.List;
  */
 public class AtlasLoadingSourceHandler extends SourceHandler {
   protected void writeValues() throws ObjectConversionException {
-    System.out.println("Writing values for SourceNode...");
-
     // make sure we wait until IDF has finsihed reading
     AtlasLoaderUtils.waitWhilstSDRFCompiles(
         investigation, this.getClass().getSimpleName(), getLog());
@@ -34,21 +33,23 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
     if (investigation.accession != null) {
       SDRFNode node;
       while ((node = getNextNodeForCompilation()) != null) {
-        Sample sample = new Sample();
-        sample.setAccession(
-            AtlasLoaderUtils.getNodeAccession(investigation, node));
-
-        // add the sample to the cache
-        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
-            .retrieveAtlasLoadCache(investigation);
-        cache.addSample(sample);
-
-        // todo - set properties of this sample (attributes of source node)
-
-        // now we've created the sample, wait for donwstream assays and link them
-
-        // walk down the graph to get to child hyb/assay nodes
         if (node instanceof SourceNode) {
+          Sample sample = new Sample();
+          sample.setAccession(
+              AtlasLoaderUtils.getNodeAccession(investigation, node));
+
+          // add the sample to the cache
+          AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
+              .retrieveAtlasLoadCache(investigation);
+          cache.addSample(sample);
+
+          // write the characterstic values as properties
+          SDRFWritingUtils.writeProperties(investigation, sample,
+                                           (SourceNode) node);
+
+          // now we've created the sample, wait for donwstream assays and link them
+
+          // walk down the graph to get to child hyb/assay nodes
           List<SDRFNode> assayNodes =
               findDownstreamAssayNode(investigation.SDRF, (SourceNode) node);
 

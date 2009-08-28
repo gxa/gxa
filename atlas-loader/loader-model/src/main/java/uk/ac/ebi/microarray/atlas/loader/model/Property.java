@@ -42,4 +42,14 @@ public class Property {
   public void setFactorValue(boolean factorValue) {
     isFactorValue = factorValue;
   }
+
+  @Override
+  public String toString() {
+    return "Property{" +
+        "accession='" + accession + '\'' +
+        ", name='" + name + '\'' +
+        ", value='" + value + '\'' +
+        ", isFactorValue=" + isFactorValue +
+        '}';
+  }
 }

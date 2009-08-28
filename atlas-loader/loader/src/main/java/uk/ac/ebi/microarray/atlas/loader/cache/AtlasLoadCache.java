@@ -59,7 +59,6 @@ public class AtlasLoadCache {
   }
 
   public void addSample(Sample sample) {
-    System.out.println("Adding sample: " + sample.getAccession());
     if (sample.getAccession() == null) {
       throw new NullPointerException("Cannot add sample with null accession!");
     }
