@@ -23,4 +23,11 @@ public class ExpressionValue {
   public void setValue(Float value) {
     this.value = value;
   }
+
+  public String toString() {
+    return "ExpressionValue{" +
+        "designElementAccession='" + designElementAccession + '\'' +
+        ", value=" + value +
+        '}';
+  }
 }

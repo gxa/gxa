@@ -9,13 +9,29 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
+import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonAffiliationHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.loader.db.utils.AtlasDB;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingAssayHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
+import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 
 import javax.sql.DataSource;
 import java.net.URL;
@@ -70,7 +86,7 @@ public class AtlasMAGETABLoader {
     AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
 
     // configure the handlers so we write out the right bits
-    configureHandlers(cache);
+    configureHandlers();
 
     // now, perform the parse - with registered handlers, our cache will be populated
     MAGETABParser parser = new MAGETABParser();
@@ -115,11 +131,26 @@ public class AtlasMAGETABLoader {
     return writeObjects(cache);
   }
 
-  protected void configureHandlers(AtlasLoadCache cache) {
-    HandlerPool handlerPool = HandlerPool.getInstance();
+  protected void configureHandlers() {
+    HandlerPool pool = HandlerPool.getInstance();
 
     // calibrate the parser with the relevent handlers that can load atlas data
-//    handlerPool.replaceHandlerClass()
+    pool.replaceHandlerClass(AccessionHandler.class,
+                             AtlasLoadingAccessionHandler.class);
+    pool.replaceHandlerClass(InvestigationTitleHandler.class,
+                             AtlasLoadingInvestigationTitleHandler.class);
+    pool.replaceHandlerClass(PersonAffiliationHandler.class,
+                             AtlasLoadingPersonAffiliationHandler.class);
+    pool.replaceHandlerClass(PersonLastNameHandler.class,
+                             AtlasLoadingPersonLastNameHandler.class);
+    pool.replaceHandlerClass(SourceHandler.class,
+                             AtlasLoadingSourceHandler.class);
+    pool.replaceHandlerClass(AssayHandler.class,
+                             AtlasLoadingAssayHandler.class);
+    pool.replaceHandlerClass(HybridizationHandler.class,
+                             AtlasLoadingHybridizationHandler.class);
+    pool.replaceHandlerClass(DerivedArrayDataMatrixHandler.class,
+                             AtlasLoadingDerivedArrayDataMatrixHandler.class);
   }
 
   protected boolean writeObjects(AtlasLoadCache cache) {

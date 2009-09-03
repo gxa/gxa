@@ -1,7 +1,11 @@
 package uk.ac.ebi.microarray.atlas.loader.utils;
 
 /**
- * todo: Javadocs go here!
+ * An exception that is thrown whenever an attempt to retrieve an object from
+ * the cache of objects fails unexpectedly.  This should <b>NOT</b> be thrown if
+ * the object is not yet in the cache, rather it should be thrown if somehting
+ * goes critically wrong whilst trying to query for an object that is in the
+ * cache already.
  *
  * @author Tony Burdett
  * @date 27-Aug-2009

@@ -122,7 +122,7 @@ public class TestExperimentConstruction extends TestCase {
     Experiment expt = cache.fetchExperiment("E-MEXP-986");
     assertNotNull("Experiment is null", expt);
 
-    System.out.println(expt.toString());
+//    System.out.println(expt.toString());
   }
 
 
@@ -169,18 +169,18 @@ public class TestExperimentConstruction extends TestCase {
                       .retrieveAtlasLoadCache(investigation)
                       .fetchAllAssays().size(), 0);
 
-    for (Sample s : cache.fetchAllSamples()) {
-      System.out.println(s.toString());
-      for (Property p : s.getProperties()) {
-        System.out.println(p.toString());
-      }
-    }
-
-    for (Assay a : cache.fetchAllAssays()) {
-      System.out.println(a.toString());
-      for (Property p : a.getProperties()) {
-        System.out.println(p.toString());
-      }
-    }
+//    for (Sample s : cache.fetchAllSamples()) {
+//      System.out.println(s.toString());
+//      for (Property p : s.getProperties()) {
+//        System.out.println(p.toString());
+//      }
+//    }
+//
+//    for (Assay a : cache.fetchAllAssays()) {
+//      System.out.println(a.toString());
+//      for (Property p : a.getProperties()) {
+//        System.out.println(p.toString());
+//      }
+//    }
   }
 }
