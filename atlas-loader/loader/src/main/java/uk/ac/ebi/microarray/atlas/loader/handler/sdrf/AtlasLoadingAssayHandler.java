@@ -41,9 +41,9 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
           AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
               .retrieveAtlasLoadCache(investigation);
           cache.addAssay(assay);
-
-          // todo - read data files for expression values
-
+          synchronized (investigation) {
+            investigation.notifyAll();
+          }
         }
         else {
           // generate error item and throw exception

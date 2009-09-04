@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.loader.cache;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
@@ -20,13 +22,16 @@ public class AtlasLoadCache {
   private Map<String, Assay> assaysByAcc;
   private Map<String, Sample> samplesByAcc;
 
+  // logging
+  private Log log = LogFactory.getLog(this.getClass());
+
   public AtlasLoadCache() {
     this.experimentsByAcc = new HashMap<String, Experiment>();
     this.assaysByAcc = new HashMap<String, Assay>();
     this.samplesByAcc = new HashMap<String, Sample>();
   }
 
-  public void addExperiment(Experiment experiment) {
+  public synchronized void addExperiment(Experiment experiment) {
     if (experiment.getAccession() == null) {
       throw new NullPointerException(
           "Cannot add experiment with null accession!");
@@ -34,15 +39,15 @@ public class AtlasLoadCache {
     experimentsByAcc.put(experiment.getAccession(), experiment);
   }
 
-  public Experiment fetchExperiment(String accession) {
+  public synchronized Experiment fetchExperiment(String accession) {
     return experimentsByAcc.get(accession);
   }
 
-  public Collection<Experiment> fetchAllExperiments() {
+  public synchronized Collection<Experiment> fetchAllExperiments() {
     return experimentsByAcc.values();
   }
 
-  public void addAssay(Assay assay) {
+  public synchronized void addAssay(Assay assay) {
     if (assay.getAccession() == null) {
       throw new NullPointerException(
           "Cannot add experiment with null accession!");
@@ -50,30 +55,30 @@ public class AtlasLoadCache {
     assaysByAcc.put(assay.getAccession(), assay);
   }
 
-  public Assay fetchAssay(String accession) {
+  public synchronized Assay fetchAssay(String accession) {
     return assaysByAcc.get(accession);
   }
 
-  public Collection<Assay> fetchAllAssays() {
+  public synchronized Collection<Assay> fetchAllAssays() {
     return assaysByAcc.values();
   }
 
-  public void addSample(Sample sample) {
+  public synchronized void addSample(Sample sample) {
     if (sample.getAccession() == null) {
       throw new NullPointerException("Cannot add sample with null accession!");
     }
     samplesByAcc.put(sample.getAccession(), sample);
   }
 
-  public Sample fetchSample(String accession) {
+  public synchronized Sample fetchSample(String accession) {
     return samplesByAcc.get(accession);
   }
 
-  public Collection<Sample> fetchAllSamples() {
+  public synchronized Collection<Sample> fetchAllSamples() {
     return samplesByAcc.values();
   }
 
-  public void clear() {
+  public synchronized void clear() {
     experimentsByAcc.clear();
     assaysByAcc.clear();
     samplesByAcc.clear();

@@ -77,7 +77,8 @@ public class AtlasLoaderUtils {
     log.debug("Thread [" + Thread.currentThread().getName() +
         "] polling for dependent object");
     // fetch from the bag
-    while (cache.fetchExperiment(accession) == null) {
+    while (cache.fetchExperiment(accession) == null
+        && investigation.getStatus() != Status.COMPLETE) {
       // object isn't in the bag yet, so wait
       synchronized (investigation) {
         try {
@@ -124,11 +125,13 @@ public class AtlasLoaderUtils {
           "Cannot lookup an object using a null accession");
     }
 
-    log.debug(handlerName + " doing lookup for assay " + accession);
+    log.debug(handlerName + " doing lookup for assay " + accession + " in " +
+        cache.toString());
     log.debug("Thread [" + Thread.currentThread().getName() +
         "] polling for assay");
     // fetch from the bag
-    while (cache.fetchAssay(accession) == null) {
+    while (cache.fetchAssay(accession) == null
+        && investigation.getStatus() != Status.COMPLETE) {
       // object isn't in the bag yet, so wait
       synchronized (investigation) {
         try {
@@ -179,7 +182,8 @@ public class AtlasLoaderUtils {
     log.debug("Thread [" + Thread.currentThread().getName() +
         "] polling for sample");
     // fetch from the bag
-    while (cache.fetchSample(accession) == null) {
+    while (cache.fetchSample(accession) == null
+        && investigation.getStatus() != Status.COMPLETE) {
       // object isn't in the bag yet, so wait
       synchronized (investigation) {
         try {

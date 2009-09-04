@@ -2,16 +2,26 @@ package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
+import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
+import uk.ac.ebi.microarray.atlas.loader.model.Assay;
+import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.DataMatrixFileBuffer;
+import uk.ac.ebi.microarray.atlas.loader.utils.LookupException;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * todo: Javadocs go here!
@@ -38,9 +48,10 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                                   node.getNodeName());
 
           // try to get the relative filename
+          URL dataMatrixURL = null;
           try {
             // NB. making sure we replace File separators with '/' to guard against windows issues
-            URL dataMatrixURL = sdrfURL.getPort() == -1 ?
+            dataMatrixURL = sdrfURL.getPort() == -1 ?
                 new URL(sdrfURL.getProtocol(),
                         sdrfURL.getHost(),
                         relPath.toString().replaceAll("\\\\", "/")) :
@@ -49,14 +60,74 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                         sdrfURL.getPort(),
                         relPath.toString().replaceAll("\\\\", "/"));
 
+            // simple counts
+            int assayCount;
+            int evCount = 0;
+
             // now, obtain a buffer for this dataMatrixFile
+            getLog().debug("Opening buffer of data matrix file at " +
+                dataMatrixURL);
             DataMatrixFileBuffer buffer =
                 DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
 
-            // do a lookup for the assay this data matrix is associated with
+            // find all upstream assay nodes
+            getLog().debug("Locating upstream assay nodes");
+            List<SDRFNode> assayNodes = findUpstreamAssays(
+                investigation.SDRF, (DerivedArrayDataMatrixNode) node);
 
-            // and read out expression values
-//            buffer.readAssayExpressionValues(assayRef);
+            // fetch the ids
+            String[] assayRefs = new String[assayNodes.size()];
+            int i = 0;
+            for (SDRFNode assayNode : assayNodes) {
+              assayRefs[i] = assayNode.getNodeName();
+              i++;
+            }
+            assayCount = assayRefs.length;
+
+            getLog().debug("Got " + assayRefs.length + " assays that " +
+                "require expression values");
+
+            // and read out all expression values
+            Map<String, List<ExpressionValue>> evMap =
+                buffer.readAssayExpressionValues(assayRefs);
+
+            // now fetch each assay and add expression values
+            for (SDRFNode assayNode : assayNodes) {
+              String assayRef = assayNode.getNodeName();
+              String accession = AtlasLoaderUtils.getNodeAccession(
+                  investigation, assayNode);
+
+              List<ExpressionValue> evs = evMap.get(assayRef);
+              try {
+                getLog().debug("Retrieving assay " + assayRef +
+                    " ready for updates...");
+                Assay assay = AtlasLoaderUtils.waitForAssay(
+                    accession, investigation, this.getClass().getSimpleName(),
+                    getLog());
+                getLog().debug("Updating assay " + assayRef + " with " +
+                    evs.size() + " expression values");
+                assay.setExpressionValues(evs);
+              }
+              catch (LookupException e) {
+                // generate error item and throw exception
+                String message = "Unable to update assay with expression " +
+                    "values - failed whilst attempting to lookup " + assayRef;
+
+                ErrorItem error =
+                    ErrorItemFactory
+                        .getErrorItemFactory(getClass().getClassLoader())
+                        .generateErrorItem(
+                            message,
+                            1023,
+                            this.getClass());
+
+                throw new ObjectConversionException(error);
+              }
+              evCount = evs.size();
+            }
+
+            getLog().info("Updated each of " + assayCount + " assays with " +
+                evCount + " expression values from " + dataMatrixURL);
           }
           catch (MalformedURLException e) {
             // generate error item and throw exception
@@ -73,9 +144,11 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
 
             throw new ObjectConversionException(error);
           }
-//          catch (ParseException e) {
-//            getLog().error("DataMatrixFileBuffer cannot be initialised");
-//          }
+          catch (ParseException e) {
+            getLog().error("Could not create ExpressionValue items, due to " +
+                "failure to read from " + dataMatrixURL);
+            throw new ObjectConversionException(e.getErrorItem(), e);
+          }
         }
         else {
           // generate error item and throw exception
@@ -109,5 +182,52 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
 
       throw new ObjectConversionException(error);
     }
+  }
+
+  private List<SDRFNode> findUpstreamAssays(SDRF sdrf,
+                                            DerivedArrayDataMatrixNode node) {
+    List<SDRFNode> foundNodes = new ArrayList<SDRFNode>();
+
+    for (HybridizationNode hybNode :
+        investigation.SDRF.lookupNodes(HybridizationNode.class)) {
+      // walk downstream, if there is a child matching this node then we want this
+      if (hasDataMatrixNodeAsChild(sdrf, hybNode, node)) {
+        foundNodes.add(hybNode);
+      }
+    }
+
+    for (AssayNode assayNode :
+        investigation.SDRF.lookupNodes(AssayNode.class)) {
+      // walk downstream, if there is a child matching this node then we want this
+      if (hasDataMatrixNodeAsChild(sdrf, assayNode, node)) {
+        foundNodes.add(assayNode);
+      }
+    }
+
+    // return all the nodes we found
+    return foundNodes;
+  }
+
+  private boolean hasDataMatrixNodeAsChild(SDRF sdrf, SDRFNode node,
+                                           DerivedArrayDataMatrixNode target) {
+    // check current node
+    if (node.getChildNodeValues().contains(target.getNodeName())) {
+      // does have the target as a child
+      return true;
+    }
+    else {
+      // we don't want this node, but now walk to children
+      for (String nodeName : node.getChildNodeValues()) {
+        SDRFNode nextNode = sdrf.lookupNode(nodeName, node.getChildNodeType());
+        // if we found the child here, return true
+        if (nextNode != null &&
+            hasDataMatrixNodeAsChild(sdrf, nextNode, target)) {
+          return true;
+        }
+      }
+    }
+
+    // if we got to here, no children of node match, so return false
+    return false;
   }
 }

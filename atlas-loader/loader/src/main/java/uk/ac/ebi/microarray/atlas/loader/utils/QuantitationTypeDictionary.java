@@ -2,12 +2,11 @@ package uk.ac.ebi.microarray.atlas.loader.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-
-import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 
 /**
  * A singleton class representing the dictionary of quantitation types.  You
@@ -28,7 +27,7 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
  * @date 24-Jul-2009
  */
 public class QuantitationTypeDictionary {
-  private static Map<ClassLoader, QuantitationTypeDictionary> factories =
+  private static final Map<ClassLoader, QuantitationTypeDictionary> factories =
       new HashMap<ClassLoader, QuantitationTypeDictionary>();
 
   /**
@@ -91,17 +90,19 @@ public class QuantitationTypeDictionary {
     ClassLoader loader = QuantitationTypeDictionary.class.getClassLoader();
 
     // check set and reuse if possible
-    if (factories.containsKey(loader)) {
-      // got a factory for this classloader already
-      return factories.get(loader);
-    }
-    else {
-      // todo - check parents?
-      // create a new factory for this loader
-      QuantitationTypeDictionary factory =
-          new QuantitationTypeDictionary(loader);
-      factories.put(loader, factory);
-      return factory;
+    synchronized (factories) {
+      if (factories.containsKey(loader)) {
+        // got a factory for this classloader already
+        return factories.get(loader);
+      }
+      else {
+        // todo - check parents?
+        // create a new factory for this loader
+        QuantitationTypeDictionary factory =
+            new QuantitationTypeDictionary(loader);
+        factories.put(loader, factory);
+        return factory;
+      }
     }
   }
 

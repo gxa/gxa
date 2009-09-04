@@ -30,6 +30,9 @@ public class AtlasLoadingAccessionHandler extends AccessionHandler {
       AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
           .retrieveAtlasLoadCache(investigation);
       cache.addExperiment(experiment);
+      synchronized (investigation) {
+        investigation.notifyAll();
+      }
     }
     else {
       // generate error item and throw exception

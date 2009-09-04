@@ -5,7 +5,8 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 
 import java.net.URL;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This tests the DataMatrixFileBuffer class.  This does not implement TestCase
@@ -36,7 +37,8 @@ public class TestDataMatrixFileBuffer extends TestCase {
           DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
 
       long startTime = System.currentTimeMillis();
-      Set<ExpressionValue> evs = buffer.readAssayExpressionValues(assayRef);
+      Map<String, List<ExpressionValue>> evs =
+          buffer.readAssayExpressionValues(assayRef);
       long endTime = System.currentTimeMillis();
 
       long readOnceTime = endTime - startTime;
@@ -54,7 +56,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
 //        }
 //      }
 
-      assertTrue("Read zero expression values", evs.size() > 0);
+      assertTrue("Read zero expression values", evs.values().size() > 0);
     }
     catch (ParseException e) {
       System.err.println(e.getErrorItem().getComment());
@@ -79,8 +81,9 @@ public class TestDataMatrixFileBuffer extends TestCase {
         System.out.println(
             "Repeat read number " + i + " took: " + repeatTime + "ms.");
         assertTrue(
-            "Repeat read number " + i +
-                " took longer than 5ms, just to return reference?",
+            "Repeat read number " + i + " " +
+                "took longer than 5ms (" + repeatTime + "ms), " +
+                "just to return reference?",
             repeatTime < 5);
       }
     }

@@ -13,6 +13,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandle
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonAffiliationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
@@ -23,15 +24,16 @@ import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingInvestigationTi
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingAssayHandler;
+import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.Property;
+import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
+import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 /**
  * todo: Javadocs go here!
@@ -41,7 +43,7 @@ import java.net.URL;
  */
 public class TestExperimentConstruction extends TestCase {
   private static final String urlPath =
-      "file:///home/tburdett/Documents/MAGE-TAB/E-MEXP-986/E-MEXP-986.idf.txt";
+      "file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt";
 
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
@@ -72,18 +74,36 @@ public class TestExperimentConstruction extends TestCase {
   @Test
   public void testReplaceHandlers() {
     HandlerPool pool = HandlerPool.getInstance();
-    pool.replaceHandlerClass(AccessionHandler.class,
-                             AtlasLoadingAccessionHandler.class);
-    pool.replaceHandlerClass(InvestigationTitleHandler.class,
-                             AtlasLoadingInvestigationTitleHandler.class);
-    pool.replaceHandlerClass(PersonAffiliationHandler.class,
-                             AtlasLoadingPersonAffiliationHandler.class);
-    pool.replaceHandlerClass(PersonLastNameHandler.class,
-                             AtlasLoadingPersonLastNameHandler.class);
+    assertTrue(pool.replaceHandlerClass(
+        AccessionHandler.class,
+        AtlasLoadingAccessionHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        InvestigationTitleHandler.class,
+        AtlasLoadingInvestigationTitleHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        PersonAffiliationHandler.class,
+        AtlasLoadingPersonAffiliationHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        PersonLastNameHandler.class,
+        AtlasLoadingPersonLastNameHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        SourceHandler.class,
+        AtlasLoadingSourceHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        AssayHandler.class,
+        AtlasLoadingAssayHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        HybridizationHandler.class,
+        AtlasLoadingHybridizationHandler.class));
+    assertTrue(pool.replaceHandlerClass(
+        DerivedArrayDataMatrixHandler.class,
+        AtlasLoadingDerivedArrayDataMatrixHandler.class));
   }
 
+  @Test
   public void testParseAndCheckExperiments() {
     HandlerPool pool = HandlerPool.getInstance();
+    pool.useDefaultHandlers();
     pool.replaceHandlerClass(AccessionHandler.class,
                              AtlasLoadingAccessionHandler.class);
     pool.replaceHandlerClass(InvestigationTitleHandler.class,
@@ -119,21 +139,20 @@ public class TestExperimentConstruction extends TestCase {
                      .retrieveAtlasLoadCache(investigation)
                      .fetchAllExperiments().size(), 1);
 
-    Experiment expt = cache.fetchExperiment("E-MEXP-986");
+    Experiment expt = cache.fetchExperiment("E-GEOD-3790");
     assertNotNull("Experiment is null", expt);
-
-//    System.out.println(expt.toString());
   }
 
-
+  @Test
   public void testParseAndCheckSamplesAndAssays() {
     HandlerPool pool = HandlerPool.getInstance();
-    assertTrue(pool.replaceHandlerClass(SourceHandler.class,
-                             AtlasLoadingSourceHandler.class));
-    assertTrue(pool.replaceHandlerClass(AssayHandler.class,
-                             AtlasLoadingAssayHandler.class));
-    assertTrue(pool.replaceHandlerClass(HybridizationHandler.class,
-                             AtlasLoadingHybridizationHandler.class));
+    pool.useDefaultHandlers();
+    pool.replaceHandlerClass(SourceHandler.class,
+                             AtlasLoadingSourceHandler.class);
+    pool.replaceHandlerClass(AssayHandler.class,
+                             AtlasLoadingAssayHandler.class);
+    pool.replaceHandlerClass(HybridizationHandler.class,
+                             AtlasLoadingHybridizationHandler.class);
 
     MAGETABParser parser = new MAGETABParser();
     parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -168,19 +187,50 @@ public class TestExperimentConstruction extends TestCase {
                   AtlasLoadCacheRegistry.getRegistry()
                       .retrieveAtlasLoadCache(investigation)
                       .fetchAllAssays().size(), 0);
+  }
 
-//    for (Sample s : cache.fetchAllSamples()) {
-//      System.out.println(s.toString());
-//      for (Property p : s.getProperties()) {
-//        System.out.println(p.toString());
-//      }
-//    }
-//
-//    for (Assay a : cache.fetchAllAssays()) {
-//      System.out.println(a.toString());
-//      for (Property p : a.getProperties()) {
-//        System.out.println(p.toString());
-//      }
-//    }
+  @Test
+  public void testParseAndCheckExpressionValues() {
+    HandlerPool pool = HandlerPool.getInstance();
+    pool.useDefaultHandlers();
+    pool.replaceHandlerClass(
+        HybridizationHandler.class,
+        AtlasLoadingHybridizationHandler.class);
+    pool.replaceHandlerClass(
+        AssayHandler.class,
+        AtlasLoadingAssayHandler.class);
+    pool.replaceHandlerClass(
+        DerivedArrayDataMatrixHandler.class,
+        AtlasLoadingDerivedArrayDataMatrixHandler.class);
+
+    MAGETABParser parser = new MAGETABParser();
+    parser.setParsingMode(ParserMode.READ_AND_WRITE);
+    parser.addErrorItemListener(new ErrorItemListener() {
+
+      public void errorOccurred(ErrorItem item) {
+        System.err.println("Error: " + item.toString());
+      }
+    });
+
+    try {
+      parser.parse(parseURL, investigation);
+    }
+    catch (ParseException e) {
+      e.printStackTrace();
+      fail();
+    }
+
+    // parsing finished, look in our cache...
+    boolean allEmpty = true;
+    for (Assay assay : cache.fetchAllAssays()) {
+      List<ExpressionValue> evs = assay.getExpressionValues();
+      if (evs.size() > 0) {
+        allEmpty = false;
+        break;
+      }
+    }
+
+    assertFalse("No expression values were read - all assays have 0 EVs",
+                allEmpty);
   }
 }

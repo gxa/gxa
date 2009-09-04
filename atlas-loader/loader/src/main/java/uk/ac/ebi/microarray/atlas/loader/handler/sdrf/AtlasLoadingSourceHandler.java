@@ -42,6 +42,9 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
           AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
               .retrieveAtlasLoadCache(investigation);
           cache.addSample(sample);
+          synchronized (investigation) {
+            investigation.notifyAll();
+          }
 
           // write the characterstic values as properties
           SDRFWritingUtils.writeProperties(investigation, sample,

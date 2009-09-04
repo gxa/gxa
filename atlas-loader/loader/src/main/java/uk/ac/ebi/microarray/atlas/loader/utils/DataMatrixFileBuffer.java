@@ -21,10 +21,10 @@ import java.util.*;
  * buffer is initialized - this starts a process that runs in a new thread,
  * parsing the file for headers and doing a dictionary lookup for quantitation
  * types in the file. Once initialization has completed, data can be quickly and
- * easily read out of the file by calling the {@link #readAssayExpressionValues(String)}
+ * easily read out of the file by calling the {@link #readAssayExpressionValues(String[])}
  * method, passing in the id of the assay you wish to read (which should be
  * obtained from the SDRF file, and binds to particular columns in the data
- * matrix file).  You can call {@link #readAssayExpressionValues(String)}
+ * matrix file).  You can call {@link #readAssayExpressionValues(String[])}
  * immediately once your bufer object is returned, but this method blocks until
  * initialization has completed.
  *
@@ -64,7 +64,7 @@ public class DataMatrixFileBuffer {
 
   private URL dataMatrixURL;
   private Map<String, Integer> assayRefToEVColumn;
-  private Map<String, Set<ExpressionValue>> assayRefToEVs;
+  private Map<String, List<ExpressionValue>> assayRefToEVs;
 
   private boolean ready = false;
   private ParseException initFailed = null;
@@ -74,7 +74,7 @@ public class DataMatrixFileBuffer {
   private DataMatrixFileBuffer(URL dataMatrixURL) {
     this.dataMatrixURL = dataMatrixURL;
     this.assayRefToEVColumn = new HashMap<String, Integer>();
-    this.assayRefToEVs = new HashMap<String, Set<ExpressionValue>>();
+    this.assayRefToEVs = new HashMap<String, List<ExpressionValue>>();
   }
 
   /**
@@ -86,13 +86,14 @@ public class DataMatrixFileBuffer {
    * method blocks until initialization has completed, and this buffer knows
    * which columns to read to obtain expression values.
    *
-   * @param assayRef the reference of the assay you wish to find expression
-   *                 values for
-   * @return the set of expression values read
+   * @param assayRefs the references of the assays you wish to find expression
+   *                  values for
+   * @return a map of expression values read, indexed by assay ref
    * @throws ParseException if the file could not be parsed, either at
    *                        initialization or when reading expression values
    */
-  public Set<ExpressionValue> readAssayExpressionValues(String assayRef)
+  public Map<String, List<ExpressionValue>> readAssayExpressionValues(
+      String... assayRefs)
       throws ParseException {
     // block until ready
     synchronized (this) {
@@ -107,14 +108,33 @@ public class DataMatrixFileBuffer {
       }
     }
 
+    Map<String, List<ExpressionValue>> result =
+        new HashMap<String, List<ExpressionValue>>();
+
     // if initFailed is not null, failed to init so throw
     if (initFailed != null) {
       throw initFailed;
     }
 
     // if we've read these expression values before
-    if (assayRefToEVs.containsKey(assayRef)) {
-      return assayRefToEVs.get(assayRef);
+    Set<String> bufferedAssays = new HashSet<String>();
+    for (String assayRef : assayRefs) {
+      if (assayRefToEVs.containsKey(assayRef)) {
+        result.put(assayRef, assayRefToEVs.get(assayRef));
+        bufferedAssays.add(assayRef);
+      }
+      else {
+        // cached map contains no result for this assay, create new list
+        assayRefToEVs.put(assayRef, new ArrayList<ExpressionValue>());
+        // and create list for results
+        result.put(assayRef, new ArrayList<ExpressionValue>());
+      }
+    }
+
+    // do we need to actually read the file now?
+    if (bufferedAssays.size() == assayRefs.length) {
+      // we've got all the results we need
+      return result;
     }
 
     BufferedReader reader = null;
@@ -126,16 +146,20 @@ public class DataMatrixFileBuffer {
       // so read every line of the file, parsing the columns we need
       log.debug("Reading expression values from " + dataMatrixURL + "...");
       String line;
-      Set<ExpressionValue> expressionValues = new HashSet<ExpressionValue>();
+
       // NB this uses same reader we used to parse headers, so just continue reading
+      int lineCount = 0;
       while ((line = reader.readLine()) != null) {
+        lineCount++;
+        log.debug("Read line " + lineCount);
         // ignore empty lines
         if (!line.trim().equals("")) {
           if (!line.startsWith("#")) {
             String[] tokens = line.split("\t");
+            String designElement = tokens[0];
 
             // ignore header lines
-            String maybeHeader = MAGETABUtils.digestHeader(tokens[0]);
+            String maybeHeader = MAGETABUtils.digestHeader(designElement);
             if (maybeHeader.equals("hybridizationref") ||
                 maybeHeader.equals("reporterref") ||
                 maybeHeader.equals("compositeelementref") ||
@@ -146,21 +170,36 @@ public class DataMatrixFileBuffer {
             }
             else {
               // not a header line, so read out expression values
-              String designElement =
-                  tokens[0];
-              log.debug("Attempting to read expression values for element: " +
-                  designElement + "...");
-              log.debug("Index of expression value (" + assayRef + "): " +
-                  assayRefToEVColumn.get(assayRef));
-              float evFloatValue =
-                  Float.parseFloat(tokens[assayRefToEVColumn.get(assayRef)]);
+              for (String assayRef : assayRefs) {
+                // only look for this value if we've not got it cached
+                if (!bufferedAssays.contains(assayRef)) {
+                  // read all expression values for this line
+                  log.debug("Attempting to read expression values for " +
+                      "element: " + designElement + "...");
 
-              ExpressionValue ev = new ExpressionValue();
-              ev.setDesignElementAccession(designElement);
-              ev.setValue(evFloatValue);
-              // todo - more things to add?
+                  log.debug("Index of expression value (" + assayRef + "): " +
+                      assayRefToEVColumn.get(assayRef));
+                  if (assayRefToEVColumn.get(assayRef) == null) {
+                    log.warn("No expression values present for " + assayRef +
+                        " in data matrix file at " +
+                        "line: " + lineCount + ", " +
+                        "column: " + assayRefToEVColumn.get(assayRef));
+                  }
+                  else {
+                    float evFloatValue = Float.parseFloat(
+                        tokens[assayRefToEVColumn.get(assayRef)]);
 
-              expressionValues.add(ev);
+                    ExpressionValue ev = new ExpressionValue();
+                    ev.setDesignElementAccession(designElement);
+                    ev.setValue(evFloatValue);
+
+                    // now add to result map
+                    assayRefToEVs.get(assayRef).add(ev);
+                    // and add to result
+                    result.get(assayRef).add(ev);
+                  }
+                }
+              }
             }
           }
         }
@@ -168,8 +207,7 @@ public class DataMatrixFileBuffer {
 
       // fixme: may want to remove this, if we suffer on memory it's better to reread
       // finished reading, store in buffer...
-      assayRefToEVs.put(assayRef, expressionValues);
-      return expressionValues;
+      return result;
     }
     catch (IOException e) {
       // generate error item and throw exception

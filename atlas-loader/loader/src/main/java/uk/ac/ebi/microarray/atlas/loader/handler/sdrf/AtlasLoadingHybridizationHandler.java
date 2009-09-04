@@ -41,6 +41,9 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
           AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
               .retrieveAtlasLoadCache(investigation);
           cache.addAssay(assay);
+          synchronized (investigation) {
+            investigation.notifyAll();
+          }
 
           // todo - read data files for expression values
 
