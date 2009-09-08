@@ -93,7 +93,6 @@ public class AtlasMAGETABLoader {
     parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
     // register an error item listener
-    final String idfString = idfFileLocation.toString();
     parser.addErrorItemListener(new ErrorItemListener() {
       public void errorOccurred(ErrorItem item) {
         // lookup message
@@ -123,7 +122,7 @@ public class AtlasMAGETABLoader {
     catch (ParseException e) {
       // something went wrong - no objects have been created though
       log.error(
-          "Parse exception occurred whilst trying to parse " + idfFileLocation);
+          "There was a problem whilst trying to parse " + idfFileLocation);
       return false;
     }
 

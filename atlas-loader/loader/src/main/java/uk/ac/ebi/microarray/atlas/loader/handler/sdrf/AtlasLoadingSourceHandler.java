@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * todo: Javadocs go here!
+ * A dedicated handler for creating sample objects and storing them in the cache
+ * whenever a new source node is encountered.
  *
  * @author Tony Burdett
  * @date 26-Aug-2009

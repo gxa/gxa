@@ -55,7 +55,6 @@ public class QuantitationTypeDictionary {
       return factories.get(loader);
     }
     else {
-      // todo - check parents?
       // create a new factory for this loader
       QuantitationTypeDictionary factory =
           new QuantitationTypeDictionary(loader);
@@ -96,7 +95,6 @@ public class QuantitationTypeDictionary {
         return factories.get(loader);
       }
       else {
-        // todo - check parents?
         // create a new factory for this loader
         QuantitationTypeDictionary factory =
             new QuantitationTypeDictionary(loader);

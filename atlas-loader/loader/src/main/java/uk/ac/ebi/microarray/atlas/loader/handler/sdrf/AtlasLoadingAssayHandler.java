@@ -13,7 +13,8 @@ import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
 
 /**
- * todo: Javadocs go here!
+ * A dedicated handler for creating assay objects and storing them in the
+ * cache whenever a new assay node is encountered.
  *
  * @author Tony Burdett
  * @date 26-Aug-2009
@@ -33,7 +34,6 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
               AtlasLoaderUtils.getNodeAccession(investigation, node));
           assay.setExperimentAccession(investigation.accession);
 
-          // todo - set properties of this assay (attributes of assay node)
           SDRFWritingUtils.writeProperties(investigation, assay,
                                            (AssayNode) node);
 

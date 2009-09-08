@@ -22,7 +22,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
 
   protected void setUp() throws Exception {
     dataMatrixURL = this.getClass().getClassLoader().getResource(
-        "E-GEOD-3790-sample-processed-data.txt");
+        "E-GEOD-3790-processed-data-1627899912.txt");
     assayRef = "HC52 CN B";
   }
 

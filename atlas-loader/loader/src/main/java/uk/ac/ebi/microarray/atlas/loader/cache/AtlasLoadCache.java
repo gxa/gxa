@@ -1,7 +1,5 @@
 package uk.ac.ebi.microarray.atlas.loader.cache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
@@ -21,9 +19,6 @@ public class AtlasLoadCache {
   private Map<String, Experiment> experimentsByAcc;
   private Map<String, Assay> assaysByAcc;
   private Map<String, Sample> samplesByAcc;
-
-  // logging
-  private Log log = LogFactory.getLog(this.getClass());
 
   public AtlasLoadCache() {
     this.experimentsByAcc = new HashMap<String, Experiment>();

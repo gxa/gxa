@@ -24,7 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * todo: Javadocs go here!
+ * A dedicated handler that parses expression data from a specified data matrix
+ * file, referenced in the SDRF.  This handler populates expression value
+ * objects and attaches them to the assay object that is upstream of the
+ * DerivedArrayDataMatrix node that this handler is dealing with.
  *
  * @author Tony Burdett
  * @date 01-Sep-2009
@@ -126,8 +129,8 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
               evCount = evs.size();
             }
 
-            getLog().info("Updated each of " + assayCount + " assays with " +
-                evCount + " expression values from " + dataMatrixURL);
+            getLog().info("Updated " + assayCount + " assays with " +
+                evCount * assayCount + " expression values");
           }
           catch (MalformedURLException e) {
             // generate error item and throw exception

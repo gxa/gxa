@@ -9,7 +9,8 @@ import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.LookupException;
 
 /**
- * todo: Javadocs go here!
+ * A dedicated handler for attaching a persons affiliation to the appropriate
+ * experiment object.
  *
  * @author Tony Burdett
  * @date 26-Aug-2009

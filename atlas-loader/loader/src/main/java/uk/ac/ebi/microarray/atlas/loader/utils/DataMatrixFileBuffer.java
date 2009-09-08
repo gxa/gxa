@@ -144,7 +144,7 @@ public class DataMatrixFileBuffer {
 
       // now, we have a map of assay names to expression value columns...
       // so read every line of the file, parsing the columns we need
-      log.debug("Reading expression values from " + dataMatrixURL + "...");
+      log.info("Reading data matrix from " + dataMatrixURL + "...");
       String line;
 
       // NB this uses same reader we used to parse headers, so just continue reading
@@ -193,9 +193,10 @@ public class DataMatrixFileBuffer {
                     ev.setDesignElementAccession(designElement);
                     ev.setValue(evFloatValue);
 
-                    // now add to result map
+                    // finished reading, store in buffer...
+                    // fixme: may want to remove this, if we suffer on memory it's better to reread
                     assayRefToEVs.get(assayRef).add(ev);
-                    // and add to result
+                    // and now add to result map
                     result.get(assayRef).add(ev);
                   }
                 }
@@ -205,8 +206,6 @@ public class DataMatrixFileBuffer {
         }
       }
 
-      // fixme: may want to remove this, if we suffer on memory it's better to reread
-      // finished reading, store in buffer...
       return result;
     }
     catch (IOException e) {
@@ -226,6 +225,7 @@ public class DataMatrixFileBuffer {
     }
     finally {
       try {
+        log.info("Finished reading from " + dataMatrixURL + ", closing");
         reader.close();
       }
       catch (IOException e) {

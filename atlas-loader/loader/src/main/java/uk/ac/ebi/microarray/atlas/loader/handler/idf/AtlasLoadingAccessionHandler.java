@@ -10,7 +10,8 @@ import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 
 /**
- * todo: Javadocs go here!
+ * A dedicated handler for creating experiment objects and storing them in the
+ * cache whenever a new investigation accession is encountered.
  *
  * @author Tony Burdett
  * @date 26-Aug-2009
@@ -36,8 +37,9 @@ public class AtlasLoadingAccessionHandler extends AccessionHandler {
     }
     else {
       // generate error item and throw exception
-      String message =
-          "There is no accession number defined - cannot load to the Atlas without an accession, use Comment[ArrayExpressAccession]";
+      String message = "There is no accession number defined - " +
+          "cannot load to the Atlas without an accession, " +
+          "use Comment[ArrayExpressAccession]";
 
       ErrorItem error =
           ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())

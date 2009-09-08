@@ -2,6 +2,7 @@ package uk.ac.ebi.microarray.atlas.loader;
 
 import junit.framework.TestCase;
 import org.junit.Test;
+import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
@@ -31,24 +32,14 @@ import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-/**
- * todo: Javadocs go here!
- *
- * @author Tony Burdett
- * @date 27-Aug-2009
- */
 public class TestExperimentConstruction extends TestCase {
-  private static final String urlPath =
-      "file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt";
-
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
 
-  private static URL parseURL;
+  private URL parseURL;
 
   public void setUp() {
     // now, create an investigation
@@ -57,12 +48,8 @@ public class TestExperimentConstruction extends TestCase {
 
     AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
 
-    try {
-      parseURL = new URL(urlPath);
-    }
-    catch (MalformedURLException e) {
-      fail();
-    }
+    parseURL = this.getClass().getClassLoader().getResource(
+        "E-GEOD-3790.idf.txt");
   }
 
   protected void tearDown() throws Exception {
@@ -118,7 +105,24 @@ public class TestExperimentConstruction extends TestCase {
     parser.addErrorItemListener(new ErrorItemListener() {
 
       public void errorOccurred(ErrorItem item) {
-        System.err.println("Error: " + item.toString());
+        // lookup message
+        String message = "";
+        for (ErrorCode ec : ErrorCode.values()) {
+          if (item.getErrorCode() == ec.getIntegerValue()) {
+            message = ec.getErrorMessage();
+            break;
+          }
+        }
+        if (message.equals("")) {
+          message = "Unknown error";
+        }
+
+        // log the error
+        System.err.println(
+            "Parser reported:\n\t" +
+                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                "occurred in parsing " + item.getParsedFile() + " " +
+                "[line " + item.getLine() + ", column " + item.getCol() + "].");
       }
     });
 
@@ -159,7 +163,24 @@ public class TestExperimentConstruction extends TestCase {
     parser.addErrorItemListener(new ErrorItemListener() {
 
       public void errorOccurred(ErrorItem item) {
-        System.err.println("Error: " + item.toString());
+        // lookup message
+        String message = "";
+        for (ErrorCode ec : ErrorCode.values()) {
+          if (item.getErrorCode() == ec.getIntegerValue()) {
+            message = ec.getErrorMessage();
+            break;
+          }
+        }
+        if (message.equals("")) {
+          message = "Unknown error";
+        }
+
+        // log the error
+        System.err.println(
+            "Parser reported:\n\t" +
+                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                "occurred in parsing " + item.getParsedFile() + " " +
+                "[line " + item.getLine() + ", column " + item.getCol() + "].");
       }
     });
 
@@ -208,7 +229,24 @@ public class TestExperimentConstruction extends TestCase {
     parser.addErrorItemListener(new ErrorItemListener() {
 
       public void errorOccurred(ErrorItem item) {
-        System.err.println("Error: " + item.toString());
+        // lookup message
+        String message = "";
+        for (ErrorCode ec : ErrorCode.values()) {
+          if (item.getErrorCode() == ec.getIntegerValue()) {
+            message = ec.getErrorMessage();
+            break;
+          }
+        }
+        if (message.equals("")) {
+          message = "Unknown error";
+        }
+
+        // log the error
+        System.err.println(
+            "Parser reported:\n\t" +
+                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                "occurred in parsing " + item.getParsedFile() + " " +
+                "[line " + item.getLine() + ", column " + item.getCol() + "].");
       }
     });
 
