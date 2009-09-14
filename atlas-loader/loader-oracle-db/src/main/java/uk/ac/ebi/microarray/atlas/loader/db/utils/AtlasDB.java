@@ -42,115 +42,150 @@ public class AtlasDB {
 
   public static void writeExperiment(Connection connection, Experiment value)
       throws SQLException {
-    //1  TheAccession varchar2
-    //2  TheDescription varchar2
-    //3  ThePerformer varchar2
-    //4  TheLab varchar2
-    CallableStatement sql =
-        connection.prepareCall("{call a2_ExperimentSet(?,?,?,?)}");
+    CallableStatement stmt = null;
+    try {
+      //1  TheAccession varchar2
+      //2  TheDescription varchar2
+      //3  ThePerformer varchar2
+      //4  TheLab varchar2
+      stmt = connection.prepareCall("{call a2_ExperimentSet(?,?,?,?)}");
 
-    sql.setString(1, value.getAccession());
-    sql.setString(2, value.getDescription());
-    sql.setString(3, value.getPerformer());
-    sql.setString(4, value.getLab());  //properties
+      stmt.setString(1, value.getAccession());
+      stmt.setString(2, value.getDescription());
+      stmt.setString(3, value.getPerformer());
+      stmt.setString(4, value.getLab());  //properties
 
-    sql.execute();
-
+      // execute statement
+      stmt.execute();
+    }
+    finally {
+      if (stmt != null) {
+        // close statement
+        stmt.close();
+      }
+    }
   }
 
   public static void writeAssay(Connection connection, Assay value)
       throws SQLException {
-    //1  Accession varchar2
-    //2  ExperimentAccession  varchar2
-    //3  ArrayDesignAccession varchar2
-    //4  Properties PropertyTable
-    //5  ExpressionValues ExpressionValueTable
-    CallableStatement sql =
-        connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
+    CallableStatement stmt = null;
+    try {
+      //1  Accession varchar2
+      //2  ExperimentAccession  varchar2
+      //3  ArrayDesignAccession varchar2
+      //4  Properties PropertyTable
+      //5  ExpressionValues ExpressionValueTable
+      stmt = connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
 
-    Object[] expressionValues =
-        new Object[null == value.getExpressionValues() ? 0
-            : value.getExpressionValues().size()];
-    //placeholders for all properties of ExpressionValue structure
-    Object[] members = new Object[2];
+      Object[] expressionValues =
+          new Object[null == value.getExpressionValues() ? 0
+              : value.getExpressionValues().size()];
+      //placeholders for all properties of ExpressionValue structure
+      Object[] members = new Object[2];
 
-    int i = 0;
-    for (ExpressionValue v : value.getExpressionValues()) {
-      members[0] = v.getDesignElementAccession();
-      members[1] = v.getValue();
+      if (value.getExpressionValues() != null) {
+        int i = 0;
+        for (ExpressionValue v : value.getExpressionValues()) {
+          members[0] = v.getDesignElementAccession();
+          members[1] = v.getValue();
 
-      expressionValues[i++] =
-          toSqlStruct(connection, "EXPRESSIONVALUE", members);
+          expressionValues[i++] =
+              toSqlStruct(connection, "EXPRESSIONVALUE", members);
+        }
+      }
+
+      Object[] properties = new Object[null == value.getProperties()
+          ? 0
+          : value.getProperties().size()];
+      //placeholders for all properties of ExpressionValue structure
+      Object[] members1 = new Object[4];
+
+      if (value.getProperties() != null) {
+        int i = 0;
+        for (Property v : value.getProperties()) {
+          members1[0] = v.getAccession(); //accession
+          members1[1] = v.getName();
+          members1[2] = v.getValue();
+          members1[3] = v.isFactorValue();
+
+          properties[i++] = toSqlStruct(connection, "PROPERTY", members1);
+        }
+      }
+
+      stmt.setString(1, value.getAccession());
+      stmt.setString(2, value.getExperimentAccession());
+      stmt.setString(3, value.getArrayDesignAcession());
+      stmt.setArray(4, toSqlArray(connection, "PROPERTYTABLE", properties));
+      stmt.setArray(5, toSqlArray(connection, "EXPRESSIONVALUETABLE",
+                                  expressionValues));
+
+      // execute statement
+      stmt.execute();
     }
-
-    Object[] properties = new Object[null == value.getProperties()
-        ? 0
-        : value.getProperties().size()];
-    //placeholders for all properties of ExpressionValue structure
-    Object[] members1 = new Object[4];
-
-    int i1 = 0;
-    for (Property v : value.getProperties()) {
-      members1[0] = v.getAccession(); //accession
-      members1[1] = v.getName();
-      members1[2] = v.getValue();
-      members1[3] = v.isFactorValue();
-
-      properties[i1++] = toSqlStruct(connection, "PROPERTY", members1);
+    finally {
+      if (stmt != null) {
+        // close statement
+        stmt.close();
+      }
     }
-
-    sql.setString(1, value.getAccession());
-    sql.setString(2, value.getExperimentAccession());
-    sql.setString(3, value.getArrayDesignAcession());
-    sql.setArray(4, toSqlArray(connection, "PROPERTYTABLE", properties));
-    sql.setArray(5, toSqlArray(connection, "EXPRESSIONVALUETABLE",
-                               expressionValues));
-
-    sql.execute();
   }
 
   public static void writeSample(Connection connection, Sample value)
       throws SQLException {
-    //1  Accession varchar2
-    //2  Assays AccessionTable
-    //3  Properties PropertyTable
-    //4  Species varchar2
-    //5  Channel varchar2
-    CallableStatement sql =
-        connection.prepareCall("{call a2_SampleSet(?,?,?,?,?)}");
+    CallableStatement stmt = null;
+    try {
+      //1  Accession varchar2
+      //2  Assays AccessionTable
+      //3  Properties PropertyTable
+      //4  Species varchar2
+      //5  Channel varchar2
+      stmt = connection.prepareCall("{call a2_SampleSet(?,?,?,?,?)}");
 
+      Object[] properties =
+          new Object[null == value.getProperties() ? 0
+              : value.getProperties().size()];
+      Object[] members =
+          new Object[4]; //placeholders for all properties of ExpressionValue structure
 
-    Object[] properties =
-        new Object[null == value.getProperties() ? 0
-            : value.getProperties().size()];
-    Object[] members =
-        new Object[4]; //placeholders for all properties of ExpressionValue structure
+      if (value.getProperties() != null) {
+        int i = 0;
+        for (Property v : value.getProperties()) {
+          members[0] = v.getAccession(); //accession
+          members[1] = v.getName();
+          members[2] = v.getValue();
+          members[3] = v.isFactorValue();
 
-    int i = 0;
-    for (Property v : value.getProperties()) {
-      members[0] = v.getAccession(); //accession
-      members[1] = v.getName();
-      members[2] = v.getValue();
-      members[3] = v.isFactorValue();
+          properties[i++] = toSqlStruct(connection, "PROPERTY", members);
+        }
+      }
 
-      properties[i++] = toSqlStruct(connection, "PROPERTY", members);
+      Object[] assayAccessions = new Object[null == value.getAssayAccessions()
+          ? 0
+          : value.getAssayAccessions().size()];
+      if (value.getAssayAccessions() != null) {
+        int i = 0;
+        for (String v : value.getAssayAccessions()) {
+          assayAccessions[i++] = v;
+        }
+      }
+
+      stmt.setString(1, value.getAccession());
+      stmt.setArray(2,
+                    toSqlArray(connection, "ACCESSIONTABLE", assayAccessions));
+      stmt.setArray(3, toSqlArray(connection, "PROPERTYTABLE", properties));
+      stmt.setString(4, value.getSpecies());  //properties
+      stmt.setString(5, value.getChannel());
+
+      // execute statement
+      stmt.execute();
+
     }
-
-    Object[] assayAccessions = new Object[null == value.getAssayAccessions()
-        ? 0
-        : value.getAssayAccessions().size()];
-    int i1 = 0;
-    for (String v : value.getAssayAccessions()) {
-      assayAccessions[i1++] = v;
+    finally {
+      if (stmt != null) {
+        // close statement
+        stmt.close();
+      }
     }
-
-    sql.setString(1, value.getAccession());
-    sql.setArray(2, toSqlArray(connection, "ACCESSIONTABLE", assayAccessions));
-    sql.setArray(3, toSqlArray(connection, "PROPERTYTABLE", properties));
-    sql.setString(4, value.getSpecies());  //properties
-    sql.setString(5, value.getChannel());
-
-    sql.execute();
   }
 
   public static void ExperimentDel(String accession) {

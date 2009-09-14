@@ -2,6 +2,7 @@ package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDesignNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
@@ -12,9 +13,12 @@ import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * A dedicated handler for creating assay objects and storing them in the
- * cache whenever a new assay node is encountered.
+ * A dedicated handler for creating assay objects and storing them in the cache
+ * whenever a new assay node is encountered.
  *
  * @author Tony Burdett
  * @date 26-Aug-2009
@@ -29,13 +33,42 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
       SDRFNode node;
       while ((node = getNextNodeForCompilation()) != null) {
         if (node instanceof AssayNode) {
+          AssayNode assayNode = (AssayNode) node;
+
           Assay assay = new Assay();
           assay.setAccession(
-              AtlasLoaderUtils.getNodeAccession(investigation, node));
+              AtlasLoaderUtils.getNodeAccession(investigation, assayNode));
           assay.setExperimentAccession(investigation.accession);
 
-          SDRFWritingUtils.writeProperties(investigation, assay,
-                                           (AssayNode) node);
+
+          // add array design accession
+          List<String> arrayDesignAccessions = new ArrayList<String>();
+          for (ArrayDesignNode arrayDesignNode : assayNode.arrayDesigns) {
+            arrayDesignAccessions.add(arrayDesignNode.getNodeName());
+          }
+
+          // spec allows multiple array design references, but atlas allows one
+          if (arrayDesignAccessions.size() > 1) {
+            String message = "Assay references more than one array design, " +
+                "this is disallowed";
+
+            ErrorItem error =
+                ErrorItemFactory
+                    .getErrorItemFactory(getClass().getClassLoader())
+                    .generateErrorItem(
+                        message,
+                        1018,
+                        this.getClass());
+
+            throw new ObjectConversionException(error);
+          }
+          else {
+            // only one, so set the accession
+            assay.setArrayDesignAcession(arrayDesignAccessions.get(0));
+          }
+
+          // now record any properties
+          SDRFWritingUtils.writeProperties(investigation, assay, assayNode);
 
           // add the experiment to the cache
           AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()

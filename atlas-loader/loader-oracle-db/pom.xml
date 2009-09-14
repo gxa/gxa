@@ -4,8 +4,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>atlas-loader</artifactId>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
+    <artifactId>atlas-loader</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
   <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
@@ -18,8 +18,8 @@
     <!-- oracle JDBC drivers -->
     <dependency>
       <groupId>com.oracle</groupId>
-      <artifactId>ojdbc14</artifactId>
-      <version>9.0.2.0.0</version>
+      <artifactId>ojdbc5</artifactId>
+      <version>11.1.0.6.0</version>
     </dependency>
     <!-- atlas loader API -->
     <dependency>

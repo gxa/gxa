@@ -37,6 +37,7 @@ import javax.sql.DataSource;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into
@@ -104,10 +105,16 @@ public class AtlasMAGETABLoader {
           }
         }
         if (message.equals("")) {
-          message = "Unknown error";
+          if (item.getComment().equals("")) {
+            message = "Unknown error";
+          }
+          else {
+            message = item.getComment();
+          }
         }
 
         // log the error
+        // todo: this should go to a different log stream, part of loader report
         log.error(
             "Parser reported:\n\t" +
                 item.getErrorCode() + ": " + message + "\n\t\t- " +
@@ -153,10 +160,22 @@ public class AtlasMAGETABLoader {
   }
 
   protected boolean writeObjects(AtlasLoadCache cache) {
+    int numOfObjects =
+        cache.fetchAllExperiments().size() +
+            cache.fetchAllSamples().size() +
+            cache.fetchAllAssays().size();
+    log.info(
+        "Writing " + numOfObjects + " objects to " + dataSource.toString());
+
     Connection conn = null;
+    Savepoint initState = null;
+
     try {
       // get a connection from the datasource
       conn = dataSource.getConnection();
+
+      // create the savepoint
+      initState = conn.setSavepoint();
 
       // first, load experiments
       for (Experiment experiment : cache.fetchAllExperiments()) {
@@ -169,27 +188,58 @@ public class AtlasMAGETABLoader {
       }
 
       // finally, load assays
+      // test: system.out for checking which assays fail
+      System.out.println("Writing assays...");
       for (Assay assay : cache.fetchAllAssays()) {
+        System.out.println("\t" + assay.toString());
         AtlasDB.writeAssay(conn, assay);
       }
+
+      // everything saved ok, so commit
+      conn.commit();
 
       // now, close the connection
       conn.close();
 
       // and return true - everything loaded ok
+      log.info("Writing " + numOfObjects + " completed successfully");
       return true;
     }
     catch (SQLException e) {
-      // something went wrong with our load, need to restore
-
-      // todo - do unloads on each object up to the one where things went wrong
+      // something went wrong with our load, try and rollback
+      try {
+        if (conn != null && initState != null) {
+          conn.rollback(initState);
+        }
+        else if (conn != null) {
+          // initState is null, so we might not be able to completely rollback
+          // but try rollback anyway
+          log.warn("Savepoint was not correctly generated, " +
+              "rollback may not complete reverse all changes");
+          conn.rollback();
+        }
+        else {
+          // connection is null, nothing to rollback
+        }
+      }
+      catch (SQLException e1) {
+        // we've done the best we can
+        log.error("Rollback after a load error failed.  " +
+            "No changes should have been committed, " +
+            "but there may be other problems");
+        e1.printStackTrace();
+      }
+      log.error("An SQL exception occurred. " + e.getMessage());
+      e.printStackTrace();
 
       // and because the write failed, return false
       return false;
     }
     finally {
-      // finally clear the cache, aswe're done with this run
+      // finally clear the cache, as we're done with this run
       cache.clear();
+
+      log.debug("Emptied cache, cleaning up connections");
 
       // clean up resources
       try {
