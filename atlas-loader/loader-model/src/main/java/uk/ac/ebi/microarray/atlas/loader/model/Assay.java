@@ -30,7 +30,7 @@ public class Assay {
     this.experimentAccession = experimentAccession;
   }
 
-  public String getArrayDesignAcession() {
+  public String getArrayDesignAccession() {
     return arrayDesignAcession;
   }
 

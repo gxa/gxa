@@ -31,6 +31,7 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationH
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
+import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 
 import javax.sql.DataSource;
@@ -38,6 +39,8 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.text.DecimalFormat;
+import java.util.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into
@@ -164,18 +167,12 @@ public class AtlasMAGETABLoader {
         cache.fetchAllExperiments().size() +
             cache.fetchAllSamples().size() +
             cache.fetchAllAssays().size();
-    log.info(
-        "Writing " + numOfObjects + " objects to " + dataSource.toString());
+    log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
     Connection conn = null;
-    Savepoint initState = null;
-
     try {
       // get a connection from the datasource
       conn = dataSource.getConnection();
-
-      // create the savepoint
-      initState = conn.setSavepoint();
 
       // first, load experiments
       for (Experiment experiment : cache.fetchAllExperiments()) {
@@ -188,10 +185,32 @@ public class AtlasMAGETABLoader {
       }
 
       // finally, load assays
-      // test: system.out for checking which assays fail
-      System.out.println("Writing assays...");
+
+      // prior to writing, check design elements against the DB
+      Map<String, Set<String>> designElementsByArray =
+          new HashMap<String, Set<String>>();
       for (Assay assay : cache.fetchAllAssays()) {
-        System.out.println("\t" + assay.toString());
+        // get the array design for this assay
+        String arrayDesignAcc = assay.getArrayDesignAccession();
+
+        // get the missing design elements - either DB lookup or fetch from map
+        Set<String> missingDesignElements;
+        if (!designElementsByArray.containsKey(arrayDesignAcc)) {
+          missingDesignElements =
+              lookupMissingDesignElements(assay.getExpressionValues(),
+                                          assay.getArrayDesignAccession(),
+                                          conn);
+
+          // add to our cache for known missing design elements
+          designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+        }
+        else {
+          missingDesignElements = designElementsByArray.get(arrayDesignAcc);
+        }
+
+        // finally, trim the missing design elements from this assay
+        trimMissingDesignElements(assay, missingDesignElements);
+
         AtlasDB.writeAssay(conn, assay);
       }
 
@@ -208,15 +227,12 @@ public class AtlasMAGETABLoader {
     catch (SQLException e) {
       // something went wrong with our load, try and rollback
       try {
-        if (conn != null && initState != null) {
-          conn.rollback(initState);
-        }
-        else if (conn != null) {
+        if (conn != null) {
           // initState is null, so we might not be able to completely rollback
           // but try rollback anyway
-          log.warn("Savepoint was not correctly generated, " +
-              "rollback may not complete reverse all changes");
+          log.warn("A problem occurred during loading, rolling back changes");
           conn.rollback();
+          e.printStackTrace();
         }
         else {
           // connection is null, nothing to rollback
@@ -249,6 +265,57 @@ public class AtlasMAGETABLoader {
       }
       catch (SQLException e) {
         // we did our best!
+      }
+    }
+  }
+
+  private Set<String> lookupMissingDesignElements(
+      List<ExpressionValue> expressionValues,
+      String arrayDesignAccession,
+      Connection conn) throws SQLException {
+    Set<String> designElements =
+        AtlasDB.fetchDesignElementsByArrayDesign(conn, arrayDesignAccession);
+
+    // check off missing design elements against any present
+    Set<String> missingDesignElements = new HashSet<String>();
+
+    // for every expression value, check if it's in database
+    for (ExpressionValue ev : expressionValues) {
+      String deAcc = ev.getDesignElementAccession();
+      if (!designElements.contains(deAcc)) {
+        missingDesignElements.add(deAcc);
+      }
+    }
+
+    // grab the number of design elements - total and missing
+    int totalDEs = expressionValues.size();
+    int missingDEs = missingDesignElements.size();
+
+    // log the number of missing DEs for this array design
+    String percent = new DecimalFormat("#.#").format(
+        ((double) missingDEs / (double) totalDEs) * 100);
+
+    log.error("Total number of missing design elements for " +
+        arrayDesignAccession + ": " + missingDEs + "/" +
+        totalDEs + " (" + percent + " %)");
+
+    return missingDesignElements;
+  }
+
+  private void trimMissingDesignElements(Assay assay,
+                                         Set<String> missingDesignElements) {
+    List<ExpressionValue> evs = new ArrayList<ExpressionValue>();
+    evs.addAll(assay.getExpressionValues());
+    for (ExpressionValue ev : evs) {
+      String deAcc = ev.getDesignElementAccession();
+      if (missingDesignElements.contains(deAcc)) {
+        // fixme: for now, remove each expression value which...
+        // references a missing design element, so everything works -
+        // but any newly loaded data should be complete.
+        // Missing DEs is an error state, this is simply a fix for bad legacy data
+        log.debug("Missing design element " + deAcc + " will be " +
+            "removed from this assay - not in database.");
+        assay.getExpressionValues().remove(ev);
       }
     }
   }

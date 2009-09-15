@@ -4,12 +4,14 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.loader.model.*;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.*;
+import java.text.DecimalFormat;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Utils for writing atlas loader API objects (see also {@link
@@ -20,6 +22,9 @@ import java.sql.SQLException;
  * @date Aug 26, 2009 Time: 5:14:19 PM
  */
 public class AtlasDB {
+  // logging
+  private static Log log = LogFactory.getLog(AtlasDB.class.getSimpleName());
+
   public static Array toSqlArray(Connection connection,
                                  String typeName,
                                  Object[] value)
@@ -114,7 +119,7 @@ public class AtlasDB {
 
       stmt.setString(1, value.getAccession());
       stmt.setString(2, value.getExperimentAccession());
-      stmt.setString(3, value.getArrayDesignAcession());
+      stmt.setString(3, value.getArrayDesignAccession());
       stmt.setArray(4, toSqlArray(connection, "PROPERTYTABLE", properties));
       stmt.setArray(5, toSqlArray(connection, "EXPRESSIONVALUETABLE",
                                   expressionValues));
@@ -178,7 +183,6 @@ public class AtlasDB {
 
       // execute statement
       stmt.execute();
-
     }
     finally {
       if (stmt != null) {
@@ -190,5 +194,86 @@ public class AtlasDB {
 
   public static void ExperimentDel(String accession) {
 
+  }
+
+  /**
+   * A convenience method for querying for the presence of an experiment in the
+   * atlas database.  This method returns true if the experiment already exists
+   * in the database, and false if it could not be found.  You should not reload
+   * an experiment that already exists without first deleting the old one.
+   *
+   * @param connection the connection to the atlas database
+   * @param accession  the accession number of the experiment to query for
+   * @return true if thie experiment already exists in the database, false
+   *         otherwise
+   * @throws java.sql.SQLException if there was a problem communicating with the
+   *                               database
+   */
+  public static boolean experimentExists(Connection connection,
+                                         String accession) throws SQLException {
+    Statement stmt = null;
+    try {
+      stmt = connection.prepareStatement(
+          "select count(*) from A2_EXPERIMENT " +
+              "where accession='?'");
+
+      // execute the query
+      ResultSet rs = stmt.executeQuery(accession);
+
+      int size = (rs.next() ? rs.getInt(0) : 0);
+
+      return size > 0;
+    }
+    finally {
+      if (stmt != null) {
+        // close statement
+        stmt.close();
+      }
+    }
+  }
+
+  /**
+   * A convenience method that fetches the set of design element accessions by
+   * array design accession.  The set of design element ids contains no
+   * duplicates, and the results that are returned are the manufacturers
+   * accession strings for each design element on an array design.  The
+   * parameters accepted are a {@link java.sql.Connection} to a database
+   * following the atlas schema, and the accession string of the array design
+   * (which should be of the form A-ABCD-123).
+   *
+   * @param connection           the connection to the atlas database
+   * @param arrayDesignAccession the accession number of the array design to
+   *                             query for
+   * @return a set of unique design element accession strings
+   * @throws java.sql.SQLException if there was a problem querying the database
+   */
+  public static Set<String> fetchDesignElementsByArrayDesign(
+      Connection connection, String arrayDesignAccession) throws SQLException {
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(
+          "select de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
+              "where ad.accession=? " +
+              "and de.arraydesignid=ad.arraydesignid");
+
+      // execute the query
+      stmt.setString(1, arrayDesignAccession);
+      ResultSet rs = stmt.executeQuery();
+
+      Set<String> results = new HashSet<String>();
+      int count = 0;
+      while (rs.next()) {
+        results.add(rs.getString(1));
+        count++;
+      }
+
+      return results;
+    }
+    finally {
+      if (stmt != null) {
+        // close statement
+        stmt.close();
+      }
+    }
   }
 }

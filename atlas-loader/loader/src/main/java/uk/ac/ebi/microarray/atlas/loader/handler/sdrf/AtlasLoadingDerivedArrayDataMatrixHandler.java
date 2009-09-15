@@ -35,7 +35,7 @@ import java.util.Map;
 public class AtlasLoadingDerivedArrayDataMatrixHandler
     extends DerivedArrayDataMatrixHandler {
   public void writeValues() throws ObjectConversionException {
-    // make sure we wait until IDF has finsihed reading
+    // make sure we wait until IDF has finished reading
     AtlasLoaderUtils.waitWhilstSDRFCompiles(
         investigation, this.getClass().getSimpleName(), getLog());
 
