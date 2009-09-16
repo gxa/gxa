@@ -38,7 +38,6 @@ import javax.sql.DataSource;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -167,28 +166,18 @@ public class AtlasMAGETABLoader {
         cache.fetchAllExperiments().size() +
             cache.fetchAllSamples().size() +
             cache.fetchAllAssays().size();
-    log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
-
     Connection conn = null;
     try {
       // get a connection from the datasource
       conn = dataSource.getConnection();
 
-      // first, load experiments
-      for (Experiment experiment : cache.fetchAllExperiments()) {
-        AtlasDB.writeExperiment(conn, experiment);
-      }
-
-      // next, load samples
-      for (Sample sample : cache.fetchAllSamples()) {
-        AtlasDB.writeSample(conn, sample);
-      }
-
-      // finally, load assays
-
-      // prior to writing, check design elements against the DB
+      // fixme: prior to writing, do some data cleanup to handle missing design elements.  This is workaround for legacy data, can be removed when loader is improved
+      log.info("Cleaning up data - removing any expression values linked " +
+          "to design elements missing from the database");
+      long start = System.currentTimeMillis();
       Map<String, Set<String>> designElementsByArray =
           new HashMap<String, Set<String>>();
+      int missingCount = 0;
       for (Assay assay : cache.fetchAllAssays()) {
         // get the array design for this assay
         String arrayDesignAcc = assay.getArrayDesignAccession();
@@ -203,6 +192,8 @@ public class AtlasMAGETABLoader {
 
           // add to our cache for known missing design elements
           designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+
+          missingCount += missingDesignElements.size();
         }
         else {
           missingDesignElements = designElementsByArray.get(arrayDesignAcc);
@@ -210,9 +201,38 @@ public class AtlasMAGETABLoader {
 
         // finally, trim the missing design elements from this assay
         trimMissingDesignElements(assay, missingDesignElements);
-
-        AtlasDB.writeAssay(conn, assay);
       }
+      log.info("Removed all expression values for " + missingCount +
+          " missing design elements from cache of assays to load");
+      long end = System.currentTimeMillis();
+
+      String total = new DecimalFormat("#.##").format((end - start) / 1000);
+      log.info("Data cleanup took " + total + "s.");
+
+      // now write the cleaned up data
+      log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
+
+      // first, load experiments
+      for (Experiment experiment : cache.fetchAllExperiments()) {
+        AtlasDB.writeExperiment(conn, experiment);
+      }
+
+      // next, load samples
+      for (Sample sample : cache.fetchAllSamples()) {
+        AtlasDB.writeSample(conn, sample);
+      }
+
+      int count = 0;
+      System.out.print("Writing assays...");
+      for (Assay assay : cache.fetchAllAssays()) {
+        System.out.print(".");
+        AtlasDB.writeAssay(conn, assay);
+        if (count % 100 == 0) {
+          System.out.print(count);
+        }
+        count++;
+      }
+      System.out.println("done");
 
       // everything saved ok, so commit
       conn.commit();
@@ -309,10 +329,6 @@ public class AtlasMAGETABLoader {
     for (ExpressionValue ev : evs) {
       String deAcc = ev.getDesignElementAccession();
       if (missingDesignElements.contains(deAcc)) {
-        // fixme: for now, remove each expression value which...
-        // references a missing design element, so everything works -
-        // but any newly loaded data should be complete.
-        // Missing DEs is an error state, this is simply a fix for bad legacy data
         log.debug("Missing design element " + deAcc + " will be " +
             "removed from this assay - not in database.");
         assay.getExpressionValues().remove(ev);

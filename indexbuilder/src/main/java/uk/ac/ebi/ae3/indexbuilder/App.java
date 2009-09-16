@@ -30,6 +30,7 @@ import java.util.logging.LogManager;
  * @author mdylag
  * 
  */
+@Deprecated
 public class App
 {
     static {
