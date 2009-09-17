@@ -29,7 +29,7 @@
 
         <!-- The URL of the DAS server up to and including /das/ (e.g. http://www.ebi.ac.uk/das-srv/uniprot/das/)
         This should be the external URL.  (Allows correct access to the service through reverse-proxies etc.)-->
-        <baseurl>http://www.ebi.ac.uk/tc-test/microarray-as/atlas/das</baseurl>
+        <baseurl>${atlas.baseurl}/das</baseurl>
 
         <!-- A boolean switch indicating if the output from the DAS server should be compressed or not.
 
@@ -51,7 +51,7 @@
             to present the dsn command response in a human-readable format.
             Optional - the processing instruction will only be included if this
             element is present. -->
-        <dsn-xslt-url>http://www.ebi.ac.uk/tc-test/microarray-as/atlas/xslt/dsn.xsl</dsn-xslt-url>
+        <dsn-xslt-url>${atlas.baseurl}/xslt/dsn.xsl</dsn-xslt-url>
 
         <!-- NOTE - THE XSLTs LISTED BELOW (COMMENTED OUT) ARE UNDER DEVELOPMENT, SO NOT
         CURRENTLY AVAILABLE.  You can of course substitute your own XSLT and provide a link
@@ -103,11 +103,11 @@
         description: This is the optional data source description, as provided in the /DASDSN/DSN/DESCRIPTION element of the XML returned by the DAS dsn command. For a reference server, this should echo its own URL.
         description-href: This is the optional data source description href attribute, as provided in the /DASDSN/DSN/DESCRIPTION/@href attribute of the XML returned by the DAS dsn command. For a reference server, this should echo its own URL.
         -->
-        <datasource id="Gxaas"
-                    name="Gxaas"
+        <datasource id="gxa"
+                    name="gxa"
                     version="0.1"
-                    mapmaster="http://www.ebi.ac.uk/tc-test/microarray-as/atlas/das/Gxaas"
-                    description="Gene Expression Atlas Annotation Data Source"
+                    mapmaster="${atlas.baseurl}/das/gxa"
+                    description="Gene eXxpression Atlas Annotation Data Source"
                     description-href="http://code.google.com/p/mydas/">
             <!-- The fully qualified class name of the DataSource. -->
             <class>ae3.service.GxaDasDataSource</class>

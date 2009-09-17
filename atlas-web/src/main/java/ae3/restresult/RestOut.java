@@ -9,6 +9,10 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RestOut {
     String name() default "";
-    Class profile() default Object.class;
-    boolean empty() default true;
+    Class forProfile() default Object.class;
+    boolean exposeEmpty() default true;
+    Class forRenderer() default RestResultRenderer.class;
+    String xmlAttr() default "";
+    String xmlItemName() default "";
+    boolean asString() default false;
 }

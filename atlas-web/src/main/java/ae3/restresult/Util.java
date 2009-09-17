@@ -2,11 +2,13 @@ package ae3.restresult;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Collection;
 
 /**
+ * REST renderer utility class
  * @author pashky
  */
 class Util {
@@ -28,15 +30,40 @@ class Util {
         return name;
     }
 
+    private static RestOut[] getAnnos(AnnotatedElement ae) {
+        RestOuts restOuts = ae.getAnnotation(RestOuts.class);
+        if(restOuts != null)
+            return restOuts.value();
+        RestOut restOut = ae.getAnnotation(RestOut.class);
+        if(restOut != null)
+            return new RestOut[] { restOut };
+        return new RestOut[0];
+    }
+
+    public static RestOut getAnno(AnnotatedElement ae, Class renderer, Class profile) {
+        for(RestOut a : getAnnos(ae)) {
+            if((a.forProfile() == Object.class || a.forProfile().isAssignableFrom(profile))
+                    && (a.forRenderer() == RestResultRenderer.class || a.forRenderer() == renderer))
+                return a;
+        }
+        return null;
+    }
+
+    public static RestOut mergeAnno(RestOut a, AnnotatedElement ae, Class renderer, Class profile) {
+        if(a == null)
+            return Util.getAnno(ae, renderer, profile);
+        return a;
+    }
+
     static class Prop {
         String name;
         Object value;
-        Method method;
+        RestOut outProp;
 
-        Prop(String name, Object value, Method method) {
+        Prop(String name, Object value, RestOut outProp) {
             this.name = name;
             this.value = value;
-            this.method = method;
+            this.outProp = outProp;
         }
     }
 
@@ -54,7 +81,8 @@ class Util {
         return false;
     }
 
-    static Iterable<Prop> iterableProperties(final Object o, final Class profile) {
+    static Iterable<Prop> iterableProperties(final Object o, final Class profile, final RestResultRenderer renderer) {
+        final Class rendererClass = renderer.getClass();
         if(o instanceof Map)
             return new Iterable<Prop>() {
                 public Iterator<Prop> iterator() {
@@ -85,7 +113,8 @@ class Util {
                 final boolean checkAnno = !noAnnos;
                 return new Iterator<Prop>() {
                     int i;
-                    Object v;
+                    Object value;
+                    RestOut restOut;
 
                     {
                         i = 0;
@@ -98,48 +127,49 @@ class Util {
 
                     public Prop next() {
                         Method m = methods[i];
-                        Object value = v;
-                        RestOut a = m.getAnnotation(RestOut.class);
+                        Object value = this.value;
+                        RestOut restOut = this.restOut;
                         String name;
-                        if(a != null && a.name().length() != 0)
-                            name = a.name();
+                        if(restOut != null && restOut.name().length() != 0)
+                            name = restOut.name();
                         else
                             name = methodToProperty(m.getName());
 
                         ++i;
                         skip();
 
-                        return new Prop(name, value, m);
+                        return new Prop(name, value, restOut);
                     }
+
 
                     private void skip() {
                         while(i < methods.length) {
                             if(methods[i].getParameterTypes().length == 0) {
                                 if(checkAnno) {
-                                    if(methods[i].isAnnotationPresent(RestOut.class)) {
-                                        RestOut a = methods[i].getAnnotation(RestOut.class);
-                                        if(a.profile() == Object.class || a.profile().isAssignableFrom(profile)) {
-                                            try {
-                                                v = methods[i].invoke(o, (Object[])null);
-                                                if(v != null) {
-                                                    if(a.empty() || !isEmpty(v))
-                                                        return;
+                                    restOut = getAnno(methods[i], rendererClass, profile);
+                                    if(restOut != null) {
+                                        try {
+                                            value = methods[i].invoke(o, (Object[])null);
+                                            if(value != null) {
+                                                if(restOut.exposeEmpty() || !isEmpty(value)) {
+                                                    return;
                                                 }
-                                            } catch (IllegalAccessException e) {
-                                                throw new RuntimeException(e);
-                                            } catch (InvocationTargetException e) {
-                                                throw new RuntimeException(e);
                                             }
-
+                                        } catch (IllegalAccessException e) {
+                                            throw new RuntimeException(e);
+                                        } catch (InvocationTargetException e) {
+                                            throw new RuntimeException(e);
                                         }
+
                                     }
                                 } else if((methods[i].getName().startsWith("get") || methods[i].getName().startsWith("is"))
                                                 && !methods[i].getName().equals("getClass")) {
-                                    i = i;
                                     try {
-                                        v = methods[i].invoke(o, (Object[])null);
-                                        if(v != null)
+                                        value = methods[i].invoke(o, (Object[])null);
+                                        if(value != null) {
+                                            restOut = null;
                                             return;
+                                        }
                                     } catch (IllegalAccessException e) {
                                         throw new RuntimeException(e);
                                     } catch (InvocationTargetException e) {

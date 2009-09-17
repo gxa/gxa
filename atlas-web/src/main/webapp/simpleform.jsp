@@ -75,18 +75,19 @@
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <c:if test="${param.logolink}"><a href="./"></c:if>
+            <c:if test="${param.logolink}"><a href="<%=request.getContextPath()%>/"></c:if>
             <img src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0">
             <c:if test="${param.logolink}"></a></c:if>
         </td>
 
         <td width="100%" valign="bottom" align="right">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+            <a href="<%=request.getContextPath()%>/help">help</a>
         </td>
         <td align="right" valign="bottom">
         </td>

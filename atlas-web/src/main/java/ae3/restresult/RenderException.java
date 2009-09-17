@@ -1,6 +1,7 @@
 package ae3.restresult;
 
 /**
+ * REST renderer process exception to be used in classes, implementing RestResultRenderer interace
  * @author pashky
  */
 public class RenderException extends Exception {

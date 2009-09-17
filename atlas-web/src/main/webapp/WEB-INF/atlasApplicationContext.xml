@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- Spring config for roll-your-own Atlas web modules -->
+
+  <!-- Requires an Index Builder -->
+  <bean name="indexBuilder"
+        class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+    <property name="indexLocation" value="atlasIndex" />
+    <property name="includeGenes" value="true" />
+    <property name="includeExperiments" value="true" />
+    <!-- pending mode is set at build time, depending on whether index already exists -->
+  </bean>
+
+  <!-- Requires a Data Server -->
+  <!-- todo: No idea where to start with this!!! -->
+
+  <!-- Requires a loader -->
+  <!-- configure the loader with the atlas datasource -->
+  <bean name="atlasLoader"
+        class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
+    <property name="dataSource" ref="atlasDatasource" />
+  </bean>
+
+  <!-- Declare beans for resources named by context JNDI -->
+  <jee:jndi-lookup id="atlasDatasource"
+                   jndi-name="/jdbc/AEATLAS"
+                   resource-ref="true" />
+
+  <jee:jndi-lookup id="atlasIndex"
+                   jndi-name="/jdbc/AEINDEX"
+                   resource-ref="true" />
+
+  <jee:jndi-lookup id="atlasDataserver"
+                   jndi-name="/jdbc/AEDATASERVER"
+                   resource-ref="true" />
+
+</beans>

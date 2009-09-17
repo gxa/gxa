@@ -7,8 +7,7 @@
 
 .contents {
     position:relative;
-    padding-top: 57px;
-    top:0;
+    top:57px;
 }
 
 body, td { font-size: 12px; }

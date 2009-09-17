@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import ae3.model.ListResultRow;
 import ae3.model.AtlasGene;
 import ae3.restresult.RestOut;
+import ae3.util.MappingIterator;
 
 import java.util.*;
 
@@ -112,11 +113,10 @@ public class AtlasStructuredQueryResult {
 
     @RestOut(name="genes")
     public Iterator<ListResultGene> getListResultsGenes() {
-        final Iterator<List<ListResultRow>> i = listResults.values().iterator();
-        return new Iterator<ListResultGene>() {
-            public boolean hasNext() { return i.hasNext(); }
-            public ListResultGene next() { return new ListResultGene(i.next()); }
-            public void remove() { }
+        return new MappingIterator<List<ListResultRow>, ListResultGene>(listResults.values().iterator()) {
+            public ListResultGene map(List<ListResultRow> listResultRows) {
+                return new ListResultGene(listResultRows);
+            }
         };
     }
 

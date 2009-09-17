@@ -53,6 +53,15 @@ public class AtlasDao {
     }
 
     /**
+     * Retrieve experiment by ID
+     * @param experiment_id_key experiment ID
+     * @return experiment if found, null if not
+     */
+    public AtlasExperiment getExperimentById(long experiment_id_key) {
+        return getExperimentById(String.valueOf(experiment_id_key));
+    }
+
+    /**
 	 * Returns an AtlasExperiment that contains all information from index.
      * @return
      * @param accessionId - an experiment accession/identifier.
@@ -80,7 +89,28 @@ public class AtlasDao {
         }
     }
 
-       
+    public List<AtlasExperiment> getExperimentsByQuery(String query, int start, int rows) {
+        SolrQuery q = new SolrQuery(query);
+        q.setRows(rows);
+        q.setStart(start);
+        q.setFields("*");
+
+        try {
+            QueryResponse queryResponse = solrExpt.query(q);
+            SolrDocumentList documentList = queryResponse.getResults();
+            List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
+
+            if (documentList != null)
+                for(SolrDocument exptDoc : documentList)
+                    result.add(new AtlasExperiment(exptDoc));
+            
+            return result;
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying for experiments", e);
+        }
+    }
+
+
     public List<AtlasExperiment> getExperiments(){
         List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
@@ -121,7 +151,6 @@ public class AtlasDao {
 
 
     public AtlasGeneResult getGeneById(String gene_id_key) {
-        log.debug("getGeneById:"+gene_id_key);
         return getGeneByQuery("gene_id:" + EscapeUtil.escapeSolr(gene_id_key));
     }
 
@@ -195,8 +224,7 @@ public class AtlasDao {
      * @return AtlasGene
      */
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
-        log.debug("getGeneByIdentifier:"+gene_identifier);
-        return getGeneByQuery("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_identifier:" + EscapeUtil.escapeSolr(gene_identifier));
+        return getGeneByQuery("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_identifier:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_desc:"+ EscapeUtil.escapeSolr(gene_identifier));
     }
 
     public void retrieveOrthoGenes(AtlasGene atlasGene) {
@@ -215,7 +243,7 @@ public class AtlasDao {
     public List<AtlasExperiment> getRankedGeneExperiments(AtlasGene atlasGene, String ef, String efv, int minRows, int maxRows) {
         List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
 
-        ExperimentsTable etable = atlasGene.getExpermientsTable();
+        ExperimentsTable etable = atlasGene.getExperimentsTable();
         Map<Long,Double> exps = new HashMap<Long,Double>();
         for(Experiment e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
             if(exps.get(e.getId()) == null || exps.get(e.getId()) > e.getPvalue())
@@ -237,7 +265,7 @@ public class AtlasDao {
         for(int i = minRows > 0 ? minRows - 1 : 0; i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
             @SuppressWarnings("unchecked")
             Long experimentId = ((Map.Entry<Long, Double>)aexps[i]).getKey();
-            AtlasExperiment atlasExperiment = getExperimentById(experimentId.toString());
+            AtlasExperiment atlasExperiment = getExperimentById(experimentId);
             if(atlasExperiment != null) {
                 atlasExperiment.addHighestRankEF(atlasGene.getGeneId(), atlasGene.getHighestRankEF(experimentId).getFirst());
                 atlasExps.add(atlasExperiment);

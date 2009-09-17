@@ -15,6 +15,38 @@
     }
 %>
 
+<jsp:include page="start_head.jsp" />
+Gene Expression Atlas - Experiment Index
+<jsp:include page="end_head.jsp" />
+
+<meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
+<meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
+
+<script type="text/javascript" language="javascript" src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js"></script>
+<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
+
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
+<script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
+
+<script type="text/javascript">
+    jQuery(document).ready(function()
+    {
+       $("#expts").tablesorter({});
+    });
+</script>
+
+<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css" />
+<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css" />
+
+<link rel="stylesheet" href="<%= request.getContextPath()%>/blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="<%= request.getContextPath()%>/jquery.autocomplete.css" type="text/css" />
+<link rel="stylesheet" href="<%= request.getContextPath()%>/structured-query.css" type="text/css" />
+
 <style type="text/css">
 
     .alertNotice {
@@ -43,36 +75,11 @@
     }
 
     a.Alphabet{
-       margin:10px; 
+       margin:10px;
     }
 
 </style>
 
-<jsp:include page="start_head.jsp" />
-Gene Expression Atlas - Experiment Index
-<jsp:include page="end_head.jsp" />
-
-<meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
-<meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
-
-<script type="text/javascript" language="javascript" src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
-
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquerydefaultvalue.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
-<script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
-
-<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css" />
-<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css" />
-
-
-<link rel="stylesheet" href="<%= request.getContextPath()%>/blue/style.css" type="text/css" media="print, projection, screen" />
-<link rel="stylesheet" href="<%= request.getContextPath()%>/jquery.autocomplete.css" type="text/css" />
-<link rel="stylesheet" href="<%= request.getContextPath()%>/structured-query.css" type="text/css" />
 <jsp:include page='start_body_no_menus.jsp' />
 
 <div class="contents" id="contents">
@@ -85,12 +92,14 @@ Gene Expression Atlas - Experiment Index
         </td>
 
         <td width="100%" valign="bottom" align="right">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a href="<%=request.getContextPath()%>/">home</a> |
+            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+            <a href="<%=request.getContextPath()%>/help">help</a>
         </td>
         <td align="right" valign="bottom">
         </td>
@@ -103,13 +112,22 @@ Gene Expression Atlas - Experiment Index
 
 
 
-    <table cellspacing="0" cellpadding="2" border="0">
+    <table class="heatmap" cellspacing="0" cellpadding="2" border="0" id="expts">
+        <thead>
+        <tr>
+          <th>#</th><th>Accession</th><th>Title</th><th style="width:450px" colspan="2">Experimental Factors</th>
+        </tr>
+        </thead>
+        <tbody>
     <% int j = 0; %>
     <% for ( AtlasExperiment i : expz ) { %>
 
-        <tr>
+        <tr valign="top">
+          <td>
+             <%=++j%>
+          </td>
         <td style="white-space:nowrap;">
-        <%=++j%>.
+        
             <% if(AtlasExperiment.DEGStatus.EMPTY == i.getDEGStatus()) { %>
                 <span title="No differentially expressed genes found for this experiment"><%=i.getDwExpAccession()%>&nbsp;</span>       
             <% } else { %>
@@ -119,8 +137,16 @@ Gene Expression Atlas - Experiment Index
             <td>
               <%= i.getDwExpDescription() %>
             </td>
+            <td><nobr><%=i.getExperimentFactors().size() + " EFs"%></nobr></td>
+            <td>
+                <%for(String f : i.getExperimentFactors()) {%>
+                    <%=ae3.util.CuratedTexts.getCurated(f) + " [" + i.getFactorValuesForEF().get(f).size() + " FVs]<br/> "%>
+                <%}%>
+               <!-- <%=org.apache.commons.lang.StringUtils.join(i.getExperimentFactors(), ", ")%>-->
+            </td>
         </tr>
     <% } %>
+        </tbody>
     </table>
 
 </div>

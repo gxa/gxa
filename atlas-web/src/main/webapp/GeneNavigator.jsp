@@ -112,12 +112,14 @@ Gene Expression Atlas - Gene Index
         </td>
 
         <td width="100%" valign="bottom" align="right">
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a href="<%=request.getContextPath()%>/">home</a> |
+            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+            <a href="<%=request.getContextPath()%>/help">help</a>
         </td>
         <td align="right" valign="bottom">
         </td>
@@ -125,33 +127,33 @@ Gene Expression Atlas - Gene Index
 </table>
 
     <div style="margin:100px; font-weight:bold; font-size:larger; text-align:center;">
- 	<a class="alphabet"  href="index.htm?start=0" title="Array Expression Atlas Genes Starting With Digit">123</a>
-        <a class="alphabet"  href="index.htm?start=a" title="Array Expression Atlas Genes Starting With A">A</a>
-        <a class="alphabet"  href="index.htm?start=b" title="Array Expression Atlas Genes Starting With B">B</a>
-        <a class="alphabet"  href="index.htm?start=c" title="Array Expression Atlas Genes Starting With C">C</a>
-        <a class="alphabet"  href="index.htm?start=d" title="Array Expression Atlas Genes Starting With D">D</a>
-        <a class="alphabet"  href="index.htm?start=e" title="Array Expression Atlas Genes Starting With E">E</a>
-        <a class="alphabet"  href="index.htm?start=f" title="Array Expression Atlas Genes Starting With F">F</a>
-        <a class="alphabet"  href="index.htm?start=g" title="Array Expression Atlas Genes Starting With G">G</a>
-        <a class="alphabet"  href="index.htm?start=h" title="Array Expression Atlas Genes Starting With H">H</a>
-        <a class="alphabet"  href="index.htm?start=i" title="Array Expression Atlas Genes Starting With I">I</a>
-        <a class="alphabet"  href="index.htm?start=j" title="Array Expression Atlas Genes Starting With J">J</a>
-        <a class="alphabet"  href="index.htm?start=k" title="Array Expression Atlas Genes Starting With K">K</a>
-        <a class="alphabet"  href="index.htm?start=l" title="Array Expression Atlas Genes Starting With L">L</a>
-        <a class="alphabet"  href="index.htm?start=m" title="Array Expression Atlas Genes Starting With M">M</a>
-        <a class="alphabet"  href="index.htm?start=n" title="Array Expression Atlas Genes Starting With N">N</a>
-        <a class="alphabet"  href="index.htm?start=o" title="Array Expression Atlas Genes Starting With O">O</a>
-        <a class="alphabet"  href="index.htm?start=p" title="Array Expression Atlas Genes Starting With P">P</a>
-        <a class="alphabet"  href="index.htm?start=q" title="Array Expression Atlas Genes Starting With Q">Q</a>
-        <a class="alphabet"  href="index.htm?start=r" title="Array Expression Atlas Genes Starting With R">R</a>
-        <a class="alphabet"  href="index.htm?start=s" title="Array Expression Atlas Genes Starting With S">S</a>
-        <a class="alphabet"  href="index.htm?start=t" title="Array Expression Atlas Genes Starting With T">T</a>
-        <a class="alphabet"  href="index.htm?start=u" title="Array Expression Atlas Genes Starting With U">U</a>
-	<a class="alphabet"  href="index.htm?start=v" title="Array Expression Atlas Genes Starting With V">V</a>
-        <a class="alphabet"  href="index.htm?start=w" title="Array Expression Atlas Genes Starting With W">W</a>
-        <a class="alphabet"  href="index.htm?start=x" title="Array Expression Atlas Genes Starting With X">X</a>       
-	<a class="alphabet"  href="index.htm?start=y" title="Array Expression Atlas Genes Starting With Y">Y</a>
-	<a class="alphabet"  href="index.htm?start=z" title="Array Expression Atlas Genes Starting With Z">Z</a>	
+ 	<a class="alphabet"  href="index.htm?start=0" title="Gene Expression Atlas Genes Starting With Digit">123</a>
+        <a class="alphabet"  href="index.htm?start=a" title="Gene Expression Atlas Genes Starting With A">A</a>
+        <a class="alphabet"  href="index.htm?start=b" title="Gene Expression Atlas Genes Starting With B">B</a>
+        <a class="alphabet"  href="index.htm?start=c" title="Gene Expression Atlas Genes Starting With C">C</a>
+        <a class="alphabet"  href="index.htm?start=d" title="Gene Expression Atlas Genes Starting With D">D</a>
+        <a class="alphabet"  href="index.htm?start=e" title="Gene Expression Atlas Genes Starting With E">E</a>
+        <a class="alphabet"  href="index.htm?start=f" title="Gene Expression Atlas Genes Starting With F">F</a>
+        <a class="alphabet"  href="index.htm?start=g" title="Gene Expression Atlas Genes Starting With G">G</a>
+        <a class="alphabet"  href="index.htm?start=h" title="Gene Expression Atlas Genes Starting With H">H</a>
+        <a class="alphabet"  href="index.htm?start=i" title="Gene Expression Atlas Genes Starting With I">I</a>
+        <a class="alphabet"  href="index.htm?start=j" title="Gene Expression Atlas Genes Starting With J">J</a>
+        <a class="alphabet"  href="index.htm?start=k" title="Gene Expression Atlas Genes Starting With K">K</a>
+        <a class="alphabet"  href="index.htm?start=l" title="Gene Expression Atlas Genes Starting With L">L</a>
+        <a class="alphabet"  href="index.htm?start=m" title="Gene Expression Atlas Genes Starting With M">M</a>
+        <a class="alphabet"  href="index.htm?start=n" title="Gene Expression Atlas Genes Starting With N">N</a>
+        <a class="alphabet"  href="index.htm?start=o" title="Gene Expression Atlas Genes Starting With O">O</a>
+        <a class="alphabet"  href="index.htm?start=p" title="Gene Expression Atlas Genes Starting With P">P</a>
+        <a class="alphabet"  href="index.htm?start=q" title="Gene Expression Atlas Genes Starting With Q">Q</a>
+        <a class="alphabet"  href="index.htm?start=r" title="Gene Expression Atlas Genes Starting With R">R</a>
+        <a class="alphabet"  href="index.htm?start=s" title="Gene Expression Atlas Genes Starting With S">S</a>
+        <a class="alphabet"  href="index.htm?start=t" title="Gene Expression Atlas Genes Starting With T">T</a>
+        <a class="alphabet"  href="index.htm?start=u" title="Gene Expression Atlas Genes Starting With U">U</a>
+	<a class="alphabet"  href="index.htm?start=v" title="Gene Expression Atlas Genes Starting With V">V</a>
+        <a class="alphabet"  href="index.htm?start=w" title="Gene Expression Atlas Genes Starting With W">W</a>
+        <a class="alphabet"  href="index.htm?start=x" title="Gene Expression Atlas Genes Starting With X">X</a>
+	<a class="alphabet"  href="index.htm?start=y" title="Gene Expression Atlas Genes Starting With Y">Y</a>
+	<a class="alphabet"  href="index.htm?start=z" title="Gene Expression Atlas Genes Starting With Z">Z</a>
     </div>
 
 

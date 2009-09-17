@@ -193,7 +193,8 @@ public class AtlasPlotter {
 					for(int k=0; k<DEdata.length; k++){//rows <==> DEs
 						JSONArray point = new JSONArray();
 						point.put(sampleIndex);
-						point.put(DEdata[k].get(j));// loop over available DEs and add data points to the same x point
+						Double v = (Double) DEdata[k].get(j);
+						point.put(v <= -1000000 ? null : v);// loop over available DEs and add data points to the same x point
 						seriesData.put(point);
 					}
 					sampleIndex++;
@@ -245,7 +246,8 @@ public class AtlasPlotter {
 				for(int k=0; k<deData.length; k++){
 					JSONArray point = new JSONArray();
 					point.put(k+0.5);
-					point.put(deData[sortedAssayFVindexes[k]]);
+					Double v = (Double) deData[sortedAssayFVindexes[k]];
+					point.put(v <= -1000000 ? null : v);// loop over available DEs and add data points to the same x point
 					seriesData.put(point);
 				}
 				series.put("data", seriesData);

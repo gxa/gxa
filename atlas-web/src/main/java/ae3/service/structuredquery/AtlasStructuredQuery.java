@@ -18,7 +18,7 @@ public class AtlasStructuredQuery {
     private int expsPerGene;
     private Set<String> expandColumns;
     private ViewType viewType;
-    private boolean export;
+    private boolean fullHeatmap = false;
 
     public AtlasStructuredQuery() {
         conditions = new ArrayList<ExpFactorQueryCondition>(0);
@@ -28,6 +28,14 @@ public class AtlasStructuredQuery {
         viewType = ViewType.HEATMAP;
         start = 0;
         rowsPerPage = 100;
+    }
+
+    public boolean isFullHeatmap() {
+        return fullHeatmap;
+    }
+
+    public void setFullHeatmap(boolean fullHeatmap) {
+        this.fullHeatmap = fullHeatmap;
     }
 
     /**
@@ -161,15 +169,7 @@ public class AtlasStructuredQuery {
         return viewType;
     }
 
-	public boolean isExport() {
-		return export;
-	}
-
-	public void setExport(boolean export) {
-		this.export = export;
-	}
-	
-	public String toString() {
+    public String toString() {
 		StringBuilder sb = new StringBuilder();
 
         boolean hasValues = false;
@@ -233,11 +233,7 @@ public class AtlasStructuredQuery {
 
         if(sb.length() > 0)
             sb.append("&");
-        sb.append("viewAs=").append(viewType.toString().toLowerCase())
-                .append("&rows=").append(rowsPerPage)
-                .append("&startingFrom=").append(start);
-
-        sb.insert(0, "api?");
+        sb.append("rows=").append(rowsPerPage).append("&startingFrom=").append(start);
         return sb.toString();
     }
 

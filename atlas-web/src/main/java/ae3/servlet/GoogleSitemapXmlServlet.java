@@ -118,7 +118,7 @@ public class GoogleSitemapXmlServlet extends FileDownloadServlet {
                 String f = t.field();
 
                 if (geneids.contains(f)) {
-                    gzout.write(("<url><loc>http://www.ebi.ac.uk/gxa/gene?gid=" + t.text() + "</loc></url>\n").getBytes("UTF-8"));
+                    gzout.write(("<url><loc>http://www.ebi.ac.uk/gxa/gene/" + t.text() + "</loc></url>\n").getBytes("UTF-8"));
                     c++;
                 }
             }

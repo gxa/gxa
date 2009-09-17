@@ -4,6 +4,16 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
+ * JSON format (http://www.json.org) REST result renderer.
+ * This renderer is pretty simple in terms of mapping. All objects and maps are written as JS objects (in {})
+ * and iterables are written as JS arrays (in []).
+ *
+ * {@link ae3.restresult.RestOut} properties used:
+ * * name
+ * * exposeEmpty
+ *
+ * Renderer allows to specify JSON/P callback name (see constructor)
+ * 
  * @author pashky
  */
 public class JsonRestResultRenderer implements RestResultRenderer {
@@ -14,22 +24,48 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     private Appendable where;
     private final static char NL = '\n';
     private Class profile;
+    private String callback;
 
+    /**
+     * Constructor
+     * @param indent set to true if output should be pretty formatted and indented
+     * @param indentAmount amount of each indentation step
+     */
     public JsonRestResultRenderer(boolean indent, int indentAmount) {
+        this(indent, indentAmount, null);
+    }
+
+    /**
+     * Constructor, allowing to set JSON/P callback name. The output will be wrapped in 'callback(...)' text to be used
+     * in JS/HTML mash-ups
+     * @param indent set to true if output should be pretty formatted and indented
+     * @param indentAmount amount of each indentation step
+     * @param callback callback name
+     */
+    public JsonRestResultRenderer(boolean indent, int indentAmount, String callback) {
         this.indent = indent;
         this.indentAmount = indentAmount;
+        this.callback = callback;
     }
 
     public void render(Object o, Appendable where, final Class profile) throws RenderException, IOException {
         this.where = where;
         this.profile = profile;
-        process(o);
+        if(callback != null) {
+            where.append(callback).append('(');
+        }
+        process(o, null);
+        if(callback != null) {
+            where.append(')');
+        }
     }
 
-    private void process(Object o) throws IOException, RenderException {
+    private void process(Object o, RestOut outProp) throws IOException, RenderException {
+        outProp = Util.mergeAnno(outProp, o.getClass(), getClass(), profile);
+
         if(o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
-        } else if(o instanceof String || o.getClass().isAnnotationPresent(AsString.class) || o instanceof Enum) {
+        } else if(o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
             appendQuotedString(o.toString());
         } else if(o instanceof Iterable || o instanceof Iterator) {
             processArray(o);
@@ -49,7 +85,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         }
         
         boolean first = true;
-        for(Util.Prop p : Util.iterableProperties(o, profile)) {
+        for(Util.Prop p : Util.iterableProperties(o, profile, this)) {
             if(first)
                 first = false;
             else {
@@ -66,11 +102,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             if(indent)
                 where.append(' ');
 
-            if(p.method != null && p.method.isAnnotationPresent(AsString.class)) {
-                appendQuotedString(p.value.toString());
-            } else {
-                process(p.value);
-            }
+            process(p.value, p.outProp);
         }
 
         if(indent) {
@@ -103,7 +135,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             }
             appendIndent();
             if(object != null)
-                process(object);
+                process(object, null);
             else
                 where.append("null");
         }

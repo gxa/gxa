@@ -539,9 +539,13 @@ div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7
 div.tokeninputdrop .tree a.hl { color: #005555; }
 
 #apilinks  {
+    color: black;
+    font-size: 12px;
+    font-weight: normal;
     position:relative;
     display:none;
     line-height:normal;
+    z-index:10;
 }
 
 #apilinks div.abs {
@@ -549,6 +553,7 @@ div.tokeninputdrop .tree a.hl { color: #005555; }
     padding: 10px;
     margin:0;
     z-index:1000;
+    width: 600px;
 }
 
 #apilinks p { margin-bottom: 5px; }

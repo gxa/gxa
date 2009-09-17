@@ -4,11 +4,17 @@ import com.jamesmurty.utils.XMLBuilder;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.Iterator;
-import java.lang.annotation.Annotation;
 
 /**
+ * XML format REST result renderer.
+ *
+ * {@link ae3.restresult.RestOut} properties used:
+ * * name
+ * * exposeEmpty
+ * * xmlAttr
+ * * xmlItemName
+ *
  * @author pashky
  */
 public class XmlRestResultRenderer implements RestResultRenderer {
@@ -18,6 +24,11 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     private int indentAmount = 4;
     private Class profile;
 
+    /**
+     * Constructor
+     * @param indent set to true if output should be pretty formatted and indented
+     * @param indentAmount amount of each indentation step
+     */
     public XmlRestResultRenderer(boolean indent, int indentAmount) {
         this.indent = indent;
         this.indentAmount = indentAmount;
@@ -31,124 +42,90 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             this.profile = profile;
             process(object, null, null);
 
-            Properties props = new Properties();
-            if (indent) {
-                props.put("indent", "yes");
-                props.put("{http://xml.apache.org/xalan}indent-amount", String.valueOf(indentAmount));
-            }
-
             where.append(xml.asString(indent, indentAmount));
         } catch (ParserConfigurationException e) {
             throw new RenderException(e);
         }
     }
 
-    private void process(Object o, String iname, Annotation[] a) throws IOException, RenderException {
-        if(o instanceof Number || o instanceof Boolean || o instanceof String || o instanceof Enum || o.getClass().isAnnotationPresent(AsString.class)) {
+    private void process(Object o, String iname, RestOut outProp) throws IOException, RenderException {
+        outProp = Util.mergeAnno(outProp, o.getClass(), getClass(), profile);
+
+        if( o instanceof Number
+                || o instanceof Boolean
+                || o instanceof String
+                || o instanceof Enum
+                || (outProp != null && outProp.asString()) ) {
             xml = xml.t(o.toString());
         } else if(o instanceof Iterable || o instanceof Iterator) {
-            processArray(o, iname, a);
+            processArray(o, iname, outProp);
         } else {
-            processMap(o, iname, a);
+            processMap(o, iname, outProp);
         }
     }
 
-    private void processMap(Object o, String iname, Annotation[] as) throws IOException, RenderException {
-        AsMap am = null;
-        AsObject ao = null;
-        if(as != null)
-            for(Annotation ia : as)
-                if(ia instanceof AsMap) {
-                    am = (AsMap)ia;
-                    break;
-                } else if(ia instanceof AsObject) {
-                    ao = (AsObject)ia;
-                    break;
-                }
+    private void processMap(Object o, String iname, RestOut outProp) throws IOException, RenderException {
+        outProp = Util.mergeAnno(outProp, o.getClass(), getClass(), profile);
 
-        if(am == null && ao == null) {
-            am = o.getClass().getAnnotation(AsMap.class);
-            ao = o.getClass().getAnnotation(AsObject.class);
-        }
-
+        String attrName = null;
         String itemName = null;
-        if(am != null) {
-            if(am.item().length() > 0)
-                itemName = am.item();
-            else if(iname != null && iname.length() > 1 && iname.endsWith("s"))
-                itemName = iname.substring(0, iname.length() - 1);
-            else if(iname == null && am.anonName().length() > 1 && am.anonName().endsWith("s"))
-                itemName = am.anonName().substring(0, am.anonName().length() - 1);
-            else
-                itemName = "item";
-        }
 
-        boolean wrapped = true;
-        if(iname == null && am != null && am.anonName().length() > 0)
-            xml = xml.e(am.anonName());
-        else if(iname == null && ao != null && ao.anonName().length() > 0)
-            xml = xml.e(ao.anonName());
-        else
-            wrapped = false;
+        for(Util.Prop p : Util.iterableProperties(o, profile, this)) {
+            if(outProp == null && p.value != null) {
+                outProp = Util.getAnno(p.value.getClass(), getClass(), profile);
+            }
+            
+            if(itemName == null) {
+                attrName = outProp != null && !"".equals(outProp.xmlAttr()) ? outProp.xmlAttr() : null;
+                itemName = getItemName(iname, outProp);
+            }
 
-        for(Util.Prop p : Util.iterableProperties(o, profile)) {
-            if(am != null)
-                xml = xml.e(itemName).a(am.attr(), p.name);
+            if(attrName != null)
+                xml = xml.e(itemName).a(attrName, p.name);
             else
                 xml = xml.e(p.name);
 
-            if(p.method != null && p.method.isAnnotationPresent(AsString.class)) {
-                xml = xml.t(p.value.toString());
-            } else {
-                process(p.value, p.name, p.method != null ? p.method.getDeclaredAnnotations() : null);
-            }
+            process(p.value, p.name, p.outProp);
 
             xml = xml.up();
         }
 
-        if(wrapped)
-            xml = xml.up();
     }
 
-    private void processArray(Object oi, String iname, Annotation[] as) throws RenderException, IOException {
-        AsArray a = null;
-        if(as != null)
-            for(Annotation aa : as)
-                if(aa instanceof AsArray) {
-                    a = (AsArray)aa;
-                    break;
-                }
+    private void processArray(Object oi, String iname, RestOut outProp) throws RenderException, IOException {
+        outProp = Util.mergeAnno(outProp, oi.getClass(), getClass(), profile);
 
-        if(a == null)
-            a = oi.getClass().getAnnotation(AsArray.class);
-        
-        boolean wrapped = true;
-        if(iname == null && a != null && a.anonName().length() > 0)
-            xml = xml.e(a.anonName());
-        else
-            wrapped = false;
-
-        String itemName;
-        if(a != null && a.item().length() > 0)
-            itemName = a.item();
-        else if(iname != null && iname.length() > 1 && iname.endsWith("s"))
-            itemName = iname.substring(0, iname.length() - 1);
-        else if(iname == null && a != null && a.anonName().length() > 1 && a.anonName().endsWith("s"))
-            itemName = a.anonName().substring(0, a.anonName().length() - 1);
-        else
-            itemName = "item";
+        String attrName = null;
+        String itemName = null;
 
         Iterator i = oi instanceof Iterator ? (Iterator)oi : ((Iterable)oi).iterator();
+        int number = 0;
         while(i.hasNext()) {
             Object object = i.next();
-            xml = xml.e(itemName);
+            if(outProp == null && object != null) {
+                outProp = Util.getAnno(object.getClass(), getClass(), profile);
+            }
+            if(itemName == null) {
+                itemName = getItemName(iname, outProp);
+                attrName = outProp != null && !"".equals(outProp.xmlAttr()) ? outProp.xmlAttr() : null;
+            }
+            if(attrName != null)
+                xml = xml.e(itemName).a(attrName, String.valueOf(number++));
+            else
+                xml = xml.e(itemName);
             if(object != null)
                 process(object, iname, null);
             xml = xml.up();
         }
 
-        if(wrapped)
-            xml = xml.up();
     }
 
+    private String getItemName(String iname, RestOut outProp) {
+        if(outProp != null && outProp.xmlItemName().length() > 0)
+            return outProp.xmlItemName();
+        else if(iname != null && iname.length() > 1 && iname.endsWith("s"))
+            return iname.substring(0, iname.length() - 1);
+        else
+            return "item";
+    }
 }

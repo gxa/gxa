@@ -12,7 +12,6 @@ import java.util.*;
 
 import ae3.util.Pair;
 import ae3.restresult.RestOut;
-import ae3.restresult.AsArray;
 import ae3.dao.AtlasDao;
 
 public class AtlasGene {
@@ -61,7 +60,7 @@ public class AtlasGene {
         return getValue("gene_identifier");
     }
 
-    @RestOut(name="ensemblGeneId", empty = false)
+    @RestOut(name="ensemblGeneId", exposeEmpty = false)
     public String getGeneEnsembl() {
         return getValue("gene_ensgene");
     }
@@ -70,7 +69,7 @@ public class AtlasGene {
         return getValue("gene_goterm");
     }
 
-    @RestOut(name="goTerms", empty = false)
+    @RestOut(name="goTerms", exposeEmpty = false)
     public Collection<String> getGoTerms() {
         return getValues("gene_goterm");
     }
@@ -91,12 +90,12 @@ public class AtlasGene {
         return getValue("gene_interproterm");
     }
 
-    @RestOut(name="interProIds", empty = false)
+    @RestOut(name="interProIds", exposeEmpty = false)
     public Collection<String> getInterProIds() {
         return getValues("gene_interproid");
     }
 
-    @RestOut(name="interProTerms", empty = false)
+    @RestOut(name="interProTerms", exposeEmpty = false)
     public Collection<String> getInterProTerms() {
         return getValues("gene_interproterm");
     }
@@ -105,7 +104,7 @@ public class AtlasGene {
         return getValue("gene_keyword");
     }
 
-    @RestOut(name="keyword", empty = false)
+    @RestOut(name="keywords", exposeEmpty = false)
     public Collection<String> getKeywords() {
         return getValues("gene_keyword");
     }
@@ -114,7 +113,7 @@ public class AtlasGene {
     	return getValue("gene_disease");
     }
 
-    @RestOut(name="diseases", empty = false)
+    @RestOut(name="diseases", exposeEmpty = false)
     public Collection<String> getDiseases(){
     	return getValues("gene_disease");
     }
@@ -166,7 +165,7 @@ public class AtlasGene {
     	return getValue("gene_uniprot");
     }
 
-    @RestOut(name="uniprotIds", empty = false)
+    @RestOut(name="uniprotIds", exposeEmpty = false)
     public Collection<String> getUniprotIds(){
     	return getValues("gene_uniprot");
     }
@@ -175,7 +174,7 @@ public class AtlasGene {
     	return getValue("gene_synonym");
     }
 
-    @RestOut(name="synonyms", empty = false)
+    @RestOut(name="synonyms", exposeEmpty = false)
     public Collection<String> getSynonyms(){
     	return getValues("gene_synonym");
     }
@@ -232,55 +231,55 @@ public class AtlasGene {
 		return StringUtils.join(orths, "+");
 	}
 
-    @RestOut(name="orthologs", empty = false)
+    @RestOut(name="orthologs", exposeEmpty = false)
 	public List<String> getOrthologs() {
         Collection orths = geneSolrDocument.getFieldValues("gene_ortholog");
 		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
 	}
 
-    @RestOut(name="proteins", empty = false)
+    @RestOut(name="proteins", exposeEmpty = false)
 	public Collection<String> getProteins() { return getValues("gene_proteins"); }
 
-    @RestOut(name="goIds", empty = false)
+    @RestOut(name="goIds", exposeEmpty = false)
 	public Collection<String> getGoIds() { return getValues("gene_goid"); }
 
-    @RestOut(name="dbxrefs", empty = false)
+    @RestOut(name="dbxrefs", exposeEmpty = false)
 	public Collection<String> getDbxRefs() { return getValues("gene_dbxref"); }
 
-    @RestOut(name="emblIds", empty = false)
+    @RestOut(name="emblIds", exposeEmpty = false)
 	public Collection<String> getEmblIds() { return getValues("gene_embl"); }
 
-    @RestOut(name="ensemblFamilyIds", empty = false)
+    @RestOut(name="ensemblFamilyIds", exposeEmpty = false)
 	public Collection<String> getEnsFamilies() { return getValues("gene_ensfamily"); }
 
-    @RestOut(name="ensemblProteinIds", empty = false)
+    @RestOut(name="ensemblProteinIds", exposeEmpty = false)
 	public Collection<String> getEnsProteins() { return getValues("gene_ensprotein"); }
 
-    @RestOut(name="images", empty = false)
+    @RestOut(name="images", exposeEmpty = false)
 	public Collection<String> getImages() { return getValues("gene_image"); }
 
-    @RestOut(name="locuslinks", empty = false)
+    @RestOut(name="locuslinks", exposeEmpty = false)
 	public Collection<String> getLocuslinks() { return getValues("gene_locuslink"); }
 
-    @RestOut(name="omimiIds", empty = false)
+    @RestOut(name="omimiIds", exposeEmpty = false)
 	public Collection<String> getOmimiIds() { return getValues("gene_omimid"); }
 
-    @RestOut(name="orfIds", empty = false)
+    @RestOut(name="orfIds", exposeEmpty = false)
 	public Collection<String> getOrfs() { return getValues("gene_orf"); }
 
-    @RestOut(name="refseqIds", empty = false)
+    @RestOut(name="refseqIds", exposeEmpty = false)
 	public Collection<String> getRefseqIds() { return getValues("gene_refseq"); }
 
-    @RestOut(name="unigeneIds", empty = false)
+    @RestOut(name="unigeneIds", exposeEmpty = false)
 	public Collection<String> getUnigeneIds() { return getValues("gene_unigene"); }
 
-    @RestOut(name="hmdbIds", empty = false)
+    @RestOut(name="hmdbIds", exposeEmpty = false)
 	public Collection<String> getHmdbIds() { return getValues("gene_hmdb"); }
 
-    @RestOut(name="cas", empty = false)
+    @RestOut(name="cas", exposeEmpty = false)
 	public Collection<String> getCass() { return getValues("gene_cas"); }
 
-    @RestOut(name="uniprotMetenzs", empty = false)
+    @RestOut(name="uniprotMetenzs", exposeEmpty = false)
 	public Collection<String> getChebiIds() { return getValues("gene_uniprotmetenz"); }
 
     public int getCount_up(String ef, String efv) {
@@ -323,7 +322,7 @@ public class AtlasGene {
 		return this.orthoGenes;
 	}
 
-    public ExperimentsTable getExpermientsTable() {
+    public ExperimentsTable getExperimentsTable() {
         if(expTable != null)
             return expTable;
         return expTable = ExperimentsTable.deserialize((String)geneSolrDocument.getFieldValue("exp_info"));
@@ -331,7 +330,7 @@ public class AtlasGene {
 
     public int getNumberOfExperiments() {
         Set<Long> exps = new HashSet<Long>();
-        for(Experiment e : getExpermientsTable().getAll())
+        for(Experiment e : getExperimentsTable().getAll())
             exps.add(e.getId());
         return exps.size();
     }
@@ -351,7 +350,7 @@ public class AtlasGene {
 
     public void loadGeneExperiments(AtlasDao dao) {
         experimentsMap = new HashMap<Long, AtlasExperiment>();
-        for(Experiment exp : getExpermientsTable().getAll())
+        for(Experiment exp : getExperimentsTable().getAll())
             if(!experimentsMap.containsKey(exp.getId())) {
                 AtlasExperiment aexp = dao.getExperimentById(String.valueOf(exp.getId()));
                 if(aexp != null)
@@ -376,7 +375,7 @@ public class AtlasGene {
 
                         if(experimentsMap != null) {
                             List<ListResultRowExperiment> exps = new ArrayList<ListResultRowExperiment>();
-                            for(Experiment exp : getExpermientsTable().findByEfEfv(ef, efv)) {
+                            for(Experiment exp : getExperimentsTable().findByEfEfv(ef, efv)) {
                                 AtlasExperiment aexp = experimentsMap.get(exp.getId());
                                 if(aexp != null) {
                                     exps.add(new ListResultRowExperiment(exp.getId(), 
@@ -400,7 +399,7 @@ public class AtlasGene {
 
     public List<AtlasTuple> getTopFVs(long exp_id_key) {
         List<AtlasTuple> result = new ArrayList<AtlasTuple>();
-        for(Experiment e : getExpermientsTable().findByExperimentId(exp_id_key)) {
+        for(Experiment e : getExperimentsTable().findByExperimentId(exp_id_key)) {
             result.add(new AtlasTuple(e.getEf(), e.getEfv(), e.getExpression().isUp() ? 1 : -1, e.getPvalue()));
         }
         Collections.sort(result, new Comparator<AtlasTuple>() {
@@ -411,10 +410,18 @@ public class AtlasGene {
         return result;
     }
 
+    public List<Experiment> getAtlasResultsForExperiment(long exp_id_key){
+        ArrayList<Experiment> result = new ArrayList<Experiment>();
+        for(Experiment e : getExperimentsTable().findByExperimentId(exp_id_key)){
+            result.add(e);
+        }
+        return result;
+    }
+
     public Pair<String,Double> getHighestRankEF(long experimentId) {
         String ef = null;
         Double pvalue = null;
-        for(Experiment e : getExpermientsTable().findByExperimentId(experimentId))
+        for(Experiment e : getExperimentsTable().findByExperimentId(experimentId))
             if(pvalue == null || pvalue > e.getPvalue()) {
                 pvalue = e.getPvalue();
                 ef = e.getEf();
@@ -432,5 +439,13 @@ public class AtlasGene {
     @Override
     public int hashCode() {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
+    }
+
+    public String getGeneDescription(){
+       return (new AtlasGeneDescription(this)).toString();
+    }
+
+    public String getGeneDescriptionHtml(){
+       return (new AtlasGeneDescription(this)).toString();
     }
 }

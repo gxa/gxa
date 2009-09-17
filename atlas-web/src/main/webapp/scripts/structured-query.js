@@ -271,8 +271,8 @@ if(!atlas)
              'table.oneplot': 'ef <- experiment.efs',
              'table.oneplot[id]+': function(a) { return 'oneplot_' + a.context.counter++; },
              '.efname': 'ef.eftext',
-             'a.proflink[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
-             'a.proflink2[href]': 'experiment?gid=#{gene.id}&eid=#{experiment.accession}',
+             'a.proflink[href]': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
+             'a.proflink2[href]': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
              'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
          }).parent().remove();
      };
@@ -626,18 +626,6 @@ if(!atlas)
                 popup.append(ul);
 
             }});
-    };
-
-    atlas.showApiLinks = function () {
-        var p = $('#apilinks').show();
-        p.find('.closebox').click(function () { p.hide(); });
-    };
-
-    atlas.copyText = function(e) {
-        e.focus();
-        e.select();
-        var t = e.createTextRange();
-        t.execCommand("Copy");
     };
 
  })(jQuery);

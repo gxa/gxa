@@ -17,5 +17,6 @@
     <module>loader-model</module>
     <module>loader-oracle-db</module>
     <module>loader</module>
+    <module>test-loader-app</module>
   </modules>
 </project>

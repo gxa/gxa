@@ -60,7 +60,6 @@ public class ListResultRowExperiment {
      * Returns experiment description
      * @return experiment description
      */
-    @RestOut(name="description")
     public String getExperimentDescription() {
         return experimentDescription;
     }

@@ -76,7 +76,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
 
 <script type="text/javascript" language="javascript" src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
+<!--[if IE]><script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/excanvas.min.js"></script><![endif]-->
 
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquerydefaultvalue.js"></script>
@@ -84,6 +84,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/common-query.js"></script>
 <script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
 
 <link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css" />
@@ -231,12 +232,14 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
             <a href="<%= request.getContextPath() %>/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%=request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
-            <a href="./">home</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |                    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+            <a href="<%=request.getContextPath()%>/">home</a> |
+            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
+	    <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+	    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+            <a href="<%=request.getContextPath()%>/help">help</a>
         </td>
     </tr>
 </table>
@@ -248,6 +251,17 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         <td align="left" class="geneName">${atlasGene.geneName}</td>
         <td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
     </tr>
+
+    <tr>
+        <td colspan="2" align="left" style="padding-bottom:1em;padding-top:1em">
+           ${f:escapeXml(atlasGene.geneDescription)}
+        </td>
+
+        <!-- td width="8%">&nbsp;</td-->
+
+    </tr>
+
+
     <tr>
         <td class="geneAnnotHeader">Synonyms</td>
         <td align="left">${atlasGene.synonym}</td>
@@ -358,7 +372,10 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                     <td valign="top" style="padding-right: 30px">
                         <table>
                             <tr>
-                                <td class="sectionHeader">Expression Summary</td>
+                                <td class="sectionHeader">
+                                    <div style="float:right;font:normal"><c:import url="apilinks.jsp"><c:param name="apiUrl" value="geneIs=${atlasGene.geneIdentifier}"/></c:import></div>
+                                    Expression Summary
+                                </td>
                             </tr>
                             <tr>
                                 <td align="left" class="header">

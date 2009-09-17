@@ -47,6 +47,8 @@
     <module>dataserver</module>
     <module>atlas-web</module>
     <module>atlas-archetype</module>
+    <module>atlas-loader</module>
+    <module>atlas-db</module>
   </modules>
 
   <dependencies>

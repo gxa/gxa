@@ -1,0 +1,99 @@
+= Gene Expression Atlas DAS Source =
+
+The Gene Expression Atlas provides gene-level expression analytics annotation
+data as a Distributed Annotation System (DAS) source that can be accessed with
+specialized DAS clients or viewed through DAS-enabled genome browsers, like
+[[http://www.ensembl.org|Ensembl]]. 
+
+== Distributed Annotation System ==
+
+The <b>Distributed Annotation System</b> (DAS) defines a communication protocol
+used to exchange
+[[http://en.wikipedia.org/wiki/Genome_project#Genome_annotation|annotations]] on
+genomic or protein sequences.  It is motivated by the idea that such
+annotations should not be provided by single centralized databases, but should
+instead be spread over multiple sites. Data distribution, performed by DAS
+servers, is separated from visualization, which is done by DAS clients.
+
+DAS is a client-server system in which a single client integrates information from 
+multiple servers. It allows a single machine to gather up sequence annotation 
+information from multiple distant web sites, collate the information, and display it
+to the user in a single view. Little coordination is needed among the various 
+information providers.
+
+More information about DAS can be found at
+[[http://www.biodas.org/wiki/Everything_DAS|BioDas.org: Everything DAS]].
+
+== Enabling the Atlas DAS Source in the Ensembl Genome Browser ==
+
+It is easy to enable the display of Gene Expression Atlas gene expression
+analytics annotations in the Ensembl Genome Browser, by adding/enabling the
+Atlas DAS source in the http://www.ensemble.org portal:
+
+1. Go to http://www.ensembl.org and navigate to a gene page by searching for a
+gene or via a direct link, for example, for human gene BRCA2:
+http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618  
+
+2. Enter the "Configure this page" wizard
+
+[[Image:das/Ensemble_Configure.png|frame|right]]
+
+3. Go to "Custom Data" tab, select "Attach DAS" and specify the Atlas DAS URL
+(http://www.ebi.ac.uk/gxa/das), and with all other settings kept default
+proceed to the next step
+
+[[Image:das/Ensemble_Attach.png|frame|right]]
+
+Note: the Gene Expression Atlas DAS source is also registered in the
+[[http://www.dasregistry.org|DAS Registry]]. You can select the Gene Expression
+Atlas from the DAS Registry, bypassing the need to enter the Atlas URL
+manually.
+
+4. Select the Gene Expression Atlas DAS source (it will be the only one
+displayed) and proceed to the next step
+
+[[Image:das/Ensemble_Select.png|frame|right]]
+
+5. A screen confirming the successfully attached DAS source will be displayed,
+with only one more step remaining to view the Atlas data in Ensembl. You need
+to navigate to the "Configure page" tab from the confirmation screen.
+
+[[Image:das/Ensemble_Attached.png|frame|right]]
+
+6. On the "Configure page" screen you need to check the newly added DAS source
+("Gene Expression Atlas") and confirm your choice by pressing the "SAVE and
+close" button 
+
+[[Image:das/Ensemble_Check.png|frame|right]]
+
+7. The Atlas DAS source will appear under the "External Data" menu item, and
+navigating there will display Atlas gene expression analytics data for the
+currently chosen gene.
+
+[[Image:das/Ensemble_Atlas.png|frame|right]]
+
+== Atlas DAS Source Details ==
+
+This section explains the information you see in the Atlas DAS source. For every gene three types of expression annotations are displayed:
+
+1. Gene expression summary
+
+A one sentence summary of tissues, diseases, cell lines and cell types where
+the gene showed the strongest differential expression in multiple studies, as
+well as the total numbers of experiments and other conditions where the gene
+was found to be active.
+
+2. Sites or conditions where the gene is differentially expressed.
+
+The listing of all biological sites or conditions under which the gene was
+active together, and for each condition, the list of experiments where this
+condition was observed together with a list of other comparison conditions
+within that experiment.
+
+3. Experiments where the gene was studied and showed differential expression. 
+
+The listing of all experiments where the gene was studied. For each experiment,
+a brief summary of the gene's activity as well as the overall experimental
+design (experimental variables and their values) is provided.
+
+{{AtlasLinks}}

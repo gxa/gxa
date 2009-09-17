@@ -1,0 +1,18 @@
+= About the Gene Expression Atlas =
+
+The Gene Expression Atlas is a semantically enriched database of meta-analysis based summary statistics which serves queries for condition-specific gene expression patterns (e.g. genes over-expressed in a particular tissue or disease state) as well as broader exploratory searches for biologically interesting genes/samples. It is based on a subset of the ArrayExpress data.
+
+Gene Expression Atlas goals:
+# Provision of a statistically robust framework for integration of gene expression experiment results across different platforms at a meta-analytical level
+# A simple interface for identifying strong differential expression candidate genes in conditions of interest
+# Integration of ontologies for high quality annotation of gene and sample attributes
+# Construction of new gene expression summarized views, with a view to analysis of putative signalling pathway targets, discovery of correlated gene expression patterns and the identification of condition/tissue-specific patterns of gene expression.
+
+Additional help for the Gene Expression Atlas is available:
+
+* [[AtlasHelp|Help searching the database and interpreting the results]]
+* [[AtlasConstructionDetails|Details about the construction of the Atlas]]
+* [[AtlasApis|Programmatic access to the Atlas]]
+* [[AtlasFaq|Frequently asked questions]]
+
+{{AtlasLinks}}

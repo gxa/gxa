@@ -1,20 +1,13 @@
 package ae3.model;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.solr.common.SolrDocument;
+import ae3.dao.NetCDFReader;
+import ae3.restresult.RestOut;
 import org.apache.commons.lang.StringUtils;
-
+import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
+import java.io.IOException;
 import java.util.*;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-
-import ae3.restresult.RestOut;
-import ae3.restresult.AsMap;
-import ae3.restresult.AsArray;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,6 +16,7 @@ import ae3.restresult.AsArray;
  * Time: 9:31:07 AM
  * To change this template use File | Settings | File Templates.
  */
+@RestOut(xmlItemName ="experiment")
 public class AtlasExperiment implements java.io.Serializable {
     private Long dwExpId;
     private String dwExpAccession;
@@ -47,15 +41,17 @@ public class AtlasExperiment implements java.io.Serializable {
     public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
+    private ExperimentalData expData;
+
     public AtlasExperiment(SolrDocument exptdoc) {
         doload(exptdoc);
         setExptSolrDocument(exptdoc);
     }
 
-    @AsArray(item="factorValue")
+    @RestOut(xmlItemName ="factorValue")
     public static class FactorValueList extends ArrayList<String> {}
 
-    @AsArray(item="value")
+    @RestOut(xmlItemName ="value")
     public static class SampleValueList extends ArrayList<String> {}
 
     public void doload(SolrDocument exptDoc)
@@ -124,8 +120,6 @@ public class AtlasExperiment implements java.io.Serializable {
 		this.sampleCharacteristics = sampleCharacteristics != null ? new HashSet<String>(sampleCharacteristics) : new HashSet<String>();
 	}
 
-    @RestOut(name="samples")
-    @AsMap(item="sampleCharacteristic", attr="id")
 	public TreeMap<String, List<String>> getSampleCharacterisitcValues() {
 		return sampleCharacterisitcValues;
 	}
@@ -139,11 +133,9 @@ public class AtlasExperiment implements java.io.Serializable {
 	public void addFactorValue(String characterisitc, List<String>values) {
 		if(factorValues==null)
 			factorValues = new TreeMap<String, List<String>>();
-		this.factorValues.put(characterisitc, values);
+		this.factorValues.put(characterisitc, values);          
 	}
 
-    @RestOut(name="factors")
-    @AsMap(item="factor", attr="id")
 	public TreeMap<String, List<String>> getFactorValuesForEF() {
 		return factorValues;
 	}
@@ -254,4 +246,21 @@ public class AtlasExperiment implements java.io.Serializable {
     public DEGStatus getDEGStatus() {
         return this.exptDEGStatus;
     }
+
+    /**
+     * Attempts to load and return experimental data from NetCDF file using default Atlas location
+     * @return experimental data or null if failed to find data
+     * @throws RuntimeException if i/o error occurs
+     */
+    public ExperimentalData getExperimentalData() {
+        if(expData == null) {
+            try {
+                expData = NetCDFReader.loadExperiment(getDwExpId());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read experiment data", e);
+            }
+        }
+        return expData;
+    }
+    
 }

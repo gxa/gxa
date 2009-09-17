@@ -307,5 +307,22 @@ if(!atlas)
         $(form).find('input:hidden').trigger('preSubmit');
     };
     
+    atlas.showApiLinks = function (url, callback) {
+        if(callback) {
+            url = callback(url);
+            $('.jsonapilink').val(url + '&format=json');
+            $('.xmlapilink').val(url + '&format=xml');
+        }
+        var p = $('#apilinks').show();
+        p.find('.closebox').click(function () { p.hide(); });
+    };
+
+    atlas.copyText = function(e) {
+        e.focus();
+        e.select();
+        var t = e.createTextRange();
+        t.execCommand("Copy");
+    };
+
 })(jQuery);
 

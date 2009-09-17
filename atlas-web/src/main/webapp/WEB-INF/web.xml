@@ -7,6 +7,12 @@
     <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+
+      <!--init-param>
+           <param-name>logLevel</param-name>
+           <param-value>DEBUG</param-value>
+       </init-param -->
+        
     </filter>
     <filter-mapping>
     <filter-name>UrlRewriteFilter</filter-name>
@@ -17,7 +23,10 @@
     <!-- CXF -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
-        <param-value>/WEB-INF/beans.xml</param-value>
+        <param-value>
+            WEB-INF/beans.xml
+            WEB-INF/atlasApplicationContext.xml
+        </param-value>
     </context-param>
 
     <context-param>
@@ -60,6 +69,13 @@
         <exception-type>java.lang.Exception</exception-type>
         <location>/error.jsp</location>
     </error-page>
+
+    <servlet>
+        <display-name>Help Servlet</display-name>
+        <servlet-name>help</servlet-name>
+        <jsp-file>/help.jsp</jsp-file>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
     <servlet>
         <display-name>Table Header Servlet</display-name>
@@ -311,5 +327,24 @@
         </init-param>
     </servlet>
 
+    <!--Reference to the AEATLAS database JNDI resources -->
+    <resource-ref>
+        <description>Atlas Backing DB Connection</description>
+        <res-ref-name>jdbc/AEATLAS</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref>
+        <description>Atlas Index directory</description>
+        <res-ref-name>jdbc/AEINDEX</res-ref-name>
+        <res-type>java.io.File</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+        <resource-ref>
+        <description>Atlas Dataserver directory</description>
+        <res-ref-name>jdbc/AEDATASERVER</res-ref-name>
+        <res-type>java.io.File</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
 
 </web-app>

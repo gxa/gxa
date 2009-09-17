@@ -1,13 +1,9 @@
 package ae3.servlet.structuredquery;
 
+import ae3.restresult.RestOut;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.IValueListHelper;
-import ae3.restresult.AsMap;
-import ae3.restresult.AsArray;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -20,9 +16,9 @@ import java.util.Map;
  */
 public class FactorValuesServlet extends RestServlet {
 
-    @AsArray(item = "completion")
+    @RestOut(xmlItemName = "completion")
     public static class ACList extends ArrayList<AutoCompleteItem> {}
-    @AsMap(item = "query", attr = "id")
+    @RestOut(xmlItemName = "query", xmlAttr = "id")
     public static class ACMap extends HashMap<String,List<AutoCompleteItem>> {}
 
     public Object process(HttpServletRequest request) {

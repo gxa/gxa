@@ -10,13 +10,24 @@ import java.util.List;
 import java.util.Collection;
 
 /**
+ * String escaping utility functions
  * @author pashky
  */
 public class EscapeUtil {
+    /**
+     * Escape and quote string for use in SOLR queries
+     * @param s source string
+     * @return escape value
+     */
     public static String escapeSolr(String s) {
         return "\"" + s.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\\\"") + "\"";
     }
 
+    /**
+     * Escape and concatenate list of string for use in SOLR queries
+     * @param values iterable of string values
+     * @return processed string value
+     */
     public static String escapeSolrValueList(Iterable<String> values) {
         StringBuffer sb = new StringBuffer();
         for (String v : values)
@@ -40,6 +51,11 @@ public class EscapeUtil {
         return str;
     }
 
+    /**
+     * Optionally quote and join with spaces an iterable set of string values
+     * @param values iterable strings
+     * @return processed string value
+     */
     public static String joinQuotedValues(Iterable<String> values) {
         StringBuffer sb = new StringBuffer();
         for (String v : values)
@@ -51,6 +67,11 @@ public class EscapeUtil {
         return sb.toString();
     }
 
+    /**
+     * Opposite to {@link ae3.util.EscapeUtil.joinQuotedValues(Iterable)}
+     * @param value string value
+     * @return list of parsed strings
+     */
     public static List<String> parseQuotedList(final String value)
     {
         List<String> values = new ArrayList<String>();
@@ -102,6 +123,11 @@ public class EscapeUtil {
         return values;
     }
 
+    /**
+     * Represent a collection as JavaScript comma sperated array of strings
+     * @param c collection of objects
+     * @return string, the javascript array source
+     */
     public static String escapeJSArray(Collection c) {
         StringBuilder sb = new StringBuilder();
         for(Object o : c) {

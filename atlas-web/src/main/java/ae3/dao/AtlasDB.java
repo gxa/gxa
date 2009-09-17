@@ -1,14 +1,22 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
+import ae3.service.structuredquery.*;
+import ae3.service.ArrayExpressSearchService;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.Connection;
 
 import ds.utils.DS_DBconnection;
+import uk.ac.manchester.cs.bhig.util.Tree;
+import org.apache.lucene.index.Payload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
+//import org.apache.commons.dbcp.;
 
 
 /**
@@ -32,6 +40,8 @@ public class AtlasDB {
              return Name;
          }
      }
+
+     final private Logger log = LoggerFactory.getLogger(getClass());
 
      public static List<Gene> getGenes(String StartLetter, int FirstRow, int PageSize) throws Exception {
 
@@ -66,6 +76,122 @@ public class AtlasDB {
        sql.close();
        conn.close();
 
-       return result;
+       return result;                                                                                
+     }
+
+     public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query, AtlasStructuredQueryResult result)
+     {
+         try{
+
+         //AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
+        // AtlasGene g =  List<AtlasGene> getGenes()
+
+         HashMap<String,Integer> Payloads = new HashMap<String,Integer>();
+
+         //String EfvIDs = "";
+         ArrayList<String> EfvIDs = new ArrayList<String>();
+
+         for( EfvTree.EfEfv<Integer> ie : result.getResultEfvs().getNameSortedList())
+         {
+             int Payload = ie.getPayload();
+             String EfEfvId = ie.getEf()+'|'+ie.getEfv();
+
+             Payloads.put(EfEfvId,Payload);
+            //int ic= 
+            //EfvIDs += ( ie.getEfEfvId() + ",");
+             EfvIDs.add( ie.getEfEfvId() );
+         }
+
+         String GeneIDs = "";
+
+         for(StructuredResultRow r : result.getResults())
+         {
+            GeneIDs += (r.getGene().getGeneId() + ",");
+         }
+
+         Connection conn = DS_DBconnection.instance().getConnection();
+
+         CallableStatement sql = conn.prepareCall("{call a2_ExpressionGet(?,?,?)}");
+
+
+         /*This is where we map the Java Object Array to a PL/SQL Array */
+
+        Connection actualCon = ((org.apache.commons.dbcp.DelegatingConnection) conn).getInnermostDelegate();
+
+
+         ArrayDescriptor desc = ArrayDescriptor.createDescriptor("TBLVARCHAR",sql.getConnection());
+
+         ARRAY jdbc_arry = new ARRAY (desc, sql.getConnection(), EfvIDs);
+
+         sql.setString(1, GeneIDs);
+         sql.setArray(2, jdbc_arry);
+
+         sql.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR);
+
+         sql.execute();
+
+         ResultSet expRS = (ResultSet) sql.getObject(3);
+
+         AtlasGene CurrentGene = null;
+         List<UpdownCounter> CurrentUpDown = null;
+
+        while(expRS.next()){
+            String GeneID = expRS.getString("GeneID");
+
+            if((CurrentGene==null)||(!GeneID.equals(CurrentGene.getGeneId())))
+            {
+                if(CurrentGene!=null)
+                {
+                    StructuredResultRow r = new  StructuredResultRow(CurrentGene , CurrentUpDown );
+                    result.addResult(r);
+                }
+
+                String geneId = expRS.getString("GeneID");
+
+                AtlasDao.AtlasGeneResult r1 = ArrayExpressSearchService.instance().getAtlasDao().getGeneByIdentifier(geneId);
+
+                CurrentGene = r1.getGene();
+
+                CurrentUpDown = new ArrayList<UpdownCounter>();
+
+                for(int j=0; j!=2000; j++){ //set_size(1000);
+                    CurrentUpDown.add(null);
+                }
+
+                //CurrentGene.setGeneId( );
+                //CurrentGene.setGeneName( expRS.getString("GeneName") );
+                //CurrentGene.setGeneIdentifier( expRS.getString("GeneIdentifier") );
+
+                CurrentGene.setGeneHighlights(new HashMap<String, List<String>>());
+            }
+
+            String EvfID = expRS.getString("EfvStringID");
+
+            if(Payloads.containsKey(EvfID))
+            {
+                int Payload = Payloads.get(EvfID);
+
+                int Up = expRS.getInt("Up");
+                int Dn = expRS.getInt("Dn");
+
+                UpdownCounter up1 = new UpdownCounter(Up, Dn, 0.01, 0.02);
+                CurrentUpDown.set(Payload, up1);
+            }
+       }
+
+         if(CurrentGene!=null)
+         {
+             StructuredResultRow r = new  StructuredResultRow(CurrentGene , CurrentUpDown );
+             result.addResult(r);
+         }
+
+         return result;
+         }
+         catch(Exception ex)
+         {
+
+             log.error("Error in structured query plus!", ex);
+             return null;
+         }
      }
 }

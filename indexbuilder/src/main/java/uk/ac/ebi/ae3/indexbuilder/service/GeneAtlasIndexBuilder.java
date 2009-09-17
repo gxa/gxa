@@ -88,58 +88,33 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         double pdn = 1;
     }
 
-    private class StatementPool {
-        private final Semaphore available = new Semaphore(NUM_THREADS, true);
-
-        public PreparedStatement getItem() throws InterruptedException {
-            available.acquire();
-            return getNextAvailableItem();
-        }
-
-        public void putItem(PreparedStatement x) {
-            if (markAsUnused(x))
-                available.release();
-        }
-
-        protected Map<PreparedStatement, MutableBoolean> pool = new HashMap<PreparedStatement,MutableBoolean>();
-
-        protected synchronized PreparedStatement getNextAvailableItem() {
-            for(Map.Entry<PreparedStatement,MutableBoolean> e : pool.entrySet())
-                if(e.getValue().booleanValue()) {
-                    pool.get(e.getKey()).setValue(false);
-                    return e.getKey();
-                }
-
-            try {
-                PreparedStatement stmt = getDataSource().getConnection().prepareStatement(                "SELECT * FROM " +
-                        "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
-                        "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +
-                        "   FROM atlas " +
-                        "   WHERE gene_id_key = ? AND efv <> 'V1' AND experiment_id_key > 0) " +
-                        " WHERE r=1");
-                pool.put(stmt, new MutableBoolean(false));
-                return stmt;
-            } catch(SQLException e) {
-                throw new RuntimeException("SQL error", e);
-            }
-        }
-
-        protected synchronized boolean markAsUnused(PreparedStatement item) {
-            MutableBoolean b = pool.get(item);
-            if(b != null && !b.booleanValue()) {
-                b.setValue(true);
-                return true;
-            }
-            return false;
-        }
-    }
-
-
     protected void createIndexDocs() throws Exception {
 
         loadEfoMapping();
 
-        final StatementPool spool = new StatementPool();
+        final ResourcePool<PreparedStatement> spool = new ResourcePool<PreparedStatement>(NUM_THREADS) {
+            public PreparedStatement createResource() {
+                try {
+                    return getDataSource().getConnection().prepareStatement("SELECT * FROM " +
+                            "  (SELECT ef, efv, updn, experiment_id_key, updn_pvaladj, " +
+                            "     dense_rank() over(PARTITION BY gene_id_key, experiment_id_key, ef, efv ORDER BY updn_pvaladj) AS r " +
+                            "   FROM atlas " +
+                            "   WHERE gene_id_key = ? AND efv <> 'V1' AND experiment_id_key > 0) " +
+                            " WHERE r=1");
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            public void closeResource(PreparedStatement preparedStatement) {
+                try {
+                    preparedStatement.close();
+                } catch (SQLException e) {
+                    log.error("Can't close statement", e);
+                }
+            }
+        };
+
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         log.info("Querying genes...");
@@ -195,6 +170,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         log.info("Waiting for workers...");
         tpool.shutdown();
         tpool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        spool.close();
         log.info("Finished, committing");
     }
 

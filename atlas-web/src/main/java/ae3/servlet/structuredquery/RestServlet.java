@@ -12,8 +12,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import ae3.restresult.*;
+import ae3.servlet.structuredquery.result.ErrorResult;
 
 /**
+ * REST API base servlet, implementing common functions as output format and style parameters handling,
+ * GET/POST unification, exception handling etc.
  * @author pashky
  */
 public abstract class RestServlet extends HttpServlet {
@@ -40,6 +43,10 @@ public abstract class RestServlet extends HttpServlet {
 
     private Class profile = Object.class;
 
+    /**
+     * Use this function to set REST output formatter profile, to deal properly with the result of doRest() method
+     * @param profile profile class
+     */
     protected void setRestProfile(Class profile) {
         this.profile = profile;
     }
@@ -53,10 +60,7 @@ public abstract class RestServlet extends HttpServlet {
                 o = process(request);
             } catch (final RuntimeException e) {
                 log.error("Exception in servlet process()", e);
-                o = new Object() {
-                    public String getError() { return "Exception occured"; }
-                    public String getException() { return exceptionToString(e); }
-                };
+                o = new ErrorResult("Exception occured: " + exceptionToString(e));
             }
 
             RestResultRenderer renderer;
@@ -70,7 +74,10 @@ public abstract class RestServlet extends HttpServlet {
                 case JSON: {
                     response.setContentType("text/plain");
                     response.setCharacterEncoding("utf-8");
-                    renderer = new JsonRestResultRenderer(indent, 4);
+                    String jsonCallback = request.getParameter("callback");
+                    if(jsonCallback != null)
+                        jsonCallback = jsonCallback.replaceAll("[^a-zA-Z0-9_]", "");                    
+                    renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
                 }
                 break;
                 default:
@@ -95,6 +102,12 @@ public abstract class RestServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Implement this method to process REST API requests
+     * @param request HTTP request to handle
+     * @return result object to be formatted with REST output formatter according to chosen by setRestProfile() mthod
+     * profile.
+     */
     public abstract Object process(HttpServletRequest request);
 
     public static String exceptionToString(Exception e) {

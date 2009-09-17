@@ -8,6 +8,7 @@ import ae3.model.ListResultRowExperiment;
 import ae3.util.AtlasProperties;
 import ae3.util.Pair;
 import ae3.util.EscapeUtil;
+import ae3.util.MappingIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -272,7 +273,7 @@ public class AtlasStructuredQueryService {
         appendGeneQuery(query, qstate.getSolrq());
         appendSpeciesQuery(query, qstate.getSolrq());
 
-        log.info("Structured query is: " + qstate.toString());
+        log.info("Structured query for " + query.getApiUrl() + ": " + qstate.toString());
 
         AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
         result.setConditions(conditions);
@@ -315,12 +316,12 @@ public class AtlasStructuredQueryService {
         return result;
     }
 
-    public AtlasStructuredQueryResult findGenesForExperiment(Object geneIds, String eAcc, int start) {
+    public AtlasStructuredQueryResult findGenesForExperiment(Object geneIds, String eAcc, int start, int rows) {
         return doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                 .andGene(geneIds)
                 .andUpdnIn(Constants.EXP_FACTOR_NAME, EscapeUtil.optionalQuote(eAcc))
                 .viewAs(ViewType.LIST)
-                .rowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize"))
+                .rowsPerPage(rows)
                 .startFrom(start)
                 .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
     }
@@ -650,7 +651,7 @@ public class AtlasStructuredQueryService {
             public Integer make() { return num++; }
         };
 
-        Iterable<String> autoFactors = getConfiguredFactors("anycondition");
+        Iterable<String> autoFactors = query.isFullHeatmap() ? getExperimentalFactors() : getConfiguredFactors("anycondition");
 
         for(SolrDocument doc : docs) {
             String id = (String)doc.getFieldValue(atlasIdField);
@@ -690,10 +691,13 @@ public class AtlasStructuredQueryService {
                 }
 
                 int threshold = 0;
-                if(resultEfos.getNumExplicitEfos() > 0)
-                    threshold = 1;
-                else if(resultEfos.getNumExplicitEfos() > 20)
-                    threshold = 3;
+
+                if(!query.isFullHeatmap()) {
+                    if(resultEfos.getNumExplicitEfos() > 0)
+                        threshold = 1;
+                    else if(resultEfos.getNumExplicitEfos() > 20)
+                        threshold = 3;
+                }
 
                 values = doc.getFieldValues("efos_up");
                 if(values != null)
@@ -768,8 +772,8 @@ public class AtlasStructuredQueryService {
         log.info("Retrieved query completely: " + result.getSize() + " records of " +
                 result.getTotal() + " total starting from " + result.getStart() );
 
-        log.info("Resulting EFVs are: " + resultEfvs);
-        log.info("Resulting EFOs are: " + resultEfos);
+        log.debug("Resulting EFVs are: " + resultEfvs);
+        log.debug("Resulting EFOs are: " + resultEfos);
 
     }
 
@@ -787,11 +791,10 @@ public class AtlasStructuredQueryService {
         if(efvTree.getNumEfvs() + efoTree.getNumExplicitEfos() > 0) {
             Iterable<String> efviter = new Iterable<String>() {
                 public Iterator<String> iterator() {
-                    return new Iterator<String>() {
-                        private Iterator<EfvTree.EfEfv<Integer>> treeit = efvTree.getNameSortedList().iterator();
-                        public boolean hasNext() { return treeit.hasNext(); }
-                        public String next() { return treeit.next().getEfEfvId(); }
-                        public void remove() { }
+                    return new MappingIterator<EfvTree.EfEfv<Integer>, String>(efvTree.getNameSortedList().iterator()) {
+                        public String map(EfvTree.EfEfv<Integer> efEfv) {
+                            return efEfv.getEfEfvId();
+                        }
                     };
                 }
             };
@@ -819,16 +822,16 @@ public class AtlasStructuredQueryService {
                     };
                 }
             };
-            exps = gene.getExpermientsTable().findByEfEfvEfoSet(efviter, efoiter);
+            exps = gene.getExperimentsTable().findByEfEfvEfoSet(efviter, efoiter);
         } else {
-            exps = gene.getExpermientsTable().getAll();
+            exps = gene.getExperimentsTable().getAll();
         }
 
         Map<Pair<String,String>,List<ListResultRowExperiment>> map = new HashMap<Pair<String,String>, List<ListResultRowExperiment>>();
         for(Experiment exp : exps) {
         	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
         		continue;
-            AtlasExperiment aexp = getAtlasDao().getExperimentById(String.valueOf(exp.getId()));
+            AtlasExperiment aexp = getAtlasDao().getExperimentById(exp.getId());
             if(aexp != null) {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))

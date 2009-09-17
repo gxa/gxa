@@ -16,7 +16,7 @@
         <property name="username" value="${jdbc.dw.username}"/>
         <property name="password" value="${jdbc.dw.password}"/>
         <property name="maxActive" value="100" />
-        <property name="maxOpenPreparedStatements" value="100" />
+        <property name="maxOpenPreparedStatements" value="120" />
     </bean>
     
     
@@ -57,6 +57,10 @@
        <property name="solrEmbeddedIndex" ref="solrEmbeddedIndexGene"></property>
     </bean>
 
+    <bean id="createNetCdfService" class="uk.ac.ebi.ae3.indexbuilder.service.NetCDFCreatorService">
+        <property name="dataSource" ref="dataSourceDW"></property>
+        <property name="netcdfPath" value="${netcdf.path}"></property>
+    </bean>
 
 
 

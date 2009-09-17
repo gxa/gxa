@@ -613,23 +613,25 @@ function drawPlot(jsonObj, plot_id){
 		var charJSON = eval('('+characteristics+')');
 		var charValuesJSON = eval('('+charValues+')');
 		var assays = eval('(' + assayIds+ ')' );
-    		//for (i = 0; i < assays.length; ++i){
 
 
 		var sample_id = assay2samplesJSON[i][0];
+		
 		var contents = '<ul style="padding-left:0px;margin:0px;list-style-type:none">';
-		for (i = 0; i < charJSON.length; ++i) {
-		 	 var characteristic = charJSON[i];
+		for (k = 0; k < charJSON.length; ++k) {
+		 	 var characteristic = charJSON[k];
 		  	 var value = eval("sampleAttrJSON."+sample_id+"."+characteristic);
           	 var txtChar = curatedChars[characteristic];
           	 contents+= '<li style="padding:0px"><span style="font-weight: bold">'+txtChar+':</span> '+value+'</li>';
         }
 
         var assay_id = assays[i];
+       
+        
 	    var EFsJSON = eval('('+EFs+')');
 
-        for(i=0; i<EFsJSON.length; i++){
-        	var ef = EFsJSON[i].substring(3);
+        for(j=0; j<EFsJSON.length; j++){
+        	var ef = EFsJSON[j].substring(3);
         	var value = eval("sampleAttrJSON.a"+assay_id+"."+ef);
         	if(value != null){
         		var txtChar = curatedEFs[ef];

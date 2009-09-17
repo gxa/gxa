@@ -32,16 +32,17 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
         <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+            <a href="<%=request.getContextPath()%>/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
-            <a href="./">home</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about the project</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> |
+            <a href="<%=request.getContextPath()%>/">home</a> |
+            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a target="_blank" href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web services api</a> |
-            <a href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a>
+	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+	    <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+            <a href="<%=request.getContextPath()%>/help">help</a>
         </td>
     </tr>
 </table>
@@ -379,19 +380,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     &nbsp;•&nbsp;
     <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
     <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></span>
-    &nbsp;•&nbsp; <a title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks();return false;">REST API</a>
-    <div id="apilinks"><div class="abs">
-        <div class="closebox">close</div>
-        <p>Please copy/paste those URLs into your code to get same results in machine-readable formats:</p>
-        <p><form action="" onsubmit="return false;">
-            <c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/${query.apiUrl}" var="apiUrl" />
-            <table>
-            <tr><td>for <a href="http://www.json.org">JSON</a>&nbsp;</td><td style="width:90%"><input class="value" type="text" value="${apiUrl}&format=json" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
-            <tr><td>for <a href="http://www.w3.org/XML/">XML</a>&nbsp;</td><td style="width:90%"><input class="value" type="text" value="${apiUrl}&format=xml" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
-            </table>
-        </form></p>
-        <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on how to handle this output from your code.</p>
-    </div></div>
+    &nbsp;•&nbsp; <c:import url="apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     
@@ -495,7 +484,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         <c:forEach var="row" items="${result.results}" varStatus="i">
             <tr id="squeryrow${i.index}">
                 <td class="padded genename">
-                    <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
+                    <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
                         <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
@@ -589,7 +578,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <tr id="${row.gene_id}_${row.ef}_${r.index}">
                 <td class="collapsible" style="border-right:none;border-bottom:none;" title="Click here to show experiments..."></td>
                 <td class="padded genename" style="border-left:none">
-                    <a href="gene?gid=${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
+                    <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
                         <c:if test="${!empty row.gene.keyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
@@ -631,7 +620,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     </td>
                     <td class="expthumb">
                         <div class="outer">
-                                <a title="Show expression profile" href="experiment/${exp.experimentAccession}?gid=${row.gene_id}&ef=${row.ef}">
+                                <a title="Show expression profile" href="experiment/${exp.experimentAccession}?gid=${row.gene.geneIdentifier}&ef=${row.ef}">
                                     <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
                                         <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
                                     </div>

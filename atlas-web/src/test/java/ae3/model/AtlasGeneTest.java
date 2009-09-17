@@ -162,7 +162,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 */
     @Test
     public void test_getExpermientsTable() {
-        ExperimentsTable et = gene.getExpermientsTable();
+        ExperimentsTable et = gene.getExperimentsTable();
         assertTrue(et.getAll().iterator().hasNext());
     }
 

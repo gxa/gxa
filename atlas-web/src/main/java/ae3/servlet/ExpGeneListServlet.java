@@ -5,7 +5,7 @@ import ae3.service.compute.AtlasComputeService;
 import ae3.service.compute.ComputeTask;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
-import ae3.util.EscapeUtil;
+import ae3.util.AtlasProperties;
 import ae3.model.ListResultRow;
 import ds.server.SimilarityResultSet;
 import org.kchine.r.RDataFrame;
@@ -24,8 +24,9 @@ import java.util.Collection;
 
 public class ExpGeneListServlet extends HttpServlet {
 	final private Logger log = LoggerFactory.getLogger(getClass());
+    private static final int NUM_GENES = AtlasProperties.getIntProperty("atlas.query.listsize");
 
-	protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
 		doIt(httpServletRequest, httpServletResponse);
 	}
 
@@ -67,7 +68,7 @@ public class ExpGeneListServlet extends HttpServlet {
                 if(null != sim) {
                     simRS.loadResult(sim);
 					ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
-					result = service.findGenesForExperiment(simGeneIds,eAcc,start);
+					result = service.findGenesForExperiment(simGeneIds,eAcc,start, NUM_GENES);
 					request.setAttribute("genes",result.getListResults());
 					request.setAttribute("simRS", simRS);
 				}
@@ -78,7 +79,7 @@ public class ExpGeneListServlet extends HttpServlet {
 
 		}else if(qryType.equals("top")){
 
-			result = service.findGenesForExperiment("", eAcc,start);
+			result = service.findGenesForExperiment("", eAcc,start, NUM_GENES);
 
             Collection<ListResultRow> a = result.getListResults();
 
@@ -86,7 +87,7 @@ public class ExpGeneListServlet extends HttpServlet {
 
 		}else if(qryType.equals("search")){
 			String geneQuery = request.getParameter("gene");
-			result = service.findGenesForExperiment(geneQuery != null ? geneQuery : "",eAcc,start);
+			result = service.findGenesForExperiment(geneQuery != null ? geneQuery : "",eAcc,start, NUM_GENES);
 			request.setAttribute("genes",result.getListResults());
 		}
 		request.setAttribute("result", result);

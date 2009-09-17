@@ -79,7 +79,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 
     @Test
     public void testGetAtlasGeneMulti() {
-        AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier("P08898");
+        AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier("Q9HCN2");
         assertNotNull(atlasGene);
         assertTrue(atlasGene.isFound());
         assertTrue(atlasGene.isMulti());

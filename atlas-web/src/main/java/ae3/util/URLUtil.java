@@ -15,4 +15,10 @@ public class URLUtil {
         //return "lol.txt";
         return(request.getContextPath()+"/gene/"+GeneId);
     }
+
+    public static String getDasUrl(HttpServletRequest request)
+    {
+       return "http://" + AtlasProperties.getProperty("atlas.host") + request.getContextPath() + "/das/" + AtlasProperties.getProperty("atlas.dasdsn");
+    }
 }
+

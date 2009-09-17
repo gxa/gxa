@@ -1,0 +1,176 @@
+= Searching the Gene Expression Atlas =
+
+The Gene Expression Atlas is essentially a two-dimensional matrix where rows correspond to genes, and the columns
+correspond to conditions such as compound or disease state. The matrix entries are p-values together with a sign,
+indicating the significance and direction of differential expression. See
+[[AtlasConstructionDetails|details of Atlas construction]] for further information about the meaning of "up" and "down"
+in the atlas context.
+
+A complete [http://www.ebi.ac.uk/microarray-srv/tutorials/Atlas%20v4.pdf step-by-step tutorial] - 0.6MB is available.
+
+== Atlas data statistics ==
+
+Statistics of the Atlas data content is updated monthly and shown on the homepage in the following box.
+
+[[Image:atlasStats.png|link=]]
+
+Counts for assays, samples and new experiments (experiments added since the previous data release) is shown. Clicking on "total experiments" will link to a page with hyperlinks to all experiments available in the Atlas. Similarly, clicking on "total genes" will open a page where you can alphabetically navigate across all the genes available in the atlas.
+
+
+== Simple Searches ==
+
+When you search the atlas, you provide some general query parameters:
+
+* which genes you are interested in
+* the direction of differential expression: up, down or both
+* which organism the gene belongs to
+* what conditions (assay and sample attributes that are experimental factors)
+
+[[Image:simpleSearch.png|link=]]
+
+The first parameter will identify all genes whose annotation matches your query. The second and third parameters
+restrict your search only to genes belonging to a given organism and also by direction of differential expression: up or
+down. See [[AtlasConstructionDetails|details of Atlas construction]] for further information concerning the meaning of
+"up" and "down" in the Atlas context. The fourth parameter will identify all experiments in which conditions, e.g.
+disease or tissue, that match your query appear.
+
+Any of the genes, organism or conditions boxes can be left blank but not all three. Leaving the gene selection blank
+will apply your condition query to all genes in the Atlas; leaving the conditions text box blank will rank the genes
+found for differential expression across all conditions in the Atlas. Multiple values can be entered into the gene and
+condition search boxes. Separate each by a space: this will be treated as an 'OR'. For instance entering 'liver kidney'
+in the conditions box will find genes expressed in liver OR kidney.
+
+=== Autocomplete ===
+
+The gene and condition boxes have autocomplete functions. The gene autocomplete lists hits matching all gene annotations such as gene names, uniprot ids, GO terms...etc. To select one of the suggested values click on the value
+in the list. If you do not want to select any suggested value click on 'Hide suggestions'. The condition box uses a
+controlled vocabulary called EFO to expand queries, query synonyms and to suggest query terms. EFO conditions can be browsed by clicking the "plus" sign and navigate down the tree of conditions. Once a suggested entry is clicked it will be added to the search box with the ability to add/remove more terms.
+
+==== Gene Autocomplete ====
+
+[[Image:geneAutoComplete.png|link=]]
+
+==== Condition Autocomplete ====
+
+[[Image:conditionAutoComplete.png|link=|border]]
+
+==== Adding Multiple Query Terms ====
+
+[[Image:autoCompleteMultTerms.png|link=]]
+
+== Advanced Searches ==
+
+The advanced search allows you to restrict your search by specific gene and condition properties. To use the advanced search, click on the 'advanced search' link below the simple search box.
+
+[[Image:advancedSearch_autoComplete.png|link=]]
+
+Build up complex queries by adding condition (experimental factor), gene property and organism filters one by one. Each additional row acts as an 'AND' in the query. Entering more than one value in each row acts as an 'OR' in the
+query. e.g. the above query will search for genes from any organism that match the name MAT1A OR CYP1A1, such that
+they are over-expressed in liver OR kidney and over- or under- expressed in adult animals.
+
+== Results Display ==
+
+=== Heatmap View ===
+
+If your query matches more than one gene then the results will be displayed in a heatmap. E.g. a search for gene 'MAT1A'
+with no organism specified will give the following result.
+
+[[Image:heatmapviewMAT1A_jun2009.gif|link=]]
+
+Each row of the result table corresponds to one gene's (or probe) differential expression from the Atlas. The complete description of all displayed fields is as follows:
+
+{|
+|'''Gene'''
+|The gene name. These are clickable entries and take you to a one page summary of Atlas information about that gene.
+Each gene name has a mouse-over tooltip displaying attributes of the gene.
+|-
+|'''Organism'''
+|This lists the organism the gene is associated with. Clicking on an organism name will refine the current display to show only results for the selected species.
+|-
+|'''Factor values'''
+|The text above the heatmap shows the condition (experimental factor and factor value) in which the gene is significantly differentially expressed. 
+An ontology is used to order the experimental factors into groups, for example all the disease factors are shown together and the nested structure of the ontology is shown above the heatmap.
+|-
+|'''Heatmap cells'''
+|Each heatmap cell displays the number of studies where a gene is observed signficantly up-/down-regulated. 
+Each cell has a mouse-over tooltip giving summary information for the cell. 
+Clicking on the cell will show more information about the expression of that gene in the experiment. 
+The heatmap cell colour ranges from red - always up and never down, to blue - always down and never up.
+|}
+
+=== Heatmap cells ===
+
+Clicking on a cell in the heatmap will show more information about the expression of the gene in the experiment(s). For example a search for gene MAT1A in experiments with condition = liver gives the following result and clicking on the cell with the number 2 in it gives the following window:
+
+[[Image:MAt1Amouseover_jun2009.gif|link=]]
+
+=== List View ===
+
+The same search results can be viewed in a list by choosing "List view" from the top of the page and clicking on "Search Atlas". The results are presented in a collapsed view. 
+Each row corresponds to a summary expression of a single gene in a single condition (Factor Value) across all experiments. 
+Similar to heatmap view, a heatmap cell summarizes all expression results and the lowest p-value is shown. Clicking on the "plus" sign next to the gene name will expand the row to show all experiments available for that gene-condition pair. 
+A small thumbnail plot for each experiment is shown highlighting samples with the specified condition and its p-value. Clicking on the experiment accession (e.g. E-GEOD-5824) 
+will open this experiment in the ArrayExpress Archive. Clicking on the thumbnail will open [[AtlasHelp#Atlas_Experiment_View|Atlas Experiment View]] for a detailed view of gene expression in this experiment.
+
+[[Image:listView.png|link=]]
+
+== Downloading results ==
+
+You can download the results into a tab-delimited format by clicking on "Download all results". A pop up window will open showing the progress of all download requests. Once download is complete click on "Get file" to store the file on your computer.
+You can also retrieve the same results using REST API. Click [[AtlasApis|here]] for details. 
+
+[[Image:downloadProgress.png|link=]]
+
+== Atlas Gene View ==
+
+If your search returns hits for one gene only, or you click on one gene from the gene list returned from a broader
+search a gene page will be returned. The gene view provides a one-page summary of Atlas information about a given gene,
+it's annotation and summaries of expression from different experiments.
+
+* summary of terms and external database cross-references
+* expression heatmap
+* thumbnail plots of gene expression for the studies where this gene is found.
+
+E.g. the human gene MAT1A shows the highest level of differential expression in the experiment E-AFMX-5. It is
+over-expressed in liver. Clicking on any of the factor values in the left hand list will only show experiments where this
+gene is over- or under-expressed in selected condition. To view other conditions available for each experiment, click on the an 'Experimental Factor' above the plot to regroup samples accordingly and display their conditions.
+Clicking on the "expression profile" under the plot link will take you to the [[AtlasHelp#Atlas_Experiment_View|Atlas Experiment View]] 
+showing a detailed expression view of this gene with the ability to plot more genes in this experiment. To return to the list of all experiments available for that gene click on "Show all studies".
+[[AtlasApis|REST API]] is also available for the gene expression summary. 
+
+[[Image:mat1a_geneView_sep2009.png|link=]]
+
+
+== Atlas Experiment View ==
+
+The experiment view provides the ability to explore expression of genes in a selected experiment. Arriving at this page from list view, heatmap view or gene view will show a plot of the gene selected.
+However, you can directly link to this page if you know the accession of the experiment (www.ebi.ac.uk/gxa/experiment/E-MEXP-1014). In this case, the top 5 differentially expressed genes in this
+experiment will be added to the plot. [[AtlasApis|REST API]] is also available for the experiment expression summary. 
+
+'''Description of the plot''' 
+
+Each series on the plot represents the expression of a specified gene. Each data point is the expression of this gene in one sample. 
+Samples with similar conditions are grouped together according to the 'Experimental Factor' selected above the plot. These groups are represented by alternating plot background colors. Conditions presented by these groups are shown on top the plot. 
+If you see dots instead, then you need to zoom in the plot to show these conditions. The small grayscale plot provides an overview plot when zooming in/out with a sliding window. 
+
+[[Image:experimentView_E-MEXP-1014.png|link=]]
+
+Beneath the plot a table of sample attributes for this experiment is shown. Attributes qualified with "(EF)" are also experimental factors for this experiment.
+Clicking on an attribute will list the values available for samples in this experiment. Clicking on an attribute value (e.g. docosahexaenoic acid) will highlight all samples on the plot treated with such compound. 
+
+'''Adding more genes to the plot'''
+
+[[Image:experimentView_addingGenes_E-MEXP-1014.png|link=]]
+
+There are three ways to explore more genes in the specified experiment:
+* Search for a specific gene.
+* Search for genes with similar expression profile to a specifed gene.
+* Explore the top ten genes, the conditions they are differentially expressed in and their p-values. 
+To plot the expression profile of a desired gene click on the small thumbnail plot next to it. To remove a gene from the plot click on the little cross next to it in the legend.
+
+== Linking to the Atlas ==
+
+You can link directly to information about the expression of genes in the Atlas using certain gene identifiers and Gene
+Ontology (GO) terms in a URL link. See the [[AtlasLinking|Atlas linking help]] for more information.
+
+{{AtlasLinks}}

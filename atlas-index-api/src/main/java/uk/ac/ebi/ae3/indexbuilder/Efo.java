@@ -562,21 +562,30 @@ public class Efo {
         }
     }
     
-    private void collectSubTree(EfoNode currentNode, List<Term> result, Set<String> allNodes, Set<String> visited, int depth, boolean printing) {
-        if(printing && !allNodes.contains(currentNode.id))
-            return;
+    private void collectSubTree(EfoNode currentNode, List<Term> result, List<Term> pathres, Set<String> allNodes, Set<String> visited, int depth, boolean printing) {
+        if(printing && !allNodes.contains(currentNode.id)) {
+            printing = false;
+        }
 
-        if(!printing && allNodes.contains(currentNode.id) && !visited.contains(currentNode.id))
+        boolean started = false;
+        if(!printing && allNodes.contains(currentNode.id) && !visited.contains(currentNode.id)) {
             printing = true;
+            pathres = new ArrayList<Term>();
+            started = true;
+        }
 
         if(printing) {
-            result.add(newTerm(currentNode, depth));
+            pathres.add(newTerm(currentNode, depth));
             visited.add(currentNode.id);
             for (EfoNode child : currentNode.children)
-                collectSubTree(child, result, allNodes, visited, depth + 1, true);
+                collectSubTree(child, result, pathres, allNodes, visited, depth + 1, true);
         } else {
             for (EfoNode child : currentNode.children)
-                collectSubTree(child, result, allNodes, visited, 0, false);
+                collectSubTree(child, result, null, allNodes, visited, 0, false);
+        }
+
+        if(started) {
+            result.addAll(pathres);
         }
     }
 
@@ -591,7 +600,7 @@ public class Efo {
 
         Set<String> visited = new HashSet<String>();
         for(EfoNode root : roots) {
-            collectSubTree(root, result, ids, visited, 0, false);
+            collectSubTree(root, result, null, ids, visited, 0, false);
         }
         return result;
     }

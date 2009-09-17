@@ -1,9 +1,10 @@
 package ae3.service.structuredquery;
 
+import ae3.restresult.RestOut;
+import ae3.servlet.structuredquery.result.ExperimentRestProfile;
 import uk.ac.ebi.ae3.indexbuilder.IndexField;
 
 import java.util.*;
-import java.io.UnsupportedEncodingException;
 
 /**
  * @author pashky
@@ -60,6 +61,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
     }
 
+    @RestOut(xmlItemName = "expression", forProfile = ExperimentRestProfile.class) 
     public static class EfEfv<Payload> {
         private String ef;
         private String efv;
@@ -72,14 +74,17 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             this.Payload = Payload;
         }
 
+        @RestOut(name = "ef")
         public String getEf() {
             return ef;
         }
 
+        @RestOut(name = "efv")
         public String getEfv() {
             return efv;
         }
 
+        @RestOut(name = "stat", forProfile = ExperimentRestProfile.class)
         public Payload getPayload() {
             return Payload;
         }

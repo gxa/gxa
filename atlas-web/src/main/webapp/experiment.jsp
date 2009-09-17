@@ -18,10 +18,12 @@
             request.setAttribute("eid", exp.getDwExpId());
 
             if ((ef == null || "".equals(ef)) && (geneId != null)) {
-                AtlasDao.AtlasGeneResult result = dao.getGeneById(StringUtils.split(geneId, ",")[0]);
+                AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
                 if(result.isFound()) {
                     ef = result.getGene().getHighestRankEF(exp.getDwExpId()).getFirst();
                     request.setAttribute("topRankEF", ef);
+                    geneId = result.getGene().getGeneId(); //if GeneIdentifer passed in query string, geneId is still geneid 
+                    request.setAttribute("gene_identifier", result.getGene().getGeneIdentifier());
                 }
             }
         }
@@ -42,7 +44,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 
 
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
+<!--[if IE]><script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/excanvas.min.js"></script><![endif]-->
 
 <script language="javascript" type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
@@ -79,6 +81,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 <script id="source" language="javascript" type="text/javascript">
     var genesToPlot = new Array("${gid}");
+    var geneIdentifiers = new Array(<c:if test="${!empty gene_identifier}">"${gene_identifier}"</c:if>);
 
     var sampleAttrs;
     var assayIds;
@@ -184,7 +187,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
     });
 
-    function addGeneToPlot(gid, gname, eid, ef) {
+    function addGeneToPlot(gid, gname, eid, ef, gene_identififer) {
 
         if (genesToPlot[gname] != null) {
             return false;
@@ -193,6 +196,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         geneCounter++;
         genesToPlot.push(gid);
         genesToPlot[gname] = gid;
+        geneIdentifiers.push(gene_identififer);
         geneIndeces.push(geneCounter);
         plotBigPlot(genesToPlot.toString(), eid, ef, false, geneIndeces.toString());
         currentEF = ef;
@@ -200,7 +204,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 
     //function called on each added gene, and draw plot for first 5 of them
-       function addGeneToPlotIfEmpty(gid, gname, eid, ef) {
+       function addGeneToPlotIfEmpty(gid, gname, eid, ef, gene_identififer) {
 
          if(window.location.href.indexOf("gid=")<=0) {
              if(geneCounter>4)
@@ -210,6 +214,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             genesToPlot.push(gid);
             genesToPlot[gname] = gid;
             geneIndeces.push(geneCounter);
+            geneIdentifiers.push(gene_identififer);
 
             if(geneCounter==5){
                 plotBigPlot(genesToPlot.toString(), eid, ef, true, geneIndeces.toString());
@@ -260,6 +265,11 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     curatedEFs['${ef}'] = '${u:getCurated(ef)}';
     </c:forEach>
 
+    function calcApiLink(url) {
+        if(genesToPlot.length)
+            url += '&gene=' + geneIdentifiers.join('&gene=');
+        return url;
+    }
 
 </script>
 
@@ -277,17 +287,15 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                                                                             src="<%= request.getContextPath()%>/images/atlas-logo.png"
                                                                                             alt="Gene Expression Atlas"/></a>
             </td>
-            <td align="right" valign="bottom"><a href="./">home</a> | <a
-                    href="http://www.ebi.ac.uk/microarray/doc/atlas/index.html">about
-                the project</a> | <a
-                    href="http://www.ebi.ac.uk/microarray/doc/atlas/faq.html">faq</a> | <a
-                    id="feedback_href" href="javascript:showFeedbackForm()">feedback</a>
-                <span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span>
-                | <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a>
-                | <a target="_blank"
-                     href="http://www.ebi.ac.uk/microarray/doc/atlas/api.html">web
-                    services api</a> | <a
-                        href="http://www.ebi.ac.uk/microarray/doc/atlas/help.html">help</a></td>
+	    <td align="right" valign="bottom">
+		 <a href="<%=request.getContextPath()%>/">home</a> |
+                 <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
+                 <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> 
+                 <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span> |
+                 <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                 <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
+                 <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
+                 <a href="<%=request.getContextPath()%>/help">help</a></td>
         </tr>
     </table>
 
@@ -343,6 +351,13 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                 </td>
 
                 <td rowspan="2">
+                    <div>
+                        <c:import url="apilinks.jsp">
+                            <c:param name="apiUrl" value="experiment=${exp.dwExpAccession}"/>
+                            <c:param name="callback" value="calcApiLink"/>
+                        </c:import>
+                    </div>
+
                     <div id="gene_menu" style="width:500px">
                         <div><a href="#" style="font-size:12px">Display genes matching by name or
                             attribute</a></div>

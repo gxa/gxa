@@ -8,7 +8,7 @@
     http://tuckey.org/urlrewrite/
 
 -->
-<urlrewrite>
+<urlrewrite use-query-string="true">
 
     <rule>
         <note>
@@ -30,6 +30,15 @@
         <note>Gene Index</note>
         <from>/gene/index.htm</from>
         <to>/GeneNavigator.jsp</to>
+    </rule>
+
+
+    <rule>
+        <note>
+             same as next one, with parameter
+        </note>
+        <from>/gene/([a-zA-Z0-9]+)\?efv=(.+)</from>
+        <to>/gene?gid=$1</to>
     </rule>
     
     <rule>
@@ -58,7 +67,18 @@
         <to>/experiment?eid=$1</to>
     </rule>
 
-    <outbound-rule>
+    <rule>
+        <note>
+            dasregistry appends ;maxbins=1000000 - mydas fails with
+            2009-09-15 10:12:10,033 ERROR [http-8102-Processor25] controller.MydasServlet (MydasServlet.java:372) - BadCommandArgumentsException thrown
+            uk.ac.ebi.mydas.exceptions.BadCommandArgumentsException: Bad command arguments to the features command: segment=ENSG00000139618;maxbins=1000000
+        </note>
+        <from>(.+);maxbins=1000000</from>
+        <to>$1</to>
+    </rule>
+
+
+   <outbound-rule>
         <note>
             The outbound-rule specifies that when response.encodeURL is called (if you are using JSTL c:url)
             the url /rewrite-status will be rewritten to /test/status/.

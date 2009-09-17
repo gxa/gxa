@@ -221,11 +221,13 @@ public class DataServer implements DataServerMonitor {
 		ArrayList<String> gnIds = new ArrayList<String>();
 		for(String geneId:geneIds){
 			String deId_ADid = getDEforGene(geneId,expIdentifier,factor);
-			String[] ids = deId_ADid.split("_");
-			String deId = ids[0];
-			deIds.add(deId);
-			gnIds.add(geneId);
-			adId = ids[1];
+			if(!deId_ADid.equals("")){
+				String[] ids = deId_ADid.split("_");
+				String deId = ids[0];
+				deIds.add(deId);
+				gnIds.add(geneId);
+				adId = ids[1];
+			}
 		}
 		
 
@@ -234,11 +236,12 @@ public class DataServer implements DataServerMonitor {
 		else
 			netCDF = netCDFsPath+"/"+expIdentifier+"_"+adId+".nc";
 		
-        
-        
-		ExpressionDataSet eds = getDataFromNetCDF(netCDF,deIds,factor);
-		eds.setArraydesign_id(adId);
-		eds.setGNids(gnIds);
+		ExpressionDataSet eds=null;
+        if(!deIds.isEmpty()){
+        	eds = getDataFromNetCDF(netCDF,deIds,factor);
+        	eds.setArraydesign_id(adId);
+        	eds.setGNids(gnIds);
+        }
 		return eds;
 	}
 	

@@ -2,9 +2,10 @@ package uk.ac.ebi.ae3.indexbuilder;
 
 /**
  * Interface for building a Gene Expression Atlas index.  Implementations should
- * provide a way of setting the index location, which may be of a generic type,
- * and should implement {@link #buildIndex()} which contains the logic to
- * construct the index.
+ * provide a way of setting the index location, which may be of a generic type
+ * to allow the index to be backed by a database, file system, or some other
+ * storage medium. IndexBuilder implementations should implement {@link
+ * #buildIndex()} which contains the logic to construct the index.
  * <p/>
  * By default, all genes and experiments are included, and all experiments (both
  * pending and non-pending) are included.

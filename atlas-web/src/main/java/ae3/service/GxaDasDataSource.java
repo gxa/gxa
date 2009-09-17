@@ -14,17 +14,18 @@ import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
 import uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException;
 import uk.ac.ebi.mydas.model.*;
+import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
+import uk.ac.ebi.ae3.indexbuilder.Expression;
 
 import javax.servlet.ServletContext;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 
-import ae3.model.AtlasGene;
-import ae3.model.AtlasExperiment;
-import ae3.model.ListResultRow;
-import ae3.dao.AtlasDao;
-import org.apache.commons.lang.StringUtils;
+import ae3.model.*;
+import ae3.util.CuratedTexts;
+import ae3.util.HtmlHelper;
 
 /**
  * Created Using IntelliJ IDEA.
@@ -92,6 +93,198 @@ public class GxaDasDataSource implements AnnotationDataSource {
     public void destroy() {
     }
 
+
+    private int iCountTypes = 0;
+    private String currentType ="";
+    private String getSortableCaption(String caption){
+        iCountTypes+=1;
+        if(0!=caption.compareTo(currentType))
+        {
+            //iCountTypes+=1; Sept-8-2009 let's number all
+            currentType=caption;
+        }
+        return (iCountTypes<100? "0" : "") + (iCountTypes<10? "0" : "") + String.valueOf(iCountTypes) +". " + caption;
+    }
+
+    public static int SortOrd(String val){
+        if(val.equalsIgnoreCase("gene"))
+                return 1;
+        else if(val.equalsIgnoreCase("organism part"))
+                return 2;
+        else if(val.equalsIgnoreCase("disease state"))
+                return 3;
+        else if(val.equalsIgnoreCase("cell type"))
+                return 4;
+        else if(val.equalsIgnoreCase("cell line"))
+                return 5;
+        else if(val.equalsIgnoreCase("compound treatment"))
+                return 6;
+        else if(val.equalsIgnoreCase("experiment"))
+                return 8;
+        else{
+                return 7;
+        }
+    }
+
+
+    public DasFeature GeneDasFeature(AtlasGene gene) throws DataSourceException
+    {
+        try{
+            AtlasGeneDescription description = new AtlasGeneDescription(gene);
+            
+            String notes = description.toString();
+            String featureLabel = "feature label";
+
+            return (new DasFeature(
+                    gene.getGeneIdentifier(),
+                    "differential expression summary", // ,gene.getGeneIdentifier(),
+                    "gene",
+                    "gene",
+                    getSortableCaption("Gene"),
+                    "ExperimentalFactor",
+                    "Experimental Factor",
+                    0,
+                    0,
+                    0.0,
+                    DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                    DasPhase.PHASE_NOT_APPLICABLE,
+                    Collections.singleton(notes),
+                    Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene/"+gene.getGeneIdentifier()),  "view "+gene.getGeneName()+" expression in all conditions"),
+                    null,
+                    null
+            ));
+        }catch (MalformedURLException e) {
+            throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
+        }
+    }
+
+    public DasFeature HeatmapDasFeature(AtlasGene atlasGene, ListResultRow row) throws DataSourceException
+    {
+        try{
+
+            String notes = "";
+            if(row.getCount_up()>0){
+                notes += "up in "+row.getCount_up();
+            }
+
+            if(row.getCount_dn()>0){
+                if(row.getCount_up()>0){
+                    notes += " and ";
+                }
+                notes += "down in "+ row.getCount_dn();
+            }
+            //notes+=" experiments";
+            
+            String featureLabel = "feature label";
+
+            String FactorValue = row.getFv();
+            String ExperimentFactor = row.getEf();
+
+            featureLabel= ExperimentFactor + ":" + FactorValue;
+
+            notes = "["+ row.getCount_up() +" up/"+ row.getCount_dn() +" dn] - ";
+
+            ExperimentsTable tbl = atlasGene.getExperimentsTable();
+            for(Experiment e: tbl.findByEfEfv(row.getEf(), row.getFv())){
+                AtlasExperiment atlasExperiment = ArrayExpressSearchService.instance().getAtlasDao().getExperimentById(e.getId());
+
+                if(null==atlasExperiment)
+                    continue;
+
+                try{
+                notes += (new AtlasGeneExperimentDescription(atlasGene, atlasExperiment, (Expression.UP == e.getExpression()))).toShortString();
+                }
+                catch(Exception Ex){
+                    throw new DataSourceException(Ex.getMessage(), Ex);
+                }
+
+                notes += "; ";
+            }
+
+            //replace last "; "  with "."
+            if(notes.endsWith("; "))
+                    notes = notes.substring(0,notes.lastIndexOf("; ")) + ".";
+
+
+            /*
+            if(null!=exps)
+            {
+            notes+="<br/><table>";
+            for(AtlasExperiment e : exps)
+            {
+                e.getDwExpAccession();
+                e.getDwExpId();
+                //e.toString();
+
+                notes+="<tr><td><a href=\"http://www.ebi.ac.uk/gxa/experiment/" + e.getDwExpAccession() + "?gid="+ atlasGene.getGeneIdentifier() +" \">"+ e.getDwExpAccession() +"</a></td>";
+                notes+="<td>"+ e.getDwExpDescription() +"</td></tr>";
+            }
+                notes+="</table>";
+                //notes = "This gene has expression in 62 organs : adipose tissue, Anatomical System, aorta&lt;a href=\"http://bgee.unil.ch/bgee/bgee?page=gene&amp;amp;action=expression&amp;amp;gene_id=ENSG00000139618#sectionExpressionAnatomicalOntologyBrowsing\">... (total = 62)&lt;/a> (in 53 homologous structures).&lt;br/>This gene has expression in 8 developmental stages : CarnegieStage22, post-embryonic development, fetus&lt;a href=\"http://bgee.unil.ch/bgee/bgee?page=gene&amp;amp;action=expression&amp;amp;gene_id=ENSG00000139618#sectionExpressionDevelopmentalOntologyBrowsing\">... (total = 8).&lt;/a>";
+           }
+           */
+
+            return new DasFeature(
+                    atlasGene.getGeneIdentifier() + featureLabel,
+                    FactorValue,
+                    "efv",
+                    "efv",
+                    getSortableCaption(CuratedTexts.get("head.ef." + ExperimentFactor)),
+                    "ExperimentalFactor",
+                    "Experimental Factor",
+                    0,
+                    0,
+                    0.0,
+                    DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                    DasPhase.PHASE_NOT_APPLICABLE,
+                    Collections.singleton(notes), //notes -- do not show notes
+                    Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene/"+atlasGene.getGeneIdentifier()+"?efv="+ HtmlHelper.escapeURL(row.getRow_id())) , "view "+atlasGene.getGeneName()+" expression in " + FactorValue ),
+                    null,
+                    null
+            );
+        }
+        catch (MalformedURLException e) {
+            throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
+        }
+    }
+
+    public DasFeature ExperimentDasFeature(AtlasGene atlasGene, AtlasExperiment experiment) throws DataSourceException
+    {
+        try{
+              String notes = (new AtlasGeneExperimentDescription(atlasGene, experiment, null).toLongString());
+
+
+              String featureLabel = "feature label";
+
+                          return (new DasFeature(
+                                  atlasGene.getGeneIdentifier() + " " + experiment.getDwExpAccession(),
+                                  experiment.getDwExpAccession(),
+                                  "exp",
+                                  "exp",
+                                  getSortableCaption("Experiment"),
+                                  "ExperimentalFactor",
+                                  "Experimental Factor",
+                                  0,
+                                  0,
+                                  0.0,
+                                  DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                                  DasPhase.PHASE_NOT_APPLICABLE,
+                                  Collections.singleton(notes),
+                                  Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/experiment/"+experiment.getDwExpAccession()+"?gid="+atlasGene.getGeneIdentifier()), "view "+ atlasGene.getGeneName() +" expression profile in "+experiment.getDwExpAccession() ),
+                                  null,
+                                  null
+                          ));
+        }
+
+        catch (MalformedURLException e) {
+            throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
+        }
+        catch(Exception e){
+            throw new DataSourceException("Error creating DasFeature.", e);
+        }
+    }
+
+
     /**
      * This method returns a List of DasAnnotatedSegment objects, describing the annotated segment and the features
      * of the segmentId passed in as argument.
@@ -120,11 +313,11 @@ public class GxaDasDataSource implements AnnotationDataSource {
      *          a DataSourceException if it fails, e.g. to attempt to get a Connection to a database
      *          and read a record.</bold>
      */
-    public DasAnnotatedSegment getFeatures(String segmentReference) throws BadReferenceObjectException, DataSourceException {
-
-        try{
+    public DasAnnotatedSegment getFeatures(String segmentReference) throws BadReferenceObjectException, DataSourceException  {
                   if(1==1)
                   {
+                      iCountTypes = 0;
+
                       String geneId = segmentReference;
 
                       //AtlasGeneService.getAtlasGene(geneId);
@@ -132,62 +325,49 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
                       if(null==atlasGene)
                       {
-                          throw new DataSourceException("can not find gene with ID="+geneId);
+                          //this.cacheManager.emptyCache();
+                          //this.cacheManager.notifyAll();
+                          throw new BadReferenceObjectException("can not find gene with ID="+geneId,"DAS");
                       }
 
                       List<ListResultRow> heatmaps = atlasGene.getHeatMapRows();
                       
                       ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
 
+                      feat.add(GeneDasFeature(atlasGene)); //first row - gene
+
+                      /*  DAS server sort lexicographically */
+                      Collections.sort(heatmaps, new Comparator<ListResultRow>(){
+                           public int compare(ListResultRow o1, ListResultRow o2) {
+
+                               String o1_ef = CuratedTexts.get("head.ef." + o1.getEf());
+                               String o2_ef = CuratedTexts.get("head.ef." + o2.getEf());
+
+                               int result = SortOrd(o1_ef) - SortOrd(o2_ef);
+
+                               return result == 0 ? o1_ef.compareTo(o2_ef) : result;
+                           }
+                      }
+                      );
+                     /* */
+
                       for(ListResultRow i: heatmaps)
                       {
-                          String notes = "many experiments has been done to prove genetic feature:";
-                          String featureLabel = "feature label";
-
-                          String FactorValue = i.getShortFv();
-                          String ExperimentFactor = i.getEf();
-
-                          featureLabel= ExperimentFactor + ":" + FactorValue;  
-
-                          List<AtlasExperiment> exps = ArrayExpressSearchService.instance().getAtlasDao().getRankedGeneExperiments(atlasGene, FactorValue, ExperimentFactor, 0, 100);
-
-                          if(null!=exps)
-                          {
-                          for(AtlasExperiment e : exps)
-                          {
-                              notes += e.getDwExpDescription();
-                              //e.toString();
-                          }
-                         }
-
-                          notes += "omg 6'6''";
-
-                          feat.add(new DasFeature(
-                                  "oneFeatureIdOne",
-                                  featureLabel,
-                                  "oneFeatureTypeIdOne",
-                                  "oneFeatureCategoryOne",
-                                  featureLabel,
-                                  "oneFeatureMethodIdOne",
-                                  "one Feature Method Label One",
-                                  0,
-                                  0,
-                                  0.0,
-                                  DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
-                                  DasPhase.PHASE_NOT_APPLICABLE,
-                                  Collections.singleton(notes),
-                                  Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene?gid=ENSG00000066279"), "Gene Expression Atlas Summary for ASPM (Homo sapiens) - Gene Expression Atlas"),
-                                  null,
-                                  null
-                          ));
+                          feat.add(HeatmapDasFeature(atlasGene,i));
                       }
 
+                      List<AtlasExperiment> t =  ArrayExpressSearchService.instance().getAtlasDao().getRankedGeneExperiments(atlasGene, null, null, -1, -1);
+                      for(AtlasExperiment e : t){
+                        feat.add(ExperimentDasFeature(atlasGene,e));
+                      }
 
-                      DasAnnotatedSegment result = new DasAnnotatedSegment("hello p30pl3",1,1,"string1","string2",feat);
+                      DasAnnotatedSegment result = new DasAnnotatedSegment(geneId,1,1,"1.0","GXA annotation for "+geneId,feat);
 
                       return result;
 
                   }
+
+/*
                   else  if (segmentReference.equals ("ENSP00000369497")){
                         Collection<DasFeature> oneFeatures = new ArrayList<DasFeature>(2);
                         DasTarget target = new DasTarget("oneTargetId", 20, 30, "oneTargetName");
@@ -206,6 +386,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                                 "oneFeatureCategoryOne",
                                 "one Feature DasType Label One",
                                 "oneFeatureMethodIdOne",
+
                                 "one Feature Method Label One",
                                 5,
                                 10,
@@ -349,12 +530,8 @@ public class GxaDasDataSource implements AnnotationDataSource {
                                 null
                         );
                         return segmentTwo;
-                    }
+                    } */
                     else throw new BadReferenceObjectException(segmentReference, "Not found");
-                }
-                catch (MalformedURLException e) {
-                    throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
-                }
     }
 
     /**
@@ -373,7 +550,11 @@ public class GxaDasDataSource implements AnnotationDataSource {
      *          and read a record.</bold>
      */
     public Collection<DasType> getTypes() throws DataSourceException {
-        return null;
+                Collection<DasType> types = new ArrayList<DasType>(5);
+                types.add (new DasType("gene","gene","Gene description"));
+                types.add (new DasType("efv","efv", "Experiment factor value"));
+                types.add (new DasType("exp","exp", "Experiment"));
+                return types;
     }
 
     /**

@@ -55,8 +55,8 @@ public class ExperimentsServlet extends RestServlet {
 
             Map<Long,Map<String, List<Experiment>>> exmap = new HashMap<Long,Map<String,List<Experiment>>>();
             for(Experiment exp : isEfo ?
-                    gene.getExpermientsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(factorValue)) :
-                    gene.getExpermientsTable().findByEfEfv(factor, factorValue)) {
+                    gene.getExperimentsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(factorValue)) :
+                    gene.getExperimentsTable().findByEfEfv(factor, factorValue)) {
                 Map<String,List<Experiment>> efmap = exmap.get(exp.getId());
                 if(efmap == null)
                     exmap.put(exp.getId(), efmap = new HashMap<String, List<Experiment>>());
@@ -98,7 +98,7 @@ public class ExperimentsServlet extends RestServlet {
 
             List<Map> jsExps = new ArrayList<Map>();
             for(Map.Entry<Long,Map<String, List<Experiment>>> e : exps) {
-                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(e.getKey()));
+                AtlasExperiment aexp = dao.getExperimentById(e.getKey());
                 if(aexp != null) {
                     Map<String,Object> jsExp = new HashMap<String,Object>();
                     jsExp.put("accession", aexp.getDwExpAccession());

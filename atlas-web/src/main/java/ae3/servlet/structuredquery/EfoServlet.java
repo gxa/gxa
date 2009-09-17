@@ -1,16 +1,12 @@
 package ae3.servlet.structuredquery;
 
+import ae3.restresult.RestOut;
 import ae3.service.structuredquery.EfoValueListHelper;
 import ae3.util.EscapeUtil;
-import ae3.restresult.RestOut;
-import ae3.restresult.AsArray;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,7 +23,7 @@ public class EfoServlet extends RestServlet {
         }
 
         public @RestOut Collection hl() { return hls; }
-        public @RestOut @AsArray(item="efo") Collection tree() { return res; }
+        public @RestOut(xmlItemName ="efo") Collection tree() { return res; }
 
     }
     public Object process(HttpServletRequest request) {
