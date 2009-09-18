@@ -217,11 +217,7 @@ public class AtlasMAGETABLoader {
         AtlasDB.writeExperiment(conn, experiment);
       }
 
-      // next, load samples
-      for (Sample sample : cache.fetchAllSamples()) {
-        AtlasDB.writeSample(conn, sample);
-      }
-
+      // next, write assays
       int count = 0;
       System.out.print("Writing assays...");
       for (Assay assay : cache.fetchAllAssays()) {
@@ -234,11 +230,13 @@ public class AtlasMAGETABLoader {
       }
       System.out.println("done");
 
+      // finally, load samples
+      for (Sample sample : cache.fetchAllSamples()) {
+        AtlasDB.writeSample(conn, sample);
+      }
+
       // everything saved ok, so commit
       conn.commit();
-
-      // now, close the connection
-      conn.close();
 
       // and return true - everything loaded ok
       log.info("Writing " + numOfObjects + " completed successfully");

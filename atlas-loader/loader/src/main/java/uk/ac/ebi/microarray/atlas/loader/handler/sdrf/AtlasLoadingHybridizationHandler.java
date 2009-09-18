@@ -65,7 +65,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
             assay.setArrayDesignAcession(arrayDesignAccessions.get(0));
           }
 
-          SDRFWritingUtils.writeProperties(investigation, assay,
+          SDRFWritingUtils.writeHybridizationProperties(investigation, assay,
                                            hybNode);
 
           // add the experiment to the cache

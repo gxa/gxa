@@ -48,7 +48,7 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
           }
 
           // write the characterstic values as properties
-          SDRFWritingUtils.writeProperties(investigation, sample,
+          SDRFWritingUtils.writeSampleProperties(investigation, sample,
                                            (SourceNode) node);
 
           // now we've created the sample, wait for donwstream assays and link them

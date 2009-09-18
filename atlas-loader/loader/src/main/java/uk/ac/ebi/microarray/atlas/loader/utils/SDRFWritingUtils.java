@@ -34,7 +34,7 @@ public class SDRFWritingUtils {
    * @throws ObjectConversionException if there is a problem creating the
    *                                   property object
    */
-  public static void writeProperties(
+  public static void writeSampleProperties(
       MAGETABInvestigation investigation,
       Sample sample,
       SourceNode sourceNode)
@@ -70,7 +70,7 @@ public class SDRFWritingUtils {
    * @throws ObjectConversionException if there is a problem creating the
    *                                   property object
    */
-  public static void writeProperties(
+  public static void writeAssayProperties(
       MAGETABInvestigation investigation,
       Assay assay,
       AssayNode assayNode)
@@ -105,7 +105,7 @@ public class SDRFWritingUtils {
    * @throws ObjectConversionException if there is a problem creating the
    *                                   property object
    */
-  public static void writeProperties(
+  public static void writeHybridizationProperties(
       MAGETABInvestigation investigation,
       Assay assay,
       HybridizationNode hybridizationNode)

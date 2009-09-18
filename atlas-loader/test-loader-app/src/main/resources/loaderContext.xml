@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="atlasLoader"
+        class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
+    <property name="dataSource" ref="dataSource" />
+  </bean>
+
+  <bean id="dataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+    <property name="driverClassName" value="oracle.jdbc.OracleDriver" />
+    <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT" />
+    <property name="username" value="atlas2" />
+    <property name="password" value="atlas2" />
+    <property name="autoCommit" value="false" />
+  </bean>
+</beans>

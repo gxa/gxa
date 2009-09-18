@@ -68,7 +68,7 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
           }
 
           // now record any properties
-          SDRFWritingUtils.writeProperties(investigation, assay, assayNode);
+          SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
 
           // add the experiment to the cache
           AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
