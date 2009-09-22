@@ -49,6 +49,8 @@
     <module>atlas-archetype</module>
     <module>atlas-loader</module>
     <module>atlas-db</module>
+    <module>atlas-model</module>
+    <module>atlas-dao</module>
   </modules>
 
   <dependencies>
