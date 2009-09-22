@@ -10,11 +10,11 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.microarray.atlas.loader.utils.LookupException;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.io.File;
 import java.net.MalformedURLException;

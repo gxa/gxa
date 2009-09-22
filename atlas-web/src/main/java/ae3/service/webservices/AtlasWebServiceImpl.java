@@ -3,8 +3,6 @@ package ae3.service.webservices;
 import ae3.service.ArrayExpressSearchService;
 import ae3.service.AtlasResult;
 import ae3.dao.AtlasDao;
-import ae3.dao.AtlasObjectNotFoundException;
-import ae3.dao.MultipleGeneException;
 import ae3.model.AtlasExperiment;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -12,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;

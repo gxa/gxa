@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
 import uk.ac.ebi.ae3.indexbuilder.service.ExperimentAtlasIndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.sql.DataSource;
 import java.io.File;

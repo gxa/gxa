@@ -29,10 +29,10 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
-import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.sql.DataSource;
 import java.net.URL;

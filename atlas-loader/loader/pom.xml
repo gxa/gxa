@@ -11,7 +11,7 @@
   <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
   <artifactId>loader</artifactId>
   <version>0.1-SNAPSHOT</version>
-  <name>Loader application for Gene Expression Atlas</name>
+  <name>Gene Expression Atlas Data Loader</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
   <repositories>

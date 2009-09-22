@@ -106,14 +106,12 @@ public class QuantitationTypeDictionary {
 
   private Map<String, String> qtTypes;
 
-  // logging
-  private Log log = LogFactory.getLog(this.getClass());
-
   private QuantitationTypeDictionary(ClassLoader loader) {
     // initialize map
     qtTypes = new HashMap<String, String>();
 
     // load qtTypes from all property files on the classpath
+    Log log = LogFactory.getLog(this.getClass());
     try {
       Enumeration<URL> resources = loader.getResources(
           "META-INF/magetab/qttypes.properties");

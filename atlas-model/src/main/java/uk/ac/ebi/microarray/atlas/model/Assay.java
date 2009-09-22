@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.loader.model;
+package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.ArrayList;
 import java.util.List;

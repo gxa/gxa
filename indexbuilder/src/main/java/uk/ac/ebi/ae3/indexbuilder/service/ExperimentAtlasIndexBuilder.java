@@ -7,8 +7,8 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -39,6 +39,10 @@ public class ExperimentAtlasIndexBuilder extends IndexBuilderService {
 
         // Add field "exp_in_dw" = true, to show this experiment is present
         solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+
+        // now, fetch assays and samples for this experiment
+        
+        
 
         // then, add all the fields we need from the experiment to the solr document
         // old way was to fetch XML blob from DB and scan this, to generate index data

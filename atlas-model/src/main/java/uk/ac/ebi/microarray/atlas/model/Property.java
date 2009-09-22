@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.loader.model;
+package uk.ac.ebi.microarray.atlas.model;
 
 /**
  * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:29:44 AM

@@ -1,8 +1,8 @@
 package uk.ac.ebi.microarray.atlas.loader.cache;
 
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Collection;
 import java.util.HashMap;

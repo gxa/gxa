@@ -10,6 +10,6 @@
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas-db</artifactId>
   <version>0.1-SNAPSHOT</version>
-  <name>Atlas backend database resources and DDLs</name>
+  <name>Gene Expression Atlas DB Resources</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 </project>

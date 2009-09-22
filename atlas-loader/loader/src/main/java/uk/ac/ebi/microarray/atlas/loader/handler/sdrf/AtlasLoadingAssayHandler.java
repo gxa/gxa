@@ -9,9 +9,9 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.ArrayList;
 import java.util.List;

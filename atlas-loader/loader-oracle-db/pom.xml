@@ -11,7 +11,7 @@
   <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
   <artifactId>loader-oracle-db</artifactId>
   <version>0.1-SNAPSHOT</version>
-  <name>Oracle DB Loading to Atlas DB</name>
+  <name>Gene Expression Atlas Loader Components for Oracle</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
   <dependencies>
@@ -29,8 +29,8 @@
     </dependency>
     <!-- atlas loader API -->
     <dependency>
-      <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
-      <artifactId>loader-model</artifactId>
+      <groupId>uk.ac.ebi.microarray.atlas</groupId>
+      <artifactId>atlas-model</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

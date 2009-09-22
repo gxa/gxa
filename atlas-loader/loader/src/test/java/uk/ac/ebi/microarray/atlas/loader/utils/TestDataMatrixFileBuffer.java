@@ -2,7 +2,7 @@ package uk.ac.ebi.microarray.atlas.loader.utils;
 
 import junit.framework.TestCase;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
 import java.util.List;

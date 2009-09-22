@@ -4,9 +4,9 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandler;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.LookupException;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
  * A dedicated handler for attaching an investigation title to the appropriate

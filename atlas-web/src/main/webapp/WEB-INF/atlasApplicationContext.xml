@@ -38,7 +38,7 @@
   </bean>
 
   <!-- Configure AtlasDAO for this datasource -->
-  <bean name="atlasDAO" class="uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO">
+  <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
     <property name="jdbcTemplate" ref="template" />
   </bean>
 

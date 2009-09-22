@@ -6,7 +6,7 @@ import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.microarray.atlas.loader.model.*;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.*;
 import java.util.HashSet;
@@ -14,16 +14,13 @@ import java.util.Set;
 
 /**
  * Utils for writing atlas loader API objects (see also {@link
- * uk.ac.ebi.microarray.atlas.loader.model}) to a database.  Should be supplied
+ * uk.ac.ebi.microarray.atlas.model}) to a database.  Should be supplied
  * a connection
  *
  * @author Andrey Zorin
  * @date Aug 26, 2009 Time: 5:14:19 PM
  */
 public class AtlasDB {
-  // logging
-  private static Log log = LogFactory.getLog(AtlasDB.class.getSimpleName());
-
   public static Array toSqlArray(Connection connection,
                                  String typeName,
                                  Object[] value)
@@ -260,10 +257,8 @@ public class AtlasDB {
       ResultSet rs = stmt.executeQuery();
 
       Set<String> results = new HashSet<String>();
-      int count = 0;
       while (rs.next()) {
         results.add(rs.getString(1));
-        count++;
       }
 
       return results;

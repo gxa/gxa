@@ -7,15 +7,15 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.Property;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 /**
  * A class filled with handy convenience methods for performing writing tasks
  * common to lots of SDRF graph nodes.  This class contains methods that hepl
- * with writing {@link uk.ac.ebi.microarray.atlas.loader.model.Property} objects
- * out given some nodes in the SDRF graph.
+ * with writing {@link Property} objects out given some nodes in the SDRF
+ * graph.
  *
  * @author Tony Burdett
  * @date 28-Aug-2009

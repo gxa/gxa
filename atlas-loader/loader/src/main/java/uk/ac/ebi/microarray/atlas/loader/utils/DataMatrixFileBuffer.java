@@ -6,7 +6,7 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.microarray.atlas.loader.model.ExpressionValue;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.io.BufferedReader;
 import java.io.IOException;

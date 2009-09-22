@@ -6,8 +6,8 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
  * A dedicated handler for creating experiment objects and storing them in the

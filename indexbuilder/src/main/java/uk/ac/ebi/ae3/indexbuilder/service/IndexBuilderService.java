@@ -8,7 +8,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.IOException;
 
@@ -19,8 +19,8 @@ import java.io.IOException;
  * that clients should use to construct the different types of index in a
  * consistent manner.  Implementing classes have access to an {@link
  * org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the
- * index, and an {@link uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO} that provides
- * interaction with the Atlas database (following an Atlas 2 schema).
+ * index, and an {@link AtlasDAO} that provides interaction with the Atlas
+ * database (following an Atlas 2 schema).
  * <p/>
  * All implementing classes should implement the method {@link
  * #createIndexDocs()} which contains the logic for constructing the relevant
@@ -84,14 +84,14 @@ public abstract class IndexBuilderService {
   private SolrEmbeddedIndex solrEmbeddedIndex;
 
   @Deprecated
-	public SolrEmbeddedIndex getSolrEmbeddedIndex() {
-	    return solrEmbeddedIndex;
-	}
+  public SolrEmbeddedIndex getSolrEmbeddedIndex() {
+    return solrEmbeddedIndex;
+  }
 
   @Deprecated
-	public void setSolrEmbeddedIndex(SolrEmbeddedIndex solrEmbeddedIndex) {
-	    this.solrEmbeddedIndex = solrEmbeddedIndex;
-	}
+  public void setSolrEmbeddedIndex(SolrEmbeddedIndex solrEmbeddedIndex) {
+    this.solrEmbeddedIndex = solrEmbeddedIndex;
+  }
 
   /**
    * Build the index for this particular IndexBuilderService implementation.

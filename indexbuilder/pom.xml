@@ -16,8 +16,8 @@
 
     <dependencies>
       <dependency>
-        <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
-        <artifactId>loader-oracle-db</artifactId>
+        <groupId>uk.ac.ebi.microarray.atlas</groupId>
+        <artifactId>atlas-dao</artifactId>
         <version>0.1-SNAPSHOT</version>
       </dependency>
 

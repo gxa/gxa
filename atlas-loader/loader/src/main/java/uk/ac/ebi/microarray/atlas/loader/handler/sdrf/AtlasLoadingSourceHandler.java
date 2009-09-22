@@ -11,9 +11,9 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
 import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +49,7 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
 
           // write the characterstic values as properties
           SDRFWritingUtils.writeSampleProperties(investigation, sample,
-                                           (SourceNode) node);
+                                                 (SourceNode) node);
 
           // now we've created the sample, wait for donwstream assays and link them
 

@@ -6,9 +6,9 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.model.Assay;
-import uk.ac.ebi.microarray.atlas.loader.model.Experiment;
-import uk.ac.ebi.microarray.atlas.loader.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 /**
  * Simple utilities classes dealing with common functions that are required in
