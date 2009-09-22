@@ -121,13 +121,6 @@ public class App
 			log.error("Exception", e);
 			System.exit(-1);
 		}
-		catch (IndexException e)
-		{
-			e.printStackTrace();
-			log.error("Exception", e);
-			System.exit(-1);
-		}
-		
 	}
 	protected void startContext()
 	{
@@ -140,13 +133,8 @@ public class App
 		conf.postProcessBeanFactory(appContext);
 		
 	}
-	/**
-	 * DOCUMENT ME
-	 * @throws Exception
-	 * @throws IndexException
-	 */
-	
-	protected void run() throws Exception, IndexException
+
+	protected void run() throws IndexBuilderException
 	{
         IndexBuilderService indexBuilderService;
 
@@ -158,7 +146,7 @@ public class App
             indexBuilderService = (IndexBuilderService) appContext
                     .getBean(Constants.exptIndexBuilderServiceID);
             indexBuilderService.setUpdateMode(updateMode);
-            indexBuilderService.setCreateOnlyPendingExps(pendingExps);
+            indexBuilderService.setPendingOnly(pendingExps);
             indexBuilderService.buildIndex();
         }
 

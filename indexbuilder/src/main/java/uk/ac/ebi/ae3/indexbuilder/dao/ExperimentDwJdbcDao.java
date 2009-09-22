@@ -1,23 +1,20 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
+import oracle.sql.CLOB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
+import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
-
-import javax.sql.DataSource;
-
-import oracle.sql.CLOB;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
-
-import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 
 
 /**
@@ -29,6 +26,7 @@ import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
  * 
  *
  */
+@Deprecated
 public class ExperimentDwJdbcDao
 {
 	/** The instance of JdbcTemplate **/

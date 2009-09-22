@@ -1,10 +1,10 @@
 package uk.ac.ebi.microarray.atlas.loader;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 
 /**
@@ -20,7 +20,8 @@ public class LoaderDriver {
 
     // get the url to our file to load
     try {
-      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
+//      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
+      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-1/E-PFIZ-1.idf.txt");
 
       // run the loader
       AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");

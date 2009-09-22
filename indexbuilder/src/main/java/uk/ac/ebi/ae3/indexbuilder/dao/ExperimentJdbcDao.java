@@ -1,26 +1,22 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
-
-import javax.sql.DataSource;
-
 import org.apache.commons.lang.StringUtils;
-import org.dom4j.DocumentException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
-
 import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
+
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
 /**
  * The class gets data from AE database.
  *  
  * @author mdylag
  *
  */
+@Deprecated
 public class ExperimentJdbcDao
 {
 	/** The instance of Spring JDBC template */

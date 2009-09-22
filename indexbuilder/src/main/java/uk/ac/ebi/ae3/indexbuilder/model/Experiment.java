@@ -3,14 +3,12 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The class is a model for Experiment.
  * @author mdylag
  *
  */
+@Deprecated
 public class Experiment
 {
 	private Long id;

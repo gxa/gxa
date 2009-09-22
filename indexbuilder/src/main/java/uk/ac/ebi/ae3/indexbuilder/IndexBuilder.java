@@ -1,5 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
+import javax.sql.DataSource;
+
 /**
  * Interface for building a Gene Expression Atlas index.  Implementations should
  * provide a way of setting the index location, which may be of a generic type
@@ -14,6 +16,23 @@ package uk.ac.ebi.ae3.indexbuilder;
  * @date 20-Aug-2009
  */
 public interface IndexBuilder<T> {
+  /**
+   * Set the location of the Atlas {@link javax.sql.DataSource} that will be
+   * used to obtain the data to build the index.  This datasource should obey
+   * the atlas 2 database schema.
+   *
+   * @param datasource the atlas 2 compliant datasource to build the index from
+   */
+  void setAtlasDataSource(DataSource datasource);
+
+  /**
+   * Get the location of the Atlas {@link javax.sql.DataSource} that will be
+   * used to obtain the data to build the index.
+   *
+   * @return the Atlas 2 compliant datasource to build the index from
+   */
+  DataSource getAtlasDataSource();
+
   /**
    * Set the location for the index.  If there is already a pre-existing index
    * at this location, implementations should update this index.  If there is no
@@ -32,7 +51,9 @@ public interface IndexBuilder<T> {
   T getIndexLocation();
 
   /**
-   * Flags that genes should be included in the construction of this index
+   * Flags that genes should be included in the construction of this index.
+   * <p/>
+   * This is true by default.
    *
    * @param genes whether to include genes in this build
    */
@@ -44,30 +65,39 @@ public interface IndexBuilder<T> {
    * Flags that experiments should be included in the construction of this
    * index.
    * <p/>
-   * Equivalent to <code>includeExperiments(experiments, false)</code, and this
-   * is also the default.
+   * This is true by default.
    *
    * @param experiments whether to include experiments in this build
    */
   void setIncludeExperiments(boolean experiments);
 
-  boolean getncludeExperiments();
+  boolean getIncludeExperiments();
 
   /**
-   * Flags that experiments should be included in the construction of this
-   * index.  The pending flag indicates whether you wish to include only
-   * experiments marked as pending, or all of them.
-   * <p/>
-   * <code>includeExperiments(experiments, false)</code> is equivalent to
-   * <code>includeExperiments(experiments)</code> and is also the default
-   * option.
+   * Flags that only experiments or genes pending indexing should be included.
+   * The pending flag is set within the Atlas database as a means of tracking
+   * all experiments that have been loaded but not yet indexed. Setting "pending
+   * mode" to true indicates you only wish to index these experiments.  Note
+   * that you would normally only ever use pending mode whne updating the
+   * index.
    *
-   * @param pendingMode include only those experiments flagged in the backing
-   *                    database as "pending".  True indicates only pending
-   *                    experiments are used, false indicates all.
+   * This is false by default.
+   *
+   * @param pendingMode include only those experiments or genes flagged in the
+   *                    backing database as "pending".  True indicates only
+   *                    pending experiments are used, false indicates all.
    */
   void setPendingMode(boolean pendingMode);
 
+  /**
+   * Indicates whether experiments are included in the construction of this
+   * index.  The pending flag indicates whether you wish to include only
+   * experiments marked as pending, or all of them.
+   *
+   * @return include only those experiments flagged in the backing database as
+   *         "pending".  True indicates only pending experiments are used, false
+   *         indicates all.
+   */
   boolean getPendingMode();
 
   /**

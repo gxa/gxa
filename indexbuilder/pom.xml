@@ -15,6 +15,13 @@
     </parent>
 
     <dependencies>
+      <dependency>
+        <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
+        <artifactId>loader-oracle-db</artifactId>
+        <version>0.1-SNAPSHOT</version>
+      </dependency>
+
+      <!-- Need to try and streamline all these dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -3,214 +3,127 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrInputDocument;
-import org.xml.sax.SAXException;
-import org.slf4j.LoggerFactory;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.slf4j.Logger;
-
-import uk.ac.ebi.ae3.indexbuilder.Constants;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.IndexException;
-import uk.ac.ebi.microarray.tools4ae.helpers.FileHelper;
+import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
+
+import java.io.IOException;
+
 /**
- * 
- * @author mdylag
+ * An abstract IndexBuilderService, that provides convenience methods for
+ * getting and setting parameters required across all SOLR index building
+ * implementations.  This class contains a single method, {@link #buildIndex()}
+ * that clients should use to construct the different types of index in a
+ * consistent manner.  Implementing classes have access to an {@link
+ * org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the
+ * index, and an {@link uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO} that provides
+ * interaction with the Atlas database (following an Atlas 2 schema).
+ * <p/>
+ * All implementing classes should implement the method {@link
+ * #createIndexDocs()} which contains the logic for constructing the relevant
+ * parts of the index for each implementation.  Implementations do not need to
+ * be concerned with the SOLR index lifecycle, as this is handled by this
+ * abstract classes and {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder}
+ * implementations.
  *
+ * @author mdylag
+ * @author Tony Burdett (atlas 2 revision)
  */
-public abstract class IndexBuilderService
-{
-	/** an instance of {@link UpdateResponse}**/
-	protected UpdateResponse response;
-	/** an instance of SolrEmbeddedIndex */
-	private SolrEmbeddedIndex solrEmbeddedIndex;
-	/** a path to the ftp dir*/
-	private String ftpDir;
-	/** an instance of loging interface*/
-	protected static final Logger log = LoggerFactory.getLogger(IndexBuilderService.class);
-	/** The extension of the fgem files*/
-	private static final String FILE_FILTER_FGEM = "processed.zip";
-	/** The extension of the raw files*/	
-	private static final String FILE_FILTER_RAW = "raw.zip";
-	/** The extension of the 2columns files*/
-	private static final String FILE_FILTER_2COLUMNS = "2columns.txt";
-	/** The extension of the SDRF files*/
-	private static final String FILE_FILTER_SDRF = "sdrf.txt";
-	/** The extension of the biosamples png files*/
-	private static final String FILE_FILTER_BIOSAMPLES_PNG = "biosamples.png";
-	/** The extension of the biosamples svg files*/
-	private static final String FILE_FILTER_BIOSAMPLES_SVG = "biosamples.svg";
+public abstract class IndexBuilderService {
+  private AtlasDAO atlasDAO;
+  private EmbeddedSolrServer solrServer;
 
-    private boolean updateMode = false;
-    private boolean pendingExps = false;
+  private boolean updateMode = false;
+  private boolean pendingExps = false;
 
-    /**
-	 * Default constructor 
-	 * @param confService
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 */
-	public IndexBuilderService() throws ParserConfigurationException, IOException, SAXException
-	{
-	}
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+  public IndexBuilderService(AtlasDAO atlasDAO,
+                             EmbeddedSolrServer solrServer) {
+    this.atlasDAO = atlasDAO;
+    this.solrServer = solrServer;
+  }
 
-    public boolean isUpdateMode() {
-        return updateMode;
-    }
+  @Deprecated
+  public IndexBuilderService() throws Exception {
 
-    public void setUpdateMode(boolean updateMode) {
-        this.updateMode = updateMode;
-    }
+  }
 
-    public void setCreateOnlyPendingExps(boolean pending){
-    	this.pendingExps = pending;
-    }
-    public boolean createOnlyPendingExps(){
-    	return this.pendingExps;
-    }
-    
-    /**
-	 * Dispose system and solr respurce. Doing commit and dispose for the SolrEmbeddedIndex instance.
-	 * @throws SolrServerException
-	 * @throws IOException
-	 */
-	protected void dispose() throws SolrServerException, IOException
-	{
-	   solrEmbeddedIndex.commit();
-	   solrEmbeddedIndex.dispose();
-	}
+  public boolean getUpdateMode() {
+    return updateMode;
+  }
 
-	/**
-	 *  
-	 * @throws Exception
-	 * @throws IndexException 
-	 */
-	public void buildIndex() throws Exception, IndexException
-	{
-		try
-		{
-		    solrEmbeddedIndex.init();
-		    createIndexDocs();		
-		}
-		catch (Throwable e)
-		{
-			throw new IndexBuilderException(e);
-		}		
-		finally
-		{
-		    dispose();
-		}
-	}
-	
-	protected abstract void createIndexDocs() throws Exception;
+  public void setUpdateMode(boolean updateMode) {
+    this.updateMode = updateMode;
+  }
 
+  public void setPendingOnly(boolean pending) {
+    this.pendingExps = pending;
+  }
 
-	/**
-	 * 
-	 * @return
-	 */
+  public boolean getPendingOnly() {
+    return this.pendingExps;
+  }
+
+  protected AtlasDAO getAtlasDAO() {
+    return atlasDAO;
+  }
+
+  protected EmbeddedSolrServer getSolrServer() {
+    return solrServer;
+  }
+
+  protected Logger getLog() {
+    return log;
+  }
+
+  @Deprecated
+  private SolrEmbeddedIndex solrEmbeddedIndex;
+
+  @Deprecated
 	public SolrEmbeddedIndex getSolrEmbeddedIndex() {
 	    return solrEmbeddedIndex;
 	}
 
-	/**
-	 * 
-	 * @param solrEmbeddedIndex
-	 */
+  @Deprecated
 	public void setSolrEmbeddedIndex(SolrEmbeddedIndex solrEmbeddedIndex) {
 	    this.solrEmbeddedIndex = solrEmbeddedIndex;
 	}
 
+  /**
+   * Build the index for this particular IndexBuilderService implementation.
+   * Once the index has been built, this method will automatically commit any
+   * changes and release any resources held by the SOLR server.
+   *
+   * @throws IndexBuilderException if the is a problem whilst generating the
+   *                               index
+   */
+  public void buildIndex() throws IndexBuilderException {
+    try {
+      createIndexDocs();
+      solrServer.commit();
+    }
+    catch (IOException e) {
+      throw new IndexBuilderException(
+          "Cannot commit changes to the SOLR server", e);
+    }
+    catch (SolrServerException e) {
+      throw new IndexBuilderException(
+          "Cannot commit changes to the SOLR server - server threw exception",
+          e);
+    }
+  }
 
-
-	/**
-	 * Return a path to the experiments' ftp directory.
-	 * @return - String which contains path to directory when are the experiments
-	 */
-	public String getFtpDir()
-	{
-		return ftpDir;
-	}
-
-	/**
-	 * Sets 
-	 * @param ftpDir
-	 */
-	public void setFtpDir(String ftpDir)
-	{
-		this.ftpDir = ftpDir;
-	}
-
-	protected void getInfoFromFtp(String identifier, SolrInputDocument doc)
-	{
-   	    String subDir = identifier.substring(identifier.indexOf("-")+1, identifier.lastIndexOf("-"));
-		String dir = FilenameUtils.concat(ftpDir, subDir);
-		dir = FilenameUtils.concat(dir, identifier);
-		String[] fileFilter = {FILE_FILTER_FGEM, FILE_FILTER_RAW,FILE_FILTER_SDRF,"2columns.txt","biosamples.png","biosamples.svg"};
-		log.info(dir);
-		File fDir = new File(dir);
-		if (fDir.isDirectory())
-		{
-			Collection<File> col= FileUtils.listFiles(fDir, fileFilter, true);
-			Iterator<File> it=col.iterator();
-			FileHelper.AeFileType mhyType;
-			while (it.hasNext())
-			{
-				File f=it.next();
-				String filename = f.getName();
-				if (FileHelper.isSdrfExtension(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_SDRF, filename);
-				}
-				else if (FileHelper.isFgemExtension(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_FGEM, filename);					
-				}
-				else if (FileHelper.isBiosamplePng(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_BIOSAMPLEPNG, filename);					
-				}
-				else if (FileHelper.isBiosampleSvg(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_BIOSAMPLESVG, filename);					
-					
-				}
-				else if (FileHelper.isRawExtension(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_RAW, filename);					
-
-				}
-				else if (FileHelper.isTwoColumnsExtension(filename))
-				{
-					log.info("##################################### Find file" + f);
-					doc.addField(Constants.FIELD_AER_FILE_TWOCOLUMNS, filename);					
-					
-				}
-
-			
-			}
-		
-		}
-		else
-		{
-			log.warn("Directory " + fDir.getAbsolutePath() + " does not exist.");
-		}
-	}
+  /**
+   * Generate the required documents for the SOLR index, as appropriate to this
+   * implementation.
+   *
+   * @throws uk.ac.ebi.ae3.indexbuilder.IndexBuilderException
+   *          if there is a problem whilst trying to generate the index
+   *          documents
+   */
+  protected abstract void createIndexDocs() throws IndexBuilderException;
 }

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -19,151 +16,89 @@ import uk.ac.ebi.ae3.indexbuilder.IndexException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 /**
- * 
- * SolrEmbeddedIndex provides methods which help initialize, close SolrServer , SolrCore etc.
- * The class creates instances SolrCore for genes and experiments indexes.
- * @version 	1.0 2008-04-02
- * @author 	Miroslaw Dylag
+ * SolrEmbeddedIndex provides methods which help initialize, close SolrServer ,
+ * SolrCore etc. The class creates instances SolrCore for genes and experiments
+ * indexes.
+ *
+ * @author Miroslaw Dylag
+ * @version 1.0 2008-04-02
  */
+@Deprecated
 public class SolrEmbeddedIndex {
-    /** The handle to the SolrServer */
-    private SolrServer solrServer;
-    /** The handle to the SolrCore. The core name is "expt" */
-    private SolrCore exptSolrCore;
-    /** The handle to the {@link CoreContainer} */
-    private CoreContainer multiCore;
-    /** The directory to the "multicore.xml" file */
-    private String indexDir;
-    /** The core name */
-    private String coreName;
-    /** Status of initialization SolrServer*/
-    private boolean init = false;
-    /**
-     * Constructs a new instance of this class.
-     * @param indexDir - a directory to where is the file multicore.xml
-     * @param coreName
-     */
-    public SolrEmbeddedIndex(String indexDir, String coreName)
-    {
-        this.indexDir = indexDir;
-        this.coreName = coreName;
-    }
-    
-    /**
-     * 
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     * @throws IndexException 
-     */
-    public void init() throws ParserConfigurationException, IOException, SAXException, IndexException
-    {
-     if (!init)
-     {
-       this.multiCore = new CoreContainer(indexDir, new File(indexDir, Constants.VAL_INDEXFILE));
-       this.exptSolrCore = multiCore.getCore(coreName);
-       this.solrServer = new EmbeddedSolrServer(multiCore, coreName);
-       init = true;
-     }
-     else
-     {
-	 throw new IndexException("Index was initialized. Try invoke dispose and init");
-     }
-	
-    }
-    /**
-     * Disposes of the Solr resources. The method shutdown multicore and close all SolrCore
-     * instances.
-     */
-    public void dispose()
-    {
-       exptSolrCore.close();
-       multiCore.shutdown();
-       init = false;
-    }
+  private SolrServer solrServer;
+  private SolrCore exptSolrCore;
+  private CoreContainer multiCore;
+  private String indexDir;
+  private String coreName;
 
-    public boolean isInit() {
-        return init;
+  private boolean init = false;
+
+  @Deprecated
+  public SolrEmbeddedIndex(String indexDir, String coreName) {
+    this.indexDir = indexDir;
+    this.coreName = coreName;
+  }
+
+  @Deprecated
+  public void init() throws ParserConfigurationException, IOException,
+      SAXException, IndexException {
+    if (!init) {
+      this.multiCore = new CoreContainer(indexDir, new File(
+          indexDir, Constants.VAL_INDEXFILE));
+      this.exptSolrCore = multiCore.getCore(coreName);
+      this.solrServer = new EmbeddedSolrServer(multiCore, coreName);
+      init = true;
     }
-
-    public void commit() throws SolrServerException, IOException
-    {
-    	solrServer.optimize();
-    	solrServer.commit();
+    else {
+      throw new IndexException("Index was initialized. " +
+          "Try invoke dispose and init");
     }
-    
-    public void addDoc(SolrInputDocument doc) throws SolrServerException, IOException
-    {
-	  solrServer.add(doc);
-    }
+  }
 
-    public long getCount(String queryStr) throws SolrServerException
-    {
-	
-    	SolrQuery q = new SolrQuery(queryStr);
-    	long count=0;
-    	int start = 0 ;
-    	q.setRows(1);
-    	q.setStart(start);
-    	QueryResponse queryResponse = solrServer.query(q);
-    	SolrDocumentList l=queryResponse.getResults();
-    	count=l.getNumFound();
-	
-    	return count;
-	
-    }
+  @Deprecated
+  public void dispose() {
+    exptSolrCore.close();
+    multiCore.shutdown();
+    init = false;
+  }
 
-    public SolrDocumentList search(String queryStr, int start, int rows) throws SolrServerException
-    {
-    	SolrQuery q = new SolrQuery(queryStr);
-    	//QueryParser parser = new QueryParser();
-        //q.setHighlight(true);
-    	
-    	q.setRows(rows);
-        //q.addHighlightField(ConfigurationService.FIELD_AEEXP_ACCESSION);
-        //q.addHighlightField(ConfigurationService.FIELD_EXP_DESC_TEXT);
-        /*q.addHighlightField("gene_goterm");
-        q.addHighlightField("gene_interproterm");
-        q.addHighlightField("gene_keyword");
-        q.addHighlightField("gene_name");
-        q.addHighlightField("gene_synonym");*/
-        //q.setHighlightSnippets(100);
-    	q.setStart(start);
+  @Deprecated
+  public boolean isInit() {
+    return init;
+  }
 
-    	QueryResponse queryResponse = solrServer.query(q);
-    	Map<String,Map<String,List<String>>> map = 	queryResponse.getHighlighting();
-    	
-    	SolrDocumentList l=queryResponse.getResults();
-    	return l;
-    }
-    
+  @Deprecated
+  public void commit() throws SolrServerException, IOException {
+    solrServer.optimize();
+    solrServer.commit();
+  }
 
-    
-    /*public DocList search(String query) throws CorruptIndexException, IOException
-    {
-	SolrRequestHandler handler = exptSolrCore.getRequestHandler("");
-	HashMap map = new HashMap();
-	//LocalSolrQueryRequest.emptyArgs
-	SolrQueryRequest queryRequest = new LocalSolrQueryRequest(exptSolrCore, query, "standard",0,10000,map);
-	SolrQueryResponse queryResponse = new SolrQueryResponse();
-	this.exptSolrCore.execute(handler, queryRequest, queryResponse);
-	DocList docs = (DocList) queryResponse.getValues().get("response");
-	IndexReader reader = this.exptSolrCore.getSearcher().get().getReader();
-	DocIterator it = docs.iterator();
-	while (it.hasNext())
-	{
-	  Document doc = reader.document(it.next());
-	  if (doc.getField("desc_text")!= null)
-	  {
-	     System.out.println("Gogog");
-	  }
-	}
-	queryRequest.close();
-	return docs;
+  @Deprecated
+  public void addDoc(SolrInputDocument doc)
+      throws SolrServerException, IOException {
+    solrServer.add(doc);
+  }
 
-    }*/
+  @Deprecated
+  public long getCount(String queryStr) throws SolrServerException {
+    SolrQuery q = new SolrQuery(queryStr);
+    int start = 0;
+    q.setRows(1);
+    q.setStart(start);
+    QueryResponse queryResponse = solrServer.query(q);
+    SolrDocumentList l = queryResponse.getResults();
+    return l.getNumFound();
+  }
+
+  @Deprecated
+  public SolrDocumentList search(String queryStr, int start, int rows)
+      throws SolrServerException {
+    SolrQuery q = new SolrQuery(queryStr);
+    q.setRows(rows);
+    q.setStart(start);
+
+    return solrServer.query(q).getResults();
+  }
 }

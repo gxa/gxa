@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.loader.model.*;
 
 import java.sql.*;
-import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Set;
 

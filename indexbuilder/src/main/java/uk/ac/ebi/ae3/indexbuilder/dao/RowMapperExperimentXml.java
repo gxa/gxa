@@ -1,12 +1,10 @@
 package uk.ac.ebi.ae3.indexbuilder.dao;
 
+import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
+
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
-
-import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
 
 /**
  * The row mapper from the SQL statement which return XML string. 
@@ -14,6 +12,7 @@ import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
  * @author mdylag
  *
  */
+@Deprecated
 public class RowMapperExperimentXml implements ParameterizedRowMapper<String>
 {
 	/**

@@ -9,20 +9,37 @@
   <!-- Requires an Index Builder -->
   <bean name="indexBuilder"
         class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+    <!-- resource beans -->
+    <property name="atlasDataSource" ref="atlasDatasource" />
     <property name="indexLocation" value="atlasIndex" />
+    <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
     <property name="includeGenes" value="true" />
     <property name="includeExperiments" value="true" />
-    <!-- pending mode is set at build time, depending on whether index already exists -->
   </bean>
 
-  <!-- Requires a Data Server -->
-  <!-- todo: No idea where to start with this!!! -->
+  <!-- Requires a NetCDFGenerator -->
+  <bean name="netCDFGenerator"
+        class="uk.ac.ebi.ae3.netcdfbuilder.DefaultNetCDFGenerator">
+    <!-- resource beans -->
+    <property name="atlasDataSource" ref="atlasDatasource" />
+    <property name="repositoryLocation" ref="atlasNetCDFRepo" />
+  </bean>
 
   <!-- Requires a loader -->
-  <!-- configure the loader with the atlas datasource -->
   <bean name="atlasLoader"
         class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
+    <!-- resource bean -->
     <property name="dataSource" ref="atlasDatasource" />
+  </bean>
+
+  <!-- Spring JDBC template for database queries -->
+  <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
+    <property name="dataSource" ref="atlasDatasource" />
+  </bean>
+
+  <!-- Configure AtlasDAO for this datasource -->
+  <bean name="atlasDAO" class="uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO">
+    <property name="jdbcTemplate" ref="template" />
   </bean>
 
   <!-- Declare beans for resources named by context JNDI -->
@@ -34,8 +51,8 @@
                    jndi-name="/jdbc/AEINDEX"
                    resource-ref="true" />
 
-  <jee:jndi-lookup id="atlasDataserver"
-                   jndi-name="/jdbc/AEDATASERVER"
+  <jee:jndi-lookup id="atlasNetCDFRepo"
+                   jndi-name="/jdbc/AENETCDFS"
                    resource-ref="true" />
 
 </beans>

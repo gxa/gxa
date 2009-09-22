@@ -1,15 +1,18 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
-import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
-
-import java.io.File;
-
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
+import uk.ac.ebi.ae3.indexbuilder.service.ExperimentAtlasIndexBuilder;
+import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
+import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
+
+import javax.sql.DataSource;
+import java.io.File;
 
 /**
  * A default implementation of {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder}
@@ -19,16 +22,30 @@ import org.springframework.core.io.FileSystemResource;
  * @author Tony Burdett
  * @date 20-Aug-2009
  */
-public class DefaultIndexBuilder implements IndexBuilder<File> {
+public class DefaultIndexBuilder
+    implements IndexBuilder<File>, InitializingBean {
+  private DataSource dataSource;
+  private File indexLocation;
+
   private boolean genes = true;
   private boolean experiments = true;
   private boolean pending = false;
 
-  private File indexLocation;
+  private CoreContainer coreContainer;
+  private IndexBuilderService geneIndexBuilder;
+  private IndexBuilderService exptIndexBuilder;
 
   // logging
   private static final Logger log =
       LoggerFactory.getLogger(DefaultIndexBuilder.class);
+
+  public void setAtlasDataSource(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
+
+  public DataSource getAtlasDataSource() {
+    return dataSource;
+  }
 
   public void setIndexLocation(File indexLocation) {
     this.indexLocation = indexLocation;
@@ -50,7 +67,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File> {
     this.experiments = experiments;
   }
 
-  public boolean getncludeExperiments() {
+  public boolean getIncludeExperiments() {
     return experiments;
   }
 
@@ -62,6 +79,35 @@ public class DefaultIndexBuilder implements IndexBuilder<File> {
     return pending;
   }
 
+  public void afterPropertiesSet() throws Exception {
+    // do some initialization...
+
+    // create a spring jdbc template
+    JdbcTemplate template = new JdbcTemplate(dataSource);
+
+    // create an atlas dao
+    AtlasDAO dao = new AtlasDAO();
+    dao.setJdbcTemplate(template);
+
+    // first, create a solr CoreContainer
+    File solr = new File(indexLocation, "solr.xml");
+    coreContainer = new CoreContainer();
+    coreContainer.load(indexLocation.getAbsolutePath(), solr);
+
+    // create an embedded solr server for experiments and genes from this container
+    EmbeddedSolrServer exptServer =
+        new EmbeddedSolrServer(coreContainer, "experiments");
+    EmbeddedSolrServer atlasServer =
+        new EmbeddedSolrServer(coreContainer, "atlas");
+
+    // create IndexBuilderServices for genes (atlas) and experiments
+    geneIndexBuilder = new GeneAtlasIndexBuilder(dao, exptServer);
+    exptIndexBuilder = new ExperimentAtlasIndexBuilder(dao, atlasServer);
+
+    // finally, create an executor service for processing calls to build the index
+    // todo - create a service so that index building is parallelised
+  }
+
   public void buildIndex() throws IndexBuilderException {
     runIndexBuild(false);
   }
@@ -70,46 +116,37 @@ public class DefaultIndexBuilder implements IndexBuilder<File> {
     runIndexBuild(true);
   }
 
+  /**
+   * Shuts down any cached resources relating to multiple solr cores within the
+   * Atlas Index.  You should call this whenever the application requiring index
+   * building services terminates (i.e. on webapp shutdown, or when the user
+   * exits the application).
+   */
+  public void shutdownIndex() {
+    coreContainer.shutdown();
+  }
+
   private void runIndexBuild(boolean updateMode) throws IndexBuilderException {
-    PropertyPlaceholderConfigurer conf = new PropertyPlaceholderConfigurer();
-    conf.setLocation(new ClassPathResource("indexbuilder.properties"));
-
-    XmlBeanFactory appContext = new XmlBeanFactory(new ClassPathResource(
-        "app-context.xml"));
-    conf.postProcessBeanFactory(appContext);
-
     log.info("Will build indexes: " +
         (experiments ? "experiments " : "") +
         (genes ? "gene" : "") +
         (updateMode ? " (update mode)" : "") +
         (pending ? "(only pending experiments)" : ""));
 
-    try {
-      if (experiments) {
-        log.info("Building experiments index");
-        IndexBuilderService exptIBS = (IndexBuilderService) appContext
-            .getBean(Constants.exptIndexBuilderServiceID);
-        exptIBS.setCreateOnlyPendingExps(pending);
-        exptIBS.setUpdateMode(updateMode);
-        exptIBS.buildIndex();
-      }
+    if (experiments) {
+      log.info("Building experiments index");
+
+      exptIndexBuilder.setPendingOnly(pending);
+      exptIndexBuilder.setUpdateMode(updateMode);
+      exptIndexBuilder.buildIndex();
+    }
 
 
-      if (genes) {
-        log.info("Building atlas gene index");
-        IndexBuilderService geneIBS = (IndexBuilderService) appContext
-            .getBean(Constants.geneIndexBuilderServiceID);
-        geneIBS.setUpdateMode(updateMode);
-        geneIBS.buildIndex();
-      }
-    }
-    catch (Exception e) {
-      throw new IndexBuilderException(
-          "Something went wrong whilst building the index", e);
-    }
-    catch (IndexException e) {
-      throw new IndexBuilderException(
-          "Something went wrong whilst building the index", e);
+    if (genes) {
+      log.info("Building atlas gene index");
+
+      geneIndexBuilder.setUpdateMode(updateMode);
+      geneIndexBuilder.buildIndex();
     }
   }
 }

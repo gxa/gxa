@@ -1,8 +1,8 @@
 package uk.ac.ebi.ae3.indexbuilder.service;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -10,12 +10,12 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.IndexField;
+import uk.ac.ebi.ae3.indexbuilder.dao.AtlasDAO;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,20 +37,24 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     private Map<String,String[]> ontomap = new HashMap<String,String[]>();
     private Efo efo;
 
-    public GeneAtlasIndexBuilder() throws ParserConfigurationException, IOException, SAXException
+    @Deprecated
+    public GeneAtlasIndexBuilder() throws Exception
     {
         efo = Efo.getEfo();
-    }      
+    }
 
+    @Deprecated
     public BasicDataSource getDataSource() {
         return dataSource;
     }
 
-    public void setDataSource(BasicDataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+  public GeneAtlasIndexBuilder(AtlasDAO atlasDAO,
+                               EmbeddedSolrServer solrServer) {
+    super(atlasDAO, solrServer);
+    efo = Efo.getEfo();
+  }
 
-    private static short shorten(double d) {
+  private static short shorten(double d) {
         d = d * 256;
         if(d > Short.MAX_VALUE)
             return Short.MAX_VALUE;
@@ -88,8 +91,8 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         double pdn = 1;
     }
 
-    protected void createIndexDocs() throws Exception {
-
+    protected void createIndexDocs() throws IndexBuilderException {
+      try {
         loadEfoMapping();
 
         final ResourcePool<PreparedStatement> spool = new ResourcePool<PreparedStatement>(NUM_THREADS) {
@@ -120,7 +123,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         log.info("Querying genes...");
         PreparedStatement listAtlasGenesStmt = getDataSource().getConnection().prepareStatement("select xml.gene_id_key, xml.solr_xml.GETCLOBVAL() " +
                 "from gene_xml xml where xml.gene_id_key<>0 " +
-                (isUpdateMode() ? " AND xml.status<>'fresh' and xml.status is not null" : ""));
+                (getUpdateMode() ? " AND xml.status<>'fresh' and xml.status is not null" : ""));
 
         List<String[]> queue = new ArrayList<String[]>(BURST_SIZE);
 
@@ -172,6 +175,10 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
         tpool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         spool.close();
         log.info("Finished, committing");
+      }
+      catch (Exception e) {
+        throw new IndexBuilderException(e);
+      }
     }
 
     private void processGene(String geneId, String xml, PreparedStatement countGeneEfoStmt) throws DocumentException, SQLException, SolrServerException, IOException {

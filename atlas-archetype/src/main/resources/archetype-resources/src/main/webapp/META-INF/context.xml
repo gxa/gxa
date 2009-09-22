@@ -21,9 +21,9 @@
       />
 
   <Resource
-      name="file/AEDATASERVER"
+      name="file/AENETCDFS"
       type="java.util.File"
-      path="${atlasDataserverLocation}"
+      path="${atlasNetCDFRepoLocation}"
       />
 
 </Context>

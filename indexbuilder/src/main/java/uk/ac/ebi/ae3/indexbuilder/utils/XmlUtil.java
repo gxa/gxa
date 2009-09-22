@@ -3,52 +3,36 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.logging.Logger;
-import java.util.zip.DataFormatException;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import org.dom4j.Attribute;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-
+import org.dom4j.*;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Logger;
 /**
  * 
  * @author mdylag
  *
  */
+@Deprecated
 public class XmlUtil
 {
 	private static final Logger log = Logger.getLogger(XmlUtil.class.getName());
 	/**
 	 * TODO: Method does not complete
-	 * @param experiment
 	 */
+  @Deprecated
 	public static String createElement(SolrDocument doc)
 	{
 	    String value=(String)doc.getFieldValue("xml_doc");
 	    return value;	    
 	}	
 
-	/**
-	 * 
-	 * @param element
-	 * @param name
-	 * @param doc
-	 * @param fieldName
-	 * @return
-	 */
+  @Deprecated
 	private static void addFieldFromAttr(Element element, String name, SolrInputDocument doc, String fieldName)
 	{
 		Attribute attr=element.attribute(name);
@@ -58,7 +42,8 @@ public class XmlUtil
 			addField(doc, fieldName, value);
 		}
 	}
-	
+
+@Deprecated
 	private static void addFieldFromEl(Element element, SolrInputDocument doc, String fieldName)
 	{
 		if (element!=null)
@@ -68,7 +53,8 @@ public class XmlUtil
 		}
 	}
 
-	
+
+@Deprecated
 	private static final void addField(SolrInputDocument doc, String fieldName, String value)
 	{
 	    if (StringUtils.isEmpty(value))
@@ -90,6 +76,7 @@ public class XmlUtil
 	 * @throws DocumentException
 	 * @throws IndexBuilderException
 	 */
+  @Deprecated
 	public static void addExperimentFromDW(String xmlDw, SolrInputDocument doc) throws DocumentException, IndexBuilderException
 	{
 		if (doc == null)
@@ -100,7 +87,7 @@ public class XmlUtil
 		//Parse xml String		
         xmlDoc = DocumentHelper.parseText(xmlDw);
         Element elExperiment=xmlDoc.getRootElement();
-        
+
         @SuppressWarnings("unchecked")
         List<Element> fields = xmlDoc.getRootElement().elements("field");
         for(Element field : fields) {

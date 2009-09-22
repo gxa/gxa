@@ -1,5 +1,6 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
+@Deprecated
 public class IndexException extends Throwable {
 
     public IndexException() {

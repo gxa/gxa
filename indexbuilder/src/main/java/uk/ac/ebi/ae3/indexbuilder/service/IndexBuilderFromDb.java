@@ -3,27 +3,21 @@
  */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
-import java.io.File;
-import java.io.IOException;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.solr.common.SolrInputDocument;
+import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
+import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentDwJdbcDao;
+import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao;
+import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
+import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
+
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Iterator;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.solr.common.SolrInputDocument;
-import org.dom4j.DocumentException;
-import org.xml.sax.SAXException;
-
-import uk.ac.ebi.ae3.indexbuilder.Constants;
-import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentDwJdbcDao;
-import uk.ac.ebi.ae3.indexbuilder.dao.ExperimentJdbcDao;
-import uk.ac.ebi.ae3.indexbuilder.model.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
 /**
  * 
  * Class description goes here.
@@ -31,6 +25,7 @@ import uk.ac.ebi.ae3.indexbuilder.utils.XmlUtil;
  * @version 	1.0 2008-04-01
  * @author 	Miroslaw Dylag
  */
+@Deprecated
 public class IndexBuilderFromDb extends IndexBuilderService
 {
     	/** */
@@ -40,14 +35,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
     //private String mageDir;
 
 	
-	/**
-	 * 
-	 * @param confService
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 */
-	public IndexBuilderFromDb() throws ParserConfigurationException, IOException, SAXException
+	public IndexBuilderFromDb() throws Exception
 	{
 		
 	}
@@ -64,8 +52,9 @@ public class IndexBuilderFromDb extends IndexBuilderService
 	 * 
 	 */
 	@Override
-	protected void createIndexDocs() throws Exception
+	protected void createIndexDocs() throws IndexBuilderException
 	{
+    try {
 		Connection sql = getDataSource().getConnection();
 		PreparedStatement geneCounts = sql.prepareStatement("select unique ef, efv, updn, count(distinct gene_id_key) gc" +
 										"      from atlas" +
@@ -73,7 +62,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 										"      group by ef, efv, updn");
 		
 		Collection<Experiment> exps;
-		if(createOnlyPendingExps()){
+		if(getPendingOnly()){
 			exps=experimentDwDao.getPendingExperiments();
 			
 		}else
@@ -97,7 +86,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				  
 				  doc.addField(Constants.FIELD_EXP_IN_DW, true);
 				  XmlUtil.addExperimentFromDW(xmlDw, doc);
-				  log.info("Adding "+doc.getField("dwe_exp_accession").getValue().toString());
+				  getLog().info("Adding "+doc.getField("dwe_exp_accession").getValue().toString());
 				  String expId = doc.getField("dwe_exp_id").getValue().toString();
 				  geneCounts.setString(1, expId);
 		          ResultSet gcRS = geneCounts.executeQuery();
@@ -116,7 +105,7 @@ public class IndexBuilderFromDb extends IndexBuilderService
 				}
 				else
 				{
-					log.info(exp.getAccession()+ "skipped");
+					getLog().info(exp.getAccession()+ "skipped");
 //					doc.addField(Constants.FIELD_EXP_IN_DW, false);					
 				}
 //				if (doc!=null)
@@ -125,26 +114,31 @@ public class IndexBuilderFromDb extends IndexBuilderService
 //				}
 
 			}
-
-		
+    }
+    catch (Exception e) {
+      throw new IndexBuilderException(e);
+    }
 	}
 	
-
+  @Deprecated
 	public ExperimentJdbcDao getExperimentDao()
 	{
 		return experimentDao;
 	}
 
+  @Deprecated
 	public void setExperimentDao(ExperimentJdbcDao experimentDao)
 	{
 		this.experimentDao = experimentDao;
 	}
 
+  @Deprecated
 	public ExperimentDwJdbcDao getExperimentDwDao()
 	{
 		return experimentDwDao;
 	}
 
+  @Deprecated
 	public void setExperimentDwDao(ExperimentDwJdbcDao experimentDwDao)
 	{
 		this.experimentDwDao = experimentDwDao;

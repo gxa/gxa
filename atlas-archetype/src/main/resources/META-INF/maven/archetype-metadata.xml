@@ -24,6 +24,6 @@
     <requiredProperty key="atlasUser" />
     <requiredProperty key="atlasPassword" />
     <requiredProperty key="atlasIndexLocation" />
-    <requiredProperty key="atlasDataserverLocation" />
+    <requiredProperty key="atlasNetCDFRepoLocation" />
   </requiredProperties>
 </archetype-descriptor>
