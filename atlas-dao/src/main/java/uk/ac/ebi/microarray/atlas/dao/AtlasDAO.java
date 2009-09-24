@@ -2,9 +2,7 @@ package uk.ac.ebi.microarray.atlas.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,12 +17,27 @@ import java.util.List;
  * @date 21-Sep-2009
  */
 public class AtlasDAO {
+  // experiment queries
   private static final String EXPERIMENTS_SELECT =
       "SELECT accession, description, performer, lab " +
           "FROM a2_experiment";
+  private static final String EXPERIMENTS_PENDING_SELECT =
+      EXPERIMENTS_SELECT + " " +
+          "WHERE something something"; // fixme: load monitor table?
   private static final String EXPERIMENT_BY_ACC_SELECT =
       EXPERIMENTS_SELECT + " " +
           "WHERE accession=?";
+  // gene queries
+  private static final String GENES_SELECT =
+      "SELECT geneid, identifier, name, species " +
+          "FROM a2_gene";
+  private static final String GENES_PENDING_SELECT =
+      GENES_SELECT + " " +
+          "WHERE something something"; // fixme: load monitor table?
+  private static final String GENES_BY_EXPERIMENT_ACCESSION =
+      GENES_SELECT + " " +
+          "WHERE experiment_id_key=?"; // fixme: linking genes to experiments?
+  // other useful join queries, mostly for property lookups
   private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
       "SELECT a.accession, a.experimentid, a.arraydesignid " +
           "FROM a2_assay a, a2_experiment e" +
@@ -40,10 +53,13 @@ public class AtlasDAO {
       "SELECT de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid" +
           "AND ad.accession=?";
-  private static final String GENES_BY_EXPERIMENT_ACCESSION =
-      "SELECT DISTINCT geneid " +
-          "FROM a2_gene " +
-          "WHERE experiment_id_key=?"; // fixme: linking genes to experiments?
+  private static final String EXPRESSIONANALYTICS_BY_GENEID =
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.pvaladj " +
+          "FROM a2_expressionanalytics a " +
+          "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
+          "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
+          "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
+          "WHERE de.geneid=?";
 
   private JdbcTemplate template;
 
@@ -78,8 +94,9 @@ public class AtlasDAO {
   }
 
   public List<Experiment> getAllPendingExperiments() {
-    // todo - implement job register/load monitor table?
-    return null;
+    List results = template.query(EXPERIMENTS_PENDING_SELECT,
+                                  new ExperimentRowMapper());
+    return (List<Experiment>) results;
   }
 
   public List<Assay> getAssaysByExperimentAccession(
@@ -120,12 +137,31 @@ public class AtlasDAO {
     return (List<String>) results;
   }
 
-  // todo - this should return genes, once model supports them
-  public List<Object> getGenesByExperimentAccession(String exptAccession) {
+  public List<ExpressionAnalytics> getExpressionAnalyticsByGeneID(
+      String geneID) {
+    List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
+                                  new Object[]{geneID},
+                                  new ExpressionAnalyticsMapper());
+    return (List<ExpressionAnalytics>) results;
+  }
+
+  public List<Gene> getAllGenes() {
+    List results = template.query(GENES_SELECT,
+                                  new GeneRowMapper());
+    return (List<Gene>) results;
+  }
+
+  public List<Gene> getAllPendingGenes() {
+    List results = template.query(GENES_PENDING_SELECT,
+                                  new GeneRowMapper());
+    return (List<Gene>) results;
+  }
+
+  public List<Gene> getGenesByExperimentAccession(String exptAccession) {
     List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                                   new Object[]{exptAccession},
                                   new GeneRowMapper());
-    return (List<Object>) results;
+    return (List<Gene>) results;
 
   }
 
@@ -173,11 +209,30 @@ public class AtlasDAO {
     }
   }
 
-  private class GeneRowMapper implements RowMapper {
+  private class ExpressionAnalyticsMapper implements RowMapper {
 
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-      // todo - this should map to Genes once they are present in the model
-      return null;
+      ExpressionAnalytics ea = new ExpressionAnalytics();
+
+      ea.setEfName(resultSet.getString(1));
+      ea.setEfvName(resultSet.getString(2));
+      ea.setExperimentID(resultSet.getLong(3));
+      ea.setPValAdjusted(resultSet.getDouble(4));
+
+      return ea;
+    }
+  }
+
+  private class GeneRowMapper implements RowMapper {
+    public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
+      Gene gene = new Gene();
+
+      gene.setGeneID(resultSet.getString(1));
+      gene.setIdentifier(resultSet.getString(2));
+      gene.setName(resultSet.getString(3));
+      gene.setSpecies(resultSet.getString(4));
+
+      return gene;
     }
   }
 }

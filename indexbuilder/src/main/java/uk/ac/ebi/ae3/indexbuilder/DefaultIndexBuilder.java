@@ -12,7 +12,10 @@ import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.sql.DataSource;
-import java.io.File;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,8 +100,24 @@ public class DefaultIndexBuilder
     AtlasDAO dao = new AtlasDAO();
     dao.setJdbcTemplate(template);
 
-    // first, create a solr CoreContainer
+    // check for the presence of the index
     File solr = new File(indexLocation, "solr.xml");
+    if (!solr.exists()) {
+      // no prior index, check the directory is empty?
+      if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
+        String message = "Unable to unpack solr configuration files - " +
+            indexLocation.getAbsolutePath() + " is not empty. " +
+            "Please choose an empty directory to create the index";
+        log.error(message);
+        throw new IndexBuilderException(message);
+      }
+      else {
+        // unpack configuration files
+        unpackAtlasIndexTemplate(indexLocation);
+      }
+    }
+
+    // first, create a solr CoreContainer
     coreContainer = new CoreContainer();
     coreContainer.load(indexLocation.getAbsolutePath(), solr);
 
@@ -121,7 +140,7 @@ public class DefaultIndexBuilder
     log.info("Started IndexBuilder: " +
         "Building for " +
         (experiments ? "experiments" : "") +
-        (experiments && genes ? " and genes" : "") +", pending mode " +
+        (experiments && genes ? " and genes" : "") + ", pending mode " +
         (pending ? "ON" : "OFF"));
   }
 
@@ -158,13 +177,17 @@ public class DefaultIndexBuilder
     if (experiments) {
       service.submit(new Callable<Boolean>() {
         public Boolean call() throws Exception {
-          log.info("Building experiments index");
+          log.info("Starting building of experiments index");
 
+          long start = System.currentTimeMillis();
           exptIndexBuilder.setPendingOnly(pending);
           exptIndexBuilder.setUpdateMode(updateMode);
           exptIndexBuilder.buildIndex();
+          long end = System.currentTimeMillis();
+          String total = new DecimalFormat("#.##").format((end-start)/1000);
 
           // todo - post some alerts when this finishes?
+          log.info("Successfully built experiments index in " + total + "s.");
 
           return true;
         }
@@ -174,16 +197,140 @@ public class DefaultIndexBuilder
     if (genes) {
       service.submit(new Callable<Boolean>() {
         public Boolean call() throws Exception {
-          log.info("Building atlas gene index");
+          log.info("Starting building of atlas gene index");
 
+          long start = System.currentTimeMillis();
           geneIndexBuilder.setUpdateMode(updateMode);
           geneIndexBuilder.buildIndex();
+          long end = System.currentTimeMillis();
+          String total = new DecimalFormat("#.##").format((end-start)/1000);
 
           // todo - post some alerts when this finishes?
+          log.info("Successfully built atlas index in " + total + "s.");
 
           return true;
         }
       });
     }
+  }
+
+  /**
+   * This method bootstraps an empty atlas index when starting an indexbuilder
+   * from scratch.  Use this is the index could not be found, and you should get
+   * a ready-to-build index with all required config files
+   *
+   * @param indexLocation the location in which to build the index
+   * @throws IOException if the resources could not be written
+   */
+  private void unpackAtlasIndexTemplate(File indexLocation) throws IOException {
+    // configure a list of resources we need from the indexbuilder jar
+    Map<String, File> resourceMap = new HashMap<String, File>();
+    resourceMap.put("solr/solr.xml",
+                    new File(indexLocation,
+                             "solr.xml"));
+    resourceMap.put("solr/atlas/conf/scripts.conf",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "scripts.conf"));
+    resourceMap.put("solr/atlas/conf/admin-extra.html",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "admin-extra.html"));
+    resourceMap.put("solr/atlas/conf/protwords.txt",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "protwords.txt"));
+    resourceMap.put("solr/atlas/conf/stopwords.txt",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "stopwords.txt"));
+    resourceMap.put("solr/atlas/conf/synonyms.txt",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "synonyms.txt"));
+    resourceMap.put("solr/atlas/conf/schema.xml",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "schema.xml"));
+    resourceMap.put("solr/atlas/conf/solrconfig.xml",
+                    new File(indexLocation,
+                             "atlas" + File.separator + "conf" +
+                                 File.separator + "solrconfig.xml"));
+    resourceMap.put("solr/expt/conf/scripts.conf",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "scripts.conf"));
+    resourceMap.put("solr/expt/conf/admin-extra.html",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "admin-extra.html"));
+    resourceMap.put("solr/expt/conf/protwords.txt",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "protwords.txt"));
+    resourceMap.put("solr/expt/conf/stopwords.txt",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "stopwords.txt"));
+    resourceMap.put("solr/expt/conf/synonyms.txt",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "synonyms.txt"));
+    resourceMap.put("solr/expt/conf/schema.xml",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "schema.xml"));
+    resourceMap.put("solr/expt/conf/solrconfig.xml",
+                    new File(indexLocation,
+                             "expt" + File.separator + "conf" +
+                                 File.separator + "solrconfig.xml"));
+
+    // write out these resources
+    for (String resourceName : resourceMap.keySet()) {
+      writeResourceToFile(resourceName, resourceMap.get(resourceName));
+    }
+  }
+
+  /**
+   * Writes a classpath resource to a file in the specified location.  You
+   * should not use this to overwrite files - if you attempt this, an
+   * IOException will be thrown.  Also note that an IOException is thrown if the
+   * file you specify is in a new directory and the parent directories required
+   * could not be created.
+   *
+   * @param resourceName the name of the classpath resource to copy
+   * @param file         the file to write the classpath resource to
+   * @throws IOException if the resource could not properly be written out, or
+   *                     if the file already exists
+   */
+  private void writeResourceToFile(String resourceName, File file)
+      throws IOException {
+    // make all parent dirs necessary if they don't exist
+    if (!file.getParentFile().exists()) {
+      if (!file.getParentFile().mkdirs()) {
+        throw new IOException("Unable to make index directory " +
+            file.getParentFile() + ", do you have permission to write here?");
+      }
+    }
+
+    // check the resource we're attempting to write doesn't exist
+    if (file.exists()) {
+      throw new IOException("The file " + file + " already exists - you " +
+          "should not attempt to overwrite an existing index.  If you wish " +
+          "to replace this index, please backup or delete the old one first");
+    }
+
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                resourceName)));
+    BufferedWriter writer =
+        new BufferedWriter(new FileWriter(file));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      writer.write(line + "\n");
+    }
+    reader.close();
+    writer.close();
   }
 }

@@ -2,6 +2,8 @@ package uk.ac.ebi.microarray.atlas.loader;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,19 +22,29 @@ public class LoaderDriver {
 
     // get the url to our file to load
     try {
-//      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
-      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-1/E-PFIZ-1.idf.txt");
+      URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
 
       // run the loader
-      AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");
+//      AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");
+//      long start = System.currentTimeMillis();
+//      boolean success = loader.load(url);
+//      long end = System.currentTimeMillis();
 
+      // run the index builder
+      IndexBuilder builder = (IndexBuilder)factory.getBean("indexBuilder");
       long start = System.currentTimeMillis();
-      boolean success = loader.load(url);
+      try {
+        builder.buildIndex();
+      }
+      catch (IndexBuilderException e) {
+        e.printStackTrace();
+      }
       long end = System.currentTimeMillis();
 
       String total = new DecimalFormat("#.##").format((end-start)/1000);
 
-      System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+//      System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+      System.out.println("Building index started after " + total + "s.");
     }
     catch (MalformedURLException e) {
       System.err.println("Failed to load- invalid URL");

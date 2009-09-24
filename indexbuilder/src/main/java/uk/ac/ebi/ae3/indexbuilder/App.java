@@ -109,7 +109,6 @@ public class App
 		try
 		{
 			App app = new App();
-			//TODO: Add exception to parse method
             if(app.parse(args)) {
                 app.startContext();
                 app.run();

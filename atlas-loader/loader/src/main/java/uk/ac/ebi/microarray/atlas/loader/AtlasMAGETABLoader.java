@@ -29,9 +29,9 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.sql.DataSource;
@@ -116,7 +116,8 @@ public class AtlasMAGETABLoader {
         }
 
         // log the error
-        // todo: this should go to a different log stream, part of loader report
+        // todo: this should go to a different log stream, part of loader report -
+        // probably should dynamically creating an appender that writes to the magetab directory
         log.error(
             "Parser reported:\n\t" +
                 item.getErrorCode() + ": " + message + "\n\t\t- " +

@@ -1,17 +1,17 @@
 package ae3.service.compute;
 
-import org.junit.Before;
+import ds.server.SimilarityResultSet;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Before;
 import org.junit.Test;
-import org.kchine.r.RNumeric;
 import org.kchine.r.RDataFrame;
+import org.kchine.r.RNumeric;
 import org.kchine.r.server.RServices;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
-import static org.junit.Assert.*;
-import ds.server.SimilarityResultSet;
 
 
 /**
@@ -38,7 +38,7 @@ public class AtlasComputeServiceTest {
             public RNumeric compute(RServices R) throws RemoteException {
                 RNumeric i = (RNumeric) R.getObject("1 + 3");
 
-                return i;
+                return i
             }
         };
 

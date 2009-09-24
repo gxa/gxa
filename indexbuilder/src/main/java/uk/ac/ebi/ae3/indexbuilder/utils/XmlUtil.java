@@ -22,9 +22,7 @@ import java.util.logging.Logger;
 public class XmlUtil
 {
 	private static final Logger log = Logger.getLogger(XmlUtil.class.getName());
-	/**
-	 * TODO: Method does not complete
-	 */
+
   @Deprecated
 	public static String createElement(SolrDocument doc)
 	{

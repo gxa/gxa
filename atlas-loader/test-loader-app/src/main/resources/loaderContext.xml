@@ -5,14 +5,29 @@
 
   <bean id="atlasLoader"
         class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
-    <property name="dataSource" ref="dataSource" />
+    <property name="dataSource" ref="atlasDataSource" />
   </bean>
 
-  <bean id="dataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+  <bean id="atlasDataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
     <property name="driverClassName" value="oracle.jdbc.OracleDriver" />
     <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT" />
     <property name="username" value="atlas2" />
     <property name="password" value="atlas2" />
     <property name="autoCommit" value="false" />
+  </bean>
+
+  <bean id="atlasIndex" class="java.io.File">
+    <constructor-arg value="/home/tburdett/atlas/index" />
+  </bean>
+
+  <!-- Requires an Index Builder -->
+  <bean name="indexBuilder"
+        class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+    <!-- resource beans -->
+    <property name="atlasDataSource" ref="atlasDataSource" />
+    <property name="indexLocation" ref="atlasIndex" />
+    <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
+    <property name="includeGenes" value="false" />
+    <property name="includeExperiments" value="true" />
   </bean>
 </beans>

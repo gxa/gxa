@@ -19,7 +19,7 @@
     <requiredProperty key="groupId" />
     <requiredProperty key="artifactId" />
     <requiredProperty key="version" />
-    <!-- todo: atlas properties? -->
+    <!-- atlas specific properties? -->
     <requiredProperty key="atlasDatasourceURL" />
     <requiredProperty key="atlasUser" />
     <requiredProperty key="atlasPassword" />

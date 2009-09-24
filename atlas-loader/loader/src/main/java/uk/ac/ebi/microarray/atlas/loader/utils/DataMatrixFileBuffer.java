@@ -194,7 +194,7 @@ public class DataMatrixFileBuffer {
                     ev.setValue(evFloatValue);
 
                     // finished reading, store in buffer...
-                    // fixme: may want to remove this, if we suffer on memory it's better to reread
+                    // fixme: we may want to remove this, if we suffer on memory here it's better to reread instead of buffer
                     assayRefToEVs.get(assayRef).add(ev);
                     // and now add to result map
                     result.get(assayRef).add(ev);

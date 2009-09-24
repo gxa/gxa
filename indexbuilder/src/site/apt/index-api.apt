@@ -21,7 +21,7 @@ The Atlas IndexBuilder API
         class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
     <!-- resource beans -->
     <property name="atlasDataSource" ref="atlasDatasource" />
-    <property name="indexLocation" value="atlasIndex" />
+    <property name="indexLocation" ref="atlasIndex" />
     <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
     <property name="includeGenes" value="true" />
     <property name="includeExperiments" value="true" />
