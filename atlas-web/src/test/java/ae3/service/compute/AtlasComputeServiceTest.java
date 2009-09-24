@@ -38,7 +38,7 @@ public class AtlasComputeServiceTest {
             public RNumeric compute(RServices R) throws RemoteException {
                 RNumeric i = (RNumeric) R.getObject("1 + 3");
 
-                return i
+                return i;
             }
         };
 
