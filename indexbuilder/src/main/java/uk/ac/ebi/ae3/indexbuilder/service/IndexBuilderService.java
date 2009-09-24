@@ -19,8 +19,8 @@ import java.io.IOException;
  * that clients should use to construct the different types of index in a
  * consistent manner.  Implementing classes have access to an {@link
  * org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the
- * index, and an {@link AtlasDAO} that provides interaction with the Atlas
- * database (following an Atlas 2 schema).
+ * index, and an {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that provides
+ * interaction with the Atlas database (following an Atlas 2 schema).
  * <p/>
  * All implementing classes should implement the method {@link
  * #createIndexDocs()} which contains the logic for constructing the relevant

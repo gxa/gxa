@@ -39,7 +39,7 @@ public class AtlasLoadingInvestigationTitleHandler
                   501,
                   this.getClass());
 
-      throw new ObjectConversionException(error);
+      throw new ObjectConversionException(error, true);
     }
   }
 }

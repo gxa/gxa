@@ -77,7 +77,7 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
                       999,
                       this.getClass());
 
-          throw new ObjectConversionException(error);
+          throw new ObjectConversionException(error, true);
         }
       }
     }
@@ -94,7 +94,7 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
                   501,
                   this.getClass());
 
-      throw new ObjectConversionException(error);
+      throw new ObjectConversionException(error, true);
     }
   }
 

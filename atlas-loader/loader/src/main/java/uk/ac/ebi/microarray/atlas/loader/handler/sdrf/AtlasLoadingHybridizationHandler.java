@@ -2,9 +2,9 @@ package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDesignNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDesignNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
@@ -13,8 +13,8 @@ import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A dedicated handler for creating assay objects and storing them in the
@@ -58,7 +58,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                         1018,
                         this.getClass());
 
-            throw new ObjectConversionException(error);
+            throw new ObjectConversionException(error, true);
           }
           else {
             // only one, so set the accession
@@ -89,7 +89,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                       999,
                       this.getClass());
 
-          throw new ObjectConversionException(error);
+          throw new ObjectConversionException(error, true);
         }
       }
     }
@@ -106,7 +106,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                   501,
                   this.getClass());
 
-      throw new ObjectConversionException(error);
+      throw new ObjectConversionException(error, true);
     }
   }
 }

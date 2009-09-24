@@ -60,7 +60,7 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
                         1018,
                         this.getClass());
 
-            throw new ObjectConversionException(error);
+            throw new ObjectConversionException(error, true);
           }
           else {
             // only one, so set the accession
@@ -91,7 +91,7 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
                       999,
                       this.getClass());
 
-          throw new ObjectConversionException(error);
+          throw new ObjectConversionException(error, true);
         }
       }
     }
@@ -108,7 +108,7 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
                   501,
                   this.getClass());
 
-      throw new ObjectConversionException(error);
+      throw new ObjectConversionException(error, true);
     }
   }
 }

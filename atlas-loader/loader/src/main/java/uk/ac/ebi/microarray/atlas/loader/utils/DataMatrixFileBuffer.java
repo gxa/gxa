@@ -221,7 +221,7 @@ public class DataMatrixFileBuffer {
                   1023,
                   this.getClass());
 
-      throw new ParseException(error);
+      throw new ParseException(error, true);
     }
     finally {
       try {
@@ -301,7 +301,7 @@ public class DataMatrixFileBuffer {
                             601,
                             this.getClass());
 
-                initFailed = new ParseException(error);
+                initFailed = new ParseException(error, true);
                 initFailed.printStackTrace();
                 return;
               }
@@ -327,7 +327,7 @@ public class DataMatrixFileBuffer {
                             601,
                             this.getClass());
 
-                initFailed = new ParseException(error);
+                initFailed = new ParseException(error, true);
                 initFailed.printStackTrace();
                 return;
 
@@ -351,7 +351,7 @@ public class DataMatrixFileBuffer {
                         1023,
                         this.getClass());
 
-            initFailed = new ParseException(error);
+            initFailed = new ParseException(error, true);
             e.printStackTrace();
           }
           finally {
@@ -420,7 +420,7 @@ public class DataMatrixFileBuffer {
                   1023,
                   this.getClass());
 
-      throw new ParseException(error);
+      throw new ParseException(error, true);
     }
     // check first column of hybRefs should be "hybridizationref" (i.e. the title)
     String title = MAGETABUtils.digestHeader(hybRefs[0]);
@@ -438,7 +438,7 @@ public class DataMatrixFileBuffer {
                   1023,
                   this.getClass());
 
-      throw new ParseException(error);
+      throw new ParseException(error, true);
     }
     // check our list of headers has size = 2
     if (lines.size() != 2) {
@@ -455,7 +455,7 @@ public class DataMatrixFileBuffer {
                   1023,
                   this.getClass());
 
-      throw new ParseException(error);
+      throw new ParseException(error, true);
     }
 
     log.debug("Integrity checks passed, two header lines with expected " +

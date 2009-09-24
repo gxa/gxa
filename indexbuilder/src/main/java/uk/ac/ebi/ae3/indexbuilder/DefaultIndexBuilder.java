@@ -13,6 +13,10 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.sql.DataSource;
 import java.io.File;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A default implementation of {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder}
@@ -24,6 +28,7 @@ import java.io.File;
  */
 public class DefaultIndexBuilder
     implements IndexBuilder<File>, InitializingBean {
+  // these are spring managed fields
   private DataSource dataSource;
   private File indexLocation;
 
@@ -31,9 +36,12 @@ public class DefaultIndexBuilder
   private boolean experiments = true;
   private boolean pending = false;
 
+  // these are initialised by this bean, not spring managed
   private CoreContainer coreContainer;
   private IndexBuilderService geneIndexBuilder;
   private IndexBuilderService exptIndexBuilder;
+
+  private ExecutorService service;
 
   // logging
   private static final Logger log =
@@ -105,15 +113,20 @@ public class DefaultIndexBuilder
     exptIndexBuilder = new ExperimentAtlasIndexBuilder(dao, atlasServer);
 
     // finally, create an executor service for processing calls to build the index
-    // todo - create a service so that index building is parallelised
+    service = Executors.newCachedThreadPool();
   }
 
-  public void buildIndex() throws IndexBuilderException {
-    runIndexBuild(false);
+  public void buildIndex() {
+    startIndexBuild(false);
+    log.info("Started IndexBuilder: " +
+        "Building for " +
+        (experiments ? "experiments" : "") +
+        (experiments && genes ? " and genes" : "") +", pending mode " +
+        (pending ? "ON" : "OFF"));
   }
 
-  public void updateIndex() throws IndexBuilderException {
-    runIndexBuild(true);
+  public void updateIndex() {
+    startIndexBuild(true);
   }
 
   /**
@@ -123,10 +136,19 @@ public class DefaultIndexBuilder
    * exits the application).
    */
   public void shutdownIndex() {
+    service.shutdown();
+    try {
+      service.awaitTermination(5, TimeUnit.MINUTES);
+    }
+    catch (InterruptedException e) {
+      log.error("Unable to shutdown service, there may be suspended " +
+          "IndexBuilder tasks.  This is a non-recoverable error - you should " +
+          "terminate this application");
+    }
     coreContainer.shutdown();
   }
 
-  private void runIndexBuild(boolean updateMode) throws IndexBuilderException {
+  private void startIndexBuild(final boolean updateMode) {
     log.info("Will build indexes: " +
         (experiments ? "experiments " : "") +
         (genes ? "gene" : "") +
@@ -134,19 +156,34 @@ public class DefaultIndexBuilder
         (pending ? "(only pending experiments)" : ""));
 
     if (experiments) {
-      log.info("Building experiments index");
+      service.submit(new Callable<Boolean>() {
+        public Boolean call() throws Exception {
+          log.info("Building experiments index");
 
-      exptIndexBuilder.setPendingOnly(pending);
-      exptIndexBuilder.setUpdateMode(updateMode);
-      exptIndexBuilder.buildIndex();
+          exptIndexBuilder.setPendingOnly(pending);
+          exptIndexBuilder.setUpdateMode(updateMode);
+          exptIndexBuilder.buildIndex();
+
+          // todo - post some alerts when this finishes?
+
+          return true;
+        }
+      });
     }
 
-
     if (genes) {
-      log.info("Building atlas gene index");
+      service.submit(new Callable<Boolean>() {
+        public Boolean call() throws Exception {
+          log.info("Building atlas gene index");
 
-      geneIndexBuilder.setUpdateMode(updateMode);
-      geneIndexBuilder.buildIndex();
+          geneIndexBuilder.setUpdateMode(updateMode);
+          geneIndexBuilder.buildIndex();
+
+          // todo - post some alerts when this finishes?
+
+          return true;
+        }
+      });
     }
   }
 }

@@ -124,7 +124,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                             1023,
                             this.getClass());
 
-                throw new ObjectConversionException(error);
+                throw new ObjectConversionException(error, true);
               }
               evCount = evs.size();
             }
@@ -145,12 +145,12 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                         1023,
                         this.getClass());
 
-            throw new ObjectConversionException(error);
+            throw new ObjectConversionException(error, true);
           }
           catch (ParseException e) {
             getLog().error("Could not create ExpressionValue items, due to " +
                 "failure to read from " + dataMatrixURL);
-            throw new ObjectConversionException(e.getErrorItem(), e);
+            throw new ObjectConversionException(e.getErrorItem(), true, e);
           }
         }
         else {
@@ -166,7 +166,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                       999,
                       this.getClass());
 
-          throw new ObjectConversionException(error);
+          throw new ObjectConversionException(error, true);
         }
       }
     }
@@ -183,7 +183,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                   501,
                   this.getClass());
 
-      throw new ObjectConversionException(error);
+      throw new ObjectConversionException(error, true);
     }
   }
 

@@ -1,0 +1,74 @@
+ -----
+ Atlas IndexBuilder
+ -----
+ Tony Burdett
+ -----
+ 24/09/2009
+ -----
+
+The Atlas IndexBuilder API
+
+ The IndexBuilder is optimised for use by spring driven applications.  If you
+ use spring, you can quickly and easily get an index builder working - you just
+ need to declare an atlas datasource bean (pointing to your Atlas-schema
+ database) and an index location bean (that points to a directory on the local
+ filesystem where the index will be built).
+
+ Your configuration should look something like this:
+
+--------
+  <bean name="indexBuilder"
+        class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+    <!-- resource beans -->
+    <property name="atlasDataSource" ref="atlasDatasource" />
+    <property name="indexLocation" value="atlasIndex" />
+    <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
+    <property name="includeGenes" value="true" />
+    <property name="includeExperiments" value="true" />
+  </bean>
+--------
+
+ The first part of this declaration indicates the resources the indexBuilder
+ bean will use, as mentioned above.  The second part configures the behaviour of
+ the indexBuilder.
+
+ * IndexBuilder Behaviour
+
+ The IndexBuilder can be set up to build an index of experiment-driven
+ information, gene-driven information, or both.  The experiment-driven index
+ optimises queries by experiment, and the gene-driven index is optimised for
+ queries by gene.  The situation shown above is the default - so genes and
+ experiments are included by default.  In fact, the property declarations for
+ "includeGenes" and "includeExperiments" in this case aren't even required,
+ they're included for the sake of completeness. However, you should include
+ them if you want to override the default behaviour.
+
+ * IndexBuilder Resources
+
+ In the above examples, this assumes the beans "atlasDatasource" and
+ "atlasIndex" are declared elsewhere in this configuration file.  In the Atlas
+ web application, this is done by a JNDI lookup from the container context, but
+ it would be straightforward to declare these beans directly.  You could use
+ something like...
+
+--------
+  <bean id="atlasDatasource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+    <property name="driverClassName" value="my.jdbc.Driver" />
+    <property name="url" value="jdbc:dbms://my.hostname/my.db" />
+    <property name="username" value="user" />
+    <property name="password" value="password" />
+    <property name="autoCommit" value="false" />
+  </bean>
+--------
+
+ and
+
+--------
+  <bean id="atlasIndex" class="java.io.File">
+    <constructor-arg value="/path/to/my/indexdir" />
+  </bean>
+--------
+
+ Obviously, you can use any datasource class that implements java.sql.DataSource.
+ You don't have to use the spring SingleConnectionDataSource class, this is just
+ an example.

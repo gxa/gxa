@@ -1,0 +1,15 @@
+ -----
+ Atlas IndexBuilder
+ -----
+ Tony Burdett
+ -----
+ 24/09/2009
+ -----
+
+The Atlas IndexBuilder Schema
+
+ // TODO!
+
+ Experiments part of the index - contains experiment, then assay property/property values and sample property/property values/
+
+ Genes part of the index?

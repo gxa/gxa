@@ -53,49 +53,6 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     efo = Efo.getEfo();
   }
 
-  private static short shorten(double d) {
-    d = d * 256;
-    if (d > Short.MAX_VALUE) {
-      return Short.MAX_VALUE;
-    }
-    if (d < Short.MIN_VALUE) {
-      return Short.MIN_VALUE;
-    }
-    return (short) d;
-  }
-
-  private class UpDnSet {
-    Set<Long> up = new HashSet<Long>();
-    Set<Long> dn = new HashSet<Long>();
-    Set<Long> childrenUp = new HashSet<Long>();
-    Set<Long> childrenDn = new HashSet<Long>();
-    boolean processed = false;
-    double minpvalUp = 1;
-    double minpvalDn = 1;
-    double minpvalChildrenUp = 1;
-    double minpvalChildrenDn = 1;
-
-    void addChild(UpDnSet child) {
-      childrenUp.addAll(child.childrenUp);
-      childrenDn.addAll(child.childrenDn);
-      childrenUp.addAll(child.up);
-      childrenDn.addAll(child.dn);
-      minpvalChildrenDn =
-          Math.min(Math.min(minpvalChildrenDn, child.minpvalChildrenDn),
-                   child.minpvalDn);
-      minpvalChildrenUp =
-          Math.min(Math.min(minpvalChildrenUp, child.minpvalChildrenUp),
-                   child.minpvalUp);
-    }
-  }
-
-  private class UpDn {
-    int cup = 0;
-    int cdn = 0;
-    double pup = 1;
-    double pdn = 1;
-  }
-
   protected void createIndexDocs() throws IndexBuilderException {
     try {
       loadEfoMapping();
@@ -497,5 +454,48 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     ontomapStmt.close();
 
     log.info("Ontology mappings loaded");
+  }
+
+  private short shorten(double d) {
+    d = d * 256;
+    if (d > Short.MAX_VALUE) {
+      return Short.MAX_VALUE;
+    }
+    if (d < Short.MIN_VALUE) {
+      return Short.MIN_VALUE;
+    }
+    return (short) d;
+  }
+
+  private class UpDnSet {
+    Set<Long> up = new HashSet<Long>();
+    Set<Long> dn = new HashSet<Long>();
+    Set<Long> childrenUp = new HashSet<Long>();
+    Set<Long> childrenDn = new HashSet<Long>();
+    boolean processed = false;
+    double minpvalUp = 1;
+    double minpvalDn = 1;
+    double minpvalChildrenUp = 1;
+    double minpvalChildrenDn = 1;
+
+    void addChild(UpDnSet child) {
+      childrenUp.addAll(child.childrenUp);
+      childrenDn.addAll(child.childrenDn);
+      childrenUp.addAll(child.up);
+      childrenDn.addAll(child.dn);
+      minpvalChildrenDn =
+          Math.min(Math.min(minpvalChildrenDn, child.minpvalChildrenDn),
+                   child.minpvalDn);
+      minpvalChildrenUp =
+          Math.min(Math.min(minpvalChildrenUp, child.minpvalChildrenUp),
+                   child.minpvalUp);
+    }
+  }
+
+  private class UpDn {
+    int cup = 0;
+    int cdn = 0;
+    double pup = 1;
+    double pdn = 1;
   }
 }
