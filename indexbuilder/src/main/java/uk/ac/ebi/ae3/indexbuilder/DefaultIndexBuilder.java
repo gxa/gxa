@@ -13,7 +13,6 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.sql.DataSource;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -123,13 +122,13 @@ public class DefaultIndexBuilder
 
     // create an embedded solr server for experiments and genes from this container
     EmbeddedSolrServer exptServer =
-        new EmbeddedSolrServer(coreContainer, "experiments");
+        new EmbeddedSolrServer(coreContainer, "expt");
     EmbeddedSolrServer atlasServer =
         new EmbeddedSolrServer(coreContainer, "atlas");
 
     // create IndexBuilderServices for genes (atlas) and experiments
-    geneIndexBuilder = new GeneAtlasIndexBuilder(dao, exptServer);
-    exptIndexBuilder = new ExperimentAtlasIndexBuilder(dao, atlasServer);
+    exptIndexBuilder = new ExperimentAtlasIndexBuilder(dao, exptServer);
+    geneIndexBuilder = new GeneAtlasIndexBuilder(dao, atlasServer);
 
     // finally, create an executor service for processing calls to build the index
     service = Executors.newCachedThreadPool();
@@ -170,24 +169,19 @@ public class DefaultIndexBuilder
   private void startIndexBuild(final boolean updateMode) {
     log.info("Will build indexes: " +
         (experiments ? "experiments " : "") +
-        (genes ? "gene" : "") +
-        (updateMode ? " (update mode)" : "") +
-        (pending ? "(only pending experiments)" : ""));
+        (experiments && genes ? " and " : "") +
+        (genes ? "atlas " : "") +
+        (updateMode ? "(update mode) " : "") +
+        (pending ? "(only pending experiments) " : ""));
 
     if (experiments) {
       service.submit(new Callable<Boolean>() {
         public Boolean call() throws Exception {
           log.info("Starting building of experiments index");
 
-          long start = System.currentTimeMillis();
           exptIndexBuilder.setPendingOnly(pending);
           exptIndexBuilder.setUpdateMode(updateMode);
           exptIndexBuilder.buildIndex();
-          long end = System.currentTimeMillis();
-          String total = new DecimalFormat("#.##").format((end-start)/1000);
-
-          // todo - post some alerts when this finishes?
-          log.info("Successfully built experiments index in " + total + "s.");
 
           return true;
         }
@@ -199,14 +193,8 @@ public class DefaultIndexBuilder
         public Boolean call() throws Exception {
           log.info("Starting building of atlas gene index");
 
-          long start = System.currentTimeMillis();
           geneIndexBuilder.setUpdateMode(updateMode);
           geneIndexBuilder.buildIndex();
-          long end = System.currentTimeMillis();
-          String total = new DecimalFormat("#.##").format((end-start)/1000);
-
-          // todo - post some alerts when this finishes?
-          log.info("Successfully built atlas index in " + total + "s.");
 
           return true;
         }

@@ -13,10 +13,9 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the
@@ -34,71 +33,104 @@ public class ExperimentAtlasIndexBuilder extends IndexBuilderService {
   }
 
   protected void createIndexDocs() throws IndexBuilderException {
-    try {
-      // do initial setup - build executor service
-      ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+    // do initial setup - build executor service
+    ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
-      // fetch experiments - check if we want all or only the pending ones
-      List<Experiment> experiments = getPendingOnly()
-          ? getAtlasDAO().getAllPendingExperiments()
-          : getAtlasDAO().getAllExperiments();
+    // fetch experiments - check if we want all or only the pending ones
+    List<Experiment> experiments = getPendingOnly()
+        ? getAtlasDAO().getAllPendingExperiments()
+        : getAtlasDAO().getAllExperiments();
 
-      for (final Experiment experiment : experiments) {
-        tpool.submit(new Callable<UpdateResponse>() {
-          public UpdateResponse call() throws IOException, SolrServerException {
-            // Create a new solr document
-            SolrInputDocument solrInputDoc = new SolrInputDocument();
+    // the list of futures - we need these so we can block until completion
+    List<Future<UpdateResponse>> tasks =
+        new ArrayList<Future<UpdateResponse>>();
 
-            // Add field "exp_in_dw" = true, to show this experiment is present
-            getLog().debug(
-                "Updating index - experiment " + experiment.getAccession() +
-                    " is in DB");
-            solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+    for (final Experiment experiment : experiments) {
+      tasks.add(tpool.submit(new Callable<UpdateResponse>() {
+        public UpdateResponse call() throws IOException, SolrServerException {
+          // Create a new solr document
+          SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-            // now, fetch assays for this experiment
-            List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(
-                experiment.getAccession());
-            for (Assay assay : assays) {
-              // get assay properties and values
-              for (Property prop : assay.getProperties()) {
+          // Add field "exp_in_dw" = true, to show this experiment is present
+          getLog().info(
+              "Updating index - experiment " + experiment.getAccession() +
+                  " is in DB");
+          solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+          solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
+                                experiment.getExperimentID());
+
+          // now, fetch assays for this experiment
+          List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(
+              experiment.getAccession());
+          if (assays.size() == 0) {
+            getLog().warn(
+                "No assays present for " + experiment.getAccession());
+          }
+
+          for (Assay assay : assays) {
+            // get assay properties and values
+            for (Property prop : assay.getProperties()) {
+              String p = prop.getName();
+              String pv = prop.getValue();
+
+              getLog().info(
+                  "Updating index, assay property " + p + " = " + pv);
+              solrInputDoc.addField(Constants.PREFIX_DWE + p,
+                                    pv); // fixme: format of property names in index?
+            }
+
+            // now get samples
+            List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(
+                assay.getAccession());
+            if (samples.size() == 0) {
+              getLog().warn(
+                  "No samples present for assay " + assay.getAccession());
+            }
+
+            for (Sample sample : samples) {
+              // get sample properties and values
+              for (Property prop : sample.getProperties()) {
                 String p = prop.getName();
                 String pv = prop.getValue();
 
-                getLog()
-                    .debug("Updating index, assay property " + p + " = " + pv);
-                solrInputDoc.addField(Constants.PREFIX_DWE + p, pv); // fixme: format of property names in index?
-              }
-
-              // now get samples
-              List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(
-                  assay.getAccession());
-              for (Sample sample : samples) {
-                // get sample properties and values
-                for (Property prop : sample.getProperties()) {
-                  String p = prop.getName();
-                  String pv = prop.getValue();
-
-                  getLog().debug(
-                      "Updating index, sample property " + p + " = " + pv);
-                  solrInputDoc.addField(Constants.PREFIX_DWE + p, pv); // fixme: format of property names in index?
-                }
+                getLog().info(
+                    "Updating index, sample property " + p + " = " + pv);
+                solrInputDoc.addField(Constants.PREFIX_DWE + p,
+                                      pv); // fixme: format of property names in index?
               }
             }
-
-            // todo - in old index builder, we'd do some stuff for genes here...
-            // is this still valid? or do we use GeneAtlasIndexBuilder for that?
-
-
-            // finally, add the document to the index
-            getLog().debug("Finalising changes for " +
-                experiment.getAccession());
-            return getSolrServer().add(solrInputDoc);
           }
-        });
-      }
+
+          // todo - in old index builder, we'd do some stuff for genes here...
+          // is this still valid? or do we use GeneAtlasIndexBuilder for that?
+
+
+          // finally, add the document to the index
+          getLog().info("Finalising changes for " +
+              experiment.getAccession());
+          return getSolrServer().add(solrInputDoc);
+        }
+      }));
     }
-    catch (Exception e) {
-      throw new IndexBuilderException(e);
+
+    // block until completion, and throw any errors
+    for (Future<UpdateResponse> task : tasks) {
+      try {
+        task.get();
+      }
+      catch (ExecutionException e) {
+        if (e.getCause() instanceof IndexBuilderException) {
+          throw (IndexBuilderException) e.getCause();
+        }
+        else {
+          throw new IndexBuilderException(
+              "An error occurred updating Experiments SOLR index", e);
+        }
+      }
+      catch (InterruptedException e) {
+        throw new IndexBuilderException(
+            "An error occurred updating Experiments SOLR index", e);
+      }
     }
   }
 }

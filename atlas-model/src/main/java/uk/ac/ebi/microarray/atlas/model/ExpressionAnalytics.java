@@ -10,6 +10,7 @@ public class ExpressionAnalytics {
   private String efName;
   private String efvName;
   private long experimentID;
+  private double tStatistic;
   private double pValAdjusted;
 
   public String getEfName() {
@@ -42,5 +43,13 @@ public class ExpressionAnalytics {
 
   public void setPValAdjusted(double pValAdjusted) {
     this.pValAdjusted = pValAdjusted;
+  }
+
+  public double getTStatistic() {
+    return tStatistic;
+  }
+
+  public void setTStatistic(double tStatistic) {
+    this.tStatistic = tStatistic;
   }
 }

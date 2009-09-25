@@ -19,7 +19,7 @@ import java.util.List;
 public class AtlasDAO {
   // experiment queries
   private static final String EXPERIMENTS_SELECT =
-      "SELECT accession, description, performer, lab " +
+      "SELECT accession, description, performer, lab, experimentid " +
           "FROM a2_experiment";
   private static final String EXPERIMENTS_PENDING_SELECT =
       EXPERIMENTS_SELECT + " " +
@@ -27,6 +27,7 @@ public class AtlasDAO {
   private static final String EXPERIMENT_BY_ACC_SELECT =
       EXPERIMENTS_SELECT + " " +
           "WHERE accession=?";
+
   // gene queries
   private static final String GENES_SELECT =
       "SELECT geneid, identifier, name, species " +
@@ -37,29 +38,81 @@ public class AtlasDAO {
   private static final String GENES_BY_EXPERIMENT_ACCESSION =
       GENES_SELECT + " " +
           "WHERE experiment_id_key=?"; // fixme: linking genes to experiments?
-  // other useful join queries, mostly for property lookups
+  private static final String PROPERTIES_BY_GENEID =
+      "SELECT " +
+          "gp.name AS property, " +
+          "gpv.value AS propertyvalue " +
+          "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
+          "WHERE gpv.genepropertyid=gp.genepropertyid " +
+          "AND gpv.geneid=?";
+
+  // assay queries
   private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
       "SELECT a.accession, a.experimentid, a.arraydesignid " +
-          "FROM a2_assay a, a2_experiment e" +
+          "FROM a2_assay a, a2_experiment e " +
           "WHERE e.experimentid=a.experimentid " +
           "AND e.accession=?";
+  private static final String PROPERTIES_BY_ASSAY_ACCESSION =
+      "SELECT " +
+          "p.name AS property, " +
+          "p.accession, " +
+          "pv.name AS propertyvalue, " +
+          "apv.isfactorvalue " +
+          "FROM " +
+          "a2_property p, " +
+          "a2_propertyvalue pv, " +
+          "a2_assaypropertyvalue apv, " +
+          "a2_assay a " +
+          "WHERE apv.propertyvalueid=pv.propertyvalueid " +
+          "AND pv.propertyid=p.propertyid " +
+          "AND apv.assayid=a.assayid " +
+          "AND a.accession=?";
+
+  // sample queries
   private static final String SAMPLES_BY_ASSAY_ACCESSION =
       "SELECT s.accession, s.species, s.channel " +
           "FROM a2_sample s, a2_assay a, a2_assaysample ass " +
           "WHERE s.sampleid=ass.sampleid " +
           "AND a.assayid=ass.assayid " +
           "AND a.accession=?";
+  private static final String PROPERTIES_BY_SAMPLE_ACCESSION =
+      "SELECT " +
+          "p.name AS property, " +
+          "p.accession, " +
+          "pv.name AS propertyvalue, " +
+          "spv.isfactorvalue " +
+          "FROM " +
+          "a2_property p, " +
+          "a2_propertyvalue pv, " +
+          "a2_samplepropertyvalue spv, " +
+          "a2_sample s " +
+          "WHERE spv.propertyvalueid=pv.propertyvalueid " +
+          "AND pv.propertyid=p.propertyid " +
+          "AND spv.sampleid=s.sampleid " +
+          "AND s.accession=?";
+
+  // other atlas analytics queries
   private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
       "SELECT de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid" +
           "AND ad.accession=?";
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
-      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.pvaladj " +
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat a.pvaladj " +
           "FROM a2_expressionanalytics a " +
           "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
           "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
           "WHERE de.geneid=?";
+  private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME =
+      // fixme - work out the new query, this is for old schema
+      "select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
+          "     LOWER(SUBSTR(oa.orig_value_src,    instr(oa.orig_value_src,    '_',    1,    3) + 1,    instr(oa.orig_value_src,    '__DM',    1,    1) -instr(oa.orig_value_src,    '_',    1,    3) -1)) ef," +
+          "     oa.orig_value AS efv," +
+          "     oa.accession" +
+          "   FROM ontology_annotation oa," +
+          "     ae1__sample__main s" +
+          "   WHERE(s.sample_id_key = oa.sample_id_key OR s.assay_id_key = oa.assay_id_key)" +
+          "   AND oa.ontology_id_key = 575119145) group by experiment_id_key, ef, efv";
 
   private JdbcTemplate template;
 
@@ -69,6 +122,18 @@ public class AtlasDAO {
 
   public void setJdbcTemplate(JdbcTemplate template) {
     this.template = template;
+  }
+
+  public List<Experiment> getAllExperiments() {
+    List results = template.query(EXPERIMENTS_SELECT,
+                                  new ExperimentMapper());
+    return (List<Experiment>) results;
+  }
+
+  public List<Experiment> getAllPendingExperiments() {
+    List results = template.query(EXPERIMENTS_PENDING_SELECT,
+                                  new ExperimentMapper());
+    return (List<Experiment>) results;
   }
 
   /**
@@ -82,21 +147,41 @@ public class AtlasDAO {
   public Experiment getExperimentByAccession(String accession) {
     List results = template.query(EXPERIMENT_BY_ACC_SELECT,
                                   new Object[]{accession},
-                                  new ExperimentRowMapper());
+                                  new ExperimentMapper());
 
     return results.size() > 0 ? (Experiment) results.get(0) : null;
   }
 
-  public List<Experiment> getAllExperiments() {
-    List results = template.query(EXPERIMENTS_SELECT,
-                                  new ExperimentRowMapper());
-    return (List<Experiment>) results;
+  public List<Gene> getAllGenes() {
+    List results = template.query(GENES_SELECT,
+                                  new GeneMapper());
+    return (List<Gene>) results;
   }
 
-  public List<Experiment> getAllPendingExperiments() {
-    List results = template.query(EXPERIMENTS_PENDING_SELECT,
-                                  new ExperimentRowMapper());
-    return (List<Experiment>) results;
+  public List<Gene> getAllPendingGenes() {
+    List results = template.query(GENES_PENDING_SELECT,
+                                  new GeneMapper());
+    return (List<Gene>) results;
+  }
+
+  public List<Gene> getGenesByExperimentAccession(String exptAccession) {
+    List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
+                                  new Object[]{exptAccession},
+                                  new GeneMapper());
+    return (List<Gene>) results;
+
+  }
+
+  public void getPropertiesForGenes(List<Gene> genes) {
+    // also fetch all properties
+    for (Gene gene : genes) {
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List propResults = template.query(PROPERTIES_BY_GENEID,
+                                        new Object[]{gene.getGeneID()},
+                                        new GenePropertyMapper());
+      // and set on assay
+      gene.setProperties(propResults);
+    }
   }
 
   public List<Assay> getAssaysByExperimentAccession(
@@ -105,7 +190,19 @@ public class AtlasDAO {
                                   new Object[]{experimentAccession},
                                   new AssayMapper());
 
-    return (List<Assay>) results;
+    List<Assay> assays = (List<Assay>) results;
+
+    // also fetch all properties
+    for (Assay assay : assays) {
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
+                                        new Object[]{assay.getAccession()},
+                                        new PropertyMapper());
+      // and set on assay
+      assay.setProperties(propResults);
+    }
+
+    return assays;
   }
 
   public List<Sample> getSamplesByAssayAccession(String assayAccession) {
@@ -113,7 +210,18 @@ public class AtlasDAO {
                                   new Object[]{assayAccession},
                                   new SampleMapper());
 
-    return (List<Sample>) results;
+    List<Sample> samples = (List<Sample>) results;
+    // also fetch all properties
+    for (Sample sample : samples) {
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
+                                        new Object[]{sample.getAccession()},
+                                        new PropertyMapper());
+      // and set on assay
+      sample.setProperties(propResults);
+    }
+
+    return samples;
   }
 
   /**
@@ -145,27 +253,15 @@ public class AtlasDAO {
     return (List<ExpressionAnalytics>) results;
   }
 
-  public List<Gene> getAllGenes() {
-    List results = template.query(GENES_SELECT,
-                                  new GeneRowMapper());
-    return (List<Gene>) results;
+  public List<OntologyMapping> getOntologyMappingsForOntology(
+      String ontologyName) {
+    List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME,
+                                  new Object[]{ontologyName},
+                                  new OntologyMappingMapper());
+    return (List<OntologyMapping>) results;
   }
 
-  public List<Gene> getAllPendingGenes() {
-    List results = template.query(GENES_PENDING_SELECT,
-                                  new GeneRowMapper());
-    return (List<Gene>) results;
-  }
-
-  public List<Gene> getGenesByExperimentAccession(String exptAccession) {
-    List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
-                                  new Object[]{exptAccession},
-                                  new GeneRowMapper());
-    return (List<Gene>) results;
-
-  }
-
-  private class ExperimentRowMapper implements RowMapper {
+  private class ExperimentMapper implements RowMapper {
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
       Experiment experiment = new Experiment();
 
@@ -173,8 +269,22 @@ public class AtlasDAO {
       experiment.setDescription(resultSet.getString(2));
       experiment.setPerformer(resultSet.getString(3));
       experiment.setLab(resultSet.getString(4));
+      experiment.setExperimentID(resultSet.getString(5));
 
       return experiment;
+    }
+  }
+
+  private class GeneMapper implements RowMapper {
+    public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
+      Gene gene = new Gene();
+
+      gene.setGeneID(resultSet.getString(1));
+      gene.setIdentifier(resultSet.getString(2));
+      gene.setName(resultSet.getString(3));
+      gene.setSpecies(resultSet.getString(4));
+
+      return gene;
     }
   }
 
@@ -210,29 +320,56 @@ public class AtlasDAO {
   }
 
   private class ExpressionAnalyticsMapper implements RowMapper {
-
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
       ExpressionAnalytics ea = new ExpressionAnalytics();
 
       ea.setEfName(resultSet.getString(1));
       ea.setEfvName(resultSet.getString(2));
       ea.setExperimentID(resultSet.getLong(3));
-      ea.setPValAdjusted(resultSet.getDouble(4));
+      ea.setTStatistic(resultSet.getDouble(4));
+      ea.setPValAdjusted(resultSet.getDouble(5));
 
       return ea;
     }
   }
 
-  private class GeneRowMapper implements RowMapper {
-    public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
-      Gene gene = new Gene();
+  private class OntologyMappingMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+      OntologyMapping mapping = new OntologyMapping();
 
-      gene.setGeneID(resultSet.getString(1));
-      gene.setIdentifier(resultSet.getString(2));
-      gene.setName(resultSet.getString(3));
-      gene.setSpecies(resultSet.getString(4));
+      mapping.setExperimentID(resultSet.getString(1));
+      mapping.setEfName(resultSet.getString(2));
+      mapping.setEfvName(resultSet.getString(3));
+      // quick bit of sugar to reformat single ,/; separated string into an array
+      mapping.setOntologyTermAccessions(resultSet.getString(4).split("[,;]"));
 
-      return gene;
+      return mapping;
+    }
+  }
+
+  private class PropertyMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+      Property property = new Property();
+
+      property.setName(resultSet.getString(1));
+      property.setAccession(resultSet.getString(2));
+      property.setValue(resultSet.getString(3));
+      property.setFactorValue(resultSet.getBoolean(4));
+
+      return property;
+    }
+  }
+
+  private class GenePropertyMapper implements RowMapper {
+
+    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+      Property property = new Property();
+
+      property.setName(resultSet.getString(1));
+      property.setValue(resultSet.getString(2));
+      property.setFactorValue(false);
+
+      return property;
     }
   }
 }

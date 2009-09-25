@@ -9,6 +9,7 @@ public class Experiment {
   private String description;
   private String performer;
   private String lab;
+  private String experimentID;
 
   public String getAccession() {
     return accession;
@@ -40,6 +41,14 @@ public class Experiment {
 
   public void setLab(String lab) {
     this.lab = lab;
+  }
+
+  public String getExperimentID() {
+    return experimentID;
+  }
+
+  public void setExperimentID(String experimentID) {
+    this.experimentID = experimentID;
   }
 
   @Override

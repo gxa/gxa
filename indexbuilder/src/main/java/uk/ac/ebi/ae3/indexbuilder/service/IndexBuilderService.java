@@ -119,7 +119,11 @@ public abstract class IndexBuilderService {
 
   /**
    * Generate the required documents for the SOLR index, as appropriate to this
-   * implementation.
+   * implementation.  This method blocks until all index documents have been
+   * created.
+   * <p/>
+   * Implementations are free to define their own optimization strategy, and it
+   * is acceptable to use asynchronous operations.
    *
    * @throws uk.ac.ebi.ae3.indexbuilder.IndexBuilderException
    *          if there is a problem whilst trying to generate the index
