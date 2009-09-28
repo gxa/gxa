@@ -20,6 +20,10 @@ import java.util.concurrent.*;
 /**
  * An {@link IndexBuilderService} that generates index documents from the
  * experiments in the Atlas database.
+ * <p/>
+ * Note that this implementation does NOT support updates - regardless of
+ * whether the update flag is set to true, this will rebuild the index every
+ * time.
  *
  * @author Tony Burdett
  * @date 22-Sep-2009
@@ -28,7 +32,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
   private static final int NUM_THREADS = 64;
 
   public ExperimentAtlasIndexBuilderService(AtlasDAO atlasDAO,
-                                     EmbeddedSolrServer solrServer) {
+                                            EmbeddedSolrServer solrServer) {
     super(atlasDAO, solrServer);
   }
 

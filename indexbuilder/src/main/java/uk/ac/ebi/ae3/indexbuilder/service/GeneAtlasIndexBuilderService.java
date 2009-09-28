@@ -20,7 +20,21 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
-
+/**
+ * An {@link IndexBuilderService} that generates index documents from the genes
+ * in the Atlas database, and enriches the data with expression values, links to
+ * EFO and other useful measurements.
+ * <p/>
+ * This is a heavily modified version of an original class first adapted to
+ * Atlas purposes by Pavel Kurnosov.
+ * <p/>
+ * Note that this implementation does NOT support updates - regardless of
+ * whether the update flag is set to true, this will rebuild the index every
+ * time.
+ *
+ * @author Tony Burdett
+ * @date 22-Sep-2009
+ */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -30,7 +44,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
   private Efo efo;
 
   public GeneAtlasIndexBuilderService(AtlasDAO atlasDAO,
-                               EmbeddedSolrServer solrServer) {
+                                      EmbeddedSolrServer solrServer) {
     super(atlasDAO, solrServer);
 
     // get an Efo instance that we can use to calculate class hierarchy

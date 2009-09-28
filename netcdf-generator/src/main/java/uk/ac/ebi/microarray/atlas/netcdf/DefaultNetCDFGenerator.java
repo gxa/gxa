@@ -1,4 +1,8 @@
-package uk.ac.ebi.ae3.netcdfbuilder;
+package uk.ac.ebi.microarray.atlas.netcdf;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGeneratorListener;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -30,11 +34,35 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File> {
     return repositoryLocation;
   }
 
+  public void startup() throws NetCDFGeneratorException {
+    // do some initialization...
+
+    // create a spring jdbc template
+    JdbcTemplate template = new JdbcTemplate(dataSource);
+
+    // create an atlas dao
+    AtlasDAO dao = new AtlasDAO();
+    dao.setJdbcTemplate(template);
+  }
+
+  public void shutdown() throws NetCDFGeneratorException {
+    // todo - really nothing to shutdown?
+  }
+
   public void generateNetCDFs() {
+    generateNetCDFs(null);
+  }
+
+  public void generateNetCDFs(NetCDFGeneratorListener listener) {
     // todo - run the generator with argument "all"
   }
 
   public void generateNetCDFsForExperiment(String experimentAccession) {
+    generateNetCDFsForExperiment(experimentAccession, null);
+  }
+
+  public void generateNetCDFsForExperiment(String experimentAccession,
+                                           NetCDFGeneratorListener listener) {
     // todo - run the generator with argument "experimentAccession"
   }
 }
