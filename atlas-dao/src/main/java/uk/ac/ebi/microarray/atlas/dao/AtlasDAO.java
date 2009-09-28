@@ -51,9 +51,10 @@ public class AtlasDAO {
 
   // assay queries
   private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
-      "SELECT a.accession, a.experimentid, a.arraydesignid " +
-          "FROM a2_assay a, a2_experiment e " +
+      "SELECT a.accession, a.experimentid, ad.accession " +
+          "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
           "WHERE e.experimentid=a.experimentid " +
+          "AND a.arraydesignid=ad.arraydesignid " +
           "AND e.accession=?";
   private static final String PROPERTIES_BY_ASSAY_ACCESSION =
       "SELECT " +
@@ -95,6 +96,12 @@ public class AtlasDAO {
           "AND s.accession=?";
 
   // other atlas analytics queries
+  private static final String ARRAY_DESIGN_SELECT =
+      "SELECT accession, type, name, provider, arraydesignid " +
+          "FROM a2_arraydesign";
+  private static final String ARRAY_DESIGN_BY_ACC_SELECT =
+      ARRAY_DESIGN_SELECT + " " +
+          "WHERE accession=?";
   private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
       "SELECT de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid" +
@@ -233,6 +240,21 @@ public class AtlasDAO {
     return samples;
   }
 
+  public List<ArrayDesign> getAllArrayDesigns() {
+    List results = template.query(ARRAY_DESIGN_SELECT,
+                                  new ArrayDesignMapper());
+
+    return (List<ArrayDesign>) results;
+  }
+
+  public ArrayDesign getArrayDesignByAccession(String accession) {
+    List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+                                  new Object[]{accession},
+                                  new ArrayDesignMapper());
+
+    return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+  }
+
   /**
    * A convenience method that fetches the set of design element accessions by
    * array design accession.  The set of design element ids contains no
@@ -318,6 +340,21 @@ public class AtlasDAO {
       sample.setChannel(resultSet.getString(3));
 
       return sample;
+    }
+  }
+
+  private class ArrayDesignMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i)
+        throws SQLException {
+      ArrayDesign array = new ArrayDesign();
+
+      array.setAccession(resultSet.getString(1));
+      array.setType(resultSet.getString(2));
+      array.setName(resultSet.getString(3));
+      array.setProvider(resultSet.getString(4));
+      array.setArrayDesignID(resultSet.getString(5));
+
+      return array;
     }
   }
 

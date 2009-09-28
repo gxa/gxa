@@ -44,7 +44,7 @@
   <modules>
     <module>atlas-index-api</module>
     <module>indexbuilder</module>
-    <!--<module>netcdf-generator</module>-->
+    <module>netcdf-generator</module>
     <module>dataserver</module>
     <module>atlas-web</module>
     <module>atlas-archetype</module>
