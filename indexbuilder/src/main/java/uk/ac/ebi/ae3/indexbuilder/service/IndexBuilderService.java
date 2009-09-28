@@ -37,7 +37,7 @@ public abstract class IndexBuilderService {
   private EmbeddedSolrServer solrServer;
 
   private boolean updateMode = false;
-  private boolean pendingExps = false;
+  private boolean pendingOnly = false;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -61,11 +61,11 @@ public abstract class IndexBuilderService {
   }
 
   public void setPendingOnly(boolean pending) {
-    this.pendingExps = pending;
+    this.pendingOnly = pending;
   }
 
   public boolean getPendingOnly() {
-    return this.pendingExps;
+    return this.pendingOnly;
   }
 
   protected AtlasDAO getAtlasDAO() {

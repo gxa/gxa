@@ -52,7 +52,7 @@
         <constructor-arg index="1" value="atlas"></constructor-arg>
     </bean>
 
-    <bean id ="geneIndexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder">
+    <bean id ="geneIndexBuilderService" class="uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilderService">
        <property name="dataSource" ref="dataSourceDW"></property>
        <property name="solrEmbeddedIndex" ref="solrEmbeddedIndexGene"></property>
     </bean>

@@ -11,7 +11,7 @@
     <parent>
         <groupId>uk.ac.ebi.microarray.atlas</groupId>
         <artifactId>atlas</artifactId>
-        <version>1.0</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
 
     <dependencies>

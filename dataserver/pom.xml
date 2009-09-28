@@ -5,13 +5,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>uk.ac.ebi.microarray.atlas</groupId>
 	<artifactId>dataserver</artifactId>
-	<version>1.0</version>
+	<version>0.1-SNAPSHOT</version>
 	<name>Gene Expression Atlas Dataserver</name>
 
 	<parent>
 		<groupId>uk.ac.ebi.microarray.atlas</groupId>
 		<artifactId>atlas</artifactId>
-		<version>1.0</version>
+		<version>0.1-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>

@@ -1,5 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
+import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
+
 import javax.sql.DataSource;
 
 /**
@@ -11,6 +13,13 @@ import javax.sql.DataSource;
  * <p/>
  * By default, all genes and experiments are included, and all experiments (both
  * pending and non-pending) are included.
+ * <p/>
+ * If you are using an IndexBuilder in a standalone application (not a web
+ * application) and you do not want to reuse IndexBuilder for multiple index
+ * building calls, you should make sure you register a listener that performs a
+ * {@link #shutdown()} upon completion.  This will allow any resources being
+ * used by the IndexBuilder implementation to be reclaimed.  Otherwise, an
+ * IndexBuilder instance may run indefinitely.
  *
  * @author Tony Burdett
  * @date 20-Aug-2009
@@ -80,7 +89,7 @@ public interface IndexBuilder<T> {
    * mode" to true indicates you only wish to index these experiments.  Note
    * that you would normally only ever use pending mode whne updating the
    * index.
-   *
+   * <p/>
    * This is false by default.
    *
    * @param pendingMode include only those experiments or genes flagged in the
@@ -101,22 +110,84 @@ public interface IndexBuilder<T> {
   boolean getPendingMode();
 
   /**
+   * Initialise this IndexBuilder and any resources required by it.
+   *
+   * @throws IndexBuilderException if initialisation of this index builder
+   *                               failed for any reason
+   */
+  void startup() throws IndexBuilderException;
+
+  /**
+   * Shutdown this IndexBuilder, and release any resources used by it
+   *
+   * @throws IndexBuilderException if shutdown of this index builder failed for
+   *                               any reason
+   */
+  void shutdown() throws IndexBuilderException;
+
+  /**
    * Build the index.  This will build the index entirely from scratch.  Use
    * this if you wish to create or recreate the index with up-to-date
    * information from the backing database.  If you wish to update the index
-   * with only pre-existing genes and experiments, use {@link #updateIndex()}
-   *
-   * @throws IndexBuilderException if there was an error whilst building the
-   *                               index
+   * with only pre-existing genes and experiments, use {@link #updateIndex()}.
+   * <p/>
+   * Note that this method is not guaranteed to be synchronous, it only
+   * guarantees that the index has started building.  Implementations are free
+   * to define their own multithreaded strategies for index construction.  If
+   * you wish to be notified on completion, you should register a listener to
+   * get callback events when the build completes by using {@link
+   * #buildIndex(uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener)}. You
+   * can also use a listener to get at any errors that may have occurred during
+   * index building.
+   * <p/>
+   * Calling this method is equivalent to calling <code>buildIndex(null)</code>.
    */
-  void buildIndex() throws IndexBuilderException;
+  void buildIndex();
+
+  /**
+   * Build the index and register a listener that provides a callback on
+   * completion of the build task.  This will build the index entirely from
+   * scratch.  Use this if you wish to create or recreate the index with
+   * up-to-date information from the backing database.  If you wish to update
+   * the index with only pre-existing genes and experiments, use {@link
+   * #updateIndex()}.
+   * <p/>
+   * Note that this method is not guaranteed to be synchronous, it only
+   * guarantees that the index has started building.  Implementations are free
+   * to define their own multithreaded strategies for index construction.
+   *
+   * @param listener a listener that can be used to supply callbacks when
+   *                 building of the index completes, or when any errors occur.
+   */
+  void buildIndex(IndexBuilderListener listener);
 
   /**
    * Incrementally builds the index, updating the existing items rather than
    * building from scratch.
-   *
-   * @throws IndexBuilderException if there was an error whilst updating the
-   *                               index
+   * <p/>
+   * Note that this method is not guaranteed to be synchronous, it only
+   * guarantees that the index has started updating.  Implementations are free
+   * to define their own multithreaded strategies for index construction. If you
+   * wish to be notified on completion, you should register a listener to get
+   * callback events when the update completes by using {@link
+   * #updateIndex(uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener)}.
+   * You can also use a listener to get at any errors that may have occurred
+   * during index building.
+   * <p/>
+   * Calling this method is equivalent to calling <code>updateIndex(null)</code>.
    */
-  void updateIndex() throws IndexBuilderException;
+  void updateIndex();
+
+  /**
+   * Incrementally builds the index, updating the existing items rather than
+   * building from scratch.
+   * <p/>
+   * Note that this method is not guaranteed to be synchronous, it only
+   * guarantees that the index has started updating.  Implementations are free
+   * to define their own multithreaded strategies for index construction.
+   *
+   * @param listener a listener that can be used to supply callbacks when
+   *                 updating of the index completes, or when any errors occur.
+   */
+  void updateIndex(IndexBuilderListener listener);
 }

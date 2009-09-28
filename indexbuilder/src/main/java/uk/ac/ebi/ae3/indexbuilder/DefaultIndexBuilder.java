@@ -6,19 +6,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import uk.ac.ebi.ae3.indexbuilder.service.ExperimentAtlasIndexBuilder;
-import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilder;
+import org.xml.sax.SAXException;
+import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderEvent;
+import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
+import uk.ac.ebi.ae3.indexbuilder.service.ExperimentAtlasIndexBuilderService;
+import uk.ac.ebi.ae3.indexbuilder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.sql.DataSource;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * A default implementation of {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder}
@@ -90,61 +93,85 @@ public class DefaultIndexBuilder
   }
 
   public void afterPropertiesSet() throws Exception {
-    // do some initialization...
+    // simply delegates to startup(), this allows automated spring startup
+    startup();
+  }
 
-    // create a spring jdbc template
-    JdbcTemplate template = new JdbcTemplate(dataSource);
+  /**
+   * Starts up any resources required for building an index.  In this case, this
+   * method will create a new {@link AtlasDAO} and a spring {@link JdbcTemplate}
+   * in order to interact with the Atlas database.  It will then check for the
+   * existence of an appropriate SOLR index from the {@link #indexLocation}
+   * configured.  If the index previously exists, it will attempt to load it,
+   * and if not it will unpack any required configuration elements into this
+   * location ready to run a new index build.  It will the initialise an
+   * embedded SOLR server ({@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer}).
+   * Finally, it will initialise an {@link java.util.concurrent.ExecutorService}
+   * for running index building tasks in an asynchronous, parallel manner.
+   * <p/>
+   * Once you have started a default index builder, it will continue to run
+   * until you call {@link #shutdown()} on it.
+   *
+   * @throws IndexBuilderException if initialisation of this builder failed for
+   *                               any reason
+   */
+  public void startup() throws IndexBuilderException {
+    try {
+      // do some initialization...
 
-    // create an atlas dao
-    AtlasDAO dao = new AtlasDAO();
-    dao.setJdbcTemplate(template);
+      // create a spring jdbc template
+      JdbcTemplate template = new JdbcTemplate(dataSource);
 
-    // check for the presence of the index
-    File solr = new File(indexLocation, "solr.xml");
-    if (!solr.exists()) {
-      // no prior index, check the directory is empty?
-      if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
-        String message = "Unable to unpack solr configuration files - " +
-            indexLocation.getAbsolutePath() + " is not empty. " +
-            "Please choose an empty directory to create the index";
-        log.error(message);
-        throw new IndexBuilderException(message);
+      // create an atlas dao
+      AtlasDAO dao = new AtlasDAO();
+      dao.setJdbcTemplate(template);
+
+      // check for the presence of the index
+      File solr = new File(indexLocation, "solr.xml");
+      if (!solr.exists()) {
+        // no prior index, check the directory is empty?
+        if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
+          String message = "Unable to unpack solr configuration files - " +
+              indexLocation.getAbsolutePath() + " is not empty. " +
+              "Please choose an empty directory to create the index";
+          log.error(message);
+          throw new IndexBuilderException(message);
+        }
+        else {
+          // unpack configuration files
+          unpackAtlasIndexTemplate(indexLocation);
+        }
       }
-      else {
-        // unpack configuration files
-        unpackAtlasIndexTemplate(indexLocation);
-      }
+
+      // first, create a solr CoreContainer
+      coreContainer = new CoreContainer();
+      coreContainer.load(indexLocation.getAbsolutePath(), solr);
+
+      // create an embedded solr server for experiments and genes from this container
+      EmbeddedSolrServer exptServer =
+          new EmbeddedSolrServer(coreContainer, "expt");
+      EmbeddedSolrServer atlasServer =
+          new EmbeddedSolrServer(coreContainer, "atlas");
+
+      // create IndexBuilderServices for genes (atlas) and experiments
+      exptIndexBuilder = new ExperimentAtlasIndexBuilderService(dao, exptServer);
+      geneIndexBuilder = new GeneAtlasIndexBuilderService(dao, atlasServer);
+
+      // finally, create an executor service for processing calls to build the index
+      service = Executors.newCachedThreadPool();
     }
-
-    // first, create a solr CoreContainer
-    coreContainer = new CoreContainer();
-    coreContainer.load(indexLocation.getAbsolutePath(), solr);
-
-    // create an embedded solr server for experiments and genes from this container
-    EmbeddedSolrServer exptServer =
-        new EmbeddedSolrServer(coreContainer, "expt");
-    EmbeddedSolrServer atlasServer =
-        new EmbeddedSolrServer(coreContainer, "atlas");
-
-    // create IndexBuilderServices for genes (atlas) and experiments
-    exptIndexBuilder = new ExperimentAtlasIndexBuilder(dao, exptServer);
-    geneIndexBuilder = new GeneAtlasIndexBuilder(dao, atlasServer);
-
-    // finally, create an executor service for processing calls to build the index
-    service = Executors.newCachedThreadPool();
-  }
-
-  public void buildIndex() {
-    startIndexBuild(false);
-    log.info("Started IndexBuilder: " +
-        "Building for " +
-        (experiments ? "experiments" : "") +
-        (experiments && genes ? " and genes" : "") + ", pending mode " +
-        (pending ? "ON" : "OFF"));
-  }
-
-  public void updateIndex() {
-    startIndexBuild(true);
+    catch (IOException e) {
+      // wrap and rethrow as IndexBuilderException
+      throw new IndexBuilderException(e);
+    }
+    catch (SAXException e) {
+      // wrap and rethrow as IndexBuilderException
+      throw new IndexBuilderException(e);
+    }
+    catch (ParserConfigurationException e) {
+      // wrap and rethrow as IndexBuilderException
+      throw new IndexBuilderException(e);
+    }
   }
 
   /**
@@ -152,8 +179,11 @@ public class DefaultIndexBuilder
    * Atlas Index.  You should call this whenever the application requiring index
    * building services terminates (i.e. on webapp shutdown, or when the user
    * exits the application).
+   *
+   * @throws IndexBuilderException if shutting down this index builder failed
+   *                               for any reason
    */
-  public void shutdownIndex() {
+  public void shutdown() throws IndexBuilderException {
     service.shutdown();
     try {
       service.awaitTermination(5, TimeUnit.MINUTES);
@@ -162,21 +192,50 @@ public class DefaultIndexBuilder
       log.error("Unable to shutdown service, there may be suspended " +
           "IndexBuilder tasks.  This is a non-recoverable error - you should " +
           "terminate this application");
+      throw new IndexBuilderException(e);
     }
-    coreContainer.shutdown();
+    finally {
+      coreContainer.shutdown();
+    }
   }
 
-  private void startIndexBuild(final boolean updateMode) {
-    log.info("Will build indexes: " +
+  public void buildIndex() {
+    buildIndex(null);
+  }
+
+  public void buildIndex(IndexBuilderListener listener) {
+    startIndexBuild(false, listener);
+    log.info("Started IndexBuilder: " +
+        "Building for " +
         (experiments ? "experiments " : "") +
         (experiments && genes ? " and " : "") +
         (genes ? "atlas " : "") +
-        (updateMode ? "(update mode) " : "") +
         (pending ? "(only pending experiments) " : ""));
+  }
+
+  public void updateIndex() {
+    updateIndex(null);
+  }
+
+  public void updateIndex(IndexBuilderListener listener) {
+    startIndexBuild(true, listener);
+    log.info("Started IndexBuilder: " +
+        "Updating for " +
+        (experiments ? "experiments " : "") +
+        (experiments && genes ? " and " : "") +
+        (genes ? "atlas " : "") +
+        (pending ? "(only pending experiments) " : ""));
+  }
+
+  private void startIndexBuild(final boolean updateMode,
+                               final IndexBuilderListener listener) {
+    final long startTime = System.currentTimeMillis();
+    final List<Future<Boolean>> indexingTasks =
+        new ArrayList<Future<Boolean>>();
 
     if (experiments) {
-      service.submit(new Callable<Boolean>() {
-        public Boolean call() throws Exception {
+      indexingTasks.add(service.submit(new Callable<Boolean>() {
+        public Boolean call() throws IndexBuilderException {
           log.info("Starting building of experiments index");
 
           exptIndexBuilder.setPendingOnly(pending);
@@ -185,18 +244,53 @@ public class DefaultIndexBuilder
 
           return true;
         }
-      });
+      }));
     }
 
     if (genes) {
-      service.submit(new Callable<Boolean>() {
-        public Boolean call() throws Exception {
+      indexingTasks.add(service.submit(new Callable<Boolean>() {
+        public Boolean call() throws IndexBuilderException {
           log.info("Starting building of atlas gene index");
 
           geneIndexBuilder.setUpdateMode(updateMode);
           geneIndexBuilder.buildIndex();
 
           return true;
+        }
+      }));
+    }
+
+    // this tracks completion, if a listener was supplied
+    if (listener != null) {
+      service.submit(new Runnable() {
+        public void run() {
+          boolean success = true;
+          List<Throwable> observedErrors = new ArrayList<Throwable>();
+
+          // wait for expt and gene indexes to build
+          for (Future<Boolean> indexingTask : indexingTasks) {
+            try {
+              success = success && indexingTask.get();
+            }
+            catch (Exception e) {
+              observedErrors.add(e);
+              success = false;
+            }
+          }
+
+          // now we've finished - get the end time, calculate runtime and fire the event
+          long endTime = System.currentTimeMillis();
+          long runTime = (endTime - startTime) / 1000;
+
+          // create our completion event
+          if (success) {
+            listener.buildSuccess(new IndexBuilderEvent(
+                runTime, TimeUnit.SECONDS));
+          }
+          else {
+            listener.buildError(new IndexBuilderEvent(
+                runTime, TimeUnit.SECONDS, observedErrors));
+          }
         }
       });
     }

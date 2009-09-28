@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 
-public class GeneAtlasIndexBuilder extends IndexBuilderService {
+public class GeneAtlasIndexBuilderService extends IndexBuilderService {
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
   private static final int NUM_THREADS = 64;
@@ -29,7 +29,7 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
   private Map<String, String[]> ontomap = new HashMap<String, String[]>();
   private Efo efo;
 
-  public GeneAtlasIndexBuilder(AtlasDAO atlasDAO,
+  public GeneAtlasIndexBuilderService(AtlasDAO atlasDAO,
                                EmbeddedSolrServer solrServer) {
     super(atlasDAO, solrServer);
 
@@ -51,60 +51,66 @@ public class GeneAtlasIndexBuilder extends IndexBuilderService {
     List<Future<UpdateResponse>> tasks =
         new ArrayList<Future<UpdateResponse>>();
 
-    // index all genes in parallel
-    for (final Gene gene : genes) {
-      // for each gene, submit a new task to the executor
-      tasks.add(tpool.submit(new Callable<UpdateResponse>() {
+    try {
+      // index all genes in parallel
+      for (final Gene gene : genes) {
+        // for each gene, submit a new task to the executor
+        tasks.add(tpool.submit(new Callable<UpdateResponse>() {
 
-        public UpdateResponse call() throws IOException, SolrServerException,
-            IndexBuilderException {
-          getLog().debug("Updating index with details for " +
-              gene.getIdentifier());
+          public UpdateResponse call() throws IOException, SolrServerException,
+              IndexBuilderException {
+            getLog().debug("Updating index with details for " +
+                gene.getIdentifier());
 
-          // create a new solr document for this gene
-          SolrInputDocument solrInputDoc = new SolrInputDocument();
-          for (Property prop : gene.getProperties()) {
-            // update with gene properties
-            String p = prop.getName();
-            String pv = prop.getValue();
+            // create a new solr document for this gene
+            SolrInputDocument solrInputDoc = new SolrInputDocument();
+            for (Property prop : gene.getProperties()) {
+              // update with gene properties
+              String p = prop.getName();
+              String pv = prop.getValue();
 
-            getLog().debug("Updating index, gene property " + p + " = " + pv);
-            solrInputDoc
-                .addField(p, pv); // fixme: format of property names in index?
+              getLog().debug("Updating index, gene property " + p + " = " + pv);
+              solrInputDoc
+                  .addField(p, pv); // fixme: format of property names in index?
+            }
+
+            // add EFO counts for this gene
+            if (!addEfoCounts(solrInputDoc, gene.getGeneID())) {
+              throw new IndexBuilderException("Failed to update solr " +
+                  "document with counts from EFO");
+            }
+
+            // finally, add the document to the index
+            getLog().debug("Finalising changes for " +
+                gene.getIdentifier());
+            return getSolrServer().add(solrInputDoc);
           }
-
-          // add EFO counts for this gene
-          if (!addEfoCounts(solrInputDoc, gene.getGeneID())) {
-            throw new IndexBuilderException("Failed to update solr " +
-                "document with counts from EFO");
-          }
-
-          // finally, add the document to the index
-          getLog().debug("Finalising changes for " +
-              gene.getIdentifier());
-          return getSolrServer().add(solrInputDoc);
-        }
-      }));
-    }
-
-    // block until completion, and throw any errors
-    for (Future<UpdateResponse> task : tasks) {
-      try {
-        task.get();
+        }));
       }
-      catch (ExecutionException e) {
-        if (e.getCause() instanceof IndexBuilderException) {
-          throw (IndexBuilderException) e.getCause();
+
+      // block until completion, and throw any errors
+      for (Future<UpdateResponse> task : tasks) {
+        try {
+          task.get();
         }
-        else {
+        catch (ExecutionException e) {
+          if (e.getCause() instanceof IndexBuilderException) {
+            throw (IndexBuilderException) e.getCause();
+          }
+          else {
+            throw new IndexBuilderException(
+                "An error occurred updating Atlas SOLR index", e);
+          }
+        }
+        catch (InterruptedException e) {
           throw new IndexBuilderException(
               "An error occurred updating Atlas SOLR index", e);
         }
       }
-      catch (InterruptedException e) {
-        throw new IndexBuilderException(
-            "An error occurred updating Atlas SOLR index", e);
-      }
+    }
+    finally {
+      // shutdown the service
+      tpool.shutdown();
     }
   }
 

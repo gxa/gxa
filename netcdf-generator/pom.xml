@@ -4,28 +4,32 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas</artifactId>
+    <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <version>0.1-SNAPSHOT</version>
   </parent>
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
-  <artifactId>atlas-dao</artifactId>
+  <artifactId>netcdf-generator</artifactId>
   <version>0.1-SNAPSHOT</version>
-  <name>Gene Expression Atlas Database Access Layer</name>
+  <name>Gene Expression Atlas NetCDF Generator</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
-
   <dependencies>
-    <!-- Spring dependency for jdbc templates -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring</artifactId>
-        <version>2.5.5</version>
-    </dependency>
-    <!-- atlas loader API -->
     <dependency>
       <groupId>uk.ac.ebi.microarray.atlas</groupId>
-      <artifactId>atlas-model</artifactId>
+      <artifactId>atlas-dao</artifactId>
       <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.ucar</groupId>
+      <artifactId>netcdf</artifactId>
+      <version>2.2.22</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring</artifactId>
+      <version>2.5.5</version>
     </dependency>
   </dependencies>
 </project>

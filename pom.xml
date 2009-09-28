@@ -4,7 +4,7 @@
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas</artifactId>
   <packaging>pom</packaging>
-  <version>1.0</version>
+  <version>0.1-SNAPSHOT</version>
   <name>Gene Expression Atlas</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
@@ -44,6 +44,7 @@
   <modules>
     <module>atlas-index-api</module>
     <module>indexbuilder</module>
+    <!--<module>netcdf-generator</module>-->
     <module>dataserver</module>
     <module>atlas-web</module>
     <module>atlas-archetype</module>
@@ -54,6 +55,25 @@
   </modules>
 
   <dependencies>
+    <!-- testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.3</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- logging, uses SLF4J throughout -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>1.5.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.6</version>
+    </dependency>
+    <!-- todo: dependencies for solr - required here? or defer to individual components? -->
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>

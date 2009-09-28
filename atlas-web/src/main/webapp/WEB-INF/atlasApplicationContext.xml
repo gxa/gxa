@@ -19,7 +19,7 @@
 
   <!-- Requires a NetCDFGenerator -->
   <bean name="netCDFGenerator"
-        class="uk.ac.ebi.ae3.netcdfbuilder.DefaultNetCDFGenerator">
+        class="uk.ac.ebi.microarray.atlas.netcdf.DefaultNetCDFGenerator">
     <!-- resource beans -->
     <property name="atlasDataSource" ref="atlasDatasource" />
     <property name="repositoryLocation" ref="atlasNetCDFRepo" />

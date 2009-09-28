@@ -5,7 +5,7 @@
   <parent>
     <artifactId>atlas</artifactId>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
-    <version>1.0</version>
+    <version>0.1-SNAPSHOT</version>
   </parent>
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas-archetype</artifactId>
