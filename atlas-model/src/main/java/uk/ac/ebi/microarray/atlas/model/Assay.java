@@ -13,6 +13,7 @@ public class Assay {
   private String arrayDesignAcession;
   private List<Property> properties;
   private List<ExpressionValue> expressionValues;
+  private int assayID;
 
   public String getAccession() {
     return accession;
@@ -52,6 +53,15 @@ public class Assay {
 
   public void setExpressionValues(List<ExpressionValue> expressionValues) {
     this.expressionValues = expressionValues;
+  }
+
+
+  public int getAssayID() {
+    return assayID;
+  }
+
+  public void setAssayID(int assayID) {
+    this.assayID = assayID;
   }
 
   /**

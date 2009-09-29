@@ -13,6 +13,7 @@ public class Sample {
   private List<Property> properties;
   private String species;
   private String channel;
+  private int sampleID;
 
   public String getAccession() {
     return accession;
@@ -52,6 +53,14 @@ public class Sample {
 
   public void setChannel(String channel) {
     this.channel = channel;
+  }
+
+  public int getSampleID() {
+    return sampleID;
+  }
+
+  public void setSampleID(int sampleID) {
+    this.sampleID = sampleID;
   }
 
   /**

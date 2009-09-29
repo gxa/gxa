@@ -10,7 +10,7 @@
   <bean name="indexBuilder"
         class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
     <!-- resource beans -->
-    <property name="atlasDataSource" ref="atlasDatasource" />
+    <property name="atlasDataSource" ref="atlasDataSource" />
     <property name="indexLocation" value="atlasIndex" />
     <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
     <property name="includeGenes" value="true" />
@@ -21,7 +21,7 @@
   <bean name="netCDFGenerator"
         class="uk.ac.ebi.microarray.atlas.netcdf.DefaultNetCDFGenerator">
     <!-- resource beans -->
-    <property name="atlasDataSource" ref="atlasDatasource" />
+    <property name="atlasDataSource" ref="atlasDataSource" />
     <property name="repositoryLocation" ref="atlasNetCDFRepo" />
   </bean>
 
@@ -29,12 +29,12 @@
   <bean name="atlasLoader"
         class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
     <!-- resource bean -->
-    <property name="dataSource" ref="atlasDatasource" />
+    <property name="dataSource" ref="atlasDataSource" />
   </bean>
 
   <!-- Spring JDBC template for database queries -->
   <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
-    <property name="dataSource" ref="atlasDatasource" />
+    <property name="dataSource" ref="atlasDataSource" />
   </bean>
 
   <!-- Configure AtlasDAO for this datasource -->
@@ -43,16 +43,16 @@
   </bean>
 
   <!-- Declare beans for resources named by context JNDI -->
-  <jee:jndi-lookup id="atlasDatasource"
+  <jee:jndi-lookup id="atlasDataSource"
                    jndi-name="/jdbc/AEATLAS"
                    resource-ref="true" />
 
   <jee:jndi-lookup id="atlasIndex"
-                   jndi-name="/jdbc/AEINDEX"
+                   jndi-name="/file/AEINDEX"
                    resource-ref="true" />
 
   <jee:jndi-lookup id="atlasNetCDFRepo"
-                   jndi-name="/jdbc/AENETCDFS"
+                   jndi-name="/file/AENETCDFS"
                    resource-ref="true" />
 
 </beans>

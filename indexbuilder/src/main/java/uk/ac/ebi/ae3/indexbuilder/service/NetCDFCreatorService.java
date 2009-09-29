@@ -282,6 +282,7 @@ public class NetCDFCreatorService {
             int sample_counter = 0;
             String adAccession="", adName="";
             while (rset.next ()) {
+              // sample_id_key, arraydesign_accession, arraydesign_name, assay_id_key
                 int sample_id_key = rset.getInt (1);
                 adAccession = rset.getString(2);
                 adName = rset.getString(3);

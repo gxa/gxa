@@ -51,7 +51,7 @@ public class AtlasDAO {
 
   // assay queries
   private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
-      "SELECT a.accession, a.experimentid, ad.accession " +
+      "SELECT a.accession, a.experimentid, ad.accession, a.assayid " +
           "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
           "WHERE e.experimentid=a.experimentid " +
           "AND a.arraydesignid=ad.arraydesignid " +
@@ -74,7 +74,7 @@ public class AtlasDAO {
 
   // sample queries
   private static final String SAMPLES_BY_ASSAY_ACCESSION =
-      "SELECT s.accession, s.species, s.channel " +
+      "SELECT s.accession, s.species, s.channel, s.sampleid " +
           "FROM a2_sample s, a2_assay a, a2_assaysample ass " +
           "WHERE s.sampleid=ass.sampleid " +
           "AND a.assayid=ass.assayid " +
@@ -326,6 +326,7 @@ public class AtlasDAO {
       assay.setAccession(resultSet.getString(1));
       assay.setExperimentAccession(resultSet.getString(2));
       assay.setArrayDesignAcession(resultSet.getString(3));
+      assay.setAssayID(resultSet.getInt(4));
 
       return assay;
     }
@@ -338,6 +339,7 @@ public class AtlasDAO {
       sample.setAccession(resultSet.getString(1));
       sample.setSpecies(resultSet.getString(2));
       sample.setChannel(resultSet.getString(3));
+      sample.setSampleID(resultSet.getInt(4));
 
       return sample;
     }
