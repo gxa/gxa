@@ -157,7 +157,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     return x;
   }
 
-  private boolean addEfoCounts(SolrInputDocument solrDoc, String geneID) {
+  private boolean addEfoCounts(SolrInputDocument solrDoc, int geneID) {
     Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
     Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
     Set<Long> upexp = new HashSet<Long>();

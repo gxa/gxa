@@ -106,6 +106,10 @@ public class AtlasDAO {
       "SELECT de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid" +
           "AND ad.accession=?";
+  private static final String DESIGN_ELEMENTS_BY_GENEID =
+      "SELECT de.designelementid " +
+          "FROM a2_desingelement de " +
+          "WHERE de.geneid=?";
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
       "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat a.pvaladj " +
           "FROM a2_expressionanalytics a " +
@@ -268,16 +272,23 @@ public class AtlasDAO {
    *                             query for
    * @return a set of unique design element accession strings
    */
-  public List<String> getDesignElementsByArrayAccession(
+  public List<Integer> getDesignElementsByArrayAccession(
       String arrayDesignAccession) {
     List results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
                                   new Object[]{arrayDesignAccession},
                                   new DesignElementMapper());
-    return (List<String>) results;
+    return (List<Integer>) results;
+  }
+
+  public List<Integer> getDesignElementIDsByGeneID(int geneID) {
+    List results = template.query(DESIGN_ELEMENTS_BY_GENEID,
+                                  new Object[]{geneID},
+                                  new DesignElementMapper());
+    return (List<Integer>) results;
   }
 
   public List<ExpressionAnalytics> getExpressionAnalyticsByGeneID(
-      String geneID) {
+      int geneID) {
     List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
                                   new Object[]{geneID},
                                   new ExpressionAnalyticsMapper());
@@ -310,7 +321,7 @@ public class AtlasDAO {
     public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
       Gene gene = new Gene();
 
-      gene.setGeneID(resultSet.getString(1));
+      gene.setGeneID(resultSet.getInt(1));
       gene.setIdentifier(resultSet.getString(2));
       gene.setName(resultSet.getString(3));
       gene.setSpecies(resultSet.getString(4));
@@ -363,7 +374,7 @@ public class AtlasDAO {
   private class DesignElementMapper implements RowMapper {
     public Object mapRow(ResultSet resultSet, int i)
         throws SQLException {
-      return resultSet.getString(1);
+      return resultSet.getInt(1);
     }
   }
 

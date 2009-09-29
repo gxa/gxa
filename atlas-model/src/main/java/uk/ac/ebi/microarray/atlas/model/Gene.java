@@ -10,17 +10,17 @@ import java.util.List;
  * @date 24-Sep-2009
  */
 public class Gene {
-  private String geneID;
   private String identifier;
   private String name;
   private String species;
   private List<Property> properties;
+  private int geneID;
 
-  public String getGeneID() {
+  public int getGeneID() {
     return geneID;
   }
 
-  public void setGeneID(String geneID) {
+  public void setGeneID(int geneID) {
     this.geneID = geneID;
   }
 

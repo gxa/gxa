@@ -112,10 +112,6 @@ public class ExperimentNetCDFGeneratorService
                 dataSlice.getExperiment(),
                 dataSlice.getArrayDesign());
 
-            // fetch genes
-            List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
-                dataSlice.getExperiment().getAccession());
-
             // setup assay part of netCDF
             writeAssayVariables(netCDF, dataSlice.getAssays());
 
@@ -132,7 +128,17 @@ public class ExperimentNetCDFGeneratorService
               assayToSamples.put(assay, samples);
             }
 
+            // setup design element part of netCDF
+            // fetch design elements
+            List<Integer> designElementIDs = getAtlasDAO()
+                .getDesignElementsByArrayAccession(
+                    dataSlice.getArrayDesign().getAccession());
+            writeDesignElementVariables(netCDF, designElementIDs);
+
             // setup gene part of netCDF
+            // fetch genes
+            List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
+                dataSlice.getExperiment().getAccession());
             writeGeneVariables(netCDF, genes);
 
             // actually create the netCDF
@@ -150,8 +156,20 @@ public class ExperimentNetCDFGeneratorService
             // write assay/sample mapping data
             writeAssayToSampleData(netCDF, assayToSamples);
 
+            // write design element data
+            writeDesignElementData(netCDF, designElementIDs);
+
             // write gene data
             writeGeneData(netCDF, genes);
+
+            // todo - still need to write matrices for...
+            // BDC - DE/AS
+            // PVAL - DE/uEFV
+            // TSTAT - DE/uEFV
+            // EF - EF/EFV
+            // EFV - uEFV/EFV
+            // uEFV - uEFV/EFV
+            // uEFVnum - EF
 
             return true;
           }
@@ -265,6 +283,8 @@ public class ExperimentNetCDFGeneratorService
   private void writeAssayToSampleData(NetcdfFileWriteable netCDF,
                                       Map<Assay, List<Sample>> assayToSamples)
       throws NetCDFGeneratorException, IOException, InvalidRangeException {
+    // fixme: the old version of this copde looked quite brittle, i'm not sure if the cardinality is correct (1:1 sample:assay always?)
+
     // build unique maps of IDs to index
     Map<Integer, Integer> assays = new HashMap<Integer, Integer>();
     Map<Integer, Integer> samples = new HashMap<Integer, Integer>();
@@ -311,15 +331,50 @@ public class ExperimentNetCDFGeneratorService
     netCDF.write("BS2AS", bs2as);
   }
 
-  private Dimension writeGeneVariables(NetcdfFileWriteable netCDF,
-                                       List<Gene> genes) {
+  private Dimension writeDesignElementVariables(
+      NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
+    // update the netCDF with the genes count
+    Dimension designElementDimension =
+        netCDF.addDimension("DE", designElementIDs.size());
+    // add gene variable
+    netCDF.addVariable("DE", DataType.INT,
+                       new Dimension[]{designElementDimension});
 
-
-    return null;
+    return designElementDimension;
   }
 
-  private void writeGeneData(NetcdfFileWriteable netCDF, List<Gene> genes) {
+  private void writeDesignElementData(NetcdfFileWriteable netCDF,
+                                      List<Integer> designElementIDs)
+      throws IOException, InvalidRangeException {
+    // add design element id data
+    ArrayInt de = new ArrayInt.D1(designElementIDs.size());
+    IndexIterator asIter = de.getIndexIterator();
+    for (int designElementID : designElementIDs) {
+      asIter.setIntNext(designElementID);
+    }
+    netCDF.write("DE", de);
+  }
 
+  private Dimension writeGeneVariables(NetcdfFileWriteable netCDF,
+                                       List<Gene> genes) {
+    // update the netCDF with the genes count
+    Dimension geneDimension =
+        netCDF.addDimension("GN", genes.size());
+    // add gene variable
+    netCDF.addVariable("GN", DataType.INT,
+                       new Dimension[]{geneDimension});
 
+    return geneDimension;
+  }
+
+  private void writeGeneData(NetcdfFileWriteable netCDF, List<Gene> genes)
+      throws IOException, InvalidRangeException {
+    // add design element id data
+    ArrayInt gn = new ArrayInt.D1(genes.size());
+    IndexIterator asIter = gn.getIndexIterator();
+    for (Gene gene : genes) {
+      asIter.setIntNext(gene.getGeneID());
+    }
+    netCDF.write("GN", gn);
   }
 }
