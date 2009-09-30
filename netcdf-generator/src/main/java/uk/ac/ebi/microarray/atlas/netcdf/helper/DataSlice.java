@@ -21,6 +21,7 @@ public class DataSlice {
   private Experiment experiment;
   private ArrayDesign arrayDesign;
   private List<Assay> assays;
+  private List<Sample> samples;
   private List<Integer> designElementIDs;
   private List<Gene> genes;
   private Map<String, List<Sample>> samplesByAssayAcc;
@@ -49,6 +50,20 @@ public class DataSlice {
 
   public List<Gene> getGenes() {
     return genes;
+  }
+
+  public List<Sample> getSamples() {
+    if (samples == null) {
+      // create arraylist
+      samples = new ArrayList<Sample>();
+
+      // add all samples
+      for (String assayAcc : samplesByAssayAcc.keySet()) {
+        samples.addAll(samplesByAssayAcc.get(assayAcc));
+      }
+    }
+
+    return samples;
   }
 
   public List<Sample> getSamplesAssociatedWithAssay(String assayAccession) {
@@ -100,5 +115,11 @@ public class DataSlice {
     else {
       samplesByAssayAcc.put(assayAccession, samples);
     }
+  }
+  
+  public void reset() {
+    // reset any lists that are lazily created after storing
+    this.samples = null;
+    this.assayToSampleMapping = null;
   }
 }

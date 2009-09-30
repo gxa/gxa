@@ -7,7 +7,6 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlice;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,13 +25,9 @@ public class NetCDFFormatter {
     writeAssayVariables(netCDF, dataSlice.getAssays());
 
     // setup sample part of netCDF
-    // and also map assays to samples
-    for (Assay assay : dataSlice.getAssays()) {
-      writeSampleVariables(
-          netCDF,
-          dataSlice.getSamplesAssociatedWithAssay(
-              assay.getAccession()));
-    }
+    writeSampleVariables(
+        netCDF,
+        dataSlice.getSamples());
 
     // setup design element part of netCDF
     writeDesignElementVariables(
@@ -48,7 +43,6 @@ public class NetCDFFormatter {
     writePropertyVariables(
         netCDF,
         dataSlice.getAssayToSampleMapping());
-
   }
 
   private Dimension writeAssayVariables(NetcdfFileWriteable netCDF,

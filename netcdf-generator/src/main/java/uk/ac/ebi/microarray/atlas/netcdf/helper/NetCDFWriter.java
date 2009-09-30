@@ -10,7 +10,6 @@ import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
-import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlice;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,18 +27,15 @@ public class NetCDFWriter {
   public void writeNetCDF(NetcdfFileWriteable netCDF, DataSlice dataSlice)
       throws NetCDFGeneratorException {
     try {
-// write assay data
+      // write assay data
       writeAssayData(
           netCDF,
           dataSlice.getAssays());
 
       // write sample data
-      for (Assay assay : dataSlice.getAssays()) {
-        writeSampleData(
-            netCDF,
-            dataSlice.getSamplesAssociatedWithAssay(
-                assay.getAccession()));
-      }
+      writeSampleData(
+          netCDF,
+          dataSlice.getSamples());
 
       // write assay/sample mapping data
       writeAssayToSampleData(
