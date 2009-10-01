@@ -1,18 +1,17 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
-import org.mindswap.pellet.owlapi.PelletReasonerFactory;
+import net.sourceforge.fluxion.utils.OWLTransformationException;
+import net.sourceforge.fluxion.utils.OWLUtils;
+import net.sourceforge.fluxion.utils.ReasonerSession;
 import org.semanticweb.owl.apibinding.OWLManager;
-import org.semanticweb.owl.inference.OWLReasonerException;
-import org.semanticweb.owl.inference.OWLReasonerFactory;
 import org.semanticweb.owl.inference.OWLReasoner;
+import org.semanticweb.owl.inference.OWLReasonerException;
 import org.semanticweb.owl.io.StreamInputSource;
 import org.semanticweb.owl.model.*;
-
-import java.util.*;
-import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
 
 /**
  * Class representing EFO heirarchy
@@ -292,20 +291,62 @@ public class Efo {
          * @param efomap map to load into
          */
         private void load(Map<String,EfoNode> efomap) {
+            ReasonerSession session = OWLUtils.getReasonerSession(ontology);
             try {
                 this.efomap = efomap;
 
-                OWLReasonerFactory reasonerFactory = new PelletReasonerFactory();
-                reasoner = reasonerFactory.createReasoner(manager);
-                reasoner.loadOntologies(Collections.singleton(ontology));
-                reasoner.classify();
+                reasoner = session.getReasoner();
                 for(OWLClass cls : ontology.getReferencedClasses()) {
                     loadClass(cls);
                 }
-                reasoner.clearOntologies();
-                log.info("Loading ontology done");
             } catch(OWLReasonerException e) {
                 throw new RuntimeException(e);
+            }  finally {
+                session.releaseSession();
+            }
+            buildPartOfMap();
+            log.info("Loading ontology done");
+          }
+
+        private OWLObjectProperty getProperty(String propertyName)
+        {
+            OWLObjectProperty result = null;
+            for (OWLObjectProperty prpt : ontology.getReferencedObjectProperties()) {
+                if (prpt.toString().equals(propertyName)) {
+                    result = prpt;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        private void buildPartOfMap()
+        {
+            OWLObjectProperty partOfProperty = getProperty("part_of");
+            if (partOfProperty != null) {
+                for (OWLClass cls : ontology.getReferencedClasses()) {
+                    String partId = getId(cls);
+                    Set<OWLRestriction> owlRestrictions = null;
+                    try {
+                        owlRestrictions = OWLUtils.keep(ontology, cls, partOfProperty);
+                        for (OWLRestriction restriction : owlRestrictions) {
+                            for (OWLClass parent : OWLUtils.getReferencedClasses(restriction)) {
+                                String parentId = getId(parent);
+                                if (parentId.equals(partId))
+                                    continue;
+
+                                EfoNode parentNode = efomap.get(parentId);
+                                EfoNode node = efomap.get(partId);
+                                if(parentNode != null && node != null) {
+                                    parentNode.children.add(node);
+                                    node.parents.add(parentNode);
+                                }
+                            }
+                        }
+                    } catch (OWLTransformationException e1) {
+                        throw new RuntimeException(e1);
+                    }
+                }
             }
         }
 
