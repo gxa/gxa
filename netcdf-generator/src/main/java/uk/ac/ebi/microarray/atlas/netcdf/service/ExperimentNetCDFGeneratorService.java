@@ -77,11 +77,6 @@ public class ExperimentNetCDFGeneratorService
             NetCDFWriter writer = new NetCDFWriter();
             writer.writeNetCDF(netCDF, dataSlice);
 
-            // todo - still need to write matrices for...
-            // BDC - DE/AS
-            // PVAL - DE/uEFV
-            // TSTAT - DE/uEFV
-
             // save and close the netCDF
             netCDF.close();
 

@@ -55,7 +55,8 @@ public class NetCDFWriter {
       // write property data
       writePropertyData(
           netCDF,
-          dataSlice.getAssayToSampleMapping());
+          dataSlice.getAssays(),
+          dataSlice.getSamples());
     }
     catch (IOException e) {
       throw new NetCDFGeneratorException(e);
@@ -163,55 +164,71 @@ public class NetCDFWriter {
 
 
   private void writePropertyData(NetcdfFileWriteable netCDF,
-                                 Map<Assay, List<Sample>> assayToSamples)
+                                 List<Assay> assays,
+                                 List<Sample> samples)
       throws IOException, InvalidRangeException {
-    // build the list of all properties, and the mapping of property name to values
-    Map<String, List<String>> propertyNameToValues =
+    // build the maps of the data we need
+
+    // maps property names to all values for assay properties
+    Map<String, List<String>> assayPropertyValues =
         new HashMap<String, List<String>>();
-    Map<String, List<String>> samplePropertyNameToValues =
+    // maps property names to all values for sample properties
+    Map<String, List<String>> samplePropertyValues =
         new HashMap<String, List<String>>();
-    for (Assay assay : assayToSamples.keySet()) {
+
+    // List of property names seen across all assays - duplicate names allowed
+    Map<String, Integer> uniqueCounts = new HashMap<String, Integer>();
+
+    // check all assays
+    for (Assay assay : assays) {
+      // get all assay properties
       for (Property prop : assay.getProperties()) {
-        if (propertyNameToValues.containsKey(prop.getName())) {
-          // add to existing
-          propertyNameToValues.get(prop.getName()).add(prop.getValue());
+        // have we seen this property name before?
+        if (assayPropertyValues.containsKey(prop.getName())) {
+          // if so, add values to the existing list
+          assayPropertyValues.get(prop.getName()).add(prop.getValue());
+
+          // and increment the count by one
         }
         else {
-          // create a new list and add to that
+          // otherwise, start a new list and add it, keyed by the new name
           List<String> propertyNames = new ArrayList<String>();
           propertyNames.add(prop.getValue());
-          propertyNameToValues.put(prop.getName(), propertyNames);
+          assayPropertyValues.put(prop.getName(), propertyNames);
+
+          // add a new count of 1
         }
-      }
 
-      for (Sample sample : assayToSamples.get(assay)) {
-        for (Property prop : sample.getProperties()) {
-          if (propertyNameToValues.containsKey(prop.getName())) {
-            // add to existing
-            propertyNameToValues.get(prop.getName()).add(prop.getValue());
-          }
-          else {
-            // create a new list and add to that
-            List<String> propertyNames = new ArrayList<String>();
-            propertyNames.add(prop.getValue());
-            propertyNameToValues.put(prop.getName(), propertyNames);
-          }
-
-          // also add sample properties to the separate map for some reason
-          if (samplePropertyNameToValues.containsKey(prop.getName())) {
-            samplePropertyNameToValues.get(prop.getName()).add(prop.getValue());
-          }
-          else {
-            List<String> propertyNames = new ArrayList<String>();
-            propertyNames.add(prop.getValue());
-            samplePropertyNameToValues.put(prop.getName(), propertyNames);
-          }
+        // have we seen this property name for our counts before
+        if (uniqueCounts.containsKey(prop.getName())) {
+          // if so, increment the count
+          Integer update = uniqueCounts.get(prop.getName()) + 1;
+          uniqueCounts.put(prop.getName(), update);
+        }
+        else {
+          // otherwise, add a new count of 1
+          uniqueCounts.put(prop.getName(), 1);
         }
       }
     }
 
-    // we now have a list of all properties and values
-    // and a mapping of unique properties to the set of all observed values
+    // check all samples
+    for (Sample sample : samples) {
+      // get all sample properties
+      for (Property prop : sample.getProperties()) {
+        // have we seen this property name before?
+        if (samplePropertyValues.containsKey(prop.getName())) {
+          // if so, add values to the existing list
+          samplePropertyValues.get(prop.getName()).add(prop.getValue());
+        }
+        else {
+          // otherwise, start a new list and add it, keyed by the new name
+          List<String> propertyNames = new ArrayList<String>();
+          propertyNames.add(prop.getValue());
+          samplePropertyValues.put(prop.getName(), propertyNames);
+        }
+      }
+    }
 
     // use this data to write all the required property data
     ArrayChar ef = new ArrayChar.D2(
@@ -221,36 +238,43 @@ public class NetCDFWriter {
         netCDF.findDimension("EF").getLength(),
         netCDF.findDimension("AS").getLength(),
         netCDF.findDimension("EFlen").getLength());
-    int i = 0;
-    for (String propertyName : propertyNameToValues.keySet()) {
-      ef.setString(i, propertyName);
-
-      int j = 0;
-      for (String propertyValue : propertyNameToValues.get(propertyName)) {
-        efv.setString(efv.getIndex().set(i, j), propertyValue);
-        j++;
-      }
-      i++;
-    }
-
     ArrayChar uefv = new ArrayChar.D2(
         netCDF.findDimension("uEFV").getLength(),
         netCDF.findDimension("EFlen").getLength());
-    int k = 0;
-    for (String propertyName : propertyNameToValues
-        .keySet()) { // fixme: again, this is wrong, need intersection of property/property value not just properties again
-      uefv.setString(k, propertyName);
-      k++;
+
+    int efIndex = 0;
+    int efvIndex = 0;
+    int uefvIndex = 0;
+
+    // write assay property values
+    for (String propertyName : assayPropertyValues.keySet()) {
+      // add property name to EF
+      ef.setString(efIndex, propertyName);
+
+      for (String propertyValue : assayPropertyValues.get(propertyName)) {
+        // add property value to EFV, indexed by each ef
+        efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
+        // increment index count on efv axis
+        efvIndex++;
+
+        // add property value to uEFV, indexed by cumulative count uefvIndex
+        uefv.setString(uefvIndex, propertyValue);
+      }
+
+      // increment ef axis up one, and reset efv axis to zero
+      efIndex++;
+      // increment uefv axis up one, this follows count on uEFV index
+      uefvIndex++;
+      efvIndex = 0;
     }
 
     ArrayInt uefvNum = new ArrayInt.D1(
         netCDF.findDimension("EF").getLength());
-    int l = 0;
-    for (String propertyName : propertyNameToValues
-        .keySet()) { // fixme: again, this is wrong, need intersection of property/property value not just properties again
-      uefvNum.setInt(efv.getIndex().set(l),
-                     propertyNameToValues.get(propertyName).size());
-      k++;
+    int countIndex = 0;
+    for (String propertyName : uniqueCounts.keySet()) {
+      uefvNum.setInt(efv.getIndex().set(countIndex),
+                     uniqueCounts.get(propertyName));
+      countIndex++;
     }
 
     // finally write sample data
@@ -261,16 +285,18 @@ public class NetCDFWriter {
         netCDF.findDimension("SC").getLength(),
         netCDF.findDimension("BS").getLength(),
         netCDF.findDimension("SClen").getLength());
-    int x = 0;
-    for (String propertyName : propertyNameToValues.keySet()) {
-      ef.setString(x, propertyName);
+    int scIndex = 0;
+    int scvIndex = 0;
+    for (String propertyName : samplePropertyValues.keySet()) {
+      ef.setString(scIndex, propertyName);
 
-      int y = 0;
-      for (String propertyValue : propertyNameToValues.get(propertyName)) {
-        efv.setString(efv.getIndex().set(x, y), propertyValue);
-        y++;
+      for (String propertyValue : samplePropertyValues.get(propertyName)) {
+        efv.setString(efv.getIndex().set(scIndex, scvIndex), propertyValue);
+        scIndex++;
       }
-      x++;
+
+      scIndex++;
+      scvIndex = 0;
     }
 
     netCDF.write("EF", ef);

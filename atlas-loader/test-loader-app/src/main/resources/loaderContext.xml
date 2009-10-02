@@ -8,7 +8,8 @@
     <property name="dataSource" ref="atlasDataSource" />
   </bean>
 
-  <bean id="atlasDataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+  <bean id="atlasDataSource"
+        class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
     <property name="driverClassName" value="oracle.jdbc.OracleDriver" />
     <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT" />
     <property name="username" value="atlas2" />
@@ -17,6 +18,10 @@
   </bean>
 
   <bean id="atlasIndex" class="java.io.File">
+    <constructor-arg value="/home/tburdett/atlas/index" />
+  </bean>
+
+  <bean id="atlasNetCDFs" class="java.io.File">
     <constructor-arg value="/home/tburdett/atlas/index" />
   </bean>
 
@@ -30,4 +35,11 @@
     <property name="includeGenes" value="false" />
     <property name="includeExperiments" value="true" />
   </bean>
+
+  <bean name="netcdfGenerator"
+        class="uk.ac.ebi.microarray.atlas.netcdf.DefaultNetCDFGenerator">
+    <property name="atlasDataSource" ref="atlasDataSource" />
+    <property name="repositoryLocation" ref="atlasNetCDFs" />
+  </bean>
+
 </beans>

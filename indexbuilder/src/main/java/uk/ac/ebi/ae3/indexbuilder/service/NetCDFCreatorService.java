@@ -325,14 +325,14 @@ public class NetCDFCreatorService {
                 String fName = (String)(fIter.next ());
 
                 //factor values - for all relevant bioassays/samples (ratios/absolutes)
-                Vector fValuesForAssays  = getEFValuesForAssays ( fName, experiment_id, array_id);
+                Vector fValuesForAssays  = getEFValuesForAssays ( fName, experiment_id, array_id); // query ensures only unique efv/assay pairs
                 Vector fValuesForSamples = getEFValuesForSamples ( fName, experiment_id, array_id);
 
                 if ( fValuesForAssays.size () > 0 ) {
-                    efvs4assays.put (fName,fValuesForAssays);
+                    efvs4assays.put (fName,fValuesForAssays); // keyed by assay
                     Set efvSet = new HashSet();
-                    efvSet.addAll(fValuesForAssays);
-                    uniqEfvs.addAll(efvSet);
+                    efvSet.addAll(fValuesForAssays); // adding unique elements to a set - so no difference
+                    uniqEfvs.addAll(efvSet); // now adding back to a vector - uniqEfvs = all values from fValuesForAssays ?
                     uniqEfvsNums.put(fName, efvSet.size());
                 }
 

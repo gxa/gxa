@@ -89,6 +89,7 @@ public class DataSlicer {
       }
 
       // store design elements
+      System.out.println("Searching for design element IDs for " + arrayDesignAccession);
       dataSlice.storeDesignElementIDs(getAtlasDAO()
           .getDesignElementsByArrayAccession(arrayDesignAccession));
 

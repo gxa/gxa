@@ -6,6 +6,10 @@ import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderEvent;
 import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
+import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGenerator;
+import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
+import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGeneratorListener;
+import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGenerationEvent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,30 +38,61 @@ public class LoaderDriver {
 //      boolean success = loader.load(url);
 //      long end = System.currentTimeMillis();
 
-      // run the index builder
-      final IndexBuilder builder =
-          (IndexBuilder) factory.getBean("indexBuilder");
-      long start = System.currentTimeMillis();
-      builder.buildIndex(new IndexBuilderListener() {
+//      // run the index builder
+//      final IndexBuilder builder =
+//          (IndexBuilder) factory.getBean("indexBuilder");
+//      long start = System.currentTimeMillis();
+//      builder.buildIndex(new IndexBuilderListener() {
+//
+//        public void buildSuccess(IndexBuilderEvent event) {
+//          System.out.println("Index built successfully!");
+//          try {
+//            builder.shutdown();
+//          }
+//          catch (IndexBuilderException e) {
+//            e.printStackTrace();
+//          }
+//        }
+//
+//        public void buildError(IndexBuilderEvent event) {
+//          System.out.println("Index failed to build");
+//          for (Throwable t : event.getErrors()) {
+//            t.printStackTrace();
+//            try {
+//              builder.shutdown();
+//            }
+//            catch (IndexBuilderException e) {
+//              e.printStackTrace();
+//            }
+//          }
+//        }
+//      });
+//      long end = System.currentTimeMillis();
 
-        public void buildSuccess(IndexBuilderEvent event) {
-          System.out.println("Index built successfully!");
+      // run the NetCDFGenerator
+      final NetCDFGenerator generator =
+          (NetCDFGenerator) factory.getBean("netcdfGenerator");
+      long start = System.currentTimeMillis();
+      generator.generateNetCDFs(new NetCDFGeneratorListener() {
+
+        public void buildSuccess(NetCDFGenerationEvent event) {
+          System.out.println("NetCDF generation completed successfully!");
           try {
-            builder.shutdown();
+            generator.shutdown();
           }
-          catch (IndexBuilderException e) {
+          catch (NetCDFGeneratorException e) {
             e.printStackTrace();
           }
         }
 
-        public void buildError(IndexBuilderEvent event) {
-          System.out.println("Index failed to build");
+        public void buildError(NetCDFGenerationEvent event) {
+          System.out.println("NetCDF Generation failed!");
           for (Throwable t : event.getErrors()) {
             t.printStackTrace();
             try {
-              builder.shutdown();
+              generator.shutdown();
             }
-            catch (IndexBuilderException e) {
+            catch (NetCDFGeneratorException e) {
               e.printStackTrace();
             }
           }
@@ -68,7 +103,8 @@ public class LoaderDriver {
       String total = new DecimalFormat("#.##").format((end - start) / 1000);
 
 //      System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
-      System.out.println("Building index started after " + total + "s.");
+//      System.out.println("Building index started after " + total + "s.");
+      System.out.println("Building NetCDFs started after " + total + "s.");
     }
     catch (MalformedURLException e) {
       System.err.println("Failed to load- invalid URL");
