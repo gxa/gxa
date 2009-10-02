@@ -36,7 +36,7 @@
     <dependency>
       <groupId>uk.ac.ebi.microarray.atlas</groupId>
       <artifactId>atlas-index-api</artifactId>
-      <version>1.3</version>
+      <version>1.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

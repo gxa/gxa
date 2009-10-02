@@ -39,10 +39,16 @@ public class NetCDFFormatter {
         netCDF,
         dataSlice.getGenes());
 
-    // setup property parts of the netCDF
+    // setup property parts of the netCDF -
+    // this depends on AS and BS dimensions being in place
     writePropertyVariables(
         netCDF,
         dataSlice.getAssayToSampleMapping());
+
+    // setup expression values matrix -
+    // this depends on AS and DE dimensions being in place
+    writeExpressionMatrixVariables(
+        netCDF);
   }
 
   private Dimension writeAssayVariables(NetcdfFileWriteable netCDF,
@@ -89,6 +95,20 @@ public class NetCDFFormatter {
     return geneDimension;
   }
 
+  /**
+   * This creates the variables for the property-based matrices.  ThThere are
+   * several matrices created here, EF, EFV, uEFV and uEFVnum.  In turn, these
+   * represent the experiment factors (or assay properties) in the data, the
+   * experiment factor values, the unique experiment factor/experiment factor
+   * value combinations, and the number of times a unique combination of
+   * experiment factor/experiment factor value was seen.  Some of these matrices
+   * map values to assays, and some to samples, and as such the "AS" and "BS"
+   * dimensions should already be present in the supplied NetCDF.
+   *
+   * @param netCDF         the NetcdfFileWriteable currently being set up
+   * @param assayToSamples a mapping of all assays in this NetCDF to the samples
+   *                       that have an association with them
+   */
   private void writePropertyVariables(NetcdfFileWriteable netCDF,
                                       Map<Assay, List<Sample>> assayToSamples) {
     // build the mapping of property name to values
@@ -189,5 +209,35 @@ public class NetCDFFormatter {
     netCDF.addVariable("SCV", DataType.CHAR,
                        new Dimension[]{scDimension, sampleDimension,
                                        sclDimension});
+  }
+
+  /**
+   * This creates the variables for the expression value matrix.  This matrix is
+   * keyed on the name "BDC".  It is a 2D matrix of expression values for design
+   * elements against assays, so this method requires that both "DE" and "AS"
+   * dimensions have already been created in the NetcdfFileWriteable supplied.
+   *
+   * @param netCDF the NetcdfFileWriteable currently being set up
+   */
+  private void writeExpressionMatrixVariables(NetcdfFileWriteable netCDF) {
+    Dimension designElementDimension = netCDF.findDimension("DE");
+    Dimension assayDimension = netCDF.findDimension("AS");
+
+    netCDF.addVariable("BDC", DataType.DOUBLE,
+                       new Dimension[]{designElementDimension, assayDimension});
+  }
+
+  /**
+   * This creates the variables for the statistics matrices.  This actually
+   * builds two matrices, one of P value statistics and one of T statistics.
+   * These matrices are both 2D matrices of T or P values for design elements
+   * against unique property/property value combinations.  This method therefore
+   * requires that both these "DE" and "uEFV" dimensions have already been
+   * created in the NetcdfFileWriteable supplied.
+   *
+   * @param netCDF the NetcdfFileWriteable currently being set up
+   */
+  private void writeStatsMatricesVariables(NetcdfFileWriteable netCDF) {
+
   }
 }

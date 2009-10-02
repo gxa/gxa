@@ -326,9 +326,8 @@ public class Efo {
             if (partOfProperty != null) {
                 for (OWLClass cls : ontology.getReferencedClasses()) {
                     String partId = getId(cls);
-                    Set<OWLRestriction> owlRestrictions = null;
                     try {
-                        owlRestrictions = OWLUtils.keep(ontology, cls, partOfProperty);
+                        Set<OWLRestriction> owlRestrictions = OWLUtils.keep(ontology, cls, partOfProperty);
                         for (OWLRestriction restriction : owlRestrictions) {
                             for (OWLClass parent : OWLUtils.getReferencedClasses(restriction)) {
                                 String parentId = getId(parent);
