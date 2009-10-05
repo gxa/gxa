@@ -95,21 +95,28 @@ public class AtlasDAO {
           "AND spv.sampleid=s.sampleid " +
           "AND s.accession=?";
 
-  // other atlas analytics queries
+  // array and design element queries
   private static final String ARRAY_DESIGN_SELECT =
       "SELECT accession, type, name, provider, arraydesignid " +
           "FROM a2_arraydesign";
   private static final String ARRAY_DESIGN_BY_ACC_SELECT =
       ARRAY_DESIGN_SELECT + " " +
           "WHERE accession=?";
-  private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
+  private static final String DESIGN_ELEMENT_IDS_BY_ARRAY_ACCESSION =
       "SELECT de.designelementid from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid " +
           "AND ad.accession=?";
-  private static final String DESIGN_ELEMENTS_BY_GENEID =
+  private static final String DESIGN_ELEMENT_IDS_BY_GENEID =
       "SELECT de.designelementid " +
-          "FROM a2_desingelement de " +
+          "FROM a2_designelement de " +
           "WHERE de.geneid=?";
+  private static final String DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION =
+      "SELECT de.accession " +
+          "FROM a2_arraydesign ad, a2_designelement de " +
+          "where de.arraydesignid=ad.arraydesignid " +
+          "AND ad.accession=? ";
+
+  // other useful queries
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
       "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat a.pvaladj " +
           "FROM a2_expressionanalytics a " +
@@ -260,28 +267,46 @@ public class AtlasDAO {
   }
 
   /**
-   * A convenience method that fetches the set of design element accessions by
-   * array design accession.  The set of design element ids contains no
-   * duplicates, and the results that are returned are the manufacturers
-   * accession strings for each design element on an array design.  The
-   * parameters accepted are a {@link java.sql.Connection} to a database
-   * following the atlas schema, and the accession string of the array design
-   * (which should be of the form A-ABCD-123).
+   * A convenience method that fetches the set of design element ids by array
+   * design accession.  The set of design element ids contains no duplicates,
+   * and the results that are returned are the internal database ids for design
+   * elements.  This takes the accession of the array design as a parameter.
    *
    * @param arrayDesignAccession the accession number of the array design to
    *                             query for
-   * @return a set of unique design element accession strings
+   * @return a set of unique design element id integers
    */
-  public List<Integer> getDesignElementsByArrayAccession(
+  public List<Integer> getDesignElementIDsByArrayAccession(
       String arrayDesignAccession) {
-    List results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
+    List results = template.query(DESIGN_ELEMENT_IDS_BY_ARRAY_ACCESSION,
                                   new Object[]{arrayDesignAccession},
                                   new DesignElementMapper());
     return (List<Integer>) results;
   }
 
+  /**
+   * A convenience method that fetches the set of design element accessions by
+   * array design accession.  The set of design element accessions contains no
+   * duplicates, and the results that are returned are the manufacturers
+   * accession strings for each design element on an array design. This takes
+   * the accession of the array design (which should be of the form
+   * A-ABCD-123).
+   *
+   * @param arrayDesignAccession the accession number of the array design to
+   *                             query for
+   * @return a set of unique design element accession strings
+   */
+  public List<String> getDesignElementAccessionsByArrayAccession(
+      String arrayDesignAccession) {
+    List results = template.query(DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION,
+                                  new Object[]{arrayDesignAccession},
+                                  new DesignElementAccMapper());
+    return (List<String>) results;
+  }
+
+
   public List<Integer> getDesignElementIDsByGeneID(int geneID) {
-    List results = template.query(DESIGN_ELEMENTS_BY_GENEID,
+    List results = template.query(DESIGN_ELEMENT_IDS_BY_GENEID,
                                   new Object[]{geneID},
                                   new DesignElementMapper());
     return (List<Integer>) results;
@@ -375,6 +400,13 @@ public class AtlasDAO {
     public Object mapRow(ResultSet resultSet, int i)
         throws SQLException {
       return resultSet.getInt(1);
+    }
+  }
+
+  private class DesignElementAccMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i)
+        throws SQLException {
+      return resultSet.getString(1);
     }
   }
 

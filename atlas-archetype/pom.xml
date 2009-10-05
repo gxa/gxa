@@ -10,7 +10,7 @@
   <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas-archetype</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Gene Express Atlas Archetype</name>
+  <name>Gene Expression Atlas Archetype</name>
   <packaging>maven-archetype</packaging>
   <description>Archetype for generating a custom Atlas webapp</description>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
