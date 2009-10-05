@@ -8,7 +8,7 @@
     <artifactId>atlas</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
+  <groupId>uk.ac.ebi.microarray.atlas</groupId>
   <artifactId>atlas-loader</artifactId>
   <version>0.1-SNAPSHOT</version>
   <name>Gene Expression Atlas Data Loader</name>
@@ -36,8 +36,8 @@
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>uk.ac.ebi.microarray.atlas.loader</groupId>
-      <artifactId>loader-oracle-db</artifactId>
+      <groupId>uk.ac.ebi.microarray.atlas</groupId>
+      <artifactId>atlas-db-utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
