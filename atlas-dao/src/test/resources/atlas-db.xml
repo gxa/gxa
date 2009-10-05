@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+  <A2_EXPERIMENT
+      experimentid="1"
+      accession="E-ABCD-1234"
+      description="A test experiment"
+      performer="Someone"
+      lab="Somewhere"
+      loaddate="2009-10-05"
+      />
+</dataset>
