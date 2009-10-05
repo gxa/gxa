@@ -1,0 +1,96 @@
+<html>
+<!--
+/**
+ * HTML template to represent DAS DSN response.
+ *
+ * @author  Antony Quinn
+ * @version $Id$
+ * @since   1.0
+ */
+ -->
+<head>
+    <title>Mydas: Data Source</title>
+    <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="styles/common.css"/>
+    <script type="text/javascript">
+        var image_path = "images/";
+    </script>
+    <script type="text/javascript" src="scripts/main.js"></script>
+    <script type="text/javascript" src="scripts/sortable.js"></script>
+</head>
+
+<body>
+
+    <div class="header">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td class="banner">
+                    <span style="font-size:170%; color:white;">
+                        mydas
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div><p/></div>
+
+    <div class="dsn">
+
+        <h3>
+            Data Sources
+        </h3>
+        <table id="data-sources"
+               class="sortable"
+               cellpadding="0"
+               cellspacing="0"
+               width="100%">
+            <!-- Column headings -->
+            <tr class="head">
+                <th>Short Name</th>
+                <th>Full Name</th>
+                <th>Version</th>
+                <th>Mapmaster</th>
+                <th>Description</th>
+            </tr>
+            <!-- Row template -->
+            <tr class="template">
+                <td class="short-name">ipi-tryptic</td>
+                <td class="full-name">International Protein Index Predicted Tryptic Peptides</td>
+                <td class="version">0.1</td>
+                <td class="mapmaster">
+                    <a href="http://www.ebi.ac.uk/tc-test/das-srv/uniprot/das/ipi">
+                        http://www.ebi.ac.uk/tc-test/das-srv/uniprot/das/ipi
+                    </a>
+                </td>
+                <td class="description">
+                    Theoretical tryptic peptides based upon a complete and successful digest of the
+                    requested proteins with trypsin.
+                </td>
+            </tr>
+            <!-- Sample data (will be ignored by XSLT) -->
+            <tr class="ignore">
+                <td class="ignore">uniprot-tryptic</td>
+                <td class="ignore">UniProt Predicted Tryptic Peptides</td>
+                <td class="ignore">0.1</td>
+                <td class="ignore">
+                    <a href="http://www.ebi.ac.uk/tc-test/das-srv/uniprot/das/uniprot">
+                        http://www.ebi.ac.uk/tc-test/das-srv/uniprot/das/uniprot
+                    </a>
+                </td>
+                <td class="ignore">
+                    Theoretical tryptic peptides based upon a complete and successful digest of the
+                    requested proteins with trypsin.
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div><p/></div>
+
+    <div class="footer" align="right">
+        European Bioinformatics Institute &#169; 2007. All rights reserved.
+    </div>
+
+</body>
+</html>

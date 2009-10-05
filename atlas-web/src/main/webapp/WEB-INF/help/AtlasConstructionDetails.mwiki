@@ -1,0 +1,22 @@
+= Details of Construction of the Gene Expression Atlas =
+
+An overview of the construction of the Gene Expression Atlas is given here. For further details a forthcoming publication will be available here soon.
+
+# ArrayExpress Archive provides the original source of microarray data
+# The ArrayExpress Production Team (curators) select experiments from the archive to populate the Gene Expression Atlas,
+improving sample annotation by use of ontologies and performing gene re-annotation based on the latest genome builds in
+the process.
+# Every experiment is treated individually as follows:
+## Data is taken as normalized by original submitters/authors.
+## For every experimental variable ("factor") a set of gene-wise linear models is constructed, coefficients are moderated and one-way multiple comparisons with the mean (MCM) contrasts are computed. <ref>The statistical models and computations are performed primarily with the aid of the [[http://www.bioconductor.org|Bioconductor]] package ''limma''. Smyth, G. K. (2005). Limma: Linear Models for microarray data. In: Bioinformatics and Computational Biology Solutions using R and Bioconductor, R. Gentleman, V. Carey, S. Dudoit, R. Irizarry, W. Huber (eds.), Springer, New York, pages 397-420.</ref>
+## Post-hoc tests are used to compute and identify contrasts of interest with respective t-statistics and globally adjusted p-values.
+
+Thus for each experiment-condition pair we have, for each gene in the experiment, a direction and a p-value indicating
+the strength of differential expression in contrast to groups defined by the experimental variable that the condition
+belongs to.
+
+== References ==
+
+<references/>
+
+{{AtlasLinks}}

@@ -1,0 +1,26 @@
+= Linking to the Gene Expression Atlas =
+
+== Gene links ==
+You can link directly to information about the expression of genes in the Atlas using certain gene identifiers and Gene
+Ontology (GO) terms in a URL link. The gene identifiers that can be used include Ensembl, EMBL/GenBank, UniGene, UniProt
+and RefSeq identifiers. The complete list of identifiers and terms that can be used can be found in the following text
+file: [[http://www.ebi.ac.uk/gxa/download/gene_identifiers.txt|gene_identifiers.txt]].
+
+The format of a URL link to the Atlas is as follows:
+
+<pre>http://www.ebi.ac.uk/gxa/gene/IDENTIFIER</pre>
+
+If the identifier matches one single gene (e.g. ENSMUSG00000000701) then the gene view page for the gene will be returned. This provides a one-page summary of Atlas information about a given gene. See the [[HelpHome|Atlas help pages]] for more information.
+
+If the identifier matches more than one gene (e.g. GO:0032094) then a heat map view of the results for all the genes that link to the identifier will be shown. See the [[HelpHome|Atlas help pages]] for more information. 
+
+== Experiment links ==
+You can also link directly to an Atlas experiment knowing the experiment accession (e.g. E-MEXP-1014).
+The format of a URL link to the Atlas Experiment View is as follows:
+
+<pre>http://www.ebi.ac.uk/gxa/experiment/ACCESSION</pre>
+
+== Programmatic Access==
+For information about creating complex queries of the Atlas programmatically see the [[AtlasApis|Atlas programmatic access help pages]].
+
+{{AtlasLinks}}

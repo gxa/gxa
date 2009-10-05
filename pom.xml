@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>uk.ac.ebi.microarray.atlas</groupId>
+  <artifactId>atlas</artifactId>
+  <packaging>pom</packaging>
+  <version>0.1-SNAPSHOT</version>
+  <name>Gene Expression Atlas</name>
+  <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>2.0-beta-6</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.2</version>
+        <configuration>
+          <argLine>-Xmx1024m</argLine>
+          <testFailureIgnore>true</testFailureIgnore>
+        </configuration>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-external</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
+  </build>
+
+  <modules>
+    <module>atlas-index-api</module>
+    <module>indexbuilder</module>
+    <module>netcdf-generator</module>
+    <module>dataserver</module>
+    <module>atlas-web</module>
+    <module>atlas-archetype</module>
+    <module>atlas-loader</module>
+    <module>atlas-db</module>
+    <module>atlas-model</module>
+    <module>atlas-dao</module>
+    <module>atlas-test</module>
+    <module>atlas-db-utils</module>
+  </modules>
+
+  <dependencies>
+    <!-- testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.3</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- logging, uses SLF4J throughout -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>1.5.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.6</version>
+    </dependency>
+    <!-- todo: dependencies for solr - required here? or defer to individual components? -->
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-core</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-common</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-lucene-core</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.3</version>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <!-- fixme: this repo is not a permanent solution, but will do for now -->
+    <repository>
+      <id>atlas-repo</id>
+      <url>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>java.net</id>
+      <url>http://download.java.net/maven/2/</url>
+    </repository>
+    <repository>
+      <id>geotools</id>
+      <url>http://maven.geotools.fr/repository</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <atlas.log.priority>INFO</atlas.log.priority>
+    <atlas.log.appender>atlas-log</atlas.log.appender>
+
+    <atlas.googleanalytics.script/>
+    <atlas.protonotes.script/>
+    <atlas.last.experiment>868548824</atlas.last.experiment>
+    <atlas.data.release>9.8</atlas.data.release>
+
+    <!-- fixme: using a mock index and set of netcdfs, bundled with webapp -->
+    <solr.data.directory>webapps/atlas-web-1.1.1/data/ATLAS.SOLR.MOCK</solr.data.directory>
+    <atlas.netCDFlocation>webapps/atlas-web-1.1.1/data/NetCDFs.ATLAS.MOCK</atlas.netCDFlocation>
+
+    <!-- fixme: these properties pointed to arrayexpress databases, need to be configured for new DB -->
+    <indexbuilder.ftp>nowhere</indexbuilder.ftp>
+    <jdbc.ae.url>jdbc:oracle:thin:@unknown:1521:ae</jdbc.ae.url>
+    <jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>
+    <jdbc.ae.username>user</jdbc.ae.username>
+    <jdbc.ae.password>password</jdbc.ae.password>
+    <jdbc.dw.url>jdbc:oracle:thin:@unknown:1521:dw</jdbc.dw.url>
+    <jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>
+    <jdbc.dw.username>user</jdbc.dw.username>
+    <jdbc.dw.password>password</jdbc.dw.password>
+    <atlas.dbName>AEATLAS</atlas.dbName>
+
+  </properties>
+
+</project>

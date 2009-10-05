@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor name="atlas-archetype">
+  <fileSets>
+    <fileSet encoding="UTF-8">
+      <directory />
+      <includes>
+        <include>pom.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true">
+      <directory>src/main/webapp</directory>
+      <includes>
+        <include>META-INF/context.xml</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <requiredProperties>
+    <!-- normal properties -->
+    <requiredProperty key="groupId" />
+    <requiredProperty key="artifactId" />
+    <requiredProperty key="version" />
+    <!-- atlas specific properties? -->
+    <requiredProperty key="atlasDatasourceURL" />
+    <requiredProperty key="atlasUser" />
+    <requiredProperty key="atlasPassword" />
+    <requiredProperty key="atlasIndexLocation" />
+    <requiredProperty key="atlasNetCDFRepoLocation" />
+  </requiredProperties>
+</archetype-descriptor>

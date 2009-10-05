@@ -1,0 +1,561 @@
+#topcontainer { width: 740px; }
+
+#twocol { padding: 0; margin: 5px 0 0 0; border-spacing: 0; }
+#twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
+
+/* basic colors */
+#apilinks div.abs, #expopup, #expopup .exptable, #tooltip, #waiter, .tokeninput { border: 1px solid #5E9E9E }
+fieldset, #drill {  border: none }
+
+#apilinks div.abs, #squery th, #tooltip, #expopup, .diaghead, .tokeninput
+      { background-color: #EEF5F5; }
+
+.closebox, .tokeninput span { color: #006666; }
+
+#drilldowns { display: none; }
+#drilldowns .name, #drill h2 { color: #005555;  }
+#drill h2 { font-size: 11pt;
+            font-weight: bold;
+            background: none;
+            margin:0 0 15px 0; }
+
+#summary { line-height: 25px; vertical-align:middle;padding-bottom: 5px; }
+/*#pagetop { float: right; position: relative; right: -5px;} */
+
+/* tables */
+#squery {
+    font-family: arial, sans-serif;
+    font-size: 12px;
+    text-align: left;
+    margin: 0px 30px 15px 0px;
+    padding: 0;
+    border-spacing: 0px;
+    border-right: 1px solid #cdcdcd;
+    border-bottom: 1px solid #cdcdcd;
+    empty-cells: show;
+    *border-collapse: collapse; /* i luv IE */
+}
+
+#squery th {
+    vertical-align: top;
+    padding: 0px 0px 0px 0px;
+    border-left: 1px solid #cdcdcd;
+    border-top: 1px solid #cdcdcd;
+    *border-right: 1px solid #cdcdcd;
+    *border-bottom: 1px solid #cdcdcd;
+}
+#squery .padded { padding: 1px 4px 1px 4px; }
+#squery th.padded { vertical-align: middle;text-align: center; }
+
+#squery th.factor { text-align:center;font-weight:normal;font-size:10px }
+#squery th.factor div { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px; }
+#squery th.factor a { display: block; text-align:center; height: 12px;font-weight:bold; text-decoration: none; }
+
+#squery div.diaghead { position: relative; text-align:center; overflow:hidden; height: 15px;font-weight:bold;font-size:10px;border-bottom: 1px solid #cdcdcd; }
+
+#squery .divider { border-right: 3px solid #cdcdcd; }
+
+#squery td {
+    color: #3D3D3D;
+    background-color: #FFF;
+    vertical-align: middle;
+    padding: 0px 0px 0px 0px;
+    white-space: nowrap;
+    border-left: 1px solid #cdcdcd;
+    border-top: 1px solid #cdcdcd;
+    *border-right: 1px solid #cdcdcd;
+    *border-bottom: 1px solid #cdcdcd;
+}
+
+#squery td.counter, #squery td.acounter {
+    width:26px; min-width:26px; max-width:26px;
+}
+
+#squery td.acounter:hover { cursor: pointer; }
+
+#squery td.genename { font-size: 12px; font-weight: bold; }
+
+#squery em, #tooltip em { font: inherit; background-color: yellow;text-decoration:inherit;  }
+
+.osq {
+    width:26px; height:26px; position:relative; line-height: 26px; text-align: center;
+}
+.sq {
+    width:26px; height:26px; position:relative;
+}
+.tri {
+    width:0; height:0; font-size: 0;line-height: 0%;
+    border-top: 26px solid;
+    border-right: 26px solid;
+    border-bottom-style: none;
+}
+
+.upval {
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
+}
+
+.dnval {
+    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
+}
+
+#squery .gtooltip { display: none; }
+
+#squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
+
+/* form */
+
+fieldset { padding:7px;display:block;margin:0; }
+fieldset.top { margin-bottom: 10px;  }
+legend { font-weight: bold; }
+
+.ignored { color: #cc0000; }
+
+#simpleform table, #structform table { width: 100%;border:none;margin:0;padding:0; }
+#conditions select { width: 120px; }
+#conditions td { vertical-align: top; white-space:nowrap; text-align:left; padding: 2px 10px 2px 0; }
+#conditions td.left { width: 40%; }
+#conditions td.value { width: 50%; }
+#conditions td.rm { text-align: right;padding: 2px;width:10%; }
+#structform input.value { width:340px;  }
+
+.label {
+    font-size: 10px;
+}
+
+/* drilldown filters */
+#drill {  margin-bottom:15px; margin-top: 2px; padding: 7px; position: relative }
+.drillsect { } /* border-top:1px solid #dedede} */
+.drillsect ul { padding: 0px 5px 10px 0px;margin: 0; }
+.drillsect li { padding-left: 0px; list-style: none; color: #999999; }
+.drillsect .name { font-size: 12px; font-weight: bold}
+.drillsect .ftot { font-size:12px }
+#drill a.fup:link, #drill a.fup:visited { text-decoration: none; color: #c5b0b0; }
+#drill a.fdn:link, #drill a.fdn:visited { text-decoration: none; color: #b0b0c5; }
+#drill a.fup:active, #drill a.fup:hover { text-decoration: underline; color: #e33e3e; }
+
+/* experiments popup */
+
+#expopup {
+    font-family: Verdana, helvetica, arial, sans-serif;
+    position: absolute;
+    width: 500px;
+    height: 300px;
+    padding: 10px;
+    color: black;
+    text-align:left;
+    z-index:2000;
+}
+
+#waiter {
+    position: absolute;
+    padding: 3px;
+    background-color: white;
+    z-index:2000;
+}
+
+#expopup .exptable {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    margin-top: 10px;
+}
+
+#expopup .head {
+    font-weight:normal;
+    font-size:12px;
+}
+
+#expopup .head a {
+    font-size: 12px;
+}
+
+#expopup .exptable > table {
+    border-spacing: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#expopup td.explot, #expopup td.expup, #expopup td.expdn  {
+    white-space: normal;
+    vertical-align:top;
+    text-align: left;
+    padding: 5px;
+}
+
+#expopup tr.notlast > td { border-bottom: 1px solid #5E9E9E; }
+
+#expopup td.explot {
+    border-right: 1px solid #5E9E9E;
+}
+
+#expopup .expup {
+    color: #990000;
+}
+#expopup .expdn {
+    color: #000099;
+}
+
+#expopup em { font-weight: bold; }
+
+#expopup a:link, #expopup a:visited {
+    color: #006666;
+    text-decoration: none;
+}
+
+#expopup a:hover, #expopup a:active {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+#expopup table.oneplot td { vertical-align: top; }
+#expopup table.oneplot .efname { font-size: smaller; font-weight: bold; margin: 6px 0 2px 2px;  }
+
+.closebox {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: bold;
+    font-size: 10px;
+    background-color:white;
+    padding: 4px 8px 4px 8px;
+    text-align: center;
+    border-left: 1px solid #5E9E9E;
+    border-bottom: 1px solid #5E9E9E; 
+    cursor: pointer;
+    z-index: 2500;
+}
+
+.closebox:hover {
+    color: #e33e3e;
+    text-decoration: underline;    
+}
+
+#tooltip {
+	position: absolute;
+	z-index: 3000;
+    padding: 10px;
+}
+
+#tooltip .genename { margin-bottom: 10px;font-size:10px; }
+#tooltip .genename b { font-weight: bold; font-size: 14px; }
+
+.plot { position: relative; width: 240px; height: 100px; }
+
+#squery tr.expand-child td, #squery tr.expand-child th {
+    display: none;
+}
+
+#squery tr.expand-child td.empty {
+    border-right:none;border-top:none;border-bottom:none;
+}
+
+#squery tr.expand-child .thickborder {
+    padding:2px 0 0 0;background-color:#cdcdcd;    
+}
+
+#squery tr.expand-child td.genename {
+    border-left: 4px solid #cdcdcd; border-right:none;    
+}
+
+#squery tr.expand-child td.expdesc {
+    padding:1px 70px 1px 4px;border-left:none;border-right:none;
+}
+
+#squery tr.expand-child .expthumb {
+    border-left:none;
+}
+
+#squery tr.expand-child .expthumb div.outer {
+    position:relative;height:45px;width:100%;line-height:45px;
+}
+
+#squery tr.expand-child .expthumb a {
+    border:none;text-decoration:none;outline:none;position:absolute;display:block;right:0;text-align:center;
+}
+
+#squery tr.expand-child .expthumb div.thumb {
+    height:45px;width:90px;
+}
+
+#squery tr.expand-child .pvalue {
+    border-right:2px solid #cdcdcd;
+}
+
+#squery thead th.header {
+    background-repeat: no-repeat;
+    background-position: center right;
+}
+
+#squery thead th.header {
+	background-image: url(images/bg.gif);
+}
+
+#squery thead th.headerSortUp {
+    background-image: url(images/asc.gif);
+}
+
+#squery thead th.headerSortDown {
+    background-image: url(images/desc.gif);
+}
+
+#squery td.wrapok { white-space: normal; }
+
+/* expand/collapse */
+#squery td.collapsible {
+    padding: 9px 0 0 7px;
+    vertical-align: top;
+}
+
+.collapsible a.collapsed {
+    display: block;
+    width: 9px;
+    height: 9px;
+    background: url(images/expp.gif) no-repeat top left;
+    outline: 0;
+}
+
+.collapsible a.expanded {
+    display: block;
+    width: 9px;
+    height: 9px;
+    background: url(images/expm.gif) no-repeat top left;
+    outline: 0;
+}
+
+#simpleform td { vertical-align: top; }
+
+
+
+
+/* token */
+
+#structform ul.tokeninput li input {
+    width: 320px;
+}
+
+#structform ul.tokeninput {
+    width: 342px;
+}
+
+ul.tokeninput {
+    position: relative;
+    width: 150px;
+    overflow: hidden;
+    height: auto !important;
+    cursor: text;
+    min-height: 1px;
+    z-index: 999;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    background: white;
+}
+
+ul.tokeninputsearching {
+    background: url(images/indicator.gif) no-repeat bottom right;
+}
+
+ul.tokeninput li input {
+    border:0;
+    width: 130px;
+    padding: 1px 5px 1px 1px;
+    /*margin:0px;*/
+    outline:none;
+}
+
+li.tokeninputinput {
+    float: left;
+    padding:0;
+    margin:0;
+}
+
+li.tokeninput {
+    overflow: visible;
+    height: auto !important;
+    height: 1%;
+    float: left;
+    margin: 1px 1px 1px 1px;
+    padding: 1px 3px;
+    background-color: #eff2f7;
+    color: #000;
+    cursor: default;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    white-space:nowrap;
+}
+
+li.tokeninput p {
+    font-size: 10px;
+    display: inline;
+    padding: 0;
+    margin: 0;
+}
+
+li.tokeninput span {
+    margin-left: 2px;
+    font-weight: bold;
+    line-height: 8px;
+    cursor: pointer;
+}
+
+li.tokeninputsel {
+    background-color: #5E9E9E;
+    color: #fff;
+}
+
+div.tokeninputdrop {
+    border: 1px solid black;
+    background-color: white;
+    overflow: hidden;
+    z-index: 99999;
+    position: absolute;
+    width: 500px;
+    font-size: 12px;
+    cursor: default;
+}
+
+div.tokeninputdrop p {
+    padding: 5px 5px 5px 5px;
+    text-align: left;
+    color: #005555;
+    background-color: #cdcdcd;
+    font-weight: bold;
+    font-size: 10px;
+    cursor: default;
+    display: block;
+    margin: 0;
+}
+
+div.tokeninputdrop ul {
+    margin: 0;
+    padding: 0;
+}
+
+div.tokeninputdrop ul li {
+    cursor: pointer;
+    background-color: #fff;
+    padding: 3px;
+    white-space: nowrap;
+}
+
+div.tokeninputdrop ul li.tokendropitem {
+    background-color: #fff;
+}
+
+div.tokeninputdrop ul li.tokendropitem2 {
+    background-color: #eee;
+}
+
+div.tokeninputdrop ul li em {
+    font-size: 10px;
+    font-style: normal;
+    color: #999999;
+}
+
+span.disabled {
+    color: #999999;
+}
+
+div.tokeninputdrop ul li.tokendropitemsel {
+    background-color: #408c8c;
+    color: white;
+}
+
+div.tokeninputdrop p.tokendrophide {
+    border-top: 1px solid #5E9E9E;
+    cursor: pointer;
+}
+
+div.tokeninputdrop p.tokendrophide:hover {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+
+ul.tokeninput li.efoexpand {
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:16px;
+    height:16px;
+    background: url(images/expp.gif) no-repeat scroll center center;
+    cursor:pointer;
+}
+
+
+div.tokeninputdrop .tree {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px 25px 5px 5px;
+    margin-left: -10px;
+
+}
+
+* html div.tokeninputdrop .tree {
+    height: expression( this.scrollHeight > 199 ? "200px" : "auto" ) !important; /* set min-width for IE */
+}
+
+div.tokeninputdrop .tree UL {
+    padding: 0px 0px 0px 13px;
+    margin: 0px;
+}
+
+div.tokeninputdrop .tree LI {
+    line-height: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+div.tokeninputdrop .tree LI a, div.tokeninputdrop .tree LI a:hover {
+    cursor: pointer;
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid white;
+}
+
+div.tokeninputdrop li.selected a.selected {
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid #006666;
+    background: #99cccc;
+}
+
+div.tokeninputdrop .tree LI i {
+    display: inline-block;
+    width: 11px;
+    height: auto;
+    cursor: pointer;
+}
+div.tokeninputdrop .tree LI.collapsed { background: url(images/expp.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.expanded { background: url(images/expm.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
+
+div.tokeninputdrop .tree a.hl { color: #005555; }
+
+#apilinks  {
+    color: black;
+    font-size: 12px;
+    font-weight: normal;
+    position:relative;
+    display:none;
+    line-height:normal;
+    z-index:10;
+}
+
+#apilinks div.abs {
+    position:absolute;
+    padding: 10px;
+    margin:0;
+    z-index:1000;
+    width: 600px;
+}
+
+#apilinks p { margin-bottom: 5px; }
+#apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%; }
+#apilinks td { padding: 0;border:none;margin:0; }

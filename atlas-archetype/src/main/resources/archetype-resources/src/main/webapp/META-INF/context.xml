@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context swallowOutput="true">
+  <Resource
+      name="jdbc/AEATLAS"
+      type="javax.sql.DataSource"
+      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+      driverClassName="oracle.jdbc.OracleDriver"
+      url="${atlasDatasourceURL}"
+      username="${atlasUser}"
+      password="${atlasPassword}"
+      maxIdle="2"
+      maxWait="5000"
+      maxActive="50"
+      removeAbandoned="true" />
+
+  <Resource
+      name="file/AEINDEX"
+      type="java.util.File"
+      path="${atlasIndexLocation}"
+      />
+
+  <Resource
+      name="file/AENETCDFS"
+      type="java.util.File"
+      path="${atlasNetCDFRepoLocation}"
+      />
+
+</Context>

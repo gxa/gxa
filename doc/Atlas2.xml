@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<model version="2.0">
+	<version version="3.2" design_id="C80CE17E-7B0B-5B92-E28D-C0431FC1AE02" />
+	<object>
+		<comment></comment>
+		<notes></notes>
+		<alter type="created">
+			<user>Andrey</user>
+			<timestamp>2009-08-24 11:15:48</timestamp>
+		</alter>
+		<alter type="changed">
+			<user>Andrey</user>
+			<timestamp>2009-08-24 12:03:56</timestamp>
+		</alter>
+	</object>
+	<engineering_params delete_without_origin="false" engineer_coordinates="true" engineer_generated="true" show_engineering_intree="false" apply_naming_std="false" use_pref_abbreviation="true" upload_directory="" />
+	<eng_compare show_sel_prop_only="true" not_apply_for_new_objects="true" exclude_from_tree="false">
+		<entity_table>
+			<property name="Name" selected="true" />
+			<property name="Short Name / Abbreviation" selected="true" />
+			<property name="Comment" selected="true" />
+			<property name="Comment in RDBMS" selected="true" />
+			<property name="Notes" selected="true" />
+			<property name="TempTable Scope" selected="true" />
+			<property name="Table Type" selected="true" />
+			<property name="Structured Type" selected="true" />
+			<property name="Type Substitution (Super-Type Object)" selected="true" />
+			<property name="Min Volumes" selected="true" />
+			<property name="Expected Volumes" selected="true" />
+			<property name="Max Volumes" selected="true" />
+			<property name="Growth Percent" selected="true" />
+			<property name="Growth Type" selected="true" />
+			<property name="Normal Form" selected="true" />
+			<property name="Adequately Normalized" selected="true" />
+		</entity_table>
+		<attribute_column>
+			<property name="Name" selected="true" />
+			<property name="Data Type" selected="true" />
+			<property name="Data Type Kind" selected="true" />
+			<property name="Mandatory" selected="true" />
+			<property name="Default Value" selected="true" />
+			<property name="Use Domain Constraint" selected="true" />
+			<property name="Comment" selected="true" />
+			<property name="Comment in RDBMS" selected="true" />
+			<property name="Notes" selected="true" />
+			<property name="Source Type" selected="true" />
+			<property name="Formula Description" selected="true" />
+			<property name="Type Substitution" selected="true" />
+			<property name="Scope" selected="true" />
+		</attribute_column>
+		<key_index>
+			<property name="Name" selected="true" />
+			<property name="Comment" selected="true" />
+			<property name="Comment in RDBMS" selected="true" />
+			<property name="Notes" selected="true" />
+			<property name="Primary Key" selected="true" />
+			<property name="Attributes/Columns" selected="true" />
+		</key_index>
+		<relation_fk>
+			<property name="Name" selected="true" />
+			<property name="Comment" selected="true" />
+			<property name="Comment in RDBMS" selected="true" />
+			<property name="Notes" selected="true" />
+		</relation_fk>
+		<entityview_view>
+			<property name="Name" selected="true" />
+			<property name="Comment" selected="true" />
+			<property name="Comment in RDBMS" selected="true" />
+			<property name="Notes" selected="true" />
+			<property name="Structured Type" selected="true" />
+			<property name="Where" selected="true" />
+			<property name="Having" selected="true" />
+			<property name="User Defined SQL" selected="true" />
+		</entityview_view>
+	</eng_compare>
+	<changerequests id="" />
+	<design type="Data Types" id="D6976547-66D9-04AA-9E75-614C3AD6294B" path_id="0" main_view_id="C1724953-6511-27BC-C574-6E712FD203CE" should_be_open="true" is_visible="false">
+		<name>DataTypes</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<design type="LogicalDesign" id="728B72DB-7C6E-98DC-A4A5-8429AD9A1515" path_id="0" main_view_id="2D617086-B3EC-91BE-9A05-5571A51DAF44" should_be_open="true" is_visible="true">
+		<name>Logical</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<design type="RelationalModel" id="9384C7B5-70BA-D3CA-16B2-A9F8DA7FC62E" path_id="1" main_view_id="995F279C-0364-BDEC-B822-380BF4A5461F" should_be_open="true" is_visible="false">
+		<name>Relational_1</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<design type="RelationalModel" id="28273EC4-9CB4-85D4-DCF6-649B1846C8F4" path_id="2" main_view_id="62E4D807-47C4-4300-47A8-633DEF4D2628" should_be_open="true" is_visible="true">
+		<name>AEDWT</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<design type="Process Model" id="E8023430-6621-A97F-0EF8-5C95581A744E">
+		<name>Process Model</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<design type="Business Information" id="06AD565B-9CEB-DD31-E3BC-06C5DF396974" path_id="0" main_view_id="null" should_be_open="true" is_visible="false">
+		<name>Business Information</name>
+		<comment></comment>
+		<notes></notes>
+	</design>
+	<domains>
+		<domain name="defaultdomains" role="uses" />
+	</domains>
+</model>

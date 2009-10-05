@@ -1,0 +1,6 @@
+<archetype>
+  <id>maven-archetype-datasource</id>
+  <resources>
+    <resource>pom.xml</resource>
+  </resources>
+</archetype>

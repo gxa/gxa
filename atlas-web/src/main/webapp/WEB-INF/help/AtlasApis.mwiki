@@ -1,0 +1,651 @@
+= Gene Expression Atlas APIs =
+
+== Introduction ==
+
+== REST APIs ==
+
+Atlas REST API provides all the results available in the main web application in a pragmatic, easy to use form - simple HTTP GET queries as input and either JSON or XML formats as output.
+
+All REST API URLs now have the following general form:
+
+<pre>http://<ATLAS>/api?<query>[&format=<json|xml>][&indent]</pre>
+
+* ''format'' parameter specifies output format and can be eith ''xml'' or ''json'' for XML and JSON formats respectively.
+* ''indent'' option allows you to get a pretty-formatted source useful for debugging purposes, so that results can be viewed in text editor. DO NOT use this option in production as it increases bandwidth use and significantly increases response and processing time.
+
+JSON output format also supports JSONP-style callbacks, which should be specified with argument ''callback=callbackName''. In this case resulting JSON output wil be wrapped into a callback function call, ready to be evaluated bythe requesting client's <script> tag. For example:
+<pre>
+http://<ATLAS>/api?<query>&format=json&callback=processResult
+</pre>
+will render
+<source lang="javascript">
+processResult({ ...query result data... })
+</source>
+
+This could be useful to create cross-site AJAX mashups using Atlas data. Please refer to this HTML/Javascript code example:
+
+<source lang="javascript">
+        function processData(data) {
+            if(data.error) {
+                alert(data.error);
+                return;
+            }
+
+            alert('Experiment accession: ' + data.experimentInfo.accession + ', description: ' + data.experimentInfo.description);
+        }
+
+        function queryExperiment(experimentId) {
+            var head = document.getElementsByTagName('head');
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.src = atlasHomeUrl + "/api?experiment="+escape(experimentId)+"&format=json&callback=processData";
+            head[0].appendChild(script);
+        }
+</source>
+<source lang="xml">
+        ...
+        <input type="button" value="Show experiment" onclick="queryExperiment('E-AFMX-1')">
+</source>
+
+=== Gene queries ===
+
+The gene query interface resembles the original "structured query" interface available through the web and allows to combine gene properties queries with conditions. Query parameters are passed through a set of HTTP GET URL parameter name=value pairs and should be URL-escaped as usual (%-based encoding, like %20%30%40).
+
+Gene filter parameters have the format of ''gene<Property>Is=...'' or ''gene<Property>IsNot=...'', where <Property> should be one of:
+
+* Name - Gene name
+* Goterm - Gene Ontology Term
+* Interproterm - InterPro Term
+* Disease - Gene-Disease Assocation
+* Keyword - Gene Keyword
+* Protein - Protein
+
+* Dbxref - Other Database Cross-Refs
+* Embl - EMBL-Bank ID
+* Ensfamily - Ensembl Family
+* Ensgene - Ensembl Gene ID
+
+* Ensprotein - Ensembl Protein ID
+* Enstranscript - Ensembl Transcript ID
+* Goid - Gene Ontology ID
+* Image - IMAGE ID
+* Interproid - InterPro ID
+* Locuslink - Entrez Gene ID
+
+* Omimid - OMIM ID
+* Orf - ORF
+* Refseq - RefSeq ID
+* Unigene - UniGene ID
+* Uniprot - UniProt Accession
+
+* Hmdb - HMDB ID
+* Chebi - ChEBI ID
+* Cas - CAS
+* Uniprotmetenz - Uniprotmetenz
+* Gene - Gene Name or Identifier
+* Synonym - Gene Synonym
+
+All fields are searched if <Property> is omitted.
+
+Examples:
+<pre>
+http://<ATLAS>/api?geneGotermIs=p53+binding&geneDisease=cancer
+http://<ATLAS>/api?geneIs=ASPM
+http://<ATLAS>/api?geneIsNot=cell+cycle
+http://<ATLAS>/api?geneIs=ENSMUSG0000012344
+</pre>
+
+=== Condition queries ===
+
+Condition queries can be combined with gene queries to filter result genes according to their expression statistics. Condition parameters have the format
+''<up|down|updown>In<Factor>=...'' where <Factor> (optional, if omitted, all condition properties are searched) is one of:
+
+* Anything - Any experimental factor
+* Experiment - An experiment accession, such as E-AFMX-5
+* Efo - An [http://www.ebi.ac.uk/efo|Experimental Factor Ontology] accession, e.g., EFO_0001359 (diabetes mellitus)
+
+or, more specifically:
+
+* Age - Age
+* Biometric - Biometric measurement
+* Cellline - Cell line
+* Celltype - Cell type
+* Clinhistory - Clinical history
+* Clininfo - Clinical info
+* Clintreatment - Clinical treatment
+* Compound - Compound treatment
+* Cultivar - Cultivar
+* Devstage - Developmental stage
+* Diseaseloc - Disease location
+* Diseasestaging - Disease staging
+* Diseasestate - Disease state
+* Dose - Dose
+* Ecotype - Ecotype
+* Envhistory - Environmental history
+* Familyhistory - Family history
+* Genmodif - Gene modification
+* Genotype - Genotype
+* Growthcondition - Growth condition
+* Histology - Histology
+* Indgeneticchar - Genotype
+* Individual - Individual
+* Infect - Infection
+* Initialtime - Initial time
+* Injury - Injury
+* Light - Light
+* MaterialType - Material type
+* Media - Media
+* Observation - Observation
+* Organism - Organism
+* Organismpart - Organism part
+* Organismstatus - Organism status
+* Performer - Performer
+* Phenotype  -  Phenotype
+* Population - Population
+* Protocoltype - Protocol type
+* Qcdescrtype - QC description
+* Replicate - Replicate
+* RNAi - RNAi
+* Sex - Sex
+* Sourceprovider - Source provider
+* Strainorline - Strain or line
+* Targetcelltype - Target cell type
+* Temperature - Temperature
+* Test - Test
+* Testresult - Test result
+* Testtype - Test type
+* Time - Time
+* Tumorgrading - Tumor grading
+* Vehicle - Vehicle
+* Generation - Generation
+
+All factors are searched if <Factor> is omitted.
+
+Examples:
+<pre>
+http://<ATLAS>/api?upIn=liver
+http://<ATLAS>/api?updownInOrganismpart=heart
+http://<ATLAS>/api?downInOrgansimpart=kidney&upInSex=male
+http://<ATLAS>/api?geneIs=p53&downInOrgansimpart=kidney&upInSex=male
+</pre>
+
+=== Output ===
+
+The query output structure is self-explanatory, and it can be tested using a plain web browser just pointing it to an API URL and adding an ''&indent'' argument.
+Here is an example of the result set rendered by the gene query ''http://<ATLAS>/api?geneIs=ENSG00000159216&format=json&indent'':
+
+<source lang="javascript">
+{
+    "results" : [
+        {
+            "gene" : {
+                "id" : "ENSG00000159216",
+                "name" : "RUNX1",
+                "orthologs" : [
+                    "B0414.2",
+                    "ENSMUSG00000022952",
+                    "ENSRNOG00000001704"
+                ],
+                "ensemblGeneId" : "ENSG00000159216",
+                "goTerms" : [
+                    "ATP binding",
+                    "chloride ion binding",
+                    "nucleus",
+                    ...
+                ],
+                "interProIds" : [
+                    "IPR000040",
+                    "IPR012346",
+                    ...
+                ],
+                "interProTerms" : [
+                    "Runx inhibition",
+                    "Transcription factor, Runt-related, RUNX",
+                    ...
+                ],
+                "keyword" : [
+                    "3D-structure",
+                    "Alternative splicing",
+                    ...
+                ],
+                "diseases" : [
+                    "Leukemia, acute myeloid",
+                    "Platelet disorder, familial, with associated myeloid malignancy",
+                    "Rheumatoid arthritis, susceptibility to"
+                ],
+                "uniprotIds" : [
+                    "Q01196"
+                ],
+                "synonyms" : [
+                    "AML1",
+                    "CBFA2",
+                    "RUNX1"
+                ],
+                "goIds" : [
+                    "GO:0003700",
+                    ...
+                ],
+                "emblIds" : [
+                    "AP000330",
+                    ...
+                ],
+                "ensemblProteinIds" : [
+                    "ENSP00000300305",
+                    ...
+                ],
+                "omimiIds" : [
+                    "151385",
+                    "601399"
+                ],
+                "refseqIds" : [
+                    "NM_001001890",
+                    "NM_001122607",
+                    "NM_001754"
+                ],
+                "unigeneIds" : [
+                    "Hs.149261",
+                    ...
+                ]
+            },
+            "expressions" : [
+                {
+                    "ef" : "RNAi",
+                    "efv" : "SIM2s",
+                    "experiments" : [
+                        {
+                            "pvalue" : 2.44739812717842E-6,
+                            "expression" : "UP",
+                            "accession" : "E-MEXP-101"
+                        }
+                    ],
+                    "upExperiments" : 1,
+                    "downExperiments" : 0,
+                    "upPvalue" : 2.4473981738992734E-6,
+                    "downPvalue" : 0.0
+                },
+                {
+                    "efoTerm" : "T cell",
+                    "efoId" : "EFO_0000208",
+                    "experiments" : [
+                        {
+                            "pvalue" : 0.0209469933341716,
+                            "expression" : "DOWN",
+                            "accession" : "E-AFMX-5"
+                        },
+                        {
+                            "pvalue" : 0.0261270675699093,
+                            "expression" : "DOWN",
+                            "accession" : "E-GEOD-6053"
+                        }
+                    ],
+                    "upExperiments" : 0,
+                    "downExperiments" : 2,
+                    "upPvalue" : 0.0,
+                    "downPvalue" : 0.020946992561221123
+                },
+                ....
+            ]
+        }
+    ],
+    "totalResultGenes" : 1,
+    "numberOfResultGenes" : 1,
+    "startingFrom" : 0
+}
+</source>
+
+The XML output has similar structure and is meant to be processed with either XSLT or software modules, similar to Perl or Ruby's XML::Simple and similar, transforming it to a tree of objects.
+
+<source lang="xml">
+<?xml version="1.0" encoding="utf-8"?>
+<atlasResponse>
+    <results>
+        <result>
+            <gene>
+                <id>ENSG00000159216</id>
+                <name>RUNX1</name>
+                <orthologs>
+                    <ortholog>B0414.2</ortholog>
+                    <ortholog>ENSMUSG00000022952</ortholog>
+                    <ortholog>ENSRNOG00000001704</ortholog>
+                </orthologs>
+                <ensemblGeneId>ENSG00000159216</ensemblGeneId>
+                <goTerms>
+                    <goTerm>ATP binding</goTerm>
+                    <goTerm>chloride ion binding</goTerm>
+                    ...
+                </goTerms>
+                <interProIds>
+                    <interProId>IPR000040</interProId>
+                    <interProId>IPR012346</interProId>
+                    ...
+                </interProIds>
+                <interProTerms>
+                    <interProTerm>Runx inhibition</interProTerm>
+                    <interProTerm>Transcription factor, Runt-related, RUNX</interProTerm>
+                    ...
+                </interProTerms>
+                <keywords>
+                    <keyword>3D-structure</keyword>
+                    <keyword>Alternative splicing</keyword>
+                    ...
+                </keywords>
+                <diseases>
+                    <disease>Leukemia, acute myeloid</disease>
+                    <disease>Platelet disorder, familial, with associated myeloid malignancy</disease>
+                    <disease>Rheumatoid arthritis, susceptibility to</disease>
+                </diseases>
+                <uniprotIds>
+                    <uniprotId>Q01196</uniprotId>
+                </uniprotIds>
+                <synonyms>
+                    <synonym>AML1</synonym>
+                    <synonym>CBFA2</synonym>
+                    <synonym>RUNX1</synonym>
+                </synonyms>
+                <goIds>
+                    <goId>GO:0003700</goId>
+                    <goId>GO:0005515</goId>
+                    ...
+                </goIds>
+                <emblIds>
+                    <emblId>AP000330</emblId>
+                    <emblId>BC136381</emblId>
+                    ...
+                </emblIds>
+                <ensemblProteinIds>
+                    <ensemblProteinId>ENSP00000300305</ensemblProteinId>
+                    ...
+                </ensemblProteinIds>
+                <omimiIds>
+                    <omimiId>151385</omimiId>
+                    <omimiId>601399</omimiId>
+                </omimiIds>
+                <refseqIds>
+                    <refseqId>NM_001001890</refseqId>
+                    <refseqId>NM_001122607</refseqId>
+                    <refseqId>NM_001754</refseqId>
+                </refseqIds>
+                <unigeneIds>
+                    <unigeneId>Hs.149261</unigeneId>
+                    ...
+                </unigeneIds>
+            </gene>
+            <expressions>
+                <expression>
+                    <ef>RNAi</ef>
+                    <efv>SIM2s</efv>
+                    <experiments>
+                        <experiment>
+                            <pvalue>2.44739812717842E-6</pvalue>
+                            <expression>UP</expression>
+                            <accession>E-MEXP-101</accession>
+                        </experiment>
+                    </experiments>
+                    <upExperiments>1</upExperiments>
+                    <downExperiments>0</downExperiments>
+                    <upPvalue>2.4473981738992734E-6</upPvalue>
+                    <downPvalue>0.0</downPvalue>
+                </expression>
+                <expression>
+                    <efoTerm>GLI56</efoTerm>
+                    <efoId>EFO_0001104</efoId>
+                    <experiments>
+                        <experiment>
+                            <pvalue>0.00340485089589589</pvalue>
+                            <expression>UP</expression>
+                            <accession>E-GEOD-4717</accession>
+                        </experiment>
+                    </experiments>
+                    <upExperiments>1</upExperiments>
+                    <downExperiments>0</downExperiments>
+                    <upPvalue>0.0034048508387058973</upPvalue>
+                    <downPvalue>0.0</downPvalue>
+                </expression>
+                ...
+            </expressions>
+        </result>
+    </results>
+    <totalResultGenes>1</totalResultGenes>
+    <numberOfResultGenes>1</numberOfResultGenes>
+    <startingFrom>0</startingFrom>
+</atlasResponse>
+</source>
+
+=== Experiments query ===
+
+To search for experiments use ''experiment=<ExperimentAccession>'' argument and several ''gene=<GeneIdentifier>'' arguments to get expression values of specified genes in the experiment.
+Otherwise only general information about experiment will be returned.
+
+Examples:
+<pre>
+http://<ATLAS>/api?experiment=E-AFMX-1&format=xml
+http://<ATLAS>/api?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
+</pre>
+
+Output is the full experiment information. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).
+''assayIds'' array contains a series of assay IDs in the same order in which expression values will be in the corresponding ''designElement'' arrays.
+
+''geneExpressionStatistics'' section contains Atlas expression analytics results for design elements where it is available.
+
+<source lang="xml">
+<?xml version="1.0" encoding="utf-8"?>
+<atlasResponse>
+    <geneExpressions>
+        <arrayDesign accession="A-AFFY-33">
+            <assayIds>0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ... </assayIds>
+            <genes>
+                <gene id="ENSG00000160766">
+                    <designElement id="17599">19.6 62.3 132.8 101.2 373.6 47.2 114.6 50.8 65.9 21.4 26.4 24.4 ... </designElement>
+                </gene>
+            </genes>
+        </arrayDesign>
+        <arrayDesign accession="A-AFFY-40">
+            <assayIds>158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 ... </assayIds>
+            <genes/>
+        </arrayDesign>
+    </geneExpressions>
+    <experimentInfo>
+        <accession>E-AFMX-5</accession>
+        <description>Transcription profiling of human cell lines and tissues (GNF/Novartis)</description>
+        <types>
+            <type>organism_part_comparison_design</type>
+        </types>
+    </experimentInfo>
+    <experimentDesign>
+        <experimentalFactors>
+            <experimentalFactor>diseasestate</experimentalFactor>
+            <experimentalFactor>celltype</experimentalFactor>
+            <experimentalFactor>organismpart</experimentalFactor>
+        </experimentalFactors>
+        <sampleCharacteristics>
+            <sampleCharacteristic>sex</sampleCharacteristic>
+            <sampleCharacteristic>age</sampleCharacteristic>
+            <sampleCharacteristic>observation</sampleCharacteristic>
+            <sampleCharacteristic>diseasestate</sampleCharacteristic>
+            <sampleCharacteristic>clinhistory</sampleCharacteristic>
+            <sampleCharacteristic>devstage</sampleCharacteristic>
+            <sampleCharacteristic>targetcelltype</sampleCharacteristic>
+            <sampleCharacteristic>organismpart</sampleCharacteristic>
+        </sampleCharacteristics>
+        <arrayDesigns>
+            <arrayDesign>
+                <accession>A-AFFY-33</accession>
+            </arrayDesign>
+            <arrayDesign>
+                <accession>A-AFFY-40</accession>
+            </arrayDesign>
+        </arrayDesigns>
+        <samples>
+            <sample>
+                <id>0</id>
+                <sampleCharacteristics>
+                    <sex/>
+                    <age/>
+                    <diseasestate/>
+                    <observation/>
+                    <clinhistory/>
+                    <devstage>adult</devstage>
+                    <targetcelltype/>
+                    <organismpart>thymus</organismpart>
+                </sampleCharacteristics>
+                <relatedAssays>
+                    <assayId>26</assayId>
+                </relatedAssays>
+            </sample>
+            <sample>
+                <id>1</id>
+                <sampleCharacteristics>
+                    <sex/>
+                    <age/>
+                    <diseasestate/>
+                    <observation/>
+                    <clinhistory/>
+                    <devstage>adult</devstage>
+                    <targetcelltype/>
+                    <organismpart>thymus</organismpart>
+                </sampleCharacteristics>
+                <relatedAssays>
+                    <assayId>42</assayId>
+                </relatedAssays>
+            </sample>
+            ...
+        </samples>
+        <assays>
+            <assay>
+                <id>0</id>
+                <factorValues>
+                    <diseasestate/>
+                    <celltype/>
+                    <organismpart>lung</organismpart>
+                </factorValues>
+                <arrayDesign>A-AFFY-33</arrayDesign>
+                <relatedSamples>
+                    <sampleId>112</sampleId>
+                </relatedSamples>
+            </assay>
+            <assay>
+                <id>1</id>
+                <factorValues>
+                    <diseasestate/>
+                    <celltype/>
+                    <organismpart>heart</organismpart>
+                </factorValues>
+                <arrayDesign>A-AFFY-33</arrayDesign>
+                <relatedSamples>
+                    <sampleId>62</sampleId>
+                </relatedSamples>
+            </assay>
+            ...
+        </assays>
+    </experimentDesign>
+    <geneExpressionStatistics>
+        <arrayDesign accession="A-AFFY-33">
+            <genes>
+                <gene id="ENSG00000160766">
+                    <designElement id="17599">
+                        <expression>
+                            <ef>organismpart</ef>
+                            <efv>appendix</efv>
+                            <stat>
+                                <expression>UP</expression>
+                                <pvalue>0.00892422770197655</pvalue>
+                                <tstat>3.42359698327164</tstat>
+                            </stat>
+                        </expression>
+                        ...
+                    </designElement>
+                </gene>
+            </genes>
+        </arrayDesign>
+        <arrayDesign accession="A-AFFY-40">
+            <genes/>
+        </arrayDesign>
+    </geneExpressionStatistics>
+</atlasResponse>
+
+</source>
+
+Instead of querying by experiment accession it is possible also to use a full-text search for experiment description and title fields. 
+Gene arguments are ignored in this case and only basic info (''experimentInfo'' section of the full experiment result) is returned,
+one should then make several separate calls with appropriate accessions and gene identifiers to get full information.
+
+Example:
+<pre>
+http://<ATLAS>/api?experiment=cancer
+</pre>
+
+Output is an array of experiment objects with only basic information:
+<source lang="javascript">
+[
+    {
+        "accession" : "E-GEOD-2034",
+        "description" : "Breast cancer relapse free survival",
+        "types" : [
+            "disease_state_design",
+            "co-expression_design"
+        ]
+    },
+    {
+        "accession" : "E-GEOD-2379",
+        "description" : "Transcription profiling of human hypopharyngeal cancer samples",
+        "types" : [
+            "disease_state_design",
+            "co-expression_design"
+        ]
+    },
+    ...
+]
+</source>
+
+
+=== Error output ===
+
+If an error occurred in the processing of the query, the output will contain an error message.
+
+For example, for JSON:
+<source lang="javascript">
+{
+    "error" : "Empty query specified"
+}
+</source>
+
+For XML:
+<source lang="xml">
+<?xml version="1.0" encoding="utf-8"?>
+<atlasResponse>
+    <error>Empty query specified</error>
+</atlasResponse>
+</source>
+
+
+=== API links ===
+
+On every Atlas result page you can find a "REST API" link, showing REST API URLs corresponding to results being displayed.
+So, it is easy to integrate interactive results into your program for further processing.
+
+== Web Service APIs ==
+
+{|- style="color: red; padding: 5px; border: 1px solid red"
+|This version of SOAP APIs is to be replaced with a more extended one. For most flexible data access to the Atlas please use REST APIs.
+|}
+
+SOAP Web Services API are available with the WSDL located at
+http://www.ebi.ac.uk/microarray-as/atlas/services/AtlasWebService?wsdl.
+
+The API is very simple at the moment and consists of four methods:
+{|
+|- valign="top"
+|''query(q_gene, q_expt, q_orgn, q_updn)''
+|Essentially the same as the Atlas web interface. Queries for atlas results with a gene (q_gene) and an experiment (q_expt) query string. An organism and an up/down filter can be provided. Organism should be the Latin species name, in all capitals. The q_updn parameter is one of updn, up, down.
+|- valign="top"
+|''batchQuery(q_genes[], q_expts[], q_orgn, q_updn)''
+|Almost the same thing as above, except that the two array inputs must be "identifiers", not just any query strings (as in query). The identifiers are ArrayExpress experiment accession numbers for q_expts[] and are Ensembl transcript IDs or Uniprot IDs for q_genes[]. You can get complete information about any experiment/gene from its identifier via the two calls below.
+|- valign="top"
+|''getAtlasGene(geneIdentifier)''
+|Returns a set of key-value pairs describing the gene. Format is undocumented and may change!
+|- valign="top"
+|''getAtlasExperiment(experimentIdentifier)''
+|Returns a set of key-value pairs describing the experiment. Format is undocumented and may change!
+|}
+
+{{AtlasLinks}}

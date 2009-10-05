@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>uk.ac.ebi.microarray.atlas</groupId>
+	<artifactId>dataserver</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<name>Gene Expression Atlas Dataserver</name>
+
+	<parent>
+		<groupId>uk.ac.ebi.microarray.atlas</groupId>
+		<artifactId>atlas</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>uk.ac.ebi.microarray</groupId>
+			<artifactId>bioc</artifactId>
+			<version>1.0-alpha</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc14</artifactId>
+			<version>9.0.2.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.ucar</groupId>
+			<artifactId>netcdf</artifactId>
+			<version>2.2.22</version>
+		</dependency>
+        <dependency> <!-- native slf4j api for own application logging -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.6</version>
+        </dependency>
+        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency> <!-- log4j itself (note the runtime scope) -->
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+            <scope>runtime</scope>
+        </dependency>		
+	</dependencies>
+</project>
+

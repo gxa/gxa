@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+  version="2.0">
+
+  <description>Utility functions</description>
+  <display-name>Utility functions</display-name>
+  <tlib-version>1.0</tlib-version>
+  <short-name>u</short-name>
+  <uri>http://ebi.ac.uk/ae3/functions</uri>
+
+    <tag>
+        <name>renderWiki</name>
+        <tag-class>ae3.util.RenderWikiTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+
+    <function>
+      <name>escapeJS</name>
+      <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
+      <function-signature>
+        java.lang.String escapeJavaScript( java.lang.String )
+      </function-signature>
+    </function>
+
+    <function>
+      <name>escapeJSArray</name>
+      <function-class>ae3.util.EscapeUtil</function-class>
+      <function-signature>
+        java.lang.String escapeJSArray( java.util.Collection )
+      </function-signature>
+    </function>
+
+    <function>
+      <name>escapeURL</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        java.lang.String escapeURL( java.lang.String )
+      </function-signature>
+    </function>
+
+    <function>
+      <name>optionalQuote</name>
+      <function-class>ae3.util.EscapeUtil</function-class>
+      <function-signature>
+        java.lang.String optionalQuote( java.lang.String )
+      </function-signature>
+    </function>
+
+    <function>
+      <name>expressionBack</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+         java.lang.String expressionBack(ae3.service.structuredquery.UpdownCounter, int)
+      </function-signature>
+    </function>
+
+    <function>
+      <name>expressionText</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+         java.lang.String expressionText(ae3.service.structuredquery.UpdownCounter, int)
+      </function-signature>
+    </function>
+
+    <function>
+      <name>currentTime</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        long currentTime()
+      </function-signature>
+    </function>
+
+    <function>
+      <name>isInSet</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        boolean isInSet(java.util.Set,java.lang.Object)
+      </function-signature>
+    </function>
+
+    <function>
+      <name>truncate</name>
+      <function-class>ae3.util.HtmlHelper</function-class>
+      <function-signature>
+        java.lang.String truncateLine(java.lang.String,int)
+      </function-signature>
+    </function>
+
+    <function>
+        <name>getProp</name>
+        <function-class>ae3.util.AtlasProperties</function-class>
+        <function-signature>
+            java.lang.String getProperty(java.lang.String)
+        </function-signature>
+    </function>
+    
+     <function>
+        <name>getCurated</name>
+        <function-class>ae3.util.CuratedTexts</function-class>
+        <function-signature>
+            java.lang.String getCurated(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>getIntProp</name>
+        <function-class>ae3.util.AtlasProperties</function-class>
+        <function-signature>
+            int getIntProperty(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>hasProp</name>
+        <function-class>ae3.util.AtlasProperties</function-class>
+        <function-signature>
+            boolean hasProperty(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>max</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            java.lang.Comparable maxProperty(java.lang.Iterable, java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>GeneUrl</name>
+        <function-class>ae3.util.URLUtil</function-class>
+        <function-signature>
+            java.lang.String getGeneURL(javax.servlet.http.HttpServletRequest, java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>Experiment</name>
+        <function-class>ae3.util.URLUtil</function-class>
+        <function-signature>
+            java.lang.String getGeneURL(javax.servlet.http.HttpServletRequest, java.lang.String)
+        </function-signature>
+    </function>
+</taglib>

@@ -1,0 +1,176 @@
+table.heatmap th {
+	background-color: #edf6f5;
+	
+	text-align: left;
+	font-weight: bold;
+	font-size: 11px;
+	color: #005555;
+	background-repeat: no-repeat; 
+    background-position: center right;
+	cursor: pointer;
+}
+table.heatmap th.header{
+	background-image: url(images/bg.gif);
+}
+
+table.heatmap th.headerSortUp { 
+    background-image: url(images/asc.gif); 
+} 
+
+table.heatmap th.headerSortDown { 
+    background-image: url(images/desc.gif); 
+}
+
+table.heatmap {
+	text-align: left;
+	font-family: Verdana, helvetica, arial, sans-serif;
+    font-size: 8pt;
+	color: #404040;
+	background-color: #fafafa;
+	border-collapse: collapse;
+	border-spacing: 0px;
+	border-color: #9e9e9e;
+}
+
+.exp_summary {
+	padding-left: 15px;
+	padding-top: 10px;
+}
+
+.separator {
+	background-image: url( images/sep.png );
+	background-repeat: repeat-x;
+	height: 5px;
+}
+
+.exp_text {
+	color: #404040;
+	line-height: 15px;
+}
+
+.exp_header{
+	font-weight: bold;
+	color: #404040;;
+}
+
+.geneAnnotHeader {
+	font-size: 9pt;
+	color: #005555;
+	font-family: Verdana, helvetica, arial, sans-serif;
+	text-align: left;
+	font-weight: bold;
+	width: 10%;
+	vertical-align: top;
+}
+
+.geneName {
+	margin:0;
+	padding:0;
+    padding-right:10px;	
+	color: #005555; //#464646; // #e33e3e;
+	text-align: left;
+	font-size: 20pt;
+	font-weight: bold;
+	margin-bottom: 0;
+	vertical-align: text-bottom;
+}
+
+.moreLink {
+	cursor: pointer;
+	color: #408c8c;
+	text-align: right;
+	font-size: x-small;
+	font-family: Verdana;
+}
+
+.sectionHeader {
+	color: #005555;
+	font-family: Verdana, helvetica, arial, sans-serif;
+	font-size: 11pt;
+	font-weight: bold;
+	text-align: left;
+}
+
+.header {
+	color: #005555;
+	font-weight: bold;
+	font-size: 8pt;
+}
+
+.titleHeader {
+	color: #9e9e9e;
+	font-size: 16pt;
+	text-align: left;
+}
+
+.fullSectionView .fullSectionViewExt {
+	color: #404040;
+}
+
+.RankInfoBar {
+	width: 100px;
+	height: 8px;
+	border: solid 1px #5588ff;
+	margin: 3px 4px 2px 0;
+	float: left;
+	overflow: hidden
+}
+
+.RankInfoInt {
+	height: 100%;
+	background: #99ccff;
+	overflow: hidden
+}
+
+#panel {
+	height: 50px;
+}
+
+.slide {
+	margin: 0;
+	padding: 0;
+	background: url( images/searchAtlas.png ) no-repeat center top;
+}
+
+.btn-slide {
+	background: url( images/white-arrow.gif ) no-repeat right -50px;
+	text-align: center;
+	width: 144px;
+	height: 20px;
+	padding: 8px 8px 0 0;
+	margin: 0 auto;
+	display: block;
+	cursor: pointer;
+	font-size: small;
+	color: #000000;
+}
+
+.active {
+	background-position: right 12px;
+}
+
+
+.heatmap tr:hover  {
+	background-color: #deebeb;
+	color: #404040;
+	cursor: pointer;
+}
+
+.heatmap_over  {
+	background-color: #deebeb;
+	cursor: pointer;
+}
+
+.heatmap_row { background-color: white }
+
+.heatmap_out{
+	background-color: white;
+	color: #404040;
+}
+
+
+.heatmap_cell{
+   width:26px; height:26px; position:relative;
+   top: 5px;
+   text-align: center;
+}
