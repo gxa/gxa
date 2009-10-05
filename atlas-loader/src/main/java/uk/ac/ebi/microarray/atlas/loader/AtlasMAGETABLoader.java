@@ -20,9 +20,9 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.db.utils.AtlasDB;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.loader.db.utils.AtlasDB;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
@@ -197,8 +197,7 @@ public class AtlasMAGETABLoader {
         if (!designElementsByArray.containsKey(arrayDesignAcc)) {
           missingDesignElements =
               lookupMissingDesignElements(assay.getExpressionValues(),
-                                          assay.getArrayDesignAccession(),
-                                          conn);
+                                          assay.getArrayDesignAccession());
 
           // add to our cache for known missing design elements
           designElementsByArray.put(arrayDesignAcc, missingDesignElements);
@@ -299,10 +298,10 @@ public class AtlasMAGETABLoader {
 
   private Set<String> lookupMissingDesignElements(
       List<ExpressionValue> expressionValues,
-      String arrayDesignAccession,
-      Connection conn) throws SQLException {
-    Set<String> designElements =
-        AtlasDB.fetchDesignElementsByArrayDesign(conn, arrayDesignAccession);
+      String arrayDesignAccession) throws SQLException {
+    // use our dao to lookup design elements, instead of the writer class
+    List<String> designElements = atlasDAO.
+        getDesignElementAccessionsByArrayAccession(arrayDesignAccession);
 
     // check off missing design elements against any present
     Set<String> missingDesignElements = new HashSet<String>();
