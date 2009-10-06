@@ -45,7 +45,7 @@
       <artifactId>atlas-model</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
-    <!-- test scope dependencies, dbunit and hsqldb -->
+    <!-- also need dbunit jars, transitive deps don't work on tests? -->
     <dependency>
       <groupId>org.dbunit</groupId>
       <artifactId>dbunit</artifactId>
@@ -57,13 +57,6 @@
       <artifactId>hsqldb</artifactId>
       <version>1.8.0.7</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.5.6</version>
-      <scope>test</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

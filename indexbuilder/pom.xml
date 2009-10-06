@@ -32,7 +32,7 @@
       <type>test-jar</type>
     </dependency>
     <!-- also need dbunit jars, transitive deps don't work on tests? -->
-        <dependency>
+    <dependency>
       <groupId>org.dbunit</groupId>
       <artifactId>dbunit</artifactId>
       <version>2.4.4</version>
@@ -43,13 +43,6 @@
       <artifactId>hsqldb</artifactId>
       <version>1.8.0.7</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.5.6</version>
-      <scope>test</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -65,7 +58,6 @@
       <scope>test</scope>
       <optional>true</optional>
     </dependency>
-
 
     <!-- Need to try and streamline all these dependencies -->
     <dependency>
@@ -109,28 +101,6 @@
       <version>2.3</version>
     </dependency>
 
-    <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>jul-to-slf4j</artifactId>
-      <version>1.5.6</version>
-    </dependency>
-    <dependency> <!-- native slf4j api for own application logging -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.5.6</version>
-    </dependency>
-    <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.5.6</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency> <!-- log4j itself (note the runtime scope) -->
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.14</version>
-      <scope>runtime</scope>
-    </dependency>
     <dependency>
       <groupId>dom4j</groupId>
       <artifactId>dom4j</artifactId>
