@@ -14,6 +14,24 @@
   <name>Gene Expression Atlas Database Access Layer</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
+  <build>
+    <plugins>
+      <!-- make sure we bundle up test sources for use by other artifacts -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <!-- Spring dependency for jdbc templates -->
     <dependency>
@@ -27,7 +45,7 @@
       <artifactId>atlas-model</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
-    <!-- dbunit for unit tests -->
+    <!-- test scope dependencies, dbunit and hsqldb -->
     <dependency>
       <groupId>org.dbunit</groupId>
       <artifactId>dbunit</artifactId>

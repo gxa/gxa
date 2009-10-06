@@ -52,4 +52,14 @@ public class ExpressionAnalytics {
   public void setTStatistic(double tStatistic) {
     this.tStatistic = tStatistic;
   }
+
+  @Override public String toString() {
+    return "ExpressionAnalytics{" +
+        "efName='" + efName + '\'' +
+        ", efvName='" + efvName + '\'' +
+        ", experimentID=" + experimentID +
+        ", tStatistic=" + tStatistic +
+        ", pValAdjusted=" + pValAdjusted +
+        '}';
+  }
 }

@@ -9,4 +9,178 @@
       lab="Somewhere"
       loaddate="2009-10-05"
       />
+
+  <A2_EXPERIMENT
+      experimentid="2"
+      accession="E-WXYZ-6789"
+      description="Another test experiment"
+      performer="Someone else"
+      lab="Somewhere else"
+      loaddate="2009-10-05"
+      />
+
+  <A2_ARRAYDESIGN
+      arraydesignid="1"
+      accession="A-ABCD-1234"
+      type="some_type"
+      name="Hello I Am An Array Name"
+      provider="Some Company, Somewhere"
+      />
+
+  <A2_ARRAYDESIGN
+      arraydesignid="2"
+      accession="A-WXYZ-6789"
+      type="some_other_type"
+      name="Hello I Am Another Array Name"
+      provider="Another Company"
+      />
+
+  <A2_PROPERTY
+      propertyid="1"
+      name="PROP1"
+      accession="PropAcc1"
+      ae1tablename_assay="ae1__assay_prop__dm"
+      ae1tablename_sample="ae1__sample_prop_dm"
+      assaypropertyid="1"
+      samplepropertyid="1"
+      />
+
+  <A2_PROPERTY
+      propertyid="2"
+      name="PROP2"
+      accession="PropAcc2"
+      ae1tablename_assay="ae1__assay_prop__dm"
+      ae1tablename_sample="ae1__sample_prop_dm"
+      assaypropertyid="2"
+      samplepropertyid="2"
+      />
+
+  <A2_PROPERTYVALUE
+      propertyvalueid="1"
+      propertyid="1"
+      name="value001"
+      />
+
+  <A2_PROPERTYVALUE
+      propertyvalueid="2"
+      propertyid="2"
+      name="value002"
+      />
+
+  <A2_GENE
+      geneid="1"
+      specid="1"
+      identifier="ENSG0001"
+      name="AC01.1"
+      />
+
+  <A2_GENE
+      geneid="2"
+      specid="1"
+      identifier="ENSG0002"
+      name="AC02.1"
+      />
+
+  <A2_GENEPROPERTY
+      genepropertyid="1"
+      name="PROP"
+      ae2tablename="AE2__GENE_PROP__DM"
+      />
+
+  <A2_GENEPROPERTYVALUE
+      genepropertyvalueid="1"
+      geneid="1"
+      genepropertyid="1"
+      value="PROP:001"
+      />
+
+  <A2_SPEC
+      specid="1"
+      name="SPECIES"
+      />
+
+  <A2_ASSAY
+      assayid="1"
+      accession="abc:ABCxyz:SomeThing:1234.ABC123"
+      experimentid="1"
+      arraydesignid="1"
+      />
+
+  <A2_ASSAY
+      assayid="2"
+      accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
+      experimentid="1"
+      arraydesignid="2"
+      />
+
+  <A2_SAMPLE
+      sampleid="1"
+      accession="abc:some/Sample:ABC_DEFG_123a"
+      species="Species"
+      channel=""
+      />
+
+  <A2_SAMPLE
+      sampleid="2"
+      accession="xyz:other/Sample2:XYZ_TUVW_789x"
+      species="Different Species"
+      channel=""
+      />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="1"
+      assayid="1"
+      sampleid="1"
+      />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="2"
+      assayid="2"
+      sampleid="1"
+      />
+
+  <A2_DESIGNELEMENT
+      designelementid="1"
+      arraydesignid="1"
+      geneid="1"
+      accession="acc1"
+      name="acc1"
+      type="someType"
+      iscontrol="1"
+      />
+
+  <A2_DESIGNELEMENT
+      designelementid="2"
+      arraydesignid="2"
+      geneid="2"
+      accession="acc2"
+      name="acc2"
+      type="someType"
+      iscontrol="2"
+      />
+
+  <A2_EXPRESSIONANALYTICS
+      expressionid="1"
+      experimentid="1"
+      propertyvalueid="1"
+      geneid="1"
+      tstat="10.12345"
+      pvaladj="0.001"
+      fpval="0.000789"
+      fpvaladj="0.0123"
+      designelementid="1"
+      />
+
+  <A2_EXPRESSIONANALYTICS
+      expressionid="2"
+      experimentid="2"
+      propertyvalueid="2"
+      geneid="2"
+      tstat="10.12345"
+      pvaladj="0.001"
+      fpval="0.000789"
+      fpvaladj="0.0123"
+      designelementid="2"
+      />
+
 </dataset>

@@ -27,7 +27,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
   private static final String ATLAS_DATA_RESOURCE = "atlas-db.xml";
 
   private static final String DRIVER = "org.hsqldb.jdbcDriver";
-  private static final String URL = "jdbc:hsqldb:test:atlas";
+  private static final String URL = "jdbc:hsqldb:mem:atlas";
   private static final String USER = "sa";
   private static final String PASSWD = "";
 
@@ -72,6 +72,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD,
                        PASSWD);
 
+    // create a new database
+    createDatabase();
+
     // do dbunit setup
     super.setUp();
 
@@ -89,6 +92,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     // do dbunit teardown
     super.tearDown();
+
+    // destroy the old DB
+    destroyDatabase();
 
     // do our teardown
     System.clearProperty(
@@ -109,28 +115,158 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     // get a database connection, that will create the DB if it doesn't exist yet
     Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
+    System.out.print("Creating test database tables...");
 
-    // equivalent of a2_experiment.sql for hsqldb
     runStatement(conn,
-                 "  CREATE TABLE A2_EXPERIMENT " +
-                     "(EXPERIMENTID INTEGER IDENTITY, " +
+                 "CREATE TABLE A2_EXPERIMENT " +
+                     "(EXPERIMENTID INTEGER NOT NULL, " +
                      "ACCESSION CHAR, " +
                      "DESCRIPTION CHAR, " +
                      "PERFORMER CHAR, " +
                      "LAB CHAR, " +
                      "LOADDATE DATE, " +
                      "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_ARRAYDESIGN " +
+                     "(ARRAYDESIGNID INTEGER NOT NULL, " +
+                     "ACCESSION CHAR, " +
+                     "TYPE CHAR, " +
+                     "NAME CHAR, " +
+                     "PROVIDER CHAR, " +
+                     "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_PROPERTY " +
+                     "(PROPERTYID INTEGER NOT NULL, " +
+                     "NAME CHAR, " +
+                     "ACCESSION CHAR, " +
+                     "AE1TABLENAME_ASSAY CHAR, " +
+                     "AE1TABLENAME_SAMPLE CHAR, " +
+                     "ASSAYPROPERTYID INTEGER, " +
+                     "SAMPLEPROPERTYID INTEGER, " +
+                     "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_PROPERTYVALUE " +
+                     "(PROPERTYVALUEID INTEGER NOT NULL, " +
+                     "PROPERTYID INTEGER, " +
+                     "NAME CHAR, " +
+                     "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_ASSAY " +
+                     "(ASSAYID INTEGER NOT NULL, " +
+                     "ACCESSION CHAR, " +
+                     "EXPERIMENTID INTEGER NOT NULL, " +
+                     "ARRAYDESIGNID INTEGER NOT NULL, " +
+                     "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
+                     "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
+                     "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +
+                     "CONSTRAINT FKA2_ASSAY169476 FOREIGN KEY (EXPERIMENTID) " +
+                     "REFERENCES A2_EXPERIMENT (EXPERIMENTID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_ASSAYPROPERTYVALUE " +
+                     "(ASSAYPROPERTYVALUEID INTEGER NOT NULL, " +
+                     "ASSAYID INTEGER, " +
+                     "PROPERTYVALUEID INTEGER, " +
+                     "ISFACTORVALUE INTEGER, " +
+                     "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPROPERTYVALUEID));");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_SAMPLE " +
+                     "(SAMPLEID INTEGER NOT NULL, " +
+                     "ACCESSION CHAR, " +
+                     "SPECIES CHAR, " +
+                     "CHANNEL CHAR, " +
+                     "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
+
+    runStatement(conn,
+                 "  CREATE TABLE A2_SAMPLEPROPERTYVALUE " +
+                     "(SAMPLEPROPERTYVALUEID INTEGER NOT NULL, " +
+                     "SAMPLEID INTEGER NOT NULL, " +
+                     "PROPERTYVALUEID INTEGER, " +
+                     "ISFACTORVALUE INTEGER, " +
+                     "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPROPERTYVALUEID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_ASSAYSAMPLE " +
+                     "(ASSAYSAMPLEID INTEGER NOT NULL, " +
+                     "ASSAYID INTEGER, " +
+                     "SAMPLEID INTEGER, " +
+                     "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_GENE " +
+                     "(GENEID INTEGER, " +
+                     "SPECID INTEGER NOT NULL, " +
+                     "IDENTIFIER CHAR, " +
+                     "NAME CHAR) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_GENEPROPERTY " +
+                     "(GENEPROPERTYID INTEGER NOT NULL, " +
+                     "NAME CHAR, " +
+                     "AE2TABLENAME CHAR, " +
+                     "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
+
+    runStatement(conn,
+                 "  CREATE TABLE A2_GENEPROPERTYVALUE " +
+                     "(GENEPROPERTYVALUEID INTEGER NOT NULL," +
+                     "GENEID INTEGER, " +
+                     "GENEPROPERTYID INTEGER, " +
+                     "VALUE CHAR, " +
+                     "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_SPEC " +
+                     "(SPECID INTEGER NOT NULL, " +
+                     "NAME CHAR, " +
+                     "CONSTRAINT SYS_C008043 PRIMARY KEY (SPECID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_DESIGNELEMENT " +
+                     "(DESIGNELEMENTID INTEGER NOT NULL, " +
+                     "ARRAYDESIGNID INTEGER, " +
+                     "GENEID INTEGER NOT NULL, " +
+                     "ACCESSION CHAR, " +
+                     "NAME CHAR, " +
+                     "TYPE CHAR, " +
+                     "ISCONTROL INTEGER, " +
+                     "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
+
+    runStatement(conn,
+                 "CREATE TABLE A2_EXPRESSIONANALYTICS " +
+                     "(EXPRESSIONID INTEGER NOT NULL, " +
+                     "EXPERIMENTID INTEGER NOT NULL, " +
+                     "PROPERTYVALUEID INTEGER NOT NULL, " +
+                     "GENEID INTEGER, " +
+                     "TSTAT FLOAT, " +
+                     "PVALADJ FLOAT, " +
+                     "FPVAL FLOAT, " +
+                     "FPVALADJ FLOAT, " +
+                     "DESIGNELEMENTID INTEGER NOT NULL, " +
+                     "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
+
+    System.out.println("...done!");
+    conn.close();
   }
 
   @SuppressWarnings({"UnusedDeclaration"})
   @AfterClass
-  private void destroyDatabase() throws SQLException {
+  private void destroyDatabase() throws SQLException, ClassNotFoundException {
+    // Load the HSQL Database Engine JDBC driver
+    Class.forName("org.hsqldb.jdbcDriver");
+
+    // get a database connection, that will create the DB if it doesn't exist yet
     Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
 
     runStatement(conn, "SHUTDOWN");
   }
 
   private void runStatement(Connection conn, String sql) throws SQLException {
+    // just using raw sql here, prior to any dao/jdbctemplate setup
     Statement st = conn.createStatement();
     st.executeUpdate(sql);
     st.close();
