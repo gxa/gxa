@@ -6,6 +6,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,14 +34,15 @@ public class AtlasDAO {
 
   // gene queries
   private static final String GENES_SELECT =
-      "SELECT geneid, identifier, name, species " +
-          "FROM a2_gene";
+      "SELECT g.geneid, g.identifier, g.name, s.name AS species " +
+          "FROM a2_gene g, a2_spec s " +
+          "WHERE g.specid = s.specid";
   private static final String GENES_PENDING_SELECT =
       GENES_SELECT + " " +
-          "WHERE something something"; // fixme: load monitor table?
+          "AND something something"; // fixme: load monitor table?
   private static final String GENES_BY_EXPERIMENT_ACCESSION =
       GENES_SELECT + " " +
-          "WHERE experiment_id_key=?"; // fixme: linking genes to experiments?
+          "AND experiment_id_key=?"; // fixme: linking genes to experiments?
   private static final String PROPERTIES_BY_GENEID =
       "SELECT " +
           "gp.name AS property, " +
@@ -51,7 +53,7 @@ public class AtlasDAO {
 
   // assay queries
   private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
-      "SELECT a.accession, a.experimentid, ad.accession, a.assayid " +
+      "SELECT a.accession, e.accession, ad.accession, a.assayid " +
           "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
           "WHERE e.experimentid=a.experimentid " +
           "AND a.arraydesignid=ad.arraydesignid " +
@@ -118,7 +120,7 @@ public class AtlasDAO {
 
   // other useful queries
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
-      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat a.pvaladj " +
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat, a.pvaladj " +
           "FROM a2_expressionanalytics a " +
           "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
@@ -237,9 +239,16 @@ public class AtlasDAO {
                                   new Object[]{assayAccession},
                                   new SampleMapper());
 
+    // fixme: this doesn't adequately retrieve all assay accessions for samples
     List<Sample> samples = (List<Sample>) results;
+
     // also fetch all properties
     for (Sample sample : samples) {
+      // fixme: hack setting of assay accessions, this is broken as it assumes 1:1
+      List<String> assays = new ArrayList<String>();
+      assays.add(assayAccession);
+      sample.setAssayAccessions(assays);
+
       // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
       List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
                                         new Object[]{sample.getAccession()},

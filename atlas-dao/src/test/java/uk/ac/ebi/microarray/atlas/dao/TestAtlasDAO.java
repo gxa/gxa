@@ -1,6 +1,6 @@
 package uk.ac.ebi.microarray.atlas.dao;
 
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.List;
 
@@ -12,22 +12,382 @@ import java.util.List;
  * @date 05-Oct-2009
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
-  // actual testing methods start here
   public void testGetAllExperiments() {
     try {
-      List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+      // get row count of experiments in the dataset
+      int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
-      assertTrue("Wrong number of experiments", experiments.size() == 1);
-      for (Experiment exp : experiments) {
-        assertTrue("Experiment has wrong ID (" + exp.getExperimentID() + ")",
-                   exp.getExperimentID().equals("1"));
-        assertTrue("Experiment has wrong accession",
-                   exp.getAccession().equals("E-ABCD-1234"));
+      // get number of experiments from the DAO
+      int actual = getAtlasDAO().getAllExperiments().size();
+
+      // test data contains 2 experiments, check size of returned list
+      assertEquals("Wrong number of experiments", expected, actual);
+
+      System.out.println(
+          "Expected number of experiments: " + expected + ", actual: " +
+              actual);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetAllExperimentsPendingIndexing() {
+    // test index pending
+    List<Experiment> experiments =
+        getAtlasDAO().getAllExperimentsPendingIndexing();
+    for (Experiment exp : experiments) {
+//      assertTrue(exp.isPendingIndexing()); // todo - how to test this?
+    }
+  }
+
+  public void testGetAllExperimentsPendingNetCDFs() {
+    // test netcdf pending
+    List<Experiment> experiments =
+        getAtlasDAO().getAllExperimentsPendingNetCDFs();
+    for (Experiment exp : experiments) {
+//      assertTrue(exp.isPendingNetCDF()); // todo - how to test this?
+    }
+  }
+
+  public void testGetExperimentByAccession() {
+    try {
+      // fetch the accession of the first experiment in our dataset
+      String accession =
+          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
+              .toString();
+      String id =
+          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid")
+              .toString();
+
+      // fetch the experiment using the DAO
+      Experiment exp = getAtlasDAO().getExperimentByAccession(accession);
+
+      // check the returned data
+      assertNotNull(exp);
+      assertEquals("Accessions don't match", exp.getAccession(), accession);
+      assertEquals("IDs don't match", exp.getExperimentID(), id);
+
+      System.out.println(
+          "Fetched expected experiment id: " + id + " by accession: " +
+              accession + " successfully");
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetAllGenes() {
+    try {
+      // get row count of experiments in the dataset
+      int expected = getDataSet().getTable("A2_GENE").getRowCount();
+
+      // get number of experiments from the DAO
+      int actual = getAtlasDAO().getAllGenes().size();
+
+      // test data contains 2 experiments, check size of returned list
+      assertEquals("Wrong number of genes", expected, actual);
+
+      System.out.println(
+          "Expected number of genes: " + expected + ", actual: " +
+              actual);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetAllPendingGenes() {
+    // test index pending
+    List<Gene> genes = getAtlasDAO().getAllPendingGenes();
+    for (Gene gene : genes) {
+//      assertTrue(gene.isPending()); // todo - how to test this?
+    }
+  }
+
+  public void testGetPropertiesForGenes() {
+    List<Gene> genes = getAtlasDAO().getAllGenes();
+
+    // use dao to get properties
+    getAtlasDAO().getPropertiesForGenes(genes);
+
+    // now check properties on each gene, compared with dataset
+    try {
+      for (Gene gene : genes) {
+        List<Property> props = gene.getProperties();
+
+        for (Property prop : props) {
+          //loop over properties in the dataset to make sure we can find a matching one
+          boolean found = false;
+          int rows = getDataSet().getTable("A2_GENEPROPERTY").getRowCount();
+          for (int i = 0; i < rows; i++) {
+            String propName =
+                getDataSet().getTable("A2_GENEPROPERTY").getValue(i, "name")
+                    .toString();
+
+            if (propName.equals(prop.getName())) {
+              System.out.println(
+                  "Expected property: " + propName + ", " +
+                      "actual property: " + prop.getName());
+              found = true;
+              break;
+            }
+          }
+
+          assertTrue("Couldn't find Gene property named " + prop.getName(),
+                     found);
+        }
       }
     }
     catch (Exception e) {
       e.printStackTrace();
       fail();
     }
+  }
+
+  public void testGetAssaysByExperimentAccession() {
+    try {
+      // fetch the accession of the first experiment in our dataset
+      String accession =
+          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
+              .toString();
+
+      List<Assay> assays =
+          getAtlasDAO().getAssaysByExperimentAccession(accession);
+
+      for (Assay assay : assays) {
+        // check the returned data
+        assertNotNull(assay);
+        assertEquals("Accessions don't match", assay.getExperimentAccession(),
+                     accession);
+
+        System.out.println(
+            "Fetched expected assay id: " + assay.getAssayID() +
+                " by accession: " +
+                accession + " successfully");
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetSamplesByAssayAccession() {
+    try {
+      String accession =
+          getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
+              .toString();
+
+      List<Sample> samples =
+          getAtlasDAO().getSamplesByAssayAccession(accession);
+
+      for (Sample sample : samples) {
+        // check the returned data
+        assertNotNull(sample);
+        assertNotNull(sample.getAssayAccessions());
+        assertNotSame("Sample has zero assay accessions",
+                      sample.getAssayAccessions().size(), 0);
+        for (String acc : sample.getAssayAccessions()) {
+          assertEquals("Accessions don't match", acc, accession);
+        }
+
+        System.out.println(
+            "Fetched expected sample id: " + sample.getSampleID() +
+                " by accession: " +
+                accession + " successfully");
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testOneSampleToManyAssays() {
+    try {
+      // fetch the accession of the first assay in our dataset
+      String accession =
+          getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
+              .toString();
+
+      assertEquals("Got wrong assay from many-to-one relationship - " +
+          "wanted abc:ABCxyz:SomeThing:1234.ABC123",
+                   accession, "abc:ABCxyz:SomeThing:1234.ABC123");
+
+      List<Sample> samples =
+          getAtlasDAO().getSamplesByAssayAccession(accession);
+
+      for (Sample sample : samples) {
+        // check the returned data
+        assertNotNull(sample);
+        assertNotNull(sample.getAssayAccessions());
+        assertNotSame("Sample has zero assay accessions",
+                      sample.getAssayAccessions().size(), 0);
+        assertTrue("Not enough assays - sample " + sample.getAccession() +
+            " should be related to more than 1 assay",
+                   sample.getAssayAccessions().size() > 1);
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetAllArrayDesigns() {
+    try {
+      int expected = getDataSet().getTable("A2_ARRAYDESIGN").getRowCount();
+
+      int actual = getAtlasDAO().getAllArrayDesigns().size();
+
+      assertEquals("Wrong number of array designs", expected, actual);
+
+      System.out.println(
+          "Expected number of array designs: " + expected + ", actual: " +
+              actual);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetArrayDesignByAccession() {
+    try {
+      String accession =
+          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
+              .toString();
+      String id =
+          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "arraydesignid")
+              .toString();
+
+      ArrayDesign arrayDesign =
+          getAtlasDAO().getArrayDesignByAccession(accession);
+
+      // check the returned data
+      assertNotNull(arrayDesign);
+      assertEquals("Accessions don't match", arrayDesign.getAccession(),
+                   accession);
+      assertEquals("IDs don't match", arrayDesign.getArrayDesignID(), id);
+
+      System.out.println(
+          "Fetched expected array design id: " + id + " by accession: " +
+              accession + " successfully");
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetDesignElementIDsByArrayAccession() {
+    try {
+      // fetch the accession of the first array design in our dataset
+      String accession =
+          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
+              .toString();
+
+      List<Integer> deIDs =
+          getAtlasDAO().getDesignElementIDsByArrayAccession(accession);
+
+      // check the returned data
+      for (Integer deID : deIDs) {
+        assertNotNull(deID);
+        assertNotSame("Empty int for design element ID", deID, "");
+        System.out.println("Got design element: " + deID);
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetDesignElementAccessionsByArrayAccession() {
+    try {
+      // fetch the accession of the first array design in our dataset
+      String accession =
+          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
+              .toString();
+
+      List<String> deAcc =
+          getAtlasDAO().getDesignElementAccessionsByArrayAccession(accession);
+
+      // check the returned data
+      for (String deID : deAcc) {
+        assertNotNull(deID);
+        assertNotSame("Got 0 for design element ID", deID, 0);
+        assertNotSame("Got -1 for design element ID", deID, -1);
+        System.out.println("Got design element: " + deID);
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetDesignElementAccessionsByGeneID() {
+    try {
+      // fetch the accession of the first array design in our dataset
+      int id = Integer.parseInt(
+          getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
+
+      List<Integer> deIDs =
+          getAtlasDAO().getDesignElementIDsByGeneID(id);
+
+      // check the returned data
+      for (int deID : deIDs) {
+        assertNotNull(deID);
+        assertNotSame("Got 0 for design element ID", deID, 0);
+        assertNotSame("Got -1 for design element ID", deID, -1);
+        System.out.println("Got design element: " + deID);
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetExpressionAnalyticsByGeneID() {
+    try {
+      // fetch the accession of the first array design in our dataset
+      int id = Integer.parseInt(
+          getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
+
+      System.out.println("Getting stats for Gene id: " + id);
+
+      List<ExpressionAnalytics> eas =
+          getAtlasDAO().getExpressionAnalyticsByGeneID(id);
+
+      // check we got results
+      assertNotSame("Got 0 ExpressionAnalytics back", eas.size(), 0);
+
+      // check the returned data
+      for (ExpressionAnalytics ea : eas) {
+        assertNotNull(ea);
+        System.out.println("Got stats for " + id + ": " + ea.toString());
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public void testGetOntologyMappingsForOntology() {
+    String ontologyName = "EFO";
+
+    List<OntologyMapping> ontologyMappings =
+        getAtlasDAO().getOntologyMappingsForOntology(ontologyName);
+
+    assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
+
+    // todo: do some other checks once this code is implemented
   }
 }
