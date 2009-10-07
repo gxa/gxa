@@ -18,6 +18,16 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
  * @date 26-Aug-2009
  */
 public class AtlasLoaderUtils {
+  /**
+   * Blocking method that waits until the IDF for the given MAGETABInvestigation
+   * reached {@link Status}<code>.COMPILING</code> status, or else fails.
+   *
+   * @param investigation the investigation to wait on
+   * @param handlerName   the name of the handler (or the client class) that is
+   *                      waiting - this is used for logging
+   * @param log           a log stream to write - this is used in debug modes
+   * @return true when the IDF has finished compiling, or false if it failed
+   */
   public static boolean waitWhilstIDFCompiles(
       final MAGETABInvestigation investigation, String handlerName, Log log) {
     // compile objects
@@ -38,6 +48,17 @@ public class AtlasLoaderUtils {
     return investigation.getStatus() != Status.FAILED;
   }
 
+  /**
+   * Blocking method that waits until the SDRF for the given
+   * MAGETABInvestigation reached {@link Status}<code>.COMPILING</code> status,
+   * or else fails.
+   *
+   * @param investigation the investigation to wait on
+   * @param handlerName   the name of the handler (or the client class) that is
+   *                      waiting - this is used for logging
+   * @param log           a log stream to write - this is used in debug modes
+   * @return true when the SDRF has finished compiling, or false if it failed
+   */
   public static boolean waitWhilstSDRFCompiles(
       final MAGETABInvestigation investigation, String handlerName, Log log) {
     // compile objects
@@ -58,6 +79,27 @@ public class AtlasLoaderUtils {
     return investigation.getStatus() != Status.FAILED;
   }
 
+  /**
+   * Blocking method that waits until an experiment with the given accession
+   * number is available.  Note that this method will be interrupted if the
+   * investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+   * status, but not otherwise.  If the calling code never writes an experiment
+   * with this accession into a cache associated with the given investigation,
+   * this method will never terminate.
+   *
+   * @param accession     the accession of the experiment to wait for
+   * @param investigation the investigation to wait on.  This investigation is
+   *                      used to retrieve an {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache}
+   *                      from the {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry}
+   *                      singleton.
+   * @param handlerName   the name of the handler (or the client class) that is
+   *                      waiting - this is used for logging
+   * @param log           a log stream to write - this is used in debug modes
+   * @return true when the IDF has finished compiling, or false if it failed
+   * @throws LookupException if lookup failed - for example, if the accession
+   *                         supplied was null, or if the investigation acquires
+   *                         a failed status while this method was waiting.
+   */
   public static Experiment waitForExperiment(
       String accession,
       final MAGETABInvestigation investigation,
@@ -110,6 +152,27 @@ public class AtlasLoaderUtils {
     return cache.fetchExperiment(accession);
   }
 
+  /**
+   * Blocking method that waits until an assay with the given accession number
+   * is available.  Note that this method will be interrupted if the
+   * investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+   * status, but not otherwise.  If the calling code never writes an assay with
+   * this accession into a cache associated with the given investigation, this
+   * method will never terminate.
+   *
+   * @param accession     the accession of the assay to wait for
+   * @param investigation the investigation to wait on.  This investigation is
+   *                      used to retrieve an {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache}
+   *                      from the {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry}
+   *                      singleton.
+   * @param handlerName   the name of the handler (or the client class) that is
+   *                      waiting - this is used for logging
+   * @param log           a log stream to write - this is used in debug modes
+   * @return true when the IDF has finished compiling, or false if it failed
+   * @throws LookupException if lookup failed - for example, if the accession
+   *                         supplied was null, or if the investigation acquires
+   *                         a failed status while this method was waiting.
+   */
   public static Assay waitForAssay(
       String accession,
       final MAGETABInvestigation investigation,
@@ -163,6 +226,27 @@ public class AtlasLoaderUtils {
     return cache.fetchAssay(accession);
   }
 
+  /**
+   * Blocking method that waits until an sample with the given accession number
+   * is available.  Note that this method will be interrupted if the
+   * investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+   * status, but not otherwise.  If the calling code never writes an sample with
+   * this accession into a cache associated with the given investigation, this
+   * method will never terminate.
+   *
+   * @param accession     the accession of the sample to wait for
+   * @param investigation the investigation to wait on.  This investigation is
+   *                      used to retrieve an {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache}
+   *                      from the {@link uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry}
+   *                      singleton.
+   * @param handlerName   the name of the handler (or the client class) that is
+   *                      waiting - this is used for logging
+   * @param log           a log stream to write - this is used in debug modes
+   * @return true when the IDF has finished compiling, or false if it failed
+   * @throws LookupException if lookup failed - for example, if the accession
+   *                         supplied was null, or if the investigation acquires
+   *                         a failed status while this method was waiting.
+   */
   public static Sample waitForSample(
       String accession,
       final MAGETABInvestigation investigation,
@@ -215,6 +299,18 @@ public class AtlasLoaderUtils {
     return cache.fetchSample(accession);
   }
 
+  /**
+   * Generates an accession number for the given {@link SDRFNode} in the given
+   * {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation}.
+   * This uses a simple concatenation of investigation accession, followed by
+   * "::", followed by the node type, then "::" then the node name.
+   *
+   * @param investigation the investigation this node is present in.  If this
+   *                      investigation has no accession number, "UNKNOWN" is
+   *                      used as the first part of the resulting accession
+   * @param node          the node to generate the accession for
+   * @return the accession that was generated
+   */
   public static String getNodeAccession(MAGETABInvestigation investigation,
                                         SDRFNode node) {
     // todo - make decision on accession number format - just use name if not required to be unique?
