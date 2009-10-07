@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.loader.handler.idf;
+package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
@@ -9,11 +9,17 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
+import java.util.List;
 
 /**
  * Javadocs go here.
@@ -21,7 +27,7 @@ import java.net.URL;
  * @author Junit Generation Plugin for Maven, written by Tony Burdett
  * @date 07-10-2009
  */
-public class TestAtlasLoadingAccessionHandler extends TestCase {
+public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
 
@@ -40,8 +46,17 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
     pool.replaceHandlerClass(
+        DerivedArrayDataMatrixHandler.class,
+        AtlasLoadingDerivedArrayDataMatrixHandler.class);
+
+    // deata matrix is also dependent on experiments being created, so replace accession handler too
+    pool.replaceHandlerClass(
         AccessionHandler.class,
         AtlasLoadingAccessionHandler.class);
+    // deata matrix is also dependent on assays being created, so replace hyb handler too
+    pool.replaceHandlerClass(
+        HybridizationHandler.class,
+        AtlasLoadingHybridizationHandler.class);
   }
 
   public void tearDown() throws Exception {
@@ -86,9 +101,29 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
       fail();
     }
 
-    // parsing finished, look in our cache...
-    assertEquals("Local cache doesn't contain only one experiment",
-                 cache.fetchAllExperiments().size(), 1);
+    System.out.println("Parsing done");
 
+    // parsing finished, look in our cache...
+    // expect 404 assays
+    assertEquals("Local cache doesn't contain correct number of assays",
+                 cache.fetchAllAssays().size(), 404);
+
+    // get the title of the experiment
+    for (Assay assay : cache.fetchAllAssays()) {
+      List<ExpressionValue> evs = assay.getExpressionValues();
+
+      System.out.println("Found " + evs.size() + " expression values for " +
+          assay.getAccession());
+      assertNotSame("No evs found for assay " + assay.getAccession(),
+                    evs.size(), 0);
+    }
+  }
+
+  public void testFindUpstreamAssays() {
+    // private method, test in context of writeValues()
+  }
+
+  public void testHasDataMatrixNodeAsChild() {
+    // private method, test in context of writeValues()
   }
 }

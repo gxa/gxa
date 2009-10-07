@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.loader.handler.idf;
+package uk.ac.ebi.microarray.atlas.loader.handler.sdrf;
 
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
@@ -9,9 +9,12 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.net.URL;
 
@@ -21,7 +24,7 @@ import java.net.URL;
  * @author Junit Generation Plugin for Maven, written by Tony Burdett
  * @date 07-10-2009
  */
-public class TestAtlasLoadingAccessionHandler extends TestCase {
+public class TestAtlasLoadingSourceHandler extends TestCase {
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
 
@@ -39,6 +42,11 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
+    pool.replaceHandlerClass(
+        SourceHandler.class,
+        AtlasLoadingSourceHandler.class);
+
+    // source is also dependent on experiments being created, so replace accession handler too
     pool.replaceHandlerClass(
         AccessionHandler.class,
         AtlasLoadingAccessionHandler.class);
@@ -86,9 +94,26 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
       fail();
     }
 
-    // parsing finished, look in our cache...
-    assertEquals("Local cache doesn't contain only one experiment",
-                 cache.fetchAllExperiments().size(), 1);
+    System.out.println("Parsing done");
 
+    // parsing finished, look in our cache...
+    // expect 404 samples
+    assertEquals("Local cache doesn't contain correct number of samples",
+                 cache.fetchAllSamples().size(), 404);
+
+    // get the title of the experiment
+    for (Sample sample : cache.fetchAllSamples()) {
+      String acc = sample.getAccession();
+      System.out.println("Next sample acc: " + acc);
+      assertNotNull("Sample acc is null", acc);
+    }
+  }
+
+  public void testFindDownstreamAssayNode() {
+    // private method, test in the context of writeValues()
+  }
+
+  public void testWalkDownGraph() {
+    // private method, test in the context of writeValues()
   }
 }

@@ -31,8 +31,18 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
   private static final String USER = "sa";
   private static final String PASSWD = "";
 
-  private DataSource testDataSource;
+  private DataSource atlasDataSource;
   private AtlasDAO atlasDAO;
+
+  public DataSource getDataSource() {
+    if (atlasDataSource != null) {
+      return atlasDataSource;
+    }
+    else {
+      fail();
+      return null;
+    }
+  }
 
   public AtlasDAO getAtlasDAO() {
     if (atlasDAO != null) {
@@ -79,15 +89,15 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     super.setUp();
 
     // do our setup
-    testDataSource = new SingleConnectionDataSource(
+    atlasDataSource = new SingleConnectionDataSource(
         getConnection().getConnection(), false);
     atlasDAO = new AtlasDAO();
-    atlasDAO.setJdbcTemplate(new JdbcTemplate(testDataSource));
+    atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
   }
 
   protected void tearDown() throws Exception {
     // do our teardown
-    testDataSource = null;
+    atlasDataSource = null;
     atlasDAO = null;
 
     // do dbunit teardown
