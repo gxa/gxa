@@ -217,6 +217,7 @@ public class AtlasLoaderUtils {
 
   public static String getNodeAccession(MAGETABInvestigation investigation,
                                         SDRFNode node) {
+    // todo - make decision on accession number format - just use name if not required to be unique?
     String accession;
     if (investigation.accession != null) {
       accession = investigation.accession + "::" +

@@ -31,7 +31,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
     assayRef = null;
   }
 
-  public void testReadEVs() {
+  public void testReadAssayExpressionValues() {
     try {
       DataMatrixFileBuffer buffer =
           DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
@@ -92,5 +92,9 @@ public class TestDataMatrixFileBuffer extends TestCase {
       e.printStackTrace();
       fail();
     }
+  }
+
+  public void testParseHeaders() {
+    // private method, tested implicitly by test reads
   }
 }

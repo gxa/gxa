@@ -9,9 +9,11 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.URL;
 
@@ -21,7 +23,7 @@ import java.net.URL;
  * @author Junit Generation Plugin for Maven, written by Tony Burdett
  * @date 07-10-2009
  */
-public class TestAtlasLoadingAccessionHandler extends TestCase {
+public class TestAtlasLoadingInvestigationTitleHandler extends TestCase {
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
 
@@ -39,6 +41,11 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
+    pool.replaceHandlerClass(
+        InvestigationTitleHandler.class,
+        AtlasLoadingInvestigationTitleHandler.class);
+
+    // title is also dependent on experiments being created, so replace accession handler too
     pool.replaceHandlerClass(
         AccessionHandler.class,
         AtlasLoadingAccessionHandler.class);
@@ -90,5 +97,14 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     assertEquals("Local cache doesn't contain only one experiment",
                  cache.fetchAllExperiments().size(), 1);
 
+    // get the title of the experiment
+    String expected =
+        "Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment";
+    String actual = "";
+    for (Experiment exp : cache.fetchAllExperiments()) {
+      actual = exp.getDescription();
+    }
+
+    assertEquals("Titles don't match", expected, actual);
   }
 }

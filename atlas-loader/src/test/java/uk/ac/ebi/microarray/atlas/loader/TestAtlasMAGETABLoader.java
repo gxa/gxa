@@ -1,7 +1,6 @@
 package uk.ac.ebi.microarray.atlas.loader;
 
-import junit.framework.TestCase;
-import org.junit.Test;
+import junit.framework.AssertionFailedError;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -18,6 +17,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -35,13 +35,21 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 import java.net.URL;
 import java.util.List;
 
-public class TestExperimentConstruction extends TestCase {
+/**
+ * Javadocs go here.
+ *
+ * @author Junit Generation Plugin for Maven, written by Tony Burdett
+ * @date 07-10-2009
+ */
+public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
   private MAGETABInvestigation investigation;
   private AtlasLoadCache cache;
 
   private URL parseURL;
 
-  public void setUp() {
+  public void setUp() throws Exception {
+    super.setUp();
+
     // now, create an investigation
     investigation = new MAGETABInvestigation();
     cache = new AtlasLoadCache();
@@ -53,14 +61,16 @@ public class TestExperimentConstruction extends TestCase {
   }
 
   protected void tearDown() throws Exception {
+    super.tearDown();
+
     AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
     investigation = null;
     cache = null;
   }
 
-  @Test
   public void testReplaceHandlers() {
     HandlerPool pool = HandlerPool.getInstance();
+    pool.useDefaultHandlers();
     assertTrue(pool.replaceHandlerClass(
         AccessionHandler.class,
         AtlasLoadingAccessionHandler.class));
@@ -87,7 +97,6 @@ public class TestExperimentConstruction extends TestCase {
         AtlasLoadingDerivedArrayDataMatrixHandler.class));
   }
 
-  @Test
   public void testParseAndCheckExperiments() {
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
@@ -147,7 +156,21 @@ public class TestExperimentConstruction extends TestCase {
     assertNotNull("Experiment is null", expt);
   }
 
-  @Test
+  public void testLoadAndCompare() {
+    AtlasMAGETABLoader loader = new AtlasMAGETABLoader();
+    loader.setDataSource(getDataSource());
+    boolean result = loader.load(parseURL);
+
+    // now check expected objects can be retrieved with DAO
+    try {
+      assertTrue("Loading was not successful", result);
+    }
+    catch (AssertionFailedError e) {
+      System.out.println("Expected fail occurred - load will always fail " +
+          "until test in-memory DB gets stored procedures! LOLZ!!!!");
+    }
+  }
+
   public void testParseAndCheckSamplesAndAssays() {
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
@@ -210,7 +233,6 @@ public class TestExperimentConstruction extends TestCase {
                       .fetchAllAssays().size(), 0);
   }
 
-  @Test
   public void testParseAndCheckExpressionValues() {
     HandlerPool pool = HandlerPool.getInstance();
     pool.useDefaultHandlers();
