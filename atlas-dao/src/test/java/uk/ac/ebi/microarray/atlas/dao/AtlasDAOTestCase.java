@@ -259,6 +259,21 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                      "DESIGNELEMENTID INTEGER NOT NULL, " +
                      "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
 
+    // testing adding stored procedures
+    runStatement(conn,
+                 "CREATE ALIAS SQRT FOR \"java.lang.Math.sqrt\"");
+
+    // add real stored procedures
+    runStatement(conn,
+                 "CREATE ALIAS A2_EXPERIMENTSET FOR " +
+                     "\"uk.ac.ebi.microarray.atlas.dao.procedures.ExperimentSetter.call\"");
+    runStatement(conn,
+                 "CREATE ALIAS A2_ASSAYSET FOR " +
+                     "\"uk.ac.ebi.microarray.atlas.dao.procedures.AssaySetter.call\"");
+    runStatement(conn,
+                 "CREATE ALIAS A2_SAMPLESET FOR " +
+                     "\"uk.ac.ebi.microarray.atlas.dao.procedures.SampleSetter.call\"");
+
     System.out.println("...done!");
     conn.close();
   }

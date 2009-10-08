@@ -2,6 +2,10 @@ package uk.ac.ebi.microarray.atlas.dao;
 
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -389,5 +393,42 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
 
     // todo: do some other checks once this code is implemented
+  }
+
+  public void testCallStoredProcedures() {
+    try {
+      Connection conn = getConnection().getConnection();
+
+      Statement stmt = conn.createStatement();
+
+      ResultSet rs = stmt.executeQuery("CALL SQRT(2)");
+      while (rs.next()) {
+        double expected = Math.sqrt(2);
+        double actual =  Double.parseDouble(rs.getString(1));
+
+        assertEquals("Stored Procedure SQRT returns wrong answer",
+                     expected, actual);
+      }
+
+      // cleanup
+      rs.close();
+      stmt.close();
+
+      // now check we can call experimentset
+      stmt = conn.createStatement();
+
+      // just check this doesn't throw an exception
+      stmt.executeQuery("CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab')");
+      stmt.executeQuery("CALL A2_ASSAYSET('accession', 'E-ABCD-1234', 'A-ABCD-1234')");
+      stmt.executeQuery("CALL A2_SAMPLESET('accession', null, null, 'species', 'channel')");
+
+      // cleanup
+      stmt.close();
+      conn.close();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 }
