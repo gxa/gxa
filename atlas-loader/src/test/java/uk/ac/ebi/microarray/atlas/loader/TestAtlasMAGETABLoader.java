@@ -168,6 +168,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     catch (AssertionFailedError e) {
       System.out.println("Expected fail occurred - load will always fail " +
           "until test in-memory DB gets stored procedures! LOLZ!!!!");
+      fail();
     }
   }
 
