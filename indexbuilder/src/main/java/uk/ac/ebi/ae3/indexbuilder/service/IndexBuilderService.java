@@ -1,10 +1,7 @@
-/**
- * EBI Microarray Informatics Team (c) 2007-2008
- */
 package uk.ac.ebi.ae3.indexbuilder.service;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
@@ -29,20 +26,19 @@ import java.io.IOException;
  * abstract classes and {@link uk.ac.ebi.ae3.indexbuilder.IndexBuilder}
  * implementations.
  *
- * @author mdylag
+ * @author Miroslaw Dylag (original version)
  * @author Tony Burdett (atlas 2 revision)
  */
 public abstract class IndexBuilderService {
   private AtlasDAO atlasDAO;
-  private EmbeddedSolrServer solrServer;
+  private SolrServer solrServer;
 
   private boolean updateMode = false;
   private boolean pendingOnly = false;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  public IndexBuilderService(AtlasDAO atlasDAO,
-                             EmbeddedSolrServer solrServer) {
+  public IndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
     this.atlasDAO = atlasDAO;
     this.solrServer = solrServer;
   }
@@ -72,7 +68,7 @@ public abstract class IndexBuilderService {
     return atlasDAO;
   }
 
-  protected EmbeddedSolrServer getSolrServer() {
+  protected SolrServer getSolrServer() {
     return solrServer;
   }
 

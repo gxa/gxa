@@ -1,7 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder.service;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
@@ -32,7 +32,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
   private static final int NUM_THREADS = 64;
 
   public ExperimentAtlasIndexBuilderService(AtlasDAO atlasDAO,
-                                            EmbeddedSolrServer solrServer) {
+                                            SolrServer solrServer) {
     super(atlasDAO, solrServer);
   }
 
@@ -60,9 +60,15 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info(
                 "Updating index - experiment " + experiment.getAccession() +
                     " is in DB");
-            solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+            solrInputDoc.addField(Constants.FIELD_EXP_IN_DW,
+                                  true);
             solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
                                   experiment.getExperimentID());
+            // todo - i've added these, they were commented out in last release of XmlUtil - or maybe obfuscated behind stored XML
+            solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION,
+                                  experiment.getAccession());
+            solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC,
+                                  experiment.getDescription());
 
             // now, fetch assays for this experiment
             List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(

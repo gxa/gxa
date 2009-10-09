@@ -1,7 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder.service;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
   private Efo efo;
 
   public GeneAtlasIndexBuilderService(AtlasDAO atlasDAO,
-                                      EmbeddedSolrServer solrServer) {
+                                      SolrServer solrServer) {
     super(atlasDAO, solrServer);
 
     // get an Efo instance that we can use to calculate class hierarchy

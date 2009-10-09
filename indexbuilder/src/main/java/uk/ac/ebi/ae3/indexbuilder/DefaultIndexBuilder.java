@@ -47,6 +47,7 @@ public class DefaultIndexBuilder
   private IndexBuilderService exptIndexBuilder;
 
   private ExecutorService service;
+  private boolean running = false;
 
   // logging
   private static final Logger log =
@@ -116,61 +117,71 @@ public class DefaultIndexBuilder
    *                               any reason
    */
   public void startup() throws IndexBuilderException {
-    try {
-      // do some initialization...
+    if (!running) {
+      try {
+        // do some initialization...
 
-      // create a spring jdbc template
-      JdbcTemplate template = new JdbcTemplate(dataSource);
+        // create a spring jdbc template
+        JdbcTemplate template = new JdbcTemplate(dataSource);
 
-      // create an atlas dao
-      AtlasDAO dao = new AtlasDAO();
-      dao.setJdbcTemplate(template);
+        // create an atlas dao
+        AtlasDAO dao = new AtlasDAO();
+        dao.setJdbcTemplate(template);
 
-      // check for the presence of the index
-      File solr = new File(indexLocation, "solr.xml");
-      if (!solr.exists()) {
-        // no prior index, check the directory is empty?
-        if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
-          String message = "Unable to unpack solr configuration files - " +
-              indexLocation.getAbsolutePath() + " is not empty. " +
-              "Please choose an empty directory to create the index";
-          log.error(message);
-          throw new IndexBuilderException(message);
+        // check for the presence of the index
+        File solr = new File(indexLocation, "solr.xml");
+        if (!solr.exists()) {
+          // no prior index, check the directory is empty?
+          if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
+            String message = "Unable to unpack solr configuration files - " +
+                indexLocation.getAbsolutePath() + " is not empty. " +
+                "Please choose an empty directory to create the index";
+            log.error(message);
+            throw new IndexBuilderException(message);
+          }
+          else {
+            // unpack configuration files
+            unpackAtlasIndexTemplate(indexLocation);
+          }
         }
-        else {
-          // unpack configuration files
-          unpackAtlasIndexTemplate(indexLocation);
-        }
+
+        // first, create a solr CoreContainer
+        coreContainer = new CoreContainer();
+        coreContainer.load(indexLocation.getAbsolutePath(), solr);
+
+        // create an embedded solr server for experiments and genes from this container
+        EmbeddedSolrServer exptServer =
+            new EmbeddedSolrServer(coreContainer, "expt");
+        EmbeddedSolrServer atlasServer =
+            new EmbeddedSolrServer(coreContainer, "atlas");
+
+        // create IndexBuilderServices for genes (atlas) and experiments
+        exptIndexBuilder =
+            new ExperimentAtlasIndexBuilderService(dao, exptServer);
+        geneIndexBuilder =
+            new GeneAtlasIndexBuilderService(dao, atlasServer);
+
+        // finally, create an executor service for processing calls to build the index
+        service = Executors.newCachedThreadPool();
+
+        running = true;
       }
-
-      // first, create a solr CoreContainer
-      coreContainer = new CoreContainer();
-      coreContainer.load(indexLocation.getAbsolutePath(), solr);
-
-      // create an embedded solr server for experiments and genes from this container
-      EmbeddedSolrServer exptServer =
-          new EmbeddedSolrServer(coreContainer, "expt");
-      EmbeddedSolrServer atlasServer =
-          new EmbeddedSolrServer(coreContainer, "atlas");
-
-      // create IndexBuilderServices for genes (atlas) and experiments
-      exptIndexBuilder = new ExperimentAtlasIndexBuilderService(dao, exptServer);
-      geneIndexBuilder = new GeneAtlasIndexBuilderService(dao, atlasServer);
-
-      // finally, create an executor service for processing calls to build the index
-      service = Executors.newCachedThreadPool();
+      catch (IOException e) {
+        // wrap and rethrow as IndexBuilderException
+        throw new IndexBuilderException(e);
+      }
+      catch (SAXException e) {
+        // wrap and rethrow as IndexBuilderException
+        throw new IndexBuilderException(e);
+      }
+      catch (ParserConfigurationException e) {
+        // wrap and rethrow as IndexBuilderException
+        throw new IndexBuilderException(e);
+      }
     }
-    catch (IOException e) {
-      // wrap and rethrow as IndexBuilderException
-      throw new IndexBuilderException(e);
-    }
-    catch (SAXException e) {
-      // wrap and rethrow as IndexBuilderException
-      throw new IndexBuilderException(e);
-    }
-    catch (ParserConfigurationException e) {
-      // wrap and rethrow as IndexBuilderException
-      throw new IndexBuilderException(e);
+    else {
+      log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() +
+          " that is already running");
     }
   }
 
@@ -184,18 +195,27 @@ public class DefaultIndexBuilder
    *                               for any reason
    */
   public void shutdown() throws IndexBuilderException {
-    service.shutdown();
-    try {
-      service.awaitTermination(5, TimeUnit.MINUTES);
+    if (running) {
+      service.shutdown();
+      try {
+        service.awaitTermination(5, TimeUnit.MINUTES);
+      }
+      catch (InterruptedException e) {
+        log.error("Unable to shutdown service after 5 minutes.  " +
+            "There may be running or suspended IndexBuilder tasks.  " +
+            "If you are sure there are no tasks still running, then this " +
+            "is a non-recoverable error - you should terminate this application");
+        throw new IndexBuilderException(e);
+      }
+      finally {
+        coreContainer.shutdown();
+        running = false;
+      }
     }
-    catch (InterruptedException e) {
-      log.error("Unable to shutdown service, there may be suspended " +
-          "IndexBuilder tasks.  This is a non-recoverable error - you should " +
-          "terminate this application");
-      throw new IndexBuilderException(e);
-    }
-    finally {
-      coreContainer.shutdown();
+    else {
+      log.warn(
+          "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
+              " that is not running");
     }
   }
 

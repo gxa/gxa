@@ -21,7 +21,7 @@ import java.util.List;
  * The class prepares the sql statement and gets data for experiments from DW database.
  * The class uses 
  * 
- * @author mdylag
+ * @author Miroslaw Dylag
  * @version 1.0
  * 
  *

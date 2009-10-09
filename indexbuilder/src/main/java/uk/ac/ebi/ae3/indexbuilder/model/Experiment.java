@@ -5,7 +5,7 @@ package uk.ac.ebi.ae3.indexbuilder.model;
 
 /**
  * The class is a model for Experiment.
- * @author mdylag
+ * @author Miroslaw Dylag
  *
  */
 @Deprecated

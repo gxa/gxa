@@ -13,7 +13,7 @@ import java.util.Collection;
 /**
  * The class gets data from AE database.
  *  
- * @author mdylag
+ * @author Miroslaw Dylag
  *
  */
 @Deprecated
@@ -117,7 +117,7 @@ public class ExperimentJdbcDao
 	/**
 	 * Inner class
 	 * TODO: Document ME
-	 * @author mdylag
+	 * @author Miroslaw Dylag
 	 *
 	 */
 	class RowMapperExperiments implements ParameterizedRowMapper<Experiment>

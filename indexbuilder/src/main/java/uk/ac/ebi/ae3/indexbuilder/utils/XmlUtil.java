@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 /**
  * 
- * @author mdylag
+ * @author Miroslaw Dylag
  *
  */
 @Deprecated

@@ -27,7 +27,7 @@ import java.util.logging.LogManager;
  * The main class which contains main method. Create expt lucene index.
  * Configuration is stored in app-context.xml file
  * 
- * @author mdylag
+ * @author Miroslaw Dylag
  * 
  */
 @Deprecated
