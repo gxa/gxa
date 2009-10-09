@@ -1,0 +1,41 @@
+package uk.ac.ebi.ae3.indexbuilder.service;
+
+/**
+ * Javadocs go here.
+ *
+ * @author Junit Generation Plugin for Maven, written by Tony Burdett
+ * @date 07-10-2009
+ */
+public class TestGeneAtlasIndexBuilderService
+    extends IndexBuilderServiceTestCase {
+  private GeneAtlasIndexBuilderService gaibs;
+
+  public void setUp() throws Exception {
+    super.setUp();
+
+    gaibs = new GeneAtlasIndexBuilderService(getAtlasDAO(), getSolrServer());
+  }
+
+  public void tearDown() throws Exception {
+    super.tearDown();
+
+    gaibs = null;
+  }
+
+  public void testCreateIndexDocs() {
+    try {
+      // create the docs
+      gaibs.createIndexDocs();
+      // commit the results
+      gaibs.getSolrServer().commit();
+
+      // todo - now test that all the docs we'd expect were created
+
+
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+}

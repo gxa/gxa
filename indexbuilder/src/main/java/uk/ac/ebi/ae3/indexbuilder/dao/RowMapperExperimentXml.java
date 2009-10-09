@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * The row mapper from the SQL statement which return XML string. 
  * TODO: Document ME
- * @author mdylag
+ * @author Miroslaw Dylag
  *
  */
 @Deprecated
