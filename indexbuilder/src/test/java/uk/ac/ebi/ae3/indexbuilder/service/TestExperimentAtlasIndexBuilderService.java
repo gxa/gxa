@@ -6,6 +6,8 @@ import org.apache.solr.common.SolrDocument;
 import org.dbunit.dataset.ITable;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
+import java.util.Map;
+
 /**
  * Tests the documents that are created by the class {@link
  * uk.ac.ebi.ae3.indexbuilder.service.ExperimentAtlasIndexBuilderService}.
@@ -80,6 +82,49 @@ public class TestExperimentAtlasIndexBuilderService
       result = checkMatches(tableName, dbFieldName, constant, queryResponse);
       assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query",
                  result);
+
+      // now check property fields for assays
+      tableName = "A2_ASSAY";
+      dbFieldName = "assayid";
+
+      ITable assays = getDataSet().getTable(tableName);
+      for (int i = 0; i < assays.getRowCount(); i++) {
+        String assayId = assays.getValue(i, dbFieldName).toString();
+
+        result = checkPropertyMatches("assayid", assayId,
+                                      "A2_ASSAYPROPERTYVALUE",
+                                      queryResponse);
+
+        assertTrue("Couldn't match properties for Assay id '" + assayId + "'",
+                   result);
+      }
+
+      // now check property fields for samples
+      tableName = "A2_SAMPLE";
+      dbFieldName = "sampleid";
+
+      ITable samples = getDataSet().getTable(tableName);
+      for (int i = 0; i < samples.getRowCount(); i++) {
+        String sampleId = samples.getValue(i, dbFieldName).toString();
+
+        result = checkPropertyMatches("sampleid", sampleId,
+                                      "A2_SAMPLEPROPERTYVALUE",
+                                      queryResponse);
+
+        assertTrue("Couldn't match properties for Sample id '" + sampleId + "'",
+                   result);
+      }
+
+      // that should be all the checks needed
+
+      // dump some handy output
+      for (SolrDocument createdDoc : queryResponse.getResults()) {
+        // print list of other fields
+        for (Map.Entry<String, Object> entry : createdDoc) {
+          System.out.println("Next field: " + entry.getKey() + " = " +
+              entry.getValue().toString());
+        }
+      }
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -115,6 +160,70 @@ public class TestExperimentAtlasIndexBuilderService
       if (!matched) {
         System.out.println("Couldn't find value matching " + expected +
             " in index for field " + dbFieldName);
+      }
+    }
+
+    return allMatched;
+  }
+
+  private boolean checkPropertyMatches(String objectName, String objectId,
+                                       String joinTableName,
+                                       QueryResponse queryResponse)
+      throws Exception {
+    // get table
+    boolean allMatched = true;
+    ITable props = getDataSet().getTable("A2_PROPERTY");
+    ITable propValues = getDataSet().getTable("A2_PROPERTYVALUE");
+    ITable mapping = getDataSet().getTable(joinTableName);
+
+    // obtain property value ids for this assay
+    for (int i = 0; i < mapping.getRowCount(); i++) {
+      if (mapping.getValue(i, objectName).toString().equals(objectId)) {
+        String propValueID = mapping.getValue(i, "propertyvalueid").toString();
+
+        // now use this property value id to compare to index
+        for (int j = 0; j < propValues.getRowCount(); j++) {
+          if (propValues.getValue(j, "propertyvalueid").toString()
+              .equals(propValueID)) {
+            // found matching value
+            String valueName = propValues.getValue(j, "name").toString();
+            String propId = propValues.getValue(j, "propertyid").toString();
+
+            for (int k = 0; k < props.getRowCount(); k++) {
+              if (props.getValue(k, "propertyid").toString().equals(propId)) {
+                String propName = props.getValue(k, "name").toString();
+
+                // now got property name and value for the given object
+
+                // check against solr docs
+                boolean matched = false;
+                String constant = Constants.PREFIX_DWE + propName;
+                for (SolrDocument createdDoc : queryResponse.getResults()) {
+                  Object o = createdDoc.getFieldValue(constant);
+                  // check not null - not all exps will have properties
+                  if (o != null) {
+                    // and check the property value if this property is present
+                    String actual =
+                        createdDoc.getFieldValue(constant).toString();
+
+                    // break if matched
+                    if (actual.equals(valueName)) {
+                      matched = true;
+                      break;
+                    }
+                  }
+                }
+
+                allMatched = allMatched && matched;
+                if (!matched) {
+                  System.out.println(
+                      "Couldn't find property value matching " + valueName +
+                          " in index for field " + constant);
+                }
+              }
+            }
+          }
+        }
       }
     }
 

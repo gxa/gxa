@@ -64,7 +64,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                   true);
             solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
                                   experiment.getExperimentID());
-            // todo - i've added these, they were commented out in last release of XmlUtil - or maybe obfuscated behind stored XML
             solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION,
                                   experiment.getAccession());
             solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC,
@@ -86,8 +85,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
                 getLog().info(
                     "Updating index, assay property " + p + " = " + pv);
-                solrInputDoc.addField(Constants.PREFIX_DWE + p,
-                                      pv); // fixme: format of property names in index?
+                solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
               }
 
               // now get samples
@@ -106,14 +104,14 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
                   getLog().info(
                       "Updating index, sample property " + p + " = " + pv);
-                  solrInputDoc.addField(Constants.PREFIX_DWE + p,
-                                        pv); // fixme: format of property names in index?
+                  solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
                 }
               }
             }
 
-            // todo - in old index builder, we'd do some stuff for genes here...
-            // is this still valid? or do we use GeneAtlasIndexBuilder for that?
+            // now, fetch gene counts for this experiment
+            // todo - need big join across experiment/arraydesign/designelement/gene
+            
 
 
             // finally, add the document to the index

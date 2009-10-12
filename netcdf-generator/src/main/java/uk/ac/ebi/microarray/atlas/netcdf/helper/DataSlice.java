@@ -58,8 +58,13 @@ public class DataSlice {
       samples = new ArrayList<Sample>();
 
       // add all samples
-      for (String assayAcc : samplesByAssayAcc.keySet()) {
-        samples.addAll(samplesByAssayAcc.get(assayAcc));
+      if (samplesByAssayAcc != null) {
+        for (String assayAcc : samplesByAssayAcc.keySet()) {
+          samples.addAll(samplesByAssayAcc.get(assayAcc));
+        }
+      }
+      else {
+        return null;
       }
     }
 
@@ -80,11 +85,13 @@ public class DataSlice {
     if (assayToSampleMapping == null) {
       assayToSampleMapping =
           new HashMap<Assay, List<Sample>>();
-      for (Assay assay : assays) {
-        assayToSampleMapping.put(
-            assay,
-            getSamplesAssociatedWithAssay(assay.getAccession())
-        );
+      if (assays != null) {
+        for (Assay assay : assays) {
+          assayToSampleMapping.put(
+              assay,
+              getSamplesAssociatedWithAssay(assay.getAccession())
+          );
+        }
       }
     }
 
@@ -116,10 +123,14 @@ public class DataSlice {
       samplesByAssayAcc.put(assayAccession, samples);
     }
   }
-  
+
   public void reset() {
     // reset any lists that are lazily created after storing
+    this.assays = null;
     this.samples = null;
+    this.designElementIDs = null;
+    this.genes = null;
+    this.samplesByAssayAcc = null;
     this.assayToSampleMapping = null;
   }
 }

@@ -113,6 +113,13 @@
       arraydesignid="2"
       />
 
+  <A2_ASSAYPROPERTYVALUE
+      assaypropertyvalueid="1"
+      assayid="1"
+      propertyvalueid="1"
+      isfactorvalue="1"
+      />
+
   <A2_SAMPLE
       sampleid="1"
       accession="abc:some/Sample:ABC_DEFG_123a"
@@ -127,6 +134,13 @@
       channel=""
       />
 
+  <A2_SAMPLEPROPERTYVALUE
+      samplepropertyvalueid="2"
+      sampleid="2"
+      propertyvalueid="2"
+      isfactorvalue="0"
+      />
+
   <A2_ASSAYSAMPLE
       assaysampleid="1"
       assayid="1"
@@ -137,6 +151,12 @@
       assaysampleid="2"
       assayid="2"
       sampleid="1"
+      />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="3"
+      assayid="2"
+      sampleid="2"
       />
 
   <A2_DESIGNELEMENT
