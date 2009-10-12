@@ -59,6 +59,15 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- oracle JDBC drivers -->
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc5</artifactId>
+      <version>11.1.0.6.0</version>
+      <scope>test</scope>
+    </dependency>
+
+
     <!-- Need to try and streamline all these dependencies -->
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -106,11 +115,11 @@
       <artifactId>dom4j</artifactId>
       <version>1.6.1</version>
     </dependency>
-    <dependency>
-      <groupId>com.oracle</groupId>
-      <artifactId>ojdbc14</artifactId>
-      <version>9.0.2.0.0</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>com.oracle</groupId>-->
+      <!--<artifactId>ojdbc14</artifactId>-->
+      <!--<version>9.0.2.0.0</version>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.ostermiller</groupId>
       <artifactId>utils</artifactId>
