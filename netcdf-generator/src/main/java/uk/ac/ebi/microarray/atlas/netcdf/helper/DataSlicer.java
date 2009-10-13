@@ -4,7 +4,6 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlice;
 
 import java.util.*;
 
@@ -89,7 +88,6 @@ public class DataSlicer {
       }
 
       // store design elements
-      System.out.println("Searching for design element IDs for " + arrayDesignAccession);
       dataSlice.storeDesignElementIDs(getAtlasDAO()
           .getDesignElementIDsByArrayAccession(arrayDesignAccession));
 

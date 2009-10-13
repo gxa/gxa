@@ -288,11 +288,11 @@ public class NetCDFWriter {
     int scIndex = 0;
     int scvIndex = 0;
     for (String propertyName : samplePropertyValues.keySet()) {
-      ef.setString(scIndex, propertyName);
+      sc.setString(scIndex, propertyName);
 
       for (String propertyValue : samplePropertyValues.get(propertyName)) {
-        efv.setString(efv.getIndex().set(scIndex, scvIndex), propertyValue);
-        scIndex++;
+        scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
+        scvIndex++;
       }
 
       scIndex++;

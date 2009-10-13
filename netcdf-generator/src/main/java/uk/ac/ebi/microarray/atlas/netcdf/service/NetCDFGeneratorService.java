@@ -83,7 +83,7 @@ public abstract class NetCDFGeneratorService<T> {
     String version = "Atlas NetCDF Generator Version ";
     try {
       Properties properties = new Properties();
-      InputStream in = Thread.currentThread().getContextClassLoader().
+      InputStream in = getClass().getClassLoader().
           getResourceAsStream("META-INF/maven/uk.ac.ebi.microarray.atlas/" +
               "netcdf-generator/pom.properties");
       properties.load(in);
@@ -93,7 +93,7 @@ public abstract class NetCDFGeneratorService<T> {
     catch (Exception e) {
       getLog().warn(
           "Version number couldn't be discovered from pom.properties");
-      version = version + "Unknown Version";
+      version = version + "[Unknown]";
     }
 
     return version;

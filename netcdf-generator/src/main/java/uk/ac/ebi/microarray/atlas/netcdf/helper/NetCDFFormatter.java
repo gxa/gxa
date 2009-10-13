@@ -21,8 +21,16 @@ import java.util.Map;
  * @date 30-Sep-2009
  */
 public class NetCDFFormatter {
-  public void formatNetCDF(NetcdfFileWriteable netCDF, DataSlice dataSlice)
+  private Dimension assayDimension;
+  private Dimension sampleDimension;
+  private Dimension designElementDimension;
+  private Dimension uefvDimension;
+
+  public synchronized void formatNetCDF(
+      NetcdfFileWriteable netCDF, DataSlice dataSlice)
       throws NetCDFGeneratorException {
+    clear();
+
     // setup assay part of netCDF
     createAssayVariables(netCDF, dataSlice.getAssays());
 
@@ -30,6 +38,10 @@ public class NetCDFFormatter {
     createSampleVariables(
         netCDF,
         dataSlice.getSamples());
+
+    // set assay to sample part of netCDF (BS2AS matrix)
+    createAssaySampleVariable(
+        netCDF);
 
     // setup design element part of netCDF
     createDesignElementVariables(
@@ -59,6 +71,13 @@ public class NetCDFFormatter {
         netCDF);
   }
 
+  private void clear() {
+    assayDimension = null;
+    sampleDimension = null;
+    designElementDimension = null;
+    uefvDimension = null;
+  }
+
   /**
    * Creates dimensions and variables in a NetCDF for a list of assays.  This
    * results in the creation of the "AS" dimension and variable.
@@ -70,7 +89,7 @@ public class NetCDFFormatter {
   private void createAssayVariables(NetcdfFileWriteable netCDF,
                                     List<Assay> assays) {
     // update the netCDF with the assay count
-    Dimension assayDimension = netCDF.addDimension("AS", assays.size());
+    assayDimension = netCDF.addDimension("AS", assays.size());
     // add assay data variable
     netCDF.addVariable("AS", DataType.INT, new Dimension[]{assayDimension});
   }
@@ -86,9 +105,15 @@ public class NetCDFFormatter {
   private void createSampleVariables(NetcdfFileWriteable netCDF,
                                      List<Sample> samples) {
     // update the netCDF with the sample count
-    Dimension sampleDimension = netCDF.addDimension("BS", samples.size());
+    sampleDimension = netCDF.addDimension("BS", samples.size());
     // add sample variable
     netCDF.addVariable("BS", DataType.INT, new Dimension[]{sampleDimension});
+  }
+
+  private void createAssaySampleVariable(NetcdfFileWriteable netCDF) {
+    // add assay to sample variable
+    netCDF.addVariable("BS2AS", DataType.INT,
+                       new Dimension[]{sampleDimension, assayDimension});
   }
 
   /**
@@ -103,8 +128,7 @@ public class NetCDFFormatter {
   private void createDesignElementVariables(
       NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
     // update the netCDF with the genes count
-    Dimension designElementDimension =
-        netCDF.addDimension("DE", designElementIDs.size());
+    designElementDimension = netCDF.addDimension("DE", designElementIDs.size());
     // add gene variable
     netCDF.addVariable("DE", DataType.INT,
                        new Dimension[]{designElementDimension});
@@ -150,12 +174,6 @@ public class NetCDFFormatter {
                                        List<Assay> assays,
                                        List<Sample> samples)
       throws NetCDFGeneratorException {
-    // find dependent dimensions first
-    // lookup assay dimension
-    Dimension assayDimension = netCDF.findDimension("AS");
-    // lookup sample dimension
-    Dimension sampleDimension = netCDF.findDimension("BS");
-
     if (assayDimension == null) {
       throw new NetCDFGeneratorException("Can't create property matrices " +
           "without first creating 'AS' dimension and variable");
@@ -219,49 +237,53 @@ public class NetCDFFormatter {
     // now stack up property slicing
 
     // first up, EF - length, number of properties
-    Dimension efDimension =
-        netCDF.addDimension("EF", assayPropertyValues.keySet().size());
-    // do a count of the max number of values
-    int maxLength = 0;
-    for (List<String> propertyValues : assayPropertyValues.values()) {
-      if (propertyValues.size() > maxLength) {
-        maxLength = propertyValues.size();
+    if (assayPropertyValues.keySet().size() > 0) {
+      Dimension efDimension =
+          netCDF.addDimension("EF", assayPropertyValues.keySet().size());
+      // do a count of the max number of values
+      int maxLength = 0;
+      for (List<String> propertyValues : assayPropertyValues.values()) {
+        if (propertyValues.size() > maxLength) {
+          maxLength = propertyValues.size();
+        }
       }
-    }
-    // next up, EFV length - this is equal to max number of values mapped to one property
-    Dimension efvDimension =
-        netCDF.addDimension("EFlen", maxLength);
-    // next, unique EFVs - this is the total number of property values for all proeprties
-    Dimension uefvDimension = netCDF.addDimension("uEFV", uniqueCombo.size());
+      // next up, EFV length - this is equal to max number of values mapped to one property
+      Dimension efvDimension =
+          netCDF.addDimension("EFlen", maxLength);
+      // next, unique EFVs - this is the total number of property values for all proeprties
+      uefvDimension = netCDF.addDimension("uEFV", uniqueCombo.size());
 
-    // now add variables
-    netCDF.addVariable("EF", DataType.CHAR,
-                       new Dimension[]{efDimension, efvDimension});
-    netCDF.addVariable("EFV", DataType.CHAR,
-                       new Dimension[]{efDimension, assayDimension,
-                                       efvDimension});
-    netCDF.addVariable("uEFV", DataType.CHAR,
-                       new Dimension[]{uefvDimension, efvDimension});
-    netCDF.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
+      // now add variables
+      netCDF.addVariable("EF", DataType.CHAR,
+                         new Dimension[]{efDimension, efvDimension});
+      netCDF.addVariable("EFV", DataType.CHAR,
+                         new Dimension[]{efDimension, assayDimension,
+                                         efvDimension});
+      netCDF.addVariable("uEFV", DataType.CHAR,
+                         new Dimension[]{uefvDimension, efvDimension});
+      netCDF.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
+    }
 
     // finally, do the same thing for sample properties
-    Dimension scDimension =
-        netCDF.addDimension("SC", samplePropertyValues.keySet().size());
-    // do a count of the max number of values
-    int maxSCLength = 0;
-    for (List<String> propertyValues : samplePropertyValues.values()) {
-      if (propertyValues.size() > maxSCLength) {
-        maxSCLength = propertyValues.size();
+    if (samplePropertyValues.size() > 0) {
+      Dimension scDimension =
+          netCDF.addDimension("SC", samplePropertyValues.keySet().size());
+      // do a count of the max number of values
+      int maxSCLength = 0;
+      for (List<String> propertyValues : samplePropertyValues.values()) {
+        if (propertyValues.size() > maxSCLength) {
+          maxSCLength = propertyValues.size();
+        }
       }
-    }
-    Dimension sclDimension = netCDF.addDimension("SClen", maxSCLength);
+      Dimension sclDimension = netCDF.addDimension("SClen", maxSCLength);
 
-    // and add variables
-    netCDF.addVariable("SC", DataType.CHAR,
-                       new Dimension[]{scDimension, sclDimension});
-    netCDF.addVariable("SCV", DataType.CHAR,
-                       new Dimension[]{scDimension, sampleDimension,
-                                       sclDimension});
+      // and add variables
+      netCDF.addVariable("SC", DataType.CHAR,
+                         new Dimension[]{scDimension, sclDimension});
+      netCDF.addVariable("SCV", DataType.CHAR,
+                         new Dimension[]{scDimension, sampleDimension,
+                                         sclDimension});
+    }
   }
 
   /**
@@ -276,13 +298,10 @@ public class NetCDFFormatter {
    */
   private void createExpressionMatrixVariables(NetcdfFileWriteable netCDF)
       throws NetCDFGeneratorException {
-    Dimension assayDimension = netCDF.findDimension("AS");
     if (assayDimension == null) {
       throw new NetCDFGeneratorException("Can't create expression value " +
           "matrix without first creating 'AS' dimension and variable");
     }
-
-    Dimension designElementDimension = netCDF.findDimension("DE");
 
     netCDF.addVariable("BDC", DataType.DOUBLE,
                        new Dimension[]{designElementDimension, assayDimension});
@@ -303,21 +322,19 @@ public class NetCDFFormatter {
    */
   private void createStatsMatricesVariables(NetcdfFileWriteable netCDF)
       throws NetCDFGeneratorException {
-    Dimension designElementDimension = netCDF.findDimension("DE");
-    Dimension uefvDimension = netCDF.findDimension("uEFV");
-
     if (designElementDimension == null) {
       throw new NetCDFGeneratorException("Can't create stats matrices " +
           "without first creating 'DE' dimension and variable");
     }
-    if (uefvDimension == null) {
-      throw new NetCDFGeneratorException("Can't create stats matrices " +
-          "without first creating 'uEFV' dimension and variable");
+    if (uefvDimension != null) {
+      // note that is uefvDimension is null, this isn't an exception,
+      // as there is an edge case where there may be no properties
+      netCDF.addVariable("PVAL", DataType.DOUBLE,
+                         new Dimension[]{designElementDimension,
+                                         uefvDimension});
+      netCDF.addVariable("TSTAT", DataType.DOUBLE,
+                         new Dimension[]{designElementDimension,
+                                         uefvDimension});
     }
-
-    netCDF.addVariable("PVAL", DataType.DOUBLE,
-                       new Dimension[]{designElementDimension, uefvDimension});
-    netCDF.addVariable("TSTAT", DataType.DOUBLE,
-                       new Dimension[]{designElementDimension, uefvDimension});
   }
 }
