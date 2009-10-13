@@ -4,6 +4,7 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.*;
 
@@ -82,9 +83,12 @@ public class DataSlicer {
       dataSlice.storeAssays(arrayToAssays.get(arrayDesignAccession));
       // store each sample associated with it's downstream assay too
       for (Assay assay : arrayToAssays.get(arrayDesignAccession)) {
+        // fetch any samples for this assay
+        List<Sample> samples =
+            getAtlasDAO().getSamplesByAssayAccession(assay.getAccession());
+        // store them, keyed by assay accession
         dataSlice.storeSamplesAssociatedWithAssay(
-            assay.getAccession(),
-            getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()));
+            assay.getAccession(), samples);
       }
 
       // store design elements

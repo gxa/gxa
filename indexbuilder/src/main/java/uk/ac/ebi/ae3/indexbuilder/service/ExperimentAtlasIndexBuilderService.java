@@ -7,10 +7,7 @@ import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,8 +55,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
             // Add field "exp_in_dw" = true, to show this experiment is present
             getLog().info(
-                "Updating index - experiment " + experiment.getAccession() +
-                    " is in DB");
+                "Updating index - adding experiment " +
+                    experiment.getAccession());
             solrInputDoc.addField(Constants.FIELD_EXP_IN_DW,
                                   true);
             solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
@@ -83,7 +80,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 String p = prop.getName();
                 String pv = prop.getValue();
 
-                getLog().info(
+                getLog().debug(
                     "Updating index, assay property " + p + " = " + pv);
                 solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
               }
@@ -102,7 +99,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                   String p = prop.getName();
                   String pv = prop.getValue();
 
-                  getLog().info(
+                  getLog().debug(
                       "Updating index, sample property " + p + " = " + pv);
                   solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
                 }
@@ -110,8 +107,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             // now, fetch gene counts for this experiment
-            // todo - need big join across experiment/arraydesign/designelement/gene
-            
+            List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
+                experiment.getAccession());
 
 
             // finally, add the document to the index

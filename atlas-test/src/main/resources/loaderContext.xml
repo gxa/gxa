@@ -22,7 +22,7 @@
   </bean>
 
   <bean id="atlasNetCDFs" class="java.io.File">
-    <constructor-arg value="/home/tburdett/atlas/index" />
+    <constructor-arg value="/home/tburdett/atlas/netcdfs" />
   </bean>
 
   <!-- Requires an Index Builder -->

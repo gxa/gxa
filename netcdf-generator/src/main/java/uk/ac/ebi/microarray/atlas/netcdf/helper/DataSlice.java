@@ -21,7 +21,7 @@ public class DataSlice {
   private Experiment experiment;
   private ArrayDesign arrayDesign;
   private List<Assay> assays;
-  private List<Sample> samples;
+  //  private List<Sample> samples;
   private List<Integer> designElementIDs;
   private List<Gene> genes;
   private Map<String, List<Sample>> samplesByAssayAcc;
@@ -53,19 +53,17 @@ public class DataSlice {
   }
 
   public List<Sample> getSamples() {
-    if (samples == null) {
-      // create arraylist
-      samples = new ArrayList<Sample>();
+    // create arraylist
+    List<Sample> samples = new ArrayList<Sample>();
 
-      // add all samples
-      if (samplesByAssayAcc != null) {
-        for (String assayAcc : samplesByAssayAcc.keySet()) {
-          samples.addAll(samplesByAssayAcc.get(assayAcc));
-        }
+    // add all samples
+    if (samplesByAssayAcc != null) {
+      for (String assayAcc : samplesByAssayAcc.keySet()) {
+        samples.addAll(samplesByAssayAcc.get(assayAcc));
       }
-      else {
-        return null;
-      }
+    }
+    else {
+      return null;
     }
 
     return samples;
@@ -127,10 +125,15 @@ public class DataSlice {
   public void reset() {
     // reset any lists that are lazily created after storing
     this.assays = null;
-    this.samples = null;
     this.designElementIDs = null;
     this.genes = null;
     this.samplesByAssayAcc = null;
     this.assayToSampleMapping = null;
+  }
+
+  public String toString() {
+    return "NetCDF_DataSlice{" +
+        "E:" + experiment.getAccession() + "_" +
+        "A:" + arrayDesign.getAccession() + '}';
   }
 }

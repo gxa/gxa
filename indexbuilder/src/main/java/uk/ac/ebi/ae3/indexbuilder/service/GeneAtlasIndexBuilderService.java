@@ -73,7 +73,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
           public UpdateResponse call() throws IOException, SolrServerException,
               IndexBuilderException {
-            getLog().debug("Updating index with details for " +
+            getLog().debug("Updating index - adding gene " +
                 gene.getIdentifier());
 
             // create a new solr document for this gene
