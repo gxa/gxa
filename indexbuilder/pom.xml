@@ -64,7 +64,7 @@
       <groupId>com.oracle</groupId>
       <artifactId>ojdbc5</artifactId>
       <version>11.1.0.6.0</version>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
     </dependency>
 
 
