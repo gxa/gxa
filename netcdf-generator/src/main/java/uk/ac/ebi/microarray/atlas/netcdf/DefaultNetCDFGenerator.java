@@ -59,6 +59,15 @@ public class DefaultNetCDFGenerator
   public void startup() throws NetCDFGeneratorException {
     // do some initialization...
 
+    // check the repository location exists, or else create it
+    if (!repositoryLocation.exists()) {
+      if (!repositoryLocation.mkdirs()) {
+        log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
+        throw new NetCDFGeneratorException("Unable to create NetCDF " +
+            "repository at " + repositoryLocation.getAbsolutePath());
+      }
+    }
+
     // create a spring jdbc template
     JdbcTemplate template = new JdbcTemplate(dataSource);
 
@@ -89,11 +98,17 @@ public class DefaultNetCDFGenerator
 
     buildingTasks.add(service.submit(new Callable<Boolean>() {
       public Boolean call() throws NetCDFGeneratorException {
+        try {
         log.info("Starting NetCDF generations");
 
         netCDFService.generateNetCDFs();
 
         return true;
+        }
+        catch (NetCDFGeneratorException e) {
+          e.printStackTrace();
+          throw e;
+        }
       }
     }));
 

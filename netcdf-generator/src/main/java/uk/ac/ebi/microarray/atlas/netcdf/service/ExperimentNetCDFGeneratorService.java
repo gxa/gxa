@@ -13,9 +13,7 @@ import uk.ac.ebi.microarray.atlas.netcdf.helper.NetCDFWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -41,46 +39,48 @@ public class ExperimentNetCDFGeneratorService
     List<Experiment> experiments = getPendingOnly()
         ? getAtlasDAO().getAllExperimentsPendingNetCDFs()
         : getAtlasDAO().getAllExperiments();
-    // fixme - implement update checks, if required?
 
     // the list of futures - we need these so we can block until completion
     List<Future<Boolean>> tasks =
         new ArrayList<Future<Boolean>>();
 
     try {
-      // create a data slicer to slice up our experiments
-      DataSlicer slicer = new DataSlicer(getAtlasDAO());
-      // slice our experiments
-      Set<DataSlice> dataSlices = new HashSet<DataSlice>();
-      for (Experiment experiment : experiments) {
-        dataSlices.addAll(slicer.sliceExperiment(experiment));
-      }
-
-      // process each dataslice to build the netcdf
-      for (final DataSlice dataSlice : dataSlices) {
-        // run slices in parallel
+      // process each experiment to build the netcdfs
+      for (final Experiment experiment : experiments) {
+        // run each experiment in parallel
         tasks.add(tpool.submit(new Callable<Boolean>() {
 
           public Boolean call() throws Exception {
-            // create a new NetCDF document
-            NetcdfFileWriteable netCDF = createNetCDF(
-                dataSlice.getExperiment(),
-                dataSlice.getArrayDesign());
+            getLog().info("Generating NetCDFs - experiment " +
+                experiment.getAccession());
 
-            // format it with paramaters suitable for our data
-            NetCDFFormatter formatter = new NetCDFFormatter();
-            formatter.formatNetCDF(netCDF, dataSlice);
+            // create a data slicer to slice up this experiment
+            DataSlicer slicer = new DataSlicer(getAtlasDAO());
 
-            // actually create the netCDF
-            netCDF.create();
+            // slice our experiments - ok to do these one by one
+            for (DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
+              // create a new NetCDF document
+              NetcdfFileWriteable netCDF = createNetCDF(
+                  dataSlice.getExperiment(),
+                  dataSlice.getArrayDesign());
 
-            // write the data from our data slice to this netCDF
-            NetCDFWriter writer = new NetCDFWriter();
-            writer.writeNetCDF(netCDF, dataSlice);
+              // format it with paramaters suitable for our data
+              NetCDFFormatter formatter = new NetCDFFormatter();
+              formatter.formatNetCDF(netCDF, dataSlice);
 
-            // save and close the netCDF
-            netCDF.close();
+              // actually create the netCDF
+              netCDF.create();
 
+              // write the data from our data slice to this netCDF
+              NetCDFWriter writer = new NetCDFWriter();
+              writer.writeNetCDF(netCDF, dataSlice);
+
+              // save and close the netCDF
+              netCDF.close();
+            }
+
+            getLog().info("Finalising NetCDF changes for " +
+                experiment.getAccession());
             return true;
           }
         }));
@@ -115,11 +115,6 @@ public class ExperimentNetCDFGeneratorService
   private NetcdfFileWriteable createNetCDF(Experiment experiment,
                                            ArrayDesign arrayDesign)
       throws IOException {
-    // make a new file
-    getLog().info("Generating NetCDF for " +
-        "Experiment: " + experiment.getAccession() + ", " +
-        "Array Design: " + arrayDesign.getAccession());
-
     // repository location exists?
     if (!getRepositoryLocation().exists()) {
       if (!getRepositoryLocation().mkdirs()) {
