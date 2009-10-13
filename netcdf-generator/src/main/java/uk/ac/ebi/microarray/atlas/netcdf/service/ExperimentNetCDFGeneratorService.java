@@ -5,12 +5,13 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
+import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlice;
 import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlicer;
 import uk.ac.ebi.microarray.atlas.netcdf.helper.NetCDFFormatter;
 import uk.ac.ebi.microarray.atlas.netcdf.helper.NetCDFWriter;
-import uk.ac.ebi.microarray.atlas.netcdf.helper.DataSlice;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -112,11 +113,20 @@ public class ExperimentNetCDFGeneratorService
   }
 
   private NetcdfFileWriteable createNetCDF(Experiment experiment,
-                                           ArrayDesign arrayDesign) {
+                                           ArrayDesign arrayDesign)
+      throws IOException {
     // make a new file
     getLog().info("Generating NetCDF for " +
         "Experiment: " + experiment.getAccession() + ", " +
         "Array Design: " + arrayDesign.getAccession());
+
+    // repository location exists?
+    if (!getRepositoryLocation().exists()) {
+      if (!getRepositoryLocation().mkdirs()) {
+        throw new IOException("Could not read create directory at " +
+            getRepositoryLocation().getAbsolutePath());
+      }
+    }
 
     String netcdfName =
         experiment.getExperimentID() + "_" +

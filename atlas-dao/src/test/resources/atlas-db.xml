@@ -55,6 +55,16 @@
       samplepropertyid="2"
       />
 
+  <A2_PROPERTY
+      propertyid="3"
+      name="PROP3"
+      accession="PropAcc3"
+      ae1tablename_assay="ae1__assay_prop__dm"
+      ae1tablename_sample="ae1__sample_prop_dm"
+      assaypropertyid="3"
+      samplepropertyid="3"
+      />
+
   <A2_PROPERTYVALUE
       propertyvalueid="1"
       propertyid="1"
@@ -65,6 +75,12 @@
       propertyvalueid="2"
       propertyid="2"
       name="value002"
+      />
+
+  <A2_PROPERTYVALUE
+      propertyvalueid="3"
+      propertyid="3"
+      name="value003"
       />
 
   <A2_GENE
@@ -120,6 +136,13 @@
       isfactorvalue="1"
       />
 
+  <A2_ASSAYPROPERTYVALUE
+      assaypropertyvalueid="2"
+      assayid="2"
+      propertyvalueid="3"
+      isfactorvalue="1"
+      />
+
   <A2_SAMPLE
       sampleid="1"
       accession="abc:some/Sample:ABC_DEFG_123a"
@@ -132,6 +155,13 @@
       accession="xyz:other/Sample2:XYZ_TUVW_789x"
       species="Different Species"
       channel=""
+      />
+
+  <A2_SAMPLEPROPERTYVALUE
+      samplepropertyvalueid="1"
+      sampleid="1"
+      propertyvalueid="3"
+      isfactorvalue="0"
       />
 
   <A2_SAMPLEPROPERTYVALUE

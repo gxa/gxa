@@ -41,12 +41,15 @@ public class AtlasDAO {
       GENES_SELECT + " " +
           "AND something something"; // fixme: load monitor table?
   private static final String GENES_BY_EXPERIMENT_ACCESSION =
-      GENES_SELECT + " " +
-          "AND experiment_id_key=?"; // fixme: linking genes to experiments?
+      "SELECT g.geneid, g.identifier, g.name, s.name AS species " +
+          "FROM a2_gene g, a2_spec s, a2_designelement d, a2_assay a, " +
+          "a2_experiment e " +
+          "WHERE g.geneid=d.geneid " +
+          "AND d.arraydesignid=a.arraydesignid " +
+          "AND a.experimentid=e.experimentid " +
+          "AND e.accession=?";
   private static final String PROPERTIES_BY_GENEID =
-      "SELECT " +
-          "gp.name AS property, " +
-          "gpv.value AS propertyvalue " +
+      "SELECT gp.name AS property, gpv.value AS propertyvalue " +
           "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
           "WHERE gpv.genepropertyid=gp.genepropertyid " +
           "AND gpv.geneid=?";
@@ -59,16 +62,10 @@ public class AtlasDAO {
           "AND a.arraydesignid=ad.arraydesignid " +
           "AND e.accession=?";
   private static final String PROPERTIES_BY_ASSAY_ACCESSION =
-      "SELECT " +
-          "p.name AS property, " +
-          "p.accession, " +
-          "pv.name AS propertyvalue, " +
+      "SELECT p.name AS property, p.accession, pv.name AS propertyvalue, " +
           "apv.isfactorvalue " +
-          "FROM " +
-          "a2_property p, " +
-          "a2_propertyvalue pv, " +
-          "a2_assaypropertyvalue apv, " +
-          "a2_assay a " +
+          "FROM a2_property p, a2_propertyvalue pv, " +
+          "a2_assaypropertyvalue apv, a2_assay a " +
           "WHERE apv.propertyvalueid=pv.propertyvalueid " +
           "AND pv.propertyid=p.propertyid " +
           "AND apv.assayid=a.assayid " +
