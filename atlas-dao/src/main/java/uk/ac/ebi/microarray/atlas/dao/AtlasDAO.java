@@ -117,6 +117,17 @@ public class AtlasDAO {
           "AND ad.accession=? ";
 
   // other useful queries
+  private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
+      "SELECT p.Name AS property, pv.name AS propertyvalue, " +
+          "CASE when ea.TSTAT < 0 THEN -1 ELSE 1 END AS UpDn, " +
+          "COUNT(DISTINCT(g.geneid)) AS genes " +
+          "FROM a2_expressionanalytics ea " +
+          "JOIN a2_propertyvalue pv on pv.propertyvalueid=ea.propertyvalueid " +
+          "JOIN a2_property p on p.propertyid=pv.propertyid " +
+          "JOIN a2_designelement de on de.designelementid=ea.designelementid " +
+          "JOIN a2_gene g on g.geneid=de.geneid " +
+          "WHERE ea.experimentid=? " +
+          "GROUP BY p.name, pv.name, CASE WHEN ea.pvaladj < 0 THEN -1 ELSE 1 END";
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
       "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat, a.pvaladj " +
           "FROM a2_expressionanalytics a " +
@@ -319,6 +330,13 @@ public class AtlasDAO {
     return (List<Integer>) results;
   }
 
+  public List<AtlasCount> getAtlasCountsByExperimentID(int experimentID) {
+    List results = template.query(ATLAS_COUNTS_BY_EXPERIMENTID,
+                                  new Object[]{experimentID},
+                                  new AtlasCountMapper());
+    return (List<AtlasCount>) results;
+  }
+
   public List<ExpressionAnalytics> getExpressionAnalyticsByGeneID(
       int geneID) {
     List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
@@ -466,6 +484,19 @@ public class AtlasDAO {
       property.setName(resultSet.getString(1));
       property.setValue(resultSet.getString(2));
       property.setFactorValue(false);
+
+      return property;
+    }
+  }
+
+  private class AtlasCountMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+      AtlasCount property = new AtlasCount();
+
+      property.setProperty(resultSet.getString(1));
+      property.setPropertyValue(resultSet.getString(2));
+      property.setUpOrDown(resultSet.getString(3));
+      property.setGeneCount(resultSet.getInt(4));
 
       return property;
     }

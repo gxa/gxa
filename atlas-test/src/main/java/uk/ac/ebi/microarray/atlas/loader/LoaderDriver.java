@@ -38,39 +38,39 @@ public class LoaderDriver {
 //    total = new DecimalFormat("#.##").format((end - start) / 1000);
 //    System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
 
-    // run the index builder
-    final IndexBuilder builder =
-        (IndexBuilder) factory.getBean("indexBuilder");
-    start = System.currentTimeMillis();
-    builder.buildIndex(new IndexBuilderListener() {
-
-      public void buildSuccess(IndexBuilderEvent event) {
-        System.out.println("Index built successfully!");
-        try {
-          builder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-          e.printStackTrace();
-        }
-      }
-
-      public void buildError(IndexBuilderEvent event) {
-        System.out.println("Index failed to build");
-        for (Throwable t : event.getErrors()) {
-          t.printStackTrace();
-          try {
-            builder.shutdown();
-          }
-          catch (IndexBuilderException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    });
-    end = System.currentTimeMillis();
-
-    total = new DecimalFormat("#.##").format((end - start) / 1000);
-    System.out.println("Building index started after " + total + "s.");
+//    // run the index builder
+//    final IndexBuilder builder =
+//        (IndexBuilder) factory.getBean("indexBuilder");
+//    start = System.currentTimeMillis();
+//    builder.buildIndex(new IndexBuilderListener() {
+//
+//      public void buildSuccess(IndexBuilderEvent event) {
+//        System.out.println("Index built successfully!");
+//        try {
+//          builder.shutdown();
+//        }
+//        catch (IndexBuilderException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//
+//      public void buildError(IndexBuilderEvent event) {
+//        System.out.println("Index failed to build");
+//        for (Throwable t : event.getErrors()) {
+//          t.printStackTrace();
+//          try {
+//            builder.shutdown();
+//          }
+//          catch (IndexBuilderException e) {
+//            e.printStackTrace();
+//          }
+//        }
+//      }
+//    });
+//    end = System.currentTimeMillis();
+//
+//    total = new DecimalFormat("#.##").format((end - start) / 1000);
+//    System.out.println("Building index started after " + total + "s.");
 
     // run the NetCDFGenerator
     final NetCDFGenerator generator =

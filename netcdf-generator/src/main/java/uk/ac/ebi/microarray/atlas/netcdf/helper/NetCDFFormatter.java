@@ -332,6 +332,11 @@ public class NetCDFFormatter {
             maxLength = propertyValues.size();
           }
         }
+
+        for (String assayAcc : assayPropertyValues.keySet()) {
+          log.info("Assay: " + assayAcc + ": " + assayPropertyValues.get(assayAcc).size() + " values");
+        }
+
         // next up, EFV length - this is equal to max number of values mapped to one property
         Dimension efvDimension =
             netCDF.addDimension("EFlen", maxLength);

@@ -79,8 +79,14 @@
 
   <A2_PROPERTYVALUE
       propertyvalueid="3"
-      propertyid="3"
+      propertyid="2"
       name="value003"
+      />
+
+  <A2_PROPERTYVALUE
+      propertyvalueid="4"
+      propertyid="3"
+      name="value004"
       />
 
   <A2_GENE
@@ -152,7 +158,21 @@
 
   <A2_ASSAYPROPERTYVALUE
       assaypropertyvalueid="2"
-      assayid="4"
+      assayid="1"
+      propertyvalueid="2"
+      isfactorvalue="1"
+      />
+
+  <A2_ASSAYPROPERTYVALUE
+      assaypropertyvalueid="3"
+      assayid="1"
+      propertyvalueid="3"
+      isfactorvalue="1"
+      />
+
+  <A2_ASSAYPROPERTYVALUE
+      assaypropertyvalueid="4"
+      assayid="2"
       propertyvalueid="3"
       isfactorvalue="1"
       />
