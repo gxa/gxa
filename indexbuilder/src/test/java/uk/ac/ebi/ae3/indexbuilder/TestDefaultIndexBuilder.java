@@ -51,7 +51,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     }
 
     // delete the index
-    if (!deleteDirectory(indexLocation)) {
+    if (indexLocation.exists() && !deleteDirectory(indexLocation)) {
       fail("Failed to delete " + indexLocation.getAbsolutePath());
     }
 

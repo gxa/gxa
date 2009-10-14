@@ -31,6 +31,7 @@ public class DefaultNetCDFGenerator
   private NetCDFGeneratorService netCDFService;
 
   private ExecutorService service;
+  private boolean running = false;
 
   // logging
   private static final Logger log =
@@ -57,34 +58,51 @@ public class DefaultNetCDFGenerator
   }
 
   public void startup() throws NetCDFGeneratorException {
-    // do some initialization...
+    if (!running) {
+      // do some initialization...
 
-    // check the repository location exists, or else create it
-    if (!repositoryLocation.exists()) {
-      if (!repositoryLocation.mkdirs()) {
-        log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
-        throw new NetCDFGeneratorException("Unable to create NetCDF " +
-            "repository at " + repositoryLocation.getAbsolutePath());
+      // check the repository location exists, or else create it
+      if (!repositoryLocation.exists()) {
+        if (!repositoryLocation.mkdirs()) {
+          log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
+          throw new NetCDFGeneratorException("Unable to create NetCDF " +
+              "repository at " + repositoryLocation.getAbsolutePath());
+        }
       }
+
+      // create a spring jdbc template
+      JdbcTemplate template = new JdbcTemplate(dataSource);
+
+      // create an atlas dao
+      AtlasDAO dao = new AtlasDAO();
+      dao.setJdbcTemplate(template);
+
+      // create the service
+      netCDFService =
+          new ExperimentNetCDFGeneratorService(dao, repositoryLocation);
+
+      // finally, create an executor service for processing calls to build the index
+      service = Executors.newCachedThreadPool();
+
+      running = true;
     }
-
-    // create a spring jdbc template
-    JdbcTemplate template = new JdbcTemplate(dataSource);
-
-    // create an atlas dao
-    AtlasDAO dao = new AtlasDAO();
-    dao.setJdbcTemplate(template);
-
-    // create the service
-    netCDFService =
-        new ExperimentNetCDFGeneratorService(dao, repositoryLocation);
-
-    // finally, create an executor service for processing calls to build the index
-    service = Executors.newCachedThreadPool();
+    else {
+      log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() +
+          " that is already running");
+    }
   }
 
   public void shutdown() throws NetCDFGeneratorException {
-    // todo - really nothing to shutdown?
+    if (running) {
+      // todo - really nothing to shutdown?
+
+      running = false;
+    }
+    else {
+      log.warn(
+          "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
+              " that is not running");
+    }
   }
 
   public void generateNetCDFs() {
@@ -98,17 +116,11 @@ public class DefaultNetCDFGenerator
 
     buildingTasks.add(service.submit(new Callable<Boolean>() {
       public Boolean call() throws NetCDFGeneratorException {
-        try {
         log.info("Starting NetCDF generations");
 
         netCDFService.generateNetCDFs();
 
         return true;
-        }
-        catch (NetCDFGeneratorException e) {
-          e.printStackTrace();
-          throw e;
-        }
       }
     }));
 
@@ -152,8 +164,55 @@ public class DefaultNetCDFGenerator
     generateNetCDFsForExperiment(experimentAccession, null);
   }
 
-  public void generateNetCDFsForExperiment(String experimentAccession,
-                                           NetCDFGeneratorListener listener) {
-    // todo - run the generator with argument "experimentAccession"
+  public void generateNetCDFsForExperiment(
+      final String experimentAccession, final NetCDFGeneratorListener listener) {
+    final long startTime = System.currentTimeMillis();
+    final List<Future<Boolean>> buildingTasks =
+        new ArrayList<Future<Boolean>>();
+
+    buildingTasks.add(service.submit(new Callable<Boolean>() {
+      public Boolean call() throws NetCDFGeneratorException {
+        log.info("Starting NetCDF generations");
+
+        netCDFService.generateNetCDFsForExperiment(experimentAccession);
+
+        return true;
+      }
+    }));
+
+    // this tracks completion, if a listener was supplied
+    if (listener != null) {
+      service.submit(new Runnable() {
+        public void run() {
+          boolean success = true;
+          List<Throwable> observedErrors = new ArrayList<Throwable>();
+
+          // wait for expt and gene indexes to build
+          for (Future<Boolean> indexingTask : buildingTasks) {
+            try {
+              success = success && indexingTask.get();
+            }
+            catch (Exception e) {
+              observedErrors.add(e);
+              success = false;
+            }
+          }
+
+          // now we've finished - get the end time, calculate runtime and fire the event
+          long endTime = System.currentTimeMillis();
+          long runTime = (endTime - startTime) / 1000;
+
+          // create our completion event
+          if (success) {
+            listener.buildSuccess(new NetCDFGenerationEvent(
+                runTime, TimeUnit.SECONDS));
+          }
+          else {
+            listener.buildError(new NetCDFGenerationEvent(
+                runTime, TimeUnit.SECONDS, observedErrors));
+          }
+        }
+      });
+    }
   }
 }

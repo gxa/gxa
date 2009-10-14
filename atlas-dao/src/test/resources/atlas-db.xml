@@ -129,6 +129,20 @@
       arraydesignid="2"
       />
 
+  <A2_ASSAY
+      assayid="3"
+      accession="unrelated:Assay:1"
+      experimentid="1"
+      arraydesignid="2"
+      />
+
+  <A2_ASSAY
+      assayid="4"
+      accession="unrelated:Assay:2"
+      experimentid="2"
+      arraydesignid="2"
+      />
+
   <A2_ASSAYPROPERTYVALUE
       assaypropertyvalueid="1"
       assayid="1"
@@ -138,7 +152,7 @@
 
   <A2_ASSAYPROPERTYVALUE
       assaypropertyvalueid="2"
-      assayid="2"
+      assayid="4"
       propertyvalueid="3"
       isfactorvalue="1"
       />
@@ -153,6 +167,20 @@
   <A2_SAMPLE
       sampleid="2"
       accession="xyz:other/Sample2:XYZ_TUVW_789x"
+      species="Different Species"
+      channel=""
+      />
+
+  <A2_SAMPLE
+      sampleid="3"
+      accession="unrelated:Sample:1"
+      species="Species"
+      channel=""
+      />
+
+  <A2_SAMPLE
+      sampleid="4"
+      accession="unrelated:Sample:2"
       species="Different Species"
       channel=""
       />
@@ -174,7 +202,7 @@
   <A2_ASSAYSAMPLE
       assaysampleid="1"
       assayid="1"
-      sampleid="1"
+      sampleid="3"
       />
 
   <A2_ASSAYSAMPLE
@@ -185,8 +213,14 @@
 
   <A2_ASSAYSAMPLE
       assaysampleid="3"
-      assayid="2"
-      sampleid="2"
+      assayid="3"
+      sampleid="1"
+      />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="4"
+      assayid="3"
+      sampleid="4"
       />
 
   <A2_DESIGNELEMENT

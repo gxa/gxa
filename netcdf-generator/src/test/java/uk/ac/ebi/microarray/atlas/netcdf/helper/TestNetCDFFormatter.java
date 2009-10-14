@@ -1,12 +1,14 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
 import ucar.nc2.Attribute;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,8 +20,7 @@ import java.util.Set;
 public class TestNetCDFFormatter extends AtlasDAOTestCase {
   private File repositoryLocation;
 
-  private DataSlice dataSlice;
-  private NetcdfFileWriteable netcdfFile;
+  private Map<DataSlice, NetcdfFileWriteable> dataSlices;
 
   private NetCDFFormatter formatter;
 
@@ -27,46 +28,42 @@ public class TestNetCDFFormatter extends AtlasDAOTestCase {
     super.setUp();
 
     repositoryLocation = new File("test" + File.separator + "netcdfs");
+    if (!repositoryLocation.exists()) {
+      repositoryLocation.mkdirs();
+    }
+    dataSlices = new HashMap<DataSlice, NetcdfFileWriteable>();
 
     DataSlicer dataSlicer = new DataSlicer(getAtlasDAO());
     Experiment experiment =
         getAtlasDAO().getExperimentByAccession("E-ABCD-1234");
     Set<DataSlice> slices = dataSlicer.sliceExperiment(experiment);
 
-    // just use first slice for the given experiment
-    for (DataSlice slice : slices) {
-      if (slice.getArrayDesign().getAccession().equals("A-WXYZ-6789")) {
-        // use this one, as it has interesting assay/samples
-        dataSlice = slice;
-        break;
-      }
+    // map slices for the given experiment
+    for (DataSlice dataSlice : slices) {
+      String netcdfName =
+          experiment.getExperimentID() + "_" +
+              dataSlice.getArrayDesign().getArrayDesignID() + ".nc";
+      File f = new File(repositoryLocation, netcdfName);
+      String netcdfPath = f.getAbsolutePath();
+      NetcdfFileWriteable netcdfFile =
+          NetcdfFileWriteable.createNew(netcdfPath, false);
+
+      // add metadata global attributes
+      netcdfFile.addGlobalAttribute(
+          "CreateNetCDF_VERSION",
+          "test-version");
+      netcdfFile.addGlobalAttribute(
+          "experiment_accession",
+          dataSlice.getExperiment().getAccession());
+      netcdfFile.addGlobalAttribute(
+          "ADaccession",
+          dataSlice.getArrayDesign().getAccession());
+      netcdfFile.addGlobalAttribute(
+          "ADname",
+          dataSlice.getArrayDesign().getName());
+
+      dataSlices.put(dataSlice, netcdfFile);
     }
-
-    String netcdfName =
-        experiment.getExperimentID() + "_" +
-            dataSlice.getArrayDesign().getArrayDesignID() + ".nc";
-    File f = new File(repositoryLocation, netcdfName);
-    if (!repositoryLocation.exists()) {
-      repositoryLocation.mkdirs();
-    }
-    String netcdfPath = f.getAbsolutePath();
-    netcdfFile =
-        NetcdfFileWriteable.createNew(netcdfPath, false);
-
-    // add metadata global attributes
-    netcdfFile.addGlobalAttribute(
-        "CreateNetCDF_VERSION",
-        "test-version");
-    netcdfFile.addGlobalAttribute(
-        "experiment_accession",
-        dataSlice.getExperiment().getAccession());
-    netcdfFile.addGlobalAttribute(
-        "ADaccession",
-        dataSlice.getArrayDesign().getAccession());
-    netcdfFile.addGlobalAttribute(
-        "ADname",
-        dataSlice.getArrayDesign().getName());
-
     formatter = new NetCDFFormatter();
   }
 
@@ -74,32 +71,35 @@ public class TestNetCDFFormatter extends AtlasDAOTestCase {
     super.tearDown();
 
     repositoryLocation = null;
-    dataSlice = null;
-    netcdfFile = null;
+    dataSlices = null;
 
     formatter = null;
   }
 
   public void testFormatNetCDF() {
     try {
-      // format the netcdf
-      formatter.formatNetCDF(netcdfFile, dataSlice);
+      for (DataSlice dataSlice : dataSlices.keySet()) {
+        NetcdfFileWriteable netcdfFile = dataSlices.get(dataSlice);
 
-      // create it
-      netcdfFile.create();
+        // format the netcdf
+        formatter.formatNetCDF(netcdfFile, dataSlice);
 
-      // todo - now profile the netcdf against dataset
+        // create it
+        netcdfFile.create();
 
-      // check global attributes
-      for (Attribute att : netcdfFile.getGlobalAttributes()) {
-        System.out.println("Next attribute: " + att.toString());
-      }
+        // todo - now profile the netcdf against dataset
 
-      System.out.println();
+        // check global attributes
+        for (Attribute att : netcdfFile.getGlobalAttributes()) {
+          System.out.println("Next attribute: " + att.toString());
+        }
 
-      // check dimensions
-      for (Dimension d : netcdfFile.getDimensions()) {
-        System.out.println("Next dimension: " + d.toString());
+        System.out.println();
+
+        // check dimensions
+        for (Dimension d : netcdfFile.getDimensions()) {
+          System.out.println("Next dimension: " + d.toString());
+        }
       }
     }
     catch (Exception e) {
