@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.IndexIterator;
@@ -24,6 +26,8 @@ import java.util.Map;
  * @date 30-Sep-2009
  */
 public class NetCDFWriter {
+  private Log log = LogFactory.getLog(this.getClass());
+
   public void writeNetCDF(NetcdfFileWriteable netCDF, DataSlice dataSlice)
       throws NetCDFGeneratorException {
     try {
@@ -246,6 +250,7 @@ public class NetCDFWriter {
     // check dimensions for assay properties are available
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("EF") != null &&
+        netCDF.findDimension("EFlen") != null &&
         netCDF.findDimension("uEFV") != null) {
       // write assay property values
       ArrayChar ef = new ArrayChar.D2(
@@ -268,13 +273,24 @@ public class NetCDFWriter {
         ef.setString(efIndex, propertyName);
 
         for (String propertyValue : assayPropertyValues.get(propertyName)) {
-          // add property value to EFV, indexed by each ef
-          efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
-          // increment index count on efv axis
-          efvIndex++;
+          if (efvIndex < netCDF.findDimension("AS").getLength()) {
+            // add property value to EFV, indexed by each ef
+            efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
+            // increment index count on efv axis
+            efvIndex++;
 
-          // add property value to uEFV, indexed by cumulative count uefvIndex
-          uefv.setString(uefvIndex, propertyValue);
+            // add property value to uEFV, indexed by cumulative count uefvIndex
+            uefv.setString(uefvIndex, propertyValue);
+          }
+          else {
+            // this will occur if there are multiple property values assigned
+            // to the same property for single assay
+
+            // apparently, this is wrong somehow
+            log.error("Multiple property values assigned to the same " +
+                "property for single assay!");
+            break;
+          }
         }
 
         // increment ef axis up one, and reset efv axis to zero
@@ -288,7 +304,7 @@ public class NetCDFWriter {
           netCDF.findDimension("EF").getLength());
       int countIndex = 0;
       for (String propertyName : uniqueCounts.keySet()) {
-        uefvNum.setInt(efv.getIndex().set(countIndex),
+        uefvNum.setInt(uefvNum.getIndex().set(countIndex),
                        uniqueCounts.get(propertyName));
         countIndex++;
       }
@@ -315,8 +331,21 @@ public class NetCDFWriter {
         sc.setString(scIndex, propertyName);
 
         for (String propertyValue : samplePropertyValues.get(propertyName)) {
-          scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
-          scvIndex++;
+          if (scvIndex < netCDF.findDimension("BS").getLength()) {
+            // add property value to SCV, indexed by each SC
+            scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
+            // increment index count on scv axis
+            scvIndex++;
+          }
+          else {
+            // this will occur if there are multiple property values assigned
+            // to the same property for single assay
+
+            // apparently, this is wrong somehow
+            log.error("Multiple property values assigned to the same " +
+                "property for single sample!");
+            break;
+          }
         }
 
         scIndex++;
