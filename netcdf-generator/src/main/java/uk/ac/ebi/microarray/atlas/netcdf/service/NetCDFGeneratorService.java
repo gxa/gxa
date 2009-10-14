@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
-import java.util.Properties;
 import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * An abstract NetCDFGeneratorService, that provides convenience methods for
@@ -76,8 +76,16 @@ public abstract class NetCDFGeneratorService<T> {
     createNetCDFDocs();
   }
 
+  public void generateNetCDFsForExperiment(String experimentAccession)
+      throws NetCDFGeneratorException {
+    versionDescriptor = lookupVersionFromMavenProperties();
+    createNetCDFDocsForExperiment(experimentAccession);
+  }
+
   protected abstract void createNetCDFDocs() throws NetCDFGeneratorException;
 
+  protected abstract void createNetCDFDocsForExperiment(
+      String experimentAccession) throws NetCDFGeneratorException;
 
   private String lookupVersionFromMavenProperties() {
     String version = "Atlas NetCDF Generator Version ";
