@@ -6,7 +6,7 @@ package uk.ac.ebi.microarray.atlas.model;
  * @author Tony Burdett
  * @date 24-Sep-2009
  */
-public class ExpressionAnalytics {
+public class ExpressionAnalysis {
   private String efName;
   private String efvName;
   private long experimentID;

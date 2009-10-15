@@ -3,7 +3,6 @@ package uk.ac.ebi.microarray.atlas.dao;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
@@ -180,6 +179,32 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
   }
 
+  public void testGetExpressionValuesForAssays() {
+    try {
+      // fetch the accession of the first experiment in our dataset
+      String accession =
+          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
+              .toString();
+
+      // get some assays for this experiment
+      List<Assay> assays =
+          getAtlasDAO().getAssaysByExperimentAccession(accession);
+
+      // populate their expression values
+      getAtlasDAO().getExpressionValuesForAssays(assays);
+
+      // now check EVS
+      for (Assay assay : assays) {
+        assertNotNull("Null collection of expression values", assay.getExpressionValues());
+        System.out.println("Assay " + assay.getAccession() + " has " + assay.getExpressionValues().size() + " expression values");
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
   public void testGetSamplesByAssayAccession() {
     try {
       String accession =
@@ -337,7 +362,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
   public void testGetDesignElementAccessionsByGeneID() {
     try {
-      // fetch the accession of the first array design in our dataset
+      // fetch the accession of the first gene in our dataset
       int id = Integer.parseInt(
           getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
 
@@ -358,6 +383,32 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
   }
 
+  public void testGetAtlasCountsByExperimentID() {
+    try {
+      // fetch the id of the first experiment in our dataset
+      int id = Integer.parseInt(getDataSet().getTable("A2_EXPERIMENT").
+          getValue(0, "experimentid").toString());
+
+      List<AtlasCount> atlasCounts =
+          getAtlasDAO().getAtlasCountsByExperimentID(id);
+
+      // check the returned data
+      assertNotSame("Zero atlas counts returned", atlasCounts.size(), 0);
+      for (AtlasCount atlas : atlasCounts) {
+        assertNotNull(atlas);
+        assertNotNull("Got null property", atlas.getProperty());
+        assertNotSame("Got null property value", atlas.getPropertyValue());
+        assertNotNull("Got null updn" + atlas.getUpOrDown());
+        assertNotNull("Got 0 gene count" + atlas.getGeneCount());
+        System.out.println("AtlasCount: " + atlas.toString());
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
   public void testGetExpressionAnalyticsByGeneID() {
     try {
       // fetch the accession of the first array design in our dataset
@@ -366,14 +417,14 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
       System.out.println("Getting stats for Gene id: " + id);
 
-      List<ExpressionAnalytics> eas =
+      List<ExpressionAnalysis> eas =
           getAtlasDAO().getExpressionAnalyticsByGeneID(id);
 
       // check we got results
       assertNotSame("Got 0 ExpressionAnalytics back", eas.size(), 0);
 
       // check the returned data
-      for (ExpressionAnalytics ea : eas) {
+      for (ExpressionAnalysis ea : eas) {
         assertNotNull(ea);
         System.out.println("Got stats for " + id + ": " + ea.toString());
       }
@@ -404,7 +455,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
       ResultSet rs = stmt.executeQuery("CALL SQRT(2)");
       while (rs.next()) {
         double expected = Math.sqrt(2);
-        double actual =  Double.parseDouble(rs.getString(1));
+        double actual = Double.parseDouble(rs.getString(1));
 
         assertEquals("Stored Procedure SQRT returns wrong answer",
                      expected, actual);
@@ -418,9 +469,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
       stmt = conn.createStatement();
 
       // just check this doesn't throw an exception
-      stmt.executeQuery("CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab')");
-      stmt.executeQuery("CALL A2_ASSAYSET('accession', 'E-ABCD-1234', 'A-ABCD-1234')");
-      stmt.executeQuery("CALL A2_SAMPLESET('accession', null, null, 'species', 'channel')");
+      stmt.executeQuery(
+          "CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab')");
+      stmt.executeQuery(
+          "CALL A2_ASSAYSET('accession', 'E-ABCD-1234', 'A-ABCD-1234')");
+      stmt.executeQuery(
+          "CALL A2_SAMPLESET('accession', null, null, 'species', 'channel')");
 
       // cleanup
       stmt.close();

@@ -24,6 +24,7 @@ public class DataSlice {
   //  private List<Sample> samples;
   private List<Integer> designElementIDs;
   private List<Gene> genes;
+  private Map<Integer, List<ExpressionAnalysis>> analysesByGeneID;
   private Map<String, List<Sample>> samplesByAssayAcc;
   private Map<Assay, List<Sample>> assayToSampleMapping;
 
@@ -52,6 +53,42 @@ public class DataSlice {
     return genes;
   }
 
+  public List<ExpressionAnalysis> getExpressionAnalyses() {
+    // create arraylist
+    List<ExpressionAnalysis> analyses = new ArrayList<ExpressionAnalysis>();
+
+    // add all analyses
+    if (analysesByGeneID != null) {
+      for (int geneID : analysesByGeneID.keySet()) {
+        for (ExpressionAnalysis candidate : analysesByGeneID.get(geneID)) {
+          // todo - lookup analysis to see if we already have it in the list?
+          boolean present = false;
+          for (ExpressionAnalysis analysis : analyses) {
+            if (analysis.getEfName().equals(candidate.getEfName()) &&
+                analysis.getEfvName().equals(candidate.getEfvName())) {
+              present = true;
+              break;
+            }
+          }
+
+          // don't add duplicates
+          if (!present) {
+            analyses.add(candidate);
+          }
+          else {
+            System.out
+                .println("Duplicated EF/EFV pairing for this experiment!");
+          }
+        }
+      }
+    }
+    else {
+      return null;
+    }
+
+    return analyses;
+  }
+
   public List<Sample> getSamples() {
     // create arraylist
     List<Sample> samples = new ArrayList<Sample>();
@@ -59,7 +96,21 @@ public class DataSlice {
     // add all samples
     if (samplesByAssayAcc != null) {
       for (String assayAcc : samplesByAssayAcc.keySet()) {
-        samples.addAll(samplesByAssayAcc.get(assayAcc));
+        for (Sample candidate : samplesByAssayAcc.get(assayAcc)) {
+          // lookup sample to see if we already have one with this accession in the list
+          boolean present = false;
+          for (Sample sample : samples) {
+            if (sample.getAccession().equals(candidate.getAccession())) {
+              present = true;
+              break;
+            }
+          }
+
+          // don't add duplicates
+          if (!present) {
+            samples.add(candidate);
+          }
+        }
       }
     }
     else {
@@ -106,6 +157,20 @@ public class DataSlice {
 
   public void storeGenes(List<Gene> genes) {
     this.genes = genes;
+  }
+
+  public void storeExpressionAnalyses(Integer geneID,
+                                      List<ExpressionAnalysis> analyses) {
+    if (analysesByGeneID == null) {
+      analysesByGeneID = new HashMap<Integer, List<ExpressionAnalysis>>();
+    }
+
+    if (analysesByGeneID.containsKey(geneID)) {
+      analysesByGeneID.get(geneID).addAll(analyses);
+    }
+    else {
+      analysesByGeneID.put(geneID, analyses);
+    }
   }
 
   public void storeSamplesAssociatedWithAssay(String assayAccession,

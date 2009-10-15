@@ -247,6 +247,17 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                      "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
 
     runStatement(conn,
+                 "CREATE TABLE A2_EXPRESSIONVALUE " +
+                     "(EXPRESSIONVALUEID INTEGER NOT NULL, " +
+                     "DESIGNELEMENTID INTEGER NOT NULL, " +
+                     "EXPERIMENTID INTEGER NOT NULL, " +
+                     "ASSAYID INTEGER NOT NULL, " +
+                     "VALUE FLOAT, " +
+                     "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
+                     "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
+                     "REFERENCES A2_DESIGNELEMENT (DESIGNELEMENTID));");
+
+    runStatement(conn,
                  "CREATE TABLE A2_EXPRESSIONANALYTICS " +
                      "(EXPRESSIONID INTEGER NOT NULL, " +
                      "EXPERIMENTID INTEGER NOT NULL, " +

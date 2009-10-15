@@ -5,8 +5,17 @@ package uk.ac.ebi.microarray.atlas.model;
  * To change this template use File | Settings | File Templates.
  */
 public class ExpressionValue {
+  private int designElementID;
   private String designElementAccession;
   private Float value;
+
+  public int getDesignElementID() {
+    return designElementID;
+  }
+
+  public void setDesignElementID(int designElementID) {
+    this.designElementID = designElementID;
+  }
 
   public String getDesignElementAccession() {
     return designElementAccession;
