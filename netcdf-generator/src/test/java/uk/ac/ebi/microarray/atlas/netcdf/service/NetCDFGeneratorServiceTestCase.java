@@ -37,10 +37,10 @@ public abstract class NetCDFGeneratorServiceTestCase extends AtlasDAOTestCase {
   }
 
   public void tearDown() {
-    // delete the index
-    if (!deleteDirectory(repoLocation)) {
-      fail("Failed to delete " + repoLocation.getAbsolutePath());
-    }
+//    // delete the index
+//    if (!deleteDirectory(repoLocation)) {
+//      fail("Failed to delete " + repoLocation.getAbsolutePath());
+//    }
 
     repoLocation = null;
   }

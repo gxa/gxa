@@ -222,7 +222,7 @@
   <A2_ASSAYSAMPLE
       assaysampleid="1"
       assayid="1"
-      sampleid="3"
+      sampleid="1"
       />
 
   <A2_ASSAYSAMPLE
@@ -285,6 +285,22 @@
       fpval="0.000789"
       fpvaladj="0.0123"
       designelementid="2"
+      />
+
+  <A2_EXPRESSIONVALUE
+      expressionvalueid="1"
+      designelementid="1"
+      experimentid="1"
+      assayid="1"
+      value="1.2345"
+      />
+
+  <A2_EXPRESSIONVALUE
+      expressionvalueid="2"
+      designelementid="2"
+      experimentid="1"
+      assayid="2"
+      value="6.7891"
       />
 
 </dataset>

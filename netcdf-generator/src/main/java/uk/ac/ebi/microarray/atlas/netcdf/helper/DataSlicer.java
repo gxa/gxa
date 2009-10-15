@@ -1,10 +1,7 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.*;
 
@@ -79,6 +76,8 @@ public class DataSlicer {
 
       // create a new data slice, for this experiment and arrayDesign
       DataSlice dataSlice = new DataSlice(experiment, arrayDesign);
+      // make sure we've fetched expression values for all assays before we store them
+      getAtlasDAO().getExpressionValuesForAssays(assays);
       // store the assays for this array design on it
       dataSlice.storeAssays(arrayToAssays.get(arrayDesignAccession));
       // store each sample associated with it's downstream assay too
@@ -95,9 +94,16 @@ public class DataSlicer {
       dataSlice.storeDesignElementIDs(getAtlasDAO()
           .getDesignElementIDsByArrayAccession(arrayDesignAccession));
 
-      // store genes
-      dataSlice.storeGenes(getAtlasDAO().getGenesByExperimentAccession(
-          experiment.getAccession()));
+      // fetch genes
+      List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
+          experiment.getAccession());
+      for (Gene gene : genes) {
+        // retrieve the expression analytics for each gene
+        List<ExpressionAnalysis> analysis =
+            getAtlasDAO().getExpressionAnalyticsByGeneID(gene.getGeneID());
+        dataSlice.storeExpressionAnalyses(gene.getGeneID(), analysis);
+      }
+      dataSlice.storeGenes(genes);
 
       // save this dataslice
       results.add(dataSlice);

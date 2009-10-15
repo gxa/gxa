@@ -2,15 +2,9 @@ package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayInt;
-import ucar.ma2.IndexIterator;
-import ucar.ma2.InvalidRangeException;
+import ucar.ma2.*;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Gene;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
 import java.io.IOException;
@@ -61,6 +55,17 @@ public class NetCDFWriter {
           netCDF,
           dataSlice.getAssays(),
           dataSlice.getSamples());
+
+      // write expression matrix values
+      writeExpressionMatrixValues(
+          netCDF,
+          dataSlice.getAssays());
+
+      // write stats matrix values
+      writeStatsValues(
+          netCDF,
+          dataSlice.getGenes(),
+          dataSlice.getExpressionAnalyses());
     }
     catch (IOException e) {
       throw new NetCDFGeneratorException(e);
@@ -76,9 +81,9 @@ public class NetCDFWriter {
     if (netCDF.findDimension("AS") != null) {
       // add assay id data
       ArrayInt as = new ArrayInt.D1(assays.size());
-      IndexIterator asIter = as.getIndexIterator();
+      IndexIterator asIt = as.getIndexIterator();
       for (Assay assay : assays) {
-        asIter.setIntNext(assay.getAssayID());
+        asIt.setIntNext(assay.getAssayID());
       }
       netCDF.write("AS", as);
     }
@@ -89,9 +94,9 @@ public class NetCDFWriter {
     if (netCDF.findDimension("BS") != null) {
       // add sample id data
       ArrayInt bs = new ArrayInt.D1(samples.size());
-      IndexIterator asIter = bs.getIndexIterator();
+      IndexIterator bsIt = bs.getIndexIterator();
       for (Sample sample : samples) {
-        asIter.setIntNext(sample.getSampleID());
+        bsIt.setIntNext(sample.getSampleID());
       }
       netCDF.write("BS", bs);
     }
@@ -100,40 +105,38 @@ public class NetCDFWriter {
   private void writeAssayToSampleData(NetcdfFileWriteable netCDF,
                                       Map<Assay, List<Sample>> assayToSamples)
       throws NetCDFGeneratorException, IOException, InvalidRangeException {
-    // fixme: the old version of this code looked quite brittle, i'm not sure if the cardinality is correct (1:1 sample:assay always?)
+    // build unique maps of IDs to index
+    Map<Integer, Integer> assays = new HashMap<Integer, Integer>();
+    Map<Integer, Integer> samples = new HashMap<Integer, Integer>();
 
-    if (netCDF.findDimension("BS2AS") != null) {
-      // build unique maps of IDs to index
-      Map<Integer, Integer> assays = new HashMap<Integer, Integer>();
-      Map<Integer, Integer> samples = new HashMap<Integer, Integer>();
-
-      // index counters
-      int assayIndex = 0;
-      int sampleIndex = 0;
-      for (Assay assay : assayToSamples.keySet()) {
-        if (!assays.containsKey(assay.getAssayID())) {
-          // add assayId to our assayMap
-          assays.put(assay.getAssayID(), assayIndex);
-          // and increment the index
-          assayIndex++;
-        }
-
-        for (Sample sample : assayToSamples.get(assay)) {
-          if (!samples.containsKey(sample.getSampleID())) {
-            // add sampleId to our sampleMap
-            samples.put(sample.getSampleID(), sampleIndex);
-            // and increment the count
-            sampleIndex++;
-          }
-        }
+    // index counters
+    int assayIndex = 0;
+    int sampleIndex = 0;
+    for (Assay assay : assayToSamples.keySet()) {
+      if (!assays.containsKey(assay.getAssayID())) {
+        // add assayId to our assayMap
+        assays.put(assay.getAssayID(), assayIndex);
+        // and increment the index
+        assayIndex++;
       }
 
+      for (Sample sample : assayToSamples.get(assay)) {
+        if (!samples.containsKey(sample.getSampleID())) {
+          // add sampleId to our sampleMap
+          samples.put(sample.getSampleID(), sampleIndex);
+          // and increment the count
+          sampleIndex++;
+        }
+      }
+    }
+
+    if (samples.size() > 0 && assays.size() > 0) {
       ArrayInt bs2as = new ArrayInt.D2(samples.size(),
                                        assays.size());
-      //Initialize the matrix with zeros
-      IndexIterator iterbs = bs2as.getIndexIterator();
-      while (iterbs.hasNext()) {
-        iterbs.setIntNext(0);
+      // initialize the matrix with zeros
+      IndexIterator bs2asIt = bs2as.getIndexIterator();
+      while (bs2asIt.hasNext()) {
+        bs2asIt.setIntNext(0);
       }
 
       // iterate over keys, and work out which spot in the matrix to set to 1
@@ -146,6 +149,8 @@ public class NetCDFWriter {
           bs2as.setInt(bs2as.getIndex().set(sIndex, aIndex), 1);
         }
       }
+
+      // finally, write
       netCDF.write("BS2AS", bs2as);
     }
   }
@@ -156,9 +161,9 @@ public class NetCDFWriter {
     if (netCDF.findDimension("DE") != null) {
       // add design element id data
       ArrayInt de = new ArrayInt.D1(designElementIDs.size());
-      IndexIterator asIter = de.getIndexIterator();
+      IndexIterator deIt = de.getIndexIterator();
       for (int designElementID : designElementIDs) {
-        asIter.setIntNext(designElementID);
+        deIt.setIntNext(designElementID);
       }
       netCDF.write("DE", de);
     }
@@ -169,9 +174,9 @@ public class NetCDFWriter {
     if (netCDF.findDimension("GN") != null) {
       // add gene id data
       ArrayInt gn = new ArrayInt.D1(genes.size());
-      IndexIterator asIter = gn.getIndexIterator();
+      IndexIterator gnIt = gn.getIndexIterator();
       for (Gene gene : genes) {
-        asIter.setIntNext(gene.getGeneID());
+        gnIt.setIntNext(gene.getGeneID());
       }
       netCDF.write("GN", gn);
     }
@@ -338,10 +343,9 @@ public class NetCDFWriter {
             scvIndex++;
           }
           else {
+            // fixme:
             // this will occur if there are multiple property values assigned
-            // to the same property for single assay
-
-            // apparently, this is wrong somehow
+            // to the same property for single assay - in old generation this results in lost data
             log.error("Multiple property values assigned to the same " +
                 "property for single sample!");
             break;
@@ -354,6 +358,123 @@ public class NetCDFWriter {
 
       netCDF.write("SC", sc);
       netCDF.write("SCV", scv);
+    }
+  }
+
+  private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
+                                           List<Assay> assays)
+      throws IOException, InvalidRangeException {
+    if (netCDF.findDimension("AS") != null &&
+        netCDF.findDimension("DE") != null) {
+      // count expression values
+      int expressionValueCount = 0;
+      for (Assay assay : assays) {
+        if (expressionValueCount < assay.getExpressionValues().size()) {
+          expressionValueCount = assay.getExpressionValues().size();
+        }
+      }
+
+      // create matrix for BDC
+      ArrayDouble bdc = new ArrayDouble.D2(expressionValueCount,
+                                           assays.size());
+
+      // initialise everything to -1000000, default value
+      IndexIterator bdcIt = bdc.getIndexIterator();
+      while (bdcIt.hasNext()) {
+        bdcIt.setDoubleNext(-1000000);
+      }
+
+      // loop over assays
+      int asIndex = 0;
+      int deIndex = 0;
+      for (Assay assay : assays) {
+        System.out.println(
+            "Assay: " + assay.getAccession() + "(" + assay.getAssayID() +
+                ") has " + assay.getExpressionValues().size() +
+                " expression values");
+        for (ExpressionValue ev : assay.getExpressionValues()) {
+          System.out.println(
+              "Expression Value: value = " + ev.getValue() + ", deID = " +
+                  ev.getDesignElementID());
+
+          // write expression value to matrix
+          System.out.println(
+              "Doing " + deIndex + ", " + asIndex + ": " + ev.getValue());
+          bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
+
+          // increment deIndex
+          deIndex++;
+        }
+
+        asIndex++;
+        deIndex = 0;
+      }
+
+      netCDF.write("BDC", bdc);
+    }
+  }
+
+  private void writeStatsValues(NetcdfFileWriteable netCDF,
+                                List<Gene> genes,
+                                List<ExpressionAnalysis> analyses)
+      throws IOException, InvalidRangeException {
+    if (netCDF.findDimension("DE") != null &&
+        netCDF.findDimension("uEFV") != null) {
+      System.out.println("Number of Genes: " + genes.size());
+      System.out.println("Number of ExpressionAnalyses: " + analyses.size());
+
+      int deMaxLength = netCDF.findDimension("DE").getLength();
+      int uefvMaxLength = netCDF.findDimension("uEFV").getLength();
+      ArrayDouble pval = new ArrayDouble.D2(
+          deMaxLength, uefvMaxLength);
+      ArrayDouble tstat = new ArrayDouble.D2(
+          deMaxLength, uefvMaxLength);
+
+      // loop over genes
+      int deIndex = 0; // fixme: Note that this assumes 1:1 DE:GN
+      int uefvIndex =
+          0; // fixme: Hopefully our expression values have the same uniqueness as the combos we observed
+      for (Gene gene : genes) {
+        if (deIndex >= deMaxLength) {
+          System.out.println(
+              "Woah!  Number of genes exceeded number of design elements " +
+                  "combinations for this experiment (" +
+                  deIndex + 1 + " vs. max " + deMaxLength + ")");
+        }
+        else {
+          System.out.println(
+              "Doing Gene: " + gene.getIdentifier() + "(" + gene.getGeneID() +
+                  ")");
+          for (ExpressionAnalysis analysis : analyses) {
+            if (uefvIndex >= uefvMaxLength) {
+              System.out.println(
+                  "Woah!  Expression Analysis results exceeded number of unique EF/EFV combinations for this experiment (" +
+                      uefvIndex + 1 + " vs. max " + uefvMaxLength + ")");
+            }
+            else {
+              System.out
+                  .println("Doing PVAL " + deIndex + ", " + uefvIndex + ": " +
+                      analysis.getPValAdjusted());
+              pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
+                             analysis.getPValAdjusted());
+              System.out.println(
+                  "Doing TSTAT " + deIndex + ", " + uefvIndex + ": " +
+                      analysis.getTStatistic());
+              tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
+                              analysis.getTStatistic());
+
+              // increment uefv index
+              uefvIndex++;
+            }
+          }
+
+          deIndex++;
+          uefvIndex = 0;
+        }
+      }
+
+      netCDF.write("PVAL", pval);
+      netCDF.write("TSTAT", tstat);
     }
   }
 }

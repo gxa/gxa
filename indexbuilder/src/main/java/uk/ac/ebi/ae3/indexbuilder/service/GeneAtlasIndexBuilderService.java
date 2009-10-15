@@ -11,7 +11,7 @@ import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
 import uk.ac.ebi.ae3.indexbuilder.IndexField;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalytics;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.Property;
@@ -168,10 +168,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     ExperimentsTable expTable = new ExperimentsTable();
 
     boolean wasresult = false;
-    List<ExpressionAnalytics> expressionAnalytics =
+    List<ExpressionAnalysis> expressionAnalytics =
         getAtlasDAO().getExpressionAnalyticsByGeneID(geneID);
 
-    for (ExpressionAnalytics expressionAnalytic : expressionAnalytics) {
+    for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
       Long experimentId = expressionAnalytic.getExperimentID();
       if (experimentId == 0) {
         log.error("Found experimentId=0 for gene " + geneID);

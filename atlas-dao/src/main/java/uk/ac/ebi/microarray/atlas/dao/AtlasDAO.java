@@ -71,6 +71,11 @@ public class AtlasDAO {
           "AND pv.propertyid=p.propertyid " +
           "AND apv.assayid=a.assayid " +
           "AND a.accession=?";
+  private static final String EXPRESSION_VALUES_BY_ASSAY_ID =
+      "SELECT ev.designelementid, de.accession, ev.value " +
+          "FROM a2_expressionvalue ev, a2_designelement de " +
+          "WHERE ev.designelementid=de.designelementid " +
+          "AND ev.assayid=?";
 
   // sample queries
   private static final String SAMPLES_BY_ASSAY_ACCESSION =
@@ -217,7 +222,7 @@ public class AtlasDAO {
       List propResults = template.query(PROPERTIES_BY_GENEID,
                                         new Object[]{gene.getGeneID()},
                                         new GenePropertyMapper());
-      // and set on assay
+      // and set on gene
       gene.setProperties(propResults);
     }
   }
@@ -241,6 +246,18 @@ public class AtlasDAO {
     }
 
     return assays;
+  }
+
+  public void getExpressionValuesForAssays(List<Assay> assays) {
+    // fetch all expression values
+    for (Assay assay : assays) {
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List evResults = template.query(EXPRESSION_VALUES_BY_ASSAY_ID,
+                                      new Object[]{assay.getAssayID()},
+                                      new ExpressionValueMapper());
+      // and set on assay
+      assay.setExpressionValues((List<ExpressionValue>) evResults);
+    }
   }
 
   public List<Sample> getSamplesByAssayAccession(String assayAccession) {
@@ -337,12 +354,12 @@ public class AtlasDAO {
     return (List<AtlasCount>) results;
   }
 
-  public List<ExpressionAnalytics> getExpressionAnalyticsByGeneID(
+  public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
       int geneID) {
     List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
                                   new Object[]{geneID},
                                   new ExpressionAnalyticsMapper());
-    return (List<ExpressionAnalytics>) results;
+    return (List<ExpressionAnalysis>) results;
   }
 
   public List<OntologyMapping> getOntologyMappingsForOntology(
@@ -393,6 +410,18 @@ public class AtlasDAO {
     }
   }
 
+  private class ExpressionValueMapper implements RowMapper {
+    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+      ExpressionValue ev = new ExpressionValue();
+
+      ev.setDesignElementID(resultSet.getInt(1));
+      ev.setDesignElementAccession(resultSet.getString(2));
+      ev.setValue(resultSet.getFloat(3));
+
+      return ev;
+    }
+  }
+
   private class SampleMapper implements RowMapper {
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
       Sample sample = new Sample();
@@ -437,7 +466,7 @@ public class AtlasDAO {
 
   private class ExpressionAnalyticsMapper implements RowMapper {
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-      ExpressionAnalytics ea = new ExpressionAnalytics();
+      ExpressionAnalysis ea = new ExpressionAnalysis();
 
       ea.setEfName(resultSet.getString(1));
       ea.setEfvName(resultSet.getString(2));

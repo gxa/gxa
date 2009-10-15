@@ -197,6 +197,8 @@ public class NetCDFFormatter {
   private void createDesignElementVariables(
       NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
     if (designElementIDs.size() > 0) {
+      System.out.println("Number of design elements = " + designElementIDs.size());
+
       // update the netCDF with the genes count
       designElementDimension =
           netCDF.addDimension("DE", designElementIDs.size());
@@ -325,17 +327,24 @@ public class NetCDFFormatter {
       if (assayPropertyValues.keySet().size() > 0) {
         Dimension efDimension =
             netCDF.addDimension("EF", assayPropertyValues.keySet().size());
-        // do a count of the max number of values
-        int maxLength = 0;
-        for (List<String> propertyValues : assayPropertyValues.values()) {
-          if (propertyValues.size() > maxLength) {
-            maxLength = propertyValues.size();
+
+        // ef, efv variables are sized by string length
+        int maxEFLength = 0;
+        for (String propertyName : assayPropertyValues.keySet()) {
+          if (propertyName.length() > maxEFLength) {
+            maxEFLength = propertyName.length();
           }
         }
-
-        for (String assayAcc : assayPropertyValues.keySet()) {
-          log.info("Assay: " + assayAcc + ": " + assayPropertyValues.get(assayAcc).size() + " values");
+        int maxEFVLength = 0;
+        for (List<String> propertyValues : assayPropertyValues.values()) {
+          for (String propertyValue : propertyValues) {
+            if (propertyValue.length() > maxEFVLength) {
+              maxEFVLength = propertyValue.length();
+            }
+          }
         }
+        // derive longest text value for EF/EFV
+        int maxLength = maxEFLength > maxEFVLength ? maxEFLength : maxEFVLength;
 
         // next up, EFV length - this is equal to max number of values mapped to one property
         Dimension efvDimension =
@@ -364,14 +373,25 @@ public class NetCDFFormatter {
       if (samplePropertyValues.size() > 0) {
         Dimension scDimension =
             netCDF.addDimension("SC", samplePropertyValues.keySet().size());
-        // do a count of the max number of values
+        // sc,scv variables are sized by string length
         int maxSCLength = 0;
-        for (List<String> propertyValues : samplePropertyValues.values()) {
-          if (propertyValues.size() > maxSCLength) {
-            maxSCLength = propertyValues.size();
+        for (String propertyName : samplePropertyValues.keySet()) {
+          if (propertyName.length() > maxSCLength) {
+            maxSCLength = propertyName.length();
           }
         }
-        Dimension sclDimension = netCDF.addDimension("SClen", maxSCLength);
+        int maxSCVLength = 0;
+        for (List<String> propertyValues : samplePropertyValues.values()) {
+          for (String propertyValue : propertyValues) {
+            if (propertyValue.length() > maxSCVLength) {
+              maxSCVLength = propertyValue.length();
+            }
+          }
+        }
+        // derive longest text value for SC/SCV
+        int maxLength = maxSCLength > maxSCVLength ? maxSCLength : maxSCVLength;
+
+        Dimension sclDimension = netCDF.addDimension("SClen", maxLength);
 
         // and add variables
         netCDF.addVariable("SC", DataType.CHAR,
@@ -438,6 +458,9 @@ public class NetCDFFormatter {
     }
 
     if (designElementDimension != null && uefvDimension != null) {
+      System.out.println("Number of DesignElements: " + designElementDimension.getLength());
+      System.out.println("Number of UniqueCombos: " + uefvDimension.getLength());
+
       netCDF.addVariable("PVAL", DataType.DOUBLE,
                          new Dimension[]{designElementDimension,
                                          uefvDimension});

@@ -47,4 +47,13 @@ public class AtlasCount {
   public void setGeneCount(int geneCount) {
     this.geneCount = geneCount;
   }
+
+  public String toString() {
+    return "AtlasCount{" +
+        "property='" + property + '\'' +
+        ", propertyValue='" + propertyValue + '\'' +
+        ", upOrDown='" + upOrDown + '\'' +
+        ", geneCount=" + geneCount +
+        '}';
+  }
 }
