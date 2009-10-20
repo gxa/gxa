@@ -48,6 +48,7 @@ public class NetCDFWriter {
       // write gene data
       writeGeneData(
           netCDF,
+          dataSlice.getDesignElementIDs(),
           dataSlice.getGenes());
 
       // write property data
@@ -64,7 +65,7 @@ public class NetCDFWriter {
       // write stats matrix values
       writeStatsValues(
           netCDF,
-          dataSlice.getGenes(),
+          dataSlice.getDesignElementIDs(),
           dataSlice.getExpressionAnalyses());
     }
     catch (IOException e) {
@@ -169,15 +170,40 @@ public class NetCDFWriter {
     }
   }
 
-  private void writeGeneData(NetcdfFileWriteable netCDF, List<Gene> genes)
+  private void writeGeneData(NetcdfFileWriteable netCDF,
+                             List<Integer> designElements,
+                             Map<Integer, Gene> genes)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("GN") != null) {
-      // add gene id data
-      ArrayInt gn = new ArrayInt.D1(genes.size());
-      IndexIterator gnIt = gn.getIndexIterator();
-      for (Gene gene : genes) {
-        gnIt.setIntNext(gene.getGeneID());
+      ArrayInt gn;
+
+      // check that we have an appropriate mapping
+      if (genes.keySet().size() != designElements.size()) {
+        log.warn(
+            "Mismatched design element index to gene index.  " +
+                "GN will be created using design element counts.");
+        // add gene id data for stored design elements
+        gn = new ArrayInt.D1(designElements.size());
+        IndexIterator gnIt = gn.getIndexIterator();
+        for (int designElement : designElements) {
+          if (genes.get(designElement) == null) {
+            gnIt.setIntNext(0);
+          }
+          else {
+            gnIt.setIntNext(genes.get(designElement).getGeneID());
+          }
+        }
       }
+      else {
+        // add gene id data
+        gn = new ArrayInt.D1(genes.size());
+        IndexIterator gnIt = gn.getIndexIterator();
+        for (int designElement : genes.keySet()) {
+          gnIt.setIntNext(genes.get(designElement).getGeneID());
+        }
+      }
+
+      // write out the data
       netCDF.write("GN", gn);
     }
   }
@@ -388,18 +414,8 @@ public class NetCDFWriter {
       int asIndex = 0;
       int deIndex = 0;
       for (Assay assay : assays) {
-        System.out.println(
-            "Assay: " + assay.getAccession() + "(" + assay.getAssayID() +
-                ") has " + assay.getExpressionValues().size() +
-                " expression values");
         for (ExpressionValue ev : assay.getExpressionValues()) {
-          System.out.println(
-              "Expression Value: value = " + ev.getValue() + ", deID = " +
-                  ev.getDesignElementID());
-
           // write expression value to matrix
-          System.out.println(
-              "Doing " + deIndex + ", " + asIndex + ": " + ev.getValue());
           bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
 
           // increment deIndex
@@ -415,14 +431,11 @@ public class NetCDFWriter {
   }
 
   private void writeStatsValues(NetcdfFileWriteable netCDF,
-                                List<Gene> genes,
-                                List<ExpressionAnalysis> analyses)
+                                List<Integer> designElements,
+                                Map<Integer, List<ExpressionAnalysis>> analyses)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("DE") != null &&
         netCDF.findDimension("uEFV") != null) {
-      System.out.println("Number of Genes: " + genes.size());
-      System.out.println("Number of ExpressionAnalyses: " + analyses.size());
-
       int deMaxLength = netCDF.findDimension("DE").getLength();
       int uefvMaxLength = netCDF.findDimension("uEFV").getLength();
       ArrayDouble pval = new ArrayDouble.D2(
@@ -430,47 +443,28 @@ public class NetCDFWriter {
       ArrayDouble tstat = new ArrayDouble.D2(
           deMaxLength, uefvMaxLength);
 
-      // loop over genes
-      int deIndex = 0; // fixme: Note that this assumes 1:1 DE:GN
-      int uefvIndex =
-          0; // fixme: Hopefully our expression values have the same uniqueness as the combos we observed
-      for (Gene gene : genes) {
-        if (deIndex >= deMaxLength) {
-          System.out.println(
-              "Woah!  Number of genes exceeded number of design elements " +
-                  "combinations for this experiment (" +
-                  deIndex + 1 + " vs. max " + deMaxLength + ")");
-        }
-        else {
-          System.out.println(
-              "Doing Gene: " + gene.getIdentifier() + "(" + gene.getGeneID() +
-                  ")");
-          for (ExpressionAnalysis analysis : analyses) {
-            if (uefvIndex >= uefvMaxLength) {
-              System.out.println(
-                  "Woah!  Expression Analysis results exceeded number of unique EF/EFV combinations for this experiment (" +
-                      uefvIndex + 1 + " vs. max " + uefvMaxLength + ")");
-            }
-            else {
-              System.out
-                  .println("Doing PVAL " + deIndex + ", " + uefvIndex + ": " +
-                      analysis.getPValAdjusted());
-              pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
-                             analysis.getPValAdjusted());
-              System.out.println(
-                  "Doing TSTAT " + deIndex + ", " + uefvIndex + ": " +
-                      analysis.getTStatistic());
-              tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
-                              analysis.getTStatistic());
-
-              // increment uefv index
-              uefvIndex++;
-            }
+      // loop over design elements
+      int deIndex = 0;
+      int uefvIndex = 0;
+      for (int designElementID : designElements) {
+        for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
+          if (uefvIndex >= uefvMaxLength) {
+            System.out.println(
+                "Woah!  Expression Analysis results exceeded number of unique EF/EFV combinations for this experiment (" +
+                    uefvIndex + 1 + " vs. max " + uefvMaxLength + ")");
           }
+          else {
+            pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
+                           analysis.getPValAdjusted());
+            tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
+                            analysis.getTStatistic());
 
-          deIndex++;
-          uefvIndex = 0;
+            // increment uefv index
+            uefvIndex++;
+          }
         }
+        deIndex++;
+        uefvIndex = 0;
       }
 
       netCDF.write("PVAL", pval);

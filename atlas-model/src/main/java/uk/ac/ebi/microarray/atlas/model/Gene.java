@@ -15,6 +15,7 @@ public class Gene {
   private String species;
   private List<Property> properties;
   private int geneID;
+  private int designElementID;
 
   public int getGeneID() {
     return geneID;
@@ -22,6 +23,14 @@ public class Gene {
 
   public void setGeneID(int geneID) {
     this.geneID = geneID;
+  }
+
+  public int getDesignElementID() {
+    return designElementID;
+  }
+
+  public void setDesignElementID(int designElementID) {
+    this.designElementID = designElementID;
   }
 
   public String getSpecies() {

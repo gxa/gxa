@@ -5,6 +5,8 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Javadocs go here.
@@ -33,15 +35,19 @@ public class TestDataSlice extends TestCase {
   }
 
   public void testStoreGenes() {
+    int deID1 = 1;
     Gene gene1 = new Gene();
+    int deID2 = 2;
     Gene gene2 = new Gene();
-    List<Gene> storage = new ArrayList<Gene>();
-    storage.add(gene1);
-    storage.add(gene2);
-    dataSlice.storeGenes(storage);
+
+    Map<Integer, Gene> genes = new HashMap<Integer, Gene>();
+    genes.put(deID1, gene1);
+    genes.put(deID2, gene2);
+
+    dataSlice.storeGenes(genes);
 
     // now get genes
-    assertSame("Wrong number of genes", dataSlice.getGenes().size(), 2);
+    assertSame("Wrong number of genes", dataSlice.getGenes().keySet().size(), 2);
   }
 
   public void testStoreAssays() {

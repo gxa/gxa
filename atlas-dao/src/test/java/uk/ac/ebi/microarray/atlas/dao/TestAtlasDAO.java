@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
+import org.dbunit.dataset.ITable;
+
 /**
  * Actual tests for ATlasDAO, extends AtlasDAOTestCase which does all the handy
  * instantiation of a basic, in memory DB.
@@ -238,14 +240,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
   public void testOneSampleToManyAssays() {
     try {
-      // fetch the accession of the first assay in our dataset
-      String accession =
-          getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
-              .toString();
-
-      assertEquals("Got wrong assay from many-to-one relationship - " +
-          "wanted abc:ABCxyz:SomeThing:1234.ABC123",
-                   accession, "abc:ABCxyz:SomeThing:1234.ABC123");
+      // use the accession of the assay that tests one to many
+      String accession = "one:ToMany:TestAssay1";
 
       List<Sample> samples =
           getAtlasDAO().getSamplesByAssayAccession(accession);

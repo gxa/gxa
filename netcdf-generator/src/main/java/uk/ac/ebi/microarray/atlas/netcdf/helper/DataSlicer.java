@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -18,6 +20,8 @@ import java.util.*;
  */
 public class DataSlicer {
   private AtlasDAO atlasDAO;
+
+  private Log log = LogFactory.getLog(getClass());
 
   public DataSlicer(AtlasDAO atlasDAO) {
     this.atlasDAO = atlasDAO;
@@ -97,13 +101,28 @@ public class DataSlicer {
       // fetch genes
       List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
           experiment.getAccession());
+      // map ready for storage
+      Map<Integer, Gene> geneMap = new HashMap<Integer, Gene>();
       for (Gene gene : genes) {
         // retrieve the expression analytics for each gene
         List<ExpressionAnalysis> analysis =
             getAtlasDAO().getExpressionAnalyticsByGeneID(gene.getGeneID());
-        dataSlice.storeExpressionAnalyses(gene.getGeneID(), analysis);
+        dataSlice.storeExpressionAnalyses(gene.getDesignElementID(), analysis);
+
+        // get design element id and check its ok to map
+        if (dataSlice.getDesignElementIDs()
+            .contains(gene.getDesignElementID())) {
+          // check for one to many mapping
+          if (geneMap.containsKey(gene.getDesignElementID())) {
+            log.warn("Design Element " + gene.getDesignElementID() +
+                " maps to multiple genes!");
+          }
+          else {
+            geneMap.put(gene.getDesignElementID(), gene);
+          }
+        }
       }
-      dataSlice.storeGenes(genes);
+      dataSlice.storeGenes(geneMap);
 
       // save this dataslice
       results.add(dataSlice);
