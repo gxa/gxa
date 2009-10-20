@@ -41,7 +41,8 @@ public class AtlasDAO {
       GENES_SELECT + " " +
           "AND something something"; // fixme: load monitor table?
   private static final String GENES_BY_EXPERIMENT_ACCESSION =
-      "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+      "SELECT DISTINCT g.geneid, g.identifier, g.name, " +
+          "s.name AS species, d.designelementid " +
           "FROM a2_gene g, a2_spec s, a2_designelement d, a2_assay a, " +
           "a2_experiment e " +
           "WHERE g.geneid=d.geneid " +
@@ -392,6 +393,7 @@ public class AtlasDAO {
       gene.setIdentifier(resultSet.getString(2));
       gene.setName(resultSet.getString(3));
       gene.setSpecies(resultSet.getString(4));
+      gene.setDesignElementID(resultSet.getInt(5));
 
       return gene;
     }

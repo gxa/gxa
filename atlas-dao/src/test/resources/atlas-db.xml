@@ -135,20 +135,6 @@
       arraydesignid="2"
       />
 
-  <A2_ASSAY
-      assayid="3"
-      accession="unrelated:Assay:1"
-      experimentid="1"
-      arraydesignid="2"
-      />
-
-  <A2_ASSAY
-      assayid="4"
-      accession="unrelated:Assay:2"
-      experimentid="2"
-      arraydesignid="2"
-      />
-
   <A2_ASSAYPROPERTYVALUE
       assaypropertyvalueid="1"
       assayid="1"
@@ -165,13 +151,6 @@
 
   <A2_ASSAYPROPERTYVALUE
       assaypropertyvalueid="3"
-      assayid="1"
-      propertyvalueid="3"
-      isfactorvalue="1"
-      />
-
-  <A2_ASSAYPROPERTYVALUE
-      assaypropertyvalueid="4"
       assayid="2"
       propertyvalueid="3"
       isfactorvalue="1"
@@ -191,31 +170,17 @@
       channel=""
       />
 
-  <A2_SAMPLE
-      sampleid="3"
-      accession="unrelated:Sample:1"
-      species="Species"
-      channel=""
-      />
-
-  <A2_SAMPLE
-      sampleid="4"
-      accession="unrelated:Sample:2"
-      species="Different Species"
-      channel=""
-      />
-
   <A2_SAMPLEPROPERTYVALUE
       samplepropertyvalueid="1"
       sampleid="1"
-      propertyvalueid="3"
+      propertyvalueid="4"
       isfactorvalue="0"
       />
 
   <A2_SAMPLEPROPERTYVALUE
       samplepropertyvalueid="2"
       sampleid="2"
-      propertyvalueid="2"
+      propertyvalueid="5"
       isfactorvalue="0"
       />
 
@@ -228,19 +193,7 @@
   <A2_ASSAYSAMPLE
       assaysampleid="2"
       assayid="2"
-      sampleid="1"
-      />
-
-  <A2_ASSAYSAMPLE
-      assaysampleid="3"
-      assayid="3"
-      sampleid="1"
-      />
-
-  <A2_ASSAYSAMPLE
-      assaysampleid="4"
-      assayid="3"
-      sampleid="4"
+      sampleid="2"
       />
 
   <A2_DESIGNELEMENT
@@ -302,5 +255,48 @@
       assayid="2"
       value="6.7891"
       />
+
+   <!-- Test for one to many sample-to-assay mapping -->
+  <A2_SAMPLE
+      sampleid="10"
+      accession="one:ToMany:TestSample"
+      species="Human"
+      channel=""
+      />
+
+  <A2_ASSAY
+    assayid="10"
+    accession="one:ToMany:TestAssay1"
+    arraydesignid="1"
+    experimentid="1"
+    />
+
+  <A2_ASSAY
+    assayid="11"
+    accession="one:ToMany:TestAssay2"
+    arraydesignid="1"
+    experimentid="1"
+    />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="10"
+      assayid="10"
+      sampleid="10"
+      />
+
+  <A2_ASSAYSAMPLE
+      assaysampleid="11"
+      assayid="11"
+      sampleid="10"
+      />
+
+  <A2_ASSAYPROPERTYVALUE
+      assaypropertyvalueid="10"
+      assayid="10"
+      propertyvalueid="1"
+      isfactorvalue="1"
+      />
+
+  <!-- Data for testing IndexBUilder structure -->
 
 </dataset>

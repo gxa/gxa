@@ -67,6 +67,7 @@ public class NetCDFFormatter {
     // setup gene part of netCDF
     createGeneVariables(
         netCDF,
+        dataSlice.getDesignElementIDs(),
         dataSlice.getGenes());
 
     // setup property parts of the netCDF -
@@ -197,7 +198,8 @@ public class NetCDFFormatter {
   private void createDesignElementVariables(
       NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
     if (designElementIDs.size() > 0) {
-      System.out.println("Number of design elements = " + designElementIDs.size());
+      System.out
+          .println("Number of design elements = " + designElementIDs.size());
 
       // update the netCDF with the genes count
       designElementDimension =
@@ -218,18 +220,35 @@ public class NetCDFFormatter {
    * Creates dimensions and variables in a NetCDF for a list of genes.  This
    * results in the creation of the "GN" dimension and variable.
    *
-   * @param netCDF the NetCDF model to modify
-   * @param genes  the list of genes that will be used to configure this NetCDF
+   * @param netCDF         the NetCDF model to modify
+   * @param designElements the list of design elements for this data slice
+   * @param genes          the mapping of design element ids to genes that will
+   *                       be used to configure this NetCDF
    */
   private void createGeneVariables(NetcdfFileWriteable netCDF,
-                                   List<Gene> genes) {
-    if (genes.size() > 0) {
-      // update the netCDF with the genes count
-      Dimension geneDimension =
-          netCDF.addDimension("GN", genes.size());
-      // add gene variable
-      netCDF.addVariable("GN", DataType.INT,
-                         new Dimension[]{geneDimension});
+                                   List<Integer> designElements,
+                                   Map<Integer, Gene> genes) {
+    if (genes.keySet().size() > 0) {
+      // check that we have an appropriate mapping
+      if (genes.keySet().size() != designElements.size()) {
+        log.warn(
+            "Mismatched design element index to gene index.  " +
+                "GN will be created using design element counts.");
+        // update the netCDF with the genes count
+        Dimension geneDimension =
+            netCDF.addDimension("GN", designElements.size());
+        // add gene variable
+        netCDF.addVariable("GN", DataType.INT,
+                           new Dimension[]{geneDimension});
+      }
+      else {
+        // update the netCDF with the genes count
+        Dimension geneDimension =
+            netCDF.addDimension("GN", genes.keySet().size());
+        // add gene variable
+        netCDF.addVariable("GN", DataType.INT,
+                           new Dimension[]{geneDimension});
+      }
     }
     else {
       log.error("Encountered an empty set of genes whilst generating " +
@@ -458,9 +477,6 @@ public class NetCDFFormatter {
     }
 
     if (designElementDimension != null && uefvDimension != null) {
-      System.out.println("Number of DesignElements: " + designElementDimension.getLength());
-      System.out.println("Number of UniqueCombos: " + uefvDimension.getLength());
-
       netCDF.addVariable("PVAL", DataType.DOUBLE,
                          new Dimension[]{designElementDimension,
                                          uefvDimension});

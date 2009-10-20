@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.ArrayList;
@@ -23,10 +25,12 @@ public class DataSlice {
   private List<Assay> assays;
   //  private List<Sample> samples;
   private List<Integer> designElementIDs;
-  private List<Gene> genes;
-  private Map<Integer, List<ExpressionAnalysis>> analysesByGeneID;
+  private Map<Integer, Gene> genes;
+  private Map<Integer, List<ExpressionAnalysis>> analysesByDesignElementID;
   private Map<String, List<Sample>> samplesByAssayAcc;
   private Map<Assay, List<Sample>> assayToSampleMapping;
+
+  private Log log = LogFactory.getLog(getClass());
 
   public DataSlice(Experiment experiment, ArrayDesign arrayDesign) {
     this.experiment = experiment;
@@ -49,44 +53,12 @@ public class DataSlice {
     return designElementIDs;
   }
 
-  public List<Gene> getGenes() {
+  public Map<Integer, Gene> getGenes() {
     return genes;
   }
 
-  public List<ExpressionAnalysis> getExpressionAnalyses() {
-    // create arraylist
-    List<ExpressionAnalysis> analyses = new ArrayList<ExpressionAnalysis>();
-
-    // add all analyses
-    if (analysesByGeneID != null) {
-      for (int geneID : analysesByGeneID.keySet()) {
-        for (ExpressionAnalysis candidate : analysesByGeneID.get(geneID)) {
-          // todo - lookup analysis to see if we already have it in the list?
-          boolean present = false;
-          for (ExpressionAnalysis analysis : analyses) {
-            if (analysis.getEfName().equals(candidate.getEfName()) &&
-                analysis.getEfvName().equals(candidate.getEfvName())) {
-              present = true;
-              break;
-            }
-          }
-
-          // don't add duplicates
-          if (!present) {
-            analyses.add(candidate);
-          }
-          else {
-            System.out
-                .println("Duplicated EF/EFV pairing for this experiment!");
-          }
-        }
-      }
-    }
-    else {
-      return null;
-    }
-
-    return analyses;
+  public Map<Integer, List<ExpressionAnalysis>> getExpressionAnalyses() {
+    return analysesByDesignElementID;
   }
 
   public List<Sample> getSamples() {
@@ -155,21 +127,46 @@ public class DataSlice {
     this.designElementIDs = designElementIDs;
   }
 
-  public void storeGenes(List<Gene> genes) {
+  /**
+   * Stores the given collection of genes, indexed by the design element to
+   * which they belong.  If a list of design element ids has already been
+   * stored, the map supplied should have the same set of keys as those found in
+   * the list of design elements, and should be indexed the same.
+   *
+   * @param genes the genes to store, indexed by the design element id
+   */
+  public void storeGenes(Map<Integer, Gene> genes) {
     this.genes = genes;
   }
 
-  public void storeExpressionAnalyses(Integer geneID,
+  /**
+   * Stores the given collection of ExpressionAnalysis objects, indexed  by the
+   * design element id to which they belong.  If a list of design element ids
+   * has already been stored, the supplied design element id should be found in
+   * this map.
+   *
+   * @param designElementID the design element id for this collection of
+   *                        analyses
+   * @param analyses        the list of analyses to store.
+   */
+  public void storeExpressionAnalyses(Integer designElementID,
                                       List<ExpressionAnalysis> analyses) {
-    if (analysesByGeneID == null) {
-      analysesByGeneID = new HashMap<Integer, List<ExpressionAnalysis>>();
+    if (analysesByDesignElementID == null) {
+      analysesByDesignElementID =
+          new HashMap<Integer, List<ExpressionAnalysis>>();
     }
 
-    if (analysesByGeneID.containsKey(geneID)) {
-      analysesByGeneID.get(geneID).addAll(analyses);
+    if (designElementIDs != null &&
+        !designElementIDs.contains(designElementID)) {
+      log.warn("Design element ID not found!");
     }
     else {
-      analysesByGeneID.put(geneID, analyses);
+      if (analysesByDesignElementID.containsKey(designElementID)) {
+        analysesByDesignElementID.get(designElementID).addAll(analyses);
+      }
+      else {
+        analysesByDesignElementID.put(designElementID, analyses);
+      }
     }
   }
 

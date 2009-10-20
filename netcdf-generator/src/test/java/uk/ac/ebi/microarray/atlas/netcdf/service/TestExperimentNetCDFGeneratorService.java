@@ -21,7 +21,7 @@ public class TestExperimentNetCDFGeneratorService
     setNetCDFGenerator(engs);
   }
 
-  public void tearDown() {
+  public void tearDown() throws Exception {
     super.tearDown();
 
     setNetCDFGenerator(null);
