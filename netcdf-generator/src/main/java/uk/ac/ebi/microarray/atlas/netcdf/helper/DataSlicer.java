@@ -48,6 +48,11 @@ public class DataSlicer {
     List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(
         experiment.getAccession());
 
+    // fetch the expression analytics for our experiment
+    List<ExpressionAnalysis> analytics =
+        getAtlasDAO().getExpressionAnalyticsByExperimentID(
+            experiment.getExperimentID());
+
     // loop over assays to get array designs
     for (Assay assay : assays) {
       // get the accession
@@ -98,6 +103,21 @@ public class DataSlicer {
       dataSlice.storeDesignElementIDs(getAtlasDAO()
           .getDesignElementIDsByArrayAccession(arrayDesignAccession));
 
+      // map analysis to geneid for fast indexing
+      Map<Integer, List<ExpressionAnalysis>> analyticsMap =
+          new HashMap<Integer, List<ExpressionAnalysis>>();
+      for (ExpressionAnalysis analysis : analytics) {
+        if (analyticsMap.containsKey(analysis.getGeneID())) {
+          analyticsMap.get(analysis.getGeneID()).add(analysis);
+        }
+        else {
+          List<ExpressionAnalysis> addAnalytics =
+              new ArrayList<ExpressionAnalysis>();
+          addAnalytics.add(analysis);
+          analyticsMap.put(analysis.getGeneID(), addAnalytics);
+        }
+      }
+
       // fetch genes
       List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
           experiment.getAccession());
@@ -105,8 +125,7 @@ public class DataSlicer {
       Map<Integer, Gene> geneMap = new HashMap<Integer, Gene>();
       for (Gene gene : genes) {
         // retrieve the expression analytics for each gene
-        List<ExpressionAnalysis> analysis =
-            getAtlasDAO().getExpressionAnalyticsByGeneID(gene.getGeneID());
+        List<ExpressionAnalysis> analysis = analyticsMap.get(gene.getGeneID());
         dataSlice.storeExpressionAnalyses(gene.getDesignElementID(), analysis);
 
         // get design element id and check its ok to map

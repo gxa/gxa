@@ -125,6 +125,7 @@ public class NetCDFFormatter {
           "the NetCDF for " + dataSliceStr);
     }
 
+    log.debug("Initialized assay dimensions and variables ok.");
     assayInitialized = true;
   }
 
@@ -149,6 +150,7 @@ public class NetCDFFormatter {
           "the NetCDF for " + dataSliceStr);
     }
 
+    log.debug("Initialized sample dimensions and variables ok.");
     sampleInitialized = true;
   }
 
@@ -184,6 +186,7 @@ public class NetCDFFormatter {
       netCDF.addVariable("BS2AS", DataType.INT,
                          new Dimension[]{sampleDimension, assayDimension});
     }
+    log.debug("Initialized assay2sample dimensions and variables ok.");
   }
 
   /**
@@ -213,6 +216,7 @@ public class NetCDFFormatter {
           "generating the NetCDF for " + dataSliceStr);
     }
 
+    log.debug("Initialized design element dimensions and variables ok.");
     designElementInitialized = true;
   }
 
@@ -254,6 +258,7 @@ public class NetCDFFormatter {
       log.error("Encountered an empty set of genes whilst generating " +
           "the NetCDF for " + dataSliceStr);
     }
+    log.debug("Initialized gene dimensions and variables ok.");
   }
 
   /**
@@ -425,6 +430,7 @@ public class NetCDFFormatter {
       }
     }
 
+    log.debug("Initialized property dimensions and variables ok.");
     uefvInitialized = true;
   }
 
@@ -450,6 +456,7 @@ public class NetCDFFormatter {
                          new Dimension[]{designElementDimension,
                                          assayDimension});
     }
+    log.debug("Initialized expression dimensions and variables ok.");
   }
 
   /**
@@ -484,5 +491,6 @@ public class NetCDFFormatter {
                          new Dimension[]{designElementDimension,
                                          uefvDimension});
     }
+    log.debug("Initialized stats dimensions and variables ok.");
   }
 }

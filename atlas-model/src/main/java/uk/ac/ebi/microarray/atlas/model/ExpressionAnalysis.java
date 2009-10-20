@@ -9,7 +9,8 @@ package uk.ac.ebi.microarray.atlas.model;
 public class ExpressionAnalysis {
   private String efName;
   private String efvName;
-  private long experimentID;
+  private int experimentID;
+  private int geneID;
   private double tStatistic;
   private double pValAdjusted;
 
@@ -29,12 +30,20 @@ public class ExpressionAnalysis {
     this.efvName = efvName;
   }
 
-  public long getExperimentID() {
+  public int getExperimentID() {
     return experimentID;
   }
 
-  public void setExperimentID(long experimentID) {
+  public void setExperimentID(int experimentID) {
     this.experimentID = experimentID;
+  }
+
+  public int getGeneID() {
+    return geneID;
+  }
+
+  public void setGeneID(int geneID) {
+    this.geneID = geneID;
   }
 
   public double getPValAdjusted() {
