@@ -9,7 +9,7 @@ public class Experiment {
   private String description;
   private String performer;
   private String lab;
-  private String experimentID;
+  private int experimentID;
 
   public String getAccession() {
     return accession;
@@ -43,11 +43,11 @@ public class Experiment {
     this.lab = lab;
   }
 
-  public String getExperimentID() {
+  public int getExperimentID() {
     return experimentID;
   }
 
-  public void setExperimentID(String experimentID) {
+  public void setExperimentID(int experimentID) {
     this.experimentID = experimentID;
   }
 

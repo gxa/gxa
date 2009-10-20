@@ -88,6 +88,7 @@ public class NetCDFWriter {
       }
       netCDF.write("AS", as);
     }
+    log.debug("Wrote assay data matrix ok.");
   }
 
   private void writeSampleData(NetcdfFileWriteable netCDF, List<Sample> samples)
@@ -101,6 +102,7 @@ public class NetCDFWriter {
       }
       netCDF.write("BS", bs);
     }
+    log.debug("Wrote sample data matrix ok.");
   }
 
   private void writeAssayToSampleData(NetcdfFileWriteable netCDF,
@@ -154,6 +156,7 @@ public class NetCDFWriter {
       // finally, write
       netCDF.write("BS2AS", bs2as);
     }
+    log.debug("Wrote assay2sample data matrix ok.");
   }
 
   private void writeDesignElementData(NetcdfFileWriteable netCDF,
@@ -168,6 +171,7 @@ public class NetCDFWriter {
       }
       netCDF.write("DE", de);
     }
+    log.debug("Wrote design element data matrix ok.");
   }
 
   private void writeGeneData(NetcdfFileWriteable netCDF,
@@ -206,6 +210,7 @@ public class NetCDFWriter {
       // write out the data
       netCDF.write("GN", gn);
     }
+    log.debug("Wrote gene data matrix ok.");
   }
 
 
@@ -385,6 +390,7 @@ public class NetCDFWriter {
       netCDF.write("SC", sc);
       netCDF.write("SCV", scv);
     }
+    log.debug("Wrote properties data matrices ok.");
   }
 
   private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
@@ -428,6 +434,7 @@ public class NetCDFWriter {
 
       netCDF.write("BDC", bdc);
     }
+    log.debug("Wrote expression data matrix ok.");
   }
 
   private void writeStatsValues(NetcdfFileWriteable netCDF,
@@ -470,5 +477,6 @@ public class NetCDFWriter {
       netCDF.write("PVAL", pval);
       netCDF.write("TSTAT", tstat);
     }
+    log.debug("Wrote stats data matrix ok.");
   }
 }

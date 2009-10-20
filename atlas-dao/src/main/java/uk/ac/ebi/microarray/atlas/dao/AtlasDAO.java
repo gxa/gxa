@@ -134,8 +134,17 @@ public class AtlasDAO {
           "JOIN a2_gene g on g.geneid=de.geneid " +
           "WHERE ea.experimentid=? " +
           "GROUP BY p.name, pv.name, CASE WHEN ea.pvaladj < 0 THEN -1 ELSE 1 END";
+  private static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, de.geneid, " +
+          "a.tstat, a.pvaladj " +
+          "FROM a2_expressionanalytics a " +
+          "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
+          "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
+          "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
+          "WHERE a.experimentid=?";
   private static final String EXPRESSIONANALYTICS_BY_GENEID =
-      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.tstat, a.pvaladj " +
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, de.geneid, " +
+          "a.tstat, a.pvaladj " +
           "FROM a2_expressionanalytics a " +
           "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
@@ -363,6 +372,14 @@ public class AtlasDAO {
     return (List<ExpressionAnalysis>) results;
   }
 
+  public List<ExpressionAnalysis> getExpressionAnalyticsByExperimentID(
+      int experimentID) {
+    List results = template.query(EXPRESSIONANALYTICS_BY_EXPERIMENTID,
+                                  new Object[]{experimentID},
+                                  new ExpressionAnalyticsMapper());
+    return (List<ExpressionAnalysis>) results;
+  }
+
   public List<OntologyMapping> getOntologyMappingsForOntology(
       String ontologyName) {
     List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME,
@@ -379,7 +396,7 @@ public class AtlasDAO {
       experiment.setDescription(resultSet.getString(2));
       experiment.setPerformer(resultSet.getString(3));
       experiment.setLab(resultSet.getString(4));
-      experiment.setExperimentID(resultSet.getString(5));
+      experiment.setExperimentID(resultSet.getInt(5));
 
       return experiment;
     }
@@ -472,9 +489,10 @@ public class AtlasDAO {
 
       ea.setEfName(resultSet.getString(1));
       ea.setEfvName(resultSet.getString(2));
-      ea.setExperimentID(resultSet.getLong(3));
-      ea.setTStatistic(resultSet.getDouble(4));
-      ea.setPValAdjusted(resultSet.getDouble(5));
+      ea.setExperimentID(resultSet.getInt(3));
+      ea.setGeneID(resultSet.getInt(4));
+      ea.setTStatistic(resultSet.getDouble(5));
+      ea.setPValAdjusted(resultSet.getDouble(6));
 
       return ea;
     }

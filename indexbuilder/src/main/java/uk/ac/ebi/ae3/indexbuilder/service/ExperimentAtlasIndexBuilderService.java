@@ -10,6 +10,7 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -106,10 +107,24 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
               }
             }
 
-            // now, fetch gene counts for this experiment
-            List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
-                experiment.getAccession());
+            // now, fetch atlas counts for this experiment
+            for (AtlasCount count : getAtlasDAO().
+                getAtlasCountsByExperimentID(experiment.getExperimentID())) {
+              // encode values in UTF-8 format for indexing
+              String ef = URLEncoder.encode(count.getProperty(), "UTF-8");
+              String efv = URLEncoder.encode(count.getPropertyValue(), "UTF-8");
+              // efvid is concatenation of ef and efv
+              String efvid = ef + "_" + efv;
+              // field name is efvid_up / efvid_dn depending on expression
+              String fieldname = efvid + "_" +
+                  (count.getUpOrDown().equals("-1") ? "dn" : "up");
 
+              // add a field:
+              // key is the fieldname, value is the total count
+              getLog().debug("Updating index with atlas count data... " +
+                  "key: " + fieldname + "; value: " + count.getGeneCount());
+              solrInputDoc.addField(fieldname, count.getGeneCount());
+            }
 
             // finally, add the document to the index
             getLog().info("Finalising changes for " +

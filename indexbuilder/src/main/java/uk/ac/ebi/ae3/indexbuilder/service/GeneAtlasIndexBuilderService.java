@@ -172,7 +172,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getAtlasDAO().getExpressionAnalyticsByGeneID(geneID);
 
     for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
-      Long experimentId = expressionAnalytic.getExperimentID();
+      Long experimentId = (long)expressionAnalytic.getExperimentID();
       if (experimentId == 0) {
         log.error("Found experimentId=0 for gene " + geneID);
         continue;
