@@ -10,7 +10,7 @@ public class ExpressionAnalysis {
   private String efName;
   private String efvName;
   private int experimentID;
-  private int geneID;
+  private int designElementID;
   private double tStatistic;
   private double pValAdjusted;
 
@@ -38,12 +38,12 @@ public class ExpressionAnalysis {
     this.experimentID = experimentID;
   }
 
-  public int getGeneID() {
-    return geneID;
+  public int getDesignElementID() {
+    return designElementID;
   }
 
-  public void setGeneID(int geneID) {
-    this.geneID = geneID;
+  public void setDesignElementID(int designElementID) {
+    this.designElementID = designElementID;
   }
 
   public double getPValAdjusted() {

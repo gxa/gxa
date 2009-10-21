@@ -454,13 +454,8 @@ public class NetCDFWriter {
       int deIndex = 0;
       int uefvIndex = 0;
       for (int designElementID : designElements) {
-        for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
-          if (uefvIndex >= uefvMaxLength) {
-            System.out.println(
-                "Woah!  Expression Analysis results exceeded number of unique EF/EFV combinations for this experiment (" +
-                    uefvIndex + 1 + " vs. max " + uefvMaxLength + ")");
-          }
-          else {
+        if (analyses.get(designElementID) != null) {
+          for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
             pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
                            analysis.getPValAdjusted());
             tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
@@ -469,6 +464,10 @@ public class NetCDFWriter {
             // increment uefv index
             uefvIndex++;
           }
+        }
+        else {
+          log.warn("No analyses present for design element " + designElementID +
+              ": stats matrix cells will be default to 0");
         }
         deIndex++;
         uefvIndex = 0;

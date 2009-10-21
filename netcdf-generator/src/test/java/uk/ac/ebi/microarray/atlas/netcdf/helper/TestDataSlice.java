@@ -4,9 +4,9 @@ import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Javadocs go here.
@@ -44,10 +44,12 @@ public class TestDataSlice extends TestCase {
     genes.put(deID1, gene1);
     genes.put(deID2, gene2);
 
-    dataSlice.storeGenes(genes);
+    dataSlice.storeGene(deID1, genes.get(deID1));
+    dataSlice.storeGene(deID2, genes.get(deID2));
 
     // now get genes
-    assertSame("Wrong number of genes", dataSlice.getGenes().keySet().size(), 2);
+    assertSame("Wrong number of genes", dataSlice.getGenes().keySet().size(),
+               2);
   }
 
   public void testStoreAssays() {
@@ -94,7 +96,8 @@ public class TestDataSlice extends TestCase {
     dataSlice.storeDesignElementIDs(storage);
 
     // now get design elements
-    assertSame("Wrong number of design elements", dataSlice.getDesignElementIDs().size(), 2);
+    assertSame("Wrong number of design elements",
+               dataSlice.getDesignElementIDs().size(), 2);
   }
 
   public void testReset() {
@@ -114,11 +117,15 @@ public class TestDataSlice extends TestCase {
 
     dataSlice.reset();
 
-    assertNull("Assays was not null", dataSlice.getAssays());
-    assertSame("Sample/Assay association was not empty", dataSlice.getSamplesAssociatedWithAssay("test-1").size(), 0);
-    assertSame("Assays to sample mapping was not empty", dataSlice.getAssayToSampleMapping().size(), 0);
-    assertNull("Design Elements was not null", dataSlice.getDesignElementIDs());
-    assertNull("Genes was not null", dataSlice.getGenes());
-    assertNull("Samples was not null", dataSlice.getSamples());
+    // dataslice never returns null, just empty collections
+    assertSame("Assays was not null", dataSlice.getAssays().size(), 0);
+    assertSame("Sample/Assay association was not empty",
+               dataSlice.getSamplesAssociatedWithAssay("test-1").size(), 0);
+    assertSame("Assays to sample mapping was not empty",
+               dataSlice.getAssayToSampleMapping().size(), 0);
+    assertSame("Design Elements was not null",
+               dataSlice.getDesignElementIDs().size(), 0);
+    assertSame("Genes was not null", dataSlice.getGenes().size(), 0);
+    assertSame("Samples was not null", dataSlice.getSamples().size(), 0);
   }
 }
