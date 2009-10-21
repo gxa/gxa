@@ -34,9 +34,11 @@ public class AtlasDAO {
 
   // gene queries
   private static final String GENES_SELECT =
-      "SELECT g.geneid, g.identifier, g.name, s.name AS species " +
-          "FROM a2_gene g, a2_spec s " +
-          "WHERE g.specid = s.specid";
+      "SELECT g.geneid, g.identifier, g.name, " +
+          "s.name AS species, d.designelementid " +
+          "FROM a2_gene g, a2_spec s, a2_designelement d " +
+          "WHERE g.geneid=d.geneid " +
+          "AND g.specid=s.specid";
   private static final String GENES_PENDING_SELECT =
       GENES_SELECT + " " +
           "AND something something"; // fixme: load monitor table?
@@ -135,8 +137,8 @@ public class AtlasDAO {
           "WHERE ea.experimentid=? " +
           "GROUP BY p.name, pv.name, CASE WHEN ea.pvaladj < 0 THEN -1 ELSE 1 END";
   private static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
-      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, de.geneid, " +
-          "a.tstat, a.pvaladj " +
+      "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
+          "a.designelementid, a.tstat, a.pvaladj " +
           "FROM a2_expressionanalytics a " +
           "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
@@ -490,7 +492,7 @@ public class AtlasDAO {
       ea.setEfName(resultSet.getString(1));
       ea.setEfvName(resultSet.getString(2));
       ea.setExperimentID(resultSet.getInt(3));
-      ea.setGeneID(resultSet.getInt(4));
+      ea.setDesignElementID(resultSet.getInt(4));
       ea.setTStatistic(resultSet.getDouble(5));
       ea.setPValAdjusted(resultSet.getDouble(6));
 

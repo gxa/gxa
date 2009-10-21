@@ -36,112 +36,153 @@ public class DataSlicer {
   }
 
   public Set<DataSlice> sliceExperiment(Experiment experiment) {
+    // the set of data slices we'll be returning
     Set<DataSlice> results = new HashSet<DataSlice>();
 
-    // list of all unique array designs in this experiment
-    List<ArrayDesign> arrayDesigns = new ArrayList<ArrayDesign>();
-    // map from array design accession to assays - this minimises DB calls
-    Map<String, List<Assay>> arrayToAssays =
-        new HashMap<String, List<Assay>>();
+    // start fetching data...
 
-    // get the assays for this experiment
-    List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(
+    // prefetch assays for this experiment, and populate expression values
+    List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(
         experiment.getAccession());
+    getAtlasDAO().getExpressionValuesForAssays(allAssays);
 
-    // fetch the expression analytics for our experiment
-    List<ExpressionAnalysis> analytics =
-        getAtlasDAO().getExpressionAnalyticsByExperimentID(
-            experiment.getExperimentID());
+    // prefetch array designs linked to this experiment
+    List<ArrayDesign> allArrayDesigns = new ArrayList<ArrayDesign>();
+    // map from array design accession to assays for faster indexing
+    Map<String, List<Assay>> assayMap = new HashMap<String, List<Assay>>();
 
-    // loop over assays to get array designs
-    for (Assay assay : assays) {
+    // prefetch samples for this experiment
+    // map from assay id to sample for faster indexising
+    Map<Integer, List<Sample>> sampleMap =
+        new HashMap<Integer, List<Sample>>();
+    for (Assay assay : allAssays) {
       // get the accession
       String arrayDesignAccession = assay.getArrayDesignAccession();
 
       // have we seen this array before?
-      if (!arrayToAssays.containsKey(arrayDesignAccession)) {
+      if (!assayMap.containsKey(arrayDesignAccession)) {
         // if not, fetch it
         ArrayDesign arrayDesign = getAtlasDAO()
             .getArrayDesignByAccession(arrayDesignAccession);
 
         // add to our set of array designs
-        arrayDesigns.add(arrayDesign);
+        allArrayDesigns.add(arrayDesign);
 
         // and init a new list of assays
         List<Assay> assaySet = new ArrayList<Assay>();
         assaySet.add(assay);
         // store in map, so we don't have to fetch assays again
-        arrayToAssays.put(arrayDesignAccession, assaySet);
+        assayMap.put(arrayDesignAccession, assaySet);
       }
       else {
         // or, just add this assay to the list
-        arrayToAssays.get(arrayDesignAccession).add(assay);
+        assayMap.get(arrayDesignAccession).add(assay);
+      }
+
+      // fetch any samples for this assay
+      if (sampleMap.containsKey(assay.getAssayID())) {
+        sampleMap.get(assay.getAssayID()).addAll(
+            getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()));
+      }
+      else {
+        sampleMap.put(
+            assay.getAssayID(),
+            getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()));
       }
     }
 
-    // now our data is appropriately sliced so start building up NetCDFs properly
-    for (ArrayDesign arrayDesign : arrayDesigns) {
+    // prefetch the expression analytics for our experiment
+    List<ExpressionAnalysis> allAnalytics =
+        getAtlasDAO().getExpressionAnalyticsByExperimentID(
+            experiment.getExperimentID());
+    // map analysis to designelementid for fast indexing
+    Map<Integer, List<ExpressionAnalysis>> analyticsMap =
+        new HashMap<Integer, List<ExpressionAnalysis>>();
+    for (ExpressionAnalysis analysis : allAnalytics) {
+      if (analyticsMap.containsKey(analysis.getDesignElementID())) {
+        analyticsMap.get(analysis.getDesignElementID()).add(analysis);
+      }
+      else {
+        List<ExpressionAnalysis> addAnalytics =
+            new ArrayList<ExpressionAnalysis>();
+        addAnalytics.add(analysis);
+        analyticsMap.put(analysis.getDesignElementID(), addAnalytics);
+      }
+    }
+
+    // prefetch genes for this experiment
+    List<Gene> allGenes = getAtlasDAO().getGenesByExperimentAccession(
+        experiment.getAccession());
+    // map gene to designelementid for fast indexing
+    Map<Integer, Gene> geneMap = new HashMap<Integer, Gene>();
+    for (Gene gene : allGenes) {
+      if (!geneMap.containsKey(gene.getDesignElementID())) {
+        geneMap.put(gene.getDesignElementID(), gene);
+      }
+      else {
+        log.warn("Design Element " + gene.getDesignElementID() + " is mapped " +
+            "to multiple genes! Mapping to " + gene.getIdentifier() + " " +
+            "will not be preserved");
+      }
+    }
+
+
+    // we've prefetched all the data we can (i.e. per experiment queries),
+    // so now store the data in the slice in the correct configuration...
+    for (ArrayDesign arrayDesign : allArrayDesigns) {
       String arrayDesignAccession = arrayDesign.getAccession();
 
       // create a new data slice, for this experiment and arrayDesign
       DataSlice dataSlice = new DataSlice(experiment, arrayDesign);
-      // make sure we've fetched expression values for all assays before we store them
-      getAtlasDAO().getExpressionValuesForAssays(assays);
-      // store the assays for this array design on it
-      dataSlice.storeAssays(arrayToAssays.get(arrayDesignAccession));
-      // store each sample associated with it's downstream assay too
-      for (Assay assay : arrayToAssays.get(arrayDesignAccession)) {
-        // fetch any samples for this assay
-        List<Sample> samples =
-            getAtlasDAO().getSamplesByAssayAccession(assay.getAccession());
-        // store them, keyed by assay accession
-        dataSlice.storeSamplesAssociatedWithAssay(
-            assay.getAccession(), samples);
-      }
 
-      // store design elements
-      dataSlice.storeDesignElementIDs(getAtlasDAO()
-          .getDesignElementIDsByArrayAccession(arrayDesignAccession));
+      // prefetch design elements specific to this array design
+      List<Integer> designElements = getAtlasDAO()
+          .getDesignElementIDsByArrayAccession(arrayDesignAccession);
 
-      // map analysis to geneid for fast indexing
-      Map<Integer, List<ExpressionAnalysis>> analyticsMap =
-          new HashMap<Integer, List<ExpressionAnalysis>>();
-      for (ExpressionAnalysis analysis : analytics) {
-        if (analyticsMap.containsKey(analysis.getGeneID())) {
-          analyticsMap.get(analysis.getGeneID()).add(analysis);
+      // store the assays for this array design in the data slice
+      dataSlice.storeAssays(assayMap.get(arrayDesignAccession));
+
+      // store each sample associated with an assay too
+      for (Assay assay : assayMap.get(arrayDesignAccession)) {
+        // check that this assay maps to samples
+        if (sampleMap.get(assay.getAssayID()) != null) {
+          // store them, keyed by assay accession
+          dataSlice.storeSamplesAssociatedWithAssay(
+              assay.getAccession(),
+              sampleMap.get(assay.getAssayID()));
         }
         else {
-          List<ExpressionAnalysis> addAnalytics =
-              new ArrayList<ExpressionAnalysis>();
-          addAnalytics.add(analysis);
-          analyticsMap.put(analysis.getGeneID(), addAnalytics);
+          log.warn("Assay " + assay.getAccession() +
+              " does not have any linked samples!");
         }
       }
 
-      // fetch genes
-      List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(
-          experiment.getAccession());
-      // map ready for storage
-      Map<Integer, Gene> geneMap = new HashMap<Integer, Gene>();
-      for (Gene gene : genes) {
-        // retrieve the expression analytics for each gene
-        List<ExpressionAnalysis> analysis = analyticsMap.get(gene.getGeneID());
-        dataSlice.storeExpressionAnalyses(gene.getDesignElementID(), analysis);
+      // store the design elements for this array design in the data slice
+      dataSlice.storeDesignElementIDs(designElements);
 
-        // get design element id and check its ok to map
-        if (dataSlice.getDesignElementIDs()
-            .contains(gene.getDesignElementID())) {
-          // check for one to many mapping
-          if (geneMap.containsKey(gene.getDesignElementID())) {
-            log.warn("Design Element " + gene.getDesignElementID() +
-                " maps to multiple genes!");
-          }
-          else {
-            geneMap.put(gene.getDesignElementID(), gene);
-          }
+      // loop over these design elements and store mapped genes and analytics
+      for (int designElementID : designElements) {
+        // store mapped genes
+        if (geneMap.get(designElementID) != null) {
+          dataSlice.storeGene(designElementID, geneMap.get(designElementID));
+        }
+        else {
+          log.warn("Cannot store unmapped genes - " +
+              "design element id " + designElementID + " " +
+              "has no mapped gene");
+        }
+
+        // store mapped analytics
+        if (analyticsMap.get(designElementID) != null) {
+          dataSlice.storeExpressionAnalyses(designElementID,
+                                            analyticsMap.get(designElementID));
+        }
+        else {
+          log.warn("Cannot store unmapped expression analyses - " +
+              "design element id " + designElementID + " " +
+              "has no mapped analysis");
         }
       }
-      dataSlice.storeGenes(geneMap);
 
       // save this dataslice
       results.add(dataSlice);

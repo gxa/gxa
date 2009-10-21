@@ -46,19 +46,39 @@ public class DataSlice {
   }
 
   public List<Assay> getAssays() {
-    return assays;
+    if (assays != null) {
+      return assays;
+    }
+    else {
+      return new ArrayList<Assay>();
+    }
   }
 
   public List<Integer> getDesignElementIDs() {
-    return designElementIDs;
+    if (designElementIDs != null) {
+      return designElementIDs;
+    }
+    else {
+      return new ArrayList<Integer>();
+    }
   }
 
   public Map<Integer, Gene> getGenes() {
-    return genes;
+    if (genes != null) {
+      return genes;
+    }
+    else {
+      return new HashMap<Integer, Gene>();
+    }
   }
 
   public Map<Integer, List<ExpressionAnalysis>> getExpressionAnalyses() {
-    return analysesByDesignElementID;
+    if (analysesByDesignElementID != null) {
+      return analysesByDesignElementID;
+    }
+    else {
+      return new HashMap<Integer, List<ExpressionAnalysis>>();
+    }
   }
 
   public List<Sample> getSamples() {
@@ -84,9 +104,6 @@ public class DataSlice {
           }
         }
       }
-    }
-    else {
-      return null;
     }
 
     return samples;
@@ -133,10 +150,23 @@ public class DataSlice {
    * stored, the map supplied should have the same set of keys as those found in
    * the list of design elements, and should be indexed the same.
    *
-   * @param genes the genes to store, indexed by the design element id
+   * @param designElementID the design element id for this gene
+   * @param gene            the gene to store, indexed by the design element id
    */
-  public void storeGenes(Map<Integer, Gene> genes) {
-    this.genes = genes;
+  public void storeGene(Integer designElementID,
+                        Gene gene) {
+    if (genes == null) {
+      genes = new HashMap<Integer, Gene>();
+    }
+
+    if (designElementIDs != null &&
+        !designElementIDs.contains(designElementID)) {
+      log.warn("Cannot store gene " + gene.getIdentifier() +
+          ": design element ID " + designElementID + " not found!");
+    }
+    else {
+      genes.put(designElementID, gene);
+    }
   }
 
   /**
@@ -158,7 +188,7 @@ public class DataSlice {
 
     if (designElementIDs != null &&
         !designElementIDs.contains(designElementID)) {
-      log.warn("Design element ID not found!");
+      log.warn("Design element ID: " + designElementID + " not found!");
     }
     else {
       if (analysesByDesignElementID.containsKey(designElementID)) {

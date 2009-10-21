@@ -7,8 +7,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
-import org.dbunit.dataset.ITable;
-
 /**
  * Actual tests for ATlasDAO, extends AtlasDAOTestCase which does all the handy
  * instantiation of a basic, in memory DB.
@@ -59,12 +57,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
   public void testGetExperimentByAccession() {
     try {
       // fetch the accession of the first experiment in our dataset
-      String accession =
-          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
-              .toString();
-      String id =
-          getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid")
-              .toString();
+      String accession = getDataSet().getTable("A2_EXPERIMENT")
+          .getValue(0, "accession").toString();
+      int id = Integer.parseInt(getDataSet().getTable("A2_EXPERIMENT")
+          .getValue(0, "experimentid").toString());
 
       // fetch the experiment using the DAO
       Experiment exp = getAtlasDAO().getExperimentByAccession(accession);
@@ -197,8 +193,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
       // now check EVS
       for (Assay assay : assays) {
-        assertNotNull("Null collection of expression values", assay.getExpressionValues());
-        System.out.println("Assay " + assay.getAccession() + " has " + assay.getExpressionValues().size() + " expression values");
+        assertNotNull("Null collection of expression values",
+                      assay.getExpressionValues());
+        System.out.println("Assay " + assay.getAccession() + " has " +
+            assay.getExpressionValues().size() + " expression values");
       }
     }
     catch (Exception e) {
