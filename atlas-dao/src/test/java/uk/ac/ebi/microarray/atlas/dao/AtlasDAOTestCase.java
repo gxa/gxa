@@ -299,6 +299,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
 
     runStatement(conn, "SHUTDOWN");
+    conn.close();
   }
 
   private void runStatement(Connection conn, String sql) throws SQLException {

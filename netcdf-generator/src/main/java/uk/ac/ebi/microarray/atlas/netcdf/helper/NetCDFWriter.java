@@ -183,9 +183,8 @@ public class NetCDFWriter {
 
       // check that we have an appropriate mapping
       if (genes.keySet().size() != designElements.size()) {
-        log.warn(
-            "Mismatched design element index to gene index.  " +
-                "GN will be created using design element counts.");
+        log.warn("Mismatched design element index to gene index.  " +
+            "GN will be created using design element counts.");
         // add gene id data for stored design elements
         gn = new ArrayInt.D1(designElements.size());
         IndexIterator gnIt = gn.getIndexIterator();
@@ -221,46 +220,40 @@ public class NetCDFWriter {
     // build the maps of the data we need
 
     // maps property names to all values for assay properties
-    Map<String, List<String>> assayPropertyValues =
+    Map<String, List<String>> assayPropertyMap =
         new HashMap<String, List<String>>();
     // maps property names to all values for sample properties
-    Map<String, List<String>> samplePropertyValues =
+    Map<String, List<String>> samplePropertyMap =
         new HashMap<String, List<String>>();
-
-    // List of property names seen across all assays - duplicate names allowed
-    Map<String, Integer> uniqueCounts = new HashMap<String, Integer>();
+    // maps assays to the property values observed; duplicates allowed
+    Map<Assay, List<String>> assayValueMap =
+        new HashMap<Assay, List<String>>();
 
     // check all assays
     for (Assay assay : assays) {
+      // list of values for this assay
+      List<String> observedPropertyValues = new ArrayList<String>();
+
       // get all assay properties
       for (Property prop : assay.getProperties()) {
         // have we seen this property name before?
-        if (assayPropertyValues.containsKey(prop.getName())) {
+        if (assayPropertyMap.containsKey(prop.getName())) {
           // if so, add values to the existing list
-          assayPropertyValues.get(prop.getName()).add(prop.getValue());
-
-          // and increment the count by one
+          assayPropertyMap.get(prop.getName()).add(prop.getValue());
         }
         else {
           // otherwise, start a new list and add it, keyed by the new name
           List<String> propertyNames = new ArrayList<String>();
           propertyNames.add(prop.getValue());
-          assayPropertyValues.put(prop.getName(), propertyNames);
-
-          // add a new count of 1
+          assayPropertyMap.put(prop.getName(), propertyNames);
         }
 
-        // have we seen this property name for our counts before
-        if (uniqueCounts.containsKey(prop.getName())) {
-          // if so, increment the count
-          Integer update = uniqueCounts.get(prop.getName()) + 1;
-          uniqueCounts.put(prop.getName(), update);
-        }
-        else {
-          // otherwise, add a new count of 1
-          uniqueCounts.put(prop.getName(), 1);
-        }
+        // add the value to the observedProperties list
+        observedPropertyValues.add(prop.getValue());
       }
+
+      // now add all property values to the observedValues map
+      assayValueMap.put(assay, observedPropertyValues);
     }
 
     // check all samples
@@ -268,15 +261,15 @@ public class NetCDFWriter {
       // get all sample properties
       for (Property prop : sample.getProperties()) {
         // have we seen this property name before?
-        if (samplePropertyValues.containsKey(prop.getName())) {
+        if (samplePropertyMap.containsKey(prop.getName())) {
           // if so, add values to the existing list
-          samplePropertyValues.get(prop.getName()).add(prop.getValue());
+          samplePropertyMap.get(prop.getName()).add(prop.getValue());
         }
         else {
           // otherwise, start a new list and add it, keyed by the new name
           List<String> propertyNames = new ArrayList<String>();
           propertyNames.add(prop.getValue());
-          samplePropertyValues.put(prop.getName(), propertyNames);
+          samplePropertyMap.put(prop.getName(), propertyNames);
         }
       }
     }
@@ -299,30 +292,30 @@ public class NetCDFWriter {
       ArrayChar uefv = new ArrayChar.D2(
           netCDF.findDimension("uEFV").getLength(),
           netCDF.findDimension("EFlen").getLength());
+      ArrayInt uefvNum = new ArrayInt.D1(
+          netCDF.findDimension("AS").getLength());
 
+      // populate ef, efv matrices
       int efIndex = 0;
       int efvIndex = 0;
-      int uefvIndex = 0;
 
-      for (String propertyName : assayPropertyValues.keySet()) {
+      for (String propertyName : assayPropertyMap.keySet()) {
         // add property name to EF
         ef.setString(efIndex, propertyName);
 
-        for (String propertyValue : assayPropertyValues.get(propertyName)) {
+        for (String propertyValue : assayPropertyMap.get(propertyName)) {
           if (efvIndex < netCDF.findDimension("AS").getLength()) {
             // add property value to EFV, indexed by each ef
             efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
             // increment index count on efv axis
             efvIndex++;
-
-            // add property value to uEFV, indexed by cumulative count uefvIndex
-            uefv.setString(uefvIndex, propertyValue);
           }
           else {
+            // fixme:
             // this will occur if there are multiple property values assigned
-            // to the same property for single assay
-
-            // apparently, this is wrong somehow
+            // to the same property for single assay - in theory this shouldn't
+            // happen, but it is technically possible.
+            // In the old software, this results in lost data
             log.error("Multiple property values assigned to the same " +
                 "property for single assay!");
             break;
@@ -331,19 +324,29 @@ public class NetCDFWriter {
 
         // increment ef axis up one, and reset efv axis to zero
         efIndex++;
-        // increment uefv axis up one, this follows count on uEFV index
-        uefvIndex++;
         efvIndex = 0;
       }
 
-      ArrayInt uefvNum = new ArrayInt.D1(
-          netCDF.findDimension("EF").getLength());
-      int countIndex = 0;
-      for (String propertyName : uniqueCounts.keySet()) {
-        uefvNum.setInt(uefvNum.getIndex().set(countIndex),
-                       uniqueCounts.get(propertyName));
-        countIndex++;
+      // populate uefv, uefvnum matrices
+      int uefvIndex = 0;
+      int uefvNumIndex = 0;
+
+      for (Assay ass : assays) {
+        // uefv gets populated with grouped observed values
+        for (String propertyValue : assayValueMap.get(ass)) {
+          // add property value to uEFV, indexed by cumulative count uefvIndex
+          uefv.setString(uefvIndex, propertyValue);
+          // increment uefv index up one - running total
+          uefvIndex++;
+        }
+
+        // uefvNum gets populated with the counts of values pper assay
+        uefvNum.setInt(uefvNum.getIndex().set(uefvNumIndex),
+                       assayValueMap.get(ass).size());
+        // increment uefvNum up one, indexed by assay
+        uefvNumIndex++;
       }
+
       netCDF.write("EF", ef);
       netCDF.write("EFV", efv);
       netCDF.write("uEFV", uefv);
@@ -363,10 +366,10 @@ public class NetCDFWriter {
           netCDF.findDimension("SClen").getLength());
       int scIndex = 0;
       int scvIndex = 0;
-      for (String propertyName : samplePropertyValues.keySet()) {
+      for (String propertyName : samplePropertyMap.keySet()) {
         sc.setString(scIndex, propertyName);
 
-        for (String propertyValue : samplePropertyValues.get(propertyName)) {
+        for (String propertyValue : samplePropertyMap.get(propertyName)) {
           if (scvIndex < netCDF.findDimension("BS").getLength()) {
             // add property value to SCV, indexed by each SC
             scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
@@ -376,7 +379,9 @@ public class NetCDFWriter {
           else {
             // fixme:
             // this will occur if there are multiple property values assigned
-            // to the same property for single assay - in old generation this results in lost data
+            // to the same property for single sample - in theory this shouldn't
+            // happen, but it is technically possible.
+            // In the old software, this results in lost data
             log.error("Multiple property values assigned to the same " +
                 "property for single sample!");
             break;
