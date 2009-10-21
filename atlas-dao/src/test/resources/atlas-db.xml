@@ -233,10 +233,10 @@
       experimentid="2"
       propertyvalueid="2"
       geneid="2"
-      tstat="10.12345"
-      pvaladj="0.001"
-      fpval="0.000789"
-      fpvaladj="0.0123"
+      tstat="20.98765"
+      pvaladj="-0.001"
+      fpval="-0.000789"
+      fpvaladj="-0.0123"
       designelementid="2"
       />
 
