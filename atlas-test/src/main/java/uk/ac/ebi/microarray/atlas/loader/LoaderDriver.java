@@ -2,6 +2,10 @@ package uk.ac.ebi.microarray.atlas.loader;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
+import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
+import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderEvent;
+import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGenerator;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGenerationEvent;
@@ -35,38 +39,38 @@ public class LoaderDriver {
 //    System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
 
     // run the index builder
-//    final IndexBuilder builder =
-//        (IndexBuilder) factory.getBean("indexBuilder");
-//    start = System.currentTimeMillis();
-//    builder.buildIndex(new IndexBuilderListener() {
-//
-//      public void buildSuccess(IndexBuilderEvent event) {
-//        System.out.println("Index built successfully!");
-//        try {
-//          builder.shutdown();
-//        }
-//        catch (IndexBuilderException e) {
-//          e.printStackTrace();
-//        }
-//      }
-//
-//      public void buildError(IndexBuilderEvent event) {
-//        System.out.println("Index failed to build");
-//        for (Throwable t : event.getErrors()) {
-//          t.printStackTrace();
-//          try {
-//            builder.shutdown();
-//          }
-//          catch (IndexBuilderException e) {
-//            e.printStackTrace();
-//          }
-//        }
-//      }
-//    });
-//    end = System.currentTimeMillis();
-//
-//    total = new DecimalFormat("#.##").format((end - start) / 1000);
-//    System.out.println("Building index started after " + total + "s.");
+    final IndexBuilder builder =
+        (IndexBuilder) factory.getBean("indexBuilder");
+    start = System.currentTimeMillis();
+    builder.buildIndex(new IndexBuilderListener() {
+
+      public void buildSuccess(IndexBuilderEvent event) {
+        System.out.println("Index built successfully!");
+        try {
+          builder.shutdown();
+        }
+        catch (IndexBuilderException e) {
+          e.printStackTrace();
+        }
+      }
+
+      public void buildError(IndexBuilderEvent event) {
+        System.out.println("Index failed to build");
+        for (Throwable t : event.getErrors()) {
+          t.printStackTrace();
+          try {
+            builder.shutdown();
+          }
+          catch (IndexBuilderException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    });
+    end = System.currentTimeMillis();
+
+    total = new DecimalFormat("#.##").format((end - start) / 1000);
+    System.out.println("Building index started after " + total + "s.");
 
     // run the NetCDFGenerator
     final NetCDFGenerator generator =

@@ -121,7 +121,7 @@ public class NetCDFFormatter {
       netCDF.addVariable("AS", DataType.INT, new Dimension[]{assayDimension});
     }
     else {
-      log.error("Encountered an empty set of assays whilst generating " +
+      log.warn("Encountered an empty set of assays whilst generating " +
           "the NetCDF for " + dataSliceStr);
     }
 
@@ -146,7 +146,7 @@ public class NetCDFFormatter {
       netCDF.addVariable("BS", DataType.INT, new Dimension[]{sampleDimension});
     }
     else {
-      log.error("Encountered an empty set of samples whilst generating " +
+      log.warn("Encountered an empty set of samples whilst generating " +
           "the NetCDF for " + dataSliceStr);
     }
 
@@ -201,9 +201,6 @@ public class NetCDFFormatter {
   private void createDesignElementVariables(
       NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
     if (designElementIDs.size() > 0) {
-      System.out
-          .println("Number of design elements = " + designElementIDs.size());
-
       // update the netCDF with the genes count
       designElementDimension =
           netCDF.addDimension("DE", designElementIDs.size());
@@ -212,7 +209,7 @@ public class NetCDFFormatter {
                          new Dimension[]{designElementDimension});
     }
     else {
-      log.error("Encountered an empty set of design elements whilst " +
+      log.warn("Encountered an empty set of design elements whilst " +
           "generating the NetCDF for " + dataSliceStr);
     }
 
@@ -255,7 +252,7 @@ public class NetCDFFormatter {
       }
     }
     else {
-      log.error("Encountered an empty set of genes whilst generating " +
+      log.warn("Encountered an empty set of genes whilst generating " +
           "the NetCDF for " + dataSliceStr);
     }
     log.debug("Initialized gene dimensions and variables ok.");
@@ -297,34 +294,40 @@ public class NetCDFFormatter {
       // build the maps of the data we need
 
       // maps property names to all values for assay properties
-      Map<String, List<String>> assayPropertyValues =
+      Map<String, List<String>> assayPropertyMap =
           new HashMap<String, List<String>>();
       // maps property names to all values for sample properties
-      Map<String, List<String>> samplePropertyValues =
+      Map<String, List<String>> samplePropertyMap =
           new HashMap<String, List<String>>();
-
-      // List of property names seen across all assays - duplicate names allowed
-      List<String> uniqueCombo = new ArrayList<String>();
+      // maps assays to the property values observed; duplicates allowed
+      Map<Assay, List<String>> assayValueMap =
+          new HashMap<Assay, List<String>>();
 
       // check all assays
       for (Assay assay : assays) {
+        // list of values for this assay
+        List<String> observedPropertyValues = new ArrayList<String>();
+
         // get all assay properties
         for (Property prop : assay.getProperties()) {
-          // add to unique combo
-          uniqueCombo.add(prop.getName());
-
           // have we seen this property name before?
-          if (assayPropertyValues.containsKey(prop.getName())) {
+          if (assayPropertyMap.containsKey(prop.getName())) {
             // if so, add values to the existing list
-            assayPropertyValues.get(prop.getName()).add(prop.getValue());
+            assayPropertyMap.get(prop.getName()).add(prop.getValue());
           }
           else {
             // otherwise, start a new list and add it, keyed by the new name
             List<String> propertyNames = new ArrayList<String>();
             propertyNames.add(prop.getValue());
-            assayPropertyValues.put(prop.getName(), propertyNames);
+            assayPropertyMap.put(prop.getName(), propertyNames);
           }
+
+          // add the value to the observedProperties list
+          observedPropertyValues.add(prop.getValue());
         }
+
+        // now add all property values to the observedValues map
+        assayValueMap.put(assay, observedPropertyValues);
       }
 
       // check all samples
@@ -332,35 +335,35 @@ public class NetCDFFormatter {
         // get all sample properties
         for (Property prop : sample.getProperties()) {
           // have we seen this property name before?
-          if (samplePropertyValues.containsKey(prop.getName())) {
+          if (samplePropertyMap.containsKey(prop.getName())) {
             // if so, add values to the existing list
-            samplePropertyValues.get(prop.getName()).add(prop.getValue());
+            samplePropertyMap.get(prop.getName()).add(prop.getValue());
           }
           else {
             // otherwise, start a new list and add it, keyed by the new name
             List<String> propertyNames = new ArrayList<String>();
             propertyNames.add(prop.getValue());
-            samplePropertyValues.put(prop.getName(), propertyNames);
+            samplePropertyMap.put(prop.getName(), propertyNames);
           }
         }
       }
 
       // now stack up property slicing
 
-      // first up, EF - length, number of properties
-      if (assayPropertyValues.keySet().size() > 0) {
+      // first up, EF - length = number of assays
+      if (assayPropertyMap.keySet().size() > 0) {
         Dimension efDimension =
-            netCDF.addDimension("EF", assayPropertyValues.keySet().size());
+            netCDF.addDimension("EF", assayPropertyMap.keySet().size());
 
         // ef, efv variables are sized by string length
         int maxEFLength = 0;
-        for (String propertyName : assayPropertyValues.keySet()) {
+        for (String propertyName : assayPropertyMap.keySet()) {
           if (propertyName.length() > maxEFLength) {
             maxEFLength = propertyName.length();
           }
         }
         int maxEFVLength = 0;
-        for (List<String> propertyValues : assayPropertyValues.values()) {
+        for (List<String> propertyValues : assayPropertyMap.values()) {
           for (String propertyValue : propertyValues) {
             if (propertyValue.length() > maxEFVLength) {
               maxEFVLength = propertyValue.length();
@@ -373,8 +376,12 @@ public class NetCDFFormatter {
         // next up, EFV length - this is equal to max number of values mapped to one property
         Dimension efvDimension =
             netCDF.addDimension("EFlen", maxLength);
-        // next, unique EFVs - this is the total number of property values for all proeprties
-        uefvDimension = netCDF.addDimension("uEFV", uniqueCombo.size());
+        // next, unique EFVs - this is the total number of property values for all assays
+        int uefvSize = 0;
+        for (Assay a : assayValueMap.keySet()) {
+          uefvSize = uefvSize + assayValueMap.get(a).size();
+        }
+        uefvDimension = netCDF.addDimension("uEFV", uefvSize);
 
         // now add variables
         netCDF.addVariable("EF", DataType.CHAR,
@@ -384,28 +391,28 @@ public class NetCDFFormatter {
                                            efvDimension});
         netCDF.addVariable("uEFV", DataType.CHAR,
                            new Dimension[]{uefvDimension, efvDimension});
-        netCDF
-            .addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
+        netCDF.addVariable("uEFVnum", DataType.INT,
+                           new Dimension[]{assayDimension});
       }
       else {
-        log.error("Encountered an empty set of assay properties whilst " +
+        log.warn("Encountered an empty set of assay properties whilst " +
             "generating the NetCDF for " + dataSliceStr);
       }
 
 
       // finally, do the same thing for sample properties
-      if (samplePropertyValues.size() > 0) {
+      if (samplePropertyMap.size() > 0) {
         Dimension scDimension =
-            netCDF.addDimension("SC", samplePropertyValues.keySet().size());
+            netCDF.addDimension("SC", samplePropertyMap.keySet().size());
         // sc,scv variables are sized by string length
         int maxSCLength = 0;
-        for (String propertyName : samplePropertyValues.keySet()) {
+        for (String propertyName : samplePropertyMap.keySet()) {
           if (propertyName.length() > maxSCLength) {
             maxSCLength = propertyName.length();
           }
         }
         int maxSCVLength = 0;
-        for (List<String> propertyValues : samplePropertyValues.values()) {
+        for (List<String> propertyValues : samplePropertyMap.values()) {
           for (String propertyValue : propertyValues) {
             if (propertyValue.length() > maxSCVLength) {
               maxSCVLength = propertyValue.length();
@@ -425,7 +432,7 @@ public class NetCDFFormatter {
                                            sclDimension});
       }
       else {
-        log.error("Encountered an empty set of sample properties whilst " +
+        log.warn("Encountered an empty set of sample properties whilst " +
             "generating the NetCDF for " + dataSliceStr);
       }
     }
