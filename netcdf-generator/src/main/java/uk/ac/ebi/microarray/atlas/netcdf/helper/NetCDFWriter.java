@@ -66,6 +66,7 @@ public class NetCDFWriter {
       writeStatsValues(
           netCDF,
           dataSlice.getDesignElementIDs(),
+          dataSlice.getAssays(),
           dataSlice.getExpressionAnalyses());
     }
     catch (IOException e) {
@@ -444,10 +445,30 @@ public class NetCDFWriter {
 
   private void writeStatsValues(NetcdfFileWriteable netCDF,
                                 List<Integer> designElements,
+                                List<Assay> assays,
                                 Map<Integer, List<ExpressionAnalysis>> analyses)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("DE") != null &&
         netCDF.findDimension("uEFV") != null) {
+      // maps assays to the property values observed; duplicates allowed
+      Map<Assay, List<String>> assayValueMap =
+          new HashMap<Assay, List<String>>();
+
+      // check all assays
+      for (Assay assay : assays) {
+        // list of values for this assay
+        List<String> observedPropertyValues = new ArrayList<String>();
+
+        // get all assay properties
+        for (Property prop : assay.getProperties()) {
+          // add the value to the observedProperties list
+          observedPropertyValues.add(prop.getValue());
+        }
+
+        // now add all property values to the observedValues map
+        assayValueMap.put(assay, observedPropertyValues);
+      }
+
       int deMaxLength = netCDF.findDimension("DE").getLength();
       int uefvMaxLength = netCDF.findDimension("uEFV").getLength();
       ArrayDouble pval = new ArrayDouble.D2(
@@ -460,19 +481,43 @@ public class NetCDFWriter {
       int uefvIndex = 0;
       for (int designElementID : designElements) {
         if (analyses.get(designElementID) != null) {
-          for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
-            pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
-                           analysis.getPValAdjusted());
-            tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
-                            analysis.getTStatistic());
+          // got all analyses - now loop over values of the assayValueMap
+          for (Assay a : assays) {
+            for (String propertyValue : assayValueMap.get(a)) {
+              boolean foundAnalysis = false;
 
-            // increment uefv index
-            uefvIndex++;
+              // lookup analysis by design element id and property value
+              for (ExpressionAnalysis analysis : analyses
+                  .get(designElementID)) {
+                if (analysis.getEfvName().equals(propertyValue)) {
+                  // found the right analysis, add
+                  pval.setDouble(pval.getIndex().set(deIndex, uefvIndex),
+                                 analysis.getPValAdjusted());
+                  tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex),
+                                  analysis.getTStatistic());
+
+                  // and quit this loop
+                  foundAnalysis = true;
+                  break;
+                }
+              }
+
+              // if we couldn't find an appropriate analysis, warn
+              if (!foundAnalysis) {
+                log.warn("No analysis present for design element '" +
+                    designElementID + "' and factor value '" +
+                    propertyValue + "': stats matrix cells will be default " +
+                    "to 0 for this property value");
+              }
+
+              // increment uefv index, whether or not we found the analysis
+              uefvIndex++;
+            }
           }
         }
         else {
           log.warn("No analyses present for design element " + designElementID +
-              ": stats matrix cells will be default to 0");
+              ": stats matrix cells will be default to 0 for this entire row");
         }
         deIndex++;
         uefvIndex = 0;
