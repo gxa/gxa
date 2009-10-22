@@ -65,6 +65,9 @@ public class AtlasDAO {
           "WHERE e.experimentid=a.experimentid " +
           "AND a.arraydesignid=ad.arraydesignid " +
           "AND e.accession=?";
+  private static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
+      ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
+          "AND ad.accession=?";
   private static final String PROPERTIES_BY_ASSAY_ACCESSION =
       "SELECT p.name AS property, p.accession, pv.name AS propertyvalue, " +
           "apv.isfactorvalue " +
@@ -87,6 +90,13 @@ public class AtlasDAO {
           "WHERE s.sampleid=ass.sampleid " +
           "AND a.assayid=ass.assayid " +
           "AND a.accession=?";
+  private static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
+      "SELECT s.accession, s.species, s.channel, s.sampleid " +
+          "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
+          "WHERE s.sampleid=ass.sampleid " +
+          "AND a.assayid=ass.assayid " +
+          "AND a.experimentid=e.experimentid " +
+          "AND e.accession=?";
   private static final String PROPERTIES_BY_SAMPLE_ACCESSION =
       "SELECT " +
           "p.name AS property, " +
@@ -110,6 +120,13 @@ public class AtlasDAO {
   private static final String ARRAY_DESIGN_BY_ACC_SELECT =
       ARRAY_DESIGN_SELECT + " " +
           "WHERE accession=?";
+  private static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
+      "SELECT " +
+          "DISTINCT d.accession, d.type, d.name, d.provider, d.arraydesignid " +
+          "FROM a2_arraydesign d, a2_assay a, a2_experiment e " +
+          "WHERE e.experimentid=a.experimentid " +
+          "AND a.arraydesignid=d.arraydesignid " +
+          "AND e.accession=?";
   private static final String DESIGN_ELEMENT_IDS_BY_ARRAY_ACCESSION =
       "SELECT de.designelementid from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid " +
@@ -152,6 +169,10 @@ public class AtlasDAO {
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
           "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
           "WHERE de.geneid=?";
+  private static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
+      "SELECT accession, property, propertyvalue, ontologyaccession " +
+          "FROM a2_ontologymappings " +
+          "WHERE accession=?";
   private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME =
       // fixme - work out the new query, this is for old schema
       "select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
@@ -260,6 +281,28 @@ public class AtlasDAO {
     return assays;
   }
 
+  public List<Assay> getAssaysByExperimentAndArray(String experimentAccession,
+                                                   String arrayAccession) {
+    List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
+                                  new Object[]{experimentAccession,
+                                               arrayAccession},
+                                  new AssayMapper());
+
+    List<Assay> assays = (List<Assay>) results;
+
+    // also fetch all properties
+    for (Assay assay : assays) {
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
+                                        new Object[]{assay.getAccession()},
+                                        new PropertyMapper());
+      // and set on assay
+      assay.setProperties(propResults);
+    }
+
+    return assays;
+  }
+
   public void getExpressionValuesForAssays(List<Assay> assays) {
     // fetch all expression values
     for (Assay assay : assays) {
@@ -282,10 +325,33 @@ public class AtlasDAO {
 
     // also fetch all properties
     for (Sample sample : samples) {
-      // fixme: hack setting of assay accessions, this is broken as it assumes 1:1
+      // fixme: set assay accession, this is broken as it only sets one assay on this sample
       List<String> assays = new ArrayList<String>();
       assays.add(assayAccession);
       sample.setAssayAccessions(assays);
+
+      // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
+      List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
+                                        new Object[]{sample.getAccession()},
+                                        new PropertyMapper());
+      // and set on assay
+      sample.setProperties(propResults);
+    }
+
+    return samples;
+  }
+
+  public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
+    List results = template.query(SAMPLES_BY_EXPERIMENT_ACCESSION,
+                                  new Object[]{exptAccession},
+                                  new SampleMapper());
+
+    // fixme: this doesn't adequately retrieve all assay accessions for samples
+    List<Sample> samples = (List<Sample>) results;
+
+    // also fetch all properties
+    for (Sample sample : samples) {
+      // fixme: using this query, we don't relate set assay accessions on sample at all
 
       // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
       List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
@@ -311,6 +377,15 @@ public class AtlasDAO {
                                   new ArrayDesignMapper());
 
     return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+  }
+
+  public List<ArrayDesign> getArrayDesignByExperimentAccession(
+      String exptAccession) {
+    List results = template.query(ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION,
+                                  new Object[]{exptAccession},
+                                  new ArrayDesignMapper());
+
+    return (List<ArrayDesign>) results;
   }
 
   /**
@@ -380,6 +455,13 @@ public class AtlasDAO {
                                   new Object[]{experimentID},
                                   new ExpressionAnalyticsMapper());
     return (List<ExpressionAnalysis>) results;
+  }
+
+  public List<OntologyMapping> getOntologyMappingsByExperimentAccession(String experimentAccession) {
+    List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
+                                  new Object[]{experimentAccession},
+                                  new OntologyMappingMapper());
+    return (List<OntologyMapping>) results;
   }
 
   public List<OntologyMapping> getOntologyMappingsForOntology(

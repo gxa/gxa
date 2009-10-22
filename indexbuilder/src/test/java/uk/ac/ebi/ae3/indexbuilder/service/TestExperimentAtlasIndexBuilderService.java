@@ -6,6 +6,7 @@ import org.apache.solr.common.SolrDocument;
 import org.dbunit.dataset.ITable;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -115,8 +116,6 @@ public class TestExperimentAtlasIndexBuilderService
                    result);
       }
 
-      // that should be all the checks needed
-
       // dump some handy output
       for (SolrDocument createdDoc : queryResponse.getResults()) {
         // print list of other fields
@@ -199,17 +198,19 @@ public class TestExperimentAtlasIndexBuilderService
                 boolean matched = false;
                 String constant = Constants.PREFIX_DWE + propName;
                 for (SolrDocument createdDoc : queryResponse.getResults()) {
-                  Object o = createdDoc.getFieldValue(constant);
-                  // check not null - not all exps will have properties
-                  if (o != null) {
-                    // and check the property value if this property is present
-                    String actual =
-                        createdDoc.getFieldValue(constant).toString();
+                  Collection values = createdDoc.getFieldValues(constant);
 
-                    // break if matched
-                    if (actual.equals(valueName)) {
-                      matched = true;
-                      break;
+                  // check not null - not all exps will have properties
+                  if (values != null) {
+                    for (Object o : values) {
+                      // and check the property value if this property is present
+                      String actual = o.toString();
+
+                      // break if matched
+                      if (actual.equals(valueName)) {
+                        matched = true;
+                        break;
+                      }
                     }
                   }
                 }

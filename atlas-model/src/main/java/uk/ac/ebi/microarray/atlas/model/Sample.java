@@ -120,4 +120,20 @@ public class Sample {
         ", channel='" + channel + '\'' +
         '}';
   }
+
+  @Override
+  public int hashCode() {
+    return 23 * getSampleID();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Sample) {
+      Sample that = (Sample)o;
+      return this.sampleID == that.sampleID;
+    }
+    else {
+      return false;
+    }
+  }
 }

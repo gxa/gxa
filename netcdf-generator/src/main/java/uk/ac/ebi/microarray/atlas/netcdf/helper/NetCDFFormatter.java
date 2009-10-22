@@ -7,12 +7,9 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Gene;
-import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,8 +71,9 @@ public class NetCDFFormatter {
     // this depends on AS and BS dimensions being in place
     createPropertyVariables(
         netCDF,
-        dataSlice.getAssays(),
-        dataSlice.getSamples());
+        dataSlice.getExperimentFactorMappings(),
+        dataSlice.getAssayFactorValueMappings(),
+        dataSlice.getSampleCharacteristicMappings());
 
     // setup expression values matrix -
     // this depends on AS and DE dimensions being in place
@@ -225,16 +223,20 @@ public class NetCDFFormatter {
    * @param designElements the list of design elements for this data slice
    * @param genes          the mapping of design element ids to genes that will
    *                       be used to configure this NetCDF
+   * @throws uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException
+   *          if the number of genes exceeds the number of design elements
    */
   private void createGeneVariables(NetcdfFileWriteable netCDF,
                                    List<Integer> designElements,
-                                   Map<Integer, Gene> genes) {
-    if (genes.keySet().size() > 0) {
+                                   List<Gene> genes)
+      throws NetCDFGeneratorException {
+    if (genes.size() > 0) {
       // check that we have an appropriate mapping
-      if (genes.keySet().size() != designElements.size()) {
+      if (genes.size() < designElements.size()) {
         log.warn(
-            "Mismatched design element index to gene index.  " +
-                "GN will be created using design element counts.");
+            "Mismatched design element/gene counts: " +
+                "Some design elements have no annotations.  " +
+                "GN will be created using design element counts");
         // update the netCDF with the genes count
         Dimension geneDimension =
             netCDF.addDimension("GN", designElements.size());
@@ -243,9 +245,18 @@ public class NetCDFFormatter {
                            new Dimension[]{geneDimension});
       }
       else {
+        if (genes.size() > designElements.size()) {
+          throw new NetCDFGeneratorException(
+              "Mismatched design element/gene counts: " +
+                  "There are more genes than design elements, so something " +
+                  "went wrong during data slicing - this shouldn't be possible.  " +
+                  "GN will be created using gene counts, but incorrect data may " +
+                  "be stored");
+        }
+
         // update the netCDF with the genes count
         Dimension geneDimension =
-            netCDF.addDimension("GN", genes.keySet().size());
+            netCDF.addDimension("GN", genes.size());
         // add gene variable
         netCDF.addVariable("GN", DataType.INT,
                            new Dimension[]{geneDimension});
@@ -270,16 +281,23 @@ public class NetCDFFormatter {
    * such the "AS" and "BS" dimensions should already be present in the supplied
    * NetCDF.
    *
-   * @param netCDF  the NetcdfFileWriteable currently being set up
-   * @param assays  the assays being used to generate this NetCDF file
-   * @param samples the samples being used to generate this NetCDF file
+   * @param netCDF                  the NetcdfFileWriteable currently being set
+   *                                up
+   * @param experimentFactorMap     the mapping between experiment factors and
+   *                                their values
+   * @param assayFactorValueMap     the mapping between assays and observed
+   *                                factor values
+   * @param sampleCharacteristicMap the mapping between sample characteristics
+   *                                and their values
    * @throws uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException
    *          if dependent matrices "AS" or "BS" have not previously been
    *          configured for this NetCDF.
    */
-  private void createPropertyVariables(NetcdfFileWriteable netCDF,
-                                       List<Assay> assays,
-                                       List<Sample> samples)
+  private void createPropertyVariables(
+      NetcdfFileWriteable netCDF,
+      Map<String, List<String>> experimentFactorMap,
+      Map<Assay, List<String>> assayFactorValueMap,
+      Map<String, List<String>> sampleCharacteristicMap)
       throws NetCDFGeneratorException {
     if (!sampleInitialized) {
       throw new NetCDFGeneratorException("Cannot create property variables " +
@@ -291,79 +309,20 @@ public class NetCDFFormatter {
     }
 
     if (assayDimension != null && sampleDimension != null) {
-      // build the maps of the data we need
-
-      // maps property names to all values for assay properties
-      Map<String, List<String>> assayPropertyMap =
-          new HashMap<String, List<String>>();
-      // maps property names to all values for sample properties
-      Map<String, List<String>> samplePropertyMap =
-          new HashMap<String, List<String>>();
-      // maps assays to the property values observed; duplicates allowed
-      Map<Assay, List<String>> assayValueMap =
-          new HashMap<Assay, List<String>>();
-
-      // check all assays
-      for (Assay assay : assays) {
-        // list of values for this assay
-        List<String> observedPropertyValues = new ArrayList<String>();
-
-        // get all assay properties
-        for (Property prop : assay.getProperties()) {
-          // have we seen this property name before?
-          if (assayPropertyMap.containsKey(prop.getName())) {
-            // if so, add values to the existing list
-            assayPropertyMap.get(prop.getName()).add(prop.getValue());
-          }
-          else {
-            // otherwise, start a new list and add it, keyed by the new name
-            List<String> propertyNames = new ArrayList<String>();
-            propertyNames.add(prop.getValue());
-            assayPropertyMap.put(prop.getName(), propertyNames);
-          }
-
-          // add the value to the observedProperties list
-          observedPropertyValues.add(prop.getValue());
-        }
-
-        // now add all property values to the observedValues map
-        assayValueMap.put(assay, observedPropertyValues);
-      }
-
-      // check all samples
-      for (Sample sample : samples) {
-        // get all sample properties
-        for (Property prop : sample.getProperties()) {
-          // have we seen this property name before?
-          if (samplePropertyMap.containsKey(prop.getName())) {
-            // if so, add values to the existing list
-            samplePropertyMap.get(prop.getName()).add(prop.getValue());
-          }
-          else {
-            // otherwise, start a new list and add it, keyed by the new name
-            List<String> propertyNames = new ArrayList<String>();
-            propertyNames.add(prop.getValue());
-            samplePropertyMap.put(prop.getName(), propertyNames);
-          }
-        }
-      }
-
-      // now stack up property slicing
-
       // first up, EF - length = number of assays
-      if (assayPropertyMap.keySet().size() > 0) {
+      if (experimentFactorMap.keySet().size() > 0) {
         Dimension efDimension =
-            netCDF.addDimension("EF", assayPropertyMap.keySet().size());
+            netCDF.addDimension("EF", experimentFactorMap.keySet().size());
 
         // ef, efv variables are sized by string length
         int maxEFLength = 0;
-        for (String propertyName : assayPropertyMap.keySet()) {
+        for (String propertyName : experimentFactorMap.keySet()) {
           if (propertyName.length() > maxEFLength) {
             maxEFLength = propertyName.length();
           }
         }
         int maxEFVLength = 0;
-        for (List<String> propertyValues : assayPropertyMap.values()) {
+        for (List<String> propertyValues : experimentFactorMap.values()) {
           for (String propertyValue : propertyValues) {
             if (propertyValue.length() > maxEFVLength) {
               maxEFVLength = propertyValue.length();
@@ -378,8 +337,8 @@ public class NetCDFFormatter {
             netCDF.addDimension("EFlen", maxLength);
         // next, unique EFVs - this is the total number of property values for all assays
         int uefvSize = 0;
-        for (Assay a : assayValueMap.keySet()) {
-          uefvSize = uefvSize + assayValueMap.get(a).size();
+        for (Assay a : assayFactorValueMap.keySet()) {
+          uefvSize = uefvSize + assayFactorValueMap.get(a).size();
         }
         uefvDimension = netCDF.addDimension("uEFV", uefvSize);
 
@@ -401,18 +360,18 @@ public class NetCDFFormatter {
 
 
       // finally, do the same thing for sample properties
-      if (samplePropertyMap.size() > 0) {
+      if (sampleCharacteristicMap.size() > 0) {
         Dimension scDimension =
-            netCDF.addDimension("SC", samplePropertyMap.keySet().size());
+            netCDF.addDimension("SC", sampleCharacteristicMap.keySet().size());
         // sc,scv variables are sized by string length
         int maxSCLength = 0;
-        for (String propertyName : samplePropertyMap.keySet()) {
+        for (String propertyName : sampleCharacteristicMap.keySet()) {
           if (propertyName.length() > maxSCLength) {
             maxSCLength = propertyName.length();
           }
         }
         int maxSCVLength = 0;
-        for (List<String> propertyValues : samplePropertyMap.values()) {
+        for (List<String> propertyValues : sampleCharacteristicMap.values()) {
           for (String propertyValue : propertyValues) {
             if (propertyValue.length() > maxSCVLength) {
               maxSCVLength = propertyValue.length();

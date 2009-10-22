@@ -8,10 +8,10 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Javadocs go here!
@@ -38,7 +38,9 @@ public class NetCDFWriter {
       // write assay/sample mapping data
       writeAssayToSampleData(
           netCDF,
-          dataSlice.getAssayToSampleMapping());
+          dataSlice.getSamples(),
+          dataSlice.getAssays(),
+          dataSlice.getSampleMappings());
 
       // write design element data
       writeDesignElementData(
@@ -49,25 +51,29 @@ public class NetCDFWriter {
       writeGeneData(
           netCDF,
           dataSlice.getDesignElementIDs(),
-          dataSlice.getGenes());
+          dataSlice.getGeneMappings());
 
       // write property data
       writePropertyData(
           netCDF,
           dataSlice.getAssays(),
-          dataSlice.getSamples());
+          dataSlice.getExperimentFactorMappings(),
+          dataSlice.getAssayFactorValueMappings(),
+          dataSlice.getSampleCharacteristicMappings());
 
       // write expression matrix values
       writeExpressionMatrixValues(
           netCDF,
-          dataSlice.getAssays());
+          dataSlice.getAssays(),
+          dataSlice.getDesignElementIDs());
 
       // write stats matrix values
       writeStatsValues(
           netCDF,
           dataSlice.getDesignElementIDs(),
+          dataSlice.getExpressionAnalysisMappings(),
           dataSlice.getAssays(),
-          dataSlice.getExpressionAnalyses());
+          dataSlice.getAssayFactorValueMappings());
     }
     catch (IOException e) {
       throw new NetCDFGeneratorException(e);
@@ -107,51 +113,36 @@ public class NetCDFWriter {
   }
 
   private void writeAssayToSampleData(NetcdfFileWriteable netCDF,
+                                      List<Sample> samples,
+                                      List<Assay> assays,
                                       Map<Assay, List<Sample>> assayToSamples)
       throws NetCDFGeneratorException, IOException, InvalidRangeException {
-    // build unique maps of IDs to index
-    Map<Integer, Integer> assays = new HashMap<Integer, Integer>();
-    Map<Integer, Integer> samples = new HashMap<Integer, Integer>();
-
-    // index counters
-    int assayIndex = 0;
-    int sampleIndex = 0;
-    for (Assay assay : assayToSamples.keySet()) {
-      if (!assays.containsKey(assay.getAssayID())) {
-        // add assayId to our assayMap
-        assays.put(assay.getAssayID(), assayIndex);
-        // and increment the index
-        assayIndex++;
-      }
-
-      for (Sample sample : assayToSamples.get(assay)) {
-        if (!samples.containsKey(sample.getSampleID())) {
-          // add sampleId to our sampleMap
-          samples.put(sample.getSampleID(), sampleIndex);
-          // and increment the count
-          sampleIndex++;
-        }
-      }
-    }
-
-    if (samples.size() > 0 && assays.size() > 0) {
+    if (netCDF.findDimension("AS") != null &&
+        netCDF.findDimension("BS") != null) {
+      // index counters
+      int assayIndex = 0;
+      int sampleIndex = 0;
       ArrayInt bs2as = new ArrayInt.D2(samples.size(),
                                        assays.size());
-      // initialize the matrix with zeros
-      IndexIterator bs2asIt = bs2as.getIndexIterator();
-      while (bs2asIt.hasNext()) {
-        bs2asIt.setIntNext(0);
-      }
-
-      // iterate over keys, and work out which spot in the matrix to set to 1
-      for (Assay assay : assayToSamples.keySet()) {
-        for (Sample sample : assayToSamples.get(assay)) {
+      // iterate over assays and samples,
+      // and work out which spots in the matrix to set to 1
+      for (Assay assay : assays) {
+        for (Sample sample : samples) {
           // insert value
-          int sIndex = samples.get(sample.getSampleID());
-          int aIndex = assays.get(assay.getAssayID());
+          if (assayToSamples.get(assay).contains(sample)) {
+            bs2as.setInt(bs2as.getIndex().set(sampleIndex, assayIndex), 1);
+          }
+          else {
+            bs2as.setInt(bs2as.getIndex().set(sampleIndex, assayIndex), 0);
+          }
 
-          bs2as.setInt(bs2as.getIndex().set(sIndex, aIndex), 1);
+          // increment sample index by one
+          sampleIndex++;
         }
+
+        // increment assayIndex up one and reset sampleIndex
+        assayIndex++;
+        sampleIndex = 0;
       }
 
       // finally, write
@@ -177,33 +168,27 @@ public class NetCDFWriter {
 
   private void writeGeneData(NetcdfFileWriteable netCDF,
                              List<Integer> designElements,
-                             Map<Integer, Gene> genes)
-      throws IOException, InvalidRangeException {
+                             Map<Integer, Gene> geneMappings)
+      throws IOException, InvalidRangeException, NetCDFGeneratorException {
     if (netCDF.findDimension("GN") != null) {
       ArrayInt gn;
 
       // check that we have an appropriate mapping
-      if (genes.keySet().size() != designElements.size()) {
-        log.warn("Mismatched design element index to gene index.  " +
-            "GN will be created using design element counts.");
-        // add gene id data for stored design elements
-        gn = new ArrayInt.D1(designElements.size());
-        IndexIterator gnIt = gn.getIndexIterator();
-        for (int designElement : designElements) {
-          if (genes.get(designElement) == null) {
-            gnIt.setIntNext(0);
-          }
-          else {
-            gnIt.setIntNext(genes.get(designElement).getGeneID());
-          }
-        }
+      if (geneMappings.size() != designElements.size()) {
+        throw new NetCDFGeneratorException(
+            "Mismatched design element index to gene index.  " +
+                "Something must have gone wrong during data slicing!");
       }
-      else {
-        // add gene id data
-        gn = new ArrayInt.D1(genes.size());
-        IndexIterator gnIt = gn.getIndexIterator();
-        for (int designElement : genes.keySet()) {
-          gnIt.setIntNext(genes.get(designElement).getGeneID());
+
+      // add gene id data for stored design elements
+      gn = new ArrayInt.D1(designElements.size());
+      IndexIterator gnIt = gn.getIndexIterator();
+      for (int designElement : designElements) {
+        if (geneMappings.get(designElement) == null) {
+          gnIt.setIntNext(0);
+        }
+        else {
+          gnIt.setIntNext(geneMappings.get(designElement).getGeneID());
         }
       }
 
@@ -214,69 +199,13 @@ public class NetCDFWriter {
   }
 
 
-  private void writePropertyData(NetcdfFileWriteable netCDF,
-                                 List<Assay> assays,
-                                 List<Sample> samples)
+  private void writePropertyData(
+      NetcdfFileWriteable netCDF,
+      List<Assay> assays,
+      Map<String, List<String>> experimentFactorMap,
+      Map<Assay, List<String>> assayFactorValueMap,
+      Map<String, List<String>> sampleCharacteristicMap)
       throws IOException, InvalidRangeException {
-    // build the maps of the data we need
-
-    // maps property names to all values for assay properties
-    Map<String, List<String>> assayPropertyMap =
-        new HashMap<String, List<String>>();
-    // maps property names to all values for sample properties
-    Map<String, List<String>> samplePropertyMap =
-        new HashMap<String, List<String>>();
-    // maps assays to the property values observed; duplicates allowed
-    Map<Assay, List<String>> assayValueMap =
-        new HashMap<Assay, List<String>>();
-
-    // check all assays
-    for (Assay assay : assays) {
-      // list of values for this assay
-      List<String> observedPropertyValues = new ArrayList<String>();
-
-      // get all assay properties
-      for (Property prop : assay.getProperties()) {
-        // have we seen this property name before?
-        if (assayPropertyMap.containsKey(prop.getName())) {
-          // if so, add values to the existing list
-          assayPropertyMap.get(prop.getName()).add(prop.getValue());
-        }
-        else {
-          // otherwise, start a new list and add it, keyed by the new name
-          List<String> propertyNames = new ArrayList<String>();
-          propertyNames.add(prop.getValue());
-          assayPropertyMap.put(prop.getName(), propertyNames);
-        }
-
-        // add the value to the observedProperties list
-        observedPropertyValues.add(prop.getValue());
-      }
-
-      // now add all property values to the observedValues map
-      assayValueMap.put(assay, observedPropertyValues);
-    }
-
-    // check all samples
-    for (Sample sample : samples) {
-      // get all sample properties
-      for (Property prop : sample.getProperties()) {
-        // have we seen this property name before?
-        if (samplePropertyMap.containsKey(prop.getName())) {
-          // if so, add values to the existing list
-          samplePropertyMap.get(prop.getName()).add(prop.getValue());
-        }
-        else {
-          // otherwise, start a new list and add it, keyed by the new name
-          List<String> propertyNames = new ArrayList<String>();
-          propertyNames.add(prop.getValue());
-          samplePropertyMap.put(prop.getName(), propertyNames);
-        }
-      }
-    }
-
-    // use this data to write all the required property data
-
     // check dimensions for assay properties are available
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("EF") != null &&
@@ -300,11 +229,11 @@ public class NetCDFWriter {
       int efIndex = 0;
       int efvIndex = 0;
 
-      for (String propertyName : assayPropertyMap.keySet()) {
+      for (String propertyName : experimentFactorMap.keySet()) {
         // add property name to EF
         ef.setString(efIndex, propertyName);
 
-        for (String propertyValue : assayPropertyMap.get(propertyName)) {
+        for (String propertyValue : experimentFactorMap.get(propertyName)) {
           if (efvIndex < netCDF.findDimension("AS").getLength()) {
             // add property value to EFV, indexed by each ef
             efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
@@ -334,7 +263,7 @@ public class NetCDFWriter {
 
       for (Assay ass : assays) {
         // uefv gets populated with grouped observed values
-        for (String propertyValue : assayValueMap.get(ass)) {
+        for (String propertyValue : assayFactorValueMap.get(ass)) {
           // add property value to uEFV, indexed by cumulative count uefvIndex
           uefv.setString(uefvIndex, propertyValue);
           // increment uefv index up one - running total
@@ -343,7 +272,7 @@ public class NetCDFWriter {
 
         // uefvNum gets populated with the counts of values pper assay
         uefvNum.setInt(uefvNum.getIndex().set(uefvNumIndex),
-                       assayValueMap.get(ass).size());
+                       assayFactorValueMap.get(ass).size());
         // increment uefvNum up one, indexed by assay
         uefvNumIndex++;
       }
@@ -367,10 +296,10 @@ public class NetCDFWriter {
           netCDF.findDimension("SClen").getLength());
       int scIndex = 0;
       int scvIndex = 0;
-      for (String propertyName : samplePropertyMap.keySet()) {
+      for (String propertyName : sampleCharacteristicMap.keySet()) {
         sc.setString(scIndex, propertyName);
 
-        for (String propertyValue : samplePropertyMap.get(propertyName)) {
+        for (String propertyValue : sampleCharacteristicMap.get(propertyName)) {
           if (scvIndex < netCDF.findDimension("BS").getLength()) {
             // add property value to SCV, indexed by each SC
             scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
@@ -400,21 +329,14 @@ public class NetCDFWriter {
   }
 
   private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
-                                           List<Assay> assays)
+                                           List<Assay> assays,
+                                           List<Integer> designElements)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("DE") != null) {
-      // count expression values
-      int expressionValueCount = 0;
-      for (Assay assay : assays) {
-        if (expressionValueCount < assay.getExpressionValues().size()) {
-          expressionValueCount = assay.getExpressionValues().size();
-        }
-      }
-
-      // create matrix for BDC
-      ArrayDouble bdc = new ArrayDouble.D2(expressionValueCount,
-                                           assays.size());
+      ArrayDouble bdc = new ArrayDouble.D2(
+          netCDF.findDimension("DE").getLength(),
+          netCDF.findDimension("AS").getLength());
 
       // initialise everything to -1000000, default value
       IndexIterator bdcIt = bdc.getIndexIterator();
@@ -422,20 +344,46 @@ public class NetCDFWriter {
         bdcIt.setDoubleNext(-1000000);
       }
 
-      // loop over assays
-      int asIndex = 0;
-      int deIndex = 0;
-      for (Assay assay : assays) {
-        for (ExpressionValue ev : assay.getExpressionValues()) {
-          // write expression value to matrix
-          bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
+      // keep track of all design elements with missing expression values
+      Set<Integer> unmappedDesignElements = new HashSet<Integer>();
 
+      // loop over assays
+      int deIndex = 0;
+      int asIndex = 0;
+      for (Assay assay : assays) {
+        for (int designElementID : designElements) {
+          // get the expression value for this assay/design element
+          ExpressionValue value = null;
+          for (ExpressionValue ev : assay.getExpressionValues()) {
+            if (ev.getDesignElementID() == designElementID) {
+              value = ev;
+              break;
+            }
+          }
+
+          // no expression value present for this assay and this design element
+          if (value != null) {
+            // write expression value to matrix
+            bdc.setDouble(bdc.getIndex().set(deIndex, asIndex),
+                          value.getValue());
+          }
+          else {
+            unmappedDesignElements.add(designElementID);
+          }
           // increment deIndex
           deIndex++;
         }
 
         asIndex++;
         deIndex = 0;
+      }
+
+      if (unmappedDesignElements.size() > 0) {
+        log.warn("No expression value present for " +
+            unmappedDesignElements.size() + "/" + designElements.size() + " " +
+            "design elements: BDC matrix cells will default " +
+            "to -1000000 for these expression values");
+        // todo - log unmapped design elements to a file
       }
 
       netCDF.write("BDC", bdc);
@@ -445,30 +393,12 @@ public class NetCDFWriter {
 
   private void writeStatsValues(NetcdfFileWriteable netCDF,
                                 List<Integer> designElements,
+                                Map<Integer, List<ExpressionAnalysis>> analyses,
                                 List<Assay> assays,
-                                Map<Integer, List<ExpressionAnalysis>> analyses)
+                                Map<Assay, List<String>> assayFactorValueMap)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("DE") != null &&
         netCDF.findDimension("uEFV") != null) {
-      // maps assays to the property values observed; duplicates allowed
-      Map<Assay, List<String>> assayValueMap =
-          new HashMap<Assay, List<String>>();
-
-      // check all assays
-      for (Assay assay : assays) {
-        // list of values for this assay
-        List<String> observedPropertyValues = new ArrayList<String>();
-
-        // get all assay properties
-        for (Property prop : assay.getProperties()) {
-          // add the value to the observedProperties list
-          observedPropertyValues.add(prop.getValue());
-        }
-
-        // now add all property values to the observedValues map
-        assayValueMap.put(assay, observedPropertyValues);
-      }
-
       int deMaxLength = netCDF.findDimension("DE").getLength();
       int uefvMaxLength = netCDF.findDimension("uEFV").getLength();
       ArrayDouble pval = new ArrayDouble.D2(
@@ -476,17 +406,20 @@ public class NetCDFWriter {
       ArrayDouble tstat = new ArrayDouble.D2(
           deMaxLength, uefvMaxLength);
 
-      // loop over design elements
+      // keep track of all design elements with missing expression values
+      Set<Integer> unmappedDesignElements = new HashSet<Integer>();
+      Set<String> unmappedProperties = new HashSet<String>();
+
       int deIndex = 0;
       int uefvIndex = 0;
+      // loop over design elements
       for (int designElementID : designElements) {
         if (analyses.get(designElementID) != null) {
-          // got all analyses - now loop over values of the assayValueMap
+          // not null, so now loop over values of the assayFactorValueMap,
+          // so  we can lookup analysis by design element id and property value
           for (Assay a : assays) {
-            for (String propertyValue : assayValueMap.get(a)) {
+            for (String propertyValue : assayFactorValueMap.get(a)) {
               boolean foundAnalysis = false;
-
-              // lookup analysis by design element id and property value
               for (ExpressionAnalysis analysis : analyses
                   .get(designElementID)) {
                 if (analysis.getEfvName().equals(propertyValue)) {
@@ -504,10 +437,7 @@ public class NetCDFWriter {
 
               // if we couldn't find an appropriate analysis, warn
               if (!foundAnalysis) {
-                log.warn("No analysis present for design element '" +
-                    designElementID + "' and factor value '" +
-                    propertyValue + "': stats matrix cells will be default " +
-                    "to 0 for this property value");
+                unmappedProperties.add(designElementID + ":" + propertyValue);
               }
 
               // increment uefv index, whether or not we found the analysis
@@ -516,11 +446,27 @@ public class NetCDFWriter {
           }
         }
         else {
-          log.warn("No analyses present for design element " + designElementID +
-              ": stats matrix cells will be default to 0 for this entire row");
+          unmappedDesignElements.add(designElementID);
         }
         deIndex++;
         uefvIndex = 0;
+      }
+
+      if (unmappedProperties.size() > 0 || unmappedDesignElements.size() > 0) {
+      if (unmappedDesignElements.size() > 0) {
+        // todo - log unmapped design elements to a file
+      }
+
+      if (unmappedProperties.size() > 0) {
+        // todo - log unmapped design element/propterty value cells to a file
+      }
+
+        // count missing cells
+        int count = unmappedProperties.size() + (unmappedDesignElements.size()*uefvMaxLength);
+        int total = deMaxLength*uefvMaxLength;
+        log.warn("No analysis present for " + count + "/" + total + " " +
+            "design element/factor value pairs: stats matrix cells will " +
+            "default to 0 for each affected cell");
       }
 
       netCDF.write("PVAL", pval);
