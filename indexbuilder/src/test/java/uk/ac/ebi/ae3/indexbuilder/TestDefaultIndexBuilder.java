@@ -34,7 +34,8 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    indexLocation = new File("test" + File.separator + "index");
+    indexLocation =
+        new File("target" + File.separator + "test" + File.separator + "index");
 
     indexBuilder = new DefaultIndexBuilder();
     indexBuilder.setAtlasDataSource(getDataSource());

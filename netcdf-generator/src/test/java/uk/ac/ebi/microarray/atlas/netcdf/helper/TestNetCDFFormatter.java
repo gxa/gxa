@@ -27,7 +27,8 @@ public class TestNetCDFFormatter extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    repositoryLocation = new File("test" + File.separator + "netcdfs");
+    repositoryLocation = new File(
+        "target" + File.separator + "test" + File.separator + "netcdfs");
     if (!repositoryLocation.exists()) {
       repositoryLocation.mkdirs();
     }

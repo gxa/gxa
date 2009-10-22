@@ -30,7 +30,8 @@ public abstract class NetCDFGeneratorServiceTestCase extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    repoLocation = new File("test" + File.separator + "netcdfs");
+    repoLocation = new File(
+        "target" + File.separator + "test" + File.separator + "netcdfs");
     if (!repoLocation.exists()) {
       repoLocation.mkdirs();
     }
@@ -39,10 +40,10 @@ public abstract class NetCDFGeneratorServiceTestCase extends AtlasDAOTestCase {
   public void tearDown() throws Exception {
     super.tearDown();
 
-//    // delete the index
-//    if (!deleteDirectory(repoLocation)) {
-//      fail("Failed to delete " + repoLocation.getAbsolutePath());
-//    }
+    // delete the index
+    if (!deleteDirectory(repoLocation)) {
+      fail("Failed to delete " + repoLocation.getAbsolutePath());
+    }
 
     repoLocation = null;
   }

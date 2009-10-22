@@ -23,7 +23,8 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    indexLocation = new File("test" + File.separator + "index");
+    indexLocation = new File("target" + File.separator + "test" +
+        File.separator + "index");
 
     // check for the presence of the index
     File solr = new File(indexLocation, "solr.xml");
