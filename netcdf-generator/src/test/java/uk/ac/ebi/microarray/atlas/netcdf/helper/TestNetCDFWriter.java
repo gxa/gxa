@@ -26,7 +26,8 @@ public class TestNetCDFWriter extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    repositoryLocation = new File("test" + File.separator + "netcdfs");
+    repositoryLocation = new File(
+        "target" + File.separator + "test" + File.separator + "netcdfs");
     if (!repositoryLocation.exists()) {
       repositoryLocation.mkdirs();
     }
@@ -82,7 +83,8 @@ public class TestNetCDFWriter extends AtlasDAOTestCase {
   public void testWriteNetCDF() {
     try {
       for (DataSlice dataSlice : dataSlices.keySet()) {
-        System.out.println("Writing NetCDF for " + dataSlice.toString() + "...\n");
+        System.out
+            .println("Writing NetCDF for " + dataSlice.toString() + "...\n");
 
         NetcdfFileWriteable netcdfFile = dataSlices.get(dataSlice);
 

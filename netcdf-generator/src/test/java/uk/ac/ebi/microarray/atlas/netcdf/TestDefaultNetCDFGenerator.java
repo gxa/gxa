@@ -18,7 +18,8 @@ public class TestDefaultNetCDFGenerator extends AtlasDAOTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    repoLocation = new File("test" + File.separator + "netcdfs");
+    repoLocation = new File(
+        "target" + File.separator + "test" + File.separator + "netcdfs");
 
     netCDFGenerator = new DefaultNetCDFGenerator();
     netCDFGenerator.setAtlasDataSource(getDataSource());
