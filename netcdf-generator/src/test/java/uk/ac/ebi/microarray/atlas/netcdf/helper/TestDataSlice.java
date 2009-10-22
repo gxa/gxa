@@ -35,21 +35,34 @@ public class TestDataSlice extends TestCase {
   }
 
   public void testStoreGenes() {
-    int deID1 = 1;
-    Gene gene1 = new Gene();
-    int deID2 = 2;
-    Gene gene2 = new Gene();
+    try {
+      int deID1 = 1;
+      Gene gene1 = new Gene();
+      int deID2 = 2;
+      Gene gene2 = new Gene();
 
-    Map<Integer, Gene> genes = new HashMap<Integer, Gene>();
-    genes.put(deID1, gene1);
-    genes.put(deID2, gene2);
+      List<Integer> designElements = new ArrayList<Integer>();
+      designElements.add(deID1);
+      designElements.add(deID2);
 
-    dataSlice.storeGene(deID1, genes.get(deID1));
-    dataSlice.storeGene(deID2, genes.get(deID2));
+      dataSlice.storeDesignElementIDs(designElements);
 
-    // now get genes
-    assertSame("Wrong number of genes", dataSlice.getGenes().keySet().size(),
-               2);
+      Map<Integer, Gene> genes = new HashMap<Integer, Gene>();
+      genes.put(deID1, gene1);
+      genes.put(deID2, gene2);
+
+      dataSlice.storeGene(deID1, genes.get(deID1));
+      dataSlice.storeGene(deID2, genes.get(deID2));
+
+      // now get genes
+      assertSame("Wrong number of genes",
+                 dataSlice.getGeneMappings().keySet().size(),
+                 2);
+    }
+    catch (DataSlicingException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 
   public void testStoreAssays() {
@@ -65,26 +78,30 @@ public class TestDataSlice extends TestCase {
   }
 
   public void testStoreSamplesAssociatedWithAssay() {
-    // store an assay
-    Assay ass1 = new Assay();
-    ass1.setAccession("test-assay-1");
-    List<Assay> storage = new ArrayList<Assay>();
-    storage.add(ass1);
-    dataSlice.storeAssays(storage);
+    try {
+// store an assay
+      Assay ass1 = new Assay();
+      ass1.setAccession("test-assay-1");
+      List<Assay> storage = new ArrayList<Assay>();
+      storage.add(ass1);
+      dataSlice.storeAssays(storage);
 
-    // store a sample
-    Sample sample1 = new Sample();
-    Sample sample2 = new Sample();
-    List<Sample> storage2 = new ArrayList<Sample>();
-    storage2.add(sample1);
-    storage2.add(sample2);
-    dataSlice.storeSamplesAssociatedWithAssay(ass1.getAccession(), storage2);
+      // store a sample
+      Sample sample1 = new Sample();
+      Sample sample2 = new Sample();
+      dataSlice.storeSample(ass1, sample1);
+      dataSlice.storeSample(ass1, sample2);
 
-    // check we get 2 samples back
-    assertSame(
+      // check we get 2 samples back
+      assertSame(
         "Wrong number of assay-associated samples",
-        dataSlice.getSamplesAssociatedWithAssay(ass1.getAccession()).size(),
-        2);
+          dataSlice.getSampleMappings().get(ass1).size(),
+          2);
+    }
+    catch (DataSlicingException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 
   public void testStoreDesignElementIDs() {
@@ -120,9 +137,9 @@ public class TestDataSlice extends TestCase {
     // dataslice never returns null, just empty collections
     assertSame("Assays was not null", dataSlice.getAssays().size(), 0);
     assertSame("Sample/Assay association was not empty",
-               dataSlice.getSamplesAssociatedWithAssay("test-1").size(), 0);
+               dataSlice.getSampleMappings().size(), 0);
     assertSame("Assays to sample mapping was not empty",
-               dataSlice.getAssayToSampleMapping().size(), 0);
+               dataSlice.getSampleMappings().size(), 0);
     assertSame("Design Elements was not null",
                dataSlice.getDesignElementIDs().size(), 0);
     assertSame("Genes was not null", dataSlice.getGenes().size(), 0);

@@ -64,7 +64,7 @@ public class TestDataSlicer extends AtlasDAOTestCase {
         }
         System.out.println("\tAssay -> Sample indexes");
         for (Map.Entry<Assay, List<Sample>> entry : slice
-            .getAssayToSampleMapping().entrySet()) {
+            .getSampleMappings().entrySet()) {
           System.out.println("\t\tassay = " + entry.getKey().getAccession());
           for (Sample sample : entry.getValue()) {
             System.out.println("\t\t\t -> sample =  " + sample.getAccession());

@@ -81,29 +81,30 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 String p = prop.getName();
                 String pv = prop.getValue();
 
-                getLog().debug(
+                getLog().info(
                     "Updating index, assay property " + p + " = " + pv);
                 solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
               }
+            }
 
-              // now get samples
-              List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(
-                  assay.getAccession());
-              if (samples.size() == 0) {
-                getLog().warn(
-                    "No samples present for assay " + assay.getAccession());
-              }
+            // now get samples
+            List<Sample> samples =
+                getAtlasDAO().getSamplesByExperimentAccession(
+                    experiment.getAccession());
+            if (samples.size() == 0) {
+              getLog().warn("No samples present for experiment " +
+                  experiment.getAccession());
+            }
 
-              for (Sample sample : samples) {
-                // get sample properties and values
-                for (Property prop : sample.getProperties()) {
-                  String p = prop.getName();
-                  String pv = prop.getValue();
+            for (Sample sample : samples) {
+              // get sample properties and values
+              for (Property prop : sample.getProperties()) {
+                String p = prop.getName();
+                String pv = prop.getValue();
 
-                  getLog().debug(
-                      "Updating index, sample property " + p + " = " + pv);
-                  solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
-                }
+                getLog().debug(
+                    "Updating index, sample property " + p + " = " + pv);
+                solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
               }
             }
 
