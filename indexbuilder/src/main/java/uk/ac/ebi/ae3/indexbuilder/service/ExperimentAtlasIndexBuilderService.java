@@ -58,6 +58,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info(
                 "Updating index - adding experiment " +
                     experiment.getAccession());
+            getLog().debug("Adding standard fields for experiment stats");
             solrInputDoc.addField(Constants.FIELD_EXP_IN_DW,
                                   true);
             solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
@@ -71,8 +72,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(
                 experiment.getAccession());
             if (assays.size() == 0) {
-              getLog().warn(
-                  "No assays present for " + experiment.getAccession());
+              getLog().warn("No assays present for " +
+                  experiment.getAccession());
             }
 
             for (Assay assay : assays) {
@@ -81,7 +82,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 String p = prop.getName();
                 String pv = prop.getValue();
 
-                getLog().info(
+                getLog().debug(
                     "Updating index, assay property " + p + " = " + pv);
                 solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
               }

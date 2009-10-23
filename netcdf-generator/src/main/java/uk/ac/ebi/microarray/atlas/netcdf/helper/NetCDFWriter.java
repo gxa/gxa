@@ -1,17 +1,14 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Javadocs go here!
@@ -20,7 +17,12 @@ import java.util.Set;
  * @date 30-Sep-2009
  */
 public class NetCDFWriter {
-  private Log log = LogFactory.getLog(this.getClass());
+  // internal maps - indexes for locations of given assay/design element ids
+  Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
+  Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
+
+  // logging
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   public void writeNetCDF(NetcdfFileWriteable netCDF, DataSlice dataSlice)
       throws NetCDFGeneratorException {
@@ -64,8 +66,7 @@ public class NetCDFWriter {
       // write expression matrix values
       writeExpressionMatrixValues(
           netCDF,
-          dataSlice.getAssays(),
-          dataSlice.getDesignElementIDs());
+          dataSlice.getExpressionValues());
 
       // write stats matrix values
       writeStatsValues(
@@ -90,8 +91,13 @@ public class NetCDFWriter {
       // add assay id data
       ArrayInt as = new ArrayInt.D1(assays.size());
       IndexIterator asIt = as.getIndexIterator();
+      int counter = 0;
       for (Assay assay : assays) {
         asIt.setIntNext(assay.getAssayID());
+
+        // record in the index
+        assayIndex.put(assay.getAssayID(), counter);
+        counter++;
       }
       netCDF.write("AS", as);
     }
@@ -158,8 +164,13 @@ public class NetCDFWriter {
       // add design element id data
       ArrayInt de = new ArrayInt.D1(designElementIDs.size());
       IndexIterator deIt = de.getIndexIterator();
+      int counter = 0;
       for (int designElementID : designElementIDs) {
         deIt.setIntNext(designElementID);
+
+        // record in the index
+        designElementIndex.put(designElementID, counter);
+        counter++;
       }
       netCDF.write("DE", de);
     }
@@ -329,8 +340,7 @@ public class NetCDFWriter {
   }
 
   private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
-                                           List<Assay> assays,
-                                           List<Integer> designElements)
+                                           List<ExpressionValue> expressionValues)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("DE") != null) {
@@ -344,46 +354,12 @@ public class NetCDFWriter {
         bdcIt.setDoubleNext(-1000000);
       }
 
-      // keep track of all design elements with missing expression values
-      Set<Integer> unmappedDesignElements = new HashSet<Integer>();
+      // loop over expression values doing crafty index lookups
+      for (ExpressionValue ev : expressionValues) {
+        int deIndex = designElementIndex.get(ev.getDesignElementID());
+        int asIndex = assayIndex.get(ev.getAssayID());
 
-      // loop over assays
-      int deIndex = 0;
-      int asIndex = 0;
-      for (Assay assay : assays) {
-        for (int designElementID : designElements) {
-          // get the expression value for this assay/design element
-          ExpressionValue value = null;
-          for (ExpressionValue ev : assay.getExpressionValues()) {
-            if (ev.getDesignElementID() == designElementID) {
-              value = ev;
-              break;
-            }
-          }
-
-          // no expression value present for this assay and this design element
-          if (value != null) {
-            // write expression value to matrix
-            bdc.setDouble(bdc.getIndex().set(deIndex, asIndex),
-                          value.getValue());
-          }
-          else {
-            unmappedDesignElements.add(designElementID);
-          }
-          // increment deIndex
-          deIndex++;
-        }
-
-        asIndex++;
-        deIndex = 0;
-      }
-
-      if (unmappedDesignElements.size() > 0) {
-        log.warn("No expression value present for " +
-            unmappedDesignElements.size() + "/" + designElements.size() + " " +
-            "design elements: BDC matrix cells will default " +
-            "to -1000000 for these expression values");
-        // todo - log unmapped design elements to a file
+        bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
       }
 
       netCDF.write("BDC", bdc);
@@ -453,17 +429,18 @@ public class NetCDFWriter {
       }
 
       if (unmappedProperties.size() > 0 || unmappedDesignElements.size() > 0) {
-      if (unmappedDesignElements.size() > 0) {
-        // todo - log unmapped design elements to a file
-      }
+        if (unmappedDesignElements.size() > 0) {
+          // todo - log unmapped design elements to a file
+        }
 
-      if (unmappedProperties.size() > 0) {
-        // todo - log unmapped design element/propterty value cells to a file
-      }
+        if (unmappedProperties.size() > 0) {
+          // todo - log unmapped design element/propterty value cells to a file
+        }
 
         // count missing cells
-        int count = unmappedProperties.size() + (unmappedDesignElements.size()*uefvMaxLength);
-        int total = deMaxLength*uefvMaxLength;
+        int count = unmappedProperties.size() +
+            (unmappedDesignElements.size() * uefvMaxLength);
+        int total = deMaxLength * uefvMaxLength;
         log.warn("No analysis present for " + count + "/" + total + " " +
             "design element/factor value pairs: stats matrix cells will " +
             "default to 0 for each affected cell");

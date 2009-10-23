@@ -26,6 +26,7 @@ public class DataSlice {
   private List<Sample> samples;
   private List<Gene> genes;
   private List<ExpressionAnalysis> analyses;
+  private List<ExpressionValue> expressionValues;
   // maps of indexed things
   private Map<Assay, List<Sample>> samplesMap;
   private Map<Integer, Gene> genesMap;
@@ -91,6 +92,15 @@ public class DataSlice {
     }
     else {
       return new ArrayList<Sample>();
+    }
+  }
+
+  public List<ExpressionValue> getExpressionValues() {
+    if (expressionValues != null) {
+      return expressionValues;
+    }
+    else {
+      return new ArrayList<ExpressionValue>();
     }
   }
 
@@ -374,6 +384,16 @@ public class DataSlice {
     }
   }
 
+  /**
+   * Stores all the expression values for a data slcie (i.e. expression values
+   * for a pair of experiment and arraydesign).
+   *
+   * @param expressionValues the expression values to store
+   */
+  public void storeExpressionValues(List<ExpressionValue> expressionValues) {
+    this.expressionValues = expressionValues;
+  }
+
   public void evaluatePropertyMappings() {
     // maps property names to all values for assay properties
     experimentFactorMap = new HashMap<String, List<String>>();
@@ -392,20 +412,20 @@ public class DataSlice {
         // we only care about factor values, not other properties
         // fixme: wrong for data in DB right now
 //        if (prop.isFactorValue()) {
-          // have we seen this property name before?
-          if (experimentFactorMap.containsKey(prop.getName())) {
-            // if so, add values to the existing list
-            experimentFactorMap.get(prop.getName()).add(prop.getValue());
-          }
-          else {
-            // otherwise, start a new list and add it, keyed by the new name
-            List<String> propertyNames = new ArrayList<String>();
-            propertyNames.add(prop.getValue());
-            experimentFactorMap.put(prop.getName(), propertyNames);
-          }
+        // have we seen this property name before?
+        if (experimentFactorMap.containsKey(prop.getName())) {
+          // if so, add values to the existing list
+          experimentFactorMap.get(prop.getName()).add(prop.getValue());
+        }
+        else {
+          // otherwise, start a new list and add it, keyed by the new name
+          List<String> propertyNames = new ArrayList<String>();
+          propertyNames.add(prop.getValue());
+          experimentFactorMap.put(prop.getName(), propertyNames);
+        }
 
-          // add the value to the observedProperties list
-          observedPropertyValues.add(prop.getValue());
+        // add the value to the observedProperties list
+        observedPropertyValues.add(prop.getValue());
 //        }
       }
 

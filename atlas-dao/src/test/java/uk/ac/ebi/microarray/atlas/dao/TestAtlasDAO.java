@@ -284,9 +284,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
       String accession =
           getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
               .toString();
-      String id =
-          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "arraydesignid")
-              .toString();
+      int id =
+          Integer.parseInt(getDataSet().getTable("A2_ARRAYDESIGN")
+              .getValue(0, "arraydesignid")
+              .toString());
 
       ArrayDesign arrayDesign =
           getAtlasDAO().getArrayDesignByAccession(accession);
@@ -433,7 +434,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     String ontologyName = "EFO";
 
     List<OntologyMapping> ontologyMappings =
-        getAtlasDAO().getOntologyMappingsForOntology(ontologyName);
+        getAtlasDAO().getOntologyMappingsByOntology(ontologyName);
 
     assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
 
