@@ -50,8 +50,7 @@ public class DefaultIndexBuilder
   private boolean running = false;
 
   // logging
-  private static final Logger log =
-      LoggerFactory.getLogger(DefaultIndexBuilder.class);
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   public void setAtlasDataSource(DataSource dataSource) {
     this.dataSource = dataSource;
@@ -131,6 +130,8 @@ public class DefaultIndexBuilder
         // check for the presence of the index
         File solr = new File(indexLocation, "solr.xml");
         if (!solr.exists()) {
+          log.debug("No existing index - unpacking config files to " +
+              indexLocation.getAbsolutePath());
           // no prior index, check the directory is empty?
           if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
             String message = "Unable to unpack solr configuration files - " +
@@ -146,6 +147,7 @@ public class DefaultIndexBuilder
         }
 
         // first, create a solr CoreContainer
+        log.debug("Creating new SOLR container and embedded servers...");
         coreContainer = new CoreContainer();
         coreContainer.load(indexLocation.getAbsolutePath(), solr);
 
@@ -156,6 +158,7 @@ public class DefaultIndexBuilder
             new EmbeddedSolrServer(coreContainer, "atlas");
 
         // create IndexBuilderServices for genes (atlas) and experiments
+        log.debug("Creating index building services for experiments and genes");
         exptIndexBuilder =
             new ExperimentAtlasIndexBuilderService(dao, exptServer);
         geneIndexBuilder =
@@ -163,6 +166,7 @@ public class DefaultIndexBuilder
 
         // finally, create an executor service for processing calls to build the index
         service = Executors.newCachedThreadPool();
+        log.debug("Initialized " + getClass().getSimpleName() + " OK!");
 
         running = true;
       }
@@ -196,8 +200,10 @@ public class DefaultIndexBuilder
    */
   public void shutdown() throws IndexBuilderException {
     if (running) {
+      log.debug("Shutting down " + getClass().getSimpleName() + "...");
       service.shutdown();
       try {
+        log.debug("Waiting for termination of running jobs");
         service.awaitTermination(5, TimeUnit.MINUTES);
       }
       catch (InterruptedException e) {
@@ -209,6 +215,7 @@ public class DefaultIndexBuilder
       }
       finally {
         coreContainer.shutdown();
+        log.debug("Shutdown complete");
         running = false;
       }
     }

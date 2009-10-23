@@ -77,11 +77,19 @@ public class AtlasDAO {
           "AND pv.propertyid=p.propertyid " +
           "AND apv.assayid=a.assayid " +
           "AND a.accession=?";
+
+  // expression value queries
   private static final String EXPRESSION_VALUES_BY_ASSAY_ID =
-      "SELECT ev.designelementid, de.accession, ev.value " +
+      "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
           "FROM a2_expressionvalue ev, a2_designelement de " +
           "WHERE ev.designelementid=de.designelementid " +
           "AND ev.assayid=?";
+  private static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
+      "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
+          "FROM a2_expressionvalue ev, a2_designelement de " +
+          "WHERE ev.designelementid=de.designelementid " +
+          "AND ev.experimentid=? " +
+          "AND de.arraydesignid=?";
 
   // sample queries
   private static final String SAMPLES_BY_ASSAY_ACCESSION =
@@ -143,16 +151,18 @@ public class AtlasDAO {
 
   // other useful queries
   private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
-      "SELECT p.Name AS property, pv.name AS propertyvalue, " +
-          "CASE when ea.TSTAT < 0 THEN -1 ELSE 1 END AS UpDn, " +
-          "COUNT(DISTINCT(g.geneid)) AS genes " +
+      "SELECT " +
+          "p.name AS property, " +
+          "pv.name AS propertyvalue, " +
+          "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
+          "COUNT(DISTINCT(g.GeneID)) AS genes " +
           "FROM a2_expressionanalytics ea " +
-          "JOIN a2_propertyvalue pv on pv.propertyvalueid=ea.propertyvalueid " +
-          "JOIN a2_property p on p.propertyid=pv.propertyid " +
-          "JOIN a2_designelement de on de.designelementid=ea.designelementid " +
-          "JOIN a2_gene g on g.geneid=de.geneid " +
+          "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
+          "JOIN a2_property p ON p.propertyid=pv.propertyid " +
+          "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
+          "JOIN a2_gene g ON g.geneid=de.geneid " +
           "WHERE ea.experimentid=? " +
-          "GROUP BY p.name, pv.name, CASE WHEN ea.pvaladj < 0 THEN -1 ELSE 1 END";
+          "GROUP BY p.name, pv.name, CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
   private static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
       "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
           "a.designelementid, a.tstat, a.pvaladj " +
@@ -169,20 +179,16 @@ public class AtlasDAO {
           "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
           "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
           "WHERE de.geneid=?";
+  private static final String ONTOLOGY_MAPPINGS_SELECT =
+      "SELECT accession, property, propertyvalue, ontologyterm, " +
+          "issampleproperty, isassayproperty, isfactorvalue " +
+          "FROM a2_ontologymapping";
+  private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
+      ONTOLOGY_MAPPINGS_SELECT + " " +
+          "WHERE ontologyname=?";
   private static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
-      "SELECT accession, property, propertyvalue, ontologyaccession " +
-          "FROM a2_ontologymappings " +
+      ONTOLOGY_MAPPINGS_SELECT + " " +
           "WHERE accession=?";
-  private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME =
-      // fixme - work out the new query, this is for old schema
-      "select experiment_id_key||'_'||ef||'_'||efv as mapkey, string_agg(accession) from (SELECT DISTINCT s.experiment_id_key," +
-          "     LOWER(SUBSTR(oa.orig_value_src,    instr(oa.orig_value_src,    '_',    1,    3) + 1,    instr(oa.orig_value_src,    '__DM',    1,    1) -instr(oa.orig_value_src,    '_',    1,    3) -1)) ef," +
-          "     oa.orig_value AS efv," +
-          "     oa.accession" +
-          "   FROM ontology_annotation oa," +
-          "     ae1__sample__main s" +
-          "   WHERE(s.sample_id_key = oa.sample_id_key OR s.assay_id_key = oa.assay_id_key)" +
-          "   AND oa.ontology_id_key = 575119145) group by experiment_id_key, ef, efv";
 
   private JdbcTemplate template;
 
@@ -313,6 +319,15 @@ public class AtlasDAO {
       // and set on assay
       assay.setExpressionValues((List<ExpressionValue>) evResults);
     }
+  }
+
+  public List<ExpressionValue> getExpressionValuesByExperimentAndArray(
+      int experimentID, int arrayDesignID) {
+    List results = template.query(EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
+                                  new Object[]{experimentID, arrayDesignID},
+                                  new ExpressionValueMapper());
+
+    return (List<ExpressionValue>) results;
   }
 
   public List<Sample> getSamplesByAssayAccession(String assayAccession) {
@@ -457,17 +472,24 @@ public class AtlasDAO {
     return (List<ExpressionAnalysis>) results;
   }
 
-  public List<OntologyMapping> getOntologyMappingsByExperimentAccession(String experimentAccession) {
-    List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                                  new Object[]{experimentAccession},
+  public List<OntologyMapping> getOntologyMappings() {
+    List results = template.query(ONTOLOGY_MAPPINGS_SELECT,
                                   new OntologyMappingMapper());
     return (List<OntologyMapping>) results;
   }
 
-  public List<OntologyMapping> getOntologyMappingsForOntology(
+  public List<OntologyMapping> getOntologyMappingsByOntology(
       String ontologyName) {
-    List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGYNAME,
+    List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
                                   new Object[]{ontologyName},
+                                  new OntologyMappingMapper());
+    return (List<OntologyMapping>) results;
+  }
+
+  public List<OntologyMapping> getOntologyMappingsByExperimentAccession(
+      String experimentAccession) {
+    List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
+                                  new Object[]{experimentAccession},
                                   new OntologyMappingMapper());
     return (List<OntologyMapping>) results;
   }
@@ -518,8 +540,9 @@ public class AtlasDAO {
       ExpressionValue ev = new ExpressionValue();
 
       ev.setDesignElementID(resultSet.getInt(1));
-      ev.setDesignElementAccession(resultSet.getString(2));
-      ev.setValue(resultSet.getFloat(3));
+      ev.setAssayID(resultSet.getInt(2));
+      ev.setDesignElementAccession(resultSet.getString(3));
+      ev.setValue(resultSet.getFloat(4));
 
       return ev;
     }
@@ -547,7 +570,7 @@ public class AtlasDAO {
       array.setType(resultSet.getString(2));
       array.setName(resultSet.getString(3));
       array.setProvider(resultSet.getString(4));
-      array.setArrayDesignID(resultSet.getString(5));
+      array.setArrayDesignID(resultSet.getInt(5));
 
       return array;
     }
@@ -586,11 +609,13 @@ public class AtlasDAO {
     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
       OntologyMapping mapping = new OntologyMapping();
 
-      mapping.setExperimentID(resultSet.getString(1));
-      mapping.setEfName(resultSet.getString(2));
-      mapping.setEfvName(resultSet.getString(3));
-      // quick bit of sugar to reformat single ,/; separated string into an array
-      mapping.setOntologyTermAccessions(resultSet.getString(4).split("[,;]"));
+      mapping.setExperimentAccession(resultSet.getString(1));
+      mapping.setProperty(resultSet.getString(2));
+      mapping.setPropertyValue(resultSet.getString(3));
+      mapping.setOntologyTerm(resultSet.getString(4));
+      mapping.setSampleProperty(resultSet.getBoolean(5));
+      mapping.setAssayProperty(resultSet.getBoolean(6));
+      mapping.setFactorValue(resultSet.getBoolean(7));
 
       return mapping;
     }

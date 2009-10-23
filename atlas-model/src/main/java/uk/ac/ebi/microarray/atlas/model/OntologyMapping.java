@@ -7,40 +7,67 @@ package uk.ac.ebi.microarray.atlas.model;
  * @date 25-Sep-2009
  */
 public class OntologyMapping {
-  private String experimentID;
-  private String efName;
-  private String efvName;
-  private String[] ontologyTermAccessions;
+  private String experimentAccession;
+  private String property;
+  private String propertyValue;
+  private String ontologyTerm;
+  private boolean isSampleProperty;
+  private boolean isAssayProperty;
+  private boolean isFactorValue;
 
-  public String getExperimentID() {
-    return experimentID;
+  public String getExperimentAccession() {
+    return experimentAccession;
   }
 
-  public void setExperimentID(String experimentID) {
-    this.experimentID = experimentID;
+  public void setExperimentAccession(String experimentAccession) {
+    this.experimentAccession = experimentAccession;
   }
 
-  public String getEfName() {
-    return efName;
+  public String getProperty() {
+    return property;
   }
 
-  public void setEfName(String efName) {
-    this.efName = efName;
+  public void setProperty(String property) {
+    this.property = property;
   }
 
-  public String getEfvName() {
-    return efvName;
+  public String getPropertyValue() {
+    return propertyValue;
   }
 
-  public void setEfvName(String efvName) {
-    this.efvName = efvName;
+  public void setPropertyValue(String propertyValue) {
+    this.propertyValue = propertyValue;
   }
 
-  public String[] getOntologyTermAccessions() {
-    return ontologyTermAccessions;
+  public String getOntologyTerm() {
+    return ontologyTerm;
   }
 
-  public void setOntologyTermAccessions(String... ontologyTermAccessions) {
-    this.ontologyTermAccessions = ontologyTermAccessions;
+  public void setOntologyTerm(String ontologyTerm) {
+    this.ontologyTerm = ontologyTerm;
+  }
+
+  public boolean isSampleProperty() {
+    return isSampleProperty;
+  }
+
+  public void setSampleProperty(boolean sampleProperty) {
+    isSampleProperty = sampleProperty;
+  }
+
+  public boolean isAssayProperty() {
+    return isAssayProperty;
+  }
+
+  public void setAssayProperty(boolean assayProperty) {
+    isAssayProperty = assayProperty;
+  }
+
+  public boolean isFactorValue() {
+    return isFactorValue;
+  }
+
+  public void setFactorValue(boolean factorValue) {
+    isFactorValue = factorValue;
   }
 }

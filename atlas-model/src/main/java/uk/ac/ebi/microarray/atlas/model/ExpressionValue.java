@@ -6,6 +6,7 @@ package uk.ac.ebi.microarray.atlas.model;
  */
 public class ExpressionValue {
   private int designElementID;
+  private int assayID;
   private String designElementAccession;
   private Float value;
 
@@ -15,6 +16,14 @@ public class ExpressionValue {
 
   public void setDesignElementID(int designElementID) {
     this.designElementID = designElementID;
+  }
+
+  public int getAssayID() {
+    return assayID;
+  }
+
+  public void setAssayID(int assayID) {
+    this.assayID = assayID;
   }
 
   public String getDesignElementAccession() {

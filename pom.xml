@@ -132,8 +132,10 @@
     <atlas.data.release>9.8</atlas.data.release>
 
     <!-- fixme: using a mock index and set of netcdfs, bundled with webapp -->
-    <solr.data.directory>webapps/atlas-web-1.1.1/data/ATLAS.SOLR.MOCK</solr.data.directory>
-    <atlas.netCDFlocation>webapps/atlas-web-1.1.1/data/NetCDFs.ATLAS.MOCK</atlas.netCDFlocation>
+    <!--<solr.data.directory>webapps/atlas-web-1.1.1/data/ATLAS.SOLR.MOCK</solr.data.directory>-->
+    <!--<atlas.netCDFlocation>webapps/atlas-web-1.1.1/data/NetCDFs.ATLAS.MOCK</atlas.netCDFlocation>-->
+    <solr.data.directory>/home/tburdett/atlas/index</solr.data.directory>
+    <atlas.netCDFlocation>/home/tburdett/atlas/netcfs</atlas.netCDFlocation>
 
     <!-- fixme: these properties pointed to arrayexpress databases, need to be configured for new DB -->
     <indexbuilder.ftp>nowhere</indexbuilder.ftp>

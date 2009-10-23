@@ -336,13 +336,13 @@
     </resource-ref>
     <resource-ref>
         <description>Atlas Index directory</description>
-        <res-ref-name>jdbc/AEINDEX</res-ref-name>
+        <res-ref-name>file/AEINDEX</res-ref-name>
         <res-type>java.io.File</res-type>
         <res-auth>Container</res-auth>
     </resource-ref>
-        <resource-ref>
-        <description>Atlas Dataserver directory</description>
-        <res-ref-name>jdbc/AEDATASERVER</res-ref-name>
+    <resource-ref>
+        <description>Atlas NetCDF directory</description>
+        <res-ref-name>file/AENETCDFS</res-ref-name>
         <res-type>java.io.File</res-type>
         <res-auth>Container</res-auth>
     </resource-ref>

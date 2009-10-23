@@ -45,8 +45,10 @@ public class DataSlicer {
     // start fetching data...
 
     // fetch genes and expression analysis - these are fetched by experiment
+    log.debug("Fetching genes data for " + experiment.getAccession());
     List<Gene> allGenes = getAtlasDAO().getGenesByExperimentAccession(
         experiment.getAccession());
+    log.debug("Fetching analytics data for " + experiment.getAccession());
     List<ExpressionAnalysis> allAnalytics =
         getAtlasDAO().getExpressionAnalyticsByExperimentID(
             experiment.getExperimentID());
@@ -58,6 +60,7 @@ public class DataSlicer {
         new HashSet<ExpressionAnalysis>();
 
     // fetch array designs and iterate
+    log.debug("Fetching array design data for " + experiment.getAccession());
     List<ArrayDesign> arrays = getAtlasDAO()
         .getArrayDesignByExperimentAccession(experiment.getAccession());
     for (ArrayDesign arrayDesign : arrays) {
@@ -65,14 +68,22 @@ public class DataSlicer {
       DataSlice dataSlice = new DataSlice(experiment, arrayDesign);
 
       // fetch assays for this array
+      log.debug("Fetching assay data for " + arrayDesign.getAccession());
       List<Assay> assays = getAtlasDAO()
-          .getAssaysByExperimentAndArray(experiment.getAccession(),
-                                         arrayDesign.getAccession());
-      // make sure expression values are retrieved
-      getAtlasDAO().getExpressionValuesForAssays(assays);
+          .getAssaysByExperimentAndArray(
+              experiment.getAccession(), arrayDesign.getAccession());
       // and store
       dataSlice.storeAssays(assays);
 
+      // fetch expression values for this array
+      List<ExpressionValue> expressionValues = getAtlasDAO()
+          .getExpressionValuesByExperimentAndArray(
+              experiment.getExperimentID(), arrayDesign.getArrayDesignID());
+      // and store
+      dataSlice.storeExpressionValues(expressionValues);
+
+      log.debug("Fetching samples data for each assay on " +
+          arrayDesign.getAccession());
       for (Assay assay : assays) {
         // fetch samples for this assay
         List<Sample> samples = getAtlasDAO()
@@ -84,6 +95,8 @@ public class DataSlicer {
       }
 
       // fetch design elements specific to this array design
+      log.debug(
+          "Fetching design element data for " + arrayDesign.getAccession());
       List<Integer> designElements = getAtlasDAO()
           .getDesignElementIDsByArrayAccession(arrayDesign.getAccession());
       // and store
@@ -91,6 +104,7 @@ public class DataSlicer {
 
       // genes for this experiment were prefetched -
       // compare to design elements and store, correctly indexed
+      log.debug("Indexing gene data by design element ID");
       for (Gene gene : allGenes) {
         // check this gene maps to a stored design element
         if (dataSlice.getDesignElementIDs()
@@ -111,6 +125,7 @@ public class DataSlicer {
 
       // expression analyses for this experiment were prefetched -
       // compare to design elements and store, correctly indexed
+      log.debug("Indexing analytics data by design element ID");
       for (ExpressionAnalysis analysis : allAnalytics) {
         if (dataSlice.getDesignElementIDs()
             .contains(analysis.getDesignElementID())) {
@@ -130,17 +145,22 @@ public class DataSlicer {
       }
 
       // evaluate property mappings
+      log.debug("Evaluating property/value/assay indices for " +
+          dataSlice.toString());
       dataSlice.evaluatePropertyMappings();
 
       // save this dataslice
+      log.debug("Compiled dataslice " + dataSlice.toString());
       results.add(dataSlice);
     }
 
     // compile report on unmapped genes and analytics...
     if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
-      log.warn("Could not resolve " + unmappedGenes.size() + " genes and " +
-          unmappedAnalytics.size() + " expression analytics to design elements " +
-          "for experiment " + experiment.getAccession());
+      log.warn(unmappedGenes.size() + "/" + allGenes.size() + " genes and " +
+          unmappedAnalytics.size() + "/" + allAnalytics.size() +
+          " expression analytics that were recovered for " +
+          experiment.getAccession() + " could not be mapped to known " +
+          "design elements");
 
       // todo - generate a log file of unmapped genes and expression analytics
     }

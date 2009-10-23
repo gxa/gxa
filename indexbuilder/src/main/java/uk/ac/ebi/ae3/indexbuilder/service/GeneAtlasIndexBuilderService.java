@@ -40,7 +40,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
   private static final int NUM_THREADS = 64;
 
-  private Map<String, String[]> ontomap = new HashMap<String, String[]>();
+  private Map<String, List<String>> ontomap =
+      new HashMap<String, List<String>>();
   private Efo efo;
 
   public GeneAtlasIndexBuilderService(AtlasDAO atlasDAO,
@@ -185,7 +186,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
       final String ef = expressionAnalytic.getEfName();
       final String efv = expressionAnalytic.getEfvName();
 
-      String[] accession = ontomap.get(experimentId + "_" + ef + "_" + efv);
+      List<String> accessions =
+          ontomap.get(experimentId + "_" + ef + "_" + efv);
 
       String efvid = IndexField.encode(ef, efv);
       if (!efvupdn.containsKey(efvid)) {
@@ -208,8 +210,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         dnefv.get(ef).add(efv);
       }
 
-      if (accession != null) {
-        for (String acc : accession) {
+      if (accessions != null) {
+        for (String acc : accessions) {
           String accId = IndexField.encode(acc);
 
           if (!efoupdn.containsKey(accId)) {
@@ -235,7 +237,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         dnexp.add(experimentId);
       }
 
-      expTable.add(ef, efv, accession, experimentId, isUp, pval);
+      String[] accs;
+      if (accessions != null) {
+        accs = accessions.toArray(new String[accessions.size()]);
+      }
+      else {
+        accs = new String[0];
+      }
+      expTable.add(ef, efv, accs, experimentId, isUp, pval);
     }
 
     if (!wasresult) {
@@ -382,15 +391,25 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
   private void loadEfoMapping() {
     log.info("Fetching ontology mappings...");
 
-    List<OntologyMapping> mappings = getAtlasDAO()
-        .getOntologyMappingsForOntology("EFO");
+    // todo - query by ontology name necessary?
+    List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappings();
     for (OntologyMapping mapping : mappings) {
-      String mapKey = mapping.getExperimentID() + "_" +
-          mapping.getEfName().toLowerCase() + "_" +
-          mapping.getEfvName();
-      String[] accessions = mapping.getOntologyTermAccessions();
+      String mapKey = mapping.getExperimentAccession() + "_" +
+          mapping.getProperty().toLowerCase() + "_" +
+          mapping.getPropertyValue();
 
-      ontomap.put(mapKey, accessions);
+      if (ontomap.containsKey(mapKey)) {
+        // fetch the existing array and add this term
+        // fixme: should actually add ontology term accession
+        ontomap.get(mapKey).add(mapping.getOntologyTerm());
+      }
+      else {
+        // add a new array
+        List<String> values = new ArrayList<String>();
+        // fixme: should actually add ontology term accession
+        values.add(mapping.getOntologyTerm());
+        ontomap.put(mapKey, values);
+      }
     }
 
     log.info("Ontology mappings loaded");

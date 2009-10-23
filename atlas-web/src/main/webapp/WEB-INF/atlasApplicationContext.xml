@@ -2,7 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jee="http://www.springframework.org/schema/jee"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/jee
+       http://www.springframework.org/schema/jee/spring-jee-2.5.xsd">
 
   <!-- Spring config for roll-your-own Atlas web modules -->
 
@@ -11,7 +15,7 @@
         class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
     <!-- resource beans -->
     <property name="atlasDataSource" ref="atlasDataSource" />
-    <property name="indexLocation" value="atlasIndex" />
+    <property name="indexLocation" ref="atlasIndex" />
     <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
     <property name="includeGenes" value="true" />
     <property name="includeExperiments" value="true" />

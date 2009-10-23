@@ -11,7 +11,7 @@ public class ArrayDesign {
   private String type;
   private String name;
   private String provider;
-  private String arrayDesignID;
+  private int arrayDesignID;
 
   public String getAccession() {
     return accession;
@@ -45,11 +45,11 @@ public class ArrayDesign {
     this.provider = provider;
   }
 
-  public String getArrayDesignID() {
+  public int getArrayDesignID() {
     return arrayDesignID;
   }
 
-  public void setArrayDesignID(String arrayDesignID) {
+  public void setArrayDesignID(int arrayDesignID) {
     this.arrayDesignID = arrayDesignID;
   }
 }
