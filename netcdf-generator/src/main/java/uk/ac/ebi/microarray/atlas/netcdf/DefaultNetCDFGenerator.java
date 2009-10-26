@@ -94,9 +94,23 @@ public class DefaultNetCDFGenerator
 
   public void shutdown() throws NetCDFGeneratorException {
     if (running) {
-      // todo - really nothing to shutdown?
-
-      running = false;
+      log.debug("Shutting down " + getClass().getSimpleName() + "...");
+      service.shutdown();
+      try {
+        log.debug("Waiting for termination of running jobs");
+        service.awaitTermination(5, TimeUnit.MINUTES);
+      }
+      catch (InterruptedException e) {
+        log.error("Unable to shutdown service after 5 minutes.  " +
+            "There may be running or suspended NetCDF generation tasks.  " +
+            "If you are sure there are no tasks still running, then this " +
+            "is a non-recoverable error - you should terminate this application");
+        throw new NetCDFGeneratorException(e);
+      }
+      finally {
+        log.debug("Shutdown complete");
+        running = false;
+      }
     }
     else {
       log.warn(
