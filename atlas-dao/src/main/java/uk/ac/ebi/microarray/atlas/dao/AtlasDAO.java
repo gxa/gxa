@@ -73,7 +73,7 @@ public class AtlasDAO {
       ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
           "AND ad.accession=?";
   private static final String PROPERTIES_BY_ASSAY_ACCESSION =
-      "SELECT p.name AS property, p.accession, pv.name AS propertyvalue, " +
+      "SELECT p.name AS property, pv.name AS propertyvalue, " +
           "apv.isfactorvalue " +
           "FROM a2_property p, a2_propertyvalue pv, " +
           "a2_assaypropertyvalue apv, a2_assay a " +
@@ -112,7 +112,6 @@ public class AtlasDAO {
   private static final String PROPERTIES_BY_SAMPLE_ACCESSION =
       "SELECT " +
           "p.name AS property, " +
-          "p.accession, " +
           "pv.name AS propertyvalue, " +
           "spv.isfactorvalue " +
           "FROM " +
@@ -678,9 +677,9 @@ public class AtlasDAO {
       Property property = new Property();
 
       property.setName(resultSet.getString(1));
-      property.setAccession(resultSet.getString(2));
-      property.setValue(resultSet.getString(3));
-      property.setFactorValue(resultSet.getBoolean(4));
+//      property.setAccession(resultSet.getString(2));
+      property.setValue(resultSet.getString(2));
+      property.setFactorValue(resultSet.getBoolean(3));
 
       return property;
     }

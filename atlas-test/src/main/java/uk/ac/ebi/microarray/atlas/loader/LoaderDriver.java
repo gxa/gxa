@@ -37,6 +37,8 @@ public class LoaderDriver {
     // run the index builder
 //    final IndexBuilder builder =
 //        (IndexBuilder) factory.getBean("indexBuilder");
+//    builder.setPendingMode(true);
+//
 //    start = System.currentTimeMillis();
 //    builder.buildIndex(new IndexBuilderListener() {
 //
@@ -72,32 +74,32 @@ public class LoaderDriver {
     final NetCDFGenerator generator =
         (NetCDFGenerator) factory.getBean("netcdfGenerator");
     start = System.currentTimeMillis();
-    generator.generateNetCDFsForExperiment("E-MEXP-405", new NetCDFGeneratorListener() {
-//    generator.generateNetCDFs(new NetCDFGeneratorListener() {
-
-      public void buildSuccess(NetCDFGenerationEvent event) {
-        System.out.println("NetCDF generation completed successfully!");
-        try {
-          generator.shutdown();
-        }
-        catch (NetCDFGeneratorException e) {
-          e.printStackTrace();
-        }
-      }
-
-      public void buildError(NetCDFGenerationEvent event) {
-        System.out.println("NetCDF Generation failed!");
-        for (Throwable t : event.getErrors()) {
-          t.printStackTrace();
-          try {
-            generator.shutdown();
+    generator.generateNetCDFsForExperiment(
+        "E-GEOD-3790",
+        new NetCDFGeneratorListener() {
+          public void buildSuccess(NetCDFGenerationEvent event) {
+            System.out.println("NetCDF generation completed successfully!");
+            try {
+              generator.shutdown();
+            }
+            catch (NetCDFGeneratorException e) {
+              e.printStackTrace();
+            }
           }
-          catch (NetCDFGeneratorException e) {
-            e.printStackTrace();
+
+          public void buildError(NetCDFGenerationEvent event) {
+            System.out.println("NetCDF Generation failed!");
+            for (Throwable t : event.getErrors()) {
+              t.printStackTrace();
+              try {
+                generator.shutdown();
+              }
+              catch (NetCDFGeneratorException e) {
+                e.printStackTrace();
+              }
+            }
           }
-        }
-      }
-    });
+        });
     end = System.currentTimeMillis();
 
     total = new DecimalFormat("#.##").format((end - start) / 1000);
