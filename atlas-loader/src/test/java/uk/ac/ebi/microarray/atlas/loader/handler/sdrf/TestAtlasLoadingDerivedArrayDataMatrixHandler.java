@@ -20,6 +20,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Javadocs go here.
@@ -110,9 +111,9 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
 
     // get the title of the experiment
     for (Assay assay : cache.fetchAllAssays()) {
-      List<ExpressionValue> evs = assay.getExpressionValues();
+      Map<String,Float> evs = assay.getExpressionValuesMap();
 
-      System.out.println("Found " + evs.size() + " expression values for " +
+      System.out.println("Found " + evs.keySet().size() + " expression values for " +
           assay.getAccession());
       assertNotSame("No evs found for assay " + assay.getAccession(),
                     evs.size(), 0);

@@ -104,7 +104,6 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
     // get the title of the experiment
     for (Assay assay : cache.fetchAllAssays()) {
       String acc = assay.getAccession();
-      System.out.println("Next assay acc: " + acc);
       assertNotNull("Sample acc is null", acc);
     }
   }

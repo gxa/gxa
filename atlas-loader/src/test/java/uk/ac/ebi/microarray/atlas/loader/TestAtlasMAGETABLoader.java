@@ -34,6 +34,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Javadocs go here.
@@ -284,8 +285,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     // parsing finished, look in our cache...
     boolean allEmpty = true;
     for (Assay assay : cache.fetchAllAssays()) {
-      List<ExpressionValue> evs = assay.getExpressionValues();
-      if (evs.size() > 0) {
+      Map<String,Float> evs = assay.getExpressionValuesMap();
+      if (evs.keySet().size() > 0) {
         allEmpty = false;
         break;
       }
