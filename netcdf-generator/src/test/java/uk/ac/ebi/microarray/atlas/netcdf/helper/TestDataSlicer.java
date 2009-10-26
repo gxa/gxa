@@ -59,7 +59,7 @@ public class TestDataSlicer extends AtlasDAOTestCase {
           System.out.println("\t\t" + sample.toString());
         }
         System.out.println("\tDesign Element ids");
-        for (int designElementID : slice.getDesignElementIDs()) {
+        for (int designElementID : slice.getDesignElements().keySet()) {
           System.out.println("\t\t" + designElementID);
         }
         System.out.println("\tAssay -> Sample indexes");

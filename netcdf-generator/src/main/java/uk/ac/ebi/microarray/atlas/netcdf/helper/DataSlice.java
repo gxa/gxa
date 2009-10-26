@@ -21,12 +21,13 @@ public class DataSlice {
   private Experiment experiment;
   private ArrayDesign arrayDesign;
   private List<Assay> assays;
-  private List<Integer> designElementIDs;
+//  private List<Integer> designElementIDs;
+  private Map<Integer, String> designElements;
   // lists of indexed things
   private List<Sample> samples;
   private List<Gene> genes;
   private List<ExpressionAnalysis> analyses;
-  private List<ExpressionValue> expressionValues;
+  private Map<Integer, Map<String, Float>> expressionValues;
   // maps of indexed things
   private Map<Assay, List<Sample>> samplesMap;
   private Map<Integer, Gene> genesMap;
@@ -59,12 +60,21 @@ public class DataSlice {
     }
   }
 
-  public List<Integer> getDesignElementIDs() {
-    if (designElementIDs != null) {
-      return designElementIDs;
+//  public List<Integer> getDesignElementIDs() {
+//    if (designElementIDs != null) {
+//      return designElementIDs;
+//    }
+//    else {
+//      return new ArrayList<Integer>();
+//    }
+//  }
+
+  public Map<Integer, String> getDesignElements() {
+    if (designElements != null) {
+      return designElements;
     }
     else {
-      return new ArrayList<Integer>();
+      return new HashMap<Integer, String>();
     }
   }
 
@@ -95,12 +105,12 @@ public class DataSlice {
     }
   }
 
-  public List<ExpressionValue> getExpressionValues() {
+  public Map<Integer, Map<String, Float>> getExpressionValues() {
     if (expressionValues != null) {
       return expressionValues;
     }
     else {
-      return new ArrayList<ExpressionValue>();
+      return new HashMap<Integer, Map<String, Float>>();
     }
   }
 
@@ -269,15 +279,26 @@ public class DataSlice {
     }
   }
 
+//  /**
+//   * Stores a list of design element ids for this data slice.  This list should
+//   * be the list of design elements that belong to the array design for this
+//   * data slice.
+//   *
+//   * @param designElementIDs the list of design element ids to store
+//   */
+//  public void storeDesignElementIDs(List<Integer> designElementIDs) {
+//    this.designElementIDs = designElementIDs;
+//  }
+
   /**
-   * Stores a list of design element ids for this data slice.  This list should
-   * be the list of design elements that belong to the array design for this
-   * data slice.
+   * Stores a map containing information about design elements for this data
+   * slice.  This map should contain the list of design element ids and the
+   * manufacturers design element accession.
    *
-   * @param designElementIDs the list of design element ids to store
+   * @param designElements
    */
-  public void storeDesignElementIDs(List<Integer> designElementIDs) {
-    this.designElementIDs = designElementIDs;
+  public void storeDesignElements(Map<Integer, String> designElements) {
+    this.designElements = designElements;
   }
 
   /**
@@ -296,7 +317,7 @@ public class DataSlice {
    */
   public void storeGene(
       int designElementID, Gene gene) throws DataSlicingException {
-    if (designElementIDs == null) {
+    if (designElements == null) {
       throw new DataSlicingException("Can't store " + gene + ": " +
           "design element index has not been initialized!");
     }
@@ -310,7 +331,7 @@ public class DataSlice {
       }
 
       // now check integrity
-      if (!designElementIDs.contains(designElementID)) {
+      if (!designElements.containsKey(designElementID)) {
         throw new DataSlicingException("Can't store " + gene + ": " +
             "design element " + designElementID + " absent from index");
       }
@@ -349,7 +370,7 @@ public class DataSlice {
   public void storeExpressionAnalysis(
       int designElementID, ExpressionAnalysis analysis)
       throws DataSlicingException {
-    if (designElementIDs == null) {
+    if (designElements == null) {
       throw new DataSlicingException("Can't store " + analysis + ": " +
           "design element index has not been initialized!");
     }
@@ -363,7 +384,7 @@ public class DataSlice {
       }
 
       // now check integrity
-      if (!designElementIDs.contains(designElementID)) {
+      if (!designElements.containsKey(designElementID)) {
         throw new DataSlicingException("Can't store " + analysis + ": " +
             "design element " + designElementID + " absent from index");
       }
@@ -390,7 +411,8 @@ public class DataSlice {
    *
    * @param expressionValues the expression values to store
    */
-  public void storeExpressionValues(List<ExpressionValue> expressionValues) {
+  public void storeExpressionValues(
+      Map<Integer, Map<String, Float>> expressionValues) {
     this.expressionValues = expressionValues;
   }
 
@@ -461,7 +483,7 @@ public class DataSlice {
     this.experiment = null;
     this.arrayDesign = null;
     this.assays = null;
-    this.designElementIDs = null;
+    this.designElements = null;
     // lists of indexed things
     this.samples = null;
     this.genes = null;

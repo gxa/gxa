@@ -59,12 +59,12 @@ public class NetCDFFormatter {
     // setup design element part of netCDF
     createDesignElementVariables(
         netCDF,
-        dataSlice.getDesignElementIDs());
+        dataSlice.getDesignElements());
 
     // setup gene part of netCDF
     createGeneVariables(
         netCDF,
-        dataSlice.getDesignElementIDs(),
+        dataSlice.getDesignElements(),
         dataSlice.getGenes());
 
     // setup property parts of the netCDF -
@@ -192,16 +192,17 @@ public class NetCDFFormatter {
    * identifiers.  This results in the creation of the "DE" dimension and
    * variable.
    *
-   * @param netCDF           the NetCDF model to modify
-   * @param designElementIDs the list of unique identifiers for design elements
-   *                         that will be used to configure this NetCDF
+   * @param netCDF         the NetCDF model to modify
+   * @param designElements the design elements map - the keyset is the list of
+   *                       unique identifiers for design elements that will be
+   *                       used to configure this NetCDF
    */
   private void createDesignElementVariables(
-      NetcdfFileWriteable netCDF, List<Integer> designElementIDs) {
-    if (designElementIDs.size() > 0) {
+      NetcdfFileWriteable netCDF, Map<Integer, String> designElements) {
+    if (designElements.keySet().size() > 0) {
       // update the netCDF with the genes count
       designElementDimension =
-          netCDF.addDimension("DE", designElementIDs.size());
+          netCDF.addDimension("DE", designElements.keySet().size());
       // add gene variable
       netCDF.addVariable("DE", DataType.INT,
                          new Dimension[]{designElementDimension});
@@ -220,32 +221,34 @@ public class NetCDFFormatter {
    * results in the creation of the "GN" dimension and variable.
    *
    * @param netCDF         the NetCDF model to modify
-   * @param designElements the list of design elements for this data slice
+   * @param designElements the design elements map - the keyset is the list of
+   *                       unique identifiers for design elements that will be
+   *                       used to configure this NetCDF
    * @param genes          the mapping of design element ids to genes that will
    *                       be used to configure this NetCDF
    * @throws uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException
    *          if the number of genes exceeds the number of design elements
    */
   private void createGeneVariables(NetcdfFileWriteable netCDF,
-                                   List<Integer> designElements,
+                                   Map<Integer, String> designElements,
                                    List<Gene> genes)
       throws NetCDFGeneratorException {
     if (genes.size() > 0) {
       // check that we have an appropriate mapping
-      if (genes.size() < designElements.size()) {
+      if (genes.size() < designElements.keySet().size()) {
         log.warn(
             "Mismatched design element/gene counts: " +
                 "Some design elements have no annotations.  " +
                 "GN will be created using design element counts");
         // update the netCDF with the genes count
         Dimension geneDimension =
-            netCDF.addDimension("GN", designElements.size());
+            netCDF.addDimension("GN", designElements.keySet().size());
         // add gene variable
         netCDF.addVariable("GN", DataType.INT,
                            new Dimension[]{geneDimension});
       }
       else {
-        if (genes.size() > designElements.size()) {
+        if (genes.size() > designElements.keySet().size()) {
           throw new NetCDFGeneratorException(
               "Mismatched design element/gene counts: " +
                   "There are more genes than design elements, so something " +

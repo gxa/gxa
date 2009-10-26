@@ -33,7 +33,6 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationH
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.sql.DataSource;
@@ -41,7 +40,10 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into
@@ -196,7 +198,7 @@ public class AtlasMAGETABLoader {
         Set<String> missingDesignElements;
         if (!designElementsByArray.containsKey(arrayDesignAcc)) {
           missingDesignElements =
-              lookupMissingDesignElements(assay.getExpressionValues(),
+              lookupMissingDesignElements(assay.getExpressionValuesMap(),
                                           assay.getArrayDesignAccession());
 
           // add to our cache for known missing design elements
@@ -297,19 +299,18 @@ public class AtlasMAGETABLoader {
   }
 
   private Set<String> lookupMissingDesignElements(
-      List<ExpressionValue> expressionValues,
+      Map<String, Float> expressionValues,
       String arrayDesignAccession) throws SQLException {
     // use our dao to lookup design elements, instead of the writer class
-    List<String> designElements = atlasDAO.
-        getDesignElementAccessionsByArrayAccession(arrayDesignAccession);
+    Map<Integer, String> designElements = atlasDAO.
+        getDesignElementsByArrayAccession(arrayDesignAccession);
 
     // check off missing design elements against any present
     Set<String> missingDesignElements = new HashSet<String>();
 
     // for every expression value, check if it's in database
-    for (ExpressionValue ev : expressionValues) {
-      String deAcc = ev.getDesignElementAccession();
-      if (!designElements.contains(deAcc)) {
+    for (String deAcc : expressionValues.keySet()) {
+      if (!designElements.values().contains(deAcc)) {
         missingDesignElements.add(deAcc);
       }
     }
@@ -331,14 +332,11 @@ public class AtlasMAGETABLoader {
 
   private void trimMissingDesignElements(Assay assay,
                                          Set<String> missingDesignElements) {
-    List<ExpressionValue> evs = new ArrayList<ExpressionValue>();
-    evs.addAll(assay.getExpressionValues());
-    for (ExpressionValue ev : evs) {
-      String deAcc = ev.getDesignElementAccession();
-      if (missingDesignElements.contains(deAcc)) {
+    for (String deAcc : missingDesignElements) {
+      if (assay.getExpressionValuesMap().containsKey(deAcc)) {
         log.debug("Missing design element " + deAcc + " will be " +
             "removed from this assay - not in database.");
-        assay.getExpressionValues().remove(ev);
+        assay.getExpressionValuesMap().remove(deAcc);
       }
     }
   }

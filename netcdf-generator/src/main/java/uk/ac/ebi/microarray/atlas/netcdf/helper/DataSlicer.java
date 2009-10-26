@@ -7,6 +7,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -76,7 +77,7 @@ public class DataSlicer {
       dataSlice.storeAssays(assays);
 
       // fetch expression values for this array
-      List<ExpressionValue> expressionValues = getAtlasDAO()
+      Map<Integer, Map<String, Float>> expressionValues = getAtlasDAO()
           .getExpressionValuesByExperimentAndArray(
               experiment.getExperimentID(), arrayDesign.getArrayDesignID());
       // and store
@@ -97,18 +98,18 @@ public class DataSlicer {
       // fetch design elements specific to this array design
       log.debug(
           "Fetching design element data for " + arrayDesign.getAccession());
-      List<Integer> designElements = getAtlasDAO()
-          .getDesignElementIDsByArrayAccession(arrayDesign.getAccession());
+      Map<Integer, String> designElements = getAtlasDAO()
+          .getDesignElementsByArrayAccession(arrayDesign.getAccession());
       // and store
-      dataSlice.storeDesignElementIDs(designElements);
+      dataSlice.storeDesignElements(designElements);
 
       // genes for this experiment were prefetched -
       // compare to design elements and store, correctly indexed
       log.debug("Indexing gene data by design element ID");
       for (Gene gene : allGenes) {
         // check this gene maps to a stored design element
-        if (dataSlice.getDesignElementIDs()
-            .contains(gene.getDesignElementID())) {
+        if (dataSlice.getDesignElements()
+            .containsKey(gene.getDesignElementID())) {
           dataSlice.storeGene(gene.getDesignElementID(), gene);
 
           // remove from the unmapped list if necessary
@@ -127,8 +128,8 @@ public class DataSlicer {
       // compare to design elements and store, correctly indexed
       log.debug("Indexing analytics data by design element ID");
       for (ExpressionAnalysis analysis : allAnalytics) {
-        if (dataSlice.getDesignElementIDs()
-            .contains(analysis.getDesignElementID())) {
+        if (dataSlice.getDesignElements()
+            .containsKey(analysis.getDesignElementID())) {
           dataSlice.storeExpressionAnalysis(
               analysis.getDesignElementID(), analysis);
 

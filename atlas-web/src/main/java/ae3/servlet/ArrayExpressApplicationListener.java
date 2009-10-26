@@ -26,7 +26,6 @@ import ds.server.DataServerAPI;
 import ds.utils.DS_DBconnection;
 
 import ae3.service.ArrayExpressSearchService;
-import ae3.service.AtlasDownloadService;
 import ae3.util.AtlasProperties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
