@@ -4,7 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.Gene;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
 
 import java.io.IOException;
@@ -19,7 +22,7 @@ import java.util.*;
 public class NetCDFWriter {
   // internal maps - indexes for locations of given assay/design element ids
   Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
-  Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
+  Map<String, Integer> designElementIndex = new HashMap<String, Integer>();
 
   // logging
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -47,12 +50,12 @@ public class NetCDFWriter {
       // write design element data
       writeDesignElementData(
           netCDF,
-          dataSlice.getDesignElementIDs());
+          dataSlice.getDesignElements());
 
       // write gene data
       writeGeneData(
           netCDF,
-          dataSlice.getDesignElementIDs(),
+          dataSlice.getDesignElements(),
           dataSlice.getGeneMappings());
 
       // write property data
@@ -71,7 +74,7 @@ public class NetCDFWriter {
       // write stats matrix values
       writeStatsValues(
           netCDF,
-          dataSlice.getDesignElementIDs(),
+          dataSlice.getDesignElements(),
           dataSlice.getExpressionAnalysisMappings(),
           dataSlice.getAssays(),
           dataSlice.getAssayFactorValueMappings());
@@ -158,18 +161,18 @@ public class NetCDFWriter {
   }
 
   private void writeDesignElementData(NetcdfFileWriteable netCDF,
-                                      List<Integer> designElementIDs)
+                                      Map<Integer, String> designElements)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("DE") != null) {
       // add design element id data
-      ArrayInt de = new ArrayInt.D1(designElementIDs.size());
+      ArrayInt de = new ArrayInt.D1(designElements.keySet().size());
       IndexIterator deIt = de.getIndexIterator();
       int counter = 0;
-      for (int designElementID : designElementIDs) {
+      for (int designElementID : designElements.keySet()) {
         deIt.setIntNext(designElementID);
 
         // record in the index
-        designElementIndex.put(designElementID, counter);
+        designElementIndex.put(designElements.get(designElementID), counter);
         counter++;
       }
       netCDF.write("DE", de);
@@ -178,7 +181,7 @@ public class NetCDFWriter {
   }
 
   private void writeGeneData(NetcdfFileWriteable netCDF,
-                             List<Integer> designElements,
+                             Map<Integer, String> designElements,
                              Map<Integer, Gene> geneMappings)
       throws IOException, InvalidRangeException, NetCDFGeneratorException {
     if (netCDF.findDimension("GN") != null) {
@@ -194,7 +197,7 @@ public class NetCDFWriter {
       // add gene id data for stored design elements
       gn = new ArrayInt.D1(designElements.size());
       IndexIterator gnIt = gn.getIndexIterator();
-      for (int designElement : designElements) {
+      for (int designElement : designElements.keySet()) {
         if (geneMappings.get(designElement) == null) {
           gnIt.setIntNext(0);
         }
@@ -340,7 +343,7 @@ public class NetCDFWriter {
   }
 
   private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
-                                           List<ExpressionValue> expressionValues)
+                                           Map<Integer, Map<String, Float>> expressionValues)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("DE") != null) {
@@ -355,11 +358,14 @@ public class NetCDFWriter {
       }
 
       // loop over expression values doing crafty index lookups
-      for (ExpressionValue ev : expressionValues) {
-        int deIndex = designElementIndex.get(ev.getDesignElementID());
-        int asIndex = assayIndex.get(ev.getAssayID());
+      for (int assayID : expressionValues.keySet()) {
+        for (Map.Entry<String, Float> ev : expressionValues.get(assayID)
+            .entrySet()) {
+          int asIndex = assayIndex.get(assayID);
+          int deIndex = designElementIndex.get(ev.getKey());
 
-        bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
+          bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
+        }
       }
 
       netCDF.write("BDC", bdc);
@@ -368,7 +374,7 @@ public class NetCDFWriter {
   }
 
   private void writeStatsValues(NetcdfFileWriteable netCDF,
-                                List<Integer> designElements,
+                                Map<Integer, String> designElements,
                                 Map<Integer, List<ExpressionAnalysis>> analyses,
                                 List<Assay> assays,
                                 Map<Assay, List<String>> assayFactorValueMap)
@@ -389,7 +395,7 @@ public class NetCDFWriter {
       int deIndex = 0;
       int uefvIndex = 0;
       // loop over design elements
-      for (int designElementID : designElements) {
+      for (int designElementID : designElements.keySet()) {
         if (analyses.get(designElementID) != null) {
           // not null, so now loop over values of the assayFactorValueMap,
           // so  we can lookup analysis by design element id and property value

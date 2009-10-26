@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Actual tests for ATlasDAO, extends AtlasDAOTestCase which does all the handy
@@ -194,9 +195,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
       // now check EVS
       for (Assay assay : assays) {
         assertNotNull("Null collection of expression values",
-                      assay.getExpressionValues());
+                      assay.getAllExpressionValues());
         System.out.println("Assay " + assay.getAccession() + " has " +
-            assay.getExpressionValues().size() + " expression values");
+            assay.getAllExpressionValues().length + " expression values");
       }
     }
     catch (Exception e) {
@@ -308,18 +309,18 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
   }
 
-  public void testGetDesignElementIDsByArrayAccession() {
+  public void testGetDesignElementsByArrayAccession() {
     try {
       // fetch the accession of the first array design in our dataset
       String accession =
           getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
               .toString();
 
-      List<Integer> deIDs =
-          getAtlasDAO().getDesignElementIDsByArrayAccession(accession);
+      Map<Integer, String> designElements =
+          getAtlasDAO().getDesignElementsByArrayAccession(accession);
 
       // check the returned data
-      for (Integer deID : deIDs) {
+      for (Integer deID : designElements.keySet()) {
         assertNotNull(deID);
         assertNotSame("Empty int for design element ID", deID, "");
         System.out.println("Got design element: " + deID);
@@ -331,41 +332,17 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
   }
 
-  public void testGetDesignElementAccessionsByArrayAccession() {
-    try {
-      // fetch the accession of the first array design in our dataset
-      String accession =
-          getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
-              .toString();
-
-      List<String> deAcc =
-          getAtlasDAO().getDesignElementAccessionsByArrayAccession(accession);
-
-      // check the returned data
-      for (String deID : deAcc) {
-        assertNotNull(deID);
-        assertNotSame("Got 0 for design element ID", deID, 0);
-        assertNotSame("Got -1 for design element ID", deID, -1);
-        System.out.println("Got design element: " + deID);
-      }
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      fail();
-    }
-  }
-
-  public void testGetDesignElementAccessionsByGeneID() {
+  public void testGetDesignElementsByGeneID() {
     try {
       // fetch the accession of the first gene in our dataset
       int id = Integer.parseInt(
           getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
 
-      List<Integer> deIDs =
-          getAtlasDAO().getDesignElementIDsByGeneID(id);
+      Map<Integer, String> designElements =
+          getAtlasDAO().getDesignElementsByGeneID(id);
 
       // check the returned data
-      for (int deID : deIDs) {
+      for (int deID : designElements.keySet()) {
         assertNotNull(deID);
         assertNotSame("Got 0 for design element ID", deID, 0);
         assertNotSame("Got -1 for design element ID", deID, -1);

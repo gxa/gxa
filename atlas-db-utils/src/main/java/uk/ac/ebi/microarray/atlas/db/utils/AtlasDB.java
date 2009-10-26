@@ -4,10 +4,13 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
-import oracle.jdbc.OracleConnection;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.sql.*;
+import java.util.Map;
 
 /**
  * Utils for writing atlas loader API objects (see also {@link
@@ -77,17 +80,36 @@ public class AtlasDB {
       //5  ExpressionValues ExpressionValueTable
       stmt = connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
 
+//      Object[] expressionValues =
+//          new Object[null == value.getExpressionValues() ? 0
+//              : value.getExpressionValues().size()];
+//      //placeholders for all properties of ExpressionValue structure
+//      Object[] members = new Object[2];
+//
+//      if (value.getExpressionValues() != null) {
+//        int i = 0;
+//        for (ExpressionValue v : value.getExpressionValues()) {
+//          members[0] = v.getDesignElementAccession();
+//          members[1] = v.getValue();
+//
+//          expressionValues[i++] =
+//              toSqlStruct(connection, "EXPRESSIONVALUE", members);
+//        }
+//      }
+
+      // replacing expression value lookup with mapped values lookup
       Object[] expressionValues =
-          new Object[null == value.getExpressionValues() ? 0
-              : value.getExpressionValues().size()];
+          new Object[null == value.getExpressionValuesMap() ? 0
+              : value.getExpressionValuesMap().keySet().size()];
       //placeholders for all properties of ExpressionValue structure
       Object[] members = new Object[2];
 
-      if (value.getExpressionValues() != null) {
+      if (value.getExpressionValuesMap() != null) {
         int i = 0;
-        for (ExpressionValue v : value.getExpressionValues()) {
-          members[0] = v.getDesignElementAccession();
-          members[1] = v.getValue();
+        for (Map.Entry<String, Float> expressionValue :
+            value.getExpressionValuesMap().entrySet()) {
+          members[0] = expressionValue.getKey();
+          members[1] = expressionValue.getValue();
 
           expressionValues[i++] =
               toSqlStruct(connection, "EXPRESSIONVALUE", members);

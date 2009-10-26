@@ -2,10 +2,8 @@ package uk.ac.ebi.microarray.atlas.loader.utils;
 
 import junit.framework.TestCase;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +35,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
           DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
 
       long startTime = System.currentTimeMillis();
-      Map<String, List<ExpressionValue>> evs =
+      Map<String, Map<String, Float>> evs =
           buffer.readAssayExpressionValues(assayRef);
       long endTime = System.currentTimeMillis();
 

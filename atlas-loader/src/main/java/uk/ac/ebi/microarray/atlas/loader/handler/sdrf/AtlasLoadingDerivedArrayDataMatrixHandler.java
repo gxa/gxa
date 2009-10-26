@@ -14,7 +14,6 @@ import uk.ac.ebi.microarray.atlas.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.microarray.atlas.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -91,7 +90,9 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                 "require expression values");
 
             // and read out all expression values
-            Map<String, List<ExpressionValue>> evMap =
+//            Map<String, List<ExpressionValue>> evMap =
+//                buffer.readAssayExpressionValues(assayRefs);
+            Map<String, Map<String, Float>> evMap =
                 buffer.readAssayExpressionValues(assayRefs);
 
             // now fetch each assay and add expression values
@@ -100,7 +101,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
               String accession = AtlasLoaderUtils.getNodeAccession(
                   investigation, assayNode);
 
-              List<ExpressionValue> evs = evMap.get(assayRef);
+              Map<String, Float> evs = evMap.get(assayRef);
               try {
                 getLog().debug("Retrieving assay " + assayRef +
                     " ready for updates...");
@@ -109,7 +110,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                     getLog());
                 getLog().debug("Updating assay " + assayRef + " with " +
                     evs.size() + " expression values");
-                assay.setExpressionValues(evs);
+                assay.setExpressionValuesMap(evs);
               }
               catch (LookupException e) {
                 // generate error item and throw exception

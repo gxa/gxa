@@ -6,7 +6,6 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,7 +63,8 @@ public class DataMatrixFileBuffer {
 
   private URL dataMatrixURL;
   private Map<String, Integer> assayRefToEVColumn;
-  private Map<String, List<ExpressionValue>> assayRefToEVs;
+  //  private Map<String, List<ExpressionValue>> assayRefToEVs;
+  private Map<String, Map<String, Float>> assayRefToEVs;
 
   private boolean ready = false;
   private ParseException initFailed = null;
@@ -74,7 +74,7 @@ public class DataMatrixFileBuffer {
   private DataMatrixFileBuffer(URL dataMatrixURL) {
     this.dataMatrixURL = dataMatrixURL;
     this.assayRefToEVColumn = new HashMap<String, Integer>();
-    this.assayRefToEVs = new HashMap<String, List<ExpressionValue>>();
+    this.assayRefToEVs = new HashMap<String, Map<String, Float>>();
   }
 
   /**
@@ -92,7 +92,7 @@ public class DataMatrixFileBuffer {
    * @throws ParseException if the file could not be parsed, either at
    *                        initialization or when reading expression values
    */
-  public Map<String, List<ExpressionValue>> readAssayExpressionValues(
+  public Map<String, Map<String, Float>> readAssayExpressionValues(
       String... assayRefs)
       throws ParseException {
     // block until ready
@@ -108,8 +108,11 @@ public class DataMatrixFileBuffer {
       }
     }
 
-    Map<String, List<ExpressionValue>> result =
-        new HashMap<String, List<ExpressionValue>>();
+//    Map<String, List<ExpressionValue>> result =
+//        new HashMap<String, List<ExpressionValue>>();
+    // argh, complex mapping - assay accession to the map of design element/expression value mappings
+    Map<String, Map<String, Float>> result =
+        new HashMap<String, Map<String, Float>>();
 
     // if initFailed is not null, failed to init so throw
     if (initFailed != null) {
@@ -125,9 +128,9 @@ public class DataMatrixFileBuffer {
       }
       else {
         // cached map contains no result for this assay, create new list
-        assayRefToEVs.put(assayRef, new ArrayList<ExpressionValue>());
+        assayRefToEVs.put(assayRef, new HashMap<String, Float>());
         // and create list for results
-        result.put(assayRef, new ArrayList<ExpressionValue>());
+        result.put(assayRef, new HashMap<String, Float>());
       }
     }
 
@@ -189,15 +192,16 @@ public class DataMatrixFileBuffer {
                     float evFloatValue = Float.parseFloat(
                         tokens[assayRefToEVColumn.get(assayRef)]);
 
-                    ExpressionValue ev = new ExpressionValue();
-                    ev.setDesignElementAccession(designElement);
-                    ev.setValue(evFloatValue);
+//                    ExpressionValue ev = new ExpressionValue();
+//                    ev.setDesignElementAccession(designElement);
+//                    ev.setValue(evFloatValue);
 
                     // finished reading, store in buffer...
                     // fixme: we may want to remove this, if we suffer on memory here it's better to reread instead of buffer
-                    assayRefToEVs.get(assayRef).add(ev);
+                    assayRefToEVs.get(assayRef)
+                        .put(designElement, evFloatValue);
                     // and now add to result map
-                    result.get(assayRef).add(ev);
+                    result.get(assayRef).put(designElement, evFloatValue);
                   }
                 }
               }

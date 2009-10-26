@@ -1,7 +1,9 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:31:25 AM
@@ -12,8 +14,11 @@ public class Assay {
   private String experimentAccession;
   private String arrayDesignAcession;
   private List<Property> properties;
-  private List<ExpressionValue> expressionValues;
+  //  private List<ExpressionValue> expressionValues;
   private int assayID;
+
+  // maps design elements to expression values as primitives
+  private Map<String, Float> expressionValues;
 
   public String getAccession() {
     return accession;
@@ -47,14 +52,36 @@ public class Assay {
     this.properties = properties;
   }
 
-  public List<ExpressionValue> getExpressionValues() {
-    return expressionValues;
+  public Map<String, Float> getExpressionValuesMap() {
+    return this.expressionValues;
   }
 
-  public void setExpressionValues(List<ExpressionValue> expressionValues) {
+  public void setExpressionValuesMap(Map<String, Float> expressionValues) {
     this.expressionValues = expressionValues;
   }
 
+  public float[] getAllExpressionValues() {
+    float[] result = new float[expressionValues.keySet().size()];
+    int i = 0;
+    for (Float f : expressionValues.values()) {
+      result[i] = f;
+      i++;
+    }
+    return result;
+  }
+
+  public float getExpressionValueByDesignElement(
+      String designElementAccession) {
+    return expressionValues.get(designElementAccession);
+  }
+
+//  public List<ExpressionValue> getExpressionValues() {
+//    return expressionValues;
+//  }
+//
+//  public void setExpressionValues(List<ExpressionValue> expressionValues) {
+//    this.expressionValues = expressionValues;
+//  }
 
   public int getAssayID() {
     return assayID;
@@ -98,19 +125,25 @@ public class Assay {
     return properties.add(p);
   }
 
-  public ExpressionValue addExpressionValue(String designElementAccession,
-                                            float value) {
-    ExpressionValue result = new ExpressionValue();
-    result.setDesignElementAccession(designElementAccession);
-    result.setValue(value);
+  public void addExpressionValue(String designElementAccession,
+                                 float value) {
+//    ExpressionValue result = new ExpressionValue();
+//    result.setDesignElementAccession(designElementAccession);
+//    result.setValue(value);
+//
+//    if (null == expressionValues) {
+//      expressionValues = new ArrayList<ExpressionValue>();
+//    }
+//
+//    expressionValues.add(result);
+//
+//    return result;
 
-    if (null == expressionValues) {
-      expressionValues = new ArrayList<ExpressionValue>();
+    if (expressionValues == null) {
+      expressionValues = new HashMap<String, Float>();
     }
 
-    expressionValues.add(result);
-
-    return result;
+    expressionValues.put(designElementAccession, value);
   }
 
   @Override
