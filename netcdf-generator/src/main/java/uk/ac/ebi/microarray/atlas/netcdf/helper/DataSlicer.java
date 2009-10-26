@@ -77,8 +77,8 @@ public class DataSlicer {
       dataSlice.storeAssays(assays);
 
       // fetch expression values for this array
-      log.debug("Fetch expression values for " + experiment.getAccession() +
-          " and " + arrayDesign.getArrayDesignID());
+      log.debug("Fetching expression values for " + experiment.getAccession() +
+          " and " + arrayDesign.getAccession());
       Map<Integer, Map<String, Float>> expressionValues = getAtlasDAO()
           .getExpressionValuesByExperimentAndArray(
               experiment.getExperimentID(), arrayDesign.getArrayDesignID());
