@@ -18,16 +18,16 @@ import java.util.Map;
  * @date 30-Sep-2009
  */
 public class DataSlice {
-  private Experiment experiment;
-  private ArrayDesign arrayDesign;
+  private final Experiment experiment;
+  private final ArrayDesign arrayDesign;
   private List<Assay> assays;
-//  private List<Integer> designElementIDs;
+  //  private List<Integer> designElementIDs;
   private Map<Integer, String> designElements;
   // lists of indexed things
   private List<Sample> samples;
   private List<Gene> genes;
   private List<ExpressionAnalysis> analyses;
-  private Map<Integer, Map<String, Float>> expressionValues;
+  private Map<Integer, Map<Integer, Float>> expressionValues;
   // maps of indexed things
   private Map<Assay, List<Sample>> samplesMap;
   private Map<Integer, Gene> genesMap;
@@ -43,15 +43,15 @@ public class DataSlice {
     this.arrayDesign = arrayDesign;
   }
 
-  public Experiment getExperiment() {
+  public synchronized Experiment getExperiment() {
     return experiment;
   }
 
-  public ArrayDesign getArrayDesign() {
+  public synchronized ArrayDesign getArrayDesign() {
     return arrayDesign;
   }
 
-  public List<Assay> getAssays() {
+  public synchronized List<Assay> getAssays() {
     if (assays != null) {
       return assays;
     }
@@ -60,16 +60,7 @@ public class DataSlice {
     }
   }
 
-//  public List<Integer> getDesignElementIDs() {
-//    if (designElementIDs != null) {
-//      return designElementIDs;
-//    }
-//    else {
-//      return new ArrayList<Integer>();
-//    }
-//  }
-
-  public Map<Integer, String> getDesignElements() {
+  public synchronized Map<Integer, String> getDesignElements() {
     if (designElements != null) {
       return designElements;
     }
@@ -78,7 +69,7 @@ public class DataSlice {
     }
   }
 
-  public List<Gene> getGenes() {
+  public synchronized List<Gene> getGenes() {
     if (genes != null) {
       return genes;
     }
@@ -87,7 +78,7 @@ public class DataSlice {
     }
   }
 
-  public List<ExpressionAnalysis> getExpressionAnalyses() {
+  public synchronized List<ExpressionAnalysis> getExpressionAnalyses() {
     if (analyses != null) {
       return analyses;
     }
@@ -96,7 +87,7 @@ public class DataSlice {
     }
   }
 
-  public List<Sample> getSamples() {
+  public synchronized List<Sample> getSamples() {
     if (samples != null) {
       return samples;
     }
@@ -105,12 +96,12 @@ public class DataSlice {
     }
   }
 
-  public Map<Integer, Map<String, Float>> getExpressionValues() {
+  public synchronized Map<Integer, Map<Integer, Float>> getExpressionValues() {
     if (expressionValues != null) {
       return expressionValues;
     }
     else {
-      return new HashMap<Integer, Map<String, Float>>();
+      return new HashMap<Integer, Map<Integer, Float>>();
     }
   }
 
@@ -123,7 +114,7 @@ public class DataSlice {
    * @return a map of lists of samples, indexed by the assay they're related to.
    *         This will be a one-to-one mapping in most cases.
    */
-  public Map<Assay, List<Sample>> getSampleMappings() {
+  public synchronized Map<Assay, List<Sample>> getSampleMappings() {
     if (samplesMap != null) {
       return samplesMap;
     }
@@ -142,7 +133,7 @@ public class DataSlice {
    * @return a map of genes, indexed by the design element id they're related
    *         to.
    */
-  public Map<Integer, Gene> getGeneMappings() {
+  public synchronized Map<Integer, Gene> getGeneMappings() {
     if (genesMap != null) {
       return genesMap;
     }
@@ -151,7 +142,7 @@ public class DataSlice {
     }
   }
 
-  public Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysisMappings() {
+  public synchronized Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysisMappings() {
     if (analysesMap != null) {
       return analysesMap;
     }
@@ -171,7 +162,7 @@ public class DataSlice {
    * @return the mapping between unique EFs and the set of EFVs for this data
    *         slice
    */
-  public Map<String, List<String>> getExperimentFactorMappings() {
+  public synchronized Map<String, List<String>> getExperimentFactorMappings() {
     if (experimentFactorMap == null) {
       evaluatePropertyMappings();
     }
@@ -189,7 +180,7 @@ public class DataSlice {
    * @return the mapping between unique SCs and the set of SCVs for this data
    *         slice
    */
-  public Map<String, List<String>> getSampleCharacteristicMappings() {
+  public synchronized Map<String, List<String>> getSampleCharacteristicMappings() {
     if (sampleCharacteristicMap == null) {
       evaluatePropertyMappings();
     }
@@ -210,7 +201,7 @@ public class DataSlice {
    * @return the mappins between assays with declared factor values, and the
    *         list of values observed.
    */
-  public Map<Assay, List<String>> getAssayFactorValueMappings() {
+  public synchronized Map<Assay, List<String>> getAssayFactorValueMappings() {
     if (assayFactorValueMap == null) {
       evaluatePropertyMappings();
     }
@@ -225,7 +216,7 @@ public class DataSlice {
    *
    * @param assays the list of assays to store
    */
-  public void storeAssays(List<Assay> assays) {
+  public synchronized void storeAssays(List<Assay> assays) {
     this.assays = assays;
   }
 
@@ -241,7 +232,7 @@ public class DataSlice {
    * @throws DataSlicingException if you store a sample for an unknown assay, or
    *                              if no assays are stored.
    */
-  public void storeSample(Assay assay, Sample sample)
+  public synchronized void storeSample(Assay assay, Sample sample)
       throws DataSlicingException {
     if (assays == null) {
       throw new DataSlicingException("Can't store " + sample + ": " +
@@ -279,25 +270,16 @@ public class DataSlice {
     }
   }
 
-//  /**
-//   * Stores a list of design element ids for this data slice.  This list should
-//   * be the list of design elements that belong to the array design for this
-//   * data slice.
-//   *
-//   * @param designElementIDs the list of design element ids to store
-//   */
-//  public void storeDesignElementIDs(List<Integer> designElementIDs) {
-//    this.designElementIDs = designElementIDs;
-//  }
-
   /**
    * Stores a map containing information about design elements for this data
    * slice.  This map should contain the list of design element ids and the
    * manufacturers design element accession.
    *
-   * @param designElements
+   * @param designElements the design elements to store, being a map of design
+   *                       element ids to accessions
    */
-  public void storeDesignElements(Map<Integer, String> designElements) {
+  public synchronized void storeDesignElements(
+      Map<Integer, String> designElements) {
     this.designElements = designElements;
   }
 
@@ -315,7 +297,7 @@ public class DataSlice {
    * @throws DataSlicingException if you store a gene for an unknown design
    *                              element, or if no design elements are stored.
    */
-  public void storeGene(
+  public synchronized void storeGene(
       int designElementID, Gene gene) throws DataSlicingException {
     if (designElements == null) {
       throw new DataSlicingException("Can't store " + gene + ": " +
@@ -367,7 +349,7 @@ public class DataSlice {
    * @throws DataSlicingException if you store an analysis for an unknown design
    *                              element, or if no design elements are stored.
    */
-  public void storeExpressionAnalysis(
+  public synchronized void storeExpressionAnalysis(
       int designElementID, ExpressionAnalysis analysis)
       throws DataSlicingException {
     if (designElements == null) {
@@ -411,12 +393,12 @@ public class DataSlice {
    *
    * @param expressionValues the expression values to store
    */
-  public void storeExpressionValues(
-      Map<Integer, Map<String, Float>> expressionValues) {
+  public synchronized void storeExpressionValues(
+      Map<Integer, Map<Integer, Float>> expressionValues) {
     this.expressionValues = expressionValues;
   }
 
-  public void evaluatePropertyMappings() {
+  public synchronized void evaluatePropertyMappings() {
     // maps property names to all values for assay properties
     experimentFactorMap = new HashMap<String, List<String>>();
     // maps property names to all values for sample properties
@@ -478,10 +460,8 @@ public class DataSlice {
    * Clears all the data stored in this data slice.  All collections and
    * populated maps will be reset to null.
    */
-  public void reset() {
+  public synchronized void reset() {
     // reset any lists that are lazily created after storing
-    this.experiment = null;
-    this.arrayDesign = null;
     this.assays = null;
     this.designElements = null;
     // lists of indexed things

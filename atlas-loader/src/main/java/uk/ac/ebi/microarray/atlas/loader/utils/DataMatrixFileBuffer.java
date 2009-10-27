@@ -192,14 +192,9 @@ public class DataMatrixFileBuffer {
                     float evFloatValue = Float.parseFloat(
                         tokens[assayRefToEVColumn.get(assayRef)]);
 
-//                    ExpressionValue ev = new ExpressionValue();
-//                    ev.setDesignElementAccession(designElement);
-//                    ev.setValue(evFloatValue);
-
                     // finished reading, store in buffer...
                     // fixme: we may want to remove this, if we suffer on memory here it's better to reread instead of buffer
-                    assayRefToEVs.get(assayRef)
-                        .put(designElement, evFloatValue);
+                    assayRefToEVs.get(assayRef).put(designElement, evFloatValue);
                     // and now add to result map
                     result.get(assayRef).put(designElement, evFloatValue);
                   }

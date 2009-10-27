@@ -22,7 +22,7 @@ import java.util.*;
 public class NetCDFWriter {
   // internal maps - indexes for locations of given assay/design element ids
   Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
-  Map<String, Integer> designElementIndex = new HashMap<String, Integer>();
+  Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
 
   // logging
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -172,7 +172,7 @@ public class NetCDFWriter {
         deIt.setIntNext(designElementID);
 
         // record in the index
-        designElementIndex.put(designElements.get(designElementID), counter);
+        designElementIndex.put(designElementID, counter);
         counter++;
       }
       netCDF.write("DE", de);
@@ -342,8 +342,9 @@ public class NetCDFWriter {
     log.debug("Wrote properties data matrices ok.");
   }
 
-  private void writeExpressionMatrixValues(NetcdfFileWriteable netCDF,
-                                           Map<Integer, Map<String, Float>> expressionValues)
+  private void writeExpressionMatrixValues(
+      NetcdfFileWriteable netCDF,
+      Map<Integer, Map<Integer, Float>> expressionValues)
       throws IOException, InvalidRangeException {
     if (netCDF.findDimension("AS") != null &&
         netCDF.findDimension("DE") != null) {
@@ -359,7 +360,7 @@ public class NetCDFWriter {
 
       // loop over expression values doing crafty index lookups
       for (int assayID : expressionValues.keySet()) {
-        for (Map.Entry<String, Float> ev : expressionValues.get(assayID)
+        for (Map.Entry<Integer, Float> ev : expressionValues.get(assayID)
             .entrySet()) {
           int asIndex = assayIndex.get(assayID);
           int deIndex = designElementIndex.get(ev.getKey());

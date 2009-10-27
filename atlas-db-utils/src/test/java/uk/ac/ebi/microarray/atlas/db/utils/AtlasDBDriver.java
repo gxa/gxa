@@ -49,7 +49,7 @@ public class AtlasDBDriver {
     //etc.
 
     for (int i = 0; i != 1000; i++) {
-      assay.addExpressionValue("266731_at", 123.45F);
+      assay.addExpressionValueByAccession("266731_at", 123.45F);
     }
 
     AtlasDB.writeAssay(conn, assay);

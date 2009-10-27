@@ -198,8 +198,9 @@ public class AtlasMAGETABLoader {
         Set<String> missingDesignElements;
         if (!designElementsByArray.containsKey(arrayDesignAcc)) {
           missingDesignElements =
-              lookupMissingDesignElements(assay.getExpressionValuesMap(),
-                                          assay.getArrayDesignAccession());
+              lookupMissingDesignElements(
+                  assay.getExpressionValuesByAccession(),
+                  assay.getArrayDesignAccession());
 
           // add to our cache for known missing design elements
           designElementsByArray.put(arrayDesignAcc, missingDesignElements);
@@ -310,8 +311,20 @@ public class AtlasMAGETABLoader {
 
     // for every expression value, check if it's in database
     for (String deAcc : expressionValues.keySet()) {
-      if (!designElements.values().contains(deAcc)) {
-        missingDesignElements.add(deAcc);
+      if (!designElements.containsValue(deAcc)) {
+        // deAcc is missing - use designElements to find the related ID
+        boolean found = false;
+        for (int deID : designElements.keySet()) {
+          if (designElements.get(deID).equals(deAcc)) {
+            missingDesignElements.add(deAcc);
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          throw new NullPointerException("Design Elements map contains " +
+              "the value " + deAcc + " but the key couldn't be found? Eh?");
+        }
       }
     }
 
@@ -333,10 +346,10 @@ public class AtlasMAGETABLoader {
   private void trimMissingDesignElements(Assay assay,
                                          Set<String> missingDesignElements) {
     for (String deAcc : missingDesignElements) {
-      if (assay.getExpressionValuesMap().containsKey(deAcc)) {
+      if (assay.getExpressionValuesByAccession().containsKey(deAcc)) {
         log.debug("Missing design element " + deAcc + " will be " +
             "removed from this assay - not in database.");
-        assay.getExpressionValuesMap().remove(deAcc);
+        assay.getExpressionValuesByAccession().remove(deAcc);
       }
     }
   }

@@ -21,17 +21,14 @@ public class LoaderDriver {
     BeanFactory factory =
         new ClassPathXmlApplicationContext("loaderContext.xml");
 
-    long start, end;
-    String total;
-
     // run the loader
 //    URL url = new URL(
 //        "file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
 //    AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");
-//    start = System.currentTimeMillis();
+//    final long loadStart = System.currentTimeMillis();
 //    boolean success = loader.load(url);
-//    end = System.currentTimeMillis();
-//    total = new DecimalFormat("#.##").format((end - start) / 1000);
+//    final long loadEnd = System.currentTimeMillis();
+//    String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
 //    System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
 
     // run the index builder
@@ -39,11 +36,17 @@ public class LoaderDriver {
 //        (IndexBuilder) factory.getBean("indexBuilder");
 //    builder.setPendingMode(true);
 //
-//    start = System.currentTimeMillis();
+//    final long indexStart = System.currentTimeMillis();
 //    builder.buildIndex(new IndexBuilderListener() {
 //
 //      public void buildSuccess(IndexBuilderEvent event) {
-//        System.out.println("Index built successfully!");
+//        final long indexEnd = System.currentTimeMillis();
+//
+//        String total = new DecimalFormat("#.##").format(
+//            (indexEnd - indexStart) / 60000);
+//        System.out.println(
+//            "Index built successfully in " + total + " mins.");
+//
 //        try {
 //          builder.shutdown();
 //        }
@@ -65,20 +68,22 @@ public class LoaderDriver {
 //        }
 //      }
 //    });
-//    end = System.currentTimeMillis();
-//
-//    total = new DecimalFormat("#.##").format((end - start) / 1000);
-//    System.out.println("Building index started after " + total + "s.");
 
     // run the NetCDFGenerator
     final NetCDFGenerator generator =
         (NetCDFGenerator) factory.getBean("netcdfGenerator");
-    start = System.currentTimeMillis();
+    final long netStart = System.currentTimeMillis();
     generator.generateNetCDFsForExperiment(
         "E-GEOD-3790",
         new NetCDFGeneratorListener() {
           public void buildSuccess(NetCDFGenerationEvent event) {
-            System.out.println("NetCDF generation completed successfully!");
+            final long netEnd = System.currentTimeMillis();
+
+            String total = new DecimalFormat("#.##").format(
+                (netEnd - netStart) / 60000);
+            System.out.println(
+                "NetCDF generated successfully in " + total + " mins.");
+
             try {
               generator.shutdown();
             }
@@ -100,9 +105,5 @@ public class LoaderDriver {
             }
           }
         });
-    end = System.currentTimeMillis();
-
-    total = new DecimalFormat("#.##").format((end - start) / 1000);
-    System.out.println("Building NetCDFs started after " + total + "s.");
   }
 }
