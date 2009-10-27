@@ -54,6 +54,7 @@
     <module>atlas-dao</module>
     <module>atlas-test</module>
     <module>atlas-db-utils</module>
+      <module>atlas-model-impl</module>
   </modules>
 
   <dependencies>

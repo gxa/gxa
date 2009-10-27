@@ -9,31 +9,31 @@ package  uk.ac.ebi.gxa.model;
  */
 public interface Dao {
 
-    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams);
-    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesign atlasArrayDesignQuery);
-    public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accession);
+    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesign atlasArrayDesignQuery) throws GxaException;
+    public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams);
-    public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery);
-    public Assay                 getAssayByAccession(AccessionQuery accession);
+    public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException;
+    public Assay                 getAssayByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery, PageSortParams pageSortParams);
-    public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery);
-    public Sample                 getSampleByAccession(AccessionQuery accession);
+    public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery) throws GxaException;
+    public Sample                 getSampleByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery, PageSortParams pageSortParams);
-    public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery);
-    public Experiment                 getExperimentByAccession(AccessionQuery accession);
+    public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery) throws GxaException;
+    public Experiment                 getExperimentByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams);
-    public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery);
-    public Property                 getPropertyByAccession(AccessionQuery accession);
+    public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException;
+    public Property                 getPropertyByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams);
-    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery);
-    public Gene                 getGeneByAccession(AccessionQuery accession);
+    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException;
+    public Gene                 getGeneByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams);
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery);
+    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException; 
+    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException;
 
 }

@@ -98,7 +98,7 @@ public class DefaultNetCDFGenerator
       service.shutdown();
       try {
         log.debug("Waiting for termination of running jobs");
-        service.awaitTermination(5, TimeUnit.MINUTES);
+        service.awaitTermination(300, TimeUnit.SECONDS); //AZ: TimeUnit.MINUTES not exist
       }
       catch (InterruptedException e) {
         log.error("Unable to shutdown service after 5 minutes.  " +
