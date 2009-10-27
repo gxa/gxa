@@ -18,7 +18,9 @@ public class Assay {
   private int assayID;
 
   // maps design elements to expression values as primitives
-  private Map<String, Float> expressionValues;
+  private Map<Integer, Float> expressionValues;
+  // maps design elements to expression values using string accessions instead of int IDs
+  private Map<String, Float> expressionValuesAcc;
 
   public String getAccession() {
     return accession;
@@ -52,12 +54,29 @@ public class Assay {
     this.properties = properties;
   }
 
-  public Map<String, Float> getExpressionValuesMap() {
+  public Map<Integer, Float> getExpressionValues() {
     return this.expressionValues;
   }
 
-  public void setExpressionValuesMap(Map<String, Float> expressionValues) {
+  public void setExpressionValues(Map<Integer, Float> expressionValues) {
     this.expressionValues = expressionValues;
+  }
+
+  /**
+   * Returns a map of expression values indexed by the String.  This is forked
+   * because the database loader only has access to design element accessions
+   * from the data files, but all accessors of Assays use design element IDs.
+   * This is a bit ugly and will be consolidtaed in future.
+   *
+   * @return a map of expression vlaues, indexed by design element accession.
+   */
+  public Map<String, Float> getExpressionValuesByAccession() {
+    return this.expressionValuesAcc;
+  }
+
+  public void setExpressionValuesByAccession(
+      Map<String, Float> expressionValues) {
+    this.expressionValuesAcc = expressionValues;
   }
 
   public float[] getAllExpressionValues() {
@@ -70,18 +89,9 @@ public class Assay {
     return result;
   }
 
-  public float getExpressionValueByDesignElement(
-      String designElementAccession) {
-    return expressionValues.get(designElementAccession);
+  public float getExpressionValueByDesignElement(int designElementID) {
+    return expressionValues.get(designElementID);
   }
-
-//  public List<ExpressionValue> getExpressionValues() {
-//    return expressionValues;
-//  }
-//
-//  public void setExpressionValues(List<ExpressionValue> expressionValues) {
-//    this.expressionValues = expressionValues;
-//  }
 
   public int getAssayID() {
     return assayID;
@@ -125,7 +135,7 @@ public class Assay {
     return properties.add(p);
   }
 
-  public void addExpressionValue(String designElementAccession,
+  public void addExpressionValue(int designElementID,
                                  float value) {
 //    ExpressionValue result = new ExpressionValue();
 //    result.setDesignElementAccession(designElementAccession);
@@ -140,10 +150,23 @@ public class Assay {
 //    return result;
 
     if (expressionValues == null) {
-      expressionValues = new HashMap<String, Float>();
+      expressionValues = new HashMap<Integer, Float>();
     }
 
-    expressionValues.put(designElementAccession, value);
+    expressionValues.put(designElementID, value);
+  }
+
+  public void addExpressionValueByAccession(String designElementAccession,
+                                 float value) {
+    ExpressionValue result = new ExpressionValue();
+    result.setDesignElementAccession(designElementAccession);
+    result.setValue(value);
+
+    if (expressionValuesAcc == null) {
+      expressionValuesAcc = new HashMap<String, Float>();
+    }
+
+    expressionValuesAcc.put(designElementAccession, value);
   }
 
   @Override

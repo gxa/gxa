@@ -30,10 +30,8 @@ import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingHybridizationH
 import uk.ac.ebi.microarray.atlas.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -285,7 +283,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     // parsing finished, look in our cache...
     boolean allEmpty = true;
     for (Assay assay : cache.fetchAllAssays()) {
-      Map<String,Float> evs = assay.getExpressionValuesMap();
+      Map<String,Float> evs = assay.getExpressionValuesByAccession();
       if (evs.keySet().size() > 0) {
         allEmpty = false;
         break;

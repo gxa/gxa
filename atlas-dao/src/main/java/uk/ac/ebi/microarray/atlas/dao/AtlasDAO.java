@@ -28,7 +28,7 @@ public class AtlasDAO {
           "FROM a2_experiment";
   private static final String EXPERIMENTS_PENDING_INDEX_SELECT =
       EXPERIMENTS_SELECT + " " +
-          "WHERE something something"; // fixme: load monitor table?
+          "WHERE accession='E-GEOD-3790'"; // fixme: load monitor table?
   private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
       EXPERIMENTS_SELECT + " " +
           "WHERE something something"; // fixme: load monitor table?
@@ -145,11 +145,11 @@ public class AtlasDAO {
 //          "AND ad.accession=?";
 //  private static final String DESIGN_ELEMENT_IDS_BY_GENEID =
 //      "SELECT de.designelementid " +
-//          "FROM a2_designelement de " +
-//          "WHERE de.geneid=?";
-//  private static final String DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION =
-//      "SELECT de.accession " +
-//          "FROM a2_arraydesign ad, a2_designelement de " +
+  //          "FROM a2_designelement de " +
+  //          "WHERE de.geneid=?";
+  //  private static final String DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION =
+  //      "SELECT de.accession " +
+  //          "FROM a2_arraydesign ad, a2_designelement de " +
   //          "where de.arraydesignid=ad.arraydesignid " +
   //          "AND ad.accession=? ";
   private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
@@ -157,6 +157,10 @@ public class AtlasDAO {
           "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
           "WHERE de.arraydesignid=ad.arraydesignid " +
           "AND ad.accession=?";
+  private static final String DESIGN_ELEMENTS_BY_ARRAY_ID =
+      "SELECT de.designelementid, de.accession " +
+          "FROM a2_designelement de " +
+          "WHERE de.arraydesignid=?";
   private static final String DESIGN_ELEMENTS_BY_GENEID =
       "SELECT de.designelementid, de.accession " +
           "FROM a2_designelement de " +
@@ -331,22 +335,22 @@ public class AtlasDAO {
                                       new ExpressionValueMapper());
 
       // cast the result to the map, and extract the map for this assay
-      Map<Integer, Map<String, Float>> map =
-          (Map<Integer, Map<String, Float>>) results;
+      Map<Integer, Map<Integer, Float>> map =
+          (Map<Integer, Map<Integer, Float>>) results;
 
       // extract and set the values map on this assay
-      assay.setExpressionValuesMap(map.get(assay.getAssayID()));
+      assay.setExpressionValues(map.get(assay.getAssayID()));
     }
   }
 
-  public Map<Integer, Map<String, Float>> getExpressionValuesByExperimentAndArray(
+  public Map<Integer, Map<Integer, Float>> getExpressionValuesByExperimentAndArray(
       int experimentID, int arrayDesignID) {
     Object results = template.query(EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
                                     new Object[]{experimentID, arrayDesignID},
                                     new ExpressionValueMapper());
 
 
-    return (Map<Integer, Map<String, Float>>) results;
+    return (Map<Integer, Map<Integer, Float>>) results;
   }
 
   public List<Sample> getSamplesByAssayAccession(String assayAccession) {
@@ -402,7 +406,16 @@ public class AtlasDAO {
     List results = template.query(ARRAY_DESIGN_SELECT,
                                   new ArrayDesignMapper());
 
-    return (List<ArrayDesign>) results;
+    // cast to correct type
+    List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
+
+    // and populate design elements for each
+    for (ArrayDesign arrayDesign : arrayDesigns) {
+      arrayDesign.setDesignElements(
+          getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
+    }
+
+    return arrayDesigns;
   }
 
   public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -410,7 +423,16 @@ public class AtlasDAO {
                                   new Object[]{accession},
                                   new ArrayDesignMapper());
 
-    return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+    // get first result only
+    ArrayDesign arrayDesign =
+        results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+
+    if (arrayDesign != null) {
+      arrayDesign.setDesignElements(
+          getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
+    }
+
+    return arrayDesign;
   }
 
   public List<ArrayDesign> getArrayDesignByExperimentAccession(
@@ -419,7 +441,16 @@ public class AtlasDAO {
                                   new Object[]{exptAccession},
                                   new ArrayDesignMapper());
 
-    return (List<ArrayDesign>) results;
+    // cast to correct type
+    List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
+
+    // and populate design elements for each
+    for (ArrayDesign arrayDesign : arrayDesigns) {
+      arrayDesign.setDesignElements(
+          getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
+    }
+
+    return arrayDesigns;
   }
 
   /**
@@ -432,12 +463,21 @@ public class AtlasDAO {
    *
    * @param arrayDesignAccession the accession number of the array design to
    *                             query for
-   * @return a set of unique design element id integers
+   * @return the map of design element accessions indexed by unique design
+   *         element id integers
    */
   public Map<Integer, String> getDesignElementsByArrayAccession(
       String arrayDesignAccession) {
     Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
                                     new Object[]{arrayDesignAccession},
+                                    new DesignElementMapper());
+    return (Map<Integer, String>) results;
+  }
+
+  public Map<Integer, String> getDesignElementsByArrayID(
+      int arrayDesignID) {
+    Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ID,
+                                    new Object[]{arrayDesignID},
                                     new DesignElementMapper());
     return (Map<Integer, String>) results;
   }
@@ -448,51 +488,6 @@ public class AtlasDAO {
                                     new DesignElementMapper());
     return (Map<Integer, String>) results;
   }
-
-//  /**
-//   * A convenience method that fetches the set of design element ids by array
-//   * design accession.  The set of design element ids contains no duplicates,
-//   * and the results that are returned are the internal database ids for design
-//   * elements.  This takes the accession of the array design as a parameter.
-//   *
-//   * @param arrayDesignAccession the accession number of the array design to
-//   *                             query for
-//   * @return a set of unique design element id integers
-//   */
-//  public List<Integer> getDesignElementIDsByArrayAccession(
-//      String arrayDesignAccession) {
-//    List results = template.query(DESIGN_ELEMENT_IDS_BY_ARRAY_ACCESSION,
-//                                  new Object[]{arrayDesignAccession},
-//                                  new DesignElementIDMapper());
-//    return (List<Integer>) results;
-//  }
-//
-//  /**
-//   * A convenience method that fetches the set of design element accessions by
-//   * array design accession.  The set of design element accessions contains no
-//   * duplicates, and the results that are returned are the manufacturers
-//   * accession strings for each design element on an array design. This takes
-//   * the accession of the array design (which should be of the form
-//   * A-ABCD-123).
-//   *
-//   * @param arrayDesignAccession the accession number of the array design to
-//   *                             query for
-//   * @return a set of unique design element accession strings
-//   */
-//  public List<String> getDesignElementAccessionsByArrayAccession(
-//      String arrayDesignAccession) {
-//    List results = template.query(DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION,
-//                                  new Object[]{arrayDesignAccession},
-//                                  new DesignElementAccMapper());
-//    return (List<String>) results;
-//  }
-//
-//  public List<Integer> getDesignElementIDsByGeneID(int geneID) {
-//    List results = template.query(DESIGN_ELEMENT_IDS_BY_GENEID,
-//                                  new Object[]{geneID},
-//                                  new DesignElementIDMapper());
-//    return (List<Integer>) results;
-//  }
 
   public List<AtlasCount> getAtlasCountsByExperimentID(int experimentID) {
     List results = template.query(ATLAS_COUNTS_BY_EXPERIMENTID,
@@ -583,17 +578,25 @@ public class AtlasDAO {
   private class ExpressionValueMapper implements ResultSetExtractor {
     public Object extractData(ResultSet resultSet)
         throws SQLException, DataAccessException {
-      Map<Integer, Map<String, Float>> assayToEVs =
-          new HashMap<Integer, Map<String, Float>>();
+      // maps assay ID (int) to a map of expression values - which is...
+      // a map of design element IDs (int) to expression value (float)
+      Map<Integer, Map<Integer, Float>> assayToEVs =
+          new HashMap<Integer, Map<Integer, Float>>();
 
       while (resultSet.next()) {
+        // get assay ID key
         int assayID = resultSet.getInt(2);
-        String designElementAccession = resultSet.getString(3);
+        // get design element id key
+        int designElementID = resultSet.getInt(1);
+        // get expression value
         float value = resultSet.getFloat(4);
+        // check assay key - can we add new expression value to existing map?
         if (!assayToEVs.containsKey(assayID)) {
-          assayToEVs.put(assayID, new HashMap<String, Float>());
+          // if not, create a new expression values maps
+          assayToEVs.put(assayID, new HashMap<Integer, Float>());
         }
-        assayToEVs.get(assayID).put(designElementAccession, value);
+        // insert the expression value map into the assay-linked map
+        assayToEVs.get(assayID).put(designElementID, value);
       }
 
       return assayToEVs;
@@ -677,7 +680,6 @@ public class AtlasDAO {
       Property property = new Property();
 
       property.setName(resultSet.getString(1));
-//      property.setAccession(resultSet.getString(2));
       property.setValue(resultSet.getString(2));
       property.setFactorValue(resultSet.getBoolean(3));
 

@@ -16,10 +16,8 @@ import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.ExpressionValue;
 
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -111,7 +109,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
 
     // get the title of the experiment
     for (Assay assay : cache.fetchAllAssays()) {
-      Map<String,Float> evs = assay.getExpressionValuesMap();
+      Map<String,Float> evs = assay.getExpressionValuesByAccession();
 
       System.out.println("Found " + evs.keySet().size() + " expression values for " +
           assay.getAccession());

@@ -110,7 +110,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler
                     getLog());
                 getLog().debug("Updating assay " + assayRef + " with " +
                     evs.size() + " expression values");
-                assay.setExpressionValuesMap(evs);
+                assay.setExpressionValuesByAccession(evs);
               }
               catch (LookupException e) {
                 // generate error item and throw exception

@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import java.util.Map;
+
 /**
  * Javadocs go here!
  *
@@ -12,6 +14,7 @@ public class ArrayDesign {
   private String name;
   private String provider;
   private int arrayDesignID;
+  private Map<Integer, String> designElements;
 
   public String getAccession() {
     return accession;
@@ -51,5 +54,13 @@ public class ArrayDesign {
 
   public void setArrayDesignID(int arrayDesignID) {
     this.arrayDesignID = arrayDesignID;
+  }
+
+  public Map<Integer, String> getDesignElements() {
+    return designElements;
+  }
+
+  public void setDesignElements(Map<Integer, String> designElements) {
+    this.designElements = designElements;
   }
 }
