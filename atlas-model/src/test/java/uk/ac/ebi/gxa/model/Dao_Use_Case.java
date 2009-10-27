@@ -13,9 +13,7 @@ import java.util.List;
 /*
 */
 public class Dao_Use_Case {
-    public static void doit(Dao dao){
-
-
+    public static void doit(Dao dao) throws GxaException{
 
         Iterable<Property> available_properties = dao.getProperty( new PropertyQuery()
                                                .isSampleProperty(true)
