@@ -114,7 +114,14 @@ public class ExperimentNetCDFGeneratorService
     }
     finally {
       // shutdown the service
-      tpool.shutdown();
+      getLog().debug("Shutting down executor service in " +
+          getClass().getSimpleName() + " (" + tpool.toString() + ")");
+      if (tpool.shutdownNow().size() > 0) {
+        //noinspection ThrowFromFinallyBlock
+        throw new NetCDFGeneratorException("Failed to terminate service for " +
+            getClass().getSimpleName() + "cleanly - suspended tasks were " +
+            "found");
+      }
     }
   }
 
@@ -198,7 +205,15 @@ public class ExperimentNetCDFGeneratorService
     }
     finally {
       // shutdown the service
-      tpool.shutdown();
+      getLog().debug("Shutting down executor service in " +
+          getClass().getSimpleName() + " (" + tpool.toString() + ") for " +
+          experimentAccession);
+      if (tpool.shutdownNow().size() > 0) {
+        //noinspection ThrowFromFinallyBlock
+        throw new NetCDFGeneratorException("Failed to terminate service for " +
+            getClass().getSimpleName() + "cleanly - suspended tasks were " +
+            "found");
+      }
     }
   }
 
