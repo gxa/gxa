@@ -216,8 +216,6 @@ public class DefaultNetCDFGenerator
             listener.buildError(new NetCDFGenerationEvent(
                 runTime, TimeUnit.SECONDS, observedErrors));
           }
-
-          log.debug("Bye bye!");
         }
       }).start();
     }

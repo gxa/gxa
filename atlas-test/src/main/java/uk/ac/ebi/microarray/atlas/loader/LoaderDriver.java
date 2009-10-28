@@ -97,7 +97,6 @@ public class LoaderDriver {
 
             try {
               generator.shutdown();
-              System.out.println("Everything should be done?");
             }
             catch (NetCDFGeneratorException e) {
               e.printStackTrace();
