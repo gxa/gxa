@@ -115,12 +115,26 @@ public class ExperimentNetCDFGeneratorService
     finally {
       // shutdown the service
       getLog().debug("Shutting down executor service in " +
-          getClass().getSimpleName() + " (" + tpool.toString() + ")");
-      if (tpool.shutdownNow().size() > 0) {
+          getClass().getSimpleName());
+
+      try {
+        tpool.shutdown();
+        tpool.awaitTermination(60, TimeUnit.SECONDS);
+        if (!tpool.isTerminated()) {
+          //noinspection ThrowFromFinallyBlock
+          throw new NetCDFGeneratorException(
+              "Failed to terminate service for " + getClass().getSimpleName() +
+                  "cleanly - suspended tasks were found");
+        }
+        else {
+          getLog().debug("Executor service exited cleanly");
+        }
+      }
+      catch (InterruptedException e) {
         //noinspection ThrowFromFinallyBlock
-        throw new NetCDFGeneratorException("Failed to terminate service for " +
-            getClass().getSimpleName() + "cleanly - suspended tasks were " +
-            "found");
+        throw new NetCDFGeneratorException(
+            "Failed to terminate service for " + getClass().getSimpleName() +
+                "cleanly - suspended tasks were found");
       }
     }
   }
@@ -208,11 +222,25 @@ public class ExperimentNetCDFGeneratorService
       getLog().debug("Shutting down executor service in " +
           getClass().getSimpleName() + " (" + tpool.toString() + ") for " +
           experimentAccession);
-      if (tpool.shutdownNow().size() > 0) {
+
+      try {
+        tpool.shutdown();
+        tpool.awaitTermination(60, TimeUnit.SECONDS);
+        if (!tpool.isTerminated()) {
+          //noinspection ThrowFromFinallyBlock
+          throw new NetCDFGeneratorException(
+              "Failed to terminate service for " + getClass().getSimpleName() +
+                  "cleanly - suspended tasks were found");
+        }
+        else {
+          getLog().debug("Executor service exited cleanly");
+        }
+      }
+      catch (InterruptedException e) {
         //noinspection ThrowFromFinallyBlock
-        throw new NetCDFGeneratorException("Failed to terminate service for " +
-            getClass().getSimpleName() + "cleanly - suspended tasks were " +
-            "found");
+        throw new NetCDFGeneratorException(
+            "Failed to terminate service for " + getClass().getSimpleName() +
+                "cleanly - suspended tasks were found");
       }
     }
   }

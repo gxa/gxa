@@ -204,24 +204,35 @@ public class DefaultIndexBuilder
       service.shutdown();
       try {
         log.debug("Waiting for termination of running jobs");
-        service.awaitTermination(300, TimeUnit.SECONDS);
+        service.awaitTermination(60, TimeUnit.SECONDS);
 
         if (!service.isTerminated()) {
+          // try and halt immediately
           List<Runnable> tasks = service.shutdownNow();
-          StringBuffer sb = new StringBuffer();
-          sb.append("Unable to cleanly shutdown index building service. ");
-          if (tasks.size() > 0) {
-            sb.append("The following tasks are still active or suspended:\n");
-            for (Runnable task : tasks) {
-              sb.append("\t").append(task.toString()).append("\n");
+          service.awaitTermination(15, TimeUnit.SECONDS);
+          // if it's STILL not terminated...
+          if (!service.isTerminated()) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(
+                "Unable to cleanly shutdown index building service.\n");
+            if (tasks.size() > 0) {
+              sb.append("The following tasks are still active or suspended:\n");
+              for (Runnable task : tasks) {
+                sb.append("\t").append(task.toString()).append("\n");
+              }
             }
+            sb.append(
+                "There are running or suspended index building tasks. " +
+                    "If execution is complete, or has failed to exit " +
+                    "cleanly following an error, you should terminate this " +
+                    "application");
+            log.error(sb.toString());
+            throw new IndexBuilderException(sb.toString());
           }
-          sb.append("There are running or suspended index building tasks. " +
-              "If execution is complete, or has failed to exit " +
-              "cleanly following an error, you should terminate this " +
-              "application");
-          log.error(sb.toString());
-          throw new IndexBuilderException(sb.toString());
+          else {
+            // it worked second time round
+            log.debug("Shutdown complete");
+          }
         }
         else {
           log.debug("Shutdown complete");
@@ -307,7 +318,7 @@ public class DefaultIndexBuilder
 
     // this tracks completion, if a listener was supplied
     if (listener != null) {
-      service.submit(new Runnable() {
+      new Thread(new Runnable() {
         public void run() {
           boolean success = true;
           List<Throwable> observedErrors = new ArrayList<Throwable>();
@@ -337,7 +348,7 @@ public class DefaultIndexBuilder
                 runTime, TimeUnit.SECONDS, observedErrors));
           }
         }
-      });
+      }).start();
     }
   }
 
