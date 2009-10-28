@@ -1,13 +1,14 @@
 package uk.ac.ebi.microarray.atlas.netcdf.helper;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -25,7 +26,8 @@ import java.util.concurrent.*;
 public class DataSlicer {
   private AtlasDAO atlasDAO;
 
-  private Log log = LogFactory.getLog(getClass());
+  // logger
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   public DataSlicer(AtlasDAO atlasDAO) {
     this.atlasDAO = atlasDAO;
@@ -76,246 +78,29 @@ public class DataSlicer {
     // start fetching data...
 
     // fetch array designs and iterate
-    Future<Set<DataSlice>> fetchLevelOne = service.submit(
-        new Callable<Set<DataSlice>>() {
-
-          public Set<DataSlice> call() throws Exception {
-            log.debug(
-                "Fetching array design data for " + experiment.getAccession());
-            List<ArrayDesign> arrays = getAtlasDAO()
-                .getArrayDesignByExperimentAccession(experiment.getAccession());
-
-            // the set of level two fetch tasks - per array design
-            Set<Future<DataSlice>> fetchLevelTwo =
-                new HashSet<Future<DataSlice>>();
-
-            for (final ArrayDesign arrayDesign : arrays) {
-              fetchLevelTwo.add(service.submit(new Callable<DataSlice>() {
-
-                public DataSlice call() throws Exception {
-                  // the set of level three fetch tasks - per array design
-                  Set<Future> fetchLevelThree = new HashSet<Future>();
-
-                  // create a new data slice, for this experiment and arrayDesign
-                  final DataSlice dataSlice =
-                      new DataSlice(experiment, arrayDesign);
-
-                  synchronized (fetchLevelThree) {
-                    fetchLevelThree.add(service.submit(new Callable<Void>() {
-                      public Void call() throws Exception {
-                        // fetch assays for this array
-                        log.debug(
-                            "Fetching assay data for " +
-                                arrayDesign.getAccession());
-                        List<Assay> assays = getAtlasDAO()
-                            .getAssaysByExperimentAndArray(
-                                experiment.getAccession(),
-                                arrayDesign.getAccession());
-                        // and store
-                        dataSlice.storeAssays(assays);
-
-                        log.debug("Fetching samples data for each assay on " +
-                            arrayDesign.getAccession());
-                        for (Assay assay : assays) {
-                          // fetch samples for this assay
-                          List<Sample> samples = getAtlasDAO()
-                              .getSamplesByAssayAccession(assay.getAccession());
-                          for (Sample sample : samples) {
-                            // and store
-                            dataSlice.storeSample(assay, sample);
-                          }
-                        }
-
-                        log.debug("Assay and Sample data for " +
-                            arrayDesign.getAccession() + " stored");
-                        return null;
-                      }
-                    }));
-                  }
-
-                  // fetch expression values for this array
-                  synchronized (fetchLevelThree) {
-                    fetchLevelThree.add(service.submit(new Callable<Void>() {
-                      public Void call() throws Exception {
-                        log.debug(
-                            "Fetching expression values for " +
-                                experiment.getAccession() +
-                                " and " + arrayDesign.getAccession());
-                        Map<Integer, Map<Integer, Float>> expressionValues =
-                            getAtlasDAO()
-                                .getExpressionValuesByExperimentAndArray(
-                                    experiment.getExperimentID(),
-                                    arrayDesign.getArrayDesignID());
-                        // and store
-                        dataSlice.storeExpressionValues(expressionValues);
-
-                        log.debug("Expression Value data for " +
-                            arrayDesign.getAccession() + " stored");
-                        return null;
-                      }
-                    }));
-                  }
-
-                  // fetch design elements specific to this array design
-                  synchronized (fetchLevelThree) {
-                    fetchLevelThree.add(service.submit(new Callable<Void>() {
-                      public Void call() throws Exception {
-                        log.debug(
-                            "Fetching design element data for " +
-                                arrayDesign.getAccession());
-                        Map<Integer, String> designElements = getAtlasDAO()
-                            .getDesignElementsByArrayAccession(
-                                arrayDesign.getAccession());
-                        // and store
-                        dataSlice.storeDesignElements(designElements);
-
-                        // genes for this experiment were prefetched -
-                        // compare to design elements and store, correctly indexed
-                        // fetch design elements specific to this array design
-                        log.debug("Indexing gene data by design element ID " +
-                            "for " + arrayDesign.getAccession());
-                        fetchGenesTask.get();
-                        log.debug("Gene data for " +
-                            arrayDesign.getAccession() + " acquired");
-                        for (Gene gene : fetchGenesTask.get()) {
-                          // check this gene maps to a stored design element
-                          if (dataSlice.getDesignElements()
-                              .containsKey(gene.getDesignElementID())) {
-                            dataSlice
-                                .storeGene(gene.getDesignElementID(), gene);
-
-                            // remove from the unmapped list if necessary
-                            synchronized (unmappedGenes) {
-                              if (unmappedGenes.contains(gene)) {
-                                unmappedGenes.remove(gene);
-                              }
-                            }
-                          }
-                          else {
-                            // exclude this gene - design element not resolvable,
-                            // or maybe it's just from a different array design
-                            synchronized (unmappedGenes) {
-                              unmappedGenes.add(gene);
-                            }
-                          }
-                        }
-
-                        // expression analyses for this experiment were prefetched -
-                        // compare to design elements and store, correctly indexed
-                        log.debug("Indexing analytics data by design element " +
-                            "ID for " + arrayDesign.getAccession());
-                        fetchAnalyticsTask.get();
-                        log.debug("Analytics data for " +
-                            arrayDesign.getAccession() + " acquired");
-                        for (ExpressionAnalysis analysis :
-                            fetchAnalyticsTask.get()) {
-                          if (dataSlice.getDesignElements()
-                              .containsKey(analysis.getDesignElementID())) {
-                            dataSlice.storeExpressionAnalysis(
-                                analysis.getDesignElementID(), analysis);
-
-                            // remove from the unmapped list if necessary
-                            synchronized (unmappedAnalytics) {
-                              if (unmappedAnalytics.contains(analysis)) {
-                                unmappedAnalytics.remove(analysis);
-                              }
-                            }
-                          }
-                          else {
-                            // exclude this gene - design element not resolvable,
-                            // or maybe it's just from a different array design
-                            synchronized (unmappedAnalytics) {
-                              unmappedAnalytics.add(analysis);
-                            }
-                          }
-                        }
-
-                        log.debug("Design Element/Gene/Analytics data for " +
-                            arrayDesign.getAccession() + " stored");
-                        return null;
-                      }
-                    }));
-                  }
-
-                  // block until all level three tasks are complete
-                  synchronized (fetchLevelThree) {
-                    log.debug("Waiting for all level three tasks to complete " +
-                        "(modify each dataslice with required data)");
-                    for (Future task : fetchLevelThree) {
-                      try {
-                        task.get();
-                      }
-                      catch (InterruptedException e) {
-                        throw new DataSlicingException(
-                            "A thread handling data slicing was interrupted",
-                            e);
-                      }
-                      catch (ExecutionException e) {
-                        e.printStackTrace();
-                        if (e.getCause() != null) {
-                          throw new DataSlicingException(
-                              "A thread handling data slicing failed.  Caused by: " +
-                                  (e.getMessage() == null ||
-                                      e.getMessage().equals("")
-                                      ? e.getCause().getClass().getSimpleName()
-                                      : e.getMessage()),
-                              e.getCause());
-                        }
-                        else {
-                          throw new DataSlicingException(
-                              "A thread handling data slicing failed", e);
-                        }
-                      }
-                    }
-                    log.debug("Level three tasks to populate " + dataSlice
-                        + " completed");
-                  }
-
-                  // now evaluate property mappings
-                  log.debug("Evaluating property/value/assay " +
-                      "indices for " + dataSlice.toString());
-                  dataSlice.evaluatePropertyMappings();
-
-                  // save this dataslice
-                  log.debug("Compiled dataslice... " + dataSlice.toString());
-                  return dataSlice;
-                }
-              }));
-            }
-
-            // wait for level two fetch tasks to complete
-            Set<DataSlice> dataSlices = new HashSet<DataSlice>();
-            synchronized (fetchLevelTwo) {
-              log.debug("Waiting for all level two tasks to complete " +
-                  "(create and populate each dataslice with experiment " +
-                  "and array data)");
-              for (Future<DataSlice> task : fetchLevelTwo) {
-                dataSlices.add(task.get());
-                log.debug("Level two task for " + task.get() + " complete");
-              }
-            }
-
-            // and return
-            log.debug("Compiled the set of all dataslices for " +
-                experiment.getAccession());
-            return dataSlices;
-          }
-        });
+    ExperimentSlicer exptSlicer = new ExperimentSlicer(service, experiment);
+    exptSlicer.setAtlasDAO(
+        getAtlasDAO());
+    exptSlicer.setGeneFetchingStrategy(
+        fetchGenesTask, unmappedGenes);
+    exptSlicer.setAnalyticsFetchingStrategy(
+        fetchAnalyticsTask, unmappedAnalytics);
+    // submit this task
+    Future<Set<DataSlice>> exptFetching = service.submit(exptSlicer);
 
     // wait for dataslicing to finish
     try {
-      log.debug("Waiting for level one task to complete " +
+      log.debug("Waiting for experiment slicing task to complete " +
           "(fetch arrays and populate the dataslice set)");
-      Set<DataSlice> results = fetchLevelOne.get();
-      log.debug("Level one task completed");
+      Set<DataSlice> results = exptFetching.get();
+      log.debug("Experiment slicing task completed");
 
       if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
         log.warn(unmappedGenes.size() + "/" + fetchGenesTask.get().size() +
             " genes and " + unmappedAnalytics.size() + "/" +
             fetchAnalyticsTask.get().size() + " expression analytics " +
             "that were recovered for " + experiment.getAccession() +
-            " could " +
-            "not be mapped to known design elements");
+            " could not be mapped to known design elements");
 
         // todo - generate a log file of unmapped genes and expression analytics
       }
@@ -339,6 +124,17 @@ public class DataSlicer {
       else {
         throw new DataSlicingException(
             "A thread handling data slicing failed", e);
+      }
+    }
+    finally {
+      // shutdown the service
+      log.debug("Shutting down executor service in " +
+          getClass().getSimpleName());
+      if (service.shutdownNow().size() > 0) {
+        //noinspection ThrowFromFinallyBlock
+        throw new DataSlicingException("Failed to terminate service for " +
+            getClass().getSimpleName() + "cleanly - suspended tasks were " +
+            "found");
       }
     }
   }

@@ -205,17 +205,35 @@ public class DefaultIndexBuilder
       try {
         log.debug("Waiting for termination of running jobs");
         service.awaitTermination(300, TimeUnit.SECONDS);
+
+        if (!service.isTerminated()) {
+          List<Runnable> tasks = service.shutdownNow();
+          StringBuffer sb = new StringBuffer();
+          sb.append("Unable to cleanly shutdown index building service. ");
+          if (tasks.size() > 0) {
+            sb.append("The following tasks are still active or suspended:\n");
+            for (Runnable task : tasks) {
+              sb.append("\t").append(task.toString()).append("\n");
+            }
+          }
+          sb.append("There are running or suspended index building tasks. " +
+              "If execution is complete, or has failed to exit " +
+              "cleanly following an error, you should terminate this " +
+              "application");
+          log.error(sb.toString());
+          throw new IndexBuilderException(sb.toString());
+        }
+        else {
+          log.debug("Shutdown complete");
+        }
       }
       catch (InterruptedException e) {
-        log.error("Unable to shutdown service after 5 minutes.  " +
-            "There may be running or suspended IndexBuilder tasks.  " +
-            "If you are sure there are no tasks still running, then this " +
-            "is a non-recoverable error - you should terminate this application");
+        log.error("The application was interrupted whilst waiting to " +
+            "be shutdown.  There may be tasks still running or suspended.");
         throw new IndexBuilderException(e);
       }
       finally {
         coreContainer.shutdown();
-        log.debug("Shutdown complete");
         running = false;
       }
     }

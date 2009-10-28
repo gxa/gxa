@@ -34,7 +34,7 @@ public class DefaultNetCDFGenerator
   private boolean running = false;
 
   // logging
-  private static final Logger log =
+  private final Logger log =
       LoggerFactory.getLogger(DefaultNetCDFGenerator.class);
 
   public void setAtlasDataSource(DataSource dataSource) {
@@ -98,17 +98,35 @@ public class DefaultNetCDFGenerator
       service.shutdown();
       try {
         log.debug("Waiting for termination of running jobs");
-        service.awaitTermination(300, TimeUnit.SECONDS); //AZ: TimeUnit.MINUTES not exist
-      }
+        service.awaitTermination(1, TimeUnit.SECONDS);
+
+        if (!service.isTerminated()) {
+          List<Runnable> tasks = service.shutdownNow();
+          StringBuffer sb = new StringBuffer();
+          sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
+          if (tasks.size() > 0) {
+            sb.append("The following tasks are still active or suspended:\n");
+            for (Runnable task : tasks) {
+              sb.append("\t").append(task.toString()).append("\n");
+            }
+          }
+          sb.append("There are running or suspended NetCDF generating tasks. " +
+              "If execution is complete, or has failed to exit " +
+              "cleanly following an error, you should terminate this " +
+              "application");
+          log.error(sb.toString());
+          throw new NetCDFGeneratorException(sb.toString());
+        }
+        else {
+          log.debug("Shutdown complete");
+        }
+     }
       catch (InterruptedException e) {
-        log.error("Unable to shutdown service after 5 minutes.  " +
-            "There may be running or suspended NetCDF generation tasks.  " +
-            "If you are sure there are no tasks still running, then this " +
-            "is a non-recoverable error - you should terminate this application");
+        log.error("The application was interrupted whilst waiting to " +
+            "be shutdown.  There may be tasks still running or suspended.");
         throw new NetCDFGeneratorException(e);
       }
       finally {
-        log.debug("Shutdown complete");
         running = false;
       }
     }
@@ -179,7 +197,8 @@ public class DefaultNetCDFGenerator
   }
 
   public void generateNetCDFsForExperiment(
-      final String experimentAccession, final NetCDFGeneratorListener listener) {
+      final String experimentAccession,
+      final NetCDFGeneratorListener listener) {
     final long startTime = System.currentTimeMillis();
     final List<Future<Boolean>> buildingTasks =
         new ArrayList<Future<Boolean>>();
