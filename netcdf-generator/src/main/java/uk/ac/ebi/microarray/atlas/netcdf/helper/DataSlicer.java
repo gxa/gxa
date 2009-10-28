@@ -95,14 +95,18 @@ public class DataSlicer {
       Set<DataSlice> results = exptFetching.get();
       log.debug("Experiment slicing task completed");
 
-      if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
-        log.warn(unmappedGenes.size() + "/" + fetchGenesTask.get().size() +
-            " genes and " + unmappedAnalytics.size() + "/" +
-            fetchAnalyticsTask.get().size() + " expression analytics " +
-            "that were recovered for " + experiment.getAccession() +
-            " could not be mapped to known design elements");
+      synchronized (unmappedGenes) {
+        synchronized (unmappedAnalytics) {
+          if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
+            log.warn(unmappedGenes.size() + "/" + fetchGenesTask.get().size() +
+                " genes and " + unmappedAnalytics.size() + "/" +
+                fetchAnalyticsTask.get().size() + " expression analytics " +
+                "that were recovered for " + experiment.getAccession() +
+                " could not be mapped to known design elements");
 
-        // todo - generate a log file of unmapped genes and expression analytics
+            // todo - generate a log file of unmapped genes and expression analytics
+          }
+        }
       }
 
       log.debug("Returning the sliced data");
@@ -130,11 +134,25 @@ public class DataSlicer {
       // shutdown the service
       log.debug("Shutting down executor service in " +
           getClass().getSimpleName());
-      if (service.shutdownNow().size() > 0) {
+
+      try {
+        service.shutdown();
+        service.awaitTermination(60, TimeUnit.SECONDS);
+        if (!service.isTerminated()) {
+          //noinspection ThrowFromFinallyBlock
+          throw new DataSlicingException(
+              "Failed to terminate service for " + getClass().getSimpleName() +
+                  "cleanly - suspended tasks were found");
+        }
+        else {
+          log.debug("Executor service exited cleanly");
+        }
+      }
+      catch (InterruptedException e) {
         //noinspection ThrowFromFinallyBlock
-        throw new DataSlicingException("Failed to terminate service for " +
-            getClass().getSimpleName() + "cleanly - suspended tasks were " +
-            "found");
+        throw new DataSlicingException(
+            "Failed to terminate service for " + getClass().getSimpleName() +
+                "cleanly - suspended tasks were found");
       }
     }
   }

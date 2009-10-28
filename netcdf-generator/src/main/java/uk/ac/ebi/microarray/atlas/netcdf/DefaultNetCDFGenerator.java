@@ -54,6 +54,7 @@ public class DefaultNetCDFGenerator
   }
 
   public void afterPropertiesSet() throws Exception {
+    // simply delegates to startup(), this allows automated spring startup
     startup();
   }
 
@@ -98,29 +99,40 @@ public class DefaultNetCDFGenerator
       service.shutdown();
       try {
         log.debug("Waiting for termination of running jobs");
-        service.awaitTermination(1, TimeUnit.SECONDS);
+        service.awaitTermination(60, TimeUnit.SECONDS);
 
         if (!service.isTerminated()) {
+          // try and halt immediately
           List<Runnable> tasks = service.shutdownNow();
-          StringBuffer sb = new StringBuffer();
-          sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
-          if (tasks.size() > 0) {
-            sb.append("The following tasks are still active or suspended:\n");
-            for (Runnable task : tasks) {
-              sb.append("\t").append(task.toString()).append("\n");
+          service.awaitTermination(15, TimeUnit.SECONDS);
+          // if it's STILL not terminated...
+          if (!service.isTerminated()) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(
+                "Unable to cleanly shutdown NetCDF generating service.\n");
+            if (tasks.size() > 0) {
+              sb.append("The following tasks are still active or suspended:\n");
+              for (Runnable task : tasks) {
+                sb.append("\t").append(task.toString()).append("\n");
+              }
             }
+            sb.append(
+                "There are running or suspended NetCDF generating tasks. " +
+                    "If execution is complete, or has failed to exit " +
+                    "cleanly following an error, you should terminate this " +
+                    "application");
+            log.error(sb.toString());
+            throw new NetCDFGeneratorException(sb.toString());
           }
-          sb.append("There are running or suspended NetCDF generating tasks. " +
-              "If execution is complete, or has failed to exit " +
-              "cleanly following an error, you should terminate this " +
-              "application");
-          log.error(sb.toString());
-          throw new NetCDFGeneratorException(sb.toString());
+          else {
+            // it worked second time round
+            log.debug("Shutdown complete");
+          }
         }
         else {
           log.debug("Shutdown complete");
         }
-     }
+      }
       catch (InterruptedException e) {
         log.error("The application was interrupted whilst waiting to " +
             "be shutdown.  There may be tasks still running or suspended.");
@@ -142,54 +154,7 @@ public class DefaultNetCDFGenerator
   }
 
   public void generateNetCDFs(final NetCDFGeneratorListener listener) {
-    final long startTime = System.currentTimeMillis();
-    final List<Future<Boolean>> buildingTasks =
-        new ArrayList<Future<Boolean>>();
-
-    buildingTasks.add(service.submit(new Callable<Boolean>() {
-      public Boolean call() throws NetCDFGeneratorException {
-        log.info("Starting NetCDF generations");
-
-        netCDFService.generateNetCDFs();
-
-        return true;
-      }
-    }));
-
-    // this tracks completion, if a listener was supplied
-    if (listener != null) {
-      service.submit(new Runnable() {
-        public void run() {
-          boolean success = true;
-          List<Throwable> observedErrors = new ArrayList<Throwable>();
-
-          // wait for expt and gene indexes to build
-          for (Future<Boolean> indexingTask : buildingTasks) {
-            try {
-              success = success && indexingTask.get();
-            }
-            catch (Exception e) {
-              observedErrors.add(e);
-              success = false;
-            }
-          }
-
-          // now we've finished - get the end time, calculate runtime and fire the event
-          long endTime = System.currentTimeMillis();
-          long runTime = (endTime - startTime) / 1000;
-
-          // create our completion event
-          if (success) {
-            listener.buildSuccess(new NetCDFGenerationEvent(
-                runTime, TimeUnit.SECONDS));
-          }
-          else {
-            listener.buildError(new NetCDFGenerationEvent(
-                runTime, TimeUnit.SECONDS, observedErrors));
-          }
-        }
-      });
-    }
+    generateNetCDFsForExperiment(null, listener);
   }
 
   public void generateNetCDFsForExperiment(String experimentAccession) {
@@ -207,7 +172,14 @@ public class DefaultNetCDFGenerator
       public Boolean call() throws NetCDFGeneratorException {
         log.info("Starting NetCDF generations");
 
-        netCDFService.generateNetCDFsForExperiment(experimentAccession);
+        if (experimentAccession == null) {
+          netCDFService.generateNetCDFs();
+        }
+        else {
+          netCDFService.generateNetCDFsForExperiment(experimentAccession);
+        }
+
+        log.debug("Finished NetCDF generations");
 
         return true;
       }
@@ -215,15 +187,15 @@ public class DefaultNetCDFGenerator
 
     // this tracks completion, if a listener was supplied
     if (listener != null) {
-      service.submit(new Runnable() {
+      new Thread(new Runnable() {
         public void run() {
           boolean success = true;
           List<Throwable> observedErrors = new ArrayList<Throwable>();
 
           // wait for expt and gene indexes to build
-          for (Future<Boolean> indexingTask : buildingTasks) {
+          for (Future<Boolean> buildingTask : buildingTasks) {
             try {
-              success = success && indexingTask.get();
+              success = success && buildingTask.get();
             }
             catch (Exception e) {
               observedErrors.add(e);
@@ -244,8 +216,10 @@ public class DefaultNetCDFGenerator
             listener.buildError(new NetCDFGenerationEvent(
                 runTime, TimeUnit.SECONDS, observedErrors));
           }
+
+          log.debug("Bye bye!");
         }
-      });
+      }).start();
     }
   }
 }
