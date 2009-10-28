@@ -28,7 +28,7 @@ public class AtlasDAO {
           "FROM a2_experiment";
   private static final String EXPERIMENTS_PENDING_INDEX_SELECT =
       EXPERIMENTS_SELECT + " " +
-          "WHERE accession='E-GEOD-3790'"; // fixme: load monitor table?
+          "WHERE something something"; // fixme: load monitor table?
   private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
       EXPERIMENTS_SELECT + " " +
           "WHERE something something"; // fixme: load monitor table?
