@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>uk.ac.ebi.microarray.atlas</groupId>
+        <artifactId>atlas</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas-web</artifactId>
@@ -9,13 +15,82 @@
     <name>Gene Expression Atlas WebApp</name>
     <url>http://www.ebi.ac.uk/gxa</url>
 
-    <parent>
-        <groupId>uk.ac.ebi.microarray.atlas</groupId>
-        <artifactId>atlas</artifactId>
-        <version>0.1-SNAPSHOT</version>
-    </parent>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <includes>
+                                <include>end_body.jsp</include>
+                                <include>MydasServerConfig.xml</include>
+                            </includes>
+                            <directory>src/main/webapp</directory>
+                            <filtering>true</filtering>
+                        </resource>
+                        <resource>
+                            <includes>
+                                <include>web.xml</include>
+                            </includes>
+                            <directory>src/main/webapp/WEB-INF</directory>
+                            <targetPath>WEB-INF</targetPath>
+                            <filtering>true</filtering>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <timestampFormat>
+                        {0,date,yyyy-MM-dd HH:mm:ss}
+                    </timestampFormat>
+                    <timestampPropertyName>buildTimestamp</timestampPropertyName>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-     <repositories>
+    <repositories>
         <repository>
             <id>info-bliki-repository</id>
             <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
@@ -40,14 +115,14 @@
             <version>10.3.2.1</version>
         </dependency>
         <dependency>
-          <groupId>uk.ac.ebi.microarray.atlas</groupId>
-          <artifactId>indexbuilder</artifactId>
-          <version>0.1-SNAPSHOT</version>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>indexbuilder</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>uk.ac.ebi.microarray.atlas</groupId>
-          <artifactId>netcdf-generator</artifactId>
-          <version>0.1-SNAPSHOT</version>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>netcdf-generator</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.microarray.atlas</groupId>
@@ -161,9 +236,9 @@
         </dependency>
 
         <dependency>
-                <groupId>commons-dbcp</groupId>
-                <artifactId>commons-dbcp</artifactId>
-                <version>1.2.2</version>
+            <groupId>commons-dbcp</groupId>
+            <artifactId>commons-dbcp</artifactId>
+            <version>1.2.2</version>
         </dependency>
 
         <dependency>
@@ -214,63 +289,17 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>false</filtering>
-            </testResource>
-        </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <includes>
-                                <include>end_body.jsp</include>
-                                <include>MydasServerConfig.xml</include>
-                            </includes>
-                            <directory>src/main/webapp</directory>
-                            <filtering>true</filtering>
-                        </resource>
-                        <resource>
-                            <includes>
-                                <include>web.xml</include>
-                            </includes>
-                            <directory>src/main/webapp/WEB-INF</directory>
-                            <targetPath>WEB-INF</targetPath>
-                            <filtering>true</filtering>
-                        </resource>
-                    </webResources>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0.2</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
+        <atlas.googleanalytics.script />
+
+        <!-- fixme: lookup from DB -->
+        <atlas.last.experiment>875219118</atlas.last.experiment>
+        <atlas.data.release>9.9</atlas.data.release>
+
+        <!-- fixme: this is context dependent -->
+        <atlas.baseurl>http://www.ebi.ac.uk/gxa</atlas.baseurl>
+
     </properties>
 </project>

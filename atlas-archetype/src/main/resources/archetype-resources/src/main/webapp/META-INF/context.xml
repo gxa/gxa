@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context swallowOutput="true">
   <Resource
-      name="jdbc/AEATLAS"
+      name="jdbc/ATLAS1"
       type="javax.sql.DataSource"
       factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
       driverClassName="oracle.jdbc.OracleDriver"
@@ -14,14 +14,42 @@
       removeAbandoned="true" />
 
   <Resource
-      name="file/AEINDEX"
+      name="jdbc/ATLAS2"
+      type="javax.sql.DataSource"
+      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+      driverClassName="oracle.jdbc.OracleDriver"
+      url="${atlasDatasourceURL}"
+      username="${atlasUser}"
+      password="${atlasPassword}"
+      maxIdle="2"
+      maxWait="5000"
+      maxActive="50"
+      removeAbandoned="true" />
+
+  <Resource
+      name="jdbc/ATLASDEV"
+      type="javax.sql.DataSource"
+      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+      driverClassName="oracle.jdbc.OracleDriver"
+      url="${atlasDatasourceURL}"
+      username="${atlasUser}"
+      password="${atlasPassword}"
+      maxIdle="2"
+      maxWait="5000"
+      maxActive="50"
+      removeAbandoned="true" />
+
+  <Resource
+      name="file/GXAINDEX"
       type="java.util.File"
+      factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
       path="${atlasIndexLocation}"
       />
 
   <Resource
-      name="file/AENETCDFS"
+      name="file/GXANETCDFS"
       type="java.util.File"
+      factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
       path="${atlasNetCDFRepoLocation}"
       />
 
