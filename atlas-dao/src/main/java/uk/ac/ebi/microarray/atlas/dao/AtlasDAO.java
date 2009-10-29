@@ -138,20 +138,6 @@ public class AtlasDAO {
           "WHERE e.experimentid=a.experimentid " +
           "AND a.arraydesignid=d.arraydesignid " +
           "AND e.accession=?";
-//  private static final String DESIGN_ELEMENT_IDS_BY_ARRAY_ACCESSION =
-//      "SELECT de.designelementid " +
-//          "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
-//          "WHERE de.arraydesignid=ad.arraydesignid " +
-//          "AND ad.accession=?";
-//  private static final String DESIGN_ELEMENT_IDS_BY_GENEID =
-//      "SELECT de.designelementid " +
-  //          "FROM a2_designelement de " +
-  //          "WHERE de.geneid=?";
-  //  private static final String DESIGN_ELEMENT_ACCS_BY_ARRAY_ACCESSION =
-  //      "SELECT de.accession " +
-  //          "FROM a2_arraydesign ad, a2_designelement de " +
-  //          "where de.arraydesignid=ad.arraydesignid " +
-  //          "AND ad.accession=? ";
   private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
       "SELECT de.designelementid, de.accession " +
           "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +

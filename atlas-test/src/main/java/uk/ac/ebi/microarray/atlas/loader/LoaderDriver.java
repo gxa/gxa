@@ -8,8 +8,6 @@ import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderEvent;
 import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGenerator;
 import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
-import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.microarray.atlas.netcdf.listener.NetCDFGeneratorListener;
 
 import java.text.DecimalFormat;
 
@@ -25,10 +23,21 @@ public class LoaderDriver {
     BeanFactory factory =
         new ClassPathXmlApplicationContext("loaderContext.xml");
 
+    // loader
+    final AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");
+    // index
+    final IndexBuilder builder =
+        (IndexBuilder) factory.getBean("indexBuilder");
+    // including genes?
+    System.out.println("Include genes: " + builder.getIncludeGenes());
+    // netcdfs
+    final NetCDFGenerator generator =
+        (NetCDFGenerator) factory.getBean("netcdfGenerator");
+
+
     // run the loader
 //    URL url = new URL(
 //        "file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
-//    AtlasMAGETABLoader loader = (AtlasMAGETABLoader)factory.getBean("atlasLoader");
 //    final long loadStart = System.currentTimeMillis();
 //    boolean success = loader.load(url);
 //    final long loadEnd = System.currentTimeMillis();
@@ -36,8 +45,6 @@ public class LoaderDriver {
 //    System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
 
     // run the index builder
-    final IndexBuilder builder =
-        (IndexBuilder) factory.getBean("indexBuilder");
     builder.setPendingMode(false);
 
     final long indexStart = System.currentTimeMillis();
@@ -82,47 +89,45 @@ public class LoaderDriver {
 //    }
 
     // run the NetCDFGenerator
-    final NetCDFGenerator generator =
-        (NetCDFGenerator) factory.getBean("netcdfGenerator");
-    final long netStart = System.currentTimeMillis();
-    generator.generateNetCDFs(
-        new NetCDFGeneratorListener() {
-          public void buildSuccess(NetCDFGenerationEvent event) {
-            final long netEnd = System.currentTimeMillis();
-
-            String total = new DecimalFormat("#.##").format(
-                (netEnd - netStart) / 60000);
-            System.out.println(
-                "NetCDFs generated successfully in " + total + " mins.");
-
-            try {
-              generator.shutdown();
-            }
-            catch (NetCDFGeneratorException e) {
-              e.printStackTrace();
-            }
-          }
-
-          public void buildError(NetCDFGenerationEvent event) {
-            System.out.println("NetCDF Generation failed!");
-            for (Throwable t : event.getErrors()) {
-              t.printStackTrace();
-              try {
-                generator.shutdown();
-              }
-              catch (NetCDFGeneratorException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        });
+//    final long netStart = System.currentTimeMillis();
+//    generator.generateNetCDFs(
+//        new NetCDFGeneratorListener() {
+//          public void buildSuccess(NetCDFGenerationEvent event) {
+//            final long netEnd = System.currentTimeMillis();
+//
+//            String total = new DecimalFormat("#.##").format(
+//                (netEnd - netStart) / 60000);
+//            System.out.println(
+//                "NetCDFs generated successfully in " + total + " mins.");
+//
+//            try {
+//              generator.shutdown();
+//            }
+//            catch (NetCDFGeneratorException e) {
+//              e.printStackTrace();
+//            }
+//          }
+//
+//          public void buildError(NetCDFGenerationEvent event) {
+//            System.out.println("NetCDF Generation failed!");
+//            for (Throwable t : event.getErrors()) {
+//              t.printStackTrace();
+//              try {
+//                generator.shutdown();
+//              }
+//              catch (NetCDFGeneratorException e) {
+//                e.printStackTrace();
+//              }
+//            }
+//          }
+//        });
 
     // in case we don't run netCDF generator
-//    try {
-//      generator.shutdown();
-//    }
-//    catch (NetCDFGeneratorException e) {
-//      e.printStackTrace();
-//    }
+    try {
+      generator.shutdown();
+    }
+    catch (NetCDFGeneratorException e) {
+      e.printStackTrace();
+    }
   }
 }

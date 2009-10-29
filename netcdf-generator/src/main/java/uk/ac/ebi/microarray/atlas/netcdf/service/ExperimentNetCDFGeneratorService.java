@@ -124,7 +124,7 @@ public class ExperimentNetCDFGeneratorService
           //noinspection ThrowFromFinallyBlock
           throw new NetCDFGeneratorException(
               "Failed to terminate service for " + getClass().getSimpleName() +
-                  "cleanly - suspended tasks were found");
+                  " cleanly - suspended tasks were found");
         }
         else {
           getLog().debug("Executor service exited cleanly");
@@ -134,7 +134,7 @@ public class ExperimentNetCDFGeneratorService
         //noinspection ThrowFromFinallyBlock
         throw new NetCDFGeneratorException(
             "Failed to terminate service for " + getClass().getSimpleName() +
-                "cleanly - suspended tasks were found");
+                " cleanly - suspended tasks were found");
       }
     }
   }
@@ -230,7 +230,7 @@ public class ExperimentNetCDFGeneratorService
           //noinspection ThrowFromFinallyBlock
           throw new NetCDFGeneratorException(
               "Failed to terminate service for " + getClass().getSimpleName() +
-                  "cleanly - suspended tasks were found");
+                  " cleanly - suspended tasks were found");
         }
         else {
           getLog().debug("Executor service exited cleanly");
@@ -240,7 +240,7 @@ public class ExperimentNetCDFGeneratorService
         //noinspection ThrowFromFinallyBlock
         throw new NetCDFGeneratorException(
             "Failed to terminate service for " + getClass().getSimpleName() +
-                "cleanly - suspended tasks were found");
+                " cleanly - suspended tasks were found");
       }
     }
   }

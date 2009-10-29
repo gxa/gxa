@@ -142,7 +142,7 @@ public class DataSlicer {
           //noinspection ThrowFromFinallyBlock
           throw new DataSlicingException(
               "Failed to terminate service for " + getClass().getSimpleName() +
-                  "cleanly - suspended tasks were found");
+                  " cleanly - suspended tasks were found");
         }
         else {
           log.debug("Executor service exited cleanly");
@@ -152,7 +152,7 @@ public class DataSlicer {
         //noinspection ThrowFromFinallyBlock
         throw new DataSlicingException(
             "Failed to terminate service for " + getClass().getSimpleName() +
-                "cleanly - suspended tasks were found");
+                " cleanly - suspended tasks were found");
       }
     }
   }
