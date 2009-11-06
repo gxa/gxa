@@ -1,21 +1,23 @@
 package ae3.service;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-import java.io.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import ae3.model.ListResultRow;
+import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
 import ae3.util.AtlasProperties;
-import ae3.model.ListResultRow;
-import ae3.model.ListResultRowExperiment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Represents a download event for exporting atlas list results to files
@@ -60,7 +62,7 @@ public class Download implements Runnable {
                         new ZipOutputStream(new FileOutputStream(getOutputFile()));
 
 
-                final AtlasStructuredQueryService sqs = ArrayExpressSearchService
+                final AtlasStructuredQueryService sqs = AtlasSearchService
                         .instance()
                         .getStructQueryService();
 

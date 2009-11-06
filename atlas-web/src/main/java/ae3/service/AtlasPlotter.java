@@ -1,32 +1,19 @@
 package ae3.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.apache.commons.lang.ArrayUtils;
+import ae3.dao.AtlasDao;
+import ae3.model.AtlasGene;
+import ae3.model.AtlasTuple;
+import ds.server.DataServerAPI;
+import ds.server.ExpressionDataSet;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.analysis.compound.hyphenation.CharVector;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.util.HtmlUtils;
 
-import ae3.model.AtlasGene;
-import ae3.model.AtlasTuple;
-import ae3.util.HtmlHelper;
-import ae3.dao.AtlasDao;
-
-import ds.server.DataServerAPI;
-import ds.server.ExpressionDataSet;
+import java.util.*;
 
 public class AtlasPlotter {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,7 +33,7 @@ public class AtlasPlotter {
 	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType, final String gplotIds) {
         String efToPlot = null;
 
-        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
         AtlasGene atlasGene = dao.getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
 
 		if(EF.equals("default")){
@@ -443,7 +430,7 @@ public class AtlasPlotter {
 	}
 	
 	private ArrayList<String> getGeneNames(String gids){
-        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
 
 		ArrayList<String> geneNames = new ArrayList<String>();
 		String[] ids = gids.split(",");

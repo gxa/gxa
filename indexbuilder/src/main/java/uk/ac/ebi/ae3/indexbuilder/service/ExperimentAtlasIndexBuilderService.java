@@ -27,8 +27,7 @@ import java.util.concurrent.*;
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 64;
 
-    public ExperimentAtlasIndexBuilderService(AtlasDAO atlasDAO,
-                                              SolrServer solrServer) {
+    public ExperimentAtlasIndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
         super(atlasDAO, solrServer);
     }
 
@@ -54,14 +53,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         // Add field "exp_in_dw" = true, to show this experiment is present
                         getLog().info("Updating index - adding experiment " + experiment.getAccession());
                         getLog().debug("Adding standard fields for experiment stats");
-                        solrInputDoc.addField(Constants.FIELD_EXP_IN_DW,
-                                              true);
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_ID,
-                                              experiment.getExperimentID());
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION,
-                                              experiment.getAccession());
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC,
-                                              experiment.getDescription());
+                        solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+                        solrInputDoc.addField(Constants.FIELD_DWEXP_ID, experiment.getExperimentID());
+                        solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION, experiment.getAccession());
+                        solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC, experiment.getDescription());
 
                         // now, fetch assays for this experiment
                         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
@@ -104,8 +99,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         getLog().debug("Evaluating atlas counts for " + experiment.getAccession());
                         List<AtlasCount> atlasCounts = getAtlasDAO().getAtlasCountsByExperimentID(
                                 experiment.getExperimentID());
-                        getLog().debug(
-                                experiment.getAccession() + " has " + atlasCounts.size() + " atlas count objects");
+                        getLog().debug(experiment.getAccession() + " has " + atlasCounts.size() +
+                                " atlas count objects");
                         for (AtlasCount count : atlasCounts) {
                             // encode values in UTF-8 format for indexing
                             String ef = URLEncoder.encode(count.getProperty(), "UTF-8");
@@ -137,8 +132,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 catch (ExecutionException e) {
                     if (e.getCause() instanceof IndexBuilderException) {
                         throw (IndexBuilderException) e.getCause();
-                    }
-                    else {
+                    } else {
                         throw new IndexBuilderException("An error occurred updating Experiments SOLR index", e);
                     }
                 }

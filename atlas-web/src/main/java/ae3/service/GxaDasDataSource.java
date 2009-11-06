@@ -7,6 +7,13 @@ package ae3.service;
  * Time: 1:53:07 PM
  * To change this template use File | Settings | File Templates.
  */
+
+import ae3.model.*;
+import ae3.util.CuratedTexts;
+import ae3.util.HtmlHelper;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
+import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.Expression;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
@@ -14,18 +21,11 @@ import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
 import uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException;
 import uk.ac.ebi.mydas.model.*;
-import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.Expression;
 
 import javax.servlet.ServletContext;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
-
-import ae3.model.*;
-import ae3.util.CuratedTexts;
-import ae3.util.HtmlHelper;
 
 /**
  * Created Using IntelliJ IDEA.
@@ -186,7 +186,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
             ExperimentsTable tbl = atlasGene.getExperimentsTable();
             for(Experiment e: tbl.findByEfEfv(row.getEf(), row.getFv())){
-                AtlasExperiment atlasExperiment = ArrayExpressSearchService.instance().getAtlasDao().getExperimentById(e.getId());
+                AtlasExperiment atlasExperiment = AtlasSearchService.instance().getAtlasSolrDAO().getExperimentById(e.getId());
 
                 if(null==atlasExperiment)
                     continue;
@@ -321,7 +321,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                       String geneId = segmentReference;
 
                       //AtlasGeneService.getAtlasGene(geneId);
-                      AtlasGene atlasGene = ArrayExpressSearchService.instance().getAtlasDao().getGeneByIdentifier(geneId).getGene();
+                      AtlasGene atlasGene = AtlasSearchService.instance().getAtlasSolrDAO().getGeneByIdentifier(geneId).getGene();
 
                       if(null==atlasGene)
                       {
@@ -356,7 +356,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                           feat.add(HeatmapDasFeature(atlasGene,i));
                       }
 
-                      List<AtlasExperiment> t =  ArrayExpressSearchService.instance().getAtlasDao().getRankedGeneExperiments(atlasGene, null, null, -1, -1);
+                      List<AtlasExperiment> t =  AtlasSearchService.instance().getAtlasSolrDAO().getRankedGeneExperiments(atlasGene, null, null, -1, -1);
                       for(AtlasExperiment e : t){
                         feat.add(ExperimentDasFeature(atlasGene,e));
                       }

@@ -14,63 +14,71 @@
     <bean name="indexBuilder"
           class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
         <!-- resource beans -->
-        <property name="atlasDataSource" ref="atlasDataSource" />
-        <property name="indexLocation" ref="atlasIndex" />
+        <property name="atlasDataSource" ref="atlasDataSource"/>
+        <property name="indexLocation" ref="atlasIndex"/>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
-        <property name="includeGenes" value="true" />
-        <property name="includeExperiments" value="true" />
+        <property name="includeGenes" value="true"/>
+        <property name="includeExperiments" value="true"/>
     </bean>
 
     <!-- Requires a NetCDFGenerator -->
     <bean name="netCDFGenerator"
           class="uk.ac.ebi.microarray.atlas.netcdf.DefaultNetCDFGenerator">
         <!-- resource beans -->
-        <property name="atlasDataSource" ref="atlasDataSource" />
-        <property name="repositoryLocation" ref="atlasNetCDFRepo" />
+        <property name="atlasDataSource" ref="atlasDataSource"/>
+        <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
     </bean>
 
     <!-- Requires a loader -->
     <bean name="atlasLoader"
           class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
         <!-- resource bean -->
-        <property name="dataSource" ref="atlasDataSource" />
+        <property name="dataSource" ref="atlasDataSource"/>
     </bean>
 
     <!-- Spring JDBC template for database queries -->
     <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
-        <property name="dataSource" ref="atlasDataSource" />
+        <property name="dataSource" ref="atlasDataSource"/>
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
     <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="template" />
+        <property name="jdbcTemplate" ref="template"/>
     </bean>
 
     <!-- Configure the search service used in webapp -->
-    <bean name="atlasSearchService" class="ae3.service.ArrayExpressSearchService" factory-method="instance">
-        <property name="atlasIndex" ref="atlasIndex" />
-        <property name="atlasDataSource" ref="atlasDataSource" />
+    <bean name="atlasSearchService" class="ae3.service.AtlasSearchService">
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="atlasDatabaseDAO" ref="atlasDAO"/>
+        <property name="atlasStatisticsService" ref="atlasStatisticsService" />
+        
     </bean>
 
+    <!-- Configure the statistics service -->
+    <bean name="atlasStatisticsService" class="ae3.service.AtlasStatisticsService">
+        <property name="atlasDAO" ref="atlasDAO" />
+        <!-- todo - we can wire up the solr server here too -->
+    </bean>
 
     <!-- Declare beans for resources named by context JNDI -->
     <jee:jndi-lookup id="atlasDataSource"
                      jndi-name="/jdbc/ATLAS1"
-                     resource-ref="true" />
+                     resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasDataSource2"
                      jndi-name="/jdbc/ATLAS2"
-                     resource-ref="true" />
+                     resource-ref="true"/>
+
     <jee:jndi-lookup id="atlasDataSourceDev"
                      jndi-name="/jdbc/ATLASDEV"
-                     resource-ref="true" />
+                     resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasIndex"
                      jndi-name="/file/GXAINDEX"
-                     resource-ref="true" />
+                     resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasNetCDFRepo"
                      jndi-name="/file/GXANETCDFS"
-                     resource-ref="true" />
+                     resource-ref="true"/>
 
 </beans>
