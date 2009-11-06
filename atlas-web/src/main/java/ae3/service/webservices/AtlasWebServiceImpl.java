@@ -1,19 +1,18 @@
 package ae3.service.webservices;
 
-import ae3.service.ArrayExpressSearchService;
-import ae3.service.AtlasResult;
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
-
-import org.apache.solr.client.solrj.response.QueryResponse;
+import ae3.service.AtlasResult;
+import ae3.service.AtlasSearchService;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-import java.rmi.RemoteException;
 
 @SuppressWarnings("unchecked")
 public class AtlasWebServiceImpl implements AtlasWebService {
@@ -23,12 +22,12 @@ public class AtlasWebServiceImpl implements AtlasWebService {
         log.info("Atlas Web Service Query. Gene: {}, Expt: {}, Organism: {}, UpDn: {}", new String[] {q_gene, q_expt, q_orgn, q_updn});
         if(null != q_expt && q_expt.endsWith("*")) q_expt = q_expt.replaceAll("[*]$","?*");
 
-        QueryResponse exptHitsResponse = ArrayExpressSearchService.instance().fullTextQueryExpts(q_expt);
+        QueryResponse exptHitsResponse = AtlasSearchService.instance().fullTextQueryExpts(q_expt);
 
         if(null!= q_gene && q_gene.endsWith("*")) q_gene= q_gene.replaceAll("[*]$","?*");
-        QueryResponse geneHitsResponse = ArrayExpressSearchService.instance().fullTextQueryGenes(q_gene);
+        QueryResponse geneHitsResponse = AtlasSearchService.instance().fullTextQueryGenes(q_gene);
 
-        List<AtlasResult> arset = ArrayExpressSearchService.instance().doAtlasQuery(geneHitsResponse, exptHitsResponse, q_updn, q_orgn);
+        List<AtlasResult> arset = AtlasSearchService.instance().doAtlasQuery(geneHitsResponse, exptHitsResponse, q_updn, q_orgn);
 
         if(null == arset) return null;
 
@@ -73,7 +72,7 @@ public class AtlasWebServiceImpl implements AtlasWebService {
     }
 
     public HashMap getAtlasGene(String geneIdentifier) throws RemoteException {
-        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
         AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneIdentifier);
         if(result.isMulti())
             throw new RemoteException("Multiple results found");
@@ -86,7 +85,7 @@ public class AtlasWebServiceImpl implements AtlasWebService {
     public HashMap getAtlasExperiment(String exptAccession) throws RemoteException {
         log.info("Atlas Web Service Experiment Query for {}", exptAccession);
 
-        AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
         AtlasExperiment experiment = dao.getExperimentByAccession(exptAccession);
         if(experiment == null)
             throw new RemoteException("Experiment not found");

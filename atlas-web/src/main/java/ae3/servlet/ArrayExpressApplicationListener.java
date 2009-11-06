@@ -7,7 +7,7 @@ package ae3.servlet;
  * EBI Microarray Informatics Team (c) 2007 
  */
 
-import ae3.service.ArrayExpressSearchService;
+import ae3.service.AtlasSearchService;
 import ae3.util.AtlasProperties;
 import ds.server.DataServerAPI;
 import ds.utils.DS_DBconnection;
@@ -26,9 +26,14 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.sql.DataSource;
 import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.Properties;
 
 public class ArrayExpressApplicationListener implements ServletContextListener,
-                                                        HttpSessionListener, HttpSessionAttributeListener {
+        HttpSessionListener, HttpSessionAttributeListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void contextInitialized(ServletContextEvent sce) {
@@ -41,18 +46,47 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
                 WebApplicationContextUtils.getWebApplicationContext(application);
 
         // acquire the beans we need
-        DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         File atlasIndex = (File) context.getBean("atlasIndex");
         File atlasNetCDFRepo = (File) context.getBean("atlasNetCDFRepo");
-        ArrayExpressSearchService as = (ArrayExpressSearchService) context.getBean("atlasSearchService");
+        AtlasSearchService as = (AtlasSearchService) context.getBean("atlasSearchService");
+        DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
+
+        // read out the URL from the database
+        String atlasDatasourceUrl;
+        try {
+            Connection c = atlasDataSource.getConnection();
+            DatabaseMetaData dmd = c.getMetaData();
+            atlasDatasourceUrl = dmd.getURL();
+            c.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new NullPointerException("Unable to obtain connection to the datasource, or failed to read URL");
+        }
+
+        // read version file
+        Properties versionProps = new Properties();
+        try {
+            versionProps.load(getClass().getClassLoader().getResourceAsStream("META-INF/atlas.version"));
+        } catch (IOException e) {
+            throw new NullPointerException("Cannot load atlas version properties - " +
+                    "META-INF/atlas.version may be missing or invalid");
+        }
+        if (versionProps.getProperty("atlas.buildNumber") == null ||
+                versionProps.getProperty("atlas.software.version") == null) {
+            throw new NullPointerException("Cannot load atlas version properties - " +
+                    "META-INF/atlas.version may be missing or invalid");
+        }
 
         log.info("Atlas initialized with the following parameters...");
+        // software properties
+        log.info("\tBuild Number:               " + versionProps.getProperty("atlas.buildNumber"));
+        log.info("\tSoftware Version:           " + versionProps.getProperty("atlas.software.version"));
+        // data properties
+        log.info("\tData Release:               " + AtlasProperties.getProperty("atlas.data.release")); // fixme: read this from DB
+        // context properties
         log.info("\tSOLR Index Location:        " + atlasIndex);
-        log.info("\tAtlas DataSource:           " + atlasDataSource);
+        log.info("\tAtlas DataSource:           " + atlasDatasourceUrl);
         log.info("\tNetCDF repository Location: " + atlasNetCDFRepo.getAbsolutePath());
-        log.info("\tSoftware Version:           " + AtlasProperties.getProperty("atlas.software.version"));
-        log.info("\tData Release:               " + AtlasProperties.getProperty("atlas.data.release"));
-        log.info("\tBuild Number:               " + AtlasProperties.getProperty("atlas.buildNumber"));
 
         // last bits of setup for DS_DBconnection
         DS_DBconnection.instance().setAEDataSource(atlasDataSource);
@@ -61,44 +95,6 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
         as.initialize();
 
         DataServerAPI.setNetCDFPath(atlasNetCDFRepo.getAbsolutePath());
-
-//        try {
-//            SLF4JBridgeHandler.install();
-//
-//            System.setProperty("java.awt.headless", "true");
-//
-//            ArrayExpressSearchService as = ArrayExpressSearchService.instance();
-//            final String solrIndexLocation = AtlasProperties.getProperty("atlas.solrIndexLocation");
-//            final String dbName = AtlasProperties.getProperty("atlas.dbName");
-//            final String netCDFlocation =
-//                    AtlasProperties.getProperty("atlas.netCDFlocation");
-//
-//            log.info("  Solr index location: " + solrIndexLocation);
-//            log.info("  database name: " + dbName);
-//            log.info("  netCDF location: " + netCDFlocation);
-//            log.info("  software version: " +
-//                    AtlasProperties.getProperty("atlas.software.version"));
-//            log.info("  data release:" +
-//                    AtlasProperties.getProperty("atlas.data.release"));
-//            log.info(
-//                    "  build number:" + AtlasProperties.getProperty("atlas.buildNumber"));
-//
-//            as.setAtlasIndex(solrIndexLocation);
-//
-//            Context initContext = new InitialContext();
-//            Context envContext = (Context) initContext.lookup("java:/comp/env");
-//            DataSource ds = (DataSource) envContext.lookup("jdbc/" + dbName);
-//
-//            DS_DBconnection.instance().setAEDataSource(ds);
-//
-//            as.setAtlasDataSource(ds);
-//            as.initialize();
-//
-//            DataServerAPI.setNetCDFPath(netCDFlocation);
-//        }
-//        catch (Exception e) {
-//            throw new RuntimeException("Error in initialization", e);
-//        }
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
@@ -109,7 +105,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
 
         ServletContext sc = sce.getServletContext();
 
-        ArrayExpressSearchService.instance().shutdown();
+        AtlasSearchService.instance().shutdown();
 
         SLF4JBridgeHandler.uninstall();
     }
@@ -122,7 +118,7 @@ public class ArrayExpressApplicationListener implements ServletContextListener,
     }
 
     public void sessionDestroyed(HttpSessionEvent se) {
-        ArrayExpressSearchService.instance().getDownloadService()
+        AtlasSearchService.instance().getDownloadService()
                 .cleanupDownloads(se.getSession().getId());
     }
 

@@ -1,35 +1,34 @@
 package ae3.service.compute;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.kchine.r.server.RServices;
 import org.kchine.rpf.ServantProvider;
 import org.kchine.rpf.ServantProviderFactory;
-import org.kchine.r.server.RServices;
-import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.pool.PoolableObjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.InputStreamReader;
-import java.util.NoSuchElementException;
+import java.io.Reader;
 import java.rmi.RemoteException;
-
-import ae3.util.AtlasProperties;
+import java.util.NoSuchElementException;
+import java.util.Properties;
 
 /**
  * Provides access to computational infrastructure by maintaining a pool of computational workers.
  * To use, pass a {@link ae3.service.compute.ComputeTask} to the method {@link #computeTask(ComputeTask)},
  * the return type is determined by the type parameter to {@code ComputeTask}.
- * <p>
+ * <p/>
  * For example:
  * <code>
  * RNumeric i = computeService.computeTask(new ComputeTask<RNumeric> () {
- *   public compute(RServices R) throws RemoteException {
- *     return (RNumeric) R.getObject("1 + 3");
- *   }
+ * public compute(RServices R) throws RemoteException {
+ * return (RNumeric) R.getObject("1 + 3");
+ * }
  * );
  * </code>
- * <p>
+ * <p/>
  * If the workers in the pool need any kind of special initialization, a {@link ae3.service.compute.AtlasComputeService.RWorkerInitializer}
  * can be passed to the constructor. The {@link ae3.service.compute.AtlasComputeService.RWorkerInitializer#initializeWorker(org.kchine.r.server.RServices)}
  * method will be called on each worker, when it's borrowed.
@@ -57,7 +56,7 @@ public class AtlasComputeService implements Compute {
         public void initializeWorker(RServices R) throws IOException;
     }
 
-    public AtlasComputeService () {
+    public AtlasComputeService() {
         RWorkerInitializer defaultInitializer = new RWorkerInitializer() {
 
             public void initializeWorker(RServices R) throws IOException {
@@ -86,16 +85,17 @@ public class AtlasComputeService implements Compute {
         workerPool = new GenericObjectPool(new RWorkerObjectFactory(defaultInitializer), workerPoolConfig);
     }
 
-    public AtlasComputeService (RWorkerInitializer rWorkerInitializer) {
+    public AtlasComputeService(RWorkerInitializer rWorkerInitializer) {
         workerPool = new GenericObjectPool(new RWorkerObjectFactory(rWorkerInitializer), workerPoolConfig);
     }
 
 
     /**
      * Executes task on a borrowed worker. Returns type specified in generic type parameter T to the method.
-     * @param task   task to evaluate, {@link ComputeTask}
-     * @param <T>    type that the task returns on completion
-     * @return       T
+     *
+     * @param task task to evaluate, {@link ComputeTask}
+     * @param <T>  type that the task returns on completion
+     * @return T
      */
     public <T> T computeTask(ComputeTask<T> task) {
         T res = null;
@@ -110,7 +110,7 @@ public class AtlasComputeService implements Compute {
         } catch (Exception e) {
             log.error("Problem computing task!", e.getMessage());
         } finally {
-            if(null != R) {
+            if (null != R) {
                 try {
                     log.info("Returning worker " + R.getServantName() + " to local pool");
                     workerPool.returnObject(R);
@@ -125,7 +125,7 @@ public class AtlasComputeService implements Compute {
 
     public void shutdown() {
         try {
-            if(workerPool.getNumActive() > 0 )
+            if (workerPool.getNumActive() > 0)
                 log.warn("Shutting down even though there are still some active compute workers");
 
             workerPool.clear();
@@ -149,30 +149,26 @@ public class AtlasComputeService implements Compute {
         }
 
         private void initializeServantProvider() {
-            System.setProperty("naming.mode",                    AtlasProperties.getProperty("biocep.naming.mode"));
-            System.setProperty("pools.provider.factory",         AtlasProperties.getProperty("biocep.pools.provider.factory"));
-            System.setProperty("pools.dbmode.type",              AtlasProperties.getProperty("biocep.pools.dbmode.type"));
-            System.setProperty("pools.dbmode.name",              AtlasProperties.getProperty("biocep.pools.dbmode.name"));
-            System.setProperty("pools.dbmode.port",              AtlasProperties.getProperty("biocep.pools.dbmode.port"));
-            System.setProperty("pools.dbmode.host",              AtlasProperties.getProperty("biocep.pools.dbmode.host"));
-            System.setProperty("pools.dbmode.driver",            AtlasProperties.getProperty("biocep.pools.dbmode.driver"));
-            System.setProperty("pools.dbmode.user",              AtlasProperties.getProperty("biocep.pools.dbmode.user"));
-            System.setProperty("pools.dbmode.password",          AtlasProperties.getProperty("biocep.pools.dbmode.password"));
-            System.setProperty("pools.dbmode.defaultpoolname",   AtlasProperties.getProperty("biocep.pools.dbmode.defaultpoolname"));
-            System.setProperty("pools.dbmode.killused",          AtlasProperties.getProperty("biocep.pools.dbmode.killused"));
+            try {
+                // set system properties with the properties we read in
+                setBiocepSystemProperties(readBiocepProperties());
 
-            sp = ServantProviderFactory.getFactory().getServantProvider();
+                // and get the servant provider
+                sp = ServantProviderFactory.getFactory().getServantProvider();
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to read biocep.properties: " + e.getCause(), e);
+            }
         }
 
         public Object makeObject() throws Exception {
             log.info("Borrowing R worker from proxy...");
             RServices R = (RServices) sp.borrowServantProxyNoWait();
 
-            if(null == R) throw new NoSuchElementException();
+            if (null == R) throw new NoSuchElementException();
 
             log.info("Got worker " + R.getServantName());
 
-            if(null != workerInitializer)
+            if (null != workerInitializer)
                 workerInitializer.initializeWorker(R);
 
             return R;
@@ -189,7 +185,7 @@ public class AtlasComputeService implements Compute {
             RServices R = (RServices) o;
             try {
                 R.ping();
-            } catch(RemoteException e) {
+            } catch (RemoteException e) {
                 log.info("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
                 return false;
             }
@@ -197,8 +193,101 @@ public class AtlasComputeService implements Compute {
             return true;
         }
 
-        public void activateObject(Object o) throws Exception {}
+        public void activateObject(Object o) throws Exception {
+        }
 
-        public void passivateObject(Object o) throws Exception {}
+        public void passivateObject(Object o) throws Exception {
+        }
+
+        private Properties readBiocepProperties() throws IOException {
+            Properties p = new Properties();
+            p.load(getClass().getClassLoader().getResourceAsStream("biocep.properties"));
+            return p;
+        }
+
+        private void setBiocepSystemProperties(Properties biocepProps) {
+            // databaseURL should be something like "jdbc:oracle:thin:@www.myhost.com:1521:MYDATABASE"
+            String databaseURL = biocepProps.getProperty("biocep.db.url");
+
+            if (!databaseURL.contains("@")) {
+                throw new RuntimeException("No '@' found in the database URL - database connection string " +
+                        "isn't using JDBC oracle-thin driver?");
+            }
+
+            // split the url up on ":" char
+            String[] tokens = databaseURL.split(":");
+
+            // host is the token that begins with '@'
+            int hostIndex = 0;
+            String host = null;
+            for (String token : tokens) {
+                if (token.startsWith("@")) {
+                    host = token.replaceFirst("@", "");
+                    break;
+                }
+                hostIndex++;
+            }
+            if (host == null) {
+                throw new RuntimeException("Could not read host from the database URL");
+            }
+
+            // port is the bit immediately after the host (if present - and if not, use 1521)
+            String port;
+            // last token is database name - so if there are more tokens between host and name, this is the port
+            if (tokens.length > hostIndex + 1) {
+                port = tokens[hostIndex + 1];
+            } else {
+                port = "1521";
+            }
+
+            // name is the database name - this is the bit at the end
+            String name = tokens[tokens.length - 1];
+
+            // customized DB location, parsed from URL string
+            System.setProperty(
+                    "pools.dbmode.host",
+                    host);
+            System.setProperty(
+                    "pools.dbmode.port",
+                    port);
+            System.setProperty(
+                    "pools.dbmode.name",
+                    name);
+
+            // username and password properties, which has to be duplicated in context.xml and in biocep.properties
+//            System.setProperty(
+//                    "pools.dbmode.user",
+//                    biocepProps.getProperty("biocep.db.user"));
+//            System.setProperty(
+//                    "pools.dbmode.password",
+//                    biocepProps.getProperty("biocep.db.password"));
+            // fixme: username and password for biocep DWEP schema are hardcoded - doh!
+            System.setProperty(
+                    "pools.dbmode.user",
+                    "DWEP");
+            System.setProperty(
+                    "pools.dbmode.password",
+                    "DWEP");
+
+            // standard config, probably won't normally change
+            System.setProperty(
+                    "naming.mode",
+                    biocepProps.getProperty("biocep.naming.mode"));
+            System.setProperty(
+                    "pools.provider.factory",
+                    biocepProps.getProperty("biocep.provider.factory"));
+            System.setProperty(
+                    "pools.dbmode.type",
+                    biocepProps.getProperty("biocep.db.type"));
+            System.setProperty(
+                    "pools.dbmode.driver",
+                    biocepProps.getProperty("biocep.db.driver"));
+            System.setProperty(
+                    "pools.dbmode.defaultpoolname",
+                    biocepProps.getProperty("biocep.defaultpoolname"));
+            System.setProperty(
+                    "pools.dbmode.killused",
+                    biocepProps.getProperty("biocep.killused"));
+        }
     }
 }

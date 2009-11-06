@@ -1,14 +1,16 @@
 package ae3.util;
 
-import java.util.Properties;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Helper wrapper class for properties file
+ *
  * @author pashky
  */
 public class AtlasProperties {
     private static Properties props = new Properties();
+
     static {
         try {
             props.load(AtlasProperties.class.getResourceAsStream("/atlas.properties"));
@@ -18,13 +20,21 @@ public class AtlasProperties {
     }
 
     public static String getProperty(String key) {
-        return props.getProperty(key) != null ? props.getProperty(key) : "";
+        if (key.equals("atlas.data.release")) {
+            return "[unknown: will be read from DB]"; // fixme: actually read this property from DB somewhere
+        } else {
+            return props.getProperty(key) != null ? props.getProperty(key) : "";
+        }
     }
 
     public static int getIntProperty(String key) {
         try {
-            return Integer.valueOf(props.getProperty(key));
-        } catch(Exception e) {
+            if (key.equals("atlas.last.experiment")) {
+                return -1; // fixme: actually read this from DB somewhere
+            } else {
+                return Integer.valueOf(props.getProperty(key));
+            }
+        } catch (Exception e) {
             return 0;
         }
     }
