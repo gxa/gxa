@@ -18,7 +18,7 @@ The Atlas IndexBuilder API
 
 --------
   <bean name="indexBuilder"
-        class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+        class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
     <!-- resource beans -->
     <property name="atlasDataSource" ref="atlasDatasource" />
     <property name="indexLocation" ref="atlasIndex" />

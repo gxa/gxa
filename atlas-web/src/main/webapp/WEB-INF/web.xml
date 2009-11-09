@@ -69,7 +69,7 @@
     </listener>
 
     <listener>
-        <listener-class>ae3.servlet.ArrayExpressApplicationListener</listener-class>
+        <listener-class>ae3.servlet.AtlasApplicationListener</listener-class>
     </listener>
 
     <listener>

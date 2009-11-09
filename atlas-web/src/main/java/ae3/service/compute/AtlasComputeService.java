@@ -255,19 +255,13 @@ public class AtlasComputeService implements Compute {
                     name);
 
             // username and password properties, which has to be duplicated in context.xml and in biocep.properties
-//            System.setProperty(
-//                    "pools.dbmode.user",
-//                    biocepProps.getProperty("biocep.db.user"));
-//            System.setProperty(
-//                    "pools.dbmode.password",
-//                    biocepProps.getProperty("biocep.db.password"));
             // fixme: username and password for biocep DWEP schema are hardcoded - doh!
             System.setProperty(
                     "pools.dbmode.user",
-                    "DWEP");
+                    biocepProps.getProperty("biocep.db.user"));
             System.setProperty(
                     "pools.dbmode.password",
-                    "DWEP");
+                    biocepProps.getProperty("biocep.db.password"));
 
             // standard config, probably won't normally change
             System.setProperty(

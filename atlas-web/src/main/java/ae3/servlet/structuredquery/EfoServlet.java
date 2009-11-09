@@ -3,6 +3,8 @@ package ae3.servlet.structuredquery;
 import ae3.restresult.RestOut;
 import ae3.service.structuredquery.EfoValueListHelper;
 import ae3.util.EscapeUtil;
+import uk.ac.ebi.gxa.web.Atlas;
+import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -22,39 +24,51 @@ public class EfoServlet extends RestServlet {
             this.res = res;
         }
 
-        public @RestOut Collection hl() { return hls; }
-        public @RestOut(xmlItemName ="efo") Collection tree() { return res; }
+        public @RestOut Collection hl() {
+            return hls;
+        }
+
+        public @RestOut(xmlItemName = "efo") Collection tree() {
+            return res;
+        }
 
     }
+
     public Object process(HttpServletRequest request) {
-        final EfoValueListHelper service = ae3.service.ArrayExpressSearchService.instance()
-                .getStructQueryService().getEfoListHelper();
+        AtlasSearchService searchService =
+                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+        EfoValueListHelper service = searchService.getAtlasQueryService().getEfoListHelper();
 
 
         Collection result = null;
         String id = request.getParameter("childrenOf");
 
-        if(id != null) {
-            if(id.length() == 0)
+        if (id != null) {
+            if (id.length() == 0) {
                 id = null;
+            }
             log.info("EFO request for children of " + id);
             result = service.getTermChildren(id);
-        } else {
+        }
+        else {
             id = request.getParameter("downTo");
-            if(id != null && id.length() != 0) {
+            if (id != null && id.length() != 0) {
                 result = service.getTreeDownToTerm(id);
                 log.info("EFO request for tree down to " + id);
-            } else if(id != null && id.length() == 0) {
+            }
+            else if (id != null && id.length() == 0) {
                 // just show roots if nothing is down to
                 log.info("EFO request for tree root");
                 result = service.getTermChildren(null);
-            } else {
+            }
+            else {
                 id = request.getParameter("parentsOf");
-                if(id != null && id.length() != 0) {
+                if (id != null && id.length() != 0) {
                     log.info("EFO request for parents of " + id);
                     result = new ArrayList();
-                    for(List<EfoValueListHelper.EfoTermCount> i : service.getTermParentPaths(id))
+                    for (List<EfoValueListHelper.EfoTermCount> i : service.getTermParentPaths(id)) {
                         result.addAll(i);
+                    }
                 }
 
             }

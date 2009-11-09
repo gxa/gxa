@@ -73,7 +73,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td>
                     <select name="fexp_0" id="expr0">
                         <c:forEach var="s"
-                                   items="${service.structQueryService.geneExpressionOptions}">
+                                   items="${service.atlasQueryService.geneExpressionOptions}">
                             <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
                         </c:forEach>
                     </select>
@@ -146,7 +146,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="" selected="selected">Experimental factor</option>
                                 <option value="">(any)</option>
                                 <option value="efo">EFO</option>
-                                <c:forEach var="i" items="${service.structQueryService.experimentalFactorOptions}">
+                                <c:forEach var="i" items="${service.atlasQueryService.experimentalFactorOptions}">
                                     <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
                                 </c:forEach>
                             </select>
@@ -193,7 +193,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript">
     var options = {
         expressions : [
-            <c:forEach var="i" varStatus="s" items="${service.structQueryService.geneExpressionOptions}">
+            <c:forEach var="i" varStatus="s" items="${service.atlasQueryService.geneExpressionOptions}">
             [ '${u:escapeJS(i[0])}', 'is ${u:escapeJS(i[1])} in' ]<c:if test="${!s.last}">,</c:if>
             </c:forEach>
         ],

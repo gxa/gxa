@@ -1,7 +1,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.service.ArrayExpressSearchService" %>
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="java.util.List" %>
+<%@ page import="ae3.dao.AtlasDao" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -10,9 +12,15 @@
     List<AtlasExperiment> expz = (List<AtlasExperiment>) application.getAttribute("allexpts");
 
     if(null == expz) {
-        expz = (ArrayExpressSearchService.instance().getAtlasDao()).getExperiments();
+        AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
+
+        AtlasDao dao = searchService.getAtlasSolrDAO();
+
+        expz = dao.getExperiments();
         application.setAttribute("allexpts", expz);
     }
+
+    System.out.println("Got expz: found " + expz.size() + " experiments");
 %>
 
 <jsp:include page="start_head.jsp" />

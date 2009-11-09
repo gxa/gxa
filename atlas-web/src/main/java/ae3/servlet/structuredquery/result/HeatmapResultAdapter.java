@@ -4,7 +4,6 @@ import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRowExperiment;
-import ae3.service.ArrayExpressSearchService;
 import ae3.service.structuredquery.*;
 import ae3.util.FilterIterator;
 import ae3.util.JoinIterator;
@@ -16,13 +15,14 @@ import java.util.Iterator;
 
 /**
  * @author pashky
-*/
+ */
 public class HeatmapResultAdapter {
     private final AtlasStructuredQueryResult r;
-    private final AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+    private final AtlasDao dao;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDao dao) {
         this.r = r;
+        this.dao = dao;
     }
 
     public long getTotalResultGenes() {
@@ -63,9 +63,12 @@ public class HeatmapResultAdapter {
                 return new FilterIterator<Experiment, ListResultRowExperiment>(expiter()) {
                     public ListResultRowExperiment map(Experiment e) {
                         AtlasExperiment aexp = dao.getExperimentById(e.getId());
-                        if(aexp == null)
+                        if (aexp == null) {
                             return null;
-                        return new ListResultRowExperiment(e.getId(), aexp.getDwExpAccession(), aexp.getDwExpDescription(), e.getPvalue(), e.getExpression());
+                        }
+                        return new ListResultRowExperiment(e.getId(), aexp.getDwExpAccession(),
+                                                           aexp.getDwExpDescription(), e.getPvalue(),
+                                                           e.getExpression());
                     }
                 };
             }
@@ -111,7 +114,8 @@ public class HeatmapResultAdapter {
             }
 
             Iterator<Experiment> expiter() {
-                return row.getGene().getExperimentsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
+                return row.getGene().getExperimentsTable()
+                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
             }
         }
 
@@ -129,17 +133,19 @@ public class HeatmapResultAdapter {
                     EfoTree.EfoItem<Integer>,
                     ResultRow.Expression
                     >(r.getResultEfvs().getNameSortedList().iterator(),
-                    r.getResultEfos().getExplicitList().iterator()) {
+                      r.getResultEfos().getExplicitList().iterator()) {
 
                 public Expression map1(EfvTree.EfEfv<Integer> from) {
-                    if(row.getCounters().get(from.getPayload()).isZero())
+                    if (row.getCounters().get(from.getPayload()).isZero()) {
                         return null;
+                    }
                     return new ResultRow.EfvExp(from);
                 }
 
                 public Expression map2(EfoTree.EfoItem<Integer> from) {
-                    if(row.getCounters().get(from.getPayload()).isZero())
+                    if (row.getCounters().get(from.getPayload()).isZero()) {
                         return null;
+                    }
                     return new ResultRow.EfoExp(from);
                 }
             };
@@ -147,7 +153,7 @@ public class HeatmapResultAdapter {
     }
 
     public Iterator<ResultRow> getResults() {
-        return new MappingIterator<StructuredResultRow,ResultRow>(r.getResults().iterator()) {
+        return new MappingIterator<StructuredResultRow, ResultRow>(r.getResults().iterator()) {
             public ResultRow map(StructuredResultRow srr) {
                 return new ResultRow(srr);
             }

@@ -1,6 +1,5 @@
 package ae3.servlet;
 
-import ae3.service.ArrayExpressSearchService;
 import ae3.util.AtlasProperties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
@@ -9,9 +8,10 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.web.Atlas;
+import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
- *
- *
  */
 public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,16 +44,22 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         setBasePath(System.getProperty("java.io.tmpdir"));
         setDumpGeneIdsFilename(AtlasProperties.getProperty("atlas.dump.geneidentifiers.filename"));
 
-        new Thread() { public void run() {
-            SolrCore core = null;
-            try {
-                core = ArrayExpressSearchService.instance().getSolrCore("atlas");
-                dumpGeneIdentifiers(core);
-            } finally {
-                if (core != null)
-                    core.close();
+        new Thread() {
+            public void run() {
+                SolrCore core = null;
+                try {
+                    AtlasSearchService searchService =
+                            (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+                    core = searchService.getSolrCore("atlas");
+                    dumpGeneIdentifiers(core);
+                }
+                finally {
+                    if (core != null) {
+                        core.close();
+                    }
+                }
             }
-        } }.start();
+        }.start();
     }
 
 
@@ -73,15 +77,19 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         if (!dumpGeneIdsFile.exists()) {
             SolrCore core = null;
             try {
-                core = ArrayExpressSearchService.instance().getSolrCore("atlas");
+                AtlasSearchService searchService =
+                        (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+                core = searchService.getSolrCore("atlas");
                 dumpGeneIdentifiers(core);
-            } finally {
-                if (core != null)
+            }
+            finally {
+                if (core != null) {
                     core.close();
+                }
             }
         }
 
-	    log.info("Gene identifiers dump download request");
+        log.info("Gene identifiers dump download request");
 
         return getDumpGeneIdsFilename();
     }
@@ -103,7 +111,8 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
 
             BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
 
-            List<String> geneids = Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
+            List<String> geneids =
+                    Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
 
             TermEnum terms = r.terms();
 
@@ -119,7 +128,8 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
 
             searcher.decref();
             out.close();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);
         }
     }

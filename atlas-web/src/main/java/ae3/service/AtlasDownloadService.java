@@ -10,6 +10,7 @@ import java.io.File;
 import javax.servlet.http.HttpSession;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class AtlasDownloadService {
+    private AtlasStructuredQueryService atlasQueryService;
+
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private AtomicInteger countDownloads = new AtomicInteger(0);
 
@@ -28,6 +31,14 @@ public class AtlasDownloadService {
     public AtlasDownloadService() {
         downloadThreadPool = Executors.newFixedThreadPool(5);
         downloads = Collections.synchronizedMap(new HashMap<String, Map<Integer,Download>>());
+    }
+
+    public AtlasStructuredQueryService getAtlasQueryService() {
+        return atlasQueryService;
+    }
+
+    public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {
+        this.atlasQueryService = atlasQueryService;
     }
 
     /**
@@ -70,7 +81,7 @@ public class AtlasDownloadService {
                 }
             }
 
-            final Download download = new Download(countDownloads.incrementAndGet(), query);
+            final Download download = new Download(countDownloads.incrementAndGet(), query, atlasQueryService);
 
             downloadList.put(download.getId(), download);
             downloads.put(session.getId(), downloadList);

@@ -2,12 +2,13 @@ package uk.ac.ebi.microarray.atlas.loader;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilder;
-import uk.ac.ebi.ae3.indexbuilder.IndexBuilderException;
-import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderEvent;
-import uk.ac.ebi.ae3.indexbuilder.listener.IndexBuilderListener;
-import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGenerator;
-import uk.ac.ebi.microarray.atlas.netcdf.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
 
 import java.text.DecimalFormat;
 

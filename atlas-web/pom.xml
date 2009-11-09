@@ -293,13 +293,5 @@
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script />
-
-        <!-- fixme: lookup from DB -->
-        <atlas.last.experiment>875219118</atlas.last.experiment>
-        <atlas.data.release>9.9</atlas.data.release>
-
-        <!-- fixme: this is context dependent -->
-        <atlas.baseurl>http://www.ebi.ac.uk/gxa</atlas.baseurl>
-
     </properties>
 </project>

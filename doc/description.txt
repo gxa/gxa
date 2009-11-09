@@ -1,6 +1,6 @@
 Add libraries commons-cli, commons-colection, commons-configuration
-Created service layer:  uk.ac.ebi.ae3.indexbuilder.service.ConfigurationService
-                        uk.ac.ebi.ae3.indexbuilder.service.IndexBuilderservice
+Created service layer:  uk.ac.ebi.gxa.index.builder.service.ConfigurationService
+                        uk.ac.ebi.gxa.index.builder.service.IndexBuilderservice
 Change structure of resources for the maven.         
 Added the method buildIndex.
 Moved methods indexMageTab and addMageTabFields to IndexBuilderservice.

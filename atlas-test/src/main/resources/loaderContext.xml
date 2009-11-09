@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="atlasLoader"
-          class="uk.ac.ebi.microarray.atlas.loader.AtlasMAGETABLoader">
+          class="uk.ac.ebi.gxa.loader.AtlasMAGETABLoader">
         <property name="dataSource" ref="atlasDataSource"/>
     </bean>
 
@@ -39,7 +39,7 @@
 
     <!-- Requires an Index Builder -->
     <bean name="indexBuilder"
-          class="uk.ac.ebi.ae3.indexbuilder.DefaultIndexBuilder">
+          class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <!-- resource beans -->
         <property name="atlasDataSource" ref="atlasDataSource"/>
         <property name="indexLocation" ref="atlasIndex"/>
@@ -49,7 +49,7 @@
     </bean>
 
     <bean name="netcdfGenerator"
-          class="uk.ac.ebi.microarray.atlas.netcdf.DefaultNetCDFGenerator">
+          class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
         <property name="atlasDataSource" ref="atlasDataSource"/>
         <property name="repositoryLocation" ref="atlasNetCDFs"/>
     </bean>
