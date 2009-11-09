@@ -29,6 +29,7 @@ public class Download implements Runnable {
 
     private int id;
 	private final AtlasStructuredQuery query;
+    private final AtlasStructuredQueryService queryService;
 
     private File outputFile;
 
@@ -36,8 +37,9 @@ public class Download implements Runnable {
     private long resultsRetrieved = 0;
     private static final int FRAME_SIZE = 50;
 
-    public Download(int id, AtlasStructuredQuery query) throws IOException {
+    public Download(int id, AtlasStructuredQuery query, AtlasStructuredQueryService queryService) throws IOException {
 		this.query = query;
+        this.queryService = queryService;
         this.id = id;
 
         this.outputFile =  File.createTempFile("listdl", ".zip", new File(System.getProperty("java.io.tmpdir")));
@@ -62,10 +64,6 @@ public class Download implements Runnable {
                         new ZipOutputStream(new FileOutputStream(getOutputFile()));
 
 
-                final AtlasStructuredQueryService sqs = AtlasSearchService
-                        .instance()
-                        .getStructQueryService();
-
                 boolean first = true;
 
                 query.setExpsPerGene(Integer.MAX_VALUE);
@@ -73,7 +71,7 @@ public class Download implements Runnable {
                 while(first || getTotalResults() > getResultsRetrieved()) {
                     query.setStart((int) getResultsRetrieved());
                     query.setRowsPerPage(first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved()));
-                    AtlasStructuredQueryResult atlasResult = sqs.doStructuredAtlasQuery(query);
+                    AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(query);
                     if(first) {
                         setTotalResults(atlasResult.getTotal());
 

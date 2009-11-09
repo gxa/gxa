@@ -4,9 +4,10 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@page import="ae3.dao.AtlasDao"%>
 <%@page import="ae3.model.AtlasGene"%>
-<%@page import="ae3.service.ArrayExpressSearchService"%>
 <%@page import="java.util.Collection"%>
 <%@ page import="java.util.Map" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <c:set var="timeStart" value="${u:currentTime()}" />
 
 <jsp:include page="AtlasHomeUrl.jsp" />
@@ -16,7 +17,8 @@
 
 	String geneId = request.getParameter("gid");
 
-    AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
+    AtlasDao dao = searchService.getAtlasSolrDAO();
 
 	if (geneId != null || geneId!="") {
         AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);

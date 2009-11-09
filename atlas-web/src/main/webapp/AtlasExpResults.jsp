@@ -10,7 +10,8 @@ String ef = request.getParameter("factor");
 String efv = request.getParameter("efv");
 
 if (geneId != null) {
-    AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
+    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
+    AtlasDao dao = searchService.getAtlasSolrDAO();
     AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
     if(atlasGene.isFound()) {
         List<AtlasExperiment> exps = dao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
@@ -22,8 +23,9 @@ if (geneId != null) {
 %>
 <%@page import="ae3.dao.AtlasDao"%>
 <%@page import="ae3.model.AtlasExperiment"%>
-<%@page import="ae3.service.ArrayExpressSearchService"%>
-<%@page import="java.util.List"%>
+<%@page import="uk.ac.ebi.gxa.web.AtlasSearchService"%>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas"%>
+<%@ page import="java.util.List"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 

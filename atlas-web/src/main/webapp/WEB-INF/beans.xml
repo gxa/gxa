@@ -20,7 +20,7 @@ http://cxf.apache.org/schemas/simple.xsd">
 
   <simple:server
           id="AtlasWebService"
-          serviceClass="ae3.service.webservices.AtlasWebServiceImpl"
+          serviceClass="ae3.service.webservices.AtlasWebService"
           address="/AtlasWebService">
   	<simple:serviceBean>
   		<bean class="ae3.service.webservices.AtlasWebServiceImpl" />

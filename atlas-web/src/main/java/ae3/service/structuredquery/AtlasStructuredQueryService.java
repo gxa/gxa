@@ -63,7 +63,7 @@ public class AtlasStructuredQueryService {
 
     private final AtlasDao atlasDao;
 
-    private final CoreContainer coreContainer;
+    private CoreContainer coreContainer;
     private final Set<String> cacheFill = new HashSet<String>();
 
     private void controlCache() {

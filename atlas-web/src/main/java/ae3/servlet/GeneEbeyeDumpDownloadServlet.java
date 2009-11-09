@@ -1,31 +1,23 @@
 package ae3.servlet;
 
-import ae3.service.ArrayExpressSearchService;
+import ae3.model.AtlasGene;
 import ae3.service.XML4dbDumps;
 import ae3.util.AtlasProperties;
-import ae3.dao.AtlasDao;
-import ae3.model.AtlasGene;
-import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermEnum;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.search.SolrIndexSearcher;
-import org.apache.solr.util.RefCounted;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.web.Atlas;
+import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
- *
- *
  */
 public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,16 +38,22 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
         setBasePath(System.getProperty("java.io.tmpdir"));
         setDumpGeneIdsFilename(AtlasProperties.getProperty("atlas.dump.ebeye.filename"));
 
-        new Thread() { public void run() {
-            SolrCore core = null;
-            try {
-                core = ArrayExpressSearchService.instance().getSolrCore("atlas");
-                dumpGeneIdentifiers(core);
-            } finally {
-                if (core != null)
-                    core.close();
+        new Thread() {
+            public void run() {
+                SolrCore core = null;
+                try {
+                    AtlasSearchService searchService =
+                            (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+                    core = searchService.getSolrCore("atlas");
+                    dumpGeneIdentifiers();
+                }
+                finally {
+                    if (core != null) {
+                        core.close();
+                    }
+                }
             }
-        } }.start();
+        }.start();
     }
 
 
@@ -73,38 +71,39 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
         if (!dumpGeneIdsFile.exists()) {
             SolrCore core = null;
             try {
-                core = ArrayExpressSearchService.instance().getSolrCore("atlas");
-                dumpGeneIdentifiers(core);
-            } finally {
-                if (core != null)
+                AtlasSearchService searchService =
+                        (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+                core = searchService.getSolrCore("atlas");
+                dumpGeneIdentifiers();
+            }
+            finally {
+                if (core != null) {
                     core.close();
+                }
             }
         }
 
-	    log.info("Gene identifiers dump download request");
+        log.info("Gene identifiers dump download request");
 
         return getDumpGeneIdsFilename();
     }
 
     /**
      * Generates a special file containing all gene identifiers, for external users to use for linking.
-     *
-     * @param core SolrCore to use
      */
-    public void dumpGeneIdentifiers(SolrCore core){
+    public void dumpGeneIdentifiers() {
         try {
-            AtlasDao dao = ArrayExpressSearchService.instance().getAtlasDao();
-
-            List<AtlasGene> genes  = dao.getGenes();
+            AtlasSearchService searchService =
+                    (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+            List<AtlasGene> genes = searchService.getAtlasSolrDAO().getGenes();
 
             XML4dbDumps.Document d1 = new XML4dbDumps.Document();
             d1.setName("Gene Expression Atlas"); //db_name
             d1.setDescription("Impressive Gene Expression Atlas");
             d1.setRelease("1.0");
             d1.setReleaseDate("29-AUG-2006");
-            
-            for(AtlasGene g: genes)
-            {
+
+            for (AtlasGene g : genes) {
                 XML4dbDumps.Document.Entry e1 = new XML4dbDumps.Document.Entry();
                 d1.getEntries().add(e1);
 
@@ -113,7 +112,7 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
                 e1.setName(g.getGeneName());
                 e1.setDateCreated(AtlasProperties.getProperty("atlas.data.release"));
                 e1.setDateModified(AtlasProperties.getProperty("atlas.data.release"));
-                
+
                 e1.setDescription("");
                 e1.setAuthors("");
                 e1.setKeywords("");
@@ -150,19 +149,20 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
             //List<String> geneids = Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
             //ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 
-                FileOutputStream ostream = new FileOutputStream(dumpGeneIdsAbsoluteFilename);
+            FileOutputStream ostream = new FileOutputStream(dumpGeneIdsAbsoluteFilename);
 
-                try{
-                    ostream.write(XML4dbDumps.Serialize(d1).getBytes());
-                }
-                catch(Exception Ex){
-                    log.error("Failed to dump gene identifiers from index", Ex.getMessage());
-                }
-                finally{
-                    ostream.close();
-                }
+            try {
+                ostream.write(XML4dbDumps.Serialize(d1).getBytes());
+            }
+            catch (Exception Ex) {
+                log.error("Failed to dump gene identifiers from index", Ex.getMessage());
+            }
+            finally {
+                ostream.close();
+            }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);
         }
     }

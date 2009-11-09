@@ -2,43 +2,41 @@
 <%@ page import="java.util.Collection" %>
 <%@ page import="ae3.service.structuredquery.*" %>
 <%@ page import="ae3.servlet.GeneListCacheServlet" %>
-<%@ page import="ae3.service.ArrayExpressSearchService" %>
-<%@ page import="ae3.dao.AtlasDB" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    request.setAttribute("service", ArrayExpressSearchService.instance());
+    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
+    request.setAttribute("service", searchService);
 %>
 
 <%
-    //GenePropValueListHelper.Instance.treeAutocomplete("name",request.getParameter("start"),-1);
-
-    //AtlasStructuredQueryService
-
-    //ArrayList<AtlasGene> Genes = AtlasGeneService.getGenes(request.getParameter("start"));
-
-    String Rec = request.getParameter("rec");
+    String rec = request.getParameter("rec");
     String prefix = request.getParameter("start");
 
     if(null == prefix)
                prefix = "a";
 
-    int RecordCount = GeneListCacheServlet.PageSize;
-    int StartRecord = 0;
+    int recordCount = GeneListCacheServlet.PAGE_SIZE;
 
     //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
-    if(null != Rec)
+    if(null != rec)
     {
-        RecordCount= 100000;
-        StartRecord = GeneListCacheServlet.PageSize; 
+        recordCount = 100000;
     }
 
-    Collection<AutoCompleteItem> Genes = GeneListCacheServlet.getGenes(prefix,RecordCount);
-    //Collection<AtlasDB.Gene> Genes = AtlasDB.getGenes(prefix, StartRecord, RecordCount);
-
-    request.setAttribute("Genes",Genes);
+    GeneListCacheServlet geneListServlet = (GeneListCacheServlet)application.getAttribute(Atlas.GENES_CACHE.key());
+    Collection<AutoCompleteItem> genes = null;
+    try {
+        genes = geneListServlet.getGenes(prefix, recordCount);
+        request.setAttribute("Genes", genes);
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }
 %>
 
 <style type="text/css">
@@ -168,9 +166,9 @@ Gene Expression Atlas - Gene Index
         if(null == prefix)
                prefix = "a";
         
-        String NextURL = "index.htm?start="+prefix+"&rec="+Integer.toString(GeneListCacheServlet.PageSize) ;
+        String NextURL = "index.htm?start="+prefix+"&rec="+Integer.toString(GeneListCacheServlet.PAGE_SIZE) ;
 
-        boolean more = (Genes.size() > (GeneListCacheServlet.PageSize-1)) & (Rec==null);
+        boolean more = (genes.size() > (GeneListCacheServlet.PAGE_SIZE -1)) & (rec ==null);
 
         //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.          
         more = true;

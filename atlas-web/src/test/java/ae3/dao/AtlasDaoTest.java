@@ -60,7 +60,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
     }
 
 	@Test
-	public void test_getExperimentByIdDw() throws AtlasObjectNotFoundException
+	public void test_getExperimentByIdDw()
 	{
 		  AtlasExperiment exp = dao.getExperimentById("334420710");
 		  assertNotNull(exp);
@@ -69,7 +69,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 	}
 
 	@Test	
-	public void test_getExperimentByAccession() throws AtlasObjectNotFoundException
+	public void test_getExperimentByAccession()
 	{
 		AtlasExperiment exp = dao.getExperimentByAccession("E-MEXP-980");
         assertNotNull(exp);

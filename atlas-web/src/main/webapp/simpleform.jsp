@@ -3,7 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <script type="text/javascript">
-    function toggleAtlasHelp(e) {
+    function toggleAtlasHelp() {
         if ($("div.atlasHelp").is(":hidden")) {
             showAtlasHelp();
         } else {
@@ -55,9 +55,9 @@
     }
 
     .atlasHelp .div1 {
-        font-size: 0px;
+        font-size: 0;
         line-height: 0%;
-        width: 0px;
+        width: 0;
         border-bottom: 20px solid #EEF5F5;
         border-left: 10px solid white;
         border-right: 10px solid white;
@@ -114,7 +114,7 @@
             </td>
             <td>
                 <select name="fexp_0" id="expr0">
-                    <c:forEach var="s" items="${service.structQueryService.geneExpressionOptions}">
+                    <c:forEach var="s" items="${service.atlasQueryService.geneExpressionOptions}">
                         <option value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
                     </c:forEach>
                 </select>

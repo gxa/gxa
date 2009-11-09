@@ -15,7 +15,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import uk.ac.ebi.gxa.web.AtlasSearchService;
+
 public class AtlasPlotter {
+    private AtlasSearchService atlasSearchService;
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static AtlasPlotter _instance = null;
@@ -30,10 +34,18 @@ public class AtlasPlotter {
 		return _instance;
 	}
 
-	public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType, final String gplotIds) {
+    public AtlasSearchService getAtlasSearchService() {
+        return atlasSearchService;
+    }
+
+    public void setAtlasSearchService(AtlasSearchService atlasSearchService) {
+        this.atlasSearchService = atlasSearchService;
+    }
+
+    public JSONObject getGeneInExpPlotData(final String geneIdKey, final String expIdKey, final String EF, final String EFV, final String plotType, final String gplotIds) {
         String efToPlot = null;
 
-        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
+        AtlasDao dao = atlasSearchService.getAtlasSolrDAO();
         AtlasGene atlasGene = dao.getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
 
 		if(EF.equals("default")){
@@ -430,7 +442,7 @@ public class AtlasPlotter {
 	}
 	
 	private ArrayList<String> getGeneNames(String gids){
-        AtlasDao dao = AtlasSearchService.instance().getAtlasSolrDAO();
+        AtlasDao dao = atlasSearchService.getAtlasSolrDAO();
 
 		ArrayList<String> geneNames = new ArrayList<String>();
 		String[] ids = gids.split(",");

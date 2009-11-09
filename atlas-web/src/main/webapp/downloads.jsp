@@ -1,12 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"    pageEncoding="ISO-8859-1"%>
 <%@ page import="java.util.Map" %>
 <%@ page import="ae3.service.Download" %>
-<%@ page import="ae3.service.ArrayExpressSearchService" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
 <%
-    Map<Integer, Download> downloads = ArrayExpressSearchService.instance().getDownloadService().getDownloads(session.getId());
+    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
+    Map<Integer, Download> downloads = searchService.getAtlasDownloadService().getDownloads(session.getId());
 	request.setAttribute("downloads", downloads);
 %>
 
