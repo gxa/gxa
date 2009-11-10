@@ -150,6 +150,9 @@ public class ExperimentAnalyticsGeneratorService
         /*
         final RServices rs = DirectJNI.getInstance().getRServices();
 
+                String simSrc = getRCodeFromResource("/analytics.R");
+                R.sourceFromBuffer(simSrc);
+
         String callSim = "computeAnalytics(" + experiment.getSourceNetCDF() + "')";
         RDataFrame analytics = (RDataFrame) rs.getObject(callSim);
 
