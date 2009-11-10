@@ -1,10 +1,10 @@
 package ae3.service;
 
 import ae3.dao.AtlasDao;
+import ae3.dao.NetCDFReader;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
-import ds.server.DataServerAPI;
-import ds.server.ExpressionDataSet;
+import ae3.model.ExperimentalData;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,13 +12,14 @@ import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-
 import uk.ac.ebi.gxa.web.AtlasSearchService;
+
+import java.io.File;
+import java.util.*;
 
 public class AtlasPlotter {
     private AtlasSearchService atlasSearchService;
+    private File atlasNetCDFRepo;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -62,9 +63,11 @@ public class AtlasPlotter {
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[] {geneIdKey, expIdKey, efToPlot});
 
 		ArrayList<String> geneNames = getGeneNames(geneIdKey);
-		
-		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
-		
+
+//		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
+        ExperimentalData experimentalData = NetCDFReader.loadExperiment(
+                atlasNetCDFRepo.getAbsolutePath(), Long.parseLong(expIdKey));
+
 		if(plotType.equals("thumb"))
 			return createThumbnailJSON(ds, efToPlot, EFV);
 		else if(plotType.equals("big") || plotType.equals("large"))

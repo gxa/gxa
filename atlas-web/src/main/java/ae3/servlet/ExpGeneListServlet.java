@@ -1,16 +1,16 @@
 package ae3.servlet;
 
 import ae3.model.ListResultRow;
-import ae3.service.compute.AtlasComputeService;
-import ae3.service.compute.ComputeTask;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
-import ds.server.SimilarityResultSet;
 import org.kchine.r.RDataFrame;
 import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.SimilarityResultSet;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
 
@@ -85,8 +85,7 @@ public class ExpGeneListServlet extends HttpServlet {
                 return;
             }
 
-        }
-        else if (qryType.equals("top")) {
+        } else if (qryType.equals("top")) {
 
             result = service.findGenesForExperiment("", eAcc, start, NUM_GENES);
 
@@ -94,8 +93,7 @@ public class ExpGeneListServlet extends HttpServlet {
 
             request.setAttribute("genes", a);
 
-        }
-        else if (qryType.equals("search")) {
+        } else if (qryType.equals("search")) {
             String geneQuery = request.getParameter("gene");
             result = service.findGenesForExperiment(geneQuery != null ? geneQuery : "", eAcc, start, NUM_GENES);
             request.setAttribute("genes", result.getListResults());

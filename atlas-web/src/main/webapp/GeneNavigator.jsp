@@ -1,9 +1,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="java.util.Collection" %>
-<%@ page import="ae3.service.structuredquery.*" %>
+<%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
 <%@ page import="ae3.servlet.GeneListCacheServlet" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
+<%@ page import="java.util.Collection" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -106,7 +106,7 @@ Gene Expression Atlas - Gene Index
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <a href="<%= request.getContextPath()%>/" title="Home"><img width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.numExperiments} experiments, ${service.stats.numAssays} assays, ${service.stats.numEfvs} conditions" border="0"></a>          
+            <a href="<%= request.getContextPath()%>/" title="Home"><img width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.experimentCount} experiments, ${service.stats.assayCount} assays, ${service.stats.propertyValueCount} conditions" border="0"></a>
         </td>
 
         <td width="100%" valign="bottom" align="right">

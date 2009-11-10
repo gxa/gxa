@@ -1,14 +1,14 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasDao;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.model.AtlasTuple;
 import ae3.service.AtlasDownloadService;
 import ae3.service.AtlasResult;
-import ae3.service.AtlasStatisticsService;
-import ae3.service.compute.AtlasComputeService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import ae3.util.QueryHelper;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -21,8 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
+import uk.ac.ebi.microarray.atlas.model.AtlasTableResult;
 
 import java.io.File;
 import java.util.*;
@@ -37,7 +39,6 @@ import java.util.regex.Pattern;
  *
  * @author Misha Kapushesky (original)
  * @author Tony Burdett
- * @description EBI Microarray Informatics Team (c) 2007, 2008
  * @date 12-Feb-2008
  */
 public class AtlasSearchService implements InitializingBean {
@@ -45,7 +46,6 @@ public class AtlasSearchService implements InitializingBean {
     private SolrServer experimentsSolrServer;
     private SolrServer atlasSolrServer;
 
-    private AtlasStatisticsService atlasStatisticsService;
     private AtlasComputeService atlasComputeService;
     private AtlasDownloadService atlasDownloadService;
     private AtlasStructuredQueryService atlasQueryService;
@@ -81,14 +81,6 @@ public class AtlasSearchService implements InitializingBean {
 
     public void setAtlasSolrServer(SolrServer atlasSolrServer) {
         this.atlasSolrServer = atlasSolrServer;
-    }
-
-    public AtlasStatisticsService getAtlasStatisticsService() {
-        return atlasStatisticsService;
-    }
-
-    public void setAtlasStatisticsService(AtlasStatisticsService atlasStatisticsService) {
-        this.atlasStatisticsService = atlasStatisticsService;
     }
 
     public AtlasComputeService getAtlasComputeService() {
@@ -163,11 +155,8 @@ public class AtlasSearchService implements InitializingBean {
 
             // do some precanned queries the interface requires
             try {
-                atlasStatisticsService.setSolrServer(experimentsSolrServer);
-
-                int lastExpId = AtlasProperties.getIntProperty("atlas.last.experiment");
                 String dataRelease = AtlasProperties.getProperty("atlas.data.release");
-                stats = atlasStatisticsService.getStats(lastExpId, dataRelease);
+                stats = getAtlasDatabaseDAO().getAtlasStatisticsByDataRelease(dataRelease);
             }
             catch (Exception e) {
                 log.error("Statistics failed", e);
@@ -198,7 +187,7 @@ public class AtlasSearchService implements InitializingBean {
      * Should be called when app is going down.
      */
     public void shutdown() {
-        log.info("Shutting down ArrayExpressSearchService.");
+        log.info("Shutting down AtlasSearchService.");
 
         atlasComputeService.shutdown();
         atlasComputeService = null;
@@ -216,7 +205,7 @@ public class AtlasSearchService implements InitializingBean {
             }
         }
         catch (Exception e) {
-            log.error("Error shutting down ArrayExpressSearchService!", e);
+            log.error("Error shutting down AtlasSearchService!", e);
         }
     }
 
@@ -277,8 +266,7 @@ public class AtlasSearchService implements InitializingBean {
                     q.setRows(100);
                     return atlasSolrServer.query(q);
                 }
-            }
-            else {
+            } else {
                 SolrQuery q = new SolrQuery(query);
                 q.setRows(500);
                 q.setHighlight(true);
@@ -288,8 +276,8 @@ public class AtlasSearchService implements InitializingBean {
                 q.addHighlightField("gene_name");
                 q.addHighlightField("gene_synonym");
                 q.setHighlightSnippets(100);
-                QueryResponse queryResponse = atlasSolrServer.query(q);
-                return queryResponse;
+
+                return atlasSolrServer.query(q);
             }
         }
         catch (SolrServerException e) {
@@ -316,7 +304,7 @@ public class AtlasSearchService implements InitializingBean {
      * @param query - A lucene query
      * @param start - a start record
      * @param rows  - maximum number of Documents
-     * @return
+     * @return the result of the SOLR query
      */
     public QueryResponse fullTextQueryExpts(String query, int start, int rows) {
         if (query == null || query.equals("")) {
@@ -348,6 +336,12 @@ public class AtlasSearchService implements InitializingBean {
     /**
      * Executes an atlas query to retrieve expt acc, desc, ef, efv, gene, updn, and p-value for requested gene ids,
      * optionally restricting to a supplied list of experiment ids.
+     *
+     * @param geneHitsResponse  the query response for genes
+     * @param exptHitsResponse  the query response for experiments
+     * @param geneExprFilter    the query response for expression values
+     * @param geneSpeciesFilter the query response for species
+     * @return a list of AtlasResults which may contain data from both the database and the SOLR index
      */
     @SuppressWarnings("unchecked")
     public List<AtlasResult> doAtlasQuery(final QueryResponse geneHitsResponse,
@@ -375,8 +369,7 @@ public class AtlasSearchService implements InitializingBean {
         int[] geneIDs;
         if (solrGeneMap == null) {
             geneIDs = new int[0];
-        }
-        else {
+        } else {
             geneIDs = new int[solrGeneMap.keySet().size()];
             int i = 0;
             for (String s : solrGeneMap.keySet()) {
@@ -388,8 +381,7 @@ public class AtlasSearchService implements InitializingBean {
         int[] exptIDs;
         if (solrExptMap == null) {
             exptIDs = new int[0];
-        }
-        else {
+        } else {
             exptIDs = new int[solrExptMap.keySet().size()];
             int i = 0;
             for (String s : solrExptMap.keySet()) {
@@ -401,18 +393,16 @@ public class AtlasSearchService implements InitializingBean {
         int upOrDown;
         if (geneExprFilter.equals("up")) {
             upOrDown = 1;
-        }
-        else if (geneExprFilter.equals("down")) {
+        } else if (geneExprFilter.equals("down")) {
             upOrDown = -1;
-        }
-        else {
+        } else {
             upOrDown = 0;
         }
 
         // parse the efvs being queried for
-        String efvFilter = "";
-        if (exptHitsResponse != null /*&& inGeneIds.length() == 0*/) {
-            Set ss = new HashSet<String>();
+        String[] efvs;
+        if (exptHitsResponse != null) {
+            Set<String> ss = new HashSet<String>();
             Map<String, Map<String, List<String>>> hl = exptHitsResponse.getHighlighting();
 
             for (Map<String, List<String>> vals : hl.values()) {
@@ -424,87 +414,75 @@ public class AtlasSearchService implements InitializingBean {
                 }
             }
 
-            if (ss.size() > 0) {
-                efvFilter = "and atlas.efv IN (" + StringUtils.join(ss.toArray(), ",") + ") \n";
-            }
+            efvs = ss.toArray(new String[ss.size()]);
+        } else {
+            efvs = new String[0];
         }
 
         // get database atlas results
-        atlasDatabaseDAO.getAtlasResults(geneIDs, exptIDs, upOrDown, efvFilter);
+        List<AtlasTableResult> atlasTableResults = atlasDatabaseDAO.getAtlasResults(geneIDs, exptIDs, upOrDown, efvs);
 
         // now enrich database results with data from index
-        final List<AtlasResult> arset = new Vector<AtlasResult>();
+        List<AtlasResult> arset = new Vector<AtlasResult>();
 
+        for (AtlasTableResult atlasTableResult : atlasTableResults) {
+            AtlasResult atlasResult = new AtlasResult();
 
-//        try {
-//            atlasQueryRunner.query(atlas_query_topN, new ResultSetHandler() {
-//                public List<AtlasResult> handle(ResultSet rs) throws SQLException {
-//                    while (rs.next()) {
-//                        AtlasResult atlasResult = new AtlasResult();
-//
-//                        AtlasExperiment expt = null;
-//                        AtlasGene gene = null;
-//
-//                        String experiment_id_key = rs.getString("experiment_id_key");
-//                        String gene_id_key = rs.getString("gene_id_key");
-//
-//                        if (solrExptMap != null && solrExptMap.containsKey(experiment_id_key)) {
-//                            expt = new AtlasExperiment(solrExptMap.get(experiment_id_key));
-//                            expt.setExperimentHighlights(
-//                                    exptHitsResponse.getHighlighting().get(expt.getDwExpAccession()));
-//                        } else {
-//                            expt = atlasSolrDAO.getExperimentById(experiment_id_key);
-//                        }
-//
-//                        if (solrGeneMap != null && solrGeneMap.containsKey(gene_id_key)) {
-//                            gene = new AtlasGene(solrGeneMap.get(gene_id_key));
-//                            gene.setGeneHighlights(geneHitsResponse.getHighlighting().get(gene_id_key));
-//                        } else {
-//                            gene = atlasSolrDAO.getGeneById(gene_id_key).getGene();
-//                        }
-//
-//                        if (expt == null || gene == null) {
-//                            log.error("Atlas object retrieval error");
-//                        }
-//
-//                        AtlasTuple atuple = new AtlasTuple(rs.getString("ef"), rs.getString("efv"), rs.getInt("updn"),
-//                                rs.getDouble("updn_pvaladj"));
-//
-//                        //TODO: disabled highlighting in experiments, it's broken on SOLR side, it seems. Example: query for liver.
-//                        if (expt != null && expt.getExperimentHighlights() != null) {
-//                            List<String> s = expt.getExperimentHighlights().get("exp_factor_values");
-//                            if (s != null) {
-//                                for (String efv : s) {
-//                                    if (atuple.getEfv().equals(efv.replaceAll("</{0,1}em>", ""))) {
-//                                        atuple.setEfv(efv);
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//                        }
-//
-//                        if ((expt != null && gene != null)
-//                                &&
-//                                (geneSpeciesFilter == null || geneSpeciesFilter.equals("") ||
-//                                        geneSpeciesFilter.equals("any") ||
-//                                        geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies()))) {
-//                            atlasResult.setExperiment(expt);
-//                            atlasResult.setGene(gene);
-//                            atlasResult.setAtuple(atuple);
-//
-//                            arset.add(atlasResult);
-//                        }
-//                    }
-//
-//                    return arset;
-//                }
-//            });
-//
-//            log.debug("Retrieved query completely: " + arset.size() + " records");
-//        }
-//        catch (SQLException e) {
-//            log.error("Problem querying Atlas database", e);
-//        }
+            String experimentID = Integer.toString(atlasTableResult.getExperimentID());
+            String geneID = Integer.toString(atlasTableResult.getGeneID());
+
+            // populate AtlasExperiment
+            AtlasExperiment expt;
+            if (solrExptMap != null && solrExptMap.containsKey(experimentID)) {
+                expt = new AtlasExperiment(solrExptMap.get(experimentID));
+                expt.setExperimentHighlights(
+                        exptHitsResponse.getHighlighting().get(expt.getDwExpAccession()));
+            } else {
+                expt = atlasSolrDAO.getExperimentById(experimentID);
+            }
+
+            // populate AtlasGene
+            AtlasGene gene;
+            if (solrGeneMap != null && solrGeneMap.containsKey(geneID)) {
+                gene = new AtlasGene(solrGeneMap.get(geneID));
+                gene.setGeneHighlights(geneHitsResponse.getHighlighting().get(geneID));
+            } else {
+                gene = atlasSolrDAO.getGeneById(geneID).getGene();
+            }
+
+            if (expt == null || gene == null) {
+                log.error("Atlas object retrieval error");
+            }
+
+            // populate AtlasTuple
+            AtlasTuple atuple = new AtlasTuple(
+                    atlasTableResult.getProperty(),
+                    atlasTableResult.getPropertyValue(),
+                    Integer.parseInt(atlasTableResult.getUpOrDown()),
+                    atlasTableResult.getPValAdj());
+
+            //TODO: disabled highlighting in experiments, it's broken on SOLR side, it seems. Example: query for liver.
+            if (expt != null && expt.getExperimentHighlights() != null) {
+                List<String> s = expt.getExperimentHighlights().get("exp_factor_values");
+                if (s != null) {
+                    for (String efv : s) {
+                        if (atuple.getEfv().equals(efv.replaceAll("</{0,1}em>", ""))) {
+                            atuple.setEfv(efv);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ((expt != null && gene != null) && (geneSpeciesFilter == null || geneSpeciesFilter.equals("") ||
+                    geneSpeciesFilter.equals("any") || geneSpeciesFilter.equalsIgnoreCase(gene.getGeneSpecies()))) {
+                atlasResult.setExperiment(expt);
+                atlasResult.setGene(gene);
+                atlasResult.setAtuple(atuple);
+
+                arset.add(atlasResult);
+            }
+        }
 
         return arset;
     }

@@ -1,4 +1,4 @@
-package ae3.service.compute;
+package uk.ac.ebi.gxa.analytics.compute;
 
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
@@ -17,7 +17,7 @@ import java.util.Properties;
 
 /**
  * Provides access to computational infrastructure by maintaining a pool of computational workers.
- * To use, pass a {@link ae3.service.compute.ComputeTask} to the method {@link #computeTask(ComputeTask)},
+ * To use, pass a {@link ComputeTask} to the method {@link #computeTask(ComputeTask)},
  * the return type is determined by the type parameter to {@code ComputeTask}.
  * <p/>
  * For example:
@@ -29,8 +29,8 @@ import java.util.Properties;
  * );
  * </code>
  * <p/>
- * If the workers in the pool need any kind of special initialization, a {@link ae3.service.compute.AtlasComputeService.RWorkerInitializer}
- * can be passed to the constructor. The {@link ae3.service.compute.AtlasComputeService.RWorkerInitializer#initializeWorker(org.kchine.r.server.RServices)}
+ * If the workers in the pool need any kind of special initialization, a {@link AtlasComputeService.RWorkerInitializer}
+ * can be passed to the constructor. The {@link AtlasComputeService.RWorkerInitializer#initializeWorker(org.kchine.r.server.RServices)}
  * method will be called on each worker, when it's borrowed.
  *
  * @author ostolop

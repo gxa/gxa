@@ -1,4 +1,4 @@
-package ae3.service.compute;
+package uk.ac.ebi.gxa.analytics.compute;
 
 /**
  * Created by IntelliJ IDEA.

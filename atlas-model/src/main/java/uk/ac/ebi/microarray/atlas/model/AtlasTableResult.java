@@ -6,7 +6,7 @@ package uk.ac.ebi.microarray.atlas.model;
  * @author Tony Burdett
  * @date 06-Nov-2009
  */
-public class AtlasResult {
+public class AtlasTableResult {
     private int experimentID;
     private int geneID;
     private String property;
