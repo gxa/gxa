@@ -17,7 +17,7 @@ public class AssayQuery extends AccessionQuery<AssayQuery> {
         return properties.values();
     }
 
-    AssayQuery hasProperty(Property property){
+    public AssayQuery hasProperty(Property property){
         this.properties.put(property.getAccession(), property);
         return this;
     }

@@ -22,7 +22,7 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
         return this;
     }
 
-    public GeneQuery hasProperty(PropertyQuery propertyQuery){
+    public GeneQuery hasProperty(GenePropertyQuery genePropertyQuery){
         return this;
     }
 
