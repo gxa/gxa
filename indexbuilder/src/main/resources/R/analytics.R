@@ -220,6 +220,48 @@ process.atlas.nc<-
   }
 }
 
+### Atlas analytics, returns instead of writing
+process.atlas.nc2 <-
+function (nc)
+{
+  eset = read.atlas.nc(nc)
+  info = otherInfo(experimentData(eset))
+  proc = allupdn(eset)
+
+  print("Writing out the results")
+  result <- lapply(varLabels(eset), function(varLabel) {
+    if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) { 
+      fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
+      tab <- list()
+      tab$A <- proc[[varLabel, exact=TRUE]]$Amean
+                                        #		    tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
+      tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
+      tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
+      
+      pv = tab$p.value
+      o = !is.na(tab$p.value)
+      pv[o] = p.adjust(pv[o], method="fdr")
+      
+      tab$p.value.adj = pv
+      tab$Res <- unclass(proc[[varLabel, exact=TRUE]]$boolupdn)
+      tab$F <- proc[[varLabel, exact=TRUE]]$F
+      tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
+      tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
+      tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
+      tab <- data.frame(tab, check.names = FALSE)
+   ##   write.table(tab, file = fitfile, quote = FALSE, row.names = FALSE, sep = "\t")
+     ## print(paste("Wrote",fitfile)) 
+     return (tab)
+    }
+    else {
+    	return(NULL)
+    	}
+  })
+  
+  names(result) <- varLabels(eset)
+  return(result)
+}
+
 ### Compute a design matrix for making all possible pairwise comparisons (one-way ANOVA F).
 design.pairs <- function(levels) {
   n <- length(levels)
