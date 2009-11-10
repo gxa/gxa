@@ -4,6 +4,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -28,7 +29,8 @@ public class AtlasDAO {
                     "FROM a2_experiment";
     private static final String EXPERIMENTS_PENDING_INDEX_SELECT =
             EXPERIMENTS_SELECT + " " +
-                    "WHERE something something"; // fixme: load monitor table?
+                    "WHERE accession='E-GEOD-1725'";
+//                    "WHERE something something"; // fixme: load monitor table?
     private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
             EXPERIMENTS_SELECT + " " +
                     "WHERE something something"; // fixme: load monitor table?
@@ -190,54 +192,76 @@ public class AtlasDAO {
                     "WHERE accession=?";
 
     // queries for atlas interface
-    private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
+    private static final String ATLAS_RESULTS_SELECT =
             "SELECT " +
+                    "ea.experimentid, " +
+                    "g.geneid, " +
                     "p.name AS property, " +
                     "pv.name AS propertyvalue, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
-                    "COUNT(DISTINCT(g.GeneID)) AS genes " +
+                    "ea.pvaladj, " +
                     "FROM a2_expressionanalytics ea " +
                     "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
                     "JOIN a2_property p ON p.propertyid=pv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
-                    "JOIN a2_gene g ON g.geneid=de.geneid " +
+                    "JOIN a2_gene g ON g.geneid=de.geneid";
+    // same as results, but counts geneids instead of returning them
+    private static final String ATLAS_COUNTS_SELECT =
+            "SELECT " +
+                    "ea.experimentid, " +
+                    "p.name AS property, " +
+                    "pv.name AS propertyvalue, " +
+                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
+                    "ea.pvaladj, " +
+                    "COUNT(DISTINCT(g.geneid)) AS genes " +
+                    "FROM a2_expressionanalytics ea " +
+                    "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
+                    "JOIN a2_property p ON p.propertyid=pv.propertyid " +
+                    "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
+                    "JOIN a2_gene g ON g.geneid=de.geneid";
+    private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
+            ATLAS_COUNTS_SELECT + " " +
                     "WHERE ea.experimentid=? " +
-                    "GROUP BY p.name, pv.name, CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    // fixme: need atlas interface queries in the DAO
-    private static final String ATLAS_RESULTS_SELECT =
-            "SELECT * FROM (" +
-                    "SELECT atlas.experiment_id_key, atlas.gene_id_key, atlas.ef, atlas.efv, atlas.updn, " +
-                    "atlas.updn_tstat, atlas.updn_pvaladj, row_number() " +
-                    "OVER (" +
-                    "PARTITION BY atlas.experiment_id_key, atlas.ef, atlas.efv " +
-                    "ORDER BY atlas.updn_pvaladj asc, updn_tstat desc) " +
-                    "TOPN FROM aemart.atlas atlas " +
-                    "WHERE gene_id_key <> 0 " +
-                    "AND atlas.experiment_id_key " +
-                    "NOT IN (211794549,215315583,384555530,411493378,411512559) " +
-                    "AND atlas.gene_id_key IN (?) " +
-                    "AND atlas.experiment_id_key IN (?) " +
-                    "AND updn=?" +
-                    "AND atlas.efv in (?))" +
-                    "WHERE TOPN <= 20 and gene_id_key is not null " +
-                    "ORDER by updn_pvaladj asc, updn_tstat desc";
-    private static final String ATLAS_RESULTS_NO_UPDN_SELECT =
-            "SELECT * FROM (" +
-                    "SELECT atlas.experiment_id_key, atlas.gene_id_key, atlas.ef, atlas.efv, atlas.updn, " +
-                    "atlas.updn_tstat, atlas.updn_pvaladj, row_number() " +
-                    "OVER (" +
-                    "PARTITION BY atlas.experiment_id_key, atlas.ef, atlas.efv " +
-                    "ORDER BY atlas.updn_pvaladj asc, updn_tstat desc) " +
-                    "TOPN FROM aemart.atlas atlas " +
-                    "WHERE gene_id_key <> 0 " +
-                    "AND atlas.experiment_id_key " +
-                    "NOT IN (211794549,215315583,384555530,411493378,411512559) " +
-                    "AND atlas.gene_id_key IN (?) " +
-                    "AND atlas.experiment_id_key IN (?) " +
-                    "AND updn <> ?" +
-                    "AND atlas.efv in (?))" +
-                    "WHERE TOPN <= 20 and gene_id_key is not null " +
-                    "ORDER by updn_pvaladj asc, updn_tstat desc";
+                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
+    private static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
+            ATLAS_RESULTS_SELECT + " " +
+                    "WHERE ea.experimentid IN :exptids " +
+                    "AND g.geneid IN :geneids " +
+                    "AND pv.name IN :efvs " +
+                    "AND updn='1' " +
+                    "AND TOPN<=20 " +
+                    "ORDER BY ea.pvaladj " +
+                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
+    private static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
+            ATLAS_RESULTS_SELECT + " " +
+                    "WHERE ea.experimentid IN :exptids " +
+                    "AND g.geneid IN :geneids " +
+                    "AND pv.name IN :efvs " +
+                    "AND updn='-1' " +
+                    "AND TOPN<=20 " +
+                    "ORDER BY ea.pvaladj " +
+                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
+    private static final String ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
+            ATLAS_RESULTS_SELECT + " " +
+                    "WHERE ea.experimentid IN :exptids " +
+                    "AND g.geneid IN :geneids " +
+                    "AND pv.name IN :efvs " +
+                    "AND updn<>0 " +
+                    "AND TOPN<=20 " +
+                    "ORDER BY ea.pvaladj " +
+                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
+    // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
+    private static final String ATLAS_STATISTICS_SELECT =
+            "SELECT as.datarelease, as.experimentcount, as.assaycount, as.propertyvaluecount, as.newexperimentcount " +
+                    "FROM a2_atlasstatistics " +
+                    "ORDER BY as.datarelease";
+    private static final String ATLAS_STATISTICS_BY_DATARELEASE =
+            ATLAS_STATISTICS_SELECT + " " +
+                    "WHERE as.datarelease=?";
 
     private JdbcTemplate template;
 
@@ -580,16 +604,46 @@ public class AtlasDAO {
         return (List<AtlasCount>) results;
     }
 
-    public AtlasResult getAtlasResults(int[] geneIds, int[] exptIds, int upOrDown, String efvFilter) {
-        // todo - send the query, really
-        return null;
+    public List<AtlasTableResult> getAtlasResults(int[] geneIds, int[] exptIds, int upOrDown, String[] efvs) {
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+        Map paramMapping = new HashMap();
+        paramMapping.put("geneids", geneIds);
+        paramMapping.put("exptids", exptIds);
+        paramMapping.put("efvs", efvs);
+
+        List results;
+        if (upOrDown == 1) {
+            results = namedTemplate.query(ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV,
+                    paramMapping,
+                    new AtlasResultMapper());
+        } else if (upOrDown == -1) {
+            results = namedTemplate.query(ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
+                    paramMapping,
+                    new AtlasResultMapper());
+        } else {
+            results = namedTemplate.query(ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
+                    paramMapping,
+                    new AtlasResultMapper());
+
+        }
+
+        return (List<AtlasTableResult>) results;
     }
 
-    public AtlasStatistics getAtlasStatistics(int lastExperimentId, String dataRelease) {
-        // todo - send the query, really
-        return null;
+    public List<AtlasStatistics> getAtlasStatistics() {
+        List results = template.query(ATLAS_STATISTICS_SELECT,
+                new AtlasStatisticsMapper());
+
+        return (List<AtlasStatistics>) results;
     }
 
+    public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
+        List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
+                new Object[]{dataRelease},
+                new AtlasStatisticsMapper());
+
+        return results.size() > 0 ? (AtlasStatistics) results.get(0) : null;
+    }
 
     private class ExperimentMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -757,16 +811,47 @@ public class AtlasDAO {
         }
     }
 
+    // todo - AtlasCount and AtlasResult can probably be consolidated to link a collection of genes to atlas results
     private class AtlasCountMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             AtlasCount atlasCount = new AtlasCount();
 
-            atlasCount.setProperty(resultSet.getString(1));
-            atlasCount.setPropertyValue(resultSet.getString(2));
-            atlasCount.setUpOrDown(resultSet.getString(3));
-            atlasCount.setGeneCount(resultSet.getInt(4));
+            atlasCount.setProperty(resultSet.getString(2));
+            atlasCount.setPropertyValue(resultSet.getString(3));
+            atlasCount.setUpOrDown(resultSet.getString(4));
+            atlasCount.setGeneCount(resultSet.getInt(6));
 
             return atlasCount;
+        }
+    }
+
+    private class AtlasResultMapper implements RowMapper {
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            AtlasTableResult atlasTableResult = new AtlasTableResult();
+
+            atlasTableResult.setExperimentID(resultSet.getInt(1));
+            atlasTableResult.setGeneID(resultSet.getInt(2));
+            atlasTableResult.setProperty(resultSet.getString(3));
+            atlasTableResult.setPropertyValue(resultSet.getString(4));
+            atlasTableResult.setUpOrDown(resultSet.getString(5));
+            atlasTableResult.setPValAdj(resultSet.getDouble(6));
+
+            return atlasTableResult;
+        }
+    }
+
+    private class AtlasStatisticsMapper implements RowMapper {
+
+        public AtlasStatistics mapRow(ResultSet resultSet, int i) throws SQLException {
+            AtlasStatistics atlasStats = new AtlasStatistics();
+
+            atlasStats.setDataRelease(resultSet.getString(1));
+            atlasStats.setExperimentCount(resultSet.getInt(2));
+            atlasStats.setAssayCount(resultSet.getInt(3));
+            atlasStats.setPropertyValueCount(resultSet.getInt(4));
+            atlasStats.setNewExperimentCount(resultSet.getInt(5));
+
+            return atlasStats;
         }
     }
 }

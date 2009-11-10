@@ -7,16 +7,14 @@ package ae3.servlet;
  * EBI Microarray Informatics Team (c) 2007 
  */
 
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 import ae3.util.AtlasProperties;
-import ds.server.DataServerAPI;
-import ds.utils.DS_DBconnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.web.Atlas;
+import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -48,8 +46,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.setAttribute(Atlas.SEARCH_SERVICE.key(), searchService);
 
         // initialize and store in-session the dataserver
-        File atlasNetCDFRepo = (File) context.getBean("atlasNetCDFRepo");
-        DataServerAPI.setNetCDFPath(atlasNetCDFRepo.getAbsolutePath());
 
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
@@ -83,6 +79,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // read index, netcdf directory locations
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
+        String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
 
         log.info("Atlas initialized with the following parameters...");
         // software properties
@@ -95,10 +92,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         log.info("\tSOLR Index Location:        " + atlasIndex);
         log.info("\tAtlas DataSource:           " + atlasDatasourceUrl);
         log.info("\tNetCDF repository Location: " + atlasNetCDFRepo);
-
-        // last bits of setup for DS_DBconnection
-        DS_DBconnection.instance().setAEDataSource(atlasDataSource);
-
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
@@ -118,7 +111,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
     }
 
     public void sessionCreated(HttpSessionEvent se) {
-        /* Session is created. */
+        // do nothing
     }
 
     public void sessionDestroyed(HttpSessionEvent se) {

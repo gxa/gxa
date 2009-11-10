@@ -1,4 +1,4 @@
-package ae3.service.compute;
+package uk.ac.ebi.gxa.analytics.compute;
 
 import org.kchine.r.server.RServices;
 

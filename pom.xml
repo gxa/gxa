@@ -53,7 +53,7 @@
         <module>atlas-index-api</module>
         <module>indexbuilder</module>
         <module>netcdf-generator</module>
-        <module>dataserver</module>
+        <!--<module>dataserver</module>-->
         <module>atlas-web</module>
         <module>atlas-archetype</module>
         <module>atlas-loader</module>
@@ -131,23 +131,5 @@
             <url>http://maven.geotools.fr/repository</url>
         </repository>
     </repositories>
-
-    <!-- fixme: using a mock index and set of netcdfs, bundled with webapp -->
-    <!--<solr.data.directory>webapps/atlas-web-1.1.1/data/ATLAS.SOLR.MOCK</solr.data.directory>-->
-    <!--<atlas.netCDFlocation>webapps/atlas-web-1.1.1/data/NetCDFs.ATLAS.MOCK</atlas.netCDFlocation>-->
-    <!--<solr.data.directory>/home/tburdett/atlas/index</solr.data.directory>-->
-    <!--<atlas.netCDFlocation>/home/tburdett/atlas/netcfs</atlas.netCDFlocation>-->
-
-    <!-- fixme: these properties pointed to arrayexpress databases, need to be configured for new DB -->
-    <!--<indexbuilder.ftp>nowhere</indexbuilder.ftp>-->
-    <!--<jdbc.ae.url>jdbc:oracle:thin:@unknown:1521:ae</jdbc.ae.url>-->
-    <!--<jdbc.ae.driver>oracle.jdbc.driver.OracleDriver</jdbc.ae.driver>-->
-    <!--<jdbc.ae.username>user</jdbc.ae.username>-->
-    <!--<jdbc.ae.password>password</jdbc.ae.password>-->
-    <!--<jdbc.dw.url>jdbc:oracle:thin:@unknown:1521:dw</jdbc.dw.url>-->
-    <!--<jdbc.dw.driver>oracle.jdbc.driver.OracleDriver</jdbc.dw.driver>-->
-    <!--<jdbc.dw.username>user</jdbc.dw.username>-->
-    <!--<jdbc.dw.password>password</jdbc.dw.password>-->
-    <!--<atlas.dbName>AEATLAS</atlas.dbName>-->
 
 </project>

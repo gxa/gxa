@@ -1,17 +1,15 @@
 package ds.biocep;
 
-import org.kchine.r.server.RServices;
+import ds.server.SimilarityResultSet;
 import org.kchine.r.RDataFrame;
+import org.kchine.r.server.RServices;
 import org.kchine.rpf.ServantProviderFactory;
 import org.kchine.rpf.TimeoutException;
 
-import ds.server.SimilarityResultSet;
-
-//import ae3.model.SimResult;
-
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.rmi.NotBoundException;
-import java.util.ArrayList;
-import java.io.*;
 
 public class Similarity {
 

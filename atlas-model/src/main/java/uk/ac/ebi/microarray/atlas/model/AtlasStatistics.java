@@ -1,8 +1,5 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 /**
  * Javadocs go here!
  *
@@ -10,41 +7,49 @@ import java.util.Collection;
  * @date 06-Nov-2009
  */
 public class AtlasStatistics {
-    private Collection<AtlasExperiment> newExperiments;
-    private int numExperiments;
-    private int numAssays;
-    private int numEfvs;
     private String dataRelease;
+    private int experimentCount;
+    private int assayCount;
+    private int propertyValueCount;
+    private int newExperimentCount;
 
-    public AtlasStatistics(int numExperiments, int numAssays, int numEfvs, String dataRelease) {
-        this.dataRelease = dataRelease;
-        this.newExperiments = new ArrayList<AtlasExperiment>();
-        this.numExperiments = numExperiments;
-        this.numAssays = numAssays;
-        this.numEfvs = numEfvs;
+    public int getExperimentCount() {
+        return experimentCount;
     }
 
-    public Collection<AtlasExperiment> getNewExperiments() {
-        return newExperiments;
+    public void setExperimentCount(int experimentCount) {
+        this.experimentCount = experimentCount;
     }
 
-    public int getNumExperiments() {
-        return numExperiments;
+    public int getAssayCount() {
+        return assayCount;
     }
 
-    public int getNumAssays() {
-        return numAssays;
+    public void setAssayCount(int assayCount) {
+        this.assayCount = assayCount;
     }
 
-    public int getNumEfvs() {
-        return numEfvs;
+    public int getPropertyValueCount() {
+        return propertyValueCount;
     }
 
-    void addNewExperiment(AtlasExperiment exp) {
-        newExperiments.add(exp);
+    public void setPropertyValueCount(int propertyValueCount) {
+        this.propertyValueCount = propertyValueCount;
     }
 
     public String getDataRelease() {
         return dataRelease;
+    }
+
+    public void setDataRelease(String dataRelease) {
+        this.dataRelease = dataRelease;
+    }
+
+    public int getNewExperimentCount() {
+        return newExperimentCount;
+    }
+
+    public void setNewExperimentCount(int newExperimentCount) {
+        this.newExperimentCount = newExperimentCount;
     }
 }
