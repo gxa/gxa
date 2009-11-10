@@ -6,8 +6,7 @@ import java.util.Properties;
 import java.net.URL;
 import java.io.IOException;
 
-import uk.ac.ebi.gxa.model.AssayQuery;
-import uk.ac.ebi.gxa.model.PropertyQuery;
+import uk.ac.ebi.gxa.model.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,14 +29,23 @@ public class TestAtlasDao extends TestCase {
     
 
     public void testGetAssay(){
+        try{
 
-        AssayQuery atlasAssayQuery = new AssayQuery();
+        AssayQuery assayQuery = new AssayQuery();
 
-        PropertyQuery propertyQuery = new PropertyQuery(); 
+        PropertyQuery propertyQuery = new PropertyQuery();
 
-        //atlasAssayQuery.hasProperty(propertyQuery);
+        propertyQuery.fullextQuery("%HOT%");
 
-        //atlasDao.getAssay(atlasAssayQuery);
-        
+        assayQuery.hasProperty(propertyQuery);
+
+        QueryResultSet<Assay> result = atlasDao.getAssay(assayQuery);
+
+        assertNotNull(result);
+
+        }
+        catch(GxaException ex){
+            fail();
+        }
     }
 }

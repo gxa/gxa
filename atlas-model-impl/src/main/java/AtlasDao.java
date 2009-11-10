@@ -12,6 +12,7 @@ import uk.ac.ebi.microarray.atlas.db.utils.AtlasDB;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.List;
 
 import oracle.jdbc.OracleConnection;
 
@@ -58,41 +59,21 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
           //4  OUT Assays
           //5  OUT SampleIDs
           //6  OUT Properties
-          stmt = connection.prepareCall("{call a2_AssayGet(?,?,?,?,?,?)}");
 
-            ArrayList<ProperyValuePair> proplist = new ArrayList();
-
-            if (atlasAssayQuery.getProperties() != null) {
-              int i = 0;
-              for (Property v : atlasAssayQuery.getProperties()) {
-                  for(String s : v.getValues()){
-                      ProperyValuePair p = new ProperyValuePair(v.getName(), s);
-
-                      proplist.add(p);
-                  }
-              }
-            }
-
-
-          Object[] properties = new Object[proplist.size()];
-          Object[] members = new Object[2]; //placeholders for all properties of ExpressionValue structure
-
-          int i = 0;
-
-          for(ProperyValuePair v : proplist)
-          {
-              members[0] = v.property; //accession
-              members[1] = v.value;
-
-              properties[i++] = AtlasDB.toSqlStruct(connection, "PROPERTY", members);
+          //fierce nesting
+          Object[] PropertyIDs = null;
+          if(null != atlasAssayQuery.getPropertyQuery()){
+              PropertyIDs = this.getPropertyIDs(atlasAssayQuery.getPropertyQuery());
           }
+
+          stmt = connection.prepareCall("{call a2_AssayGet(?,?,?,?,?,?)}");
 
           stmt.setString(1, atlasAssayQuery.getId());
           stmt.setString(2, atlasAssayQuery.getAccession());
-          stmt.setArray (3, AtlasDB.toSqlArray(connection, "PROPERTYTABLE", properties));
+          stmt.setArray (3, AtlasDB.toSqlArray(connection, "TBLINTEGER", PropertyIDs));
 
           stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
-          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //properties
+          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //properties
 
           stmt.execute();
 
@@ -199,6 +180,52 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
         throw new GxaException("not implemented");
     };
+
+    //return list of int w/o paging - this is public for javadocs only
+    public Integer[] getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
+        CallableStatement stmt = null;
+
+        List<Integer> result = new ArrayList<Integer>();
+
+        try{
+
+          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
+
+          stmt.setString(1, atlasPropertyQuery.getId());
+          stmt.setString(2, atlasPropertyQuery.getFulltextQuery());
+
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //samples
+
+          stmt.execute();
+
+          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
+
+          while(rsProperties.next()){
+            Integer PropertyID =  rsProperties.getInt("PropertyId");
+
+            result.add(PropertyID);
+          }
+
+          return new Integer[3];
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                       stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
+
+       // return null; <- why unreachable?
+    }    
 
     public Property                 getPropertyByAccession(AccessionQuery accession) throws GxaException{
         throw new GxaException("not implemented");

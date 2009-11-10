@@ -30,4 +30,8 @@ public class AbstractPropertyQuery<T> extends AccessionQuery<T>{
     public T fullextQuery(String keyword){
         return (T)this;
     }
+
+    public String getFulltextQuery(){
+        return null;
+    }
 }
