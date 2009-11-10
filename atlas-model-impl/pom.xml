@@ -10,6 +10,7 @@
     <groupId>uk.ac.ebi.microarray.atlas</groupId>
     <artifactId>atlas-model-impl</artifactId>
     <version>0.1</version>
+    <name>Gene Expression Atlas Object Model Implementation</name>
 
     <dependencies>
         <dependency>

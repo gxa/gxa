@@ -63,6 +63,7 @@
         <module>atlas-test</module>
         <module>atlas-db-utils</module>
         <module>atlas-model-impl</module>
+        <module>atlas-analytics</module>
     </modules>
 
     <dependencies>

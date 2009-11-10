@@ -32,6 +32,9 @@ public class AtlasDAO {
     private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
             EXPERIMENTS_SELECT + " " +
                     "WHERE something something"; // fixme: load monitor table?
+    private static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
+            EXPERIMENTS_SELECT + " " +
+                    "WHERE something something"; // fixme: load monitor table?
     private static final String EXPERIMENT_BY_ACC_SELECT =
             EXPERIMENTS_SELECT + " " +
                     "WHERE accession=?";
@@ -260,6 +263,12 @@ public class AtlasDAO {
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
         List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
+                new ExperimentMapper());
+        return (List<Experiment>) results;
+    }
+
+    public List<Experiment> getAllExperimentsPendingAnalytics() {
+        List results = template.query(EXPERIMENTS_PENDING_ANALYTICS_SELECT,
                 new ExperimentMapper());
         return (List<Experiment>) results;
     }
