@@ -131,6 +131,51 @@ public class ExperimentalData {
         return geneIdMap.get(arrayDesign).get(geneId);
     }
 
+    public int[] getAllDesignElementsForArrayDesign(ArrayDesign arrayDesign) {
+        Map<Integer, int[]> geneToDEMap = geneIdMap.get(arrayDesign);
+
+        Set<Integer> designElementIDs = new HashSet<Integer>();
+        for (int[] deArray : geneToDEMap.values()) {
+            for (int deID : deArray) {
+                designElementIDs.add(deID);
+            }
+        }
+
+        // copy set to array - can't do toArray() due to unboxing
+        int[] result = new int[designElementIDs.size()];
+        int i =0;
+        for (Integer designElementID : designElementIDs) {
+            result[i] = designElementID;
+            i++;
+        }
+        return result;
+    }
+
+    public int[] getAllDesignElements() {
+        Set<int[]> parts = new HashSet<int[]>();
+
+        // get each individual set of design elements for each array design
+        for (ArrayDesign ad : getArrayDesigns()) {
+            parts.add(getAllDesignElementsForArrayDesign(ad));
+        }
+
+        // total number of design elements?
+        int size = 0;
+        for (int[] part : parts) {
+            size = size+part.length;
+        }
+
+        // copy into a single array
+        int[] result = new int[size];
+        int counter = 0;
+        for (int[] part : parts) {
+            System.arraycopy(part, 0, result, counter, part.length);
+            counter = counter+part.length;
+        }
+
+        return result;
+    }
+
     /**
      * Do not use this, as it doesn't handle multiple design elements for gene case
      * @param geneId gene id

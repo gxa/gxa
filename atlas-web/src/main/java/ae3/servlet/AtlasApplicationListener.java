@@ -7,6 +7,7 @@ package ae3.servlet;
  * EBI Microarray Informatics Team (c) 2007 
  */
 
+import ae3.service.AtlasPlotter;
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,9 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
         application.setAttribute(Atlas.SEARCH_SERVICE.key(), searchService);
 
-        // initialize and store in-session the dataserver
+        // initialize and store in-session the AtlasPLotter
+        AtlasPlotter plotter = (AtlasPlotter) context.getBean("atlasPlotter");
+        application.setAttribute(Atlas.PLOTTER.key(), plotter);
 
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
