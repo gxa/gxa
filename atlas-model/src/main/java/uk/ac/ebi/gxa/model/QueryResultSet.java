@@ -2,6 +2,7 @@ package  uk.ac.ebi.gxa.model;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Collection of result objects plust metadata - total number of records.
@@ -12,12 +13,12 @@ import java.util.ArrayList;
  */
 
 public class QueryResultSet<T> implements java.io.Serializable {
-    private Collection<T> items;
+    private List<T> items;
     private int totalResults;
     private int startingFrom;
     private boolean isForceIsMulty = false; //return isMulty = true even for single item
 
-    public Iterable<T> getItems(){
+    public List<T> getItems(){
         return items;
     }
     public T getItem(){
@@ -32,11 +33,8 @@ public class QueryResultSet<T> implements java.io.Serializable {
         this.items.add(item);
     }
 
-    public void setItems(Iterable<T> items){
-        this.items = new ArrayList<T>();
-
-        for(T t : items)
-            this.items.add(t);
+    public void setItems(Collection<T> items){
+        this.items = new ArrayList<T>(items);
     }
 
     public boolean isMulti() {

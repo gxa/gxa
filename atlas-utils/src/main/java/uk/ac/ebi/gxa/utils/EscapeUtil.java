@@ -1,10 +1,11 @@
-package ae3.util;
+package uk.ac.ebi.gxa.utils;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
@@ -68,7 +69,7 @@ public class EscapeUtil {
     }
 
     /**
-     * Opposite to {@link ae3.util.EscapeUtil.joinQuotedValues(Iterable)}
+     * Opposite to {@link EscapeUtil.joinQuotedValues(Iterable)}
      * @param value string value
      * @return list of parsed strings
      */
@@ -136,5 +137,36 @@ public class EscapeUtil {
             sb.append('\'').append(StringEscapeUtils.escapeJavaScript(o.toString())).append('\'');
         }
         return sb.toString();
+    }
+
+    public static String encode(String ef, String efv) {
+        return encode(ef) + "_" + encode(efv);
+    }
+
+    public static String encode(String v) {
+        try {
+            StringBuffer r = new StringBuffer();
+            for(char x : v.toCharArray())
+            {
+                if(Character.isJavaIdentifierPart(x))
+                    r.append(x);
+                else
+                    for(byte b : Character.toString(x).getBytes("UTF-8"))
+                        r.append("_").append(String.format("%x", b));
+            }
+            return r.toString();
+        } catch(UnsupportedEncodingException e){
+            throw new IllegalArgumentException("Unable to encode EFV in UTF-8", e);
+        }
+    }
+
+    public static int nullzero(Short i)
+    {
+        return i == null ? 0 : i;
+    }
+
+    public static double nullzero(Float d)
+    {
+        return d == null ? 0.0 : d;
     }
 }

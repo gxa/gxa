@@ -7,6 +7,6 @@ package  uk.ac.ebi.gxa.model;
  * Time: 4:31:41 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface PropertyExpressionStat extends ExpressionStat{
+public interface PropertyExpressionStat<NextType extends ExpressionStat> extends ExpressionStat<NextType> {
     public Property getProperty();
 }

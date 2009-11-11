@@ -8,6 +8,7 @@
 
 import uk.ac.ebi.gxa.model.*;
 import uk.ac.ebi.microarray.atlas.db.utils.AtlasDB;
+import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
@@ -19,6 +20,7 @@ import oracle.jdbc.OracleConnection;
 public class AtlasDao implements Dao {
 
     private OracleConnection connection;
+    private ExpressionStatDao expressionStatDao = new ExpressionStatDao();
 
     public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException{
         throw new GxaException("not implemented");
@@ -178,6 +180,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
+        this.getSample(atlasPropertyQuery.)
         throw new GxaException("not implemented");
     };
 
@@ -192,7 +195,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
           stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
 
           stmt.setString(1, atlasPropertyQuery.getId());
-          stmt.setString(2, atlasPropertyQuery.getFulltextQuery());
+          stmt.setString(2, atlasPropertyQuery.getFullextQuery());
 
           stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //samples
 
@@ -243,12 +246,12 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         throw new GxaException("not implemented");
     };
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
-    };
+    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+        return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, pageSortParams);
+    }
 
     public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException{
-        throw new GxaException("not implemented");
-    };
+        return expressionStatDao.getExpressionStat(atlasExpressionStatQuery);
+    }
 
 }
