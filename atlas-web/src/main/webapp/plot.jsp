@@ -1,9 +1,9 @@
-<%@page import="org.json.JSONStringer"%>
-<%@ page import="org.json.JSONObject"%>
-<%@ page import="org.json.JSONException" %>
-<%@ page import="ae3.service.AtlasPlotter" %>
+<%@page import="ae3.service.AtlasPlotter"%>
+<%@ page import="org.json.JSONException"%>
+<%@ page import="org.json.JSONObject" %>
 <%@ page import="org.slf4j.Logger" %>
 <%@ page import="org.slf4j.LoggerFactory" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page language="java" contentType="application/json; charset=UTF-8"%>
 <%
     final Logger log = LoggerFactory.getLogger("plot.jsp");
@@ -40,7 +40,9 @@
 
     try {
         //AZ:2009-06-26:mirorefactoring - use already calculated gid variable
-        JSONObject jsonString = AtlasPlotter.instance().getGeneInExpPlotData(gid,eid,ef,efv,plotType,gplotIds);
+
+        AtlasPlotter plotter = (AtlasPlotter)application.getAttribute(Atlas.PLOTTER.key());
+        JSONObject jsonString = plotter.getGeneInExpPlotData(gid,eid,ef,efv,plotType,gplotIds);
 
         if (jsonString != null) {
             

@@ -5,6 +5,7 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasTuple;
 import ae3.service.AtlasDownloadService;
+import ae3.service.AtlasPlotter;
 import ae3.service.AtlasResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
@@ -49,6 +50,8 @@ public class AtlasSearchService implements InitializingBean {
     private AtlasComputeService atlasComputeService;
     private AtlasDownloadService atlasDownloadService;
     private AtlasStructuredQueryService atlasQueryService;
+
+    private AtlasPlotter atlasPlotter;
 
     private File atlasIndex;
     private AtlasDAO atlasDatabaseDAO;
