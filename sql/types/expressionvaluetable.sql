@@ -1,5 +1,0 @@
-
-  CREATE OR REPLACE TYPE "EXPRESSIONVALUETABLE" is TABLE of ExpressionValue
-/
-
- 
