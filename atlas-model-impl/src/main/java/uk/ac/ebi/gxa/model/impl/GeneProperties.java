@@ -1,4 +1,4 @@
-package ae3.service.structuredquery;
+package uk.ac.ebi.gxa.model.impl;
 
 import java.util.*;
 

@@ -1,5 +1,8 @@
 package  uk.ac.ebi.gxa.model;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Retrieving list of properties. 
  * User: Andrey
@@ -8,30 +11,26 @@ package  uk.ac.ebi.gxa.model;
  * To change this template use File | Settings | File Templates.
  */
 public class AbstractPropertyQuery<T> extends AccessionQuery<T>{
-    public T hasValue(String value){
-        return (T)this;
-    }
-    public T isSampleProperty(Boolean isSampleProperty){
-        return (T)this;
-    }
-    public T isAssayProperty(Boolean isSampleProperty){
-        return (T)this;
-    }
-    public T usedInSamples(SampleQuery sampleQuery){
-        return (T)this;
-    }
-    public T usedInAssay(AssayQuery assayQuery){
-        return (T)this;
-    }
-    public T usedInExperiments(ExperimentQuery experimentQuery){
+     private List<String> values = new ArrayList<String>();
+    private List<String> fullTextQueries = new ArrayList<String>();
+
+    public T hasValue(String value) {
+        values.add(value);
         return (T)this;
     }
 
-    public T fullextQuery(String keyword){
+
+    public T fullTextQuery(String keyword) {
+        fullTextQueries.add(keyword);
         return (T)this;
     }
 
-    public String getFulltextQuery(){
-        return null;
+    public List<String> getValues() {
+        return values;
     }
+
+    public List<String> getFullTextQueries() {
+        return fullTextQueries;
+    }
+
 }

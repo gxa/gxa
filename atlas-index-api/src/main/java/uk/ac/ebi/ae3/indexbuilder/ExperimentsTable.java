@@ -1,5 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+
 import java.io.*;
 import java.util.*;
 
@@ -18,7 +20,7 @@ public class ExperimentsTable implements Serializable {
 
         int pos = experiments.size() - 1;
 
-        String efefvId = IndexField.encode(ef, efv);
+        String efefvId = EscapeUtil.encode(ef, efv);
         if(!byEfEfvId.containsKey(efefvId))
             byEfEfvId.put(efefvId, new BitSet());
 
@@ -26,7 +28,7 @@ public class ExperimentsTable implements Serializable {
 
         if(efo != null)
             for(String oneefo : efo) {
-                String efoId = IndexField.encode(oneefo);
+                String efoId = EscapeUtil.encode(oneefo);
                 if(!byEfoId.containsKey(efoId))
                     byEfoId.put(efoId, new BitSet());
                 byEfoId.get(efoId).set(pos);
@@ -59,7 +61,7 @@ public class ExperimentsTable implements Serializable {
     public Iterable<Experiment> findByEfEfv(String ef, String efv) {
         List<Experiment> result = new ArrayList<Experiment>();
 
-        BitSet bs = byEfEfvId.get(IndexField.encode(ef, efv));
+        BitSet bs = byEfEfvId.get(EscapeUtil.encode(ef, efv));
         if(bs == null)
             return result;
 

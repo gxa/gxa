@@ -11,4 +11,12 @@ public class GxaException extends Exception{
     public GxaException(String message){
         super(message);
     }
+
+    public GxaException(Throwable e) {
+        super(e);
+    }
+
+    public GxaException(String message, Throwable e) {
+        super(message, e);
+    }
 }

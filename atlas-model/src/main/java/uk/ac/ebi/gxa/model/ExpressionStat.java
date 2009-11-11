@@ -7,7 +7,7 @@ package  uk.ac.ebi.gxa.model;
  * Time: 11:12:59 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface ExpressionStat {
+public interface ExpressionStat<NextType extends ExpressionStat> {
 
     /* remainings of not-type-safe stats */
 
@@ -22,5 +22,5 @@ public interface ExpressionStat {
     public Double getUpPvalue();
     public Double getDnPvalue();
 
-    public Iterable<ExpressionStat> drillDown();
+    public Iterable<NextType> drillDown();
 }
