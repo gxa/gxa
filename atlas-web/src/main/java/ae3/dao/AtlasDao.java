@@ -2,7 +2,6 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.util.EscapeUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 

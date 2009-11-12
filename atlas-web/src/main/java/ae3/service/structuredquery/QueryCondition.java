@@ -1,6 +1,6 @@
 package ae3.service.structuredquery;
 
-import ae3.util.EscapeUtil;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.List;
 

@@ -2,7 +2,6 @@ package ae3.service.structuredquery;
 
 import ae3.service.structuredquery.GeneProperties.Prop;
 import ae3.service.structuredquery.GeneProperties.PropType;
-import ae3.util.EscapeUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -13,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 /**
  * Gene properties values listing and autocompletion helper implementation

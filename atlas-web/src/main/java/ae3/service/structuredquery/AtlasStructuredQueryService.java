@@ -7,7 +7,6 @@ import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
 import ae3.util.AtlasProperties;
 import ae3.util.Pair;
-import ae3.util.EscapeUtil;
 import ae3.util.MappingIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
@@ -26,9 +25,9 @@ import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.Efo;
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
@@ -677,13 +676,13 @@ public class AtlasStructuredQueryService {
 
                 for(String ef : autoFactors) {
 
-                    values = doc.getFieldValues("efvs_up_" + IndexField.encode(ef));
+                    values = doc.getFieldValues("efvs_up_" + EscapeUtil.encode(ef));
                     if(values != null)
                         for(Object efv : values) {
                             resultEfvs.getOrCreate(ef, (String)efv, numberer);
                         }
 
-                    values = doc.getFieldValues("efvs_dn_" + IndexField.encode(ef));
+                    values = doc.getFieldValues("efvs_dn_" + EscapeUtil.encode(ef));
                     if(values != null)
                         for(Object efv : values) {
                             resultEfvs.getOrCreate(ef, (String)efv, numberer);
@@ -703,7 +702,7 @@ public class AtlasStructuredQueryService {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(IndexField.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
+                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -711,7 +710,7 @@ public class AtlasStructuredQueryService {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(IndexField.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
+                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -739,10 +738,10 @@ public class AtlasStructuredQueryService {
                 }
 
                 UpdownCounter counter = new UpdownCounter(
-                        IndexField.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_up")),
-                        IndexField.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_dn")),
-                        IndexField.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_up")),
-                        IndexField.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_dn")));
+                        EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_up")),
+                        EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_dn")),
+                        EscapeUtil.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_up")),
+                        EscapeUtil.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_dn")));
 
                 counters.add(counter);
 

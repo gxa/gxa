@@ -2,7 +2,7 @@ package ae3.service.structuredquery;
 
 import ae3.restresult.RestOut;
 import ae3.servlet.structuredquery.result.ExperimentRestProfile;
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
@@ -257,7 +257,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
 
     public static String getEfEfvId(String ef, String efv)
     {
-        return IndexField.encode(ef, efv);
+        return EscapeUtil.encode(ef, efv);
     }
 
     public static String getEfEfvId(Ef<?> ef, Efv<?> efv)
