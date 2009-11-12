@@ -1,5 +1,8 @@
 package ae3.model;
 
+import ae3.dao.AtlasDao;
+import ae3.restresult.RestOut;
+import ae3.util.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
@@ -9,10 +12,6 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 import java.util.*;
-
-import ae3.util.Pair;
-import ae3.restresult.RestOut;
-import ae3.dao.AtlasDao;
 
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
