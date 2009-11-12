@@ -27,7 +27,7 @@
 
     <function>
       <name>escapeJSArray</name>
-      <function-class>ae3.util.EscapeUtil</function-class>
+      <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
       <function-signature>
         java.lang.String escapeJSArray( java.util.Collection )
       </function-signature>
@@ -43,7 +43,7 @@
 
     <function>
       <name>optionalQuote</name>
-      <function-class>ae3.util.EscapeUtil</function-class>
+      <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
       <function-signature>
         java.lang.String optionalQuote( java.lang.String )
       </function-signature>

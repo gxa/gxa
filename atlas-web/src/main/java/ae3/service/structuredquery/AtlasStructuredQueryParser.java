@@ -2,13 +2,12 @@ package ae3.service.structuredquery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 import ae3.util.AtlasProperties;
-import ae3.util.EscapeUtil;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 /**
  * @author pashky

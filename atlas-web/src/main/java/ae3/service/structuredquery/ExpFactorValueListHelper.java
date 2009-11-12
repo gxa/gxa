@@ -1,18 +1,17 @@
 package ae3.service.structuredquery;
 
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
-
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 /**
  * EFVs listing and autocompletion helper implementation
@@ -74,7 +73,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
                     } else if(!allFactors.contains(property))
                         return null;
                     else
-                        q.addFacetField("efvs_ud_" + IndexField.encode(property));
+                        q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
 
                     QueryResponse qr = solrAtlas.query(q);
                     root = new PrefixNode();

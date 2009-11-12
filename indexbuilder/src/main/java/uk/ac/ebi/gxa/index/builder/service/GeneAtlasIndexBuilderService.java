@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
-import uk.ac.ebi.ae3.indexbuilder.IndexField;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
@@ -198,7 +198,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             List<String> accessions =
                     ontomap.get(experimentId + "_" + ef + "_" + efv);
 
-            String efvid = IndexField.encode(ef, efv);
+            String efvid = EscapeUtil.encode(ef, efv);
             if (!efvupdn.containsKey(efvid)) {
                 efvupdn.put(efvid, new UpDn());
             }
@@ -221,7 +221,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             if (accessions != null) {
                 for (String acc : accessions) {
-                    String accId = IndexField.encode(acc);
+                    String accId = EscapeUtil.encode(acc);
 
                     if (!efoupdn.containsKey(accId)) {
                         efoupdn.put(accId, new UpDnSet());
@@ -279,19 +279,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                            Map<String, Set<String>> dnefv) {
         for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.addField("efvs_up_" + IndexField.encode(e.getKey()), i);
+                solrDoc.addField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (Map.Entry<String, Set<String>> e : dnefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.addField("efvs_dn_" + IndexField.encode(e.getKey()), i);
+                solrDoc.addField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (String factor : union(upefv.keySet(), dnefv.keySet())) {
             for (String i : union(upefv.get(factor), dnefv.get(factor))) {
-                solrDoc.addField("efvs_ud_" + IndexField.encode(factor), i);
+                solrDoc.addField("efvs_ud_" + EscapeUtil.encode(factor), i);
             }
         }
     }

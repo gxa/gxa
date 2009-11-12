@@ -2,9 +2,9 @@ package ae3.servlet.structuredquery;
 
 import ae3.restresult.RestOut;
 import ae3.service.structuredquery.EfoValueListHelper;
-import ae3.util.EscapeUtil;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
