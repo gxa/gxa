@@ -1,5 +1,19 @@
 package ds.server;
 
+import ds.R.RUtilities;
+import ds.utils.DSConstants;
+import ds.utils.DS_DBconnection;
+import org.apache.commons.lang.ArrayUtils;
+import org.kchine.rpf.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ucar.ma2.Array;
+import ucar.ma2.ArrayChar;
+import ucar.ma2.Index;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
@@ -8,30 +22,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.Vector;
-
-import org.apache.commons.lang.ArrayUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.kchine.rpf.TimeoutException;
-
-import ucar.ma2.Array;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.Index;
-import ucar.ma2.InvalidRangeException;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-
-import ds.R.RUtilities;
-
-import ds.utils.DSConstants;
-import ds.utils.DS_DBconnection;
+import java.util.*;
 
 public class DataServer implements DataServerMonitor {
 
@@ -335,20 +326,23 @@ public class DataServer implements DataServerMonitor {
 		    Object[] currentFVs = assayFVs.get(factor);
 		    TreeMap<String, ArrayList[] > dataPerFV_map = new TreeMap<String, ArrayList[]>();
 		    for(int i=0; i<currentFVs.length; i++){
-		    	String fv = currentFVs[i].toString();
-		    	ArrayList[] dataPerFV;
-		    	if(dataPerFV_map.containsKey(fv)){
-		    		dataPerFV  = dataPerFV_map.get(fv);
+		    	String fv = currentFVs[i].toString(); // ordered by assay
+		    	ArrayList[] dataPerFV; // array has length = number of design elements
+
+		    	if(dataPerFV_map.containsKey(fv)){ // lookup - seen this fv before?
+		    		dataPerFV  = dataPerFV_map.get(fv); // is so, fetch ArrayList[]
 //		    		dataPerFV_map.get(fv).add(DEdata[i]);
 		    	}
 		    	else{
-		    		dataPerFV = new ArrayList[deIds.size()];
+		    		dataPerFV = new ArrayList[deIds.size()]; // else make a new ArrayList[]
 		    		for(int k=0; k<dataPerFV.length; k++)
-		    			dataPerFV[k] = new ArrayList();
+		    			dataPerFV[k] = new ArrayList(); // and initialise each element
 		    		dataPerFV_map.put(fv, dataPerFV);	
 		    	}
-		    	for(int j=0; j<DEindices.size(); j++){
-	    			dataPerFV[j].add(DEsData[j][i]);
+
+
+		    	for(int j=0; j<DEindices.size(); j++){ // iterate over design elements (reduced set, by gene only)
+	    			dataPerFV[j].add(DEsData[j][i]); // add a single cell, which is design element/assay
 	    		}
 		    		
 		    }

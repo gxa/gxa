@@ -1,6 +1,5 @@
 package ae3.service.compute;
 
-import ds.server.SimilarityResultSet;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -9,6 +8,9 @@ import org.junit.Test;
 import org.kchine.r.RDataFrame;
 import org.kchine.r.RNumeric;
 import org.kchine.r.server.RServices;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.SimilarityResultSet;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;

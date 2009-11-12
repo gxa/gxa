@@ -2,8 +2,8 @@ package ae3.service.structuredquery;
 
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -36,20 +36,25 @@ public class AtlasStructuredQueryBuilder {
 
     private List<String> optionalParseList(Object values) {
         final List<String> vlist;
-        if(values instanceof String)
-            vlist = EscapeUtil.parseQuotedList((String)values);
-        else if(values instanceof List)
-            vlist = (List<String>)values;
-        else 
-            throw new ClassCastException("Unknown type of parameter - should be either String or List<String>, got " + values.getClass());
+        if (values instanceof String) {
+            vlist = EscapeUtil.parseQuotedList((String) values);
+        }
+        else if (values instanceof List) {
+            vlist = (List<String>) values;
+        }
+        else {
+            throw new ClassCastException(
+                    "Unknown type of parameter - should be either String or List<String>, got " + values.getClass());
+        }
         return vlist;
     }
 
     public AtlasStructuredQueryBuilder andGene(String property, boolean has, Object values) {
 
         List<String> vlist = optionalParseList(values);
-        if(vlist.isEmpty())
+        if (vlist.isEmpty()) {
             return this;
+        }
 
         List<GeneQueryCondition> conds = new ArrayList<GeneQueryCondition>(q.getGeneConditions());
         GeneQueryCondition cond = new GeneQueryCondition();
@@ -64,8 +69,9 @@ public class AtlasStructuredQueryBuilder {
 
     public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
         List<String> vlist = optionalParseList(values);
-        if(vlist.isEmpty() && "".equals(factor))
+        if (vlist.isEmpty() && "".equals(factor)) {
             return this;
+        }
 
         List<ExpFactorQueryCondition> conds = new ArrayList<ExpFactorQueryCondition>(q.getConditions());
         ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
@@ -123,9 +129,9 @@ public class AtlasStructuredQueryBuilder {
         q.setStart(start);
         return this;
     }
-    
+
     public AtlasStructuredQueryBuilder expsPerGene(int exps) {
-    	q.setExpsPerGene(exps);
-    	return this;
+        q.setExpsPerGene(exps);
+        return this;
     }
 }
