@@ -16,10 +16,7 @@ import uk.ac.ebi.gxa.web.AtlasSearchService;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class AtlasPlotter {
@@ -148,17 +145,23 @@ public class AtlasPlotter {
         }
     }
 
-    private JSONObject createJSON(NetCDFProxy netCDF, String ef, List<String> topFVs, List<Integer> geneIndices) throws IOException {
+    private JSONObject createJSON(NetCDFProxy netCDF, String ef, List<String> topFVs, List<Integer> geneIndices)
+            throws IOException {
         // the data for our plot
         JSONObject plotData = new JSONObject();
         try {
-            // whats this for?
-            JSONArray seriesList = new JSONArray();
-            JSONArray seriesData = new JSONArray();
+            // counter for this series - helps pick colour!
+            int counter=0;
+            boolean insignificantSeries=false;
 
-            // whats this for?
+            // data for individual series
+            JSONArray seriesList = new JSONArray();
+
+            // data for mean series
             JSONObject meanSeries = new JSONObject();
             JSONArray meanSeriesData = new JSONArray();
+            // map holding mean data
+            Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
 
             // get factor values, ordered by assay
             String[] fvs = netCDF.getFactorValues(ef);
@@ -166,101 +169,98 @@ public class AtlasPlotter {
             // sort the factor values into a good order
             Integer[] sortedFVindexes = sortFVs(fvs);
 
-//            HashMap<String, Double> fvMean_map = new HashMap<String, Double>();
-//            int sampleIndex = 1;
-            int colorCounter = 0;
-            boolean inSigSeriesPresent = false;
-            for (int i = 0; i < fvs.length; i++) {
-                // work out which assay we're going to do first
-                int assayIndex = sortedFVindexes[i];
+            // get the datapoints we want, indexed by factor value and gene
+            Map<String, Map<Integer, List<Double>>> datapoints =
+                    getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
 
-                // get the factor value associated with this assay
-                String fv = fvs[assayIndex];
+            // iterate over each factor value (in sorted order)
+            for (int factorValueIndex : sortedFVindexes) {
+                // get the factor value at this index
+                String factorValue = fvs[factorValueIndex];
 
-                // create the series JSON object
+                // now extract datapoints for this factor value
+                Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
+
+                // create a series for these datapoints - new series for each factor value
                 JSONObject series = new JSONObject();
+                JSONArray seriesData = new JSONArray();
 
-                // now, fetch the data that corresponds to this assay, ordered by design element
-                double[] data = netCDF.getExpressionDataForAssay(assayIndex);
+                // count the number of samples that have the same factor value
+                int sampleCount = factorValueDataPoints.get(geneIndices.get(0)).size();
 
-                // cherry pick out the data at each geneIndex point (genes and design elements are indexed the same)
-                int sampleIndex = 0;
-                for (int geneIndex : geneIndices) {
-                    double datapoint = data[geneIndex];
+                // loop over samples
+                for (int sampleIndex = 0; sampleIndex<sampleCount; sampleIndex++) {
+                    // for each sample position, loop over the datapoints for interesting genes
+                    for (int geneIndex : geneIndices) {
+                        // get the datapoint for this gene at this sample index
+                        Double datapoint = factorValueDataPoints.get(geneIndex).get(sampleIndex);
+                        // check the datapoint isn't a default (i.e. missing expression data) - set to null if so
+                        if (datapoint<=-1000000) {
+                            datapoint = null;
+                        }
 
-                    // create a new point
-                    JSONArray point = new JSONArray();
-                    point.put(i+1);
-                    point.put(datapoint <= -1000000 ? null : datapoint);
+                        // create the JSON point
+                        JSONArray point = new JSONArray();
 
-                    // add this point to the series data
-                    seriesData.put(point);
+                        // store our data - in json, points are 1-indexed not 0-indexed so shift position by one
+                        point.put(sampleIndex+1);
+                        point.put(datapoint);
 
-                    // increment the sample index
+                        // store this point in our series data
+                        seriesData.put(point);
 
+                        // if we haven't done so, calculate mean data
+                        if (!meanDataByFactorValue.containsKey(factorValue)) {
+                            meanDataByFactorValue.put(factorValue, getMean(factorValueDataPoints.get(geneIndex)));
+                        }
+
+                        // get the mean expression for this factor value
+                        double fvMean = meanDataByFactorValue.get(factorValue);
+                        // create a point and store the mean value
+                        point = new JSONArray();
+                        point.put(sampleIndex+1);
+                        point.put(fvMean);
+                        meanSeriesData.put(point);
+                    }
                 }
 
-                // iterate over the data and fetch individual data points
-                for (double datapoint : data) {
-                }
-
-//                // loop over assays
-//                for (int j = 0; j < DEdata[0].size(); j++) {//columns <==> samples with the same FV
-//                    // loop over design elements
-//                    for (int k = 0; k < DEdata.length; k++) {//rows <==> DEs
-//                        JSONArray point = new JSONArray();
-//                        point.put(sampleIndex);
-//                        Double v = (Double) DEdata[k].get(j);
-//                        point.put(v <= -1000000 ? null :
-//                                v);// loop over available DEs and add data points to the same x point
-//                        seriesData.put(point);
-//
-//
-//                        if (!fvMean_map.containsKey(fv + "_de"))
-//                            fvMean_map.put(fv + "_de", getMean(DEdata[k]));
-//                        double fvMean = fvMean_map.get(fv + "_de");
-//                        point = new JSONArray();
-//                        point.put(sampleIndex);
-//                        point.put(fvMean);
-//                        meanSeriesData.put(point);
-//
-//                    }
-//                    sampleIndex++;
-//                }
-
+                // store the data for this factor value series
                 series.put("data", seriesData);
+                // and store some other standard params
                 series.put("bars", new JSONObject("{show:true, align: \"center\", fill:true}"));
                 series.put("lines", new JSONObject("{show:false}"));
                 series.put("points", new JSONObject("{show:false}"));
-                series.put("label", fv);
-                series.put("legend", new JSONObject("{show:true}"));
+                series.put("label", factorValue);
+                series.put("legend",new JSONObject("{show:true}"));
 
-                //Choose series color
-                if (!topFVs.contains(fv.toLowerCase())) {
-                    series.put("color", altColors[colorCounter % 2]);
-                    series.put("legend", new JSONObject("{show:false}"));
-                    colorCounter++;
-                    inSigSeriesPresent = true;
+                // choose series color for these are insignificant factor values
+                if(!topFVs.contains(factorValue.toLowerCase())){
+                    series.put("color", altColors[counter%2]);
+                    series.put("legend",new JSONObject("{show:false}"));
+                    counter++;
+                    insignificantSeries = true;
                 }
 
                 seriesList.put(series);
             }
 
-            // create mean series
+            // create mean series, using mean data
             meanSeries.put("data", meanSeriesData);
             meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
             meanSeries.put("bars", new JSONObject("{show:false}"));
             meanSeries.put("points", new JSONObject("{show:false}"));
             meanSeries.put("color", "#5e5e5e");
             meanSeries.put("label", "Mean");
-            meanSeries.put("legend", new JSONObject("{show:false}"));
+            meanSeries.put("legend",new JSONObject("{show:false}"));
             meanSeries.put("hoverable", "false");
-            meanSeries.put("shadowSize", 2);
+            meanSeries.put("shadowSize",2);
+
+            // put our mean series into the series list too
             seriesList.put(meanSeries);
 
-
+            // and put all data into the plot, flagging whether it is significant or not
             plotData.put("series", seriesList);
-            plotData.put("insigLegend", inSigSeriesPresent);
+            plotData.put("insigLegend", insignificantSeries);
         }
         catch (JSONException e) {
             log.error("Error construction JSON!", e);
@@ -269,7 +269,8 @@ public class AtlasPlotter {
     }
 
 
-    private JSONObject createThumbnailJSON(NetCDFProxy netCDF, String ef, String efv, List<Integer> geneIndices) throws IOException {
+    private JSONObject createThumbnailJSON(NetCDFProxy netCDF, String ef, String efv, List<Integer> geneIndices)
+            throws IOException {
         JSONObject plotData = new JSONObject();
         JSONArray seriesList = new JSONArray();
         JSONObject series;
@@ -423,16 +424,11 @@ public class AtlasPlotter {
             plotData.put("characteristics", sampleChars);
             plotData.put("charValues", sampleCharValues);
             plotData.put("currEF", ef.substring(3));
-//            plotData.put("ADid", eds.getArraydesign_id());
             plotData.put("ADid", netCDF.getArrayDesign());
             plotData.put("geneNames", getJSONarray(geneNames));
-//            plotData.put("DEids", getJSONarray(eds.getDElist()));
             plotData.put("DEids", getJSONarrayFromIntArray(netCDF.getDesignElements()));
-//            plotData.put("GNids", getJSONarray(eds.getGNids()));
             plotData.put("GNids", getJSONarrayFromIntArray(netCDF.getGenes()));
-//            plotData.put("EFs", getJSONarray(Arrays.asList(eds.getFactors())));
             plotData.put("EFs", getJSONarrayFromStringArray(netCDF.getFactors()));
-//			plotData.put("assay_ids", getJSONarray(eds.getAssayList()));
 
 
         }
@@ -582,17 +578,17 @@ public class AtlasPlotter {
         return fso;
     }
 
-    private double getMean(ArrayList<Double> test) {
+    private double getMean(List<Double> values) {
         double sum = 0.0;
 
-        for (int i = 0; i < test.size(); i++) {
-            double v = test.get(i);
+        for (int i = 0; i < values.size(); i++) {
+            double v = values.get(i);
             if (v > -1000000) {
-                sum += test.get(i);
+                sum += values.get(i);
             }
         }
 
-        return sum / test.size();
+        return sum / values.size();
     }
 
     private ArrayList<String> getGeneNames(String gids) {
@@ -638,5 +634,66 @@ public class AtlasPlotter {
         }
         JSONarray.endArray();
         return JSONarray;
+    }
+
+    /**
+     * Gets a map that indexes factor values to the map of datapoints, indexed by genes we're interested in studying.
+     * For each factor value key in the returned map, the value is a second map indexing genes to a list of data points.
+     * For each gene, the value is a list of datapoints, where these datapoints represent data which applies to the gene
+     * observed and the assays which expressly mentions the factor value that is the outer key.
+     *
+     * @param netCDF      the NetCDF proxy to recover data from
+     * @param factor      the factor we're looking for values for
+     * @param geneIndices the list of gene positions we're interested in studying
+     * @return a complex map, keying datapoints to factor values and genes
+     * @throws IOException if there was a failure in accessing the NetCDF
+     */
+    private Map<String, Map<Integer, List<Double>>> getDataPointsByFactorValueForInterestingGenes(
+            NetCDFProxy netCDF, String factor, List<Integer> geneIndices)
+            throws IOException {
+        // get the list of factor values for the given factor
+        String[] fvs = netCDF.getFactorValues(factor);
+
+        // extract data from netCDF for the design element corresponding to each geneIndex
+        Map<Integer, double[]> allDataForGenes = new HashMap<Integer, double[]>();
+        for (int geneIndex : geneIndices) {
+            allDataForGenes.put(geneIndex, netCDF.getExpressionDataForDesignElement(geneIndex));
+        }
+
+        // extract data from netCDF for each assay, and index it by factor value
+        Map<String, Map<Integer, List<Double>>> datapointsByFactorValue =
+                new HashMap<String, Map<Integer, List<Double>>>();
+        for (int assayIndex = 0; assayIndex < fvs.length; assayIndex++) {
+            // get the current factor value
+            String factorValue = fvs[assayIndex];
+
+            // create an arraylist[] - this is datapoints, orded by "interesting" gene
+            Map<Integer, List<Double>> datapointsByInterestingGene;
+
+            // is this factor value a repeat of one we've already seen for this factor?
+            if (datapointsByFactorValue.containsKey(factorValue)) {
+                // if so, add more datapoints to this list
+                datapointsByInterestingGene = datapointsByFactorValue.get(factorValue);
+            }
+            else {
+                // if not, create a new map for datapoints
+                datapointsByInterestingGene = new HashMap<Integer, List<Double>>();
+                // also, put this map into our map of factor values
+                datapointsByFactorValue.put(factorValue, datapointsByInterestingGene);
+            }
+
+            // now, iterate over allDataForGenes and extract the data for the assay that is described with this factor value
+            for (int geneIndex : geneIndices) {
+                // if this gene index hasn't been done for this factor value yet, create a new list
+                if (!datapointsByInterestingGene.containsKey(geneIndex)) {
+                    datapointsByInterestingGene.put(geneIndex, new ArrayList<Double>());
+                }
+
+                // add a datapoint for the current "interesting" gene corresponding to this factor value
+                datapointsByInterestingGene.get(geneIndex).add(allDataForGenes.get(geneIndex)[assayIndex]);
+            }
+        }
+
+        return datapointsByFactorValue;
     }
 }
