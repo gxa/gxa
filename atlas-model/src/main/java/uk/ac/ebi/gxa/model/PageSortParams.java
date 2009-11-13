@@ -8,7 +8,8 @@ package  uk.ac.ebi.gxa.model;
  * To change this template use File | Settings | File Templates.
  */
 public class PageSortParams implements java.io.Serializable {
-    private int start;
+    private int start = 0;
+    
     public int getStart(){
         return start;
     }
@@ -17,7 +18,8 @@ public class PageSortParams implements java.io.Serializable {
         return this;
     }
 
-    private int rows;
+    private int rows = 100;
+    
     public int getRows(){
         return rows;
     }

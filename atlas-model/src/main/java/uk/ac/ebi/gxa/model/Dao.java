@@ -33,7 +33,7 @@ public interface Dao {
     public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException;
     public Gene                 getGeneByAccession(AccessionQuery accession) throws GxaException;
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException; 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException;
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException;
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException;
 
 }

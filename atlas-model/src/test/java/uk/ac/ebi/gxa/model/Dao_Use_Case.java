@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.model;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Andrey
@@ -35,20 +37,6 @@ public class Dao_Use_Case {
                                                                                           .hasAccession("Enligtment")
                                                                                           .hasValue("-5")))).getItems();
 
-        /*
-            \m/ HIT MAP \m/
-        */
-
-        //returns 100-200 rows of heatmap
-//        Iterable<ExpressionStat> heatmap = dao.getExpressionStat( new ExpressionStatQuery()
-//                                                                      .hasGene(new GeneQuery()
-//                                                                                   .isSpecies("dog"))
-//                                                                      .hasProperty( new PropertyQuery()
-//                                                                                    .hasAccession("X-RAY TREATMENT")
-//                                                                                    .hasValue("exposed"))
-//                                                                  ,new PageSortParams()
-//                                                                      .setStart(100)
-//                                                                      .setRows(100)).getItems();
 
     }
 

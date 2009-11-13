@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import oracle.jdbc.OracleConnection;
+import org.apache.commons.lang.StringUtils;
 
 public class AtlasDao implements Dao {
 
@@ -180,7 +181,6 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
-        this.getSample(atlasPropertyQuery.)
         throw new GxaException("not implemented");
     };
 
@@ -195,7 +195,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
           stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
 
           stmt.setString(1, atlasPropertyQuery.getId());
-          stmt.setString(2, atlasPropertyQuery.getFullextQuery());
+          stmt.setString(2, StringUtils.join(atlasPropertyQuery.getFullTextQueries(), " "));
 
           stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //samples
 
@@ -246,11 +246,11 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         throw new GxaException("not implemented");
     };
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, pageSortParams);
     }
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException{
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException{
         return expressionStatDao.getExpressionStat(atlasExpressionStatQuery);
     }
 
