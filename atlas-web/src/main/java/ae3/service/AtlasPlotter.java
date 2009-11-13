@@ -272,46 +272,81 @@ public class AtlasPlotter {
     private JSONObject createThumbnailJSON(NetCDFProxy netCDF, String ef, String efv, List<Integer> geneIndices)
             throws IOException {
         JSONObject plotData = new JSONObject();
-        JSONArray seriesList = new JSONArray();
-        JSONObject series;
-        JSONArray seriesData;
-
         try {
-            int sampleIndex = 1;
-            int startMark = 0, endMark = 0;
-//            Set<String> fvs = getFactorValues(netCDF, ef);
-//            final Object[] fvs_arr = fvs.toArray();
-//            Integer[] sortedFVindexes = sortFVs(fvs_arr);
-            String[] fvs = netCDF.getFactorValues(ef);
-            Integer[] sortedFVindexes = sortFVs(fvs);
-            series = new JSONObject();
-            seriesData = new JSONArray();
-            for (int i = 0; i < fvs.length; i++) {
-                String fv = fvs[sortedFVindexes[i]];
+            // data for individual series
+            JSONArray seriesList = new JSONArray();
 
-//                ArrayList[] DEdata = eds.getDataByFV(ef, fv);
-//                if (fv.equals(efv))
-//                    startMark = sampleIndex;
-//
-//                for (int j = 0; j < DEdata[0].size(); j++) {//columns <==> samples with the same FV
-//                    for (int k = 0; k < DEdata.length; k++) {//rows <==> DEs
-//                        JSONArray point = new JSONArray();
-//                        point.put(sampleIndex);
-//                        Double v = (Double) DEdata[k].get(j);
-//                        point.put(v <= -1000000 ? null :
-//                                v);// loop over available DEs and add data points to the same x point
-//                        seriesData.put(point);
-//                    }
-//                    sampleIndex++;
-//                }
-//                if (fv.equals(efv)) {
-//                    endMark = sampleIndex;
-//                }
+            // get factor values, ordered by assay
+            String[] fvs = netCDF.getFactorValues(ef);
+
+            // sort the factor values into a good order
+            Integer[] sortedFVindexes = sortFVs(fvs);
+
+            // get the datapoints we want, indexed by factor value and gene
+            Map<String, Map<Integer, List<Double>>> datapoints =
+                    getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
+
+            // create a series for these datapoints - series runs across all factor values
+            JSONObject series = new JSONObject();
+            JSONArray seriesData = new JSONArray();
+
+            int startMark=0;
+            int endMark=0;
+            int index = 1;
+
+            // iterate over each factor value (in sorted order)
+            for (int factorValueIndex : sortedFVindexes) {
+                // get the factor value at this index
+                String factorValue = fvs[factorValueIndex];
+
+                // mark start position, in list of all samples, of the factor value we're after
+                if (factorValue.equals(efv)) {
+                    startMark = index;
+                }
+
+                // now extract datapoints for this factor value
+                Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
+
+                // count the number of samples that have the same factor value
+                int sampleCount = factorValueDataPoints.get(geneIndices.get(0)).size();
+
+                // loop over samples
+                for (int sampleIndex = 0; sampleIndex<sampleCount; sampleIndex++) {
+                    for (int geneIndex : geneIndices) {
+                        // get the datapoint for this gene at this sample index
+                        Double datapoint = factorValueDataPoints.get(geneIndex).get(sampleIndex);
+                        // check the datapoint isn't a default (i.e. missing expression data) - set to null if so
+                        if (datapoint<=-1000000) {
+                            datapoint = null;
+                        }
+
+                        // create the JSON point
+                        JSONArray point = new JSONArray();
+
+                        // store our data - in json, points are 1-indexed not 0-indexed so shift position by one
+                        point.put(sampleIndex+1);
+                        point.put(datapoint);
+
+                        // store this point in our series data
+                        seriesData.put(point);
+                    }
+
+                    index++;
+                }
+
+                // mark end position, in list of all samples, of the factor value we're after
+                if (factorValue.equals(efv)) {
+                    endMark = index;
+                }
             }
+
+            // store the entire series data
             series.put("data", seriesData);
             series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
             series.put("legend", new JSONObject("{show:false}"));
             seriesList.put(series);
+
+            // and store the data for the whole plot
             plotData.put("series", seriesList);
             plotData.put("startMarkIndex", startMark);
             plotData.put("endMarkIndex", endMark);
