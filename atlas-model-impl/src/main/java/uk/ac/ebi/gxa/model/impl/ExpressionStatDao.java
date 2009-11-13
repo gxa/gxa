@@ -46,7 +46,13 @@ public class ExpressionStatDao {
         public SolrQueryBuilder andGeneProperty(String property, Iterable<String> values) {
             if(and())
                 return this;
-            queryPart.append(GeneProperties.convertPropertyToSearchField(property)).append(":(").append(EscapeUtil.escapeSolrValueList(values)).append(")");
+
+            // TODO: rewrite this part
+            final String field = "id".equals(property) ? "gene_id" : GeneProperties.convertPropertyToSearchField(property);
+            if(field == null)
+                throw new NullPointerException("Can't find property");
+            
+            queryPart.append(field).append(":(").append(EscapeUtil.escapeSolrValueList(values)).append(")");
             return this;
         }
 
@@ -99,7 +105,7 @@ public class ExpressionStatDao {
         }
     }
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         SolrQueryBuilder sqb = new SolrQueryBuilder();
 
         for(GeneQuery geneq : atlasExpressionStatQuery.getGeneQueries()) {
@@ -113,6 +119,10 @@ public class ExpressionStatDao {
                 for(uk.ac.ebi.gxa.model.Experiment experiment : exps.getItems())
                     sqb.andExperiment(experiment.getAccession());
             }
+            if(geneq.getId() != null)
+                sqb.andGeneProperty("id", Collections.singleton(geneq.getId()));
+            if(geneq.getAccession() != null)
+                sqb.andGeneProperty("identifier", Collections.singleton(geneq.getAccession()));
         }
 
         for(Pair<ExpressionQuery,PropertyQuery> propq : atlasExpressionStatQuery.getActivityQueries()) {
@@ -123,6 +133,7 @@ public class ExpressionStatDao {
 
         SolrQuery solrq = new SolrQuery(sqb.toSolrQuery());
         solrq.addField("*");
+        solrq.addField("score");
         solrq.setRows(pageSortParams.getRows());
         solrq.setStart(pageSortParams.getStart());
 
@@ -132,7 +143,7 @@ public class ExpressionStatDao {
 
         try {
             QueryResponse response = geneServer.query(solrq);
-            List<ExpressionStat> items = new ArrayList<ExpressionStat>();
+            List<T> items = new ArrayList<T>();
             for(SolrDocument document : response.getResults()) {
                 final SolrDocument sd = document;
 
@@ -186,7 +197,7 @@ public class ExpressionStatDao {
                     private CountCache countCache = null;
 
                     public String getGene() {
-                        return sd.getFirstValue("gene_identififer").toString();
+                        return sd.getFirstValue("gene_identifier").toString();
                     }
 
                     public Float getRank() {
@@ -288,9 +299,9 @@ public class ExpressionStatDao {
                         };
                     }
                 };
-                items.add(geneStat);
+                items.add((T)geneStat);
             }
-            final QueryResultSet<ExpressionStat> resultSet = new QueryResultSet<ExpressionStat>();
+            final QueryResultSet<T> resultSet = new QueryResultSet<T>();
             resultSet.setItems(items);
             resultSet.setIsMulti(true);
             resultSet.setStartingFrom(pageSortParams.getStart());
@@ -319,7 +330,7 @@ public class ExpressionStatDao {
         return result;
     }
 
-    public QueryResultSet<ExpressionStat> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
+    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
         return getExpressionStat(atlasExpressionStatQuery, new PageSortParams());
     }
 
