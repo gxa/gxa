@@ -65,7 +65,7 @@ public class ExpressionStatDao {
             for(String v : values) {
                 if(first)
                     queryPart.append("(");
-                first = true;
+                first = false;
 
                 final String efefvId = EscapeUtil.encode(property, v);
                 String field = "cnt_" + efefvId;
@@ -101,7 +101,7 @@ public class ExpressionStatDao {
         }
 
         public String toSolrQuery() {
-            return queryPart.toString() + (scorePart.length() > 0 ? " AND _val_:sum(" + scorePart.toString() + ")" : "");
+            return queryPart.toString() + (scorePart.length() > 0 ? " AND _val_:\"sum(" + scorePart.toString() + ")\"" : "");
         }
     }
 
@@ -153,7 +153,7 @@ public class ExpressionStatDao {
                         return new Iterator<Property>() {
                             private Iterator<Pair<String,Iterator>> fIter = new FilterIterator<String,Pair<String,Iterator>>(autoFactors.iterator()) {
                                 public Pair<String, Iterator> map(String factor) {
-                                    return new Pair<String, Iterator>(factor, sd.getFieldValues(factor).iterator());
+                                    return new Pair<String, Iterator>(factor, sd.getFieldValues("efvs_ud_" + factor).iterator());
                                 }
                             };
 

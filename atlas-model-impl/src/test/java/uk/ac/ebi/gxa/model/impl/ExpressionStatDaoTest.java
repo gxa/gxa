@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
@@ -136,19 +137,19 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 res.setIsMulti(false);
                 res.setItem(new Property() {
                     public String getName() {
-                        return null;  //To change body of implemented methods use File | Settings | File Templates.
+                        return "organismpart";
                     }
 
                     public Collection<String> getValues() {
-                        return null;  //To change body of implemented methods use File | Settings | File Templates.
+                        return Collections.singleton("liver");
                     }
 
                     public int getId() {
-                        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+                        return 0;
                     }
 
                     public String getAccession() {
-                        return null;  //To change body of implemented methods use File | Settings | File Templates.
+                        return "organismpart";
                     }
                 });
                 return res;
@@ -186,7 +187,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void testGetExpressionStat() throws GxaException {
+    public void testGetExpressionStat_gene_id() throws GxaException {
 
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>> result = statDao.getExpressionStat(new ExpressionStatQuery().hasGene(new GeneQuery().hasId("153074124")));
         assertNotNull(result);
@@ -199,7 +200,121 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void testGetExpressionStatPageSort() {
-        // Add your code here
+    public void testGetExpressionStat_gene_accession() throws GxaException {
+
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
+                result = statDao.getExpressionStat(
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("ENSG00000120471")));
+        assertNotNull(result);
+
+        assertEquals(true, result.isFound());
+        assertEquals(1, result.getNumberOfResults());
+        assertNotNull(result.getItems());
+        assertNotNull(result.getItem());
+        assertEquals("ENSG00000120471", result.getItem().getGene());
     }
+
+    @Test
+    public void testGetExpressionStat_gene_notfound() throws GxaException {
+
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
+                result = statDao.getExpressionStat(
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("nevernevergene"))
+        );
+        assertNotNull(result);
+
+        assertEquals(false, result.isFound());
+        assertEquals(0, result.getNumberOfResults());
+    }
+
+    @Test
+    public void testGetExpressionStat_gene_species() throws GxaException {
+
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
+                result = statDao.getExpressionStat(
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasProperty(
+                        new PropertyQuery().hasAccession("species").fullTextQuery("Homo"))
+                )
+        );
+
+        assertNotNull(result);
+        assertEquals(true, result.isFound());
+        assertEquals(16, result.getNumberOfResults());
+        assertNotNull(result.getItems());
+        assertNotNull(result.getItem());
+
+        for(GeneExpressionStat stat : result.getItems()) {
+            assertTrue(stat.getGene().startsWith("ENSG")); // only human genes should be here
+        }
+    }
+
+    @Test
+    public void testGetExpressionStat_activein() throws GxaException {
+
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
+                result = statDao.getExpressionStat(
+                new ExpressionStatQuery().activeIn(ExpressionQuery.UP,
+                        new PropertyQuery()
+                                .hasAccession("organismpart")
+                                .fullTextQuery("liver")
+                )
+        );
+
+        assertNotNull(result);
+        assertEquals(true, result.isFound());
+        assertEquals(7, result.getNumberOfResults());
+        assertNotNull(result.getItems());
+        assertNotNull(result.getItem());
+
+        for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
+            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+                if(pstat.getProperty().getAccession().equals("organismpart"))
+                    assertTrue(pstat.getUpPvalue() > 0);
+            }
+        }
+
+        result = statDao.getExpressionStat(
+                new ExpressionStatQuery().activeIn(ExpressionQuery.DOWN,
+                        new PropertyQuery()
+                                .hasAccession("organismpart")
+                                .fullTextQuery("liver")
+                )
+        );
+
+        assertNotNull(result);
+        assertEquals(true, result.isFound());
+        assertEquals(10, result.getNumberOfResults());
+        assertNotNull(result.getItems());
+        assertNotNull(result.getItem());
+
+        for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
+            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+                if(pstat.getProperty().getAccession().equals("organismpart"))
+                    assertTrue(pstat.getDnPvalue() > 0);
+            }
+        }
+
+        result = statDao.getExpressionStat(
+                new ExpressionStatQuery().activeIn(ExpressionQuery.UP_OR_DOWN,
+                        new PropertyQuery()
+                                .hasAccession("organismpart")
+                                .fullTextQuery("liver")
+                )
+        );
+
+        assertNotNull(result);
+        assertEquals(true, result.isFound());
+        assertEquals(11, result.getNumberOfResults());
+        assertNotNull(result.getItems());
+        assertNotNull(result.getItem());
+
+        for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
+            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+                if(pstat.getProperty().getAccession().equals("organismpart"))
+                    assertTrue(pstat.getUpPvalue() > 0 || pstat.getDnPvalue() > 0);
+            }
+        }
+
+    }
+
 }
