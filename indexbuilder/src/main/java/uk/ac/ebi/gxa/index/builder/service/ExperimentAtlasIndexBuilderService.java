@@ -31,12 +31,12 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super(atlasDAO, solrServer);
     }
 
-    protected void createIndexDocs() throws IndexBuilderException {
+    protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = getPendingOnly()
+        List<Experiment> experiments = pendingOnly
                 ? getAtlasDAO().getAllExperimentsPendingIndexing()
                 : getAtlasDAO().getAllExperiments();
 

@@ -23,6 +23,10 @@
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 
+    <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.controller.AtlasReschedulerController">
+        <property name="successView" value="redirect:admin.jsp" />
+    </bean>
+
     <!-- handler mapping for incoming requests -->
     <bean id="handlerMapping"
           class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
@@ -32,6 +36,7 @@
                 <entry key="admin/doindex.web" value-ref="atlasIndexController" />
                 <entry key="admin/donetcdf.web" value-ref="atlasNetCDFController" />
                 <entry key="admin/doanalytics.web" value-ref="atlasAnalyticsController" />
+                <entry key="admin/doreschedule.web" value-ref="atlasReschedulerController" />
             </map>
         </property>
     </bean>

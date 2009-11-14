@@ -4,12 +4,16 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.text.DecimalFormat;
 
 /**
@@ -37,49 +41,52 @@ public class LoaderDriver {
 
 
         // run the loader
-//    URL url = new URL(
-//        "file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
-//    final long loadStart = System.currentTimeMillis();
-//    boolean success = loader.load(url);
-//    final long loadEnd = System.currentTimeMillis();
-//    String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
-//    System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+        try {
+            URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
+            final long loadStart = System.currentTimeMillis();
+            boolean success = loader.load(url);
+            final long loadEnd = System.currentTimeMillis();
+            String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
+            System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("Load failed - inaccessible URL");
+        }
 
         // run the index builder
-//        builder.setPendingMode(true);
-//
-//        final long indexStart = System.currentTimeMillis();
-//        builder.buildIndex(new IndexBuilderListener() {
-//
-//            public void buildSuccess(IndexBuilderEvent event) {
-//                final long indexEnd = System.currentTimeMillis();
-//
-//                String total = new DecimalFormat("#.##").format(
-//                        (indexEnd - indexStart) / 60000);
-//                System.out.println(
-//                        "Index built successfully in " + total + " mins.");
-//
-//                try {
-//                    builder.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            public void buildError(IndexBuilderEvent event) {
-//                System.out.println("Index failed to build");
-//                for (Throwable t : event.getErrors()) {
-//                    t.printStackTrace();
-//                    try {
-//                        builder.shutdown();
-//                    }
-//                    catch (IndexBuilderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+        final long indexStart = System.currentTimeMillis();
+        builder.buildIndex(new IndexBuilderListener() {
+
+            public void buildSuccess(IndexBuilderEvent event) {
+                final long indexEnd = System.currentTimeMillis();
+
+                String total = new DecimalFormat("#.##").format(
+                        (indexEnd - indexStart) / 60000);
+                System.out.println(
+                        "Index built successfully in " + total + " mins.");
+
+                try {
+                    builder.shutdown();
+                }
+                catch (IndexBuilderException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public void buildError(IndexBuilderEvent event) {
+                System.out.println("Index failed to build");
+                for (Throwable t : event.getErrors()) {
+                    t.printStackTrace();
+                    try {
+                        builder.shutdown();
+                    }
+                    catch (IndexBuilderException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
 
         // in case we don't run indexbuilder
         try {
@@ -125,11 +132,11 @@ public class LoaderDriver {
                 });
 
         // in case we don't run netCDF generator
-//        try {
-//            generator.shutdown();
-//        }
-//        catch (NetCDFGeneratorException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            generator.shutdown();
+        }
+        catch (NetCDFGeneratorException e) {
+            e.printStackTrace();
+        }
     }
 }

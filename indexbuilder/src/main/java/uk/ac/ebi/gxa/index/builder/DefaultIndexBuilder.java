@@ -23,21 +23,19 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * A default implementation of {@link IndexBuilder} that constructs a SOLR index in a
- * supplied directory.  By default, this will include all genes and experiments.
+ * A default implementation of {@link IndexBuilder} that constructs a SOLR index in a supplied directory.  By default,
+ * this will include all genes and experiments.
  *
  * @author Tony Burdett
  * @date 20-Aug-2009
  */
-public class DefaultIndexBuilder
-        implements IndexBuilder<File>, InitializingBean {
+public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean {
     // these are spring managed fields
     private AtlasDAO atlasDAO;
     private File indexLocation;
 
     private boolean genes = true;
     private boolean experiments = true;
-    private boolean pending = false;
 
     // these are initialised by this bean, not spring managed
     private CoreContainer coreContainer;
@@ -50,12 +48,12 @@ public class DefaultIndexBuilder
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
+    }
+
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
     }
 
     public void setIndexLocation(File indexLocation) {
@@ -80,14 +78,6 @@ public class DefaultIndexBuilder
 
     public boolean getIncludeExperiments() {
         return experiments;
-    }
-
-    public void setPendingMode(boolean pending) {
-        this.pending = pending;
-    }
-
-    public boolean getPendingMode() {
-        return pending;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -238,13 +228,12 @@ public class DefaultIndexBuilder
     }
 
     public void buildIndex(IndexBuilderListener listener) {
-        startIndexBuild(false, listener);
+        startIndexBuild(listener, false);
         log.info("Started IndexBuilder: " +
                 "Building for " +
                 (experiments ? "experiments " : "") +
                 (experiments && genes ? " and " : "") +
-                (genes ? "atlas " : "") +
-                (pending ? "(only pending experiments) " : ""));
+                (genes ? "atlas " : ""));
     }
 
     public void updateIndex() {
@@ -252,17 +241,15 @@ public class DefaultIndexBuilder
     }
 
     public void updateIndex(IndexBuilderListener listener) {
-        startIndexBuild(true, listener);
+        startIndexBuild(listener, true);
         log.info("Started IndexBuilder: " +
                 "Updating for " +
                 (experiments ? "experiments " : "") +
                 (experiments && genes ? " and " : "") +
-                (genes ? "atlas " : "") +
-                (pending ? "(only pending experiments) " : ""));
+                (genes ? "atlas " : ""));
     }
 
-    private void startIndexBuild(final boolean updateMode,
-                                 final IndexBuilderListener listener) {
+    private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
         final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
@@ -271,11 +258,7 @@ public class DefaultIndexBuilder
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
                     log.info("Starting building of experiments index");
-
-                    exptIndexBuilder.setPendingOnly(pending);
-                    exptIndexBuilder.setUpdateMode(updateMode);
-                    exptIndexBuilder.buildIndex();
-
+                    exptIndexBuilder.buildIndex(pending);
                     return true;
                 }
             }));
@@ -285,10 +268,7 @@ public class DefaultIndexBuilder
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
                     log.info("Starting building of atlas gene index");
-
-                    geneIndexBuilder.setUpdateMode(updateMode);
-                    geneIndexBuilder.buildIndex();
-
+                    geneIndexBuilder.buildIndex(pending);
                     return true;
                 }
             }));
@@ -318,12 +298,10 @@ public class DefaultIndexBuilder
 
                     // create our completion event
                     if (success) {
-                        listener.buildSuccess(new IndexBuilderEvent(
-                                runTime, TimeUnit.SECONDS));
+                        listener.buildSuccess(new IndexBuilderEvent(runTime, TimeUnit.SECONDS));
                     }
                     else {
-                        listener.buildError(new IndexBuilderEvent(
-                                runTime, TimeUnit.SECONDS, observedErrors));
+                        listener.buildError(new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors));
                     }
                 }
             }).start();
