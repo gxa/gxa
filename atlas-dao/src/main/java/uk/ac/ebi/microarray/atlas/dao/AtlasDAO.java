@@ -15,28 +15,40 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A data access object designed for retrieving common sorts of data from the
- * atlas database.  This DAO should be configured with a spring {@link
- * JdbcTemplate} object which will be used to query the database.
+ * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
+ * configured with a spring {@link JdbcTemplate} object which will be used to query the database.
  *
  * @author Tony Burdett
  * @date 21-Sep-2009
  */
 public class AtlasDAO {
+    // load monitor
+    private static final String LOAD_MONITOR_SELECT =
+            "SELECT accession, netcdf, similarity, ranking, searchindex, load_type " +
+                    "FROM load_monitor";
+
     // experiment queries
     private static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid " +
                     "FROM a2_experiment";
     private static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            EXPERIMENTS_SELECT + " " +
-                    "WHERE accession='E-GEOD-1725'";
-//                    "WHERE something something"; // fixme: load monitor table?
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+                    "FROM a2_experiment e, load_monitor lm " +
+                    "WHERE e.accession=lm.accession " +
+                    "AND lm.searchindex='pending' " +
+                    "AND lm.load_type='experiment'";
     private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            EXPERIMENTS_SELECT + " " +
-                    "WHERE something something"; // fixme: load monitor table?
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+                    "FROM a2_experiment e, load_monitor lm " +
+                    "WHERE e.accession=lm.accession " +
+                    "AND lm.netcdf='pending' " +
+                    "AND lm.load_type='experiment'";
     private static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            EXPERIMENTS_SELECT + " " +
-                    "WHERE something something"; // fixme: load monitor table?
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+                    "FROM a2_experiment e, load_monitor lm " +
+                    "WHERE e.accession=lm.accession " +
+                    "AND lm.ranking='pending'" + // fixme: similarity?
+                    "AND lm.load_type='experiment'";
     private static final String EXPERIMENT_BY_ACC_SELECT =
             EXPERIMENTS_SELECT + " " +
                     "WHERE accession=?";
@@ -49,8 +61,14 @@ public class AtlasDAO {
                     "WHERE g.geneid=d.geneid " +
                     "AND g.specid=s.specid";
     private static final String GENES_PENDING_SELECT =
-            GENES_SELECT + " " +
-                    "AND something something"; // fixme: load monitor table?
+            "SELECT g.geneid, g.identifier, g.name, " +
+                    "s.name AS species, d.designelementid " +
+                    "FROM a2_gene g, a2_spec s, a2_designelement d, load_monitor lm " +
+                    "WHERE g.geneid=d.geneid " +
+                    "AND g.specid=s.specid " +
+                    "AND g.identifier=lm.accession " +
+                    "AND lm.searchindex='pending' " +
+                    "AND lm.load_type='gene'";
     private static final String GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, " +
                     "s.name AS species, d.designelementid " +
@@ -273,62 +291,66 @@ public class AtlasDAO {
         this.template = template;
     }
 
+    public List<LoadDetails> getLoadDetails() {
+        List results = template.query(LOAD_MONITOR_SELECT,
+                                      new LoadDetailsMapper());
+        return (List<LoadDetails>) results;
+    }
+
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
-                new ExperimentMapper());
+                                      new ExperimentMapper());
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingIndexing() {
         List results = template.query(EXPERIMENTS_PENDING_INDEX_SELECT,
-                new ExperimentMapper());
+                                      new ExperimentMapper());
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
         List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
-                new ExperimentMapper());
+                                      new ExperimentMapper());
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingAnalytics() {
         List results = template.query(EXPERIMENTS_PENDING_ANALYTICS_SELECT,
-                new ExperimentMapper());
+                                      new ExperimentMapper());
         return (List<Experiment>) results;
     }
 
     /**
-     * Gets a single experiment from the Atlas Database, queried by the accession
-     * of the experiment.
+     * Gets a single experiment from the Atlas Database, queried by the accession of the experiment.
      *
-     * @param accession the experiment's accession number (usually in the format
-     *                  E-ABCD-1234)
+     * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
     public Experiment getExperimentByAccession(String accession) {
         List results = template.query(EXPERIMENT_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ExperimentMapper());
+                                      new Object[]{accession},
+                                      new ExperimentMapper());
 
         return results.size() > 0 ? (Experiment) results.get(0) : null;
     }
 
     public List<Gene> getAllGenes() {
         List results = template.query(GENES_SELECT,
-                new GeneMapper());
+                                      new GeneMapper());
         return (List<Gene>) results;
     }
 
     public List<Gene> getAllPendingGenes() {
         List results = template.query(GENES_PENDING_SELECT,
-                new GeneMapper());
+                                      new GeneMapper());
         return (List<Gene>) results;
     }
 
     public List<Gene> getGenesByExperimentAccession(String exptAccession) {
         List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new GeneMapper());
+                                      new Object[]{exptAccession},
+                                      new GeneMapper());
         return (List<Gene>) results;
 
     }
@@ -338,8 +360,8 @@ public class AtlasDAO {
         for (Gene gene : genes) {
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_GENEID,
-                    new Object[]{gene.getGeneID()},
-                    new GenePropertyMapper());
+                                              new Object[]{gene.getGeneID()},
+                                              new GenePropertyMapper());
             // and set on gene
             gene.setProperties(propResults);
         }
@@ -348,8 +370,8 @@ public class AtlasDAO {
     public List<Assay> getAssaysByExperimentAccession(
             String experimentAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_ACCESSION,
-                new Object[]{experimentAccession},
-                new AssayMapper());
+                                      new Object[]{experimentAccession},
+                                      new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
 
@@ -357,8 +379,8 @@ public class AtlasDAO {
         for (Assay assay : assays) {
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
-                    new Object[]{assay.getAccession()},
-                    new PropertyMapper());
+                                              new Object[]{assay.getAccession()},
+                                              new PropertyMapper());
             // and set on assay
             assay.setProperties(propResults);
         }
@@ -369,9 +391,9 @@ public class AtlasDAO {
     public List<Assay> getAssaysByExperimentAndArray(String experimentAccession,
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
-                new Object[]{experimentAccession,
-                        arrayAccession},
-                new AssayMapper());
+                                      new Object[]{experimentAccession,
+                                                   arrayAccession},
+                                      new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
 
@@ -379,8 +401,8 @@ public class AtlasDAO {
         for (Assay assay : assays) {
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
-                    new Object[]{assay.getAccession()},
-                    new PropertyMapper());
+                                              new Object[]{assay.getAccession()},
+                                              new PropertyMapper());
             // and set on assay
             assay.setProperties(propResults);
         }
@@ -393,8 +415,8 @@ public class AtlasDAO {
         for (Assay assay : assays) {
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             Object results = template.query(EXPRESSION_VALUES_BY_ASSAY_ID,
-                    new Object[]{assay.getAssayID()},
-                    new ExpressionValueMapper());
+                                            new Object[]{assay.getAssayID()},
+                                            new ExpressionValueMapper());
 
             // cast the result to the map, and extract the map for this assay
             Map<Integer, Map<Integer, Float>> map =
@@ -408,8 +430,8 @@ public class AtlasDAO {
     public Map<Integer, Map<Integer, Float>> getExpressionValuesByExperimentAndArray(
             int experimentID, int arrayDesignID) {
         Object results = template.query(EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
-                new Object[]{experimentID, arrayDesignID},
-                new ExpressionValueMapper());
+                                        new Object[]{experimentID, arrayDesignID},
+                                        new ExpressionValueMapper());
 
 
         return (Map<Integer, Map<Integer, Float>>) results;
@@ -417,8 +439,8 @@ public class AtlasDAO {
 
     public List<Sample> getSamplesByAssayAccession(String assayAccession) {
         List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
-                new Object[]{assayAccession},
-                new SampleMapper());
+                                      new Object[]{assayAccession},
+                                      new SampleMapper());
 
         // fixme: this doesn't adequately retrieve all assay accessions for samples
         List<Sample> samples = (List<Sample>) results;
@@ -432,8 +454,8 @@ public class AtlasDAO {
 
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
-                    new Object[]{sample.getAccession()},
-                    new PropertyMapper());
+                                              new Object[]{sample.getAccession()},
+                                              new PropertyMapper());
             // and set on assay
             sample.setProperties(propResults);
         }
@@ -443,8 +465,8 @@ public class AtlasDAO {
 
     public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
         List results = template.query(SAMPLES_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new SampleMapper());
+                                      new Object[]{exptAccession},
+                                      new SampleMapper());
 
         // fixme: this doesn't adequately retrieve all assay accessions for samples
         List<Sample> samples = (List<Sample>) results;
@@ -455,8 +477,8 @@ public class AtlasDAO {
 
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
-                    new Object[]{sample.getAccession()},
-                    new PropertyMapper());
+                                              new Object[]{sample.getAccession()},
+                                              new PropertyMapper());
             // and set on assay
             sample.setProperties(propResults);
         }
@@ -466,7 +488,7 @@ public class AtlasDAO {
 
     public List<ArrayDesign> getAllArrayDesigns() {
         List results = template.query(ARRAY_DESIGN_SELECT,
-                new ArrayDesignMapper());
+                                      new ArrayDesignMapper());
 
         // cast to correct type
         List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
@@ -482,8 +504,8 @@ public class AtlasDAO {
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
         List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
+                                      new Object[]{accession},
+                                      new ArrayDesignMapper());
 
         // get first result only
         ArrayDesign arrayDesign =
@@ -500,8 +522,8 @@ public class AtlasDAO {
     public List<ArrayDesign> getArrayDesignByExperimentAccession(
             String exptAccession) {
         List results = template.query(ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new ArrayDesignMapper());
+                                      new Object[]{exptAccession},
+                                      new ArrayDesignMapper());
 
         // cast to correct type
         List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
@@ -516,91 +538,87 @@ public class AtlasDAO {
     }
 
     /**
-     * A convenience method that fetches the set of design elements by array
-     * design accession.  Design elements are recorded as a map, indexed by design
-     * element id and with a value of the design element accession. The set of
-     * design element ids contains no duplicates, and the results that are
-     * returned are the internal database ids for design elements.  This takes the
-     * accession of the array design as a parameter.
+     * A convenience method that fetches the set of design elements by array design accession.  Design elements are
+     * recorded as a map, indexed by design element id and with a value of the design element accession. The set of
+     * design element ids contains no duplicates, and the results that are returned are the internal database ids for
+     * design elements.  This takes the accession of the array design as a parameter.
      *
-     * @param arrayDesignAccession the accession number of the array design to
-     *                             query for
-     * @return the map of design element accessions indexed by unique design
-     *         element id integers
+     * @param arrayDesignAccession the accession number of the array design to query for
+     * @return the map of design element accessions indexed by unique design element id integers
      */
     public Map<Integer, String> getDesignElementsByArrayAccession(
             String arrayDesignAccession) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
-                new Object[]{arrayDesignAccession},
-                new DesignElementMapper());
+                                        new Object[]{arrayDesignAccession},
+                                        new DesignElementMapper());
         return (Map<Integer, String>) results;
     }
 
     public Map<Integer, String> getDesignElementsByArrayID(
             int arrayDesignID) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ID,
-                new Object[]{arrayDesignID},
-                new DesignElementMapper());
+                                        new Object[]{arrayDesignID},
+                                        new DesignElementMapper());
         return (Map<Integer, String>) results;
     }
 
     public Map<Integer, String> getDesignElementsByGeneID(int geneID) {
         Object results = template.query(DESIGN_ELEMENTS_BY_GENEID,
-                new Object[]{geneID},
-                new DesignElementMapper());
+                                        new Object[]{geneID},
+                                        new DesignElementMapper());
         return (Map<Integer, String>) results;
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
             int geneID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
-                new Object[]{geneID},
-                new ExpressionAnalyticsMapper());
+                                      new Object[]{geneID},
+                                      new ExpressionAnalyticsMapper());
         return (List<ExpressionAnalysis>) results;
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByDesignElementID(
             int designElementID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_DESIGNELEMENTID,
-                new Object[]{designElementID},
-                new ExpressionAnalyticsMapper());
+                                      new Object[]{designElementID},
+                                      new ExpressionAnalyticsMapper());
         return (List<ExpressionAnalysis>) results;
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByExperimentID(
             int experimentID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_EXPERIMENTID,
-                new Object[]{experimentID},
-                new ExpressionAnalyticsMapper());
+                                      new Object[]{experimentID},
+                                      new ExpressionAnalyticsMapper());
         return (List<ExpressionAnalysis>) results;
     }
 
     public List<OntologyMapping> getOntologyMappings() {
         List results = template.query(ONTOLOGY_MAPPINGS_SELECT,
-                new OntologyMappingMapper());
+                                      new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
     }
 
     public List<OntologyMapping> getOntologyMappingsByOntology(
             String ontologyName) {
         List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
-                new Object[]{ontologyName},
-                new OntologyMappingMapper());
+                                      new Object[]{ontologyName},
+                                      new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
     }
 
     public List<OntologyMapping> getOntologyMappingsByExperimentAccession(
             String experimentAccession) {
         List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                new Object[]{experimentAccession},
-                new OntologyMappingMapper());
+                                      new Object[]{experimentAccession},
+                                      new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
     }
 
     public List<AtlasCount> getAtlasCountsByExperimentID(int experimentID) {
         List results = template.query(ATLAS_COUNTS_BY_EXPERIMENTID,
-                new Object[]{experimentID},
-                new AtlasCountMapper());
+                                      new Object[]{experimentID},
+                                      new AtlasCountMapper());
         return (List<AtlasCount>) results;
     }
 
@@ -614,16 +632,18 @@ public class AtlasDAO {
         List results;
         if (upOrDown == 1) {
             results = namedTemplate.query(ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV,
-                    paramMapping,
-                    new AtlasResultMapper());
-        } else if (upOrDown == -1) {
+                                          paramMapping,
+                                          new AtlasResultMapper());
+        }
+        else if (upOrDown == -1) {
             results = namedTemplate.query(ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                    paramMapping,
-                    new AtlasResultMapper());
-        } else {
+                                          paramMapping,
+                                          new AtlasResultMapper());
+        }
+        else {
             results = namedTemplate.query(ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                    paramMapping,
-                    new AtlasResultMapper());
+                                          paramMapping,
+                                          new AtlasResultMapper());
 
         }
 
@@ -632,17 +652,34 @@ public class AtlasDAO {
 
     public List<AtlasStatistics> getAtlasStatistics() {
         List results = template.query(ATLAS_STATISTICS_SELECT,
-                new AtlasStatisticsMapper());
+                                      new AtlasStatisticsMapper());
 
         return (List<AtlasStatistics>) results;
     }
 
     public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
         List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
-                new Object[]{dataRelease},
-                new AtlasStatisticsMapper());
+                                      new Object[]{dataRelease},
+                                      new AtlasStatisticsMapper());
 
         return results.size() > 0 ? (AtlasStatistics) results.get(0) : null;
+    }
+
+    private class LoadDetailsMapper implements RowMapper {
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            LoadDetails details = new LoadDetails();
+
+            // accession, netcdf, similarity, ranking, searchindex
+            details.setAccession(resultSet.getString(1));
+            details.setNetCDF(resultSet.getString(2));
+            details.setSimilarity(resultSet.getString(3));
+            details.setRanking(resultSet.getString(4));
+            details.setSearchIndex(resultSet.getString(5));
+            details.setLoadType(resultSet.getString(6));
+
+            return details;
+        }
     }
 
     private class ExperimentMapper implements RowMapper {

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="atlasAnalyticsController" class="uk.ac.ebi.gxa.controller.AtlasAnalyticsController">
+        <property name="analyticsGenerator" ref="analyticsGenerator" />
+        <property name="successView" value="redirect:admin.jsp" />
+    </bean>
+
+    <bean id="atlasIndexController" class="uk.ac.ebi.gxa.controller.AtlasIndexController">
+        <property name="indexBuilder" ref="indexBuilder" />
+        <property name="successView" value="redirect:admin.jsp" />
+    </bean>
+
+    <bean id="atlasLoadController" class="uk.ac.ebi.gxa.controller.AtlasLoadController">
+        <property name="loader" ref="atlasLoader" />
+        <property name="successView" value="redirect:admin.jsp" />
+    </bean>
+
+    <bean id="atlasNetCDFController" class="uk.ac.ebi.gxa.controller.AtlasNetCDFController">
+        <property name="netCDFGenerator" ref="netCDFGenerator" />
+        <property name="successView" value="redirect:admin.jsp" />
+    </bean>
+
+    <!-- handler mapping for incoming requests -->
+    <bean id="handlerMapping"
+          class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+        <property name="urlMap">
+            <map>
+                <entry key="admin/doload.web" value-ref="atlasLoadController" />
+                <entry key="admin/doindex.web" value-ref="atlasIndexController" />
+                <entry key="admin/donetcdf.web" value-ref="atlasNetCDFController" />
+                <entry key="admin/doanalytics.web" value-ref="atlasAnalyticsController" />
+            </map>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" />
+
+</beans>
