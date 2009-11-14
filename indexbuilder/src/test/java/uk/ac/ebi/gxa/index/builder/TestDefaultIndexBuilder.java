@@ -157,41 +157,6 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         }
     }
 
-    public void testUpdateIndex() {
-        try {
-            indexBuilder.startup();
-
-            // run updateIndex
-            indexBuilder.updateIndex();
-
-            // now query the index for stuff in the test DB
-            createSOLRQueryServers();
-
-            SolrQuery q = new SolrQuery("*:*");
-            q.setRows(10);
-            q.setFields("");
-            q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
-
-
-            QueryResponse queryResponse = exptServer.query(q);
-            SolrDocumentList documentList = queryResponse.getResults();
-
-            if (documentList == null || documentList.size() < 1) {
-                fail("No experiments available");
-            }
-
-            // just check we have 2 experiments - as this is the number in our dataset
-            int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
-            int actual = documentList.size();
-            assertEquals("Wrong number of docs: expected " + expected +
-                    ", actual " + actual, expected, actual);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
     private boolean deleteDirectory(File directory) {
         boolean success = true;
         if (directory.exists()) {

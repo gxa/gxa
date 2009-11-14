@@ -48,13 +48,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         efo = Efo.getEfo();
     }
 
-    protected void createIndexDocs() throws IndexBuilderException {
+    protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         // do initial setup - load efo mappings and build executor service
         loadEfoMapping();
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch genes
-        List<Gene> genes = getPendingOnly()
+        List<Gene> genes = pendingOnly
                 ? getAtlasDAO().getAllPendingGenes()
                 : getAtlasDAO().getAllGenes();
 
