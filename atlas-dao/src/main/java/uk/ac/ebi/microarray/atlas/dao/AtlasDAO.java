@@ -100,15 +100,12 @@ public class AtlasDAO {
                     "FROM a2_assay a, a2_assaysample s " +
                     "WHERE a.assayid=s.assayid " +
                     "AND s.sampleid IN (:sampleids)";
-    private static final String PROPERTIES_BY_ASSAY_ACCESSION =
-            "SELECT p.name AS property, pv.name AS propertyvalue, " +
-                    "apv.isfactorvalue " +
-                    "FROM a2_property p, a2_propertyvalue pv, " +
-                    "a2_assaypropertyvalue apv, a2_assay a " +
+    private static final String PROPERTIES_BY_RELATED_ASSAYS =
+            "SELECT apv.assayid, p.name AS property, pv.name AS propertyvalue, apv.isfactorvalue " +
+                    "FROM a2_property p, a2_propertyvalue pv, a2_assaypropertyvalue apv " +
                     "WHERE apv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
-                    "AND apv.assayid=a.assayid " +
-                    "AND a.accession=?";
+                    "AND apv.assayid IN (:assayids)";
 
     // expression value queries
     private static final String EXPRESSION_VALUES_BY_ASSAY_ID =
@@ -137,20 +134,12 @@ public class AtlasDAO {
                     "AND a.assayid=ass.assayid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
-    private static final String PROPERTIES_BY_SAMPLE_ACCESSION =
-            "SELECT " +
-                    "p.name AS property, " +
-                    "pv.name AS propertyvalue, " +
-                    "spv.isfactorvalue " +
-                    "FROM " +
-                    "a2_property p, " +
-                    "a2_propertyvalue pv, " +
-                    "a2_samplepropertyvalue spv, " +
-                    "a2_sample s " +
+    private static final String PROPERTIES_BY_RELATED_SAMPLES =
+            "SELECT spv.sampleid, p.name AS property, pv.name AS propertyvalue, spv.isfactorvalue " +
+                    "FROM a2_property p, a2_propertyvalue pv, a2_samplepropertyvalue spv " +
                     "WHERE spv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
-                    "AND spv.sampleid=s.sampleid " +
-                    "AND s.accession=?";
+                    "AND spv.sampleid IN (:sampleids)";
 
     // array and design element queries
     private static final String ARRAY_DESIGN_SELECT =
@@ -249,9 +238,9 @@ public class AtlasDAO {
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
     private static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN :exptids " +
-                    "AND g.geneid IN :geneids " +
-                    "AND pv.name IN :efvs " +
+                    "WHERE ea.experimentid IN (:exptids) " +
+                    "AND g.geneid IN (:geneids) " +
+                    "AND pv.name IN (:efvs) " +
                     "AND updn='1' " +
                     "AND TOPN<=20 " +
                     "ORDER BY ea.pvaladj " +
@@ -259,9 +248,9 @@ public class AtlasDAO {
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
     private static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN :exptids " +
-                    "AND g.geneid IN :geneids " +
-                    "AND pv.name IN :efvs " +
+                    "WHERE ea.experimentid IN (:exptids) " +
+                    "AND g.geneid IN (:geneids) " +
+                    "AND pv.name IN (:efvs) " +
                     "AND updn='-1' " +
                     "AND TOPN<=20 " +
                     "ORDER BY ea.pvaladj " +
@@ -269,9 +258,9 @@ public class AtlasDAO {
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
     private static final String ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN :exptids " +
-                    "AND g.geneid IN :geneids " +
-                    "AND pv.name IN :efvs " +
+                    "WHERE ea.experimentid IN (:exptids) " +
+                    "AND g.geneid IN (:geneids) " +
+                    "AND pv.name IN (:efvs) " +
                     "AND updn<>0 " +
                     "AND TOPN<=20 " +
                     "ORDER BY ea.pvaladj " +
@@ -380,16 +369,10 @@ public class AtlasDAO {
 
         List<Assay> assays = (List<Assay>) results;
 
-        // also fetch all properties
-        for (Assay assay : assays) {
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
-                                              new Object[]{assay.getAccession()},
-                                              new PropertyMapper());
-            // and set on assay
-            assay.setProperties(propResults);
-        }
+        // populate the other info for these assays
+        fillOutAssays(assays);
 
+        // and return
         return assays;
     }
 
@@ -402,16 +385,10 @@ public class AtlasDAO {
 
         List<Assay> assays = (List<Assay>) results;
 
-        // also fetch all properties
-        for (Assay assay : assays) {
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            List propResults = template.query(PROPERTIES_BY_ASSAY_ACCESSION,
-                                              new Object[]{assay.getAccession()},
-                                              new PropertyMapper());
-            // and set on assay
-            assay.setProperties(propResults);
-        }
+        // populate the other info for these assays
+        fillOutAssays(assays);
 
+        // and return
         return assays;
     }
 
@@ -448,31 +425,10 @@ public class AtlasDAO {
                                       new SampleMapper());
         List<Sample> samples = (List<Sample>) results;
 
-        // map samples to sample id
-        Map<Integer, Sample> samplesByID = new HashMap<Integer, Sample>();
-        for (Sample sample : samples) {
-            samplesByID.put(sample.getSampleID(), sample);
-        }
+        // populate the other info for these samples
+        fillOutSamples(samples);
 
-
-        // now query for assays that map to one of these samples
-        AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("sampleids", samplesByID.keySet());
-        namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, parameters, assaySampleMapper);
-
-        // also fetch all properties
-        for (Sample sample : samples) {
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
-                                              new Object[]{sample.getAccession()},
-                                              new PropertyMapper());
-            // and set on assay
-            sample.setProperties(propResults);
-        }
-
+        // and return
         return samples;
     }
 
@@ -480,22 +436,13 @@ public class AtlasDAO {
         List results = template.query(SAMPLES_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{exptAccession},
                                       new SampleMapper());
-
-        // fixme: this doesn't adequately retrieve all assay accessions for samples
         List<Sample> samples = (List<Sample>) results;
 
-        // also fetch all properties
-        for (Sample sample : samples) {
-            // fixme: using this query, we don't relate set assay accessions on sample at all
 
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
-                                              new Object[]{sample.getAccession()},
-                                              new PropertyMapper());
-            // and set on assay
-            sample.setProperties(propResults);
-        }
+        // populate the other info for these samples
+        fillOutSamples(samples);
 
+        // and return
         return samples;
     }
 
@@ -637,25 +584,26 @@ public class AtlasDAO {
 
     public List<AtlasTableResult> getAtlasResults(int[] geneIds, int[] exptIds, int upOrDown, String[] efvs) {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-        Map paramMapping = new HashMap();
-        paramMapping.put("geneids", geneIds);
-        paramMapping.put("exptids", exptIds);
-        paramMapping.put("efvs", efvs);
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("geneids", geneIds);
+        parameters.addValue("exptids", exptIds);
+        parameters.addValue("efvs", efvs);
 
         List results;
         if (upOrDown == 1) {
             results = namedTemplate.query(ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          paramMapping,
+                                          parameters,
                                           new AtlasResultMapper());
         }
         else if (upOrDown == -1) {
             results = namedTemplate.query(ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          paramMapping,
+                                          parameters,
                                           new AtlasResultMapper());
         }
         else {
             results = namedTemplate.query(ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          paramMapping,
+                                          parameters,
                                           new AtlasResultMapper());
 
         }
@@ -676,6 +624,44 @@ public class AtlasDAO {
                                       new AtlasStatisticsMapper());
 
         return results.size() > 0 ? (AtlasStatistics) results.get(0) : null;
+    }
+
+    private void fillOutAssays(List<Assay> assays) {
+        // map assays to assay id
+        Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
+        for (Assay assay : assays) {
+            assaysByID.put(assay.getAssayID(), assay);
+        }
+
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // now query for properties that map to one of these samples
+        AssayPropertyMapper assayPropertyMapper = new AssayPropertyMapper(assaysByID);
+        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+        propertyParams.addValue("assayids", assaysByID.keySet());
+        namedTemplate.query(PROPERTIES_BY_RELATED_ASSAYS, propertyParams, assayPropertyMapper);
+    }
+
+    private void fillOutSamples(List<Sample> samples) {
+        // map samples to sample id
+        Map<Integer, Sample> samplesByID = new HashMap<Integer, Sample>();
+        for (Sample sample : samples) {
+            samplesByID.put(sample.getSampleID(), sample);
+        }
+
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // now query for assays that map to one of these samples
+        AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
+        MapSqlParameterSource assayParams = new MapSqlParameterSource();
+        assayParams.addValue("sampleids", samplesByID.keySet());
+        namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
+
+        // now query for properties that map to one of these samples
+        SamplePropertyMapper samplePropertyMapper = new SamplePropertyMapper(samplesByID);
+        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+        propertyParams.addValue("sampleids", samplesByID.keySet());
+        namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
     }
 
     private class LoadDetailsMapper implements RowMapper {
@@ -850,13 +836,45 @@ public class AtlasDAO {
         }
     }
 
-    private class PropertyMapper implements RowMapper {
+    private class AssayPropertyMapper implements RowMapper {
+        private Map<Integer, Assay> assaysByID;
+
+        public AssayPropertyMapper(Map<Integer, Assay> assaysByID) {
+            this.assaysByID = assaysByID;
+        }
+
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
-            property.setName(resultSet.getString(1));
-            property.setValue(resultSet.getString(2));
-            property.setFactorValue(resultSet.getBoolean(3));
+            int assayID = resultSet.getInt(1);
+
+            property.setName(resultSet.getString(2));
+            property.setValue(resultSet.getString(3));
+            property.setFactorValue(resultSet.getBoolean(4));
+
+            assaysByID.get(assayID).addProperty(property);
+
+            return property;
+        }
+    }
+
+    private class SamplePropertyMapper implements RowMapper {
+        private Map<Integer, Sample> samplesByID;
+
+        public SamplePropertyMapper(Map<Integer, Sample> samplesByID) {
+            this.samplesByID = samplesByID;
+        }
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            Property property = new Property();
+
+            int sampleID = resultSet.getInt(1);
+
+            property.setName(resultSet.getString(2));
+            property.setValue(resultSet.getString(3));
+            property.setFactorValue(resultSet.getBoolean(4));
+
+            samplesByID.get(sampleID).addProperty(property);
 
             return property;
         }
