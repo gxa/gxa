@@ -51,6 +51,7 @@ public class AtlasPlotter {
                                            final String plotType,
                                            final String gplotIds) {
         String efToPlot;
+        String[] geneIDs = geneIdKey.split(",");
 
         AtlasDao dao = atlasSearchService.getAtlasSolrDAO();
         AtlasGene atlasGene = dao.getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
@@ -86,7 +87,7 @@ public class AtlasPlotter {
             proxies.add(new NetCDFProxy(netCDF));
         }
 
-        // iterate over our proxies to find the one that contains the gene we're after
+        // iterate over our proxies to find the one that contains the genes we're after
         try {
             // this is the NetCDF containing the gene we care about
             NetCDFProxy proxy = null;
@@ -95,17 +96,23 @@ public class AtlasPlotter {
             for (NetCDFProxy next : proxies) {
                 boolean found = false;
                 int geneIndex = 0;
-                for (int geneID : next.getGenes()) {
-                    if (geneID == Integer.parseInt(geneIdKey)) {
-                        proxy = next;
-                        found = true;
-                        geneIndices.add(geneIndex);
-                        geneIndex++;
+                // loop over all genes in this NetCDFProxy
+                for (int netcdfGene : next.getGenes()) {
+                    // loop over all the genes we're looking for (i.e. geneIdKey in request, split up)
+                    for (String geneIDStr : geneIDs) {
+                        // found a gene we want in this netcdf?
+                        if (netcdfGene == Integer.parseInt(geneIDStr)) {
+                            proxy = next;
+                            found = true;
+                            // add the index of the gene to our list of indices
+                            geneIndices.add(geneIndex);
+                        }
                     }
+                    geneIndex++;
                 }
 
                 if (found) {
-                    // fixme: breaking assumes that the gene will only be found in one NetCDF for this experiment
+                    // fixme: breaking assumes that all genes are in the same NetCDF
                     break;
                 }
             }

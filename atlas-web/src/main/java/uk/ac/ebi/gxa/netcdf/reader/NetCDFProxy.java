@@ -158,7 +158,7 @@ public class NetCDFProxy {
         }
 
         // now we have index of our ef, so take a read from efv for this index
-        ArrayChar efvs = (ArrayChar) netCDF.findVariable("EFV").read();
+        Array efvs = netCDF.findVariable("EFV").read();
         // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
         ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
 
