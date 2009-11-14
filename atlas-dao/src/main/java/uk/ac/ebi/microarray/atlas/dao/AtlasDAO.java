@@ -4,12 +4,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +95,11 @@ public class AtlasDAO {
     private static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
             ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
                     "AND ad.accession=?";
+    private static final String ASSAYS_BY_RELATED_SAMPLES =
+            "SELECT s.sampleid, a.accession " +
+                    "FROM a2_assay a, a2_assaysample s " +
+                    "WHERE a.assayid=s.assayid " +
+                    "AND s.sampleid IN (:sampleids)";
     private static final String PROPERTIES_BY_ASSAY_ACCESSION =
             "SELECT p.name AS property, pv.name AS propertyvalue, " +
                     "apv.isfactorvalue " +
@@ -441,17 +446,25 @@ public class AtlasDAO {
         List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
                                       new Object[]{assayAccession},
                                       new SampleMapper());
-
-        // fixme: this doesn't adequately retrieve all assay accessions for samples
         List<Sample> samples = (List<Sample>) results;
+
+        // map samples to sample id
+        Map<Integer, Sample> samplesByID = new HashMap<Integer, Sample>();
+        for (Sample sample : samples) {
+            samplesByID.put(sample.getSampleID(), sample);
+        }
+
+
+        // now query for assays that map to one of these samples
+        AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("sampleids", samplesByID.keySet());
+        namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, parameters, assaySampleMapper);
 
         // also fetch all properties
         for (Sample sample : samples) {
-            // fixme: set assay accession, this is broken as it only sets one assay on this sample
-            List<String> assays = new ArrayList<String>();
-            assays.add(assayAccession);
-            sample.setAssayAccessions(assays);
-
             // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
             List propResults = template.query(PROPERTIES_BY_SAMPLE_ACCESSION,
                                               new Object[]{sample.getAccession()},
@@ -761,6 +774,20 @@ public class AtlasDAO {
             sample.setSampleID(resultSet.getInt(4));
 
             return sample;
+        }
+    }
+
+    private class AssaySampleMapper implements RowMapper {
+        Map<Integer, Sample> samplesMap;
+
+        public AssaySampleMapper(Map<Integer, Sample> samplesMap) {
+            this.samplesMap = samplesMap;
+        }
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            int sampleID = resultSet.getInt(1);
+            samplesMap.get(sampleID).addAssayAccession(resultSet.getString(2));
+            return null;
         }
     }
 
