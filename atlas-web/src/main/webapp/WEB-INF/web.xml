@@ -341,6 +341,20 @@
         <url-pattern>/expGenes</url-pattern>
     </servlet-mapping>
 
+    <!-- Atlas Admin Page servlet -->
+    <servlet>
+      <servlet-name>admin</servlet-name>
+      <servlet-class>
+        org.springframework.web.servlet.DispatcherServlet
+      </servlet-class>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>admin</servlet-name>
+        <url-pattern>*.web</url-pattern>
+    </servlet-mapping>    
+
     <!-- end of servlets -->
 
 

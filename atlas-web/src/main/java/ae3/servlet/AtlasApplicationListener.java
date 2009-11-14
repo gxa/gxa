@@ -1,12 +1,5 @@
 package ae3.servlet;
 
-/**
- * User: ostolop
- * Date: 07-Feb-2008
- *
- * EBI Microarray Informatics Team (c) 2007 
- */
-
 import ae3.service.AtlasPlotter;
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
@@ -14,8 +7,16 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -30,6 +31,15 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Properties;
 
+/**
+ * A {@link ServletContextListener} for the Atlas web application.  To use the atlas codebase, a listener should be
+ * registered in the applications web.xml that invoks this listener at startup.  This listener will configure and store
+ * in session any services required by the atlas web interface.
+ *
+ * @author Misha Kapushesky
+ * @author Tony Burdett
+ * @date 07-Feb-2008 EBI Microarray Informatics Team (c) 2007
+ */
 public class AtlasApplicationListener implements ServletContextListener, HttpSessionListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -37,16 +47,33 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // setup SLF4J bridge, in case any dependencies use other logging solutions
         SLF4JBridgeHandler.install();
 
+        long start = System.currentTimeMillis();
+        log.info("Starting up atlas");
+
         // get context, driven by config
         ServletContext application = sce.getServletContext();
         WebApplicationContext context =
                 WebApplicationContextUtils.getWebApplicationContext(application);
 
+        // fetch services from the context
+        AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
+        AtlasMAGETABLoader atlasLoader = (AtlasMAGETABLoader) context.getBean("atlasLoader");
+        IndexBuilder indexBuilder = (IndexBuilder) context.getBean("indexBuilder");
+        NetCDFGenerator netCDFGenerator = (NetCDFGenerator) context.getBean("netCDFGenerator");
+        AnalyticsGenerator analyticsGenerator = (AnalyticsGenerator) context.getBean("analyticsGenerator");
+
+        // store in session
+        application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
+        application.setAttribute(Atlas.ATLAS_MAGETAB_LOADER.key(), atlasLoader);
+        application.setAttribute(Atlas.INDEX_BUILDER.key(), indexBuilder);
+        application.setAttribute(Atlas.NETCDF_GENERATOR.key(), netCDFGenerator);
+        application.setAttribute(Atlas.ANALYTICS_GENERATOR.key(), analyticsGenerator);
+
         // initialize and store in-session the AtlasSearchService
         AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
         application.setAttribute(Atlas.SEARCH_SERVICE.key(), searchService);
 
-        // initialize and store in-session the AtlasPLotter
+        // initialize and store in-session the AtlasPlotter
         AtlasPlotter plotter = (AtlasPlotter) context.getBean("atlasPlotter");
         application.setAttribute(Atlas.PLOTTER.key(), plotter);
 
@@ -84,7 +111,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
         String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
 
-        log.info("Atlas initialized with the following parameters...");
+        log.info("Atlas initializing with the following parameters...");
         // software properties
         log.info("\tBuild Number:               " + versionProps.getProperty("atlas.buildNumber"));
         log.info("\tSoftware Version:           " + versionProps.getProperty("atlas.software.version"));
@@ -95,22 +122,68 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         log.info("\tSOLR Index Location:        " + atlasIndex);
         log.info("\tAtlas DataSource:           " + atlasDatasourceUrl);
         log.info("\tNetCDF repository Location: " + atlasNetCDFRepo);
+
+        long end = System.currentTimeMillis();
+        double time = ((double) (end - start)) / 1000;
+
+        log.info("Atlas startup completed in " + time + " s.");
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
         // remove slf4j bridge
         SLF4JBridgeHandler.uninstall();
 
+        log.info("Shutting down atlas...");
+        long start = System.currentTimeMillis();
+
         // get context, driven by config
         ServletContext application = sce.getServletContext();
-        WebApplicationContext context =
-                WebApplicationContextUtils.getWebApplicationContext(application);
 
-        // shutdown and remove from session the AtlasSearchService
-        AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
+        // shutdown and remove services from session
+        application.removeAttribute(Atlas.ATLAS_DAO.key());
+        application.removeAttribute(Atlas.ATLAS_MAGETAB_LOADER.key());
+
+        IndexBuilder indexBuilder =
+                (IndexBuilder) application.getAttribute(Atlas.INDEX_BUILDER.key());
+        try {
+            indexBuilder.shutdown();
+        }
+        catch (IndexBuilderException e) {
+            log.error("Shutting down indexBuilder failed - atlas may not cleanly terminate");
+        }
+        application.removeAttribute(Atlas.INDEX_BUILDER.key());
+
+        NetCDFGenerator netCDFGenerator =
+                (NetCDFGenerator) application.getAttribute(Atlas.NETCDF_GENERATOR.key());
+        try {
+            netCDFGenerator.shutdown();
+        }
+        catch (NetCDFGeneratorException e) {
+            log.error("Shutting down netCDFGenerator failed - atlas may not cleanly terminate");
+        }
+        application.removeAttribute(Atlas.NETCDF_GENERATOR.key());
+
+        AnalyticsGenerator analyticsGenerator =
+                (AnalyticsGenerator) application.getAttribute(Atlas.ANALYTICS_GENERATOR.key());
+        try {
+            analyticsGenerator.shutdown();
+        }
+        catch (AnalyticsGeneratorException e) {
+            log.error("Shutting down analyticsGenerator failed - atlas may not cleanly terminate");
+        }
+        application.removeAttribute(Atlas.ANALYTICS_GENERATOR.key());
+
+        // shutdown and remove AtlasSearchService from session
+        AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
         searchService.shutdown();
         application.removeAttribute(Atlas.SEARCH_SERVICE.key());
 
+        // remove plotter
+        application.removeAttribute(Atlas.PLOTTER.key());
+
+        long end = System.currentTimeMillis();
+        double time = ((double) end - start) / 1000;
+        log.info("Atlas shutdown complete in " + time + " s.");
     }
 
     public void sessionCreated(HttpSessionEvent se) {
@@ -119,10 +192,9 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
     public void sessionDestroyed(HttpSessionEvent se) {
         ServletContext application = se.getSession().getServletContext();
-        WebApplicationContext context =
-                WebApplicationContextUtils.getWebApplicationContext(application);
 
-        AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
+        // cleanup any downloads being done in this session
+        AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
         searchService.getAtlasDownloadService().cleanupDownloads(se.getSession().getId());
     }
 }

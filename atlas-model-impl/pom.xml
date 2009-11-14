@@ -25,7 +25,7 @@
             <version>4.3</version>
             <scope>test</scope>
         </dependency>
-        
+
 
         <dependency>
             <groupId>org.apache.solr</groupId>
@@ -63,6 +63,14 @@
             <version>4.3</version>
         </dependency>
 
+        <!-- also requires test scope dependency to reuse tests -->
+        <dependency>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>atlas-index-api</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
 
     </dependencies>
 
