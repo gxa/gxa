@@ -5,18 +5,18 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>1.0-alpha</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-model</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0-alpha</version>
     <name>Gene Expression Atlas Database Object Model</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>1.0-alpha</version>
         </dependency>
     </dependencies>
 </project>
