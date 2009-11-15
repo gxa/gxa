@@ -56,23 +56,18 @@ public class AtlasDAO {
 
     // gene queries
     private static final String GENES_SELECT =
-            "SELECT g.geneid, g.identifier, g.name, " +
-                    "s.name AS species, d.designelementid " +
-                    "FROM a2_gene g, a2_spec s, a2_designelement d " +
-                    "WHERE g.geneid=d.geneid " +
-                    "AND g.specid=s.specid";
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_spec s " +
+                    "WHERE g.specid=s.specid";
     private static final String GENES_PENDING_SELECT =
-            "SELECT g.geneid, g.identifier, g.name, " +
-                    "s.name AS species, d.designelementid " +
-                    "FROM a2_gene g, a2_spec s, a2_designelement d, load_monitor lm " +
-                    "WHERE g.geneid=d.geneid " +
-                    "AND g.specid=s.specid " +
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_spec s, load_monitor lm " +
+                    "WHERE g.specid=s.specid " +
                     "AND g.identifier=lm.accession " +
                     "AND lm.searchindex='pending' " +
                     "AND lm.load_type='gene'";
     private static final String GENES_BY_EXPERIMENT_ACCESSION =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, " +
-                    "s.name AS species, d.designelementid " +
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_spec s, a2_designelement d, a2_assay a, " +
                     "a2_experiment e " +
                     "WHERE g.geneid=d.geneid " +
@@ -80,11 +75,13 @@ public class AtlasDAO {
                     "AND d.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
-    private static final String PROPERTIES_BY_GENEID =
-            "SELECT gp.name AS property, gpv.value AS propertyvalue " +
+    private static final String PROPERTIES_BY_RELATED_GENES =
+            "SELECT gpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid " +
-                    "AND gpv.geneid=?";
+                    "AND gpv.geneid IN (:geneids)";
+    private static final String GENE_COUNT_SELECT =
+            "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
     // assay queries
     private static final String ASSAYS_SELECT =
@@ -144,7 +141,7 @@ public class AtlasDAO {
                     "AND pv.propertyid=p.propertyid " +
                     "AND spv.sampleid IN (:sampleids)";
 
-    // property value query
+    // query for counts, for statistics
     private static final String PROPERTY_VALUE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT name) FROM a2_propertyvalue";
 
@@ -339,6 +336,7 @@ public class AtlasDAO {
     public List<Gene> getAllGenes() {
         List results = template.query(GENES_SELECT,
                                       new GeneMapper());
+
         return (List<Gene>) results;
     }
 
@@ -352,20 +350,39 @@ public class AtlasDAO {
         List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{exptAccession},
                                       new GeneMapper());
-        return (List<Gene>) results;
 
+        List<Gene> genes = (List<Gene>)results;
+
+        // populate the other info for these genes
+        if (genes.size() > 0) {
+            fillOutGenes(genes);
+        }
+
+        // and return
+        return (List<Gene>) results;
     }
 
     public void getPropertiesForGenes(List<Gene> genes) {
-        // also fetch all properties
-        for (Gene gene : genes) {
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            List propResults = template.query(PROPERTIES_BY_GENEID,
-                                              new Object[]{gene.getGeneID()},
-                                              new GenePropertyMapper());
-            // and set on gene
-            gene.setProperties(propResults);
+        // populate the other info for these genes
+        if (genes.size() > 0) {
+            fillOutGenes(genes);
         }
+    }
+
+    public int getGeneCount() {
+        Object result = template.query(GENE_COUNT_SELECT, new ResultSetExtractor() {
+
+            public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                else {
+                    return 0;
+                }
+            }
+        });
+
+        return (Integer) result;
     }
 
     /**
@@ -694,6 +711,32 @@ public class AtlasDAO {
 //        }
     }
 
+    private void fillOutGenes(List<Gene> genes) {
+        // map genes to gene id
+        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        for (Gene gene : genes) {
+            // index this assay
+            genesByID.put(gene.getGeneID(), gene);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (gene.getProperties() == null) {
+                gene.setProperties(new ArrayList<Property>());
+            }
+        }
+
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // now query for properties that map to one of these genes
+        GenePropertyMapper genePropertyMapper = new GenePropertyMapper(genesByID);
+        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+        propertyParams.addValue("geneids", genesByID.keySet());
+        namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
+
+        for (Gene gene : genes) {
+            gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
+        }
+    }
+
     private void fillOutAssays(List<Assay> assays) {
         // map assays to assay id
         Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
@@ -785,7 +828,6 @@ public class AtlasDAO {
             gene.setIdentifier(resultSet.getString(2));
             gene.setName(resultSet.getString(3));
             gene.setSpecies(resultSet.getString(4));
-            gene.setDesignElementID(resultSet.getInt(5));
 
             return gene;
         }
@@ -963,13 +1005,22 @@ public class AtlasDAO {
     }
 
     private class GenePropertyMapper implements RowMapper {
+        private Map<Integer, Gene> genesByID;
+
+        public GenePropertyMapper(Map<Integer, Gene> genesByID) {
+            this.genesByID = genesByID;
+        }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
-            property.setName(resultSet.getString(1));
-            property.setValue(resultSet.getString(2));
+            int geneID = resultSet.getInt(1);
+
+            property.setName(resultSet.getString(2));
+            property.setValue(resultSet.getString(3));
             property.setFactorValue(false);
+
+            genesByID.get(geneID).addProperty(property);
 
             return property;
         }

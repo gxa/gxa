@@ -41,18 +41,27 @@ public class DesignElementSlicer extends CallableSlicer<Void> {
 
         Set<Integer> deKeys = dataSlice.getDesignElements().keySet();
         for (Gene gene : fetchGenesTask.get()) {
-            // check this gene maps to a stored design element
-            if (deKeys.contains(gene.getDesignElementID())) {
-                dataSlice.storeGene(gene.getDesignElementID(), gene);
+            // whether or not we can map this gene
+            boolean mapped = false;
 
-                // remove from the unmapped list if necessary
-                synchronized (unmappedGenes) {
-                    if (unmappedGenes.contains(gene)) {
-                        unmappedGenes.remove(gene);
+            for (int designElementID : gene.getDesignElementIDs()) {
+                // check this gene maps to a stored design element
+                if (deKeys.contains(designElementID)) {
+                    dataSlice.storeGene(designElementID, gene);
+
+                    // remove from the unmapped list if necessary
+                    synchronized (unmappedGenes) {
+                        if (unmappedGenes.contains(gene)) {
+                            unmappedGenes.remove(gene);
+                        }
                     }
+
+                    mapped = true;
                 }
-            } else {
-                // exclude this gene - design element not resolvable,
+            }
+
+            if (!mapped) {
+                // exclude this gene - no design element resolvable,
                 // or maybe it's just from a different array design
                 synchronized (unmappedGenes) {
                     unmappedGenes.add(gene);
@@ -76,7 +85,8 @@ public class DesignElementSlicer extends CallableSlicer<Void> {
                         unmappedAnalytics.remove(analysis);
                     }
                 }
-            } else {
+            }
+            else {
                 // exclude this gene - design element not resolvable,
                 // or maybe it's just from a different array design
                 synchronized (unmappedAnalytics) {
