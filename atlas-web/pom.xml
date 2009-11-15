@@ -90,20 +90,25 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>info-bliki-repository</id>
-            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
+        <!-- ebi libraries required by atlas -->
+        <dependency>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>atlas-utils</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>atlas-index-api</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.mydas</groupId>
+            <artifactId>mydas</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
+        <!-- other libraries required by atlas -->
         <dependency>
             <groupId>info.bliki.wiki</groupId>
             <artifactId>bliki-core</artifactId>
@@ -114,6 +119,17 @@
             <artifactId>derbyclient</artifactId>
             <version>10.3.2.1</version>
         </dependency>
+        <dependency>
+          <groupId>com.jamesmurty.utils</groupId>
+          <artifactId>java-xmlbuilder</artifactId>
+          <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+        </dependency>
+
         <!-- required services so we can do atlas admin via web interface -->
         <dependency>
             <groupId>uk.ac.ebi.microarray.atlas</groupId>
@@ -130,6 +146,12 @@
             <artifactId>atlas-analytics</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>atlas-loader</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- spring webmvc for admin servlet -->
         <dependency>
           <groupId>org.springframework</groupId>
@@ -137,38 +159,11 @@
           <version>2.5.5</version>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>uk.ac.ebi.microarray.atlas</groupId>-->
-            <!--<artifactId>dataserver</artifactId>-->
-            <!--<version>0.1-SNAPSHOT</version>-->
-        <!--</dependency>-->
+        <!-- web processing tech dependencies -->
         <dependency>
-            <groupId>uk.ac.ebi.microarray.atlas</groupId>
-            <artifactId>atlas-loader</artifactId>
-            <version>0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.ebi.microarray.atlas</groupId>
-            <artifactId>atlas-index-api</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.ebi.microarray.atlas</groupId>
-            <artifactId>atlas-index-api</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.ebi.microarray.atlas</groupId>
-            <artifactId>atlas-utils</artifactId>
-            <version>0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.3</version>
-            <scope>test</scope>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>javax.xml</groupId>
@@ -197,16 +192,11 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
             <artifactId>jsp-api</artifactId>
             <version>2.0</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
@@ -222,11 +212,7 @@
             <artifactId>commons-discovery</artifactId>
             <version>0.2</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>commons-pool</groupId>-->
-            <!--<artifactId>commons-pool</artifactId>-->
-            <!--<version>1.3</version>-->
-        <!--</dependency>-->
+
         <dependency>
             <groupId>org.apache.axis</groupId>
             <artifactId>axis</artifactId>
@@ -265,48 +251,83 @@
             <version>3.0.4</version>
         </dependency>
 
-        <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- dependencies required by testcases -->
+        <dependency>
+            <groupId>uk.ac.ebi.microarray.atlas</groupId>
+            <artifactId>atlas-index-api</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- logging dependencies -->
+
+        <!-- this will allow redirection of java.util.logging calls via slf4j -->
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>1.5.6</version>
         </dependency>
-        <dependency> <!-- native slf4j api for own application logging -->
+        <!-- native slf4j api for own application logging -->
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.5.6</version>
         </dependency>
-        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
+        <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.6</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency> <!-- log4j itself (note the runtime scope) -->
+        <!-- log4j itself (note the runtime scope) -->
+        <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.14</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency> <!-- this is for all those frameworks that use commons-logging. log4j will be capturing those -->
+        <!-- this is for all those frameworks that use commons-logging. log4j will be capturing those -->
+        <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>uk.ac.ebi.mydas</groupId>
-            <artifactId>mydas</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>1.6.1</version>
-        </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>info-bliki-repository</id>
+            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+          <id>googlecode.java-xmlbuilder</id>
+          <url>http://java-xmlbuilder.googlecode.com/svn/repo</url>
+        </repository>
+    </repositories>
+    
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
