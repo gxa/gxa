@@ -3,11 +3,11 @@ package uk.ac.ebi.gxa.analytics.generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
+import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,14 +15,12 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * A default implementation of {@link AnalyticsGenerator} that
- * creates Atlas analytics in the database.
+ * A default implementation of {@link AnalyticsGenerator} that creates Atlas analytics in the database.
  *
  * @author Misha Kapushesky
  * @date 09-Nov-2009
  */
-public class DefaultAnalyticsGenerator
-        implements AnalyticsGenerator<File>, InitializingBean {
+public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, InitializingBean {
     private AtlasDAO atlasDAO;
     private File repositoryLocation;
 
