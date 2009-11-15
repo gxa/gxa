@@ -137,7 +137,7 @@
         <repository>
             <id>tony-repo</id>
             <name>Atlas Maven Repository (temp location)</name>
-            <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/atlas-repo/maven/repo</url>
+            <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/maven/atlas-repo/</url>
         </repository>
         <site>
             <id>atlas-site</id>
