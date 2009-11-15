@@ -51,8 +51,7 @@ public class AtlasLoadController extends AbstractController {
 
         try {
             // load this document if the URL is valid
-            URL url = new URL(magetabURL);
-//            loader.load(new URL(magetabURL));
+            loader.load(new URL(magetabURL));
 
             return new ModelAndView(getSuccessView());
         }

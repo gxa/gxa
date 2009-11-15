@@ -179,11 +179,11 @@ public class NetCDFProxy {
 
         // iterate over factors to find the index of the one we're interested in
         int efIndex = 0;
-        log.info("Searching for index of factor '" + factor + "'");
+        boolean efFound = false;
         for (String ef : efs) {
             // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
             if (ef.matches("(ba_)?" + factor)) {
-                log.info("Found " + ef + " at index " + efIndex);
+                efFound = true;
                 break;
             }
             else {
@@ -192,8 +192,8 @@ public class NetCDFProxy {
         }
 
         // if we couldn't match the factor we're looking for, return empty array
-        if (efIndex == 0) {
-            log.error("Couldn't locate index of " + factor + " in " + pathToNetCDF);
+        if (!efFound) {
+            log.warn("Couldn't locate index of " + factor + " in " + pathToNetCDF);
             return new String[0];
         }
 
@@ -205,7 +205,6 @@ public class NetCDFProxy {
             // now we have index of our ef, so take a read from efv for this index
             Array efvs = netCDF.findVariable("EFV").read();
             // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-            log.info("Slicing efv array on 0," + efIndex);
             ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
 
             // convert to a string array and return
@@ -246,7 +245,7 @@ public class NetCDFProxy {
             // create a array of characters from the "SC" dimension
             ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
             // convert to a string array and return
-            Object[] scsArray = (Object[])scs.make1DStringArray().get1DJavaArray(String.class);
+            Object[] scsArray = (Object[]) scs.make1DStringArray().get1DJavaArray(String.class);
             String[] result = new String[scsArray.length];
             for (int i = 0; i < scsArray.length; i++) {
                 result[i] = (String) scsArray[i];
@@ -261,17 +260,26 @@ public class NetCDFProxy {
         }
 
         // get all characteristics
-        String[] scs = getFactors();
+        String[] scs = getCharacteristics();
 
         // iterate over factors to find the index of the one we're interested in
         int scIndex = 0;
+        boolean scFound = false;
         for (String sc : scs) {
-            if (sc.equals(characteristic)) {
+            // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
+            if (sc.matches("(bs_)?" + characteristic)) {
+                scFound = true;
                 break;
             }
             else {
                 scIndex++;
             }
+        }
+
+        // if we couldn't match the characteristic we're looking for, return empty array
+        if (!scFound) {
+            log.error("Couldn't locate index of " + characteristic + " in " + pathToNetCDF);
+            return new String[0];
         }
 
         if (netCDF.findVariable("SCV") == null) {
@@ -283,7 +291,7 @@ public class NetCDFProxy {
             // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
             ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
             // convert to a string array and return
-            Object[] sc_scvArray = (Object[])sc_scv.make1DStringArray().get1DJavaArray(String.class);
+            Object[] sc_scvArray = (Object[]) sc_scv.make1DStringArray().get1DJavaArray(String.class);
             String[] result = new String[sc_scvArray.length];
             for (int i = 0; i < sc_scvArray.length; i++) {
                 result[i] = (String) sc_scvArray[i];

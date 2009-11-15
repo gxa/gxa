@@ -46,12 +46,12 @@ public class AtlasIndexController extends AbstractController {
         log.info("Request to " + (pending ? "update" : "build") + "  index");
         if (pending) {
             // build index for pending items only
-//            indexBuilder.updateIndex();
+            indexBuilder.updateIndex();
             return new ModelAndView(getSuccessView());
         }
         else {
             // build index for pending items only
-//            indexBuilder.buildIndex();
+            indexBuilder.buildIndex();
             return new ModelAndView(getSuccessView());
         }
     }

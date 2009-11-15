@@ -9,8 +9,8 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Javadocs go here!
@@ -49,7 +49,7 @@ public class AtlasAnalyticsController extends AbstractController {
         String type = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "type");
         if (type.equals("experiment")) {
             // and generate analytics
-//            analyticsGenerator.generateAnalyticsForExperiment(accession);
+            analyticsGenerator.generateAnalyticsForExperiment(accession);
 
             return new ModelAndView(getSuccessView());
         }

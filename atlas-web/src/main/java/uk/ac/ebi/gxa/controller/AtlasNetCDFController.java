@@ -49,7 +49,7 @@ public class AtlasNetCDFController extends AbstractController {
         String type = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "type");
         if (type.equals("experiment")) {
             // and generate netCDFs
-//            netCDFGenerator.generateNetCDFsForExperiment(accession);
+            netCDFGenerator.generateNetCDFsForExperiment(accession);
 
             return new ModelAndView(getSuccessView());
         }

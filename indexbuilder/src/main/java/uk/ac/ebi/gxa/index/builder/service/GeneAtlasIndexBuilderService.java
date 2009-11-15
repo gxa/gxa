@@ -94,7 +94,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
                             // add EFO counts for this gene
-                            if (addEfoCounts(solrInputDoc, gene.getDesignElementID())) {
+                            if (addEfoCounts(solrInputDoc, gene.getDesignElementIDs())) {
                                 getLog().info("Updated solr document with EFO counts");
                                 // finally, add the document to the index
                                 getLog().debug("Finalising changes for " + gene.getIdentifier());
@@ -167,7 +167,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return x;
     }
 
-    private boolean addEfoCounts(SolrInputDocument solrDoc, int designElementID) {
+    private boolean addEfoCounts(SolrInputDocument solrDoc, Set<Integer> designElementIDs) {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
         Set<Long> upexp = new HashSet<Long>();
@@ -178,6 +178,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         ExperimentsTable expTable = new ExperimentsTable();
 
         boolean wasresult = false;
+        for (int designElementID : designElementIDs)  {
         getLog().debug("Fetching expression analytics for design element: " + designElementID);
         List<ExpressionAnalysis> expressionAnalytics =
                 getAtlasDAO().getExpressionAnalyticsByDesignElementID(designElementID);
@@ -256,7 +257,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 accs = new String[0];
             }
             expTable.add(ef, efv, accs, experimentId, isUp, pval);
-        }
+        }}
 
         if (!wasresult) {
             return false;
