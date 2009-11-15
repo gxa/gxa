@@ -81,28 +81,30 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             // create a new solr document for this gene
                             SolrInputDocument solrInputDoc = new SolrInputDocument();
                             getLog().debug("Updating index with properties for " + gene.getIdentifier());
+                            // add the gene id field
+                            solrInputDoc.addField("gene_id", gene.getGeneID());
                             for (Property prop : gene.getProperties()) {
                                 // update with gene properties
-                                String p = prop.getName();
+                                String p = "gene_" + prop.getName().toLowerCase(); // fixme: hack to support known index format
                                 String pv = prop.getValue();
 
                                 getLog().trace("Updating index, gene property " + p + " = " + pv);
-                                solrInputDoc.addField(p, pv); // fixme: format of property names in index?
+                                solrInputDoc.addField(p, pv);
                             }
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
                             // add EFO counts for this gene
-                            if (!addEfoCounts(solrInputDoc, gene.getDesignElementID())) {
-                                getLog().error("Failed to update solr document with counts from EFO");
-                                throw new IndexBuilderException("Failed to update solr document with counts from EFO");
+                            if (addEfoCounts(solrInputDoc, gene.getDesignElementID())) {
+                                getLog().info("Updated solr document with EFO counts");
+                                // finally, add the document to the index
+                                getLog().debug("Finalising changes for " + gene.getIdentifier());
+                                return getSolrServer().add(solrInputDoc);
                             }
                             else {
-                                getLog().info("Updated solr document with EFO counts");
+                                getLog().warn("Failed to update solr document with counts from EFO.  " +
+                                        "This is caused by an absence of analytics for " + gene.getIdentifier() + ". ");
+                                return null;
                             }
-
-                            // finally, add the document to the index
-                            getLog().debug("Finalising changes for " + gene.getIdentifier());
-                            return getSolrServer().add(solrInputDoc);
                         }
                         catch (RuntimeException e) {
                             e.printStackTrace();
