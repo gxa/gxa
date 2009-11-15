@@ -4,6 +4,8 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Javadocs go here!
@@ -18,7 +20,7 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File("/home/tburdett/atlas/netcdfs/567112124_159009398.nc");
+        netCDFfile = new File(getClass().getClassLoader().getResource("645932669_159274783.nc").toURI());
         netCDF = new NetCDFProxy(netCDFfile);
     }
 
@@ -80,30 +82,75 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetFactorValues() throws IOException {
-        String factor = netCDF.getFactors()[0];
+        for (String factor : netCDF.getFactors()) {
+            System.out.print("EFVs for " + factor + " {");
+            for (String efv : netCDF.getFactorValues(factor)) {
+                System.out.print(efv + ", ");
+            }
+            System.out.println("}");
+        }
+    }
 
-        System.out.print("EFVs: {");
-        for (String efv : netCDF.getFactorValues(factor)) {
-            System.out.print(efv + ", ");
+    public void testGetUniqueFactorValues() throws IOException {
+        Set<String> uniques = new HashSet<String>();
+        String[] uefvs = netCDF.getUniqueFactorValues();
+        for (String uefv : uefvs) {
+            if (uniques.contains(uefv)) {
+                fail("Found a duplicate: " + uefv);
+            }
+            else {
+                uniques.add(uefv);
+            }
+        }
+    }
+
+    public void testGetCharacteristics() throws IOException {
+        System.out.print("SCs: {");
+        for (String characteristic : netCDF.getCharacteristics()) {
+            System.out.print(characteristic + ", ");
         }
         System.out.println("}");
     }
 
-    public void testGetUniqueFactorValues() throws IOException {
-    }
-
-    public void testGetCharacteristics() throws IOException {
-    }
-
-    public void testGetCharacteristicValues(String characteristic) throws IOException {
+    public void testGetCharacteristicValues() throws IOException {
+        for (String characteristic : netCDF.getCharacteristics()) {
+            System.out.print("SCVs: {");
+            for (String scv : netCDF.getCharacteristicValues(characteristic)) {
+                System.out.print(scv + ", ");
+            }
+            System.out.println("}");
+        }
     }
 
     public void testGetExpressionMatrix() throws IOException {
+        System.out.println("Expression Matrix: {");
+        for (double[] row : netCDF.getExpressionMatrix()) {
+            System.out.print("\t");
+            for (double cell : row) {
+                System.out.print(cell + ", ");
+            }
+            System.out.println(";");
+        }
+        System.out.println("}");
     }
 
-    public void testGetExpressionDataForDesignElement(int designElementIndex) throws IOException {
+    public void testGetExpressionDataForDesignElement() throws IOException {
+        for (int i = 0; i < netCDF.getDesignElements().length; i++) {
+            System.out.println("Expression Values for design element " + netCDF.getDesignElements()[i] + " {");
+            for (double cell : netCDF.getExpressionDataForDesignElement(i)) {
+                System.out.print(cell + ", ");
+            }
+            System.out.println("}");
+        }
     }
 
-    public void testGetExpressionDataForAssay(int assayIndex) throws IOException {
+    public void testGetExpressionDataForAssay() throws IOException {
+        for (int i = 0; i < netCDF.getAssays().length; i++) {
+            System.out.println("Expression Values for assay " + netCDF.getAssays()[i] + " {");
+            for (double cell : netCDF.getExpressionDataForAssay(i)) {
+                System.out.print(cell + ", ");
+            }
+            System.out.println("}");
+        }
     }
 }

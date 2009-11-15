@@ -1,6 +1,5 @@
 package ae3.servlet;
 
-import ae3.service.AtlasPlotter;
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.web.Atlas;
+import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 

@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>uk.ac.ebi.microarray.atlas</groupId>
+    <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
@@ -14,7 +14,7 @@
         <version>2.3</version>
       </dependency>
   </dependencies>  
-  <groupId>uk.ac.ebi.microarray.atlas</groupId>
+  <groupId>uk.ac.ebi.gxa</groupId>
   <artifactId>atlas-utils</artifactId>
   <version>0.1-SNAPSHOT</version>
   <name>Gene Expression Atlas Java Utility Classes</name>

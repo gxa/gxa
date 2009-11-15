@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class TestAtlasPlotter extends TestCase {
     private AtlasPlotter plotter;
-    private ae3.service.AtlasPlotter oldStylePlotter;
 
     private NetCDFProxy netCDF;
     private int geneID;
@@ -28,10 +27,6 @@ public class TestAtlasPlotter extends TestCase {
     @Override
     protected void setUp() throws Exception {
         plotter = new AtlasPlotter();
-//        oldStylePlotter = ae3.service.AtlasPlotter.instance();
-
-        // create expression data set
-//		ExpressionDataSet ds = DataServerAPI.retrieveExpressionDataSet(geneIdKey, expIdKey, efToPlot);
 
         netCDF = new NetCDFProxy(new File("/home/tburdett/atlas/netcdfs/567112124_159009398.nc"));
         geneID = netCDF.getGenes()[0];
@@ -43,7 +38,6 @@ public class TestAtlasPlotter extends TestCase {
     @Override
     protected void tearDown() throws Exception {
         plotter = null;
-        oldStylePlotter = null;
     }
 
     public void testCreateJSON() {

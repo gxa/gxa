@@ -78,7 +78,12 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        return (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
+        if (netCDF.findVariable("AS") == null) {
+            return new int[0];
+        }
+        else {
+            return (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
+        }
     }
 
     public int[] getSamples() throws IOException {
@@ -86,7 +91,12 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        return (int[]) netCDF.findVariable("BS").read().copyTo1DJavaArray();
+        if (netCDF.findVariable("BS") == null) {
+            return new int[0];
+        }
+        else {
+            return (int[]) netCDF.findVariable("BS").read().copyTo1DJavaArray();
+        }
     }
 
     public int[][] getAssaysToSamples() throws IOException {
@@ -95,9 +105,15 @@ public class NetCDFProxy {
         }
 
         // read BS2AS
-        Array bs2as = netCDF.findVariable("BS2AS").read();
-        // copy to an int array - BS2AS is 2d array so this should drop out
-        return (int[][]) bs2as.copyToNDJavaArray();
+        if (netCDF.findVariable("BS2AS") == null) {
+            return new int[0][0];
+        }
+        else {
+
+            Array bs2as = netCDF.findVariable("BS2AS").read();
+            // copy to an int array - BS2AS is 2d array so this should drop out
+            return (int[][]) bs2as.copyToNDJavaArray();
+        }
     }
 
     public int[] getDesignElements() throws IOException {
@@ -105,7 +121,12 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        return (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
+        if (netCDF.findVariable("DE") == null) {
+            return new int[0];
+        }
+        else {
+            return (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
+        }
     }
 
     /**
@@ -119,7 +140,12 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        return (int[]) netCDF.findVariable("GN").read().copyTo1DJavaArray();
+        if (netCDF.findVariable("GN") == null) {
+            return new int[0];
+        }
+        else {
+            return (int[]) netCDF.findVariable("GN").read().copyTo1DJavaArray();
+        }
     }
 
     public String[] getFactors() throws IOException {
@@ -127,15 +153,20 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        // create a array of characters from the "EF" dimension
-        ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
-        // convert to a string array and return
-        Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
-        String[] result = new String[efsArray.length];
-        for (int i = 0; i < efsArray.length; i++) {
-            result[i] = (String) efsArray[i];
+        if (netCDF.findVariable("EF") == null) {
+            return new String[0];
         }
-        return result;
+        else {
+            // create a array of characters from the "EF" dimension
+            ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
+            // convert to a string array and return
+            Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
+            String[] result = new String[efsArray.length];
+            for (int i = 0; i < efsArray.length; i++) {
+                result[i] = (String) efsArray[i];
+            }
+            return result;
+        }
     }
 
     public String[] getFactorValues(String factor) throws IOException {
@@ -148,8 +179,11 @@ public class NetCDFProxy {
 
         // iterate over factors to find the index of the one we're interested in
         int efIndex = 0;
+        log.info("Searching for index of factor '" + factor + "'");
         for (String ef : efs) {
-            if (ef.equals(factor)) {
+            // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
+            if (ef.matches("(ba_)?" + factor)) {
+                log.info("Found " + ef + " at index " + efIndex);
                 break;
             }
             else {
@@ -157,18 +191,31 @@ public class NetCDFProxy {
             }
         }
 
-        // now we have index of our ef, so take a read from efv for this index
-        Array efvs = netCDF.findVariable("EFV").read();
-        // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-        ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
-
-        // convert to a string array and return
-        Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
-        String[] result = new String[ef_efvArray.length];
-        for (int i = 0; i < ef_efvArray.length; i++) {
-            result[i] = (String) ef_efvArray[i];
+        // if we couldn't match the factor we're looking for, return empty array
+        if (efIndex == 0) {
+            log.error("Couldn't locate index of " + factor + " in " + pathToNetCDF);
+            return new String[0];
         }
-        return result;
+
+        // if the EFV variable is empty
+        if (netCDF.findVariable("EFV") == null) {
+            return new String[0];
+        }
+        else {
+            // now we have index of our ef, so take a read from efv for this index
+            Array efvs = netCDF.findVariable("EFV").read();
+            // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
+            log.info("Slicing efv array on 0," + efIndex);
+            ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
+
+            // convert to a string array and return
+            Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
+            String[] result = new String[ef_efvArray.length];
+            for (int i = 0; i < ef_efvArray.length; i++) {
+                result[i] = (String) ef_efvArray[i];
+            }
+            return result;
+        }
     }
 
     public String[] getUniqueFactorValues() throws IOException {
@@ -177,9 +224,14 @@ public class NetCDFProxy {
         }
 
         // create a array of characters from the "SC" dimension
-        ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
-        // convert to a string array and return
-        return (String[]) uefv.make1DStringArray().get1DJavaArray(String.class);
+        if (netCDF.findVariable("uEFV") == null) {
+            return new String[0];
+        }
+        else {
+            ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
+            // convert to a string array and return
+            return (String[]) uefv.make1DStringArray().get1DJavaArray(String.class);
+        }
     }
 
     public String[] getCharacteristics() throws IOException {
@@ -187,10 +239,20 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        // create a array of characters from the "SC" dimension
-        ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
-        // convert to a string array and return
-        return (String[]) scs.make1DStringArray().get1DJavaArray(String.class);
+        if (netCDF.findVariable("SC") == null) {
+            return new String[0];
+        }
+        else {
+            // create a array of characters from the "SC" dimension
+            ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
+            // convert to a string array and return
+            Object[] scsArray = (Object[])scs.make1DStringArray().get1DJavaArray(String.class);
+            String[] result = new String[scsArray.length];
+            for (int i = 0; i < scsArray.length; i++) {
+                result[i] = (String) scsArray[i];
+            }
+            return result;
+        }
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
@@ -212,11 +274,22 @@ public class NetCDFProxy {
             }
         }
 
-        // now we have index of our sc, so take a read from scv for this index
-        ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
-        // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
-        ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
-        return (String[]) sc_scv.make1DStringArray().get1DJavaArray(String.class);
+        if (netCDF.findVariable("SCV") == null) {
+            return new String[0];
+        }
+        else {
+            // now we have index of our sc, so take a read from scv for this index
+            ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
+            // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
+            ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
+            // convert to a string array and return
+            Object[] sc_scvArray = (Object[])sc_scv.make1DStringArray().get1DJavaArray(String.class);
+            String[] result = new String[sc_scvArray.length];
+            for (int i = 0; i < sc_scvArray.length; i++) {
+                result[i] = (String) sc_scvArray[i];
+            }
+            return result;
+        }
     }
 
     /**
@@ -231,10 +304,15 @@ public class NetCDFProxy {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        // read bdc
-        Array bdc = netCDF.findVariable("BDC").read();
-        // copy to a double array - BDC is 2d array so this should drop out
-        return (double[][]) bdc.copyToNDJavaArray();
+        if (netCDF.findVariable("BDC") == null) {
+            return new double[0][0];
+        }
+        else {
+            // read bdc
+            Array bdc = netCDF.findVariable("BDC").read();
+            // copy to a double array - BDC is 2d array so this should drop out
+            return (double[][]) bdc.copyToNDJavaArray();
+        }
     }
 
     /**
@@ -253,17 +331,21 @@ public class NetCDFProxy {
         }
 
         Variable bdcVariable = netCDF.findVariable("BDC");
-
-        int[] bdcShape = bdcVariable.getShape();
-        int[] origin = {designElementIndex, 0};
-        int[] size = new int[]{1, bdcShape[1]};
-        try {
-            return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+        if (bdcVariable == null) {
+            return new double[0];
         }
-        catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
-            throw new IOException("Failed to read expression data for design element at " + designElementIndex +
-                    ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+        else {
+            int[] bdcShape = bdcVariable.getShape();
+            int[] origin = {designElementIndex, 0};
+            int[] size = new int[]{1, bdcShape[1]};
+            try {
+                return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
+                throw new IOException("Failed to read expression data for design element at " + designElementIndex +
+                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+            }
         }
     }
 
@@ -284,16 +366,21 @@ public class NetCDFProxy {
 
         Variable bdcVariable = netCDF.findVariable("BDC");
 
-        int[] bdcShape = bdcVariable.getShape();
-        int[] origin = {0, assayIndex};
-        int[] size = new int[]{bdcShape[0], 1};
-        try {
-            return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+        if (bdcVariable == null) {
+            return new double[0];
         }
-        catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + assayIndex + ": " + e.getMessage());
-            throw new IOException("Failed to read expression data for assay at " + assayIndex +
-                    ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+        else {
+            int[] bdcShape = bdcVariable.getShape();
+            int[] origin = {0, assayIndex};
+            int[] size = new int[]{bdcShape[0], 1};
+            try {
+                return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + assayIndex + ": " + e.getMessage());
+                throw new IOException("Failed to read expression data for assay at " + assayIndex +
+                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+            }
         }
     }
 }

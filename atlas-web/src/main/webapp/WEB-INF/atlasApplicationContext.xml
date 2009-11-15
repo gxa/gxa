@@ -62,7 +62,7 @@
         <!--<property name="atlasQueryService" ref="atlasQueryService" />-->
     </bean>
     <!-- interface plotter -->
-    <bean name="atlasPlotter" class="ae3.service.AtlasPlotter">
+    <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasSearchService" ref="atlasSearchService" />
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo" />
     </bean>
