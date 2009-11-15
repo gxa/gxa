@@ -105,8 +105,8 @@
 
     <A2_GENEPROPERTY
             genepropertyid="1"
-            name="PROP"
-            ae2tablename="AE2__GENE_PROP__DM"
+            name="GOTERM"
+            ae2tablename="AE2__GENE_GOTERM__DM"
             />
 
     <A2_GENEPROPERTYVALUE

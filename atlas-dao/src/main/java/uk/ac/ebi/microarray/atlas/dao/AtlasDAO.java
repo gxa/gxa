@@ -10,6 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -273,11 +274,6 @@ public class AtlasDAO {
                     "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
-    private static final String ATLAS_STATISTICS_BY_DATARELEASE =
-            "SELECT as.datarelease, as.experimentcount, as.assaycount, as.propertyvaluecount, as.newexperimentcount " +
-                    "FROM a2_atlasstatistics " +
-                    "ORDER BY as.datarelease " +
-                    "WHERE as.datarelease=?";
 
     private JdbcTemplate template;
 
@@ -400,7 +396,9 @@ public class AtlasDAO {
         List<Assay> assays = (List<Assay>) results;
 
         // populate the other info for these assays
-        fillOutAssays(assays);
+        if (assays.size() > 0) {
+            fillOutAssays(assays);
+        }
 
         // and return
         return assays;
@@ -416,7 +414,9 @@ public class AtlasDAO {
         List<Assay> assays = (List<Assay>) results;
 
         // populate the other info for these assays
-        fillOutAssays(assays);
+        if (assays.size() > 0) {
+            fillOutAssays(assays);
+        }
 
         // and return
         return assays;
@@ -424,7 +424,9 @@ public class AtlasDAO {
 
     public void getPropertiesForAssays(List<Assay> assays) {
         // populate the other info for these assays
-        fillOutAssays(assays);
+        if (assays.size() > 0) {
+            fillOutAssays(assays);
+        }
     }
 
     public void getExpressionValuesForAssays(List<Assay> assays) {
@@ -461,7 +463,9 @@ public class AtlasDAO {
         List<Sample> samples = (List<Sample>) results;
 
         // populate the other info for these samples
-        fillOutSamples(samples);
+        if (samples.size() > 0) {
+            fillOutSamples(samples);
+        }
 
         // and return
         return samples;
@@ -475,7 +479,9 @@ public class AtlasDAO {
 
 
         // populate the other info for these samples
-        fillOutSamples(samples);
+        if (samples.size() > 0) {
+            fillOutSamples(samples);
+        }
 
         // and return
         return samples;
@@ -494,7 +500,7 @@ public class AtlasDAO {
             }
         });
 
-        return (Integer)result;
+        return (Integer) result;
     }
 
     public List<ArrayDesign> getAllArrayDesigns() {
@@ -674,17 +680,17 @@ public class AtlasDAO {
 //            return (AtlasStatistics) results.get(0);
 //        }
 //        else {
-            // manually count all experiments/genes/assays
-            AtlasStatistics stats = new AtlasStatistics();
+        // manually count all experiments/genes/assays
+        AtlasStatistics stats = new AtlasStatistics();
 
-            stats.setDataRelease(dataRelease);
-            stats.setExperimentCount(getAllExperiments().size());
-            stats.setAssayCount(getAllAssays().size());
-            stats.setGeneCount(getAllGenes().size());
-            stats.setNewExperimentCount(0);
-            stats.setPropertyValueCount(getPropertyValueCount());
+        stats.setDataRelease(dataRelease);
+        stats.setExperimentCount(getAllExperiments().size());
+        stats.setAssayCount(getAllAssays().size());
+        stats.setGeneCount(getAllGenes().size());
+        stats.setNewExperimentCount(0);
+        stats.setPropertyValueCount(getPropertyValueCount());
 
-            return stats;
+        return stats;
 //        }
     }
 
@@ -692,7 +698,13 @@ public class AtlasDAO {
         // map assays to assay id
         Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
         for (Assay assay : assays) {
+            // index this assay
             assaysByID.put(assay.getAssayID(), assay);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (assay.getProperties() == null) {
+                assay.setProperties(new ArrayList<Property>());
+            }
         }
 
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -709,6 +721,14 @@ public class AtlasDAO {
         Map<Integer, Sample> samplesByID = new HashMap<Integer, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
+
+            // also, initialize properties/assays if null - once this method is called, you should never get an NPE
+            if (sample.getProperties() == null) {
+                sample.setProperties(new ArrayList<Property>());
+            }
+            if (sample.getAssayAccessions() == null) {
+                sample.setAssayAccessions(new ArrayList<String>());
+            }
         }
 
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -981,21 +1001,6 @@ public class AtlasDAO {
             atlasTableResult.setPValAdj(resultSet.getDouble(6));
 
             return atlasTableResult;
-        }
-    }
-
-    private class AtlasStatisticsMapper implements RowMapper {
-
-        public AtlasStatistics mapRow(ResultSet resultSet, int i) throws SQLException {
-            AtlasStatistics atlasStats = new AtlasStatistics();
-
-            atlasStats.setDataRelease(resultSet.getString(1));
-            atlasStats.setExperimentCount(resultSet.getInt(2));
-            atlasStats.setAssayCount(resultSet.getInt(3));
-            atlasStats.setPropertyValueCount(resultSet.getInt(4));
-            atlasStats.setNewExperimentCount(resultSet.getInt(5));
-
-            return atlasStats;
         }
     }
 }

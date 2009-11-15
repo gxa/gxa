@@ -13,7 +13,7 @@ public class TestGeneAtlasIndexBuilderService
     public void setUp() throws Exception {
         super.setUp();
 
-        gaibs = new GeneAtlasIndexBuilderService(getAtlasDAO(), getSolrServer());
+        gaibs = new GeneAtlasIndexBuilderService(getAtlasDAO(), getAtlasSolrServer());
     }
 
     public void tearDown() throws Exception {

@@ -26,7 +26,7 @@ public class TestExperimentAtlasIndexBuilderService
         super.setUp();
 
         // create IndexBuilderServices for genes (atlas) and experiments
-        eaibs = new ExperimentAtlasIndexBuilderService(getAtlasDAO(), getSolrServer());
+        eaibs = new ExperimentAtlasIndexBuilderService(getAtlasDAO(), getExptSolrServer());
     }
 
     public void tearDown() throws Exception {
@@ -51,7 +51,7 @@ public class TestExperimentAtlasIndexBuilderService
             q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
 
             // do the query to fetch all documents
-            QueryResponse queryResponse = getSolrServer().query(q);
+            QueryResponse queryResponse = getExptSolrServer().query(q);
 
             // initialise comparators
             String tableName, dbFieldName, constant;
