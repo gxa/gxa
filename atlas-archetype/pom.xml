@@ -5,7 +5,7 @@
   <parent>
     <artifactId>atlas</artifactId>
     <groupId>uk.ac.ebi.gxa</groupId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0-alpha</version>
   </parent>
   <groupId>uk.ac.ebi.gxa</groupId>
   <artifactId>atlas-archetype</artifactId>

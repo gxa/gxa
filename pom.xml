@@ -6,7 +6,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0-alpha</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
@@ -131,5 +131,18 @@
             <url>http://maven.geotools.fr/repository</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <downloadUrl>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</downloadUrl>
+        <repository>
+            <id>tony-repo</id>
+            <name>Atlas Maven Repository (temp location)</name>
+            <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/atlas-repo/maven/repo</url>
+        </repository>
+        <site>
+            <id>atlas-site</id>
+            <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/atlas-standalone</url>
+        </site>
+    </distributionManagement>
 
 </project>

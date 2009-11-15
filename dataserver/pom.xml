@@ -5,13 +5,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>uk.ac.ebi.gxa</groupId>
 	<artifactId>dataserver</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>1.0-alpha</version>
 	<name>Gene Expression Atlas Dataserver</name>
 
 	<parent>
 		<groupId>uk.ac.ebi.gxa</groupId>
 		<artifactId>atlas</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>1.0-alpha</version>
 	</parent>
 
 	<dependencies>
