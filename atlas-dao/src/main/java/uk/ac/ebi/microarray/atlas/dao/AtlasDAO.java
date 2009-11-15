@@ -86,11 +86,13 @@ public class AtlasDAO {
                     "AND gpv.geneid=?";
 
     // assay queries
-    private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
+    private static final String ASSAYS_SELECT =
             "SELECT a.accession, e.accession, ad.accession, a.assayid " +
                     "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                     "WHERE e.experimentid=a.experimentid " +
-                    "AND a.arraydesignid=ad.arraydesignid " +
+                    "AND a.arraydesignid=ad.arraydesignid";
+    private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
+            ASSAYS_SELECT + " " +
                     "AND e.accession=?";
     private static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
             ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
@@ -140,6 +142,10 @@ public class AtlasDAO {
                     "WHERE spv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
                     "AND spv.sampleid IN (:sampleids)";
+
+    // property value query
+    private static final String PROPERTY_VALUE_COUNT_SELECT =
+            "SELECT COUNT(DISTINCT name) FROM a2_propertyvalue";
 
     // array and design element queries
     private static final String ARRAY_DESIGN_SELECT =
@@ -267,12 +273,10 @@ public class AtlasDAO {
                     "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
-    private static final String ATLAS_STATISTICS_SELECT =
+    private static final String ATLAS_STATISTICS_BY_DATARELEASE =
             "SELECT as.datarelease, as.experimentcount, as.assaycount, as.propertyvaluecount, as.newexperimentcount " +
                     "FROM a2_atlasstatistics " +
-                    "ORDER BY as.datarelease";
-    private static final String ATLAS_STATISTICS_BY_DATARELEASE =
-            ATLAS_STATISTICS_SELECT + " " +
+                    "ORDER BY as.datarelease " +
                     "WHERE as.datarelease=?";
 
     private JdbcTemplate template;
@@ -329,6 +333,13 @@ public class AtlasDAO {
         return results.size() > 0 ? (Experiment) results.get(0) : null;
     }
 
+    /**
+     * Fetches all genes in the database.  Note that genes are not automatically prepopulated with property information,
+     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
+     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     *
+     * @return the list of all genes in the database.
+     */
     public List<Gene> getAllGenes() {
         List results = template.query(GENES_SELECT,
                                       new GeneMapper());
@@ -361,6 +372,25 @@ public class AtlasDAO {
         }
     }
 
+    /**
+     * Gets all assays in the database.  Note that, unlike other queries for assays, this query does not prepopulate all
+     * property information.  This is done to keep the query time don to a minimum.  If you need this information, you
+     * should populate it by calling {@link #getPropertiesForAssays(java.util.List)} on the list (or sublist) of assays
+     * you wish to fetch properties for.  Bear in mind that doing this for a very large list of assays will result in a
+     * slow query.
+     *
+     * @return the list of all assays in the database
+     */
+    public List<Assay> getAllAssays() {
+        List results = template.query(ASSAYS_SELECT,
+                                      new AssayMapper());
+
+        List<Assay> assays = (List<Assay>) results;
+
+        // and return
+        return assays;
+    }
+
     public List<Assay> getAssaysByExperimentAccession(
             String experimentAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_ACCESSION,
@@ -390,6 +420,11 @@ public class AtlasDAO {
 
         // and return
         return assays;
+    }
+
+    public void getPropertiesForAssays(List<Assay> assays) {
+        // populate the other info for these assays
+        fillOutAssays(assays);
     }
 
     public void getExpressionValuesForAssays(List<Assay> assays) {
@@ -444,6 +479,22 @@ public class AtlasDAO {
 
         // and return
         return samples;
+    }
+
+    public int getPropertyValueCount() {
+        Object result = template.query(PROPERTY_VALUE_COUNT_SELECT, new ResultSetExtractor() {
+
+            public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                else {
+                    return 0;
+                }
+            }
+        });
+
+        return (Integer)result;
     }
 
     public List<ArrayDesign> getAllArrayDesigns() {
@@ -611,19 +662,30 @@ public class AtlasDAO {
         return (List<AtlasTableResult>) results;
     }
 
-    public List<AtlasStatistics> getAtlasStatistics() {
-        List results = template.query(ATLAS_STATISTICS_SELECT,
-                                      new AtlasStatisticsMapper());
-
-        return (List<AtlasStatistics>) results;
-    }
-
     public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
         List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
                                       new Object[]{dataRelease},
                                       new AtlasStatisticsMapper());
 
-        return results.size() > 0 ? (AtlasStatistics) results.get(0) : null;
+        // got any results?
+        if (results.size() > 0) {
+            // just return first element,
+            // there's no clear spec as to why this table might have multiple rows for the same release
+            return (AtlasStatistics) results.get(0);
+        }
+        else {
+            // manually count all experiments/genes/assays
+            AtlasStatistics stats = new AtlasStatistics();
+
+            stats.setDataRelease(dataRelease);
+            stats.setExperimentCount(getAllExperiments().size());
+            stats.setAssayCount(getAllAssays().size());
+            stats.setGeneCount(getAllGenes().size());
+            stats.setNewExperimentCount(0);
+            stats.setPropertyValueCount(getPropertyValueCount());
+
+            return stats;
+        }
     }
 
     private void fillOutAssays(List<Assay> assays) {

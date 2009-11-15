@@ -82,7 +82,7 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
                 <table cellpadding="0" cellspacing="0" width="100%">
                     <tr>
                         <td align="left">new experiments</td>
-                        <td align="right"><c:out value="${f:length(service.stats.newExperiments)}"/></td>
+                        <td align="right"><c:out value="${f:length(service.stats.newExperimentCount)}"/></td>
                     </tr>
                     <tr>
                         <td align="left">total <a href="<%= request.getContextPath() %>/experiment/index.htm" title="Atlas Experiment Index">experiments</a></td>
@@ -91,7 +91,7 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
                     <tr>
                         <td align="left">total <a href="<%= request.getContextPath() %>/gene/index.htm" title="Atlas Gene Index">genes</a></td>
-                        <td align="right"><c:out value="${service.stats.numGenes}"/></td>
+                        <td align="right"><c:out value="${service.stats.geneCount}"/></td>
                     </tr>
 
                     <tr>
