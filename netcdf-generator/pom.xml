@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>atlas</artifactId>
-    <groupId>uk.ac.ebi.microarray.atlas</groupId>
+    <groupId>uk.ac.ebi.gxa</groupId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <groupId>uk.ac.ebi.microarray.atlas</groupId>
+  <groupId>uk.ac.ebi.gxa</groupId>
   <artifactId>netcdf-generator</artifactId>
   <version>0.1-SNAPSHOT</version>
   <name>Gene Expression Atlas NetCDF Generator</name>
@@ -16,7 +16,7 @@
   <dependencies>
     <!-- atlas dao, for talking to DB -->
     <dependency>
-      <groupId>uk.ac.ebi.microarray.atlas</groupId>
+      <groupId>uk.ac.ebi.gxa</groupId>
       <artifactId>atlas-dao</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -35,7 +35,7 @@
 
     <!-- test scope dependency on ae2-dao tests -->
     <dependency>
-      <groupId>uk.ac.ebi.microarray.atlas</groupId>
+      <groupId>uk.ac.ebi.gxa</groupId>
       <artifactId>atlas-dao</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>test</scope>

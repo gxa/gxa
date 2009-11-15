@@ -1,9 +1,9 @@
-<%@page import="ae3.service.AtlasPlotter"%>
-<%@ page import="org.json.JSONException"%>
-<%@ page import="org.json.JSONObject" %>
+<%@page import="org.json.JSONException"%>
+<%@ page import="org.json.JSONObject"%>
 <%@ page import="org.slf4j.Logger" %>
 <%@ page import="org.slf4j.LoggerFactory" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.gxa.web.AtlasPlotter" %>
 <%@ page language="java" contentType="application/json; charset=UTF-8"%>
 <%
     final Logger log = LoggerFactory.getLogger("plot.jsp");

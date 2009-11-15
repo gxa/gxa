@@ -14,27 +14,26 @@ public class AtlasProperties {
     static {
         try {
             props.load(AtlasProperties.class.getResourceAsStream("/atlas.properties"));
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new RuntimeException("Can't read properties file atlas.properties from resources!", e);
         }
     }
 
     public static String getProperty(String key) {
-        if (key.equals("atlas.data.release")) {
-            return "[unknown: will be read from DB]"; // fixme: actually read this property from DB somewhere
-        } else {
-            return props.getProperty(key) != null ? props.getProperty(key) : "";
-        }
+        return props.getProperty(key) != null ? props.getProperty(key) : "";
     }
 
     public static int getIntProperty(String key) {
         try {
             if (key.equals("atlas.last.experiment")) {
                 return -1; // fixme: actually read this from DB somewhere
-            } else {
+            }
+            else {
                 return Integer.valueOf(props.getProperty(key));
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return 0;
         }
     }

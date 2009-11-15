@@ -161,6 +161,11 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet-mapping>
+        <servlet-name>help</servlet-name>
+        <url-pattern>/help/*</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>

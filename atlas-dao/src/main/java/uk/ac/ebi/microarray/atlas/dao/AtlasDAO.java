@@ -663,17 +663,17 @@ public class AtlasDAO {
     }
 
     public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
-        List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
-                                      new Object[]{dataRelease},
-                                      new AtlasStatisticsMapper());
-
-        // got any results?
-        if (results.size() > 0) {
-            // just return first element,
-            // there's no clear spec as to why this table might have multiple rows for the same release
-            return (AtlasStatistics) results.get(0);
-        }
-        else {
+//        List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
+//                                      new Object[]{dataRelease},
+//                                      new AtlasStatisticsMapper());
+//
+//        // got any results?
+//        if (results.size() > 0) {
+//            // just return first element,
+//            // there's no clear spec as to why this table might have multiple rows for the same release
+//            return (AtlasStatistics) results.get(0);
+//        }
+//        else {
             // manually count all experiments/genes/assays
             AtlasStatistics stats = new AtlasStatistics();
 
@@ -685,7 +685,7 @@ public class AtlasDAO {
             stats.setPropertyValueCount(getPropertyValueCount());
 
             return stats;
-        }
+//        }
     }
 
     private void fillOutAssays(List<Assay> assays) {
