@@ -115,7 +115,6 @@
     </dependencies>
 
     <repositories>
-        <!-- fixme: this repo is not a permanent solution, but will do for now -->
         <repository>
             <id>atlas-repo</id>
             <url>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</url>
