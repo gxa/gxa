@@ -29,7 +29,7 @@ Gene Expression Atlas, Alpha Release
  of some of the data already in the ArrayExpress Atlas before you can start loading data.
 
  You will also need your data stored in MAGE-TAB format.  The MAGE-TAB specification is
- {{{http://www.mged.org/mage-tab/MAGE-TABv1.0.pdf}here}}.  Please contact me ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk})
+ {{{http://www.mged.org/mage-tab/MAGE-TABv1.0.pdf}here}}.  Please contact me ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}})
  if you need advice on how to reformat your current data.
 
 ** Notes on R
@@ -45,7 +45,7 @@ Gene Expression Atlas, Alpha Release
  I have updated the interface to work with all the new tooling - this meant several quite significant changes, and these
  have likely introduced one or two subtle bugs that I haven't yet found.  I've definitely noticed one bug that I still
  have to fix.  Again, I'll release a patch to fix this asap.  Please let me know of any further bugs
- ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}).
+ ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}}).
 
  I've also added an "admin page" for interacting with the various components of the standalone atlas.  This is located
  at /admin/admin.jsp under the atlas interface, on startup.  On this page there is a facility for invoking loads,
@@ -53,6 +53,6 @@ Gene Expression Atlas, Alpha Release
  early stage (it wasn't in our priorities for the alpha).  More functionality needs to be added before it is safe to use
  (for example, preventing duplicate loads, tracking job completion etc.).  The full version of this app will probably go
  into the beta version, but these things may be required before then in order to run loads and indexing operations.
- Please contact me for updates on this ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}).
+ Please contact me for updates on this ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}}).
 
  Thanks, Tony.
