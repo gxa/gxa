@@ -38,6 +38,13 @@
             <item name="Atlas Maven Repository" href="http://www.ebi.ac.uk/~tburdett/maven/atlas-repo"/>
         </menu>
 
+        <menu name="Support">
+            <item name="Development Team" href="./team-list.html"/>
+            <item name="Integration" href="./integration.html"/>
+            <item name="Javadoc API" href="apidocs/"/>
+            <item name="Mailing Lists" href="./mail-lists.html"/>
+        </menu>
+
     </body>
 
     <publishDate position="navigation-bottom"/>
