@@ -20,7 +20,7 @@ public class TestAtlasDao extends TestCase {
 
     public void setUp() {
        try {
-           //
+           atlasDao.Connect("jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT", "Atlas2",  "Atlas2");
        }
        catch (Exception e) {
          fail();

@@ -12,6 +12,7 @@ import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,19 @@ public class AtlasDao implements Dao {
 
     private OracleConnection connection;
     private ExpressionStatDao expressionStatDao = new ExpressionStatDao();
+
+    public void Connect(String connectionString, String userName, String password) throws Exception
+    {
+        try{
+
+            DriverManager.registerDriver (new oracle.jdbc.OracleDriver());
+            
+            connection = (OracleConnection) DriverManager.getConnection(connectionString,userName,password);
+        }
+        catch(Exception ex){
+            throw ex;
+        }
+    }
 
     public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException{
         throw new GxaException("not implemented");
@@ -36,32 +50,22 @@ public class AtlasDao implements Dao {
     };
 
     public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
-    };
-
-
-    class ProperyValuePair {
-        public String property;
-        public String value;
-        public ProperyValuePair(String property, String value){
-            this.property = property;
-            this.value = value;
-        }
-    }
-    
-public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException{
-
         QueryResultSet<Assay> result = new QueryResultSet<Assay>();
 
         CallableStatement stmt = null;
 
         try{
-          //1  AssayID int
-          //2  Accession varchar2
-          //3  Properties PropertyTable
-          //4  OUT Assays
-          //5  OUT SampleIDs
-          //6  OUT Properties
+            //assayid int -- //1  AssayID int
+            //,accession varchar2     -- //2  Accession varchar2
+            //,propertyids TBLINT      -- //3  Properties PropertyTable
+
+            //,start_row int      //4
+            //,num_rows int        //5
+            //,sort_by varchar2   //6
+
+            //,assays OUT sys_refcursor -- //7  OUT Assays
+            //,samples OUT sys_refcursor  -- //8  OUT SampleIDs
+            //,properties OUT sys_refcursor -- //9  OUT Properties
 
           //fierce nesting
           Object[] PropertyIDs = null;
@@ -69,22 +73,27 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
               PropertyIDs = this.getPropertyIDs(atlasAssayQuery.getPropertyQuery());
           }
 
-          stmt = connection.prepareCall("{call a2_AssayGet(?,?,?,?,?,?)}");
+          stmt = connection.prepareCall("{call a2_AssayGet(?,?,? ,?,?,? ,?,?,?)}");
 
           stmt.setString(1, atlasAssayQuery.getId());
           stmt.setString(2, atlasAssayQuery.getAccession());
-          stmt.setArray (3, AtlasDB.toSqlArray(connection, "TBLINTEGER", PropertyIDs));
+          stmt.setArray (3, AtlasDB.toSqlArray(connection, "TBLINT", PropertyIDs));
 
-          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
-          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //properties
+          stmt.setInt(4, pageSortParams.getStart());
+          stmt.setInt(5, pageSortParams.getRows());
+          stmt.setString(6, pageSortParams.getOrderBy());
+
+          stmt.registerOutParameter(7, oracle.jdbc.OracleTypes.CURSOR); //assays
+          stmt.registerOutParameter(8, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(9, oracle.jdbc.OracleTypes.CURSOR); //properties
 
           stmt.execute();
 
           ArrayList<Assay> assays = new ArrayList<Assay>();
 
-          ResultSet rsAssays = (ResultSet) stmt.getObject(4);
-          ResultSet rsSamples = (ResultSet) stmt.getObject(5);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(6);
+          ResultSet rsAssays = (ResultSet) stmt.getObject(7);
+          ResultSet rsSamples = (ResultSet) stmt.getObject(8);
+          ResultSet rsProperties = (ResultSet) stmt.getObject(9);
 
           rsSamples.next();
           rsProperties.next();
@@ -146,6 +155,25 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
                   }
               }
         }
+
+    };
+
+
+    class ProperyValuePair {
+        public String property;
+        public String value;
+        public ProperyValuePair(String property, String value){
+            this.property = property;
+            this.value = value;
+        }
+    }
+    
+public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException{
+
+    PageSortParams pageSortParams = new PageSortParams(); //default paging-sorting
+
+    return getAssay(atlasAssayQuery, pageSortParams);
+
     };
 
     public Assay                 getAssayByAccession(AccessionQuery accession) throws GxaException{
