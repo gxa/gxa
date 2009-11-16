@@ -45,7 +45,47 @@
                 <version>1.0-beta-2</version>
             </extension>
         </extensions>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>2.1-SNAPSHOT</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.1.2</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <!-- <report>dependencies</report> -->
+                            <report>project-team</report>
+                            <report>mailing-list</report>
+                            <report>cim</report>
+                            <report>issue-tracking</report>
+                            <report>license</report>
+                            <report>scm</report>
+                            <report>index</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <scm>
         <connection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</connection>
@@ -144,7 +184,7 @@
             <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/maven/atlas-repo/</url>
         </repository>
         <site>
-            <id>atlas-site</id>
+            <id>tony-repo</id>
             <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/atlas-standalone</url>
         </site>
     </distributionManagement>
