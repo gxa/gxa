@@ -35,7 +35,7 @@ public class TestAtlasDao extends TestCase {
 
         PropertyQuery propertyQuery = new PropertyQuery();
 
-        propertyQuery.fullTextQuery("%HOT%");
+        propertyQuery.fullTextQuery("%Gata4%");
 
         assayQuery.hasProperty(propertyQuery);
 

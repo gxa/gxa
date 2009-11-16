@@ -20,7 +20,7 @@ public class AssayQuery extends AccessionQuery<AssayQuery> {
     }
 
     public AssayQuery hasProperty(PropertyQuery propertyQuery){
-        //this.properties.put(property.getAccession(), property);
+        this.propertyQuery = propertyQuery; 
         return this;
     }
 }
