@@ -15,8 +15,10 @@ import java.sql.ResultSet;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 import oracle.jdbc.OracleConnection;
+import oracle.sql.ARRAY;
 import org.apache.commons.lang.StringUtils;
 
 public class AtlasDao implements Dao {
@@ -69,8 +71,18 @@ public class AtlasDao implements Dao {
 
           //fierce nesting
           Object[] PropertyIDs = null;
+
           if(null != atlasAssayQuery.getPropertyQuery()){
-              PropertyIDs = this.getPropertyIDs(atlasAssayQuery.getPropertyQuery());
+              Integer[] intPropertyIDs = this.getPropertyIDs(atlasAssayQuery.getPropertyQuery());
+
+              PropertyIDs = new Object[intPropertyIDs.length];
+
+              for(int i=0; i!=intPropertyIDs.length; i++ ){
+                  Object[] PropertyID = new Object[1];
+                  PropertyID[0] = intPropertyIDs[i];
+
+                  PropertyIDs[i] = AtlasDB.toSqlStruct(connection,"INTRECORD",PropertyID);
+              }
           }
 
           stmt = connection.prepareCall("{call a2_AssayGet(?,?,? ,?,?,? ,?,?,?)}");
@@ -102,7 +114,7 @@ public class AtlasDao implements Dao {
             AtlasAssay a = new AtlasAssay();
 
             int AssayID = rsAssays.getInt("AssayId");
-
+                                                                                                              
             a.setid(AssayID);
             a.setAccession(rsAssays.getString("Accession"));
             a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
@@ -110,7 +122,7 @@ public class AtlasDao implements Dao {
             ArrayList<String> sampleAccessions = new ArrayList<String>();
 
             while(AssayID == rsSamples.getInt("AssayId")){
-                sampleAccessions.add(rsSamples.getString("SampleAssay"));
+                sampleAccessions.add(rsSamples.getString("SampleAccession"));
 
                 rsSamples.next();
             }
@@ -131,7 +143,7 @@ public class AtlasDao implements Dao {
 
                 assayproperties.add(atlasProperty);
 
-                rsSamples.next();
+                rsProperties.next();
             }
 
             a.setProperties(new AtlasPropertyCollection(assayproperties));
@@ -198,7 +210,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery) throws GxaException{
         throw new GxaException("not implemented");
-    };
+    };                                                                                                         
 
     public Experiment                 getExperimentByAccession(AccessionQuery accession) throws GxaException{
         throw new GxaException("not implemented");
@@ -209,7 +221,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
-        throw new GxaException("not implemented");
+        return getProperty(atlasPropertyQuery, new PageSortParams());
     };
 
     //return list of int w/o paging - this is public for javadocs only
@@ -217,28 +229,44 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         CallableStatement stmt = null;
 
         List<Integer> result = new ArrayList<Integer>();
-
+                                               
         try{
 
-          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
+          stmt = connection.prepareCall("{? = call a2_PropertyGet_ID(?,?)}");
 
-          stmt.setString(1, atlasPropertyQuery.getId());
-          stmt.setString(2, StringUtils.join(atlasPropertyQuery.getFullTextQueries(), " "));
-
-          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(1, oracle.jdbc.OracleTypes.ARRAY, "TBLINT"); //samples
+          stmt.setString(2, atlasPropertyQuery.getId());
+          stmt.setString(3, StringUtils.join(atlasPropertyQuery.getFullTextQueries(), " "));
 
           stmt.execute();
 
-          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
+          ARRAY rsProperties = (ARRAY) stmt.getArray(1);
+
+          Object[] values = (Object[])rsProperties.getArray();
+
+          for(int i=0;i!=values.length;i++){
+            java.sql.Struct intrecord = (java.sql.Struct)values[i];
+
+            BigDecimal db = (BigDecimal)intrecord.getAttributes()[0];
+              
+            result.add(db.toBigIntegerExact().intValue());
+          }
+
+                                                            
+          /*
+          for(Object o : rsProperties){
+
+          }
 
           while(rsProperties.next()){
             Integer PropertyID =  rsProperties.getInt("PropertyId");
 
-            result.add(PropertyID);
+
           }
+          */
 
-          return new Integer[3];
-
+          return result.toArray(new Integer[]{});
+                                               
         }
         catch(Exception ex){
             throw new GxaException(ex.getMessage());
