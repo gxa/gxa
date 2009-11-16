@@ -5,11 +5,11 @@
   <parent>
     <artifactId>atlas</artifactId>
     <groupId>uk.ac.ebi.gxa</groupId>
-    <version>1.0-alpha</version>
+    <version>${atlas.project.version}</version>
   </parent>
   <groupId>uk.ac.ebi.gxa</groupId>
   <artifactId>atlas-db</artifactId>
-  <version>1.0-alpha</version>
+  <version>${atlas.project.version}</version>
   <name>Gene Expression Atlas DB Resources</name>
   <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 </project>
