@@ -7,10 +7,10 @@
         <version>1.0</version>
     </skin>
 
-    <!--<bannerLeft>-->
-    <!--<src>/images/fluxion_logo_2_s.jpg</src>-->
-    <!--<href>/index.html</href>-->
-    <!--</bannerLeft>-->
+    <bannerLeft>
+        <src>/images/atlas-ebi-logo.png</src>
+        <href>/index.html</href>
+    </bannerLeft>
 
     <body>
         <links>
@@ -21,6 +21,13 @@
         </links>
 
         <menu ref="parent" inherit="top"/>
+
+        <menu name="User Documentation">
+            <item name="Home" href="index.html"/>
+            <item name="Getting Started" href="getting-started.html"/>
+            <item name="Installation" href="installation.html"/>
+            <item name="Documentation" href="documentation.html"/>
+        </menu>
 
         <menu name="Release Info">
             <item name="Alpha release" href="alpha-release.html"/>

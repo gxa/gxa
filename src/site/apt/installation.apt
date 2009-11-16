@@ -40,7 +40,7 @@ Installation Instructions for the Gene Expression Atlas
 
  An installation guide to R and/or biocep is outside the scope of this document.
 
- [Update with details of how to configure analyses].
+ -- Update with details of how to configure analyses].
 
 ** Software dependencies
 
@@ -63,13 +63,22 @@ Installation Instructions for the Gene Expression Atlas
  Before we start, you need to know a couple of configuration options.
 
  * The URL of the database and schema you will use for the Atlas.
+
    * This should be an Oracle JDBC connection URL, of the form jdbc:oracle:thin:@<SERVER>:<PORT>:<SCHEMA_NAME>
+
    * Remember, this schema must be an Atlas2 database schema.
+
  * The username and password to connect to the Atlas 2 schema.
+
  * The absolute path to the directory where you wish to store the SOLR index.
+
    * This does not have to exist in advance, but you will need permissions to write to the location where you want to install it.
+
  * The absolute path to the directory where you wish to store the NetCDF repository.
+
    * Again, it doesn't need to exist already but you do need write permissions.
+
+ []
 
  Now, switch to the directory where you wish to create the Atlas (note - this is NOT where you want Atlas to be
  installed) and run the following (Maven) command:
@@ -86,14 +95,24 @@ Installation Instructions for the Gene Expression Atlas
  If you have not used Maven before, lookout for:
 
  * group id
+
    * describes your software artifact "group".  Similar to a java package name, but at a higher level of abstraction.
+
    * often used to identify the company or team producing the software (e.g. com.mycompany).
+
    * at the EBI, Atlas modules use the group id "uk.ac.ebi.gxa".
+
  * artifact id
+
    * identifies this software artifact - a "module id".
+
    * should uniquely identify the module - avoid having modules with the same group and artifact id.
+
  * version
+
    * the version of this software artifact.
+
+ []
 
  You are free to choose your own group id, artifact id and version.  These will simply identify different local
  installations of the Atlas.
