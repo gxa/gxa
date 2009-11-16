@@ -6,9 +6,13 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-alpha</version>
+    <version>${atlas.project.version}</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+
+    <properties>
+        <atlas.project.version>1.0-alpha-2-SNAPSHOT</atlas.project.version>
+    </properties>
 
     <build>
         <plugins>
@@ -53,7 +57,6 @@
         <module>atlas-index-api</module>
         <module>indexbuilder</module>
         <module>netcdf-generator</module>
-        <!--<module>dataserver</module>-->
         <module>atlas-web</module>
         <module>atlas-archetype</module>
         <module>atlas-loader</module>
@@ -65,6 +68,7 @@
         <module>atlas-model-impl</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
+        <module>atlas-skin</module>
     </modules>
 
     <dependencies>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="Gene Expression Atlas">
+
+    <!--<skin>-->
+    <!--<groupId>uk.ac.ebi.gxa</groupId>-->
+    <!--<artifactId>maven-skin</artifactId>-->
+    <!--<version>1.0</version>-->
+    <!--</skin>-->
+
+    <!--<bannerLeft>-->
+    <!--<src>/images/fluxion_logo_2_s.jpg</src>-->
+    <!--<href>/index.html</href>-->
+    <!--</bannerLeft>-->
+
+    <body>
+        <links>
+            <item name="Home" href="index.html"/>
+            <item name="Getting Started" href="getting-started.html"/>
+            <item name="Installation" href="installation.html"/>
+            <item name="Documentation" href="documentation.html"/>
+        </links>
+
+        <menu name="Release Info">
+            <item name="Alpha release" href="alpha-release.html"/>
+        </menu>
+
+        <menu ref="modules"/>
+
+        <menu name="Project Links">
+            <item name="GXA@EBI" href="http://www.ebi.ac.uk/gxa"/>
+            <item name="Atlas Maven Repository" href="http://www.ebi.ac.uk/~tburdett/maven/atlas-repo"/>
+        </menu>
+
+    </body>
+
+    <publishDate position="navigation-bottom"/>
+</project>
