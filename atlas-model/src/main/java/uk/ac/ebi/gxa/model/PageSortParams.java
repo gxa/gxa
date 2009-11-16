@@ -28,8 +28,14 @@ public class PageSortParams implements java.io.Serializable {
         return this;
     }
 
+    private String sortOrder;
+                             
     public PageSortParams orderBy(String sortOrder){  //rank_by_expression_algorithm_23
+        this.sortOrder = sortOrder;
         return this;
+    }
+    public String getOrderBy(){
+        return this.sortOrder;
     }
 
 }
