@@ -13,11 +13,18 @@ Gene Expression Atlas, Alpha Release
  The alpha release contains working prototype versions of the following components
 
  * The atlas interface,
+
  * A loader for MAGE-TAB format data,
+
  * A NetCDF generator component that generates NetCDF files required by the interface and statistical analysis packages,
+
  * A tool for generating the statistical analyses using R,
+
  * An Index Builder, that generates the SOLR index used by the atlas web interface,
+
  * An installer for building the Atlas Standalone suite, customized to a specific environment.
+
+ []
 
  The installer requires an Atlas 2 database to be installed locally, and also requires sufficient diskspace allocated to
  build the NetCDF and SOLR index files.  It also requires a local installation of R; more notes on this below.
