@@ -4,9 +4,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>atlas</artifactId>
         <groupId>uk.ac.ebi.gxa</groupId>
-        <version>${atlas.project.version}</version>
+        <artifactId>atlas</artifactId>
+        <version>1.0-alpha-2-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-skin</artifactId>

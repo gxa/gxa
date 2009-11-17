@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
+import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
@@ -42,6 +43,22 @@ public interface AnalyticsGenerator<T> {
      * @return the location of the repository
      */
     T getRepositoryLocation();
+
+    /**
+     * Set the {@link uk.ac.ebi.gxa.R.AtlasRFactory} that will be used to obtain {@link org.kchine.r.server.RServices}
+     * for this generator.
+     *
+     * @param atlasRFactory the AtlasRFactory to acquire {@link org.kchine.r.server.RServices} from
+     */
+    void setAtlasRFactory(AtlasRFactory atlasRFactory);
+
+    /**
+     * Set the {@link uk.ac.ebi.gxa.R.AtlasRFactory} that will be used to obtain {@link org.kchine.r.server.RServices}
+     * for this generator.
+     *
+     * @return the AtlasRFactory to acquire {@link org.kchine.r.server.RServices} from
+     */
+    AtlasRFactory getAtlasRFactory();
 
     /**
      * Initialise this IndexBuilder and any resources required by it.

@@ -1,3 +1,5 @@
+package uk.ac.ebi.gxa.model.impl;
+
 import uk.ac.ebi.gxa.model.Property;
 
 import java.util.Collection;

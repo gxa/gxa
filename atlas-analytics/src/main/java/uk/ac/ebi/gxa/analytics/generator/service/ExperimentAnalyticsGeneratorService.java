@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 import org.kchine.r.RDataFrame;
 import org.kchine.r.server.RServices;
 import server.DirectJNI;
+import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -21,8 +22,10 @@ import java.util.concurrent.*;
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
     private static final int NUM_THREADS = 64;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, File repositoryLocation) {
-        super(atlasDAO, repositoryLocation);
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
+                                               File repositoryLocation,
+                                               AtlasRFactory atlasRFactory) {
+        super(atlasDAO, repositoryLocation, atlasRFactory);
     }
 
     protected void createAnalytics() throws AnalyticsGeneratorException {
@@ -112,8 +115,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             RServices rs = DirectJNI.getInstance().getRServices();
 
             // load the R code that runs the analytics
-            String simSrc = getRCodeFromResource("/analytics.R");
-            rs.sourceFromBuffer(simSrc);
+            rs.sourceFromResource("analytics.R");
 
             // work out where the NetCDF(s) are located
             final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);

@@ -18,10 +18,10 @@
 	String geneId = request.getParameter("gid");
 
     AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    AtlasDao dao = searchService.getAtlasSolrDAO();
+    uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao dao = searchService.getAtlasSolrDAO();
 
 	if (geneId != null || geneId!="") {
-        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);
+        uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);
 		if(result.isMulti()) {
 	        response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
 	        return;
