@@ -159,6 +159,10 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 return null;
             }
 
+            public Integer[] getPropertyIDs(PropertyQuery propertyQuery) throws GxaException{
+                return null;
+            }
+
             public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException {
                 return null;
             }

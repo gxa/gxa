@@ -26,7 +26,22 @@ public class TestAtlasDao extends TestCase {
          fail();
        }
      }
-    
+
+    public void testGetArrayDesign(){
+        try{
+            ArrayDesignQuery query = new ArrayDesignQuery();
+
+            query.hasProvider("affy%"); // %metrix
+
+            QueryResultSet<ArrayDesign> result = atlasDao.getArrayDesign(query);
+
+            assertNotNull(result);
+        }
+        catch(GxaException ex){
+            fail();
+        }
+    }
+
 
     public void testGetAssay(){
         try{

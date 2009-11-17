@@ -8,8 +8,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.model.ArrayDesignQuery;
-import uk.ac.ebi.gxa.model.PageSortParams;
+import uk.ac.ebi.gxa.model.*;
 
 import java.sql.*;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class AtlasDB {
       acc[1] = arrayDesignQuery.getAccession();
                                                                                                     
       //array design query
-      Object[] arr = new Object[3];
+      Object[] arr = new Object[4];
       arr[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY",acc);  //AccessionQuery
       arr[1] = arrayDesignQuery.getName();
       arr[2] = arrayDesignQuery.getType();
@@ -62,6 +61,36 @@ public class AtlasDB {
 
       stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ARRAYDESIGNQUERY", arr));
   }
+
+   public static void setAssayQuery(CallableStatement stmt, int ordinal, AssayQuery assayQuery, Dao dao) throws SQLException, GxaException {
+       Object[] PropertyIDs = null;
+
+       //pull IDs from DB - IO heavy
+       if(null != assayQuery.getPropertyQuery()){
+           Integer[] intPropertyIDs = dao.getPropertyIDs(assayQuery.getPropertyQuery());
+
+           PropertyIDs = new Object[intPropertyIDs.length];
+
+           for(int i=0; i!=intPropertyIDs.length; i++ ){
+               Object[] PropertyID = new Object[1];
+               PropertyID[0] = intPropertyIDs[i];
+
+               PropertyIDs[i] = AtlasDB.toSqlStruct(stmt.getConnection(),"INTRECORD",PropertyID);
+           }
+       }
+
+       //nested accession query
+       Object[] acc = new Object[2];
+
+       acc[0] = assayQuery.getId();
+       acc[1] = assayQuery.getAccession();
+
+       Object[] asq = new Object[2];
+       asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+       asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+
+       stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ASSAYQUERY", asq));
+   }
 
     // bind PageSortParam to query parameter
     public static void setPageSortParams(CallableStatement stmt, int ordinal, PageSortParams pageSortParams) throws SQLException{
