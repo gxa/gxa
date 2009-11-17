@@ -217,7 +217,67 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
+        CallableStatement stmt = null;
+
+        ArrayList<Property> properties = new ArrayList<Property>();
+
+        try{
+
+          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?,?,?,?)}");
+
+          stmt.setString(1, atlasPropertyQuery.getId());
+          stmt.setString(2, StringUtils.join(atlasPropertyQuery.getFullTextQueries(), " "));
+          stmt.setInt(3,pageSortParams.getStart());
+          stmt.setInt(4,pageSortParams.getRows());
+          stmt.setString(5,pageSortParams.getOrderBy());
+
+          stmt.registerOutParameter(6, oracle.jdbc.OracleTypes.CURSOR); //samples
+
+          stmt.execute();
+
+          ResultSet rsProperties = (ResultSet) stmt.getObject(6);
+
+          Integer currentPropertyID = 0;
+
+          while(rsProperties.next()){
+            AtlasProperty a = new AtlasProperty();
+
+            if(!currentPropertyID.equals(rsProperties.getString("PropertyID"))){
+                AtlasProperty property = new AtlasProperty();
+
+                property.setid(rsProperties.getInt("PropertyID"));
+                property.setName(rsProperties.getString("PropertyName"));
+
+                property.setValues(new ArrayList<String>());
+
+                properties.add(property);
+            }
+
+            properties.get(properties.size()-1).getValues().add(rsProperties.getString("Value"));
+         }
+
+         QueryResultSet<Property> result = new QueryResultSet<Property>();
+
+         result.setItems(properties);
+
+         return result;
+
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                       stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
@@ -251,19 +311,6 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
               
             result.add(db.toBigIntegerExact().intValue());
           }
-
-                                                            
-          /*
-          for(Object o : rsProperties){
-
-          }
-
-          while(rsProperties.next()){
-            Integer PropertyID =  rsProperties.getInt("PropertyId");
-
-
-          }
-          */
 
           return result.toArray(new Integer[]{});
                                                
