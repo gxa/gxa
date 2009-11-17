@@ -37,7 +37,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 return null;
             }
 
-            public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesign atlasArrayDesignQuery) throws GxaException {
+            public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery) throws GxaException {
                 return null;
             }
 
