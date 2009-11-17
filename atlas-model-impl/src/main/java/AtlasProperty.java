@@ -30,6 +30,7 @@ public class AtlasProperty implements Property {
         this.values = values;
     }
 
+
     public String getAccession(){
         return accession;
     }

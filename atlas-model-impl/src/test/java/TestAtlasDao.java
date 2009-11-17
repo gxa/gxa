@@ -48,4 +48,23 @@ public class TestAtlasDao extends TestCase {
             fail();
         }
     }
+
+    public void testGetProperty(){
+        try{
+
+        PropertyQuery propertyQuery = new PropertyQuery();
+
+        propertyQuery.fullTextQuery("%Gata4%");
+
+        QueryResultSet<Property> result = atlasDao.getProperty(propertyQuery);
+
+        assertNotNull(result);
+
+        }
+        catch(GxaException ex){
+            fail();
+        }
+
+
+    }
 }
