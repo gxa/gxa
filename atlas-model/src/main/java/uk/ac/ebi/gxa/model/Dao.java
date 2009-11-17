@@ -10,7 +10,7 @@ package  uk.ac.ebi.gxa.model;
 public interface Dao {
 
     public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException;
-    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesign atlasArrayDesignQuery) throws GxaException;
+    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery) throws GxaException;
     public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accession) throws GxaException;
 
     public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams) throws GxaException;

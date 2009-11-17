@@ -40,11 +40,42 @@ public class AtlasDao implements Dao {
     }
 
     public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
+        QueryResultSet<ArrayDesign> result = new QueryResultSet<ArrayDesign>();
+
+        CallableStatement stmt = null;
+
+        try{
+          stmt = connection.prepareCall("{call a2_ArrayDesignGet(?,?,?)}");
+
+          AtlasDB.setArrayDesignQuery(stmt,1,atlasArrayDesignQuery);
+
+          //Object[] arrayArrayDesignQueryArray = AtlasDB.toObjectArray(atlasArrayDesignQuery);
+          //stmt.setObject(1,AtlasDB.toSqlStruct(connection,"ARRAYDESIGNQUERY", arrayArrayDesignQueryArray));
+
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+
+          stmt.execute();
+
+          return null;
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
     };
 
-    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesign atlasArrayDesignQuery) throws GxaException{
-        throw new GxaException("not implemented");
+    public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery) throws GxaException{
+        return getArrayDesign(atlasArrayDesignQuery,new PageSortParams());
     };
 
     public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accession) throws GxaException{

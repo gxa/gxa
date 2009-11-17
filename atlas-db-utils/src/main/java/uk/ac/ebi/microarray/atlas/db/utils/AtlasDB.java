@@ -8,6 +8,8 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.model.ArrayDesignQuery;
+import uk.ac.ebi.gxa.model.PageSortParams;
 
 import java.sql.*;
 import java.util.Map;
@@ -42,7 +44,37 @@ public class AtlasDB {
     return new STRUCT(sdExpressionValue, connection, value);
   }
 
+  // bind arrayDesignQuery to query parameter
+  public static void setArrayDesignQuery(CallableStatement stmt, int ordinal, ArrayDesignQuery arrayDesignQuery) throws SQLException{
 
+      //nested accession query
+      Object[] acc = new Object[2];
+
+      acc[0] = arrayDesignQuery.getId();
+      acc[1] = arrayDesignQuery.getAccession();
+                                                                                                    
+      //array design query
+      Object[] arr = new Object[3];
+      arr[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY",acc);  //AccessionQuery
+      arr[1] = arrayDesignQuery.getName();
+      arr[2] = arrayDesignQuery.getType();
+      arr[3] = arrayDesignQuery.getProvider();
+
+      stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ARRAYDESIGNQUERY", arr));
+  }
+
+    // bind PageSortParam to query parameter
+    public static void setPageSortParams(CallableStatement stmt, int ordinal, PageSortParams pageSortParams) throws SQLException{
+
+        //PageSortParams
+        Object[] arr = new Object[3];
+        arr[0] = pageSortParams.getStart();
+        arr[1] = pageSortParams.getRows();
+        arr[2] = pageSortParams.getOrderBy();
+
+        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"PAGESORTPARAMS", arr));
+    }
+                                                                                       
   public static void writeExperiment(Connection connection, Experiment value)
       throws SQLException {
     CallableStatement stmt = null;
