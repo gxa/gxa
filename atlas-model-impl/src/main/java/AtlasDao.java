@@ -49,10 +49,9 @@ public class AtlasDao implements Dao {
 
           AtlasDB.setArrayDesignQuery(stmt,1,atlasArrayDesignQuery);
 
-          //Object[] arrayArrayDesignQueryArray = AtlasDB.toObjectArray(atlasArrayDesignQuery);
-          //stmt.setObject(1,AtlasDB.toSqlStruct(connection,"ARRAYDESIGNQUERY", arrayArrayDesignQueryArray));
-
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+            
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
 
           stmt.execute();
 
@@ -88,55 +87,24 @@ public class AtlasDao implements Dao {
         CallableStatement stmt = null;
 
         try{
-            //assayid int -- //1  AssayID int
-            //,accession varchar2     -- //2  Accession varchar2
-            //,propertyids TBLINT      -- //3  Properties PropertyTable
-
-            //,start_row int      //4
-            //,num_rows int        //5
-            //,sort_by varchar2   //6
-
-            //,assays OUT sys_refcursor -- //7  OUT Assays
-            //,samples OUT sys_refcursor  -- //8  OUT SampleIDs
-            //,properties OUT sys_refcursor -- //9  OUT Properties
-
           //fierce nesting
-          Object[] PropertyIDs = null;
 
-          if(null != atlasAssayQuery.getPropertyQuery()){
-              Integer[] intPropertyIDs = this.getPropertyIDs(atlasAssayQuery.getPropertyQuery());
+          stmt = connection.prepareCall("{call a2_AssayGet(?,?,?,?,?)}");
 
-              PropertyIDs = new Object[intPropertyIDs.length];
+          AtlasDB.setAssayQuery(stmt,1,atlasAssayQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
 
-              for(int i=0; i!=intPropertyIDs.length; i++ ){
-                  Object[] PropertyID = new Object[1];
-                  PropertyID[0] = intPropertyIDs[i];
-
-                  PropertyIDs[i] = AtlasDB.toSqlStruct(connection,"INTRECORD",PropertyID);
-              }
-          }
-
-          stmt = connection.prepareCall("{call a2_AssayGet(?,?,? ,?,?,? ,?,?,?)}");
-
-          stmt.setString(1, atlasAssayQuery.getId());
-          stmt.setString(2, atlasAssayQuery.getAccession());
-          stmt.setArray (3, AtlasDB.toSqlArray(connection, "TBLINT", PropertyIDs));
-
-          stmt.setInt(4, pageSortParams.getStart());
-          stmt.setInt(5, pageSortParams.getRows());
-          stmt.setString(6, pageSortParams.getOrderBy());
-
-          stmt.registerOutParameter(7, oracle.jdbc.OracleTypes.CURSOR); //assays
-          stmt.registerOutParameter(8, oracle.jdbc.OracleTypes.CURSOR); //samples
-          stmt.registerOutParameter(9, oracle.jdbc.OracleTypes.CURSOR); //properties
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
+          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //properties
 
           stmt.execute();
 
           ArrayList<Assay> assays = new ArrayList<Assay>();
 
-          ResultSet rsAssays = (ResultSet) stmt.getObject(7);
-          ResultSet rsSamples = (ResultSet) stmt.getObject(8);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(9);
+          ResultSet rsAssays = (ResultSet) stmt.getObject(3);
+          ResultSet rsSamples = (ResultSet) stmt.getObject(4);
+          ResultSet rsProperties = (ResultSet) stmt.getObject(5);
 
           rsSamples.next();
           rsProperties.next();
