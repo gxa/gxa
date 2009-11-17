@@ -1,4 +1,4 @@
-/**
+package uk.ac.ebi.gxa.model.impl; /**
  * Created by IntelliJ IDEA.
  * User: Andrey
  * Date: Oct 27, 2009

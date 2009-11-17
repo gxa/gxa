@@ -5,11 +5,11 @@
   <parent>
     <artifactId>atlas</artifactId>
     <groupId>uk.ac.ebi.gxa</groupId>
-    <version>${atlas.project.version}</version>
+    <version>1.0-alpha-2-SNAPSHOT</version>
   </parent>
   <groupId>uk.ac.ebi.gxa</groupId>
   <artifactId>atlas-archetype</artifactId>
-  <version>${atlas.project.version}</version>
+  <version>1.0-alpha-2-SNAPSHOT</version>
   <name>Gene Expression Atlas Archetype</name>
   <packaging>maven-archetype</packaging>
   <description>Archetype for generating a custom Atlas webapp</description>

@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.analytics.compute.SimilarityResultSet;
+import ae3.servlet.SimilarityResultSet;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
 
@@ -66,8 +66,11 @@ public class ExpGeneListServlet extends HttpServlet {
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
 
                     public RDataFrame compute(RServices R) throws RemoteException {
-                        String callSim =
-                                "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
+                        // load resource - this is not specially initialized anymore - fixme?
+                        R.sourceFromResource("sim.R");
+                        String callSim = "sim.nc(" + 
+                                simRS.getTargetDesignElementId() + ",'" +
+                                simRS.getSourceNetCDF() + "')";
                         return (RDataFrame) R.getObject(callSim);
                     }
                 });

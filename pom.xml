@@ -6,7 +6,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>${atlas.project.version}</version>
+    <version>1.0-alpha-2-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
@@ -63,6 +63,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <aggregate>true</aggregate>
+                    <source>1.5</source>
                 </configuration>
             </plugin>
             <plugin>

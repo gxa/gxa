@@ -1,12 +1,9 @@
+package uk.ac.ebi.gxa.model.impl;
+
 import junit.framework.TestCase;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Properties;
-import java.net.URL;
-import java.io.IOException;
-
 import uk.ac.ebi.gxa.model.*;
+import uk.ac.ebi.gxa.model.impl.AtlasDao;
 
 /**
  * Created by IntelliJ IDEA.

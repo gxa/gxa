@@ -12,7 +12,7 @@
     String geneId = request.getParameter("gid");
     String ef = request.getParameter("ef");
     AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    AtlasDao dao = searchService.getAtlasSolrDAO();
+    uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao dao = searchService.getAtlasSolrDAO();
     if (expAcc != null && !"".equals(expAcc)) {
         AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
         if (exp != null) {
@@ -20,7 +20,7 @@
             request.setAttribute("eid", exp.getDwExpId());
 
             if ((ef == null || "".equals(ef)) && (geneId != null)) {
-                AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
+                uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
                 if (result.isFound()) {
                     ef = result.getGene().getHighestRankEF(exp.getDwExpId()).getFirst();
                     request.setAttribute("topRankEF", ef);
