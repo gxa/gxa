@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.utils;
 
+import java.util.Map;
+
 
 /**
  * Pair container class
@@ -7,7 +9,7 @@ package uk.ac.ebi.gxa.utils;
  * B - second element type
  * @author pashky
  */
-public class Pair<A,B> {
+public class Pair<A,B> implements Map.Entry<A,B> {
     private final A first;
     private final B second;
 
@@ -60,5 +62,17 @@ public class Pair<A,B> {
         if (first == null) return (second == null) ? 0 : second.hashCode() + 1;
         else if (second == null) return first.hashCode() + 2;
         else return first.hashCode() * 17 + second.hashCode();
+    }
+
+    public A getKey() {
+        return getFirst();
+    }
+
+    public B getValue() {
+        return getSecond();
+    }
+
+    public B setValue(B value) {
+        throw new IllegalAccessError("Setter is not implemented, pair is immutable");
     }
 }

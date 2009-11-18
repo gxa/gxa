@@ -175,11 +175,11 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 return null;
             }
 
-            public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+            public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
                 return null;  //To change body of implemented methods use File | Settings | File Templates.
             }
 
-            public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
+            public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
                 return null;  //To change body of implemented methods use File | Settings | File Templates.
             }
         });
@@ -193,7 +193,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
     @Test
     public void testGetExpressionStat_gene_id() throws GxaException {
 
-        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>> result = statDao.getExpressionStat(new ExpressionStatQuery().hasGene(new GeneQuery().hasId("153074124")));
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>> result = statDao.getExpressionStat(new ExpressionStatQuery().hasGene(new GeneQuery().hasId("153074124")), new PageSortParams());
         assertNotNull(result);
 
         assertEquals(true, result.isFound());
@@ -208,7 +208,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
-                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("ENSG00000120471")));
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("ENSG00000120471")),
+                new PageSortParams());
         assertNotNull(result);
 
         assertEquals(true, result.isFound());
@@ -223,7 +224,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
-                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("nevernevergene"))
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("nevernevergene")),
+                new PageSortParams()
         );
         assertNotNull(result);
 
@@ -238,7 +240,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 result = statDao.getExpressionStat(
                 new ExpressionStatQuery().hasGene(new GeneQuery().hasProperty(
                         new PropertyQuery().hasAccession("species").fullTextQuery("Homo"))
-                )
+                ),
+                new PageSortParams()
         );
 
         assertNotNull(result);
@@ -261,7 +264,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                         new PropertyQuery()
                                 .hasAccession("organismpart")
                                 .fullTextQuery("liver")
-                )
+                ),
+                new PageSortParams()
         );
 
         assertNotNull(result);
@@ -282,7 +286,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                         new PropertyQuery()
                                 .hasAccession("organismpart")
                                 .fullTextQuery("liver")
-                )
+                ),
+                new PageSortParams()
         );
 
         assertNotNull(result);
@@ -303,7 +308,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                         new PropertyQuery()
                                 .hasAccession("organismpart")
                                 .fullTextQuery("liver")
-                )
+                ),
+                new PageSortParams()
         );
 
         assertNotNull(result);

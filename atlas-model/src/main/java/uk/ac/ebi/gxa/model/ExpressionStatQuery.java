@@ -18,6 +18,7 @@ public class ExpressionStatQuery {
 
     private List<GeneQuery> geneQueries = new ArrayList<GeneQuery>();
     private List<Pair<ExpressionQuery,PropertyQuery>> activityQueries = new ArrayList<Pair<ExpressionQuery, PropertyQuery>>();
+    private boolean facets = false;
 
     public ExpressionStatQuery hasGene(GeneQuery geneQuery) {
         geneQueries.add(geneQuery);
@@ -37,4 +38,12 @@ public class ExpressionStatQuery {
         return activityQueries;
     }
 
+    public boolean isFacets() {
+        return facets;
+    }
+
+    public ExpressionStatQuery facets(boolean facets) {
+        this.facets = facets;
+        return this;
+    }
 }

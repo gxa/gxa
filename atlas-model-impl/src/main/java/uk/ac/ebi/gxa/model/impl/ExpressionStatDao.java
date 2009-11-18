@@ -11,6 +11,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 
 import java.util.*;
@@ -105,7 +106,7 @@ public class ExpressionStatDao {
         }
     }
 
-    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+    public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         SolrQueryBuilder sqb = new SolrQueryBuilder();
 
         for(GeneQuery geneq : atlasExpressionStatQuery.getGeneQueries()) {
@@ -140,6 +141,15 @@ public class ExpressionStatDao {
         final Set<String> autoFactors = new HashSet<String>();
         for(Property property : dao.getProperty(new PropertyQuery().isAssayProperty(true)).getItems())
             autoFactors.add(property.getAccession());
+
+        if(atlasExpressionStatQuery.isFacets()) {
+            for(String factor : autoFactors) {
+                solrq.addFacetField("efvs_up_" + factor);
+                solrq.addFacetField("efvs_ud_" + factor);
+                solrq.addFacetField("exp_up");
+                solrq.addFacetField("exp_dn");
+            }
+        }
 
         try {
             QueryResponse response = geneServer.query(solrq);
@@ -301,11 +311,57 @@ public class ExpressionStatDao {
                 };
                 items.add((T)geneStat);
             }
-            final QueryResultSet<T> resultSet = new QueryResultSet<T>();
+            final FacetQueryResultSet<T, ExpressionStatFacet> resultSet = new FacetQueryResultSet<T, ExpressionStatFacet>();
             resultSet.setItems(items);
             resultSet.setIsMulti(true);
             resultSet.setStartingFrom(pageSortParams.getStart());
             resultSet.setTotalResults((int)response.getResults().getNumFound());
+
+            if(atlasExpressionStatQuery.isFacets()) {
+                Map<String, ExpressionStatFacet> facetsMap = new HashMap<String, ExpressionStatFacet>();
+                for(FacetField ff : response.getFacetFields()) {
+                    if(ff.getValueCount() > 1) {
+                        if(ff.getName().startsWith("efvs_")) {
+                            if(true /* already there */)
+                            {
+                                String ef = ff.getName().substring(8);
+                                if(!facetsMap.containsKey(ef))
+                                    facetsMap.put(ef, new ExpressionStatFacet(ef));
+                                ExpressionStatFacet facet = facetsMap.get(ef);
+                                for (FacetField.Count ffc : ff.getValues())
+                                {
+                                    int count = (int)ffc.getCount();
+                                    facet.getOrCreateValue(ffc.getName())
+                                            .add(count, ff.getName().substring(5,7).equals("up"));
+                                }
+                            }
+                        } else if(ff.getName().startsWith("exp_")) {
+                            for (FacetField.Count ffc : ff.getValues())
+                                if(true /* already there */)
+                                {
+                                    if(!facetsMap.containsKey("experiment"))
+                                        facetsMap.put("experiment", new ExpressionStatFacet("experiment"));
+                                    ExpressionStatFacet facet = facetsMap.get("experiment");
+                                    uk.ac.ebi.gxa.model.Experiment exp = dao.getExperiment(new ExperimentQuery().hasId(ffc.getName())).getItem();
+                                    if(exp != null) {
+                                        String expName = exp.getAccession();
+                                        if(expName != null)
+                                        {
+                                            int count = (int)ffc.getCount();
+                                            facet.getOrCreateValue(expName)
+                                                    .add(count, ff.getName().substring(4,6).equals("up"));
+                                        }
+                                    }
+                                }
+                        }
+                    }
+
+                }
+
+                for(ExpressionStatFacet facet : facetsMap.values())
+                    resultSet.addFacet(facet);
+            }
+
             return resultSet;
         } catch(SolrServerException e) {
             throw new GxaException("Solr server exception", e);
@@ -328,10 +384,6 @@ public class ExpressionStatDao {
             result.dnPvalue = Math.min(es.getDnPvalue(), result.dnPvalue);
         }
         return result;
-    }
-
-    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
-        return getExpressionStat(atlasExpressionStatQuery, new PageSortParams());
     }
 
 }
