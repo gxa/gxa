@@ -28,7 +28,7 @@ public class TestExperimentAnalyticsGeneratorService extends TestCase {
             }
 
             String rCode = sb.toString();
-            System.out.println(rCode);
+//            System.out.println(rCode);
         }
         catch (IOException e) {
             e.printStackTrace();

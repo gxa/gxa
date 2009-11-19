@@ -38,6 +38,62 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         workerPoolConfig.testOnReturn = true;
     }
 
+    /**
+     * Validates that all the system properties required by biocep are set.
+     *
+     * @return true if the validation succeed, flase if it failed for a reason OTHER than a missing property
+     * @throws AtlasRServicesException if any required properties are missing.
+     */
+    public boolean validateEnvironment() throws AtlasRServicesException {
+        if (System.getProperty("pools.dbmode.host") == null) {
+            log.warn("pools.dbmode.host not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.port") == null) {
+            log.warn("pools.dbmode.port not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.name") == null) {
+            log.warn("pools.dbmode.name not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.user") == null) {
+            log.warn("biocep.dbmode.user not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.password") == null) {
+            log.warn("biocep.db.password not set");
+            return false;
+        }
+        if (System.getProperty("naming.mode") == null) {
+            log.warn("biocep.naming.mode not set");
+            return false;
+        }
+        if (System.getProperty("pools.provider.factory") == null) {
+            log.warn("biocep.provider.factory not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.type") == null) {
+            log.warn("biocep.db.type not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.driver") == null) {
+            log.warn("pools.dbmode.driver not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.defaultpoolname") == null) {
+            log.warn("pools.dbmode.defaultpoolname not set");
+            return false;
+        }
+        if (System.getProperty("pools.dbmode.killused") == null) {
+            log.warn("pools.dbmode.killused not set");
+            return false;
+        }
+
+        // otherwise, checks passed so return true
+        return true;
+    }
+
     public RServices createRServices() throws AtlasRServicesException {
         // lazily initialize servant provider
         initialize();
@@ -62,61 +118,20 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
     }
 
     public void releaseResources() {
-        try {
-            if (workerPool.getNumActive() > 0) {
-                log.warn("Shutting down even though there are still some active compute workers");
+        if (isInitialized) {
+            try {
+                if (workerPool.getNumActive() > 0) {
+                    log.warn("Shutting down even though there are still some active compute workers");
+                }
+
+                workerPool.clear();
+                workerPool.close();
             }
-
-            workerPool.clear();
-            workerPool.close();
+            catch (Exception e) {
+                e.printStackTrace();
+                log.error("Problem shutting down compute service", e.getMessage());
+            }
         }
-        catch (Exception e) {
-            log.error("Problem shutting down compute service", e.getMessage());
-        }
-    }
-
-    /**
-     * Validates that all the system properties required by biocep are set.
-     *
-     * @return true if the validation succeed, flase if it failed for a reason OTHER than a missing property
-     * @throws AtlasRServicesException if any required properties are missing.
-     */
-    public boolean validate() throws AtlasRServicesException {
-        if (System.getProperty("pools.dbmode.host") == null) {
-            throw new AtlasRServicesException("pools.dbmode.host not set");
-        }
-        if (System.getProperty("pools.dbmode.port") == null) {
-            throw new AtlasRServicesException("pools.dbmode.port not set");
-        }
-        if (System.getProperty("pools.dbmode.name") == null) {
-            throw new AtlasRServicesException("pools.dbmode.name not set");
-        }
-        if (System.getProperty("pools.dbmode.user") == null) {
-            throw new AtlasRServicesException("biocep.dbmode.user not set");
-        }
-        if (System.getProperty("pools.dbmode.password") == null) {
-            throw new AtlasRServicesException("biocep.db.password not set");
-        }
-        if (System.getProperty("naming.mode") == null) {
-            throw new AtlasRServicesException("biocep.naming.mode not set");
-        }
-        if (System.getProperty("pools.provider.factory") == null) {
-            throw new AtlasRServicesException("biocep.provider.factory not set");
-        }
-        if (System.getProperty("pools.dbmode.type") == null) {
-            throw new AtlasRServicesException("biocep.db.type not set");
-        }
-        if (System.getProperty("pools.dbmode.driver") == null) {
-            throw new AtlasRServicesException("pools.dbmode.driver not set");
-        }
-        if (System.getProperty("pools.dbmode.defaultpoolname") == null) {
-            throw new AtlasRServicesException("pools.dbmode.defaultpoolname not set");
-        }
-        if (System.getProperty("pools.dbmode.killused") == null) {
-            throw new AtlasRServicesException("pools.dbmode.killused not set");
-        }
-
-        return true;
     }
 
     /**
@@ -126,13 +141,15 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
      */
     private void initialize() throws AtlasRServicesException {
         if (!isInitialized) {
-            if (validate()) {
+            if (validateEnvironment()) {
                 // create worked pool
                 workerPool = new GenericObjectPool(new RWorkerObjectFactory(), workerPoolConfig);
                 isInitialized = true;
             }
             else {
-                log.error("Unable to initialize - " + getClass().getSimpleName() + ".validate() failed");
+                String msg = "Unable to initialize - R environment is not valid.  See log for details.";
+                log.error(msg);
+                throw new AtlasRServicesException(msg);
             }
         }
     }
