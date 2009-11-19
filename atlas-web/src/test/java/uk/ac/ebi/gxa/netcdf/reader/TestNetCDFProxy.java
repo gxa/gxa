@@ -135,13 +135,13 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExpressionDataForDesignElement() throws IOException {
-        for (int i = 0; i < netCDF.getDesignElements().length; i++) {
-            System.out.println("Expression Values for design element " + netCDF.getDesignElements()[i] + " {");
-            for (double cell : netCDF.getExpressionDataForDesignElement(i)) {
-                System.out.print(cell + ", ");
-            }
-            System.out.println("}");
-        }
+//        for (int i = 0; i < netCDF.getDesignElements().length; i++) {
+//            System.out.println("Expression Values for design element " + netCDF.getDesignElements()[i] + " {");
+//            for (double cell : netCDF.getExpressionDataForDesignElement(i)) {
+//                System.out.print(cell + ", ");
+//            }
+//            System.out.println("}");
+//        }
     }
 
     public void testGetExpressionDataForAssay() throws IOException {

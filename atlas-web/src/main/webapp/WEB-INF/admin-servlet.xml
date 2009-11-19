@@ -3,27 +3,27 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="atlasAnalyticsController" class="uk.ac.ebi.gxa.controller.AtlasAnalyticsController">
+    <bean id="atlasAnalyticsController" class="uk.ac.ebi.gxa.web.controller.AtlasAnalyticsController">
         <property name="analyticsGenerator" ref="analyticsGenerator" />
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 
-    <bean id="atlasIndexController" class="uk.ac.ebi.gxa.controller.AtlasIndexController">
+    <bean id="atlasIndexController" class="uk.ac.ebi.gxa.web.controller.AtlasIndexController">
         <property name="indexBuilder" ref="indexBuilder" />
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 
-    <bean id="atlasLoadController" class="uk.ac.ebi.gxa.controller.AtlasLoadController">
+    <bean id="atlasLoadController" class="uk.ac.ebi.gxa.web.controller.AtlasLoadController">
         <property name="loader" ref="atlasLoader" />
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 
-    <bean id="atlasNetCDFController" class="uk.ac.ebi.gxa.controller.AtlasNetCDFController">
+    <bean id="atlasNetCDFController" class="uk.ac.ebi.gxa.web.controller.AtlasNetCDFController">
         <property name="netCDFGenerator" ref="netCDFGenerator" />
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 
-    <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.controller.AtlasReschedulerController">
+    <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.web.controller.AtlasReschedulerController">
         <property name="successView" value="redirect:admin.jsp" />
     </bean>
 

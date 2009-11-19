@@ -15,7 +15,7 @@
         AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
         request.setAttribute("service", searchService);
 
-        uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao dao = searchService.getAtlasSolrDAO();
+        AtlasDao dao = searchService.getAtlasSolrDAO();
 
         expz = dao.getExperiments();
         application.setAttribute("allexpts", expz);

@@ -48,6 +48,18 @@ public class LocalAtlasRFactory implements AtlasRFactory {
             System.setProperty("java.library.path", System.getProperty("java.library.path") + append);
         }
 
+        // check R install actually works
+        try {
+            RServices r = createRServices();
+            recycleRServices(r);
+        }
+        catch (Exception e) {
+            log.error("Critical R whilst trying to bridge to local R install - " +
+                    "check R is installed and required libraries present");
+            e.printStackTrace();
+            return false;
+        }
+
         // checks passed so return true
         return true;
     }
