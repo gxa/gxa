@@ -348,12 +348,12 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         throw new GxaException("not implemented");
     };
 
-    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
+    public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, pageSortParams);
     }
 
-    public <T extends ExpressionStat> QueryResultSet<T> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException{
-        return expressionStatDao.getExpressionStat(atlasExpressionStatQuery);
+    public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
+        return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, new PageSortParams());
     }
 
 }
