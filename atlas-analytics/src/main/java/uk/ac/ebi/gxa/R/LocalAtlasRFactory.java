@@ -1,8 +1,11 @@
 package uk.ac.ebi.gxa.R;
 
 import org.kchine.r.server.RServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.DirectJNI;
 
+import java.io.File;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -16,6 +19,38 @@ import java.util.concurrent.Semaphore;
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
     private final BootableSemaphore r = new BootableSemaphore(1, true);
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+
+    public boolean validateEnvironment() throws AtlasRServicesException {
+        // check environment, system properties
+        String r_home = null;
+        if ((System.getenv("R_HOME") == null || System.getenv("R_HOME").equals("")) &&
+                (System.getProperty("R_HOME") == null || System.getProperty("R_HOME").equals(""))) {
+            log.error("No $R_HOME property set - this is required to start JNI bridge to R");
+            return false;
+        }
+        else {
+            r_home = System.getenv("R_HOME");
+            if (r_home == null || r_home.equals("")) {
+                r_home = System.getProperty("R_HOME");
+            }
+        }
+
+        // r_home definitely not null or "" now
+        if (r_home == null || r_home.equals("")) {
+            return false;
+        }
+        else {
+            // append r_home to java.library.path, this should allow discovery of required JNI/rJava lib files
+            String append = ":" + r_home + File.separator + "bin:" + r_home + File.separator + "lib";
+            System.setProperty("java.library.path", System.getProperty("java.library.path") + append);
+        }
+
+        // checks passed so return true
+        return true;
+    }
 
     public RServices createRServices() throws AtlasRServicesException {
         if (r.availablePermits() == 0) {

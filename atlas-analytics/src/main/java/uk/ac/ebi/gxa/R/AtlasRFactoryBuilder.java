@@ -1,8 +1,5 @@
 package uk.ac.ebi.gxa.R;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Properties;
 
@@ -20,8 +17,6 @@ public class AtlasRFactoryBuilder {
     public static AtlasRFactoryBuilder getAtlasRFactoryBuilder() {
         return factoryBuilder;
     }
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private AtlasRFactoryBuilder() {
         // singleton, so private constructor
@@ -94,58 +89,64 @@ public class AtlasRFactoryBuilder {
      *                                properties files
      */
     public AtlasRFactory buildAtlasRFactory(RType rType, Properties properties) throws InstantiationException {
-        try {
-            switch (rType) {
-                case LOCAL:
-                    // create local AtlasRFactory implementation
-                    return new LocalAtlasRFactory();
-                case REMOTE:
-                    // check remote host
-                    if (properties.getProperty("R.remote.host") == null) {
-                        if (System.getProperty("R.remote.host") == null) {
-                            throw new UnsupportedOperationException("Cannot find required property ${R.remote.host}");
-                        }
-                        else {
-                            return new RemoteAtlasRFactory(System.getProperty("R.remote.host"));
-                        }
-                    }
-                    else {
-                        return new RemoteAtlasRFactory(properties.getProperty("R.remote.host"));
-                    }
-                case BIOCEP:
-                    if (properties != null) {
-                        // set any properties passed in our properties object
-                        setBiocepSystemProperties(properties);
-                    }
-                    else {
-                        try {
-                            // try and read from properties file
-                            Properties biocepProperties = new Properties();
-                            biocepProperties.load(getClass().getClassLoader().getResourceAsStream("biocep.properties"));
-                            setBiocepSystemProperties(biocepProperties);
-                        }
-                        catch (IOException e) {
-                            throw new InstantiationException("Cannot initialize AtlasRFactory for " + rType +
-                                    " with null properties and without a biocep.properties file on the classpath");
-                        }
-                    }
+        switch (rType) {
+            case LOCAL:
+                // if we pass R properties here, read them in
+                if (properties != null) {
+                    setLocalSystemProperties(properties);
+                }
 
-                    // check biocep properties are all set
-                    BiocepAtlasRFactory barf = new BiocepAtlasRFactory();
-                    barf.validate();
-                    return barf;
-                default:
-                    throw new InstantiationException("Unrecognised type: " + rType);
-            }
+                return new LocalAtlasRFactory();
+            case REMOTE:
+                // if we pass R properties here, read them in
+                if (properties != null) {
+                    setRemoteSystemProperties(properties);
+                }
+
+                return new RemoteAtlasRFactory();
+            case BIOCEP:
+                if (properties != null) {
+                    // set any properties passed in our properties object
+                    setBiocepSystemProperties(properties);
+                }
+                else {
+                    try {
+                        // try and read from properties file
+                        Properties biocepProperties = new Properties();
+                        biocepProperties.load(getClass().getClassLoader().getResourceAsStream("biocep.properties"));
+                        setBiocepSystemProperties(biocepProperties);
+                    }
+                    catch (IOException e) {
+                        throw new InstantiationException("Cannot initialize AtlasRFactory for " + rType +
+                                " with null properties and without a biocep.properties file on the classpath");
+                    }
+                }
+
+                return new BiocepAtlasRFactory();
+            default:
+                throw new InstantiationException("Unrecognised type: " + rType);
         }
-        catch (AtlasRServicesException e) {
-            e.printStackTrace();
-            throw new InstantiationException("Could not instantiate an AtlasRFactory: " + e.getMessage());
+    }
+
+    private void setLocalSystemProperties(Properties properties) throws InstantiationException {
+        if (properties.getProperty("R_HOME") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'R_HOME'");
         }
+        System.setProperty("R_HOME", properties.getProperty("R_HOME"));
+    }
+
+    private void setRemoteSystemProperties(Properties properties) throws InstantiationException {
+        if (properties.getProperty("R.remote.host") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'R.remote.host'");
+        }
+        System.setProperty("R_HOME", properties.getProperty("R_HOME"));
     }
 
     private void setBiocepSystemProperties(Properties biocepProps) throws InstantiationException {
         // databaseURL should be something like "jdbc:oracle:thin:@www.myhost.com:1521:MYDATABASE"
+        if (biocepProps.getProperty("biocep.db.url") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'biocep.db.url'");
+        }
         String databaseURL = biocepProps.getProperty("biocep.db.url");
 
         if (!databaseURL.contains("@")) {
@@ -195,29 +196,57 @@ public class AtlasRFactoryBuilder {
                 name);
 
         // username and password properties, which has to be duplicated in context.xml and in biocep.properties
+        if (biocepProps.getProperty("biocep.db.user") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'biocep.db.user'");
+        }
         System.setProperty(
                 "pools.dbmode.user",
                 biocepProps.getProperty("biocep.db.user"));
+        if (biocepProps.getProperty("biocep.db.password") == null) {
+            throw new InstantiationException(
+                    "Supplied properties don't contain required property 'biocep.db.password'");
+        }
         System.setProperty(
                 "pools.dbmode.password",
                 biocepProps.getProperty("biocep.db.password"));
 
         // standard config, probably won't normally change
+        if (biocepProps.getProperty("biocep.naming.mode") == null) {
+            throw new InstantiationException(
+                    "Supplied properties don't contain required property 'biocep.naming.mode'");
+        }
         System.setProperty(
                 "naming.mode",
                 biocepProps.getProperty("biocep.naming.mode"));
+        if (biocepProps.getProperty("biocep.provider.factory") == null) {
+            throw new InstantiationException(
+                    "Supplied properties don't contain required property 'biocep.provider.factory'");
+        }
         System.setProperty(
                 "pools.provider.factory",
                 biocepProps.getProperty("biocep.provider.factory"));
+        if (biocepProps.getProperty("biocep.db.type") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'biocep.db.type'");
+        }
         System.setProperty(
                 "pools.dbmode.type",
                 biocepProps.getProperty("biocep.db.type"));
+        if (biocepProps.getProperty("biocep.db.driver") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'biocep.db.driver'");
+        }
         System.setProperty(
                 "pools.dbmode.driver",
                 biocepProps.getProperty("biocep.db.driver"));
+        if (biocepProps.getProperty("biocep.defaultpoolname") == null) {
+            throw new InstantiationException(
+                    "Supplied properties don't contain required property 'biocep.defaultpoolname'");
+        }
         System.setProperty(
                 "pools.dbmode.defaultpoolname",
                 biocepProps.getProperty("biocep.defaultpoolname"));
+        if (biocepProps.getProperty("biocep.killused") == null) {
+            throw new InstantiationException("Supplied properties don't contain required property 'biocep.killused'");
+        }
         System.setProperty(
                 "pools.dbmode.killused",
                 biocepProps.getProperty("biocep.killused"));
