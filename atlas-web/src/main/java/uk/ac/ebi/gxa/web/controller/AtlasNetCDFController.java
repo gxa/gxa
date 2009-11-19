@@ -1,11 +1,11 @@
-package uk.ac.ebi.gxa.controller;
+package uk.ac.ebi.gxa.web.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,18 +18,18 @@ import java.util.Map;
  * @author Tony Burdett
  * @date 13-Nov-2009
  */
-public class AtlasAnalyticsController extends AbstractController {
-    private AnalyticsGenerator analyticsGenerator;
+public class AtlasNetCDFController extends AbstractController {
+    private NetCDFGenerator netCDFGenerator;
     private String successView;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public AnalyticsGenerator getAnalyticsGenerator() {
-        return analyticsGenerator;
+    public NetCDFGenerator getNetCDFGenerator() {
+        return netCDFGenerator;
     }
 
-    public void setAnalyticsGenerator(AnalyticsGenerator analyticsGenerator) {
-        this.analyticsGenerator = analyticsGenerator;
+    public void setNetCDFGenerator(NetCDFGenerator netCDFGenerator) {
+        this.netCDFGenerator = netCDFGenerator;
     }
 
     public String getSuccessView() {
@@ -44,12 +44,12 @@ public class AtlasAnalyticsController extends AbstractController {
                                                  HttpServletResponse httpServletResponse) throws Exception {
         // parse accession parameter
         String accession = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "accession");
-        log.info("Request to generate analytics for " + accession);
+        log.info("Request to generate NetCDFs for " + accession);
 
         String type = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "type");
         if (type.equals("experiment")) {
-            // and generate analytics
-            analyticsGenerator.generateAnalyticsForExperiment(accession);
+            // and generate netCDFs
+            netCDFGenerator.generateNetCDFsForExperiment(accession);
 
             return new ModelAndView(getSuccessView());
         }

@@ -11,8 +11,8 @@ String efv = request.getParameter("efv");
 
 if (geneId != null) {
     AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao dao = searchService.getAtlasSolrDAO();
-    uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.uk.ac.ebi.gxa.model.impl.AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
+    AtlasDao dao = searchService.getAtlasSolrDAO();
+    AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
     if(atlasGene.isFound()) {
         List<AtlasExperiment> exps = dao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
         request.setAttribute("exps",exps);

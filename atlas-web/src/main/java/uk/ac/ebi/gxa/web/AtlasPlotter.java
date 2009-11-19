@@ -163,12 +163,6 @@ public class AtlasPlotter {
             // data for individual series
             JSONArray seriesList = new JSONArray();
 
-            // data for mean series
-            JSONObject meanSeries = new JSONObject();
-            JSONArray meanSeriesData = new JSONArray();
-            // map holding mean data
-            Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
-
             // get factor values, ordered by assay
             String[] fvs = netCDF.getFactorValues(ef);
 
@@ -180,9 +174,40 @@ public class AtlasPlotter {
                     getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
 
             // iterate over each factor value (in sorted order)
+            String lastFactorValue = "";
+            // data for mean series
+            JSONObject meanSeries = new JSONObject();
+            JSONArray meanSeriesData = null;
+            // map holding mean data
+            Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
+
             for (int factorValueIndex : sortedFVindexes) {
                 // get the factor value at this index
                 String factorValue = fvs[factorValueIndex];
+
+                // if this is the first new factorValue, start a new mean series
+                if (!factorValue.equals(lastFactorValue)) {
+                    // if not, need to start a new mean series
+
+                    // create mean series, using mean data up to this point
+                    if (meanSeriesData != null) { // skip first one
+                        meanSeries.put("data", meanSeriesData);
+                        meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
+                        meanSeries.put("bars", new JSONObject("{show:false}"));
+                        meanSeries.put("points", new JSONObject("{show:false}"));
+                        meanSeries.put("color", "#5e5e5e");
+                        meanSeries.put("label", "Mean");
+                        meanSeries.put("legend", new JSONObject("{show:false}"));
+                        meanSeries.put("hoverable", "false");
+                        meanSeries.put("shadowSize", 2);
+                    }
+
+                    // put our mean series into the series list too
+                    seriesList.put(meanSeries);
+
+                    // start the new meanSeries
+                    meanSeriesData = new JSONArray();
+                }
 
                 // now extract datapoints for this factor value
                 Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
@@ -245,21 +270,9 @@ public class AtlasPlotter {
                 }
 
                 seriesList.put(series);
+
+                lastFactorValue = factorValue;
             }
-
-            // create mean series, using mean data
-            meanSeries.put("data", meanSeriesData);
-            meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
-            meanSeries.put("bars", new JSONObject("{show:false}"));
-            meanSeries.put("points", new JSONObject("{show:false}"));
-            meanSeries.put("color", "#5e5e5e");
-            meanSeries.put("label", "Mean");
-            meanSeries.put("legend", new JSONObject("{show:false}"));
-            meanSeries.put("hoverable", "false");
-            meanSeries.put("shadowSize", 2);
-
-            // put our mean series into the series list too
-            seriesList.put(meanSeries);
 
             // and put all data into the plot, flagging whether it is significant or not
             plotData.put("series", seriesList);
@@ -481,6 +494,7 @@ public class AtlasPlotter {
             JSONStringer sampleCharValues = new JSONStringer();
             getCharacteristics(netCDF, sampleChars, sampleCharValues);
 
+            // fixme: this should be returning the small subset of values appropriate to this factor, NOT everthing!!
             plotData.put("sAttrs", getSampleAttributes(netCDF));
             plotData.put("assay2samples", getSampleAssayMap(netCDF, ef));
             plotData.put("characteristics", sampleChars);
@@ -584,55 +598,52 @@ public class AtlasPlotter {
         }
 
         Arrays.sort(fso,
-                    new Comparator() {
+                new Comparator() {
 
-                        public int compare(Object o1, Object o2) {
-                            String s1 = fvs[((Integer) o1)];
-                            String s2 = fvs[((Integer) o2)];
+                    public int compare(Object o1, Object o2) {
+                        String s1 = fvs[((Integer) o1)];
+                        String s2 = fvs[((Integer) o2)];
 
-                            // want to make sure that empty strings are pushed to the back
-                            if (s1.equals("") && s2.equals("")) {
-                                return 0;
-                            }
-                            if (s1.equals("") && !s2.equals("")) {
-                                return 1;
-                            }
-                            if (!s1.equals("") && s2.equals("")) {
-                                return -1;
-                            }
-
-                            java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
-                            java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
-
-                            if (m1.find() && m2.find()) {
-                                Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-                                Long i2 = new Long(s2.substring(m2.start(), m2.end()));
-
-                                if (i1.compareTo(i2) == 0) {
-                                    return s1.compareToIgnoreCase(s2);
-                                }
-                                else {
-                                    return i1.compareTo(i2);
-                                }
-                            }
-
-                            return s1.compareToIgnoreCase(s2);
+                        // want to make sure that empty strings are pushed to the back
+                        if (s1.equals("") && s2.equals("")) {
+                            return 0;
+                        }
+                        if (s1.equals("") && !s2.equals("")) {
+                            return 1;
+                        }
+                        if (!s1.equals("") && s2.equals("")) {
+                            return -1;
                         }
 
-                    });
+                        java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
+                        java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
+
+                        if (m1.find() && m2.find()) {
+                            Long i1 = new Long(s1.substring(m1.start(), m1.end()));
+                            Long i2 = new Long(s2.substring(m2.start(), m2.end()));
+
+                            if (i1.compareTo(i2) == 0) {
+                                return s1.compareToIgnoreCase(s2);
+                            }
+                            else {
+                                return i1.compareTo(i2);
+                            }
+                        }
+
+                        return s1.compareToIgnoreCase(s2);
+                    }
+
+                });
         return fso;
     }
 
     public double getMean(List<Double> values) {
         double sum = 0.0;
-
-        for (int i = 0; i < values.size(); i++) {
-            double v = values.get(i);
-            if (v > -1000000) {
-                sum += values.get(i);
+        for (Double value : values) {
+            if (value > -1000000) {
+                sum += value;
             }
         }
-
         return sum / values.size();
     }
 

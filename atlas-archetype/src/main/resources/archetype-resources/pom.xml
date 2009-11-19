@@ -12,7 +12,7 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-web</artifactId>
-            <version>1.1.3</version>
+            <version>1.0-alpha-2-SNAPSHOT</version>
             <type>war</type>
         </dependency>
     </dependencies>

@@ -69,7 +69,7 @@
     </listener>
 
     <listener>
-        <listener-class>ae3.servlet.AtlasApplicationListener</listener-class>
+        <listener-class>uk.ac.ebi.gxa.web.listener.AtlasApplicationListener</listener-class>
     </listener>
 
     <listener>

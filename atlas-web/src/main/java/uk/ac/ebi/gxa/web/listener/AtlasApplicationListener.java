@@ -1,4 +1,4 @@
-package ae3.servlet;
+package uk.ac.ebi.gxa.web.listener;
 
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -73,6 +74,23 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
         application.setAttribute(Atlas.SEARCH_SERVICE.key(), searchService);
 
+        try {
+            // check that the AtlasRFactory associated with our search service is actually working
+            // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...  
+            // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
+            // that will bring down tomcat if R environment is not configured correctly, but variables are set
+            if (!searchService.getAtlasComputeService().getAtlasRFactory().validateEnvironment()) {
+                log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
+            }
+            else {
+                log.info("R environment validated, R services fully available");
+            }
+        }
+        catch (AtlasRServicesException e) {
+            e.printStackTrace();
+            throw new RuntimeException("R computation environment not valid/present: " + e.getMessage());
+        }
+
         // initialize and store in-session the AtlasPlotter
         AtlasPlotter plotter = (AtlasPlotter) context.getBean("atlasPlotter");
         application.setAttribute(Atlas.PLOTTER.key(), plotter);
@@ -89,7 +107,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
         catch (SQLException e) {
             e.printStackTrace();
-            throw new NullPointerException("Unable to obtain connection to the datasource, or failed to read URL");
+            throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL");
         }
 
         // read versioning info
