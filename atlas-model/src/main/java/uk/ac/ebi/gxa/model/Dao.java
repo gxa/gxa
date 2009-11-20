@@ -32,7 +32,7 @@ public interface Dao {
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException;
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException;
     public Property                 getPropertyByAccession(AccessionQuery accession) throws GxaException;
-    public Integer[]                getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException;
+//    public Integer[]                getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException;
 
     public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException;
     public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException;

@@ -9,6 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.gxa.model.*;
+import uk.ac.ebi.gxa.model.impl.AtlasDao;
 
 import java.sql.*;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class AtlasDB {
       stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ARRAYDESIGNQUERY", arr));
   }
 
-   public static void setAssayQuery(CallableStatement stmt, int ordinal, AssayQuery assayQuery, Dao dao) throws SQLException, GxaException {
+   public static void setAssayQuery(CallableStatement stmt, int ordinal, AssayQuery assayQuery, AtlasDao dao) throws SQLException, GxaException {
        Object[] PropertyIDs = null;
 
        //pull IDs from DB - IO heavy
