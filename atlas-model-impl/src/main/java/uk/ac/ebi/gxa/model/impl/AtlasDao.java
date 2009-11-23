@@ -7,7 +7,7 @@ package uk.ac.ebi.gxa.model.impl; /**
  */
 
 import uk.ac.ebi.gxa.model.*;
-import uk.ac.ebi.microarray.atlas.db.utils.AtlasDB;
+import uk.ac.ebi.gxa.db.utils.AtlasDB;
 import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 
 import java.sql.CallableStatement;

@@ -19,6 +19,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.db.utils.AtlasDB;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -30,7 +31,6 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandl
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.db.utils.AtlasDB;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -152,21 +152,21 @@ public class AtlasMAGETABLoader {
 
         // calibrate the parser with the relevent handlers that can load atlas data
         pool.replaceHandlerClass(AccessionHandler.class,
-                                 AtlasLoadingAccessionHandler.class);
+                AtlasLoadingAccessionHandler.class);
         pool.replaceHandlerClass(InvestigationTitleHandler.class,
-                                 AtlasLoadingInvestigationTitleHandler.class);
+                AtlasLoadingInvestigationTitleHandler.class);
         pool.replaceHandlerClass(PersonAffiliationHandler.class,
-                                 AtlasLoadingPersonAffiliationHandler.class);
+                AtlasLoadingPersonAffiliationHandler.class);
         pool.replaceHandlerClass(PersonLastNameHandler.class,
-                                 AtlasLoadingPersonLastNameHandler.class);
+                AtlasLoadingPersonLastNameHandler.class);
         pool.replaceHandlerClass(SourceHandler.class,
-                                 AtlasLoadingSourceHandler.class);
+                AtlasLoadingSourceHandler.class);
         pool.replaceHandlerClass(AssayHandler.class,
-                                 AtlasLoadingAssayHandler.class);
+                AtlasLoadingAssayHandler.class);
         pool.replaceHandlerClass(HybridizationHandler.class,
-                                 AtlasLoadingHybridizationHandler.class);
+                AtlasLoadingHybridizationHandler.class);
         pool.replaceHandlerClass(DerivedArrayDataMatrixHandler.class,
-                                 AtlasLoadingDerivedArrayDataMatrixHandler.class);
+                AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {

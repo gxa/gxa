@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.db.utils;
+package uk.ac.ebi.gxa.db.utils;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
