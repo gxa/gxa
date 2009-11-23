@@ -7,9 +7,9 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 /**
  * Interface for modifying NetCDFs to include statistical analytics data required by the Atlas interface.
  * Implementations should provide a way of setting the NetCDF repository location, which may be of a generic type to
- * allow the NetCDFs to be built into a repository backed by a database, file system, or some other datasource.  Any
- * implementation should implement {@link #generateAnalytics()} which contains the logic to modify NetCDF with analytics
- * data
+ * allow the NetCDFs to be built into a repository backed by a database, file system, or some other datasource.
+ * Implementing classes should provide the method {@link #generateAnalytics()}, containing the logic to modify NetCDF
+ * with analytics data
  *
  * @author Tony Burdett
  * @date 17-Sep-2009

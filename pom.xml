@@ -6,7 +6,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-alpha-2-SNAPSHOT</version>
+    <version>1.0-alpha-2</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
@@ -73,7 +73,7 @@
                 <reportSets>
                     <reportSet>
                         <reports>
-                            <!-- <report>dependencies</report> -->
+                            <report>dependencies</report>
                             <report>project-team</report>
                             <report>mailing-list</report>
                             <report>cim</report>
@@ -105,11 +105,9 @@
         <module>atlas-model</module>
         <module>atlas-dao</module>
         <module>atlas-test</module>
-        <module>atlas-db-utils</module>
         <module>atlas-model-impl</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
-        <module>atlas-skin</module>
     </modules>
 
     <dependencies>
