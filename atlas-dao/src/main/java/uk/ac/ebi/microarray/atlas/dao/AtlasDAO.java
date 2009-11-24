@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -288,6 +289,28 @@ public class AtlasDAO {
         return (List<LoadDetails>) results;
     }
 
+    public void writeLoadDetails(String experimentAccession, LoadStage loadStage, LoadStatus loadStatus) {
+        // procedure...
+        /*
+        create or replace procedure load_progress(
+          experiment_accession varchar
+          ,stage varchar --load, netcdf, similarity, ranking, searchindex
+          ,status varchar --done, pending
+        )
+        */
+
+        // create stored procedure call
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("experiment_accession", experimentAccession);
+        params.addValue("stage", loadStage.toString().toLowerCase());
+        params.addValue("status", loadStatus.toString().toLowerCase());
+
+        procedure.execute(params);
+    }
+
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
                                       new ExperimentMapper());
@@ -351,7 +374,7 @@ public class AtlasDAO {
                                       new Object[]{exptAccession},
                                       new GeneMapper());
 
-        List<Gene> genes = (List<Gene>)results;
+        List<Gene> genes = (List<Gene>) results;
 
         // populate the other info for these genes
         if (genes.size() > 0) {
@@ -398,10 +421,8 @@ public class AtlasDAO {
         List results = template.query(ASSAYS_SELECT,
                                       new AssayMapper());
 
-        List<Assay> assays = (List<Assay>) results;
-
         // and return
-        return assays;
+        return (List<Assay>) results;
     }
 
     public List<Assay> getAssaysByExperimentAccession(
@@ -425,7 +446,7 @@ public class AtlasDAO {
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
                                       new Object[]{experimentAccession,
-                                                   arrayAccession},
+                                              arrayAccession},
                                       new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
