@@ -262,11 +262,23 @@ public class AtlasPlotter {
                 series.put("legend", new JSONObject("{show:true}"));
 
                 // choose series color for these are insignificant factor values
+                StringBuffer sb = new StringBuffer();
+                sb.append("{");
+                for (String topFV : topFVs) {
+                    sb.append(topFV).append(", ");
+                }
+                sb.append("}");
+                log.info("Looking for factorValue '" + factorValue.toLowerCase() + "' in " + sb.toString());
+
                 if (!topFVs.contains(factorValue.toLowerCase())) {
+                    log.info("Found factorValue :-)");
                     series.put("color", altColors[counter % 2]);
                     series.put("legend", new JSONObject("{show:false}"));
                     counter++;
                     insignificantSeries = true;
+                }
+                else {
+                    log.info("Couldn't find factorValue :-(");
                 }
 
                 seriesList.put(series);
@@ -494,16 +506,16 @@ public class AtlasPlotter {
             JSONStringer sampleCharValues = new JSONStringer();
             getCharacteristics(netCDF, sampleChars, sampleCharValues);
 
-            // fixme: this should be returning the small subset of values appropriate to this factor, NOT everthing!!
             plotData.put("sAttrs", getSampleAttributes(netCDF));
             plotData.put("assay2samples", getSampleAssayMap(netCDF, ef));
             plotData.put("characteristics", sampleChars);
             plotData.put("charValues", sampleCharValues);
             plotData.put("currEF", ef.substring(3));
             plotData.put("ADid", netCDF.getArrayDesign());
+            // fixme: this should be returning the small subset of values appropriate to this factor, NOT everthing!!
             plotData.put("geneNames", getJSONarray(geneNames));
-            plotData.put("DEids", getJSONarrayFromIntArray(netCDF.getDesignElements()));
-            plotData.put("GNids", getJSONarrayFromIntArray(netCDF.getGenes()));
+            plotData.put("DEids", getJSONarrayFromIntArray(netCDF.getDesignElements(), geneIndices));
+            plotData.put("GNids", getJSONarrayFromIntArray(netCDF.getGenes(), geneIndices));
             plotData.put("EFs", getJSONarrayFromStringArray(netCDF.getFactors()));
         }
         catch (JSONException e) {
@@ -598,42 +610,42 @@ public class AtlasPlotter {
         }
 
         Arrays.sort(fso,
-                new Comparator() {
+                    new Comparator() {
 
-                    public int compare(Object o1, Object o2) {
-                        String s1 = fvs[((Integer) o1)];
-                        String s2 = fvs[((Integer) o2)];
+                        public int compare(Object o1, Object o2) {
+                            String s1 = fvs[((Integer) o1)];
+                            String s2 = fvs[((Integer) o2)];
 
-                        // want to make sure that empty strings are pushed to the back
-                        if (s1.equals("") && s2.equals("")) {
-                            return 0;
-                        }
-                        if (s1.equals("") && !s2.equals("")) {
-                            return 1;
-                        }
-                        if (!s1.equals("") && s2.equals("")) {
-                            return -1;
-                        }
-
-                        java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
-                        java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
-
-                        if (m1.find() && m2.find()) {
-                            Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-                            Long i2 = new Long(s2.substring(m2.start(), m2.end()));
-
-                            if (i1.compareTo(i2) == 0) {
-                                return s1.compareToIgnoreCase(s2);
+                            // want to make sure that empty strings are pushed to the back
+                            if (s1.equals("") && s2.equals("")) {
+                                return 0;
                             }
-                            else {
-                                return i1.compareTo(i2);
+                            if (s1.equals("") && !s2.equals("")) {
+                                return 1;
                             }
+                            if (!s1.equals("") && s2.equals("")) {
+                                return -1;
+                            }
+
+                            java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
+                            java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
+
+                            if (m1.find() && m2.find()) {
+                                Long i1 = new Long(s1.substring(m1.start(), m1.end()));
+                                Long i2 = new Long(s2.substring(m2.start(), m2.end()));
+
+                                if (i1.compareTo(i2) == 0) {
+                                    return s1.compareToIgnoreCase(s2);
+                                }
+                                else {
+                                    return i1.compareTo(i2);
+                                }
+                            }
+
+                            return s1.compareToIgnoreCase(s2);
                         }
 
-                        return s1.compareToIgnoreCase(s2);
-                    }
-
-                });
+                    });
         return fso;
     }
 
@@ -682,11 +694,11 @@ public class AtlasPlotter {
         return JSONarray;
     }
 
-    public JSONStringer getJSONarrayFromIntArray(int[] values) throws JSONException {
+    public JSONStringer getJSONarrayFromIntArray(int[] values, List<Integer> indices) throws JSONException {
         JSONStringer JSONarray = new JSONStringer();
         JSONarray.array();
-        for (int value : values) {
-            JSONarray.value(value);
+        for (int index : indices) {
+            JSONarray.value(values[index]);
         }
         JSONarray.endArray();
         return JSONarray;

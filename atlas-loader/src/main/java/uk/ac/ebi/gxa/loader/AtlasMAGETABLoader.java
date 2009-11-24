@@ -31,8 +31,11 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandl
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.LoadStage;
+import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.sql.DataSource;
@@ -40,10 +43,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -152,21 +152,21 @@ public class AtlasMAGETABLoader {
 
         // calibrate the parser with the relevent handlers that can load atlas data
         pool.replaceHandlerClass(AccessionHandler.class,
-                AtlasLoadingAccessionHandler.class);
+                                 AtlasLoadingAccessionHandler.class);
         pool.replaceHandlerClass(InvestigationTitleHandler.class,
-                AtlasLoadingInvestigationTitleHandler.class);
+                                 AtlasLoadingInvestigationTitleHandler.class);
         pool.replaceHandlerClass(PersonAffiliationHandler.class,
-                AtlasLoadingPersonAffiliationHandler.class);
+                                 AtlasLoadingPersonAffiliationHandler.class);
         pool.replaceHandlerClass(PersonLastNameHandler.class,
-                AtlasLoadingPersonLastNameHandler.class);
+                                 AtlasLoadingPersonLastNameHandler.class);
         pool.replaceHandlerClass(SourceHandler.class,
-                AtlasLoadingSourceHandler.class);
+                                 AtlasLoadingSourceHandler.class);
         pool.replaceHandlerClass(AssayHandler.class,
-                AtlasLoadingAssayHandler.class);
+                                 AtlasLoadingAssayHandler.class);
         pool.replaceHandlerClass(HybridizationHandler.class,
-                AtlasLoadingHybridizationHandler.class);
+                                 AtlasLoadingHybridizationHandler.class);
         pool.replaceHandlerClass(DerivedArrayDataMatrixHandler.class,
-                AtlasLoadingDerivedArrayDataMatrixHandler.class);
+                                 AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
@@ -176,10 +176,25 @@ public class AtlasMAGETABLoader {
                         cache.fetchAllAssays().size();
         Connection conn = null;
         try {
+            // validate the load(s)
+            for (Experiment exp : cache.fetchAllExperiments()) {
+                if (!validateLoad(exp.getAccession())) {
+                    log.error("The experiment " + exp.getAccession() + " was found in the database: " +
+                            "it has been previously loaded or is loading right now.  Unable to load duplicates!");
+                    return false;
+                }
+            }
+
+            // start the load(s)
+            for (Experiment exp : cache.fetchAllExperiments()) {
+                startLoad(exp.getAccession());
+            }
+
             // get a connection from the datasource
             conn = dataSource.getConnection();
 
-            // fixme: prior to writing, do some data cleanup to handle missing design elements.  This is workaround for legacy data, can be removed when loader is improved
+            // fixme: prior to writing, do some data cleanup to handle missing design elements.
+            // this is workaround for legacy data, can be removed when loader is improved
             log.info("Cleaning up data - removing any expression values linked " +
                     "to design elements missing from the database");
             long start = System.currentTimeMillis();
@@ -246,6 +261,11 @@ public class AtlasMAGETABLoader {
             // everything saved ok, so commit
             conn.commit();
 
+            // end the load(s)
+            for (Experiment exp : cache.fetchAllExperiments()) {
+                endLoad(exp.getAccession(), true);
+            }
+
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " completed successfully");
             return true;
@@ -262,6 +282,11 @@ public class AtlasMAGETABLoader {
                 }
                 else {
                     // connection is null, nothing to rollback
+                }
+
+                // end the load(s)
+                for (Experiment exp : cache.fetchAllExperiments()) {
+                    endLoad(exp.getAccession(), false);
                 }
             }
             catch (SQLException e1) {
@@ -293,6 +318,38 @@ public class AtlasMAGETABLoader {
                 // we did our best!
             }
         }
+    }
+
+    private boolean validateLoad(String accession) {
+        List<Experiment> experiments = atlasDAO.getAllExperiments();
+        for (Experiment experiment : experiments) {
+            if (experiment.getAccession().equals(accession)) {
+                // can't reload - experiment with matching accession already loaded!
+                return false;
+            }
+        }
+
+        // no experiment with this accession, so check load_monitor too
+        List<LoadDetails> loadDetails = atlasDAO.getLoadDetails();
+        for (LoadDetails details : loadDetails) {
+            if (details.getAccession().equals(accession)) {
+                // can't reload - experiment with matching accession already loaded!
+                return false;
+            }
+        }
+
+        // no experiment loaded or loading, so return true
+        return true;
+    }
+
+    private void startLoad(String accession) throws SQLException {
+        log.info("Updating load_monitor: starting load for " + accession);
+        atlasDAO.writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
+    }
+
+    private void endLoad(String accession, boolean success) throws SQLException {
+        log.info("Updating load_monitor: ending load for " + accession);
+        atlasDAO.writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
     private Set<String> lookupMissingDesignElements(

@@ -11,9 +11,9 @@ import java.io.IOException;
 
 /**
  * An abstract IndexBuilderService, that provides convenience methods for getting and setting parameters required across
- * all SOLR index building implementations.  This class contains a single method, {@link #buildIndex(boolean)} that clients
- * should use to construct the different types of index in a consistent manner.  Implementing classes have access to an
- * {@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the index, and an {@link
+ * all SOLR index building implementations.  This class contains a single method, {@link #buildIndex(boolean)} that
+ * clients should use to construct the different types of index in a consistent manner.  Implementing classes have
+ * access to an {@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the index, and an {@link
  * uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that provides interaction with the Atlas database (following an Atlas 2
  * schema).
  * <p/>
