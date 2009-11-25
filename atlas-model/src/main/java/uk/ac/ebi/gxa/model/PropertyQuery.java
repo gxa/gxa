@@ -16,6 +16,8 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
     private List<SampleQuery> sampleQueries = new ArrayList<SampleQuery>();
     private List<AssayQuery> assayQueries = new ArrayList<AssayQuery>();
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
+    private int propertyID;
+    private String keyword;
 
     public PropertyQuery isSampleProperty(Boolean isSampleProperty) {
         sampleProperty = isSampleProperty;
@@ -42,6 +44,16 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
         return this;
     }
 
+    public PropertyQuery hasPropertyID(int propertyID){
+        this.propertyID = propertyID;
+        return this;
+    }
+
+    public PropertyQuery hasKeyword(String keyword){
+        this.keyword = keyword;
+        return this;
+    }
+
     public List<ExperimentQuery> getExperimentQueries() {
         return experimentQueries;
     }
@@ -62,4 +74,11 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
         return sampleProperty;
     }
 
+    public int getPropertyID(){
+        return this.propertyID;
+    }
+
+    public String getKeyword(){
+        return this.keyword;
+    }
 }

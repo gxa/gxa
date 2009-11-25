@@ -8,7 +8,13 @@ package  uk.ac.ebi.gxa.model;
  * To change this template use File | Settings | File Templates.
  */
 public class SampleQuery extends AccessionQuery<SampleQuery>{
+    private PropertyQuery propertyQuery;
+
     public SampleQuery hasProperty(PropertyQuery propertyQuery){
         return this;
+    }
+
+    public PropertyQuery getPropertyQuery(){
+        return this.propertyQuery;
     }
 }

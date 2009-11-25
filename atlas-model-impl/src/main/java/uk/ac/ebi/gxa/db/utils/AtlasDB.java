@@ -68,16 +68,7 @@ public class AtlasDB {
 
        //pull IDs from DB - IO heavy
        if(null != assayQuery.getPropertyQuery()){
-           Integer[] intPropertyIDs = dao.getPropertyIDs(assayQuery.getPropertyQuery());
-
-           PropertyIDs = new Object[intPropertyIDs.length];
-
-           for(int i=0; i!=intPropertyIDs.length; i++ ){
-               Object[] PropertyID = new Object[1];
-               PropertyID[0] = intPropertyIDs[i];
-
-               PropertyIDs[i] = AtlasDB.toSqlStruct(stmt.getConnection(),"INTRECORD",PropertyID);
-           }
+           PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(assayQuery.getPropertyQuery())); //first query
        }
 
        //nested accession query
@@ -92,6 +83,123 @@ public class AtlasDB {
 
        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ASSAYQUERY", asq));
    }
+
+    public static void setSampleQuery(CallableStatement stmt, int ordinal, SampleQuery sampleQuery, AtlasDao dao) throws SQLException, GxaException {
+        Object[] PropertyIDs = null;
+
+        //pull IDs from DB - IO heavy
+        if(null != sampleQuery.getPropertyQuery()){
+            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(sampleQuery.getPropertyQuery())); //first query
+        }
+
+        //nested accession query
+        Object[] acc = new Object[2];
+
+        acc[0] = sampleQuery.getId();
+        acc[1] = sampleQuery.getAccession();
+
+        Object[] asq = new Object[2];
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+
+        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"SAMPLEQUERY", asq));
+    }
+
+    public static void setExperimentQuery(CallableStatement stmt, int ordinal, ExperimentQuery experimentQuery, AtlasDao dao) throws SQLException, GxaException {
+        Object[] PropertyIDs = null;
+        Object[] GeneIDs = null;
+
+        //pull IDs from DB - IO heavy
+        if(null != experimentQuery.getPropertyQuery()){
+            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(experimentQuery.getPropertyQuery())); //first query
+        }
+
+        if(null != experimentQuery.getGeneQuery()){
+            GeneIDs = ToObjectArray(stmt.getConnection(), dao.getGeneIDs(experimentQuery.getGeneQuery())); //first query
+        }
+
+        //nested accession query
+        Object[] acc = new Object[2];
+
+        acc[0] = experimentQuery.getId();
+        acc[1] = experimentQuery.getAccession();
+
+        Object[] asq = new Object[5];
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[1] = experimentQuery.getLab();
+        asq[2] = experimentQuery.getPerformer();
+        asq[3] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", GeneIDs);
+        asq[4] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+
+        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"EXPERIMENTQUERY", asq));
+    }
+
+    public static void setGeneQuery(CallableStatement stmt, int ordinal, GeneQuery geneQuery, AtlasDao dao) throws SQLException, GxaException {
+        Object[] PropertyIDs = null;
+
+        //pull IDs from DB - IO heavy
+        if(null != geneQuery.getPropertyQueries()  && (0<geneQuery.getPropertyQueries().size()) ){
+            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(geneQuery.getPropertyQueries().get(0))); //first query
+        }
+
+        //nested accession query
+        Object[] acc = new Object[2];
+
+        acc[0] = geneQuery.getId();
+        acc[1] = geneQuery.getAccession();
+
+        Object[] asq = new Object[2];
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+
+        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"GENEQUERY", asq));
+    }
+
+    public static Object[] ToObjectArray(Connection con, Integer[] ids) throws SQLException {
+        if(null == ids)
+            return null;
+
+        Object[] result = new Object[ids.length];
+
+          for(int i=0; i!=ids.length; i++ ){
+              Object[] PropertyID = new Object[1];
+              PropertyID[0] = ids[i];
+
+              result[i] = AtlasDB.toSqlStruct(con,"INTRECORD",PropertyID);
+          }
+
+        return result;
+    }
+
+    public static void setPropertyQuery(CallableStatement stmt, int ordinal, PropertyQuery propertyQuery, AtlasDao dao) throws SQLException, GxaException {
+        Object[] AssayIDs = null;
+        Object[] SampleIDs = null;
+        Object[] ExperimentIDs = null;
+
+        //pull IDs from DB - IO heavy
+        if((null != propertyQuery.getAssayQueries()) && (0<propertyQuery.getAssayQueries().size())){
+            AssayIDs = ToObjectArray(stmt.getConnection(), dao.getAssayIDs(propertyQuery.getAssayQueries().get(0))); //first query
+        }
+
+        if((null != propertyQuery.getSampleQueries()) && (0<propertyQuery.getSampleQueries().size())){
+            SampleIDs = ToObjectArray(stmt.getConnection(), dao.getSampleIDs(propertyQuery.getSampleQueries().get(0))); //first query
+        }
+
+        if((null != propertyQuery.getExperimentQueries()) && (0<propertyQuery.getExperimentQueries().size())){
+            ExperimentIDs = ToObjectArray(stmt.getConnection(), dao.getExperimentIDs(propertyQuery.getExperimentQueries().get(0))); //first query
+        }
+
+        Object[] asq = new Object[7];
+        asq[0] = propertyQuery.getPropertyID();
+        asq[1] = propertyQuery.getKeyword();
+        asq[2] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", SampleIDs);
+        asq[3] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", AssayIDs);
+        asq[4] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", ExperimentIDs);
+        asq[5] = propertyQuery.isAssayProperty() ? 1 : 0;
+        asq[6] = propertyQuery.isSampleProperty() ? 1 : 0;
+
+        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"PROPERTYQUERY", asq));
+    }
 
     // bind PageSortParam to query parameter
     public static void setPageSortParams(CallableStatement stmt, int ordinal, PageSortParams pageSortParams) throws SQLException{
