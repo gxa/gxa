@@ -222,19 +222,16 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
 
         try{
 
-          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?,?,?,?)}");
+          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
 
-          stmt.setString(1, atlasPropertyQuery.getId());
-          stmt.setString(2, StringUtils.join(atlasPropertyQuery.getFullTextQueries(), " "));
-          stmt.setInt(3,pageSortParams.getStart());
-          stmt.setInt(4,pageSortParams.getRows());
-          stmt.setString(5,pageSortParams.getOrderBy());
+          AtlasDB.setPropertyQuery(stmt,1,atlasPropertyQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
 
-          stmt.registerOutParameter(6, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
 
           stmt.execute();
 
-          ResultSet rsProperties = (ResultSet) stmt.getObject(6);
+          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
 
           Integer currentPropertyID = 0;
 
@@ -283,12 +280,115 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         return getProperty(atlasPropertyQuery, new PageSortParams());
     };
 
+
+    private class requestByID{
+        private CallableStatement stmt = null;
+        public requestByID(String sp_name) throws Exception{
+          stmt = connection.prepareCall("{? = call " + sp_name + "(?)}");
+        }
+        public Integer[] execute() throws Exception{
+            List<Integer> result = new ArrayList<Integer>();
+
+            try{
+               stmt.registerOutParameter(1, oracle.jdbc.OracleTypes.ARRAY, "TBLINT"); //samples
+               stmt.execute();
+
+               ARRAY rsProperties = (ARRAY) stmt.getArray(1);
+
+               Object[] values = (Object[])rsProperties.getArray();
+
+               for(int i=0;i!=values.length;i++){
+                 java.sql.Struct intrecord = (java.sql.Struct)values[i];
+                 BigDecimal db = (BigDecimal)intrecord.getAttributes()[0];
+                 result.add(db.toBigIntegerExact().intValue());
+               }
+               return result.toArray(new Integer[]{});
+             }
+             finally {
+                   if (stmt != null) {
+                     // close statement
+                            stmt.close();
+                   }
+             }
+        }
+        public CallableStatement getSatatement(){
+            return stmt;
+        }
+    }
+
+
     //return list of int w/o paging - this is public for javadocs only
     public Integer[] getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
+        try{
+
+         requestByID request = new requestByID("a2_PropertyGet_ID");
+         AtlasDB.setPropertyQuery(request.getSatatement(),2,atlasPropertyQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
+    public Integer[] getSampleIDs(SampleQuery atlasSampleQuery) throws GxaException{
+        try{
+
+         requestByID request = new requestByID("a2_SampleGet_ID");
+         AtlasDB.setSampleQuery(request.getSatatement(),2,atlasSampleQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
+    public Integer[] getAssayIDs(AssayQuery atlasAssayQuery) throws GxaException{
+        try{
+
+         requestByID request = new requestByID("a2_AssayGet_ID");
+         AtlasDB.setAssayQuery(request.getSatatement(),2,atlasAssayQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
+    public Integer[] getExperimentIDs(ExperimentQuery atlasExperimentQuery) throws GxaException{
+        try{
+
+         requestByID request = new requestByID("a2_ExperimentGet_ID");
+         AtlasDB.setExperimentQuery(request.getSatatement(),2,atlasExperimentQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
+    public Integer[] getGeneIDs(GeneQuery atlasGeneQuery) throws GxaException{
+        try{
+
+         requestByID request = new requestByID("a2_GeneGet_ID");
+         AtlasDB.setGeneQuery(request.getSatatement(),2,atlasGeneQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
+    //return list of int w/o paging - this is public for javadocs only
+    public Integer[] getExperimentIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
         CallableStatement stmt = null;
 
         List<Integer> result = new ArrayList<Integer>();
-                                               
+
         try{
 
           stmt = connection.prepareCall("{? = call a2_PropertyGet_ID(?,?)}");
@@ -307,12 +407,12 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
             java.sql.Struct intrecord = (java.sql.Struct)values[i];
 
             BigDecimal db = (BigDecimal)intrecord.getAttributes()[0];
-              
+
             result.add(db.toBigIntegerExact().intValue());
           }
 
           return result.toArray(new Integer[]{});
-                                               
+
         }
         catch(Exception ex){
             throw new GxaException(ex.getMessage());
@@ -330,7 +430,8 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         }
 
        // return null; <- why unreachable?
-    }    
+    }
+
 
     public Property                 getPropertyByAccession(AccessionQuery accession) throws GxaException{
         throw new GxaException("not implemented");

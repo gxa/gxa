@@ -9,6 +9,11 @@ package  uk.ac.ebi.gxa.model;
  */
 public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
 
+    private PropertyQuery propertyQuery;
+    private GeneQuery geneQuery;
+    private String lab;
+    private String performer;
+
     private String solrQuery;
     public String getSolrQuery(){
         return solrQuery;
@@ -24,6 +29,7 @@ public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
      * filter genes participating in the experiment
      */
     public ExperimentQuery hasGene(GeneQuery geneQuery){
+        this.geneQuery = geneQuery;
         return this;
     }
 
@@ -31,6 +37,7 @@ public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
      * performer
      */
     public ExperimentQuery hasPerformer(String performer){
+        this.performer = performer;
         return this;
     }
 
@@ -38,6 +45,7 @@ public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
      * lab
      */
     public ExperimentQuery hasLab(String lab){
+        this.lab = lab;
         return this;
     }
 
@@ -45,7 +53,24 @@ public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
      * filter by properties
      */
     public ExperimentQuery hasProperties(PropertyQuery propertyQuery){
+        this.propertyQuery = propertyQuery;
         return this;
+    }
+
+    public String getPerformer(){
+        return this.performer;
+    }
+
+    public String getLab(){
+        return this.lab;
+    }
+
+    public PropertyQuery getPropertyQuery(){
+        return this.propertyQuery;
+    }
+
+    public GeneQuery getGeneQuery(){
+        return this.geneQuery;
     }
 
 }
