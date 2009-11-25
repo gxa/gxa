@@ -48,6 +48,12 @@ Installation Instructions for the Gene Expression Atlas
  after 4.0.  We use 5.5.29, but it has been tested on later versions up to 6.0.  The Atlas web application will be
  deployed here.  Tomcat can be downloaded {{{http://tomcat.apache.org/}here}}.
 
+ The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat.  For this reason, you will
+ need to make database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or
+ $CATALINA_HOME/common/lib directory, depending on your version of Tomcat.  See
+ {{{http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}}
+ for more information on setting up JNDI resources.
+
  To download, install and build a localised mirror of the Atlas, you will need to install the Maven software management
  tool.  Maven is available {{{http://maven.apache.org/}here}}.
 
