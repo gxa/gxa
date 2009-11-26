@@ -28,7 +28,7 @@ public class TestAtlasPlotter extends TestCase {
     protected void setUp() throws Exception {
         plotter = new AtlasPlotter();
 
-        netCDF = new NetCDFProxy(new File("645932669_159274783.nc"));
+        netCDF = new NetCDFProxy(new File(getClass().getClassLoader().getResource("645932669_159274783.nc").toURI()));
         geneID = netCDF.getGenes()[0];
         ef = netCDF.getFactors()[0];
         topFVs = new ArrayList<String>();
