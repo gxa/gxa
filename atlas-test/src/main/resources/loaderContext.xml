@@ -6,6 +6,7 @@
     <bean id="atlasLoader"
           class="uk.ac.ebi.gxa.loader.AtlasMAGETABLoader">
         <property name="dataSource" ref="atlasDataSource"/>
+        <property name="atlasDAO" ref="atlasDAO" />
     </bean>
 
     <!--<bean id="atlasDataSource"-->
