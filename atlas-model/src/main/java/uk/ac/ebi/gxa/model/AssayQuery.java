@@ -11,6 +11,12 @@ import java.util.Collection;
  * To change this template use File | Settings | File Templates.
  */
 public class AssayQuery extends AccessionQuery<AssayQuery> {
+
+    public AssayQuery(){};
+
+    public AssayQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
     //AZ:10-Nov : lets have PropertyQuery member
     //private Map<String, Property> properties;
     private PropertyQuery propertyQuery;

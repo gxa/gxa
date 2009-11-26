@@ -19,6 +19,11 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
     private int propertyID;
     private String keyword;
 
+    public PropertyQuery(){};
+    public PropertyQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
+
     public PropertyQuery isSampleProperty(Boolean isSampleProperty) {
         sampleProperty = isSampleProperty;
         return this;

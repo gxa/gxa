@@ -11,8 +11,14 @@ import java.util.ArrayList;
  * To change this template use File | Settings | File Templates.
  */
 public class AbstractPropertyQuery<T> extends AccessionQuery<T>{
-     private List<String> values = new ArrayList<String>();
+    private List<String> values = new ArrayList<String>();
     private List<String> fullTextQueries = new ArrayList<String>();
+
+    public AbstractPropertyQuery(){} 
+
+    public AbstractPropertyQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }  
 
     public T hasValue(String value) {
         values.add(value);

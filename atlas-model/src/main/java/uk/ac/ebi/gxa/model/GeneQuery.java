@@ -16,6 +16,12 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
     private List<PropertyQuery> propertyQueries = new ArrayList<PropertyQuery>();
 
+    public GeneQuery(){};
+
+    public GeneQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    } 
+
     public GeneQuery usedInExperiments(ExperimentQuery experimentQuery) {
         experimentQueries.add(experimentQuery);
         return this;

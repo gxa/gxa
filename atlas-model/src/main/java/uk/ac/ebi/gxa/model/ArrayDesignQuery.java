@@ -9,6 +9,11 @@ package  uk.ac.ebi.gxa.model;
  */
 public class ArrayDesignQuery extends AccessionQuery<ArrayDesignQuery> {
 
+    public ArrayDesignQuery(){}; 
+    public ArrayDesignQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
+
     private String name;
     public String getName(){
         return name;
