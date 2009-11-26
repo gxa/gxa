@@ -217,7 +217,7 @@ public class AtlasPlotter {
                 JSONArray seriesData = new JSONArray();
 
                 // count the number of samples that have the same factor value
-                int sampleCount = factorValueDataPoints.get(geneIndices.get(0)).size();
+                int sampleCount = geneIndices.size() > 0 ? factorValueDataPoints.get(geneIndices.get(0)).size() : 0;
 
                 // loop over samples
                 for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
