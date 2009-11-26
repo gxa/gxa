@@ -38,20 +38,26 @@ public class AtlasRFactoryBuilder {
     public AtlasRFactory buildAtlasRFactory() throws InstantiationException {
         try {
             // no specifed RType enum - read properties file to assess type
-            Properties rProps = new Properties();
-            rProps.load(getClass().getClassLoader().getResourceAsStream("R.properties"));
-
-            if (rProps.containsKey("r.env.type")) {
-                String rTypeStr = rProps.getProperty("r.env.type");
-                for (RType rType : RType.values()) {
-                    if (rTypeStr.equals(rType.key())) {
-                        return buildAtlasRFactory(rType);
-                    }
-                }
-                throw new InstantiationException("r.env.type value '" + rTypeStr + "' in R.properties is " +
-                        "not recognised as a valid R environment");
+            if (getClass().getClassLoader().getResourceAsStream("R.properties") == null) {
+                throw new InstantiationException(
+                        "R.properties file absent - cannot automatically configure R environment");
             }
-            throw new InstantiationException("r.env.type property not found in R.properties");
+            else {
+                Properties rProps = new Properties();
+                rProps.load(getClass().getClassLoader().getResourceAsStream("R.properties"));
+
+                if (rProps.containsKey("r.env.type")) {
+                    String rTypeStr = rProps.getProperty("r.env.type");
+                    for (RType rType : RType.values()) {
+                        if (rTypeStr.equals(rType.key())) {
+                            return buildAtlasRFactory(rType);
+                        }
+                    }
+                    throw new InstantiationException("r.env.type value '" + rTypeStr + "' in R.properties is " +
+                            "not recognised as a valid R environment");
+                }
+                throw new InstantiationException("r.env.type property not found in R.properties");
+            }
         }
         catch (IOException e) {
             throw new InstantiationException("Unable to instantiate AtlasRFactoryBuilder - no R.properties file found");
