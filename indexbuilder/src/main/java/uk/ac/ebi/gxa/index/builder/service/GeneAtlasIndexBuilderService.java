@@ -11,6 +11,8 @@ import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.LoadStage;
+import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -70,14 +72,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                     public UpdateResponse call() throws IOException, SolrServerException,
                             IndexBuilderException {
-                        // get the properties for all these genes
-                        getLog().debug("Fetching properties for " + gene.getIdentifier());
-                        getAtlasDAO().getPropertiesForGenes(Collections.singletonList(gene));
-                        getLog().debug("Acquired genes for " + gene.getIdentifier());
-
-                        getLog().debug("Updating index - adding gene " + gene.getIdentifier());
-
+                        UpdateResponse response = null;
                         try {
+                            // update loadmonitor - gene is indexing
+                            getAtlasDAO().writeLoadDetails(
+                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING);
+
+                            // get the properties for all these genes
+                            getLog().debug("Fetching properties for " + gene.getIdentifier());
+                            getAtlasDAO().getPropertiesForGenes(Collections.singletonList(gene));
+                            getLog().debug("Acquired genes for " + gene.getIdentifier());
+
+                            getLog().debug("Updating index - adding gene " + gene.getIdentifier());
+
                             // create a new solr document for this gene
                             SolrInputDocument solrInputDoc = new SolrInputDocument();
                             getLog().debug("Updating index with properties for " + gene.getIdentifier());
@@ -85,7 +92,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             solrInputDoc.addField("gene_id", gene.getGeneID());
                             for (Property prop : gene.getProperties()) {
                                 // update with gene properties
-                                String p = "gene_" + prop.getName().toLowerCase(); // fixme: hack to support known index format
+                                String p = "gene_" +
+                                        prop.getName().toLowerCase(); // fixme: hack to support known index format
                                 String pv = prop.getValue();
 
                                 getLog().trace("Updating index, gene property " + p + " = " + pv);
@@ -95,10 +103,16 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             // add EFO counts for this gene
                             if (addEfoCounts(solrInputDoc, gene.getDesignElementIDs())) {
-                                getLog().info("Updated solr document with EFO counts");
+                                getLog().debug("Updated solr document with EFO counts");
                                 // finally, add the document to the index
-                                getLog().debug("Finalising changes for " + gene.getIdentifier());
-                                return getSolrServer().add(solrInputDoc);
+                                getLog().info("Finalising changes for " + gene.getIdentifier());
+                                response = getSolrServer().add(solrInputDoc);
+
+                                // update loadmonitor table - experiment has completed indexing
+                                getAtlasDAO().writeLoadDetails(
+                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
+
+                                return response;
                             }
                             else {
                                 getLog().warn("Failed to update solr document with counts from EFO.  " +
@@ -106,9 +120,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 return null;
                             }
                         }
-                        catch (RuntimeException e) {
-                            e.printStackTrace();
-                            throw e;
+                        finally {
+                            // if the response was set, everything completed as expected, but if it's null we got
+                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
+                            if (response == null) {
+                                getAtlasDAO().writeLoadDetails(
+                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
+                            }
                         }
                     }
                 }));
@@ -178,86 +196,88 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         ExperimentsTable expTable = new ExperimentsTable();
 
         boolean wasresult = false;
-        for (int designElementID : designElementIDs)  {
-        getLog().debug("Fetching expression analytics for design element: " + designElementID);
-        List<ExpressionAnalysis> expressionAnalytics =
-                getAtlasDAO().getExpressionAnalyticsByDesignElementID(designElementID);
-        getLog().debug("Acquired " + expressionAnalytics.size() + " analytics for design element: " + designElementID);
+        for (int designElementID : designElementIDs) {
+            getLog().debug("Fetching expression analytics for design element: " + designElementID);
+            List<ExpressionAnalysis> expressionAnalytics =
+                    getAtlasDAO().getExpressionAnalyticsByDesignElementID(designElementID);
+            getLog().debug(
+                    "Acquired " + expressionAnalytics.size() + " analytics for design element: " + designElementID);
 
-        for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
-            Long experimentId = (long) expressionAnalytic.getExperimentID();
-            if (experimentId == 0) {
-                log.error("Found experimentId=0 for design element " + designElementID);
-                continue;
-            }
-
-            wasresult = true;
-
-            boolean isUp = expressionAnalytic.getTStatistic() > 0;
-            double pval = expressionAnalytic.getPValAdjusted();
-            final String ef = expressionAnalytic.getEfName();
-            final String efv = expressionAnalytic.getEfvName();
-
-            List<String> accessions =
-                    ontomap.get(experimentId + "_" + ef + "_" + efv);
-
-            String efvid = EscapeUtil.encode(ef, efv);
-            if (!efvupdn.containsKey(efvid)) {
-                efvupdn.put(efvid, new UpDn());
-            }
-            if (isUp) {
-                efvupdn.get(efvid).cup += 1;
-                efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
-                if (!upefv.containsKey(ef)) {
-                    upefv.put(ef, new HashSet<String>());
+            for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
+                Long experimentId = (long) expressionAnalytic.getExperimentID();
+                if (experimentId == 0) {
+                    log.error("Found experimentId=0 for design element " + designElementID);
+                    continue;
                 }
-                upefv.get(ef).add(efv);
-            }
-            else {
-                efvupdn.get(efvid).cdn += 1;
-                efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
-                if (!dnefv.containsKey(ef)) {
-                    dnefv.put(ef, new HashSet<String>());
+
+                wasresult = true;
+
+                boolean isUp = expressionAnalytic.getTStatistic() > 0;
+                double pval = expressionAnalytic.getPValAdjusted();
+                final String ef = expressionAnalytic.getEfName();
+                final String efv = expressionAnalytic.getEfvName();
+
+                List<String> accessions =
+                        ontomap.get(experimentId + "_" + ef + "_" + efv);
+
+                String efvid = EscapeUtil.encode(ef, efv);
+                if (!efvupdn.containsKey(efvid)) {
+                    efvupdn.put(efvid, new UpDn());
                 }
-                dnefv.get(ef).add(efv);
-            }
-
-            if (accessions != null) {
-                for (String acc : accessions) {
-                    String accId = EscapeUtil.encode(acc);
-
-                    if (!efoupdn.containsKey(accId)) {
-                        efoupdn.put(accId, new UpDnSet());
+                if (isUp) {
+                    efvupdn.get(efvid).cup += 1;
+                    efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
+                    if (!upefv.containsKey(ef)) {
+                        upefv.put(ef, new HashSet<String>());
                     }
-                    if (isUp) {
-                        efoupdn.get(accId).up.add(experimentId);
-                        efoupdn.get(accId).minpvalUp =
-                                Math.min(efoupdn.get(accId).minpvalUp, pval);
+                    upefv.get(ef).add(efv);
+                }
+                else {
+                    efvupdn.get(efvid).cdn += 1;
+                    efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
+                    if (!dnefv.containsKey(ef)) {
+                        dnefv.put(ef, new HashSet<String>());
                     }
-                    else {
-                        efoupdn.get(accId).dn.add(experimentId);
-                        efoupdn.get(accId).minpvalDn =
-                                Math.min(efoupdn.get(accId).minpvalDn, pval);
+                    dnefv.get(ef).add(efv);
+                }
+
+                if (accessions != null) {
+                    for (String acc : accessions) {
+                        String accId = EscapeUtil.encode(acc);
+
+                        if (!efoupdn.containsKey(accId)) {
+                            efoupdn.put(accId, new UpDnSet());
+                        }
+                        if (isUp) {
+                            efoupdn.get(accId).up.add(experimentId);
+                            efoupdn.get(accId).minpvalUp =
+                                    Math.min(efoupdn.get(accId).minpvalUp, pval);
+                        }
+                        else {
+                            efoupdn.get(accId).dn.add(experimentId);
+                            efoupdn.get(accId).minpvalDn =
+                                    Math.min(efoupdn.get(accId).minpvalDn, pval);
+                        }
                     }
                 }
-            }
 
-            if (isUp) {
-                upexp.add(experimentId);
-            }
-            else {
-                dnexp.add(experimentId);
-            }
+                if (isUp) {
+                    upexp.add(experimentId);
+                }
+                else {
+                    dnexp.add(experimentId);
+                }
 
-            String[] accs;
-            if (accessions != null) {
-                accs = accessions.toArray(new String[accessions.size()]);
+                String[] accs;
+                if (accessions != null) {
+                    accs = accessions.toArray(new String[accessions.size()]);
+                }
+                else {
+                    accs = new String[0];
+                }
+                expTable.add(ef, efv, accs, experimentId, isUp, pval);
             }
-            else {
-                accs = new String[0];
-            }
-            expTable.add(ef, efv, accs, experimentId, isUp, pval);
-        }}
+        }
 
         if (!wasresult) {
             return false;

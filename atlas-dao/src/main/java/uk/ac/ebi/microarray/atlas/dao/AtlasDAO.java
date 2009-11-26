@@ -37,19 +37,19 @@ public class AtlasDAO {
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
-                    "AND lm.searchindex='pending' " +
+                    "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
-                    "AND lm.netcdf='pending' " +
+                    "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     private static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
-                    "AND lm.ranking='pending'" + // fixme: similarity?
+                    "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
     private static final String EXPERIMENT_BY_ACC_SELECT =
             EXPERIMENTS_SELECT + " " +
@@ -65,7 +65,7 @@ public class AtlasDAO {
                     "FROM a2_gene g, a2_spec s, load_monitor lm " +
                     "WHERE g.specid=s.specid " +
                     "AND g.identifier=lm.accession " +
-                    "AND lm.searchindex='pending' " +
+                    "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='gene'";
     private static final String GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
