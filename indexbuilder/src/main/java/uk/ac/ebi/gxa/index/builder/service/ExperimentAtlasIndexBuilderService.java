@@ -170,6 +170,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         finally {
             // shutdown the service
+            getLog().debug("Experiment index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
     }

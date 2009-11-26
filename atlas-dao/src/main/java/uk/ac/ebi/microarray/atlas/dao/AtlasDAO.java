@@ -7,6 +7,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -274,6 +278,7 @@ public class AtlasDAO {
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     private JdbcTemplate template;
+    private PlatformTransactionManager transactionManager;
 
     public JdbcTemplate getJdbcTemplate() {
         return template;
@@ -283,6 +288,14 @@ public class AtlasDAO {
         this.template = template;
     }
 
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
+    }
+
     public List<LoadDetails> getLoadDetails() {
         List results = template.query(LOAD_MONITOR_SELECT,
                                       new LoadDetailsMapper());
@@ -290,7 +303,13 @@ public class AtlasDAO {
     }
 
     public void writeLoadDetails(String experimentAccession, LoadStage loadStage, LoadStatus loadStatus) {
-        // procedure...
+        // set up transactional behaviour for this method, as load_monitor changes must flush immediately
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        TransactionStatus status = transactionManager.getTransaction(def);
+
+        // execute this procedure...
         /*
         create or replace procedure load_progress(
           experiment_accession varchar
@@ -299,16 +318,25 @@ public class AtlasDAO {
         )
         */
 
-        // create stored procedure call
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
+        try {
+            // create stored procedure call
+            SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
 
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("experiment_accession", experimentAccession);
-        params.addValue("stage", loadStage.toString().toLowerCase());
-        params.addValue("status", loadStatus.toString().toLowerCase());
+            // map parameters...
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("experiment_accession", experimentAccession);
+            params.addValue("stage", loadStage.toString().toLowerCase());
+            params.addValue("status", loadStatus.toString().toLowerCase());
 
-        procedure.execute(params);
+            procedure.execute(params);
+        }
+        catch (RuntimeException e) {
+            e.printStackTrace();
+            transactionManager.rollback(status);
+        }
+
+        // commit this transaction
+        transactionManager.commit(status);
     }
 
     public List<Experiment> getAllExperiments() {
@@ -446,7 +474,7 @@ public class AtlasDAO {
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
                                       new Object[]{experimentAccession,
-                                              arrayAccession},
+                                                   arrayAccession},
                                       new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;

@@ -5,7 +5,7 @@
 
     <bean id="atlasLoader"
           class="uk.ac.ebi.gxa.loader.AtlasMAGETABLoader">
-        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="dataSource" ref="atlasDataSource" />
         <property name="atlasDAO" ref="atlasDAO" />
     </bean>
 
@@ -21,49 +21,54 @@
     <bean id="atlasDataSource"
           class="org.apache.commons.dbcp.BasicDataSource"
           destroy-method="close">
-        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>
-        <property name="username" value="atlas2"/>
-        <property name="password" value="atlas2"/>
-        <property name="defaultAutoCommit" value="false"/>
-        <property name="maxActive" value="50"/>
-        <property name="removeAbandoned" value="true"/>
+        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+        <property name="url" value="jdbc:oracle:thin:@localhost:1521:AEDWT" />
+        <property name="username" value="atlas2" />
+        <property name="password" value="atlas2" />
+        <property name="defaultAutoCommit" value="false" />
+        <property name="maxActive" value="50" />
+        <property name="removeAbandoned" value="true" />
+    </bean>
+
+    <bean id="atlasTransationManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource" />
     </bean>
 
     <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="dataSource" ref="atlasDataSource" />
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
     <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="template"/>
+        <property name="jdbcTemplate" ref="template" />
+        <property name="transactionManager" ref="atlasTransationManager" />
     </bean>
 
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/index"/>
+        <constructor-arg value="/home/tburdett/atlas/index" />
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
+        <constructor-arg value="/home/tburdett/atlas/netcdfs" />
     </bean>
 
     <!-- Requires an Index Builder -->
     <bean name="indexBuilder"
           class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <!-- resource beans -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="indexLocation" ref="atlasIndex"/>
+        <property name="atlasDAO" ref="atlasDAO" />
+        <property name="indexLocation" ref="atlasIndex" />
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
-        <property name="includeGenes" value="true"/>
-        <property name="includeExperiments" value="true"/>
+        <property name="includeGenes" value="true" />
+        <property name="includeExperiments" value="true" />
     </bean>
 
     <bean name="netcdfGenerator"
           class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="repositoryLocation" ref="atlasNetCDFs"/>
+        <property name="atlasDAO" ref="atlasDAO" />
+        <property name="repositoryLocation" ref="atlasNetCDFs" />
     </bean>
 
 </beans>

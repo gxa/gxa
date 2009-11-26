@@ -75,8 +75,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         UpdateResponse response = null;
                         try {
                             // update loadmonitor - gene is indexing
+                            getLog().debug("Updating load_monitor table: status = working");
                             getAtlasDAO().writeLoadDetails(
                                     gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING);
+                            getLog().debug("Load_monitor table updated");
 
                             // get the properties for all these genes
                             getLog().debug("Fetching properties for " + gene.getIdentifier());
@@ -152,6 +154,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
         finally {
             // shutdown the service
+            getLog().debug("Gene index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
     }
