@@ -209,6 +209,13 @@ public class AtlasMAGETABLoader {
                 // get the array design for this assay
                 String arrayDesignAcc = assay.getArrayDesignAccession();
 
+                // check that this array design is loaded
+                if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
+                    log.error("The array design " + arrayDesignAcc + " is not present in the database.  This array " +
+                            "MUST be loaded before experiments using this array can be loaded.");
+                    return false;
+                }
+
                 // get the missing design elements - either DB lookup or fetch from map
                 Set<String> missingDesignElements;
                 if (!designElementsByArray.containsKey(arrayDesignAcc)) {

@@ -41,7 +41,7 @@
         <!-- analytics has some biocep dependencies, for R analyses -->
         <dependency>
             <groupId>uk.ac.ebi.microarray</groupId>
-            <artifactId>bioc</artifactId>
+            <artifactId>bioc-assembly</artifactId>
             <version>1.0-alpha</version>
         </dependency>
 
@@ -52,6 +52,13 @@
             <version>1.0-alpha-3-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
+        </dependency>
+        <!-- and we need oracle jars to run biocep tests here -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.1.0.6.0</version>
+            <scope>test</scope>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>

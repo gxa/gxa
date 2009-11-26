@@ -298,6 +298,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                      "CREATE ALIAS A2_SAMPLESET FOR " +
                              "\"uk.ac.ebi.microarray.atlas.dao.procedures.SampleSetter.call\"");
 
+        runStatement(conn,
+                     "CREATE ALIAS load_progress FOR " +
+                             "\"uk.ac.ebi.microarray.atlas.dao.procedures.LoadProgress.call\"");
+
         System.out.println("...done!");
         conn.close();
     }
