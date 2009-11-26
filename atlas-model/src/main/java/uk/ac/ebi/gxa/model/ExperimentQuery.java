@@ -18,6 +18,13 @@ public class ExperimentQuery extends AccessionQuery<ExperimentQuery>  {
     public String getSolrQuery(){
         return solrQuery;
     }
+
+    public ExperimentQuery(){};
+
+    public ExperimentQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
+
     /**
      * rudimentary Solr query string
      */

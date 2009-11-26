@@ -26,6 +26,15 @@ public class AtlasDao implements Dao {
     private OracleConnection connection;
     private ExpressionStatDao expressionStatDao = new ExpressionStatDao();
 
+    class ProperyValuePair {
+        public String property;
+        public String value;
+        public ProperyValuePair(String property, String value){
+            this.property = property;
+            this.value = value;
+        }
+    }
+
     public void Connect(String connectionString, String userName, String password) throws Exception
     {
         try{
@@ -38,6 +47,8 @@ public class AtlasDao implements Dao {
             throw ex;
         }
     }
+
+    /////ArrayDesign
 
     public QueryResultSet<ArrayDesign> getArrayDesign(ArrayDesignQuery atlasArrayDesignQuery, PageSortParams pageSortParams) throws GxaException{
         QueryResultSet<ArrayDesign> result = new QueryResultSet<ArrayDesign>();
@@ -77,9 +88,14 @@ public class AtlasDao implements Dao {
         return getArrayDesign(atlasArrayDesignQuery,new PageSortParams());
     };
 
-    public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
+    public ArrayDesign                 getArrayDesignByAccession(AccessionQuery accessionQuery) throws GxaException{
+
+        QueryResultSet<ArrayDesign> result = this.getArrayDesign(new ArrayDesignQuery(accessionQuery));
+
+        return result.getItem();
     };
+
+    ////Assay
 
     public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams) throws GxaException{
         QueryResultSet<Assay> result = new QueryResultSet<Assay>();
@@ -169,17 +185,7 @@ public class AtlasDao implements Dao {
 
     };
 
-
-    class ProperyValuePair {
-        public String property;
-        public String value;
-        public ProperyValuePair(String property, String value){
-            this.property = property;
-            this.value = value;
-        }
-    }
-    
-public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException{
+    public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException{
 
     PageSortParams pageSortParams = new PageSortParams(); //default paging-sorting
 
@@ -187,33 +193,124 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
 
     };
 
-    public Assay                 getAssayByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
+    public Assay                 getAssayByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Assay> result = this.getAssay(new AssayQuery(accessionQuery));
+        return result.getItem();
     };
 
+    ////Sample
+
     public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
+
+        QueryResultSet<Sample> result = new QueryResultSet<Sample>();
+        CallableStatement stmt = null;
+
+        try{
+          stmt = connection.prepareCall("{call a2_SampleGet(?,?,?,?,?)}");
+
+          AtlasDB.setSampleQuery(stmt,1,atlasSampleQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
+          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //properties
+
+          stmt.execute();
+
+          ArrayList<Sample> assays = new ArrayList<Sample>();
+
+          ResultSet rsSamples = (ResultSet) stmt.getObject(3);
+          ResultSet rsAssays = (ResultSet) stmt.getObject(4);
+          ResultSet rsProperties = (ResultSet) stmt.getObject(5);
+
+          rsAssays.next();
+          rsProperties.next();
+
+          while(rsSamples.next()){
+            AtlasSample a = new AtlasSample();
+
+            int SampleID = rsSamples.getInt("SampleId");
+
+            a.setid(SampleID);
+            a.setAccession(rsAssays.getString("Accession"));
+            //a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
+
+            ArrayList<String> assayAccessions = new ArrayList<String>();
+
+            while(SampleID == rsAssays.getInt("SampleId")){
+                assayAccessions.add(rsSamples.getString("AssayAccession"));
+
+                rsSamples.next();
+            }
+
+            a.setAssayAccessions(assayAccessions);
+
+            ArrayList<Property> sampleproperties = new ArrayList<Property>();
+
+            while(SampleID == rsProperties.getInt("SampleId")){
+
+                AtlasProperty atlasProperty = new AtlasProperty();
+                atlasProperty.setName(rsProperties.getString("Property"));
+
+                ArrayList<String> values = new ArrayList<String>();
+                values.add(rsProperties.getString("PropertyValue"));
+
+                atlasProperty.setValues(values);
+
+                sampleproperties.add(atlasProperty);
+
+                rsProperties.next();
+            }
+
+            a.setProperties(new AtlasPropertyCollection(sampleproperties));
+            assays.add(a);
+        }
+
+        result.setItems(assays);
+        return result;
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
     };
 
     public QueryResultSet<Sample> getSample(SampleQuery atlasSampleQuery) throws GxaException{
-        throw new GxaException("not implemented");
+        return getSample(atlasSampleQuery, new PageSortParams());
     };
 
-    public Sample                 getSampleByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
+    public Sample                 getSampleByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Sample> result = this.getSample(new SampleQuery(accessionQuery));
+        return result.getItem();
     };
+
+
+    ////Experiment
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery, PageSortParams pageSortParams) throws GxaException{
         throw new GxaException("not implemented");
     };
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery) throws GxaException{
-        throw new GxaException("not implemented");
+        return getExperiment(atlasExperimentQuery, new PageSortParams());
     };                                                                                                         
 
-    public Experiment                 getExperimentByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
+    public Experiment                 getExperimentByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Experiment> result = this.getExperiment(new ExperimentQuery(accessionQuery));
+        return result.getItem();
     };
+
+    ////Property
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException{
         CallableStatement stmt = null;
@@ -280,6 +377,94 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         return getProperty(atlasPropertyQuery, new PageSortParams());
     };
 
+    public Property                 getPropertyByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Property> result = this.getProperty(new PropertyQuery(accessionQuery));
+        return result.getItem();
+    };
+
+    ///Gene
+
+    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException{
+        QueryResultSet<Gene> result = new QueryResultSet<Gene>();
+        CallableStatement stmt = null;
+
+        try{
+          stmt = connection.prepareCall("{call a2_GeneGet(?,?,?,?)}");
+
+          AtlasDB.setGeneQuery(stmt,1,atlasGeneQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //genes
+          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //properties
+
+          stmt.execute();
+
+          ArrayList<Gene> genes = new ArrayList<Gene>();
+
+          ResultSet rsGenes = (ResultSet) stmt.getObject(3);
+          ResultSet rsProperties = (ResultSet) stmt.getObject(4);
+
+          rsProperties.next();
+
+          while(rsGenes.next()){
+            AtlasGene a = new AtlasGene();
+
+            int GeneID = rsGenes.getInt("GeneId");
+
+            a.setid(GeneID);
+            a.setAccession(rsGenes.getString("Accession"));
+
+            ArrayList<Property> geneproperties = new ArrayList<Property>();
+
+            while(GeneID == rsProperties.getInt("GeneId")){
+
+                AtlasProperty atlasProperty = new AtlasProperty();
+                atlasProperty.setName(rsProperties.getString("Property"));
+
+                ArrayList<String> values = new ArrayList<String>();
+                values.add(rsProperties.getString("PropertyValue"));
+
+                atlasProperty.setValues(values);
+
+                geneproperties.add(atlasProperty);
+
+                rsProperties.next();
+            }
+
+            a.setProperties(new AtlasPropertyCollection(geneproperties));
+            genes.add(a);
+        }
+
+        result.setItems(genes);
+
+        return result;
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
+    };
+
+    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException{
+        return getGene(atlasGeneQuery, new PageSortParams());
+    };
+
+    public Gene                 getGeneByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Gene> result = this.getGene(new GeneQuery(accessionQuery));
+        return result.getItem();
+    };
+
+    ///Get IDs - utility functions
 
     private class requestByID{
         private CallableStatement stmt = null;
@@ -315,7 +500,6 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
             return stmt;
         }
     }
-
 
     //return list of int w/o paging - this is public for javadocs only
     public Integer[] getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
@@ -383,7 +567,7 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
         }
     }
 
-    //return list of int w/o paging - this is public for javadocs only
+    /***
     public Integer[] getExperimentIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
         CallableStatement stmt = null;
 
@@ -431,23 +615,8 @@ public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaExce
 
        // return null; <- why unreachable?
     }
+    ****/
 
-
-    public Property                 getPropertyByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
-    };
-
-    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
-    };
-
-    public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException{
-        throw new GxaException("not implemented");
-    };
-
-    public Gene                 getGeneByAccession(AccessionQuery accession) throws GxaException{
-        throw new GxaException("not implemented");
-    };
 
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, pageSortParams);

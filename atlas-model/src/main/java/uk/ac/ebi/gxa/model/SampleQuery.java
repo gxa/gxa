@@ -10,6 +10,12 @@ package  uk.ac.ebi.gxa.model;
 public class SampleQuery extends AccessionQuery<SampleQuery>{
     private PropertyQuery propertyQuery;
 
+    public SampleQuery(){};
+
+    public SampleQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
+
     public SampleQuery hasProperty(PropertyQuery propertyQuery){
         return this;
     }
