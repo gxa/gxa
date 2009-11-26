@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
-import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
@@ -13,10 +11,8 @@ import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorSer
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.*;
 
 /**

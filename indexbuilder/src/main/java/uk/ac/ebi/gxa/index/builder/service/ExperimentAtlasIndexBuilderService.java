@@ -7,6 +7,8 @@ import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.ae3.indexbuilder.Constants;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.LoadStage;
+import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
@@ -47,80 +49,103 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             for (final Experiment experiment : experiments) {
                 tasks.add(tpool.submit(new Callable<UpdateResponse>() {
                     public UpdateResponse call() throws IOException, SolrServerException {
-                        // Create a new solr document
-                        SolrInputDocument solrInputDoc = new SolrInputDocument();
+                        UpdateResponse response = null;
+                        try {
+                            // update loadmonitor - experiment is indexing
+                            getAtlasDAO().writeLoadDetails(
+                                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.WORKING);
 
-                        // Add field "exp_in_dw" = true, to show this experiment is present
-                        getLog().info("Updating index - adding experiment " + experiment.getAccession());
-                        getLog().debug("Adding standard fields for experiment stats");
-                        solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_ID, experiment.getExperimentID());
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION, experiment.getAccession());
-                        solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC, experiment.getDescription());
+                            // Create a new solr document
+                            SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-                        // now, fetch assays for this experiment
-                        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
-                        if (assays.size() == 0) {
-                            getLog().warn("No assays present for " +
-                                    experiment.getAccession());
+                            // Add field "exp_in_dw" = true, to show this experiment is present
+                            getLog().info("Updating index - adding experiment " + experiment.getAccession());
+                            getLog().debug("Adding standard fields for experiment stats");
+                            solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
+                            solrInputDoc.addField(Constants.FIELD_DWEXP_ID, experiment.getExperimentID());
+                            solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION, experiment.getAccession());
+                            solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC, experiment.getDescription());
+
+                            // now, fetch assays for this experiment
+                            List<Assay> assays =
+                                    getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
+                            if (assays.size() == 0) {
+                                getLog().warn("No assays present for " +
+                                        experiment.getAccession());
+                            }
+
+                            for (Assay assay : assays) {
+                                // get assay properties and values
+                                System.out.println("Getting properties for assay " + assay.getAssayID());
+                                for (Property prop : assay.getProperties()) {
+                                    String p = prop.getName();
+                                    String pv = prop.getValue();
+
+                                    getLog().trace("Updating index, assay property " + p + " = " + pv);
+                                    solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
+                                    getLog().trace("Wrote " + p + " = " + pv);
+                                }
+                            }
+
+                            // now get samples
+                            List<Sample> samples =
+                                    getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
+                            if (samples.size() == 0) {
+                                getLog().warn("No samples present for experiment " + experiment.getAccession());
+                            }
+
+                            for (Sample sample : samples) {
+                                // get sample properties and values
+                                for (Property prop : sample.getProperties()) {
+                                    String p = prop.getName();
+                                    String pv = prop.getValue();
+
+                                    getLog().trace("Updating index, sample property " + p + " = " + pv);
+                                    solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
+                                    getLog().trace("Wrote " + p + " = " + pv);
+                                }
+                            }
+
+                            // now, fetch atlas counts for this experiment
+                            getLog().debug("Evaluating atlas counts for " + experiment.getAccession());
+                            List<AtlasCount> atlasCounts = getAtlasDAO().getAtlasCountsByExperimentID(
+                                    experiment.getExperimentID());
+                            getLog().debug(experiment.getAccession() + " has " + atlasCounts.size() +
+                                    " atlas count objects");
+                            for (AtlasCount count : atlasCounts) {
+                                // encode values in UTF-8 format for indexing
+                                String ef = URLEncoder.encode(count.getProperty(), "UTF-8");
+                                String efv = URLEncoder.encode(count.getPropertyValue(), "UTF-8");
+                                // efvid is concatenation of ef and efv
+                                String efvid = ef + "_" + efv;
+                                // field name is efvid_up / efvid_dn depending on expression
+                                String fieldname = efvid + "_" + (count.getUpOrDown().equals("-1") ? "dn" : "up");
+
+                                // add a field:
+                                // key is the fieldname, value is the total count
+                                getLog().debug("Updating index with atlas count data... key: " + fieldname + "; " +
+                                        "value: " + count.getGeneCount());
+                                solrInputDoc.addField(fieldname, count.getGeneCount());
+                            }
+
+                            // finally, add the document to the index
+                            getLog().info("Finalising changes for " + experiment.getAccession());
+                            response = getSolrServer().add(solrInputDoc);
+
+                            // update loadmonitor table - experiment has completed indexing
+                            getAtlasDAO().writeLoadDetails(
+                                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
+
+                            return response;
                         }
-
-                        for (Assay assay : assays) {
-                            // get assay properties and values
-                            System.out.println("Getting properties for assay " + assay.getAssayID());
-                            for (Property prop : assay.getProperties()) {
-                                String p = prop.getName();
-                                String pv = prop.getValue();
-
-                                getLog().trace("Updating index, assay property " + p + " = " + pv);
-                                solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
-                                getLog().trace("Wrote " + p + " = " + pv);
+                        finally {
+                            // if the response was set, everything completed as expected, but if it's null we got
+                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
+                            if (response == null) {
+                                getAtlasDAO().writeLoadDetails(
+                                        experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
                             }
                         }
-
-                        // now get samples
-                        List<Sample> samples = getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
-                        if (samples.size() == 0) {
-                            getLog().warn("No samples present for experiment " + experiment.getAccession());
-                        }
-
-                        for (Sample sample : samples) {
-                            // get sample properties and values
-                            for (Property prop : sample.getProperties()) {
-                                String p = prop.getName();
-                                String pv = prop.getValue();
-
-                                getLog().trace("Updating index, sample property " + p + " = " + pv);
-                                solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
-                                getLog().trace("Wrote " + p + " = " + pv);
-                            }
-                        }
-
-                        // now, fetch atlas counts for this experiment
-                        getLog().debug("Evaluating atlas counts for " + experiment.getAccession());
-                        List<AtlasCount> atlasCounts = getAtlasDAO().getAtlasCountsByExperimentID(
-                                experiment.getExperimentID());
-                        getLog().debug(experiment.getAccession() + " has " + atlasCounts.size() +
-                                " atlas count objects");
-                        for (AtlasCount count : atlasCounts) {
-                            // encode values in UTF-8 format for indexing
-                            String ef = URLEncoder.encode(count.getProperty(), "UTF-8");
-                            String efv = URLEncoder.encode(count.getPropertyValue(), "UTF-8");
-                            // efvid is concatenation of ef and efv
-                            String efvid = ef + "_" + efv;
-                            // field name is efvid_up / efvid_dn depending on expression
-                            String fieldname = efvid + "_" + (count.getUpOrDown().equals("-1") ? "dn" : "up");
-
-                            // add a field:
-                            // key is the fieldname, value is the total count
-                            getLog().debug("Updating index with atlas count data... key: " + fieldname + "; " +
-                                    "value: " + count.getGeneCount());
-                            solrInputDoc.addField(fieldname, count.getGeneCount());
-                        }
-
-                        // finally, add the document to the index
-                        getLog().info("Finalising changes for " + experiment.getAccession());
-                        return getSolrServer().add(solrInputDoc);
                     }
                 }));
             }

@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -59,6 +58,7 @@ import java.util.*;
  * @date 26-Aug-2009
  */
 public class AtlasMAGETABLoader {
+    // fixme: remove requirement on datasource, all interactions should go through DAO
     private DataSource dataSource;
 
     private AtlasDAO atlasDAO;
@@ -73,10 +73,14 @@ public class AtlasMAGETABLoader {
     public void setDataSource(DataSource dataSource) {
         // set the datasource
         this.dataSource = dataSource;
+    }
 
-        // also create a DAO from this datasource
-        this.atlasDAO = new AtlasDAO();
-        atlasDAO.setJdbcTemplate(new JdbcTemplate(dataSource));
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
     }
 
     /**
