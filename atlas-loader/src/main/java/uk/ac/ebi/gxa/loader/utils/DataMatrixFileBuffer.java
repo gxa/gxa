@@ -99,9 +99,7 @@ public class DataMatrixFileBuffer {
             }
         }
 
-//    Map<String, List<ExpressionValue>> result =
-//        new HashMap<String, List<ExpressionValue>>();
-        // argh, complex mapping - assay accession to the map of design element/expression value mappings
+        // argh, complex mapping - this maps the assay accession to the map of design element/expression value mappings
         Map<String, Map<String, Float>> result =
                 new HashMap<String, Map<String, Float>>();
 
@@ -141,6 +139,9 @@ public class DataMatrixFileBuffer {
             log.info("Reading data matrix from " + dataMatrixURL + "...");
             String line;
 
+            // read line by line - but if assay refs are missing, we don't want to warn every time
+            Set<String> missingAssayRefColumns = new HashSet<String>();
+
             // NB this uses same reader we used to parse headers, so just continue reading
             int lineCount = 0;
             while ((line = reader.readLine()) != null) {
@@ -173,11 +174,24 @@ public class DataMatrixFileBuffer {
 
                                     log.debug("Index of expression value (" + assayRef + "): " +
                                             assayRefToEVColumn.get(assayRef));
+
                                     if (assayRefToEVColumn.get(assayRef) == null) {
-                                        log.warn("No expression values present for " + assayRef +
-                                                " in data matrix file at " +
-                                                "line: " + lineCount + ", " +
-                                                "column: " + assayRefToEVColumn.get(assayRef));
+                                        // we have a missing expression value - is the whole column missing?
+                                        if (assayRefToEVColumn.get(assayRef) == null) {
+                                            // just warn the first time
+                                            if (!missingAssayRefColumns.contains(assayRef)) {
+                                                missingAssayRefColumns.add(assayRef);
+                                                log.warn("Missing column in data file: " +
+                                                        "no reference to assay " + assayRef + " could be found");
+                                            }
+                                        }
+                                        else {
+                                            // warn each time, as the column is present but just this value is missing
+                                            log.warn("No expression values present for " + assayRef +
+                                                    " in data matrix file at " +
+                                                    "line: " + lineCount + ", " +
+                                                    "column: " + assayRefToEVColumn.get(assayRef));
+                                        }
                                     }
                                     else {
                                         float evFloatValue = Float.parseFloat(

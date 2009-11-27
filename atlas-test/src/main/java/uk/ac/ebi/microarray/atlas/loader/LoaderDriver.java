@@ -6,7 +6,10 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
@@ -32,25 +35,55 @@ public class LoaderDriver {
                 new ClassPathXmlApplicationContext("loaderContext.xml");
 
         // loader
-        final AtlasMAGETABLoader loader = (AtlasMAGETABLoader) factory.getBean("atlasLoader");
+        final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
         // index
-        final IndexBuilder builder =
-                (IndexBuilder) factory.getBean("indexBuilder");
-        // including genes?
-        System.out.println("Include genes: " + builder.getIncludeGenes());
+        final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
         // netcdfs
-        final NetCDFGenerator generator =
-                (NetCDFGenerator) factory.getBean("netcdfGenerator");
-
+        final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
 
         // run the loader
         try {
-            URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
-            final long loadStart = System.currentTimeMillis();
-            boolean success = loader.load(url);
-            final long loadEnd = System.currentTimeMillis();
-            String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
-            System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+            final URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
+            final long indexStart = System.currentTimeMillis();
+            loader.loadExperiment(url, new AtlasLoaderListener() {
+
+                public void loadSuccess(AtlasLoaderEvent event) {
+                    final long indexEnd = System.currentTimeMillis();
+
+                    String total = new DecimalFormat("#.##").format(
+                            (indexEnd - indexStart) / 60000);
+                    System.out.println(
+                            "Load completed successfully in " + total + " mins.");
+
+                    try {
+                        loader.shutdown();
+                    }
+                    catch (AtlasLoaderException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void loadError(AtlasLoaderEvent event) {
+                    System.out.println("Load failed");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                        try {
+                            loader.shutdown();
+                        }
+                        catch (AtlasLoaderException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+            // in case we don't run loader
+            try {
+                loader.shutdown();
+            }
+            catch (AtlasLoaderException e) {
+                e.printStackTrace();
+            }
         }
         catch (MalformedURLException e) {
             e.printStackTrace();

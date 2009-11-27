@@ -3,12 +3,6 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="atlasLoader"
-          class="uk.ac.ebi.gxa.loader.AtlasMAGETABLoader">
-        <property name="dataSource" ref="atlasDataSource" />
-        <property name="atlasDAO" ref="atlasDAO" />
-    </bean>
-
     <!--<bean id="atlasDataSource"-->
     <!--class="org.springframework.jdbc.datasource.SingleConnectionDataSource">-->
     <!--<property name="driverClassName" value="oracle.jdbc.OracleDriver"/>-->
@@ -57,6 +51,12 @@
 
     <bean id="atlasNetCDFs" class="java.io.File">
         <constructor-arg value="/home/tburdett/atlas/netcdfs" />
+    </bean>
+
+    <!-- Requires a loader -->
+    <bean id="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
+        <property name="dataSource" ref="atlasDataSource" />
+        <property name="atlasDAO" ref="atlasDAO" />
     </bean>
 
     <!-- Requires an Index Builder -->

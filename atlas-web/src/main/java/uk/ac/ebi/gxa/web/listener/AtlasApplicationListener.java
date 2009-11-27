@@ -11,7 +11,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.web.Atlas;
@@ -58,7 +58,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // fetch services from the context
         AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
-        AtlasMAGETABLoader atlasLoader = (AtlasMAGETABLoader) context.getBean("atlasLoader");
+        AtlasLoader atlasLoader = (AtlasLoader) context.getBean("atlasLoader");
         IndexBuilder indexBuilder = (IndexBuilder) context.getBean("indexBuilder");
         NetCDFGenerator netCDFGenerator = (NetCDFGenerator) context.getBean("netCDFGenerator");
         AnalyticsGenerator analyticsGenerator = (AnalyticsGenerator) context.getBean("analyticsGenerator");
