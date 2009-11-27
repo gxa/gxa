@@ -9,7 +9,14 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.LoadStage;
+import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 
 /**
@@ -36,19 +43,19 @@ public class LoaderDriver {
                 (NetCDFGenerator) factory.getBean("netcdfGenerator");
 
 
-//        // run the loader
-//        try {
-//            URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
-//            final long loadStart = System.currentTimeMillis();
-//            boolean success = loader.load(url);
-//            final long loadEnd = System.currentTimeMillis();
-//            String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
-//            System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
-//        }
-//        catch (MalformedURLException e) {
-//            e.printStackTrace();
-//            System.out.println("Load failed - inaccessible URL");
-//        }
+        // run the loader
+        try {
+            URL url = new URL("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt");
+            final long loadStart = System.currentTimeMillis();
+            boolean success = loader.load(url);
+            final long loadEnd = System.currentTimeMillis();
+            String total = new DecimalFormat("#.##").format((loadEnd - loadStart) / 1000);
+            System.out.println("Load ok? " + success + ".  Total load time = " + total + "s.");
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("Load failed - inaccessible URL");
+        }
 
         // run the index builder
         final long indexStart = System.currentTimeMillis();
@@ -84,48 +91,48 @@ public class LoaderDriver {
             }
         });
 
-//        // in case we don't run indexbuilder
-//        try {
-//            builder.shutdown();
-//        }
-//        catch (IndexBuilderException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // run the NetCDFGenerator
-//        final long netStart = System.currentTimeMillis();
-//        generator.generateNetCDFsForExperiment(
-//                "E-GEOD-1725",
-//                new NetCDFGeneratorListener() {
-//                    public void buildSuccess(NetCDFGenerationEvent event) {
-//                        final long netEnd = System.currentTimeMillis();
-//
-//                        String total = new DecimalFormat("#.##").format(
-//                                (netEnd - netStart) / 60000);
-//                        System.out.println(
-//                                "NetCDFs generated successfully in " + total + " mins.");
-//
-//                        try {
-//                            generator.shutdown();
-//                        }
-//                        catch (NetCDFGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    public void buildError(NetCDFGenerationEvent event) {
-//                        System.out.println("NetCDF Generation failed!");
-//                        for (Throwable t : event.getErrors()) {
-//                            t.printStackTrace();
-//                            try {
-//                                generator.shutdown();
-//                            }
-//                            catch (NetCDFGeneratorException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
+        // in case we don't run indexbuilder
+        try {
+            builder.shutdown();
+        }
+        catch (IndexBuilderException e) {
+            e.printStackTrace();
+        }
+
+        // run the NetCDFGenerator
+        final long netStart = System.currentTimeMillis();
+        generator.generateNetCDFsForExperiment(
+                "E-GEOD-1725",
+                new NetCDFGeneratorListener() {
+                    public void buildSuccess(NetCDFGenerationEvent event) {
+                        final long netEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (netEnd - netStart) / 60000);
+                        System.out.println(
+                                "NetCDFs generated successfully in " + total + " mins.");
+
+                        try {
+                            generator.shutdown();
+                        }
+                        catch (NetCDFGeneratorException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void buildError(NetCDFGenerationEvent event) {
+                        System.out.println("NetCDF Generation failed!");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                            try {
+                                generator.shutdown();
+                            }
+                            catch (NetCDFGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
 
         // in case we don't run netCDF generator
         try {
@@ -134,5 +141,25 @@ public class LoaderDriver {
         catch (NetCDFGeneratorException e) {
             e.printStackTrace();
         }
+
+        // do a test load_monitor update
+        final AtlasDAO atlasDAO =
+                (AtlasDAO) factory.getBean("atlasDAO");
+        atlasDAO.writeLoadDetails("TEST-1", LoadStage.LOAD, LoadStatus.WORKING);
+        System.out.println("Set TEST-1: load = working");
+
+        // wait 30 seconds
+        final Object o = new Object();
+        synchronized (o) {
+            try {
+                o.wait(30000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        atlasDAO.writeLoadDetails("TEST-1", LoadStage.LOAD, LoadStatus.DONE);
+        System.out.println("Set TEST-1: load = done");
     }
 }

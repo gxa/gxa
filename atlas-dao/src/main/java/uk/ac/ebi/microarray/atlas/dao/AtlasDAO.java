@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -7,10 +9,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -278,7 +279,9 @@ public class AtlasDAO {
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     private JdbcTemplate template;
-    private PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public JdbcTemplate getJdbcTemplate() {
         return template;
@@ -288,12 +291,12 @@ public class AtlasDAO {
         this.template = template;
     }
 
-    public PlatformTransactionManager getTransactionManager() {
-        return transactionManager;
+    public TransactionTemplate getTransactionTemplate() {
+        return transactionTemplate;
     }
 
-    public void setTransactionManager(PlatformTransactionManager transactionManager) {
-        this.transactionManager = transactionManager;
+    public void setTransactionTemplate(TransactionTemplate transactionTemplate) {
+        this.transactionTemplate = transactionTemplate;
     }
 
     public List<LoadDetails> getLoadDetails() {
@@ -302,14 +305,10 @@ public class AtlasDAO {
         return (List<LoadDetails>) results;
     }
 
-    public void writeLoadDetails(String experimentAccession, LoadStage loadStage, LoadStatus loadStatus) {
-        // set up transactional behaviour for this method, as load_monitor changes must flush immediately
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-
-        TransactionStatus status = transactionManager.getTransaction(def);
-
-        // execute this procedure...
+    public void writeLoadDetails(final String experimentAccession,
+                                 final LoadStage loadStage,
+                                 final LoadStatus loadStatus) {
+        // execute this procedure in it's own transaction...
         /*
         create or replace procedure load_progress(
           experiment_accession varchar
@@ -317,26 +316,27 @@ public class AtlasDAO {
           ,status varchar --done, pending
         )
         */
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                try {
+                    // create stored procedure call
+                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
 
-        try {
-            // create stored procedure call
-            SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
+                    // map parameters...
+                    MapSqlParameterSource params = new MapSqlParameterSource();
+                    params.addValue("experiment_accession", experimentAccession);
+                    params.addValue("stage", loadStage.toString().toLowerCase());
+                    params.addValue("status", loadStatus.toString().toLowerCase());
 
-            // map parameters...
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("experiment_accession", experimentAccession);
-            params.addValue("stage", loadStage.toString().toLowerCase());
-            params.addValue("status", loadStatus.toString().toLowerCase());
-
-            procedure.execute(params);
-        }
-        catch (RuntimeException e) {
-            e.printStackTrace();
-            transactionManager.rollback(status);
-        }
-
-        // commit this transaction
-        transactionManager.commit(status);
+                    procedure.execute(params);
+                }
+                catch (Exception e) {
+                    log.error("load_progress transaction update failed! " + e.getMessage());
+                    e.printStackTrace();
+                    transactionStatus.setRollbackOnly();
+                }
+            }
+        });
     }
 
     public List<Experiment> getAllExperiments() {
@@ -474,7 +474,7 @@ public class AtlasDAO {
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
                                       new Object[]{experimentAccession,
-                                                   arrayAccession},
+                                              arrayAccession},
                                       new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
@@ -735,17 +735,6 @@ public class AtlasDAO {
     }
 
     public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
-//        List results = template.query(ATLAS_STATISTICS_BY_DATARELEASE,
-//                                      new Object[]{dataRelease},
-//                                      new AtlasStatisticsMapper());
-//
-//        // got any results?
-//        if (results.size() > 0) {
-//            // just return first element,
-//            // there's no clear spec as to why this table might have multiple rows for the same release
-//            return (AtlasStatistics) results.get(0);
-//        }
-//        else {
         // manually count all experiments/genes/assays
         AtlasStatistics stats = new AtlasStatistics();
 
@@ -757,7 +746,6 @@ public class AtlasDAO {
         stats.setPropertyValueCount(getPropertyValueCount());
 
         return stats;
-//        }
     }
 
     private void fillOutGenes(List<Gene> genes) {
