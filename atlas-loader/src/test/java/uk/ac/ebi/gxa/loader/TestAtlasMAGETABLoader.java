@@ -1,8 +1,6 @@
 package uk.ac.ebi.gxa.loader;
 
 import junit.framework.AssertionFailedError;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -29,6 +27,7 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -47,8 +46,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private AtlasLoadCache cache;
 
     private URL parseURL;
-
-    private Log log = LogFactory.getLog(this.getClass().getSimpleName());
 
     public void setUp() throws Exception {
         super.setUp();
@@ -160,9 +157,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     }
 
     public void testLoadAndCompare() {
-        AtlasMAGETABLoader loader = new AtlasMAGETABLoader();
-        loader.setDataSource(getDataSource());
-        loader.setAtlasDAO(getAtlasDAO());
+        AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getDataSource(), getAtlasDAO());
         boolean result = loader.load(parseURL);
         // now check expected objects can be retrieved with DAO
         try {

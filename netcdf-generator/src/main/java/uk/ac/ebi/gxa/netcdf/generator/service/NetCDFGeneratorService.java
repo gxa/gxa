@@ -34,7 +34,7 @@ public abstract class NetCDFGeneratorService<T> {
 
     protected String versionDescriptor;
 
-    public NetCDFGeneratorService(AtlasDAO atlasDAO, T repositoryLocation) {
+    protected NetCDFGeneratorService(AtlasDAO atlasDAO, T repositoryLocation) {
         this.atlasDAO = atlasDAO;
         this.repositoryLocation = repositoryLocation;
     }

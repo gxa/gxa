@@ -1,38 +1,43 @@
-package uk.ac.ebi.gxa.netcdf.generator;
+package uk.ac.ebi.gxa.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
-import uk.ac.ebi.gxa.netcdf.generator.service.ExperimentNetCDFGeneratorService;
-import uk.ac.ebi.gxa.netcdf.generator.service.NetCDFGeneratorService;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
-import java.io.File;
+import javax.sql.DataSource;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * A default implementation of {@link NetCDFGenerator} that builds a NetCDF repository at a given {@link File} on the
- * local filesystem.
+ * A default implementation of {@link uk.ac.ebi.gxa.loader.AtlasLoader} that loads experiments and array designs
+ * referenced by URL.  It can be configured with a URL pointing to the root path of all experiments, but this is not
+ * used - load operations should always be supplied with the full URL to the file to load.
+ * <p/>
+ * Internally, this class uses an {@link uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader} to perform all loading
+ * operations by default: as such, all experiments and array designs should be supplied in MAGE-TAB format.
  *
  * @author Tony Burdett
- * @date 17-Sep-2009
+ * @date 27-Nov-2009
  */
-public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, InitializingBean {
+public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBean {
     private AtlasDAO atlasDAO;
-    private File repositoryLocation;
+    private DataSource dataSource;
+    private URL repositoryLocation;
 
-    private NetCDFGeneratorService netCDFService;
+    private AtlasLoaderService<URL> atlasLoaderService;
 
     private ExecutorService service;
     private boolean running = false;
 
     // logging
-    private final Logger log =
-            LoggerFactory.getLogger(DefaultNetCDFGenerator.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public AtlasDAO getAtlasDAO() {
         return atlasDAO;
@@ -42,34 +47,32 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
         this.atlasDAO = atlasDAO;
     }
 
-    public void setRepositoryLocation(File repositoryLocation) {
-        this.repositoryLocation = repositoryLocation;
+    public DataSource getDataSource() {
+        return dataSource;
     }
 
-    public File getRepositoryLocation() {
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public URL getRepositoryLocation() {
         return repositoryLocation;
     }
 
+    public void setRepositoryLocation(URL repositoryLocation) {
+        this.repositoryLocation = repositoryLocation;
+    }
+
     public void afterPropertiesSet() throws Exception {
-        // simply delegates to startup(), this allows automated spring startup
         startup();
     }
 
-    public void startup() throws NetCDFGeneratorException {
+    public void startup() throws AtlasLoaderException {
         if (!running) {
             // do some initialization...
 
-            // check the repository location exists, or else create it
-            if (!repositoryLocation.exists()) {
-                if (!repositoryLocation.mkdirs()) {
-                    log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
-                    throw new NetCDFGeneratorException("Unable to create NetCDF " +
-                            "repository at " + repositoryLocation.getAbsolutePath());
-                }
-            }
-
             // create the service
-            netCDFService = new ExperimentNetCDFGeneratorService(atlasDAO, repositoryLocation);
+            atlasLoaderService = new AtlasMAGETABLoader(dataSource, atlasDAO);
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();
@@ -81,7 +84,7 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
         }
     }
 
-    public void shutdown() throws NetCDFGeneratorException {
+    public void shutdown() throws AtlasLoaderException {
         if (running) {
             log.debug("Shutting down " + getClass().getSimpleName() + "...");
             service.shutdown();
@@ -96,19 +99,19 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
                     // if it's STILL not terminated...
                     if (!service.isTerminated()) {
                         StringBuffer sb = new StringBuffer();
-                        sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
+                        sb.append("Unable to cleanly shutdown Atlas loader service.\n");
                         if (tasks.size() > 0) {
                             sb.append("The following tasks are still active or suspended:\n");
                             for (Runnable task : tasks) {
                                 sb.append("\t").append(task.toString()).append("\n");
                             }
                         }
-                        sb.append("There are running or suspended NetCDF generating tasks. " +
+                        sb.append("There are running or suspended Atlas loading tasks. " +
                                 "If execution is complete, or has failed to exit " +
                                 "cleanly following an error, you should terminate this " +
                                 "application");
                         log.error(sb.toString());
-                        throw new NetCDFGeneratorException(sb.toString());
+                        throw new AtlasLoaderException(sb.toString());
                     }
                     else {
                         // it worked second time round
@@ -122,7 +125,7 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
             catch (InterruptedException e) {
                 log.error("The application was interrupted whilst waiting to " +
                         "be shutdown.  There may be tasks still running or suspended.");
-                throw new NetCDFGeneratorException(e);
+                throw new AtlasLoaderException(e);
             }
             finally {
                 running = false;
@@ -135,37 +138,22 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
         }
     }
 
-    public void generateNetCDFs() {
-        generateNetCDFs(null);
+    public void loadExperiment(URL experimentResource) {
+        loadExperiment(experimentResource, null);
     }
 
-    public void generateNetCDFs(final NetCDFGeneratorListener listener) {
-        generateNetCDFsForExperiment(null, listener);
-    }
-
-    public void generateNetCDFsForExperiment(String experimentAccession) {
-        generateNetCDFsForExperiment(experimentAccession, null);
-    }
-
-    public void generateNetCDFsForExperiment(
-            final String experimentAccession,
-            final NetCDFGeneratorListener listener) {
+    public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
         final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> buildingTasks =
                 new ArrayList<Future<Boolean>>();
 
         buildingTasks.add(service.submit(new Callable<Boolean>() {
-            public Boolean call() throws NetCDFGeneratorException {
-                log.info("Starting NetCDF generations");
+            public Boolean call() throws AtlasLoaderException {
+                log.info("Starting load operation on " + experimentResource.toString());
 
-                if (experimentAccession == null) {
-                    netCDFService.generateNetCDFs();
-                }
-                else {
-                    netCDFService.generateNetCDFsForExperiment(experimentAccession);
-                }
+                atlasLoaderService.load(experimentResource);
 
-                log.debug("Finished NetCDF generations");
+                log.debug("Finished load operation on " + experimentResource.toString());
 
                 return true;
             }
@@ -195,15 +183,23 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
 
                     // create our completion event
                     if (success) {
-                        listener.buildSuccess(new NetCDFGenerationEvent(
+                        listener.loadSuccess(new AtlasLoaderEvent(
                                 runTime, TimeUnit.SECONDS));
                     }
                     else {
-                        listener.buildError(new NetCDFGenerationEvent(
+                        listener.loadError(new AtlasLoaderEvent(
                                 runTime, TimeUnit.SECONDS, observedErrors));
                     }
                 }
             }).start();
         }
+    }
+
+    public void loadArrayDesign(URL arrayDesignResource) {
+        loadArrayDesign(arrayDesignResource, null);
+    }
+
+    public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
+        throw new UnsupportedOperationException("Array Design loading not yet supported");
     }
 }

@@ -1,7 +1,5 @@
-package uk.ac.ebi.gxa.loader;
+package uk.ac.ebi.gxa.loader.service;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -57,30 +55,9 @@ import java.util.*;
  * @author Tony Burdett
  * @date 26-Aug-2009
  */
-public class AtlasMAGETABLoader {
-    // fixme: remove requirement on datasource, all interactions should go through DAO
-    private DataSource dataSource;
-
-    private AtlasDAO atlasDAO;
-
-    // logging
-    private Log log = LogFactory.getLog(this.getClass().getSimpleName());
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        // set the datasource
-        this.dataSource = dataSource;
-    }
-
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
+public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
+    public AtlasMAGETABLoader(DataSource dataSource, AtlasDAO atlasDAO) {
+        super(dataSource, atlasDAO);
     }
 
     /**
@@ -129,7 +106,7 @@ public class AtlasMAGETABLoader {
                 // log the error
                 // todo: this should go to a different log stream, part of loader report -
                 // probably should dynamically creating an appender that writes to the magetab directory
-                log.error(
+                getLog().error(
                         "Parser reported:\n\t" +
                                 item.getErrorCode() + ": " + message + "\n\t\t- " +
                                 "occurred in parsing " + item.getParsedFile() + " " +
@@ -142,7 +119,7 @@ public class AtlasMAGETABLoader {
         }
         catch (ParseException e) {
             // something went wrong - no objects have been created though
-            log.error(
+            getLog().error(
                     "There was a problem whilst trying to parse " + idfFileLocation);
             return false;
         }
@@ -183,7 +160,7 @@ public class AtlasMAGETABLoader {
             // validate the load(s)
             for (Experiment exp : cache.fetchAllExperiments()) {
                 if (!validateLoad(exp.getAccession())) {
-                    log.error("The experiment " + exp.getAccession() + " was found in the database: " +
+                    getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
                             "it has been previously loaded or is loading right now.  Unable to load duplicates!");
                     return false;
                 }
@@ -195,11 +172,11 @@ public class AtlasMAGETABLoader {
             }
 
             // get a connection from the datasource
-            conn = dataSource.getConnection();
+            conn = getDataSource().getConnection();
 
             // fixme: prior to writing, do some data cleanup to handle missing design elements.
             // this is workaround for legacy data, can be removed when loader is improved
-            log.info("Cleaning up data - removing any expression values linked " +
+            getLog().info("Cleaning up data - removing any expression values linked " +
                     "to design elements missing from the database");
             long start = System.currentTimeMillis();
             Map<String, Set<String>> designElementsByArray =
@@ -211,8 +188,9 @@ public class AtlasMAGETABLoader {
 
                 // check that this array design is loaded
                 if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
-                    log.error("The array design " + arrayDesignAcc + " is not present in the database.  This array " +
-                            "MUST be loaded before experiments using this array can be loaded.");
+                    getLog().error(
+                            "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
+                                    "MUST be loaded before experiments using this array can be loaded.");
                     return false;
                 }
 
@@ -236,15 +214,15 @@ public class AtlasMAGETABLoader {
                 // finally, trim the missing design elements from this assay
                 trimMissingDesignElements(assay, missingDesignElements);
             }
-            log.info("Removed all expression values for " + missingCount +
+            getLog().info("Removed all expression values for " + missingCount +
                     " missing design elements from cache of assays to load");
             long end = System.currentTimeMillis();
 
             String total = new DecimalFormat("#.##").format((end - start) / 1000);
-            log.info("Data cleanup took " + total + "s.");
+            getLog().info("Data cleanup took " + total + "s.");
 
             // now write the cleaned up data
-            log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
+            getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
             // first, load experiments
             for (Experiment experiment : cache.fetchAllExperiments()) {
@@ -278,16 +256,16 @@ public class AtlasMAGETABLoader {
             }
 
             // and return true - everything loaded ok
-            log.info("Writing " + numOfObjects + " completed successfully");
+            getLog().info("Writing " + numOfObjects + " completed successfully");
             return true;
         }
-        catch (SQLException e) {
+        catch (Exception e) {
             // something went wrong with our load, try and rollback
             try {
                 if (conn != null) {
                     // initState is null, so we might not be able to completely rollback
                     // but try rollback anyway
-                    log.warn("A problem occurred during loading, rolling back changes");
+                    getLog().warn("A problem occurred during loading, rolling back changes");
                     conn.rollback();
                     e.printStackTrace();
                 }
@@ -302,12 +280,12 @@ public class AtlasMAGETABLoader {
             }
             catch (SQLException e1) {
                 // we've done the best we can
-                log.error("Rollback after a load error failed.  " +
+                getLog().error("Rollback after a load error failed.  " +
                         "No changes should have been committed, " +
                         "but there may be other problems");
                 e1.printStackTrace();
             }
-            log.error("An SQL exception occurred. " + e.getMessage());
+            getLog().error("An SQL exception occurred. " + e.getMessage());
             e.printStackTrace();
 
             // and because the write failed, return false
@@ -317,7 +295,7 @@ public class AtlasMAGETABLoader {
             // finally clear the cache, as we're done with this run
             cache.clear();
 
-            log.debug("Emptied cache, cleaning up connections");
+            getLog().debug("Emptied cache, cleaning up connections");
 
             // clean up resources
             try {
@@ -332,7 +310,7 @@ public class AtlasMAGETABLoader {
     }
 
     private boolean validateLoad(String accession) {
-        List<Experiment> experiments = atlasDAO.getAllExperiments();
+        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
         for (Experiment experiment : experiments) {
             if (experiment.getAccession().equals(accession)) {
                 // can't reload - experiment with matching accession already loaded!
@@ -341,7 +319,7 @@ public class AtlasMAGETABLoader {
         }
 
         // no experiment with this accession, so check load_monitor too
-        List<LoadDetails> loadDetails = atlasDAO.getLoadDetails();
+        List<LoadDetails> loadDetails = getAtlasDAO().getLoadDetails();
         for (LoadDetails details : loadDetails) {
             if (details.getAccession().equals(accession)) {
                 // can't reload - experiment with matching accession already loaded!
@@ -354,20 +332,20 @@ public class AtlasMAGETABLoader {
     }
 
     private void startLoad(String accession) throws SQLException {
-        log.info("Updating load_monitor: starting load for " + accession);
-        atlasDAO.writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
+        getLog().info("Updating load_monitor: starting load for " + accession);
+        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
     }
 
     private void endLoad(String accession, boolean success) throws SQLException {
-        log.info("Updating load_monitor: ending load for " + accession);
-        atlasDAO.writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
+        getLog().info("Updating load_monitor: ending load for " + accession);
+        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
     private Set<String> lookupMissingDesignElements(
             Map<String, Float> expressionValues,
             String arrayDesignAccession) throws SQLException {
         // use our dao to lookup design elements, instead of the writer class
-        Map<Integer, String> designElements = atlasDAO.
+        Map<Integer, String> designElements = getAtlasDAO().
                 getDesignElementsByArrayAccession(arrayDesignAccession);
 
         // check off missing design elements against any present
@@ -400,7 +378,7 @@ public class AtlasMAGETABLoader {
         String percent = new DecimalFormat("#.#").format(
                 ((double) missingDEs / (double) totalDEs) * 100);
 
-        log.error("Total number of missing design elements for " +
+        getLog().error("Total number of missing design elements for " +
                 arrayDesignAccession + ": " + missingDEs + "/" +
                 totalDEs + " (" + percent + " %)");
 
@@ -411,7 +389,7 @@ public class AtlasMAGETABLoader {
                                            Set<String> missingDesignElements) {
         for (String deAcc : missingDesignElements) {
             if (assay.getExpressionValuesByAccession().containsKey(deAcc)) {
-                log.debug("Missing design element " + deAcc + " will be " +
+                getLog().debug("Missing design element " + deAcc + " will be " +
                         "removed from this assay - not in database.");
                 assay.getExpressionValuesByAccession().remove(deAcc);
             }

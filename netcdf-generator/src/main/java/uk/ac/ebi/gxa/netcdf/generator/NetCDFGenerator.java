@@ -23,7 +23,7 @@ public interface NetCDFGenerator<T> {
     /**
      * Get the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
      *
-     * @return the Atlas 2 compliant datasource to generate NetCDFs from
+     * @return the DAO that is used to obtain data to generate NetCDFs from
      */
     AtlasDAO getAtlasDAO();
 
@@ -43,7 +43,7 @@ public interface NetCDFGenerator<T> {
     T getRepositoryLocation();
 
     /**
-     * Initialise this IndexBuilder and any resources required by it.
+     * Initialise this NetCDFGenerator and any resources required by it.
      *
      * @throws NetCDFGeneratorException if initialisation of this index builder failed for any reason
      */

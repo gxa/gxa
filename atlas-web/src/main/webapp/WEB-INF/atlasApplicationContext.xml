@@ -14,7 +14,7 @@
 
     <!-- Loader component -->
 
-    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.AtlasMAGETABLoader">
+    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
         <!-- also need datasource, for AtlasDB class; we should fix this -->

@@ -31,7 +31,7 @@ public abstract class IndexBuilderService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public IndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
+    protected IndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
         this.atlasDAO = atlasDAO;
         this.solrServer = solrServer;
     }
