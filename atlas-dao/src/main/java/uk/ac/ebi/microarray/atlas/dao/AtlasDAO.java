@@ -1,19 +1,22 @@
 package uk.ac.ebi.microarray.atlas.dao;
 
+import oracle.jdbc.OracleTypes;
+import oracle.sql.STRUCT;
+import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -338,6 +341,26 @@ public class AtlasDAO {
             }
         });
     }
+
+    // todo - migrate stored procedures in AtlasDB to here, which will stop ClassCastExceptions from managed datasources and also remove DataSource dependency
+//    public void writeStoredProcedureForOracleSTRUCT(final Object[] value) {
+//        // code to call stored procedures that take oracle params looks like...
+//        SimpleJdbcCall procedure = new SimpleJdbcCall(template);
+//        procedure.withCatalogName("PACKAGE_NAME");
+//        procedure.withFunctionName("FUNCTION_NAME");
+//        procedure.addDeclaredParameter(new SqlParameter("IN_PARAM", OracleTypes.STRUCT, "IN_PARAM_TYPE"));
+//        procedure.compile();
+//
+//        SqlTypeValue inValue = new AbstractSqlTypeValue() {
+//            protected Object createTypeValue(Connection conn, int sqlType, String typeName) throws SQLException {
+//                StructDescriptor sdExpressionValue = StructDescriptor.createDescriptor(typeName, conn);
+//                return new STRUCT(sdExpressionValue, conn, value);
+//            }
+//        };
+//
+//        Map<String, Object> inParameters = new HashMap<String, Object>();
+//        inParameters.put("IN_PARAM", inValue);
+//    }
 
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,

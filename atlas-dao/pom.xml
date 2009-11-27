@@ -2,68 +2,75 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>uk.ac.ebi.gxa</groupId>
+        <artifactId>atlas</artifactId>
+        <version>1.0-alpha-3-SNAPSHOT</version>
+    </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
-    <artifactId>atlas</artifactId>
+    <artifactId>atlas-dao</artifactId>
     <version>1.0-alpha-3-SNAPSHOT</version>
-  </parent>
-  <groupId>uk.ac.ebi.gxa</groupId>
-  <artifactId>atlas-dao</artifactId>
-  <version>1.0-alpha-3-SNAPSHOT</version>
-  <name>Gene Expression Atlas Database Access Layer</name>
-  <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+    <name>Gene Expression Atlas Database Access Layer</name>
+    <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
 
-  <build>
-    <plugins>
-      <!-- make sure we bundle up test sources for use by other artifacts -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <!-- make sure we bundle up test sources for use by other artifacts -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-  <dependencies>
-    <!-- Spring dependency for jdbc templates -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring</artifactId>
-      <version>2.5.5</version>
-    </dependency>
-    <!-- atlas loader API -->
-    <dependency>
-      <groupId>uk.ac.ebi.gxa</groupId>
-      <artifactId>atlas-model</artifactId>
-      <version>1.0-alpha-3-SNAPSHOT</version>
-    </dependency>
-    <!-- also need dbunit jars, transitive deps don't work on tests? -->
-    <dependency>
-      <groupId>org.dbunit</groupId>
-      <artifactId>dbunit</artifactId>
-      <version>2.4.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>1.8.0.7</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.5.6</version>
-      <scope>test</scope>
-      <optional>true</optional>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <!-- Spring dependency for jdbc templates -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring</artifactId>
+            <version>2.5.5</version>
+        </dependency>
+        <!-- atlas loader API -->
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-model</artifactId>
+            <version>1.0-alpha-3-SNAPSHOT</version>
+        </dependency>
+        <!-- oracle JDBC drivers for specific oracle stored procedures -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.1.0.6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- also need dbunit jars, transitive deps don't work on tests? -->
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.4.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>1.8.0.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 </project>
