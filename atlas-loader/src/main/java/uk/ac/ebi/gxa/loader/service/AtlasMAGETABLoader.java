@@ -152,9 +152,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
     protected boolean writeObjects(AtlasLoadCache cache) {
         int numOfObjects =
-                cache.fetchAllExperiments().size() +
-                        cache.fetchAllSamples().size() +
-                        cache.fetchAllAssays().size();
+                cache.fetchAllExperiments().size() + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
         Connection conn = null;
         try {
             // validate the load(s)
@@ -345,8 +343,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             Map<String, Float> expressionValues,
             String arrayDesignAccession) throws SQLException {
         // use our dao to lookup design elements, instead of the writer class
-        Map<Integer, String> designElements = getAtlasDAO().
-                getDesignElementsByArrayAccession(arrayDesignAccession);
+        Map<Integer, String> designElements = getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
 
         // check off missing design elements against any present
         Set<String> missingDesignElements = new HashSet<String>();
@@ -354,19 +351,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         // for every expression value, check if it's in database
         for (String deAcc : expressionValues.keySet()) {
             if (!designElements.containsValue(deAcc)) {
-                // deAcc is missing - use designElements to find the related ID
-                boolean found = false;
-                for (int deID : designElements.keySet()) {
-                    if (designElements.get(deID).equals(deAcc)) {
-                        missingDesignElements.add(deAcc);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    throw new NullPointerException("Design Elements map contains " +
-                            "the value " + deAcc + " but the key couldn't be found? Eh?");
-                }
+                // deAcc is missing - add to missing design elements and provide trace output
+                missingDesignElements.add(deAcc);
+                getLog().trace("Design Element '" + deAcc + "' is referenced in the data file, " +
+                        "but is not present in the database.  This may be a control spot missing in legacy data");
             }
         }
 
