@@ -3,8 +3,6 @@ package uk.ac.ebi.gxa.loader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
-import javax.sql.DataSource;
-
 /**
  * Interface for loading experiments and array designs into the Atlas.  Loaders require access to an {@link
  * uk.ac.ebi.microarray.atlas.dao.AtlasDAO} in order to read and write to the database.  They can also be configured
@@ -38,22 +36,6 @@ public interface AtlasLoader<R, L> {
      * @return the DAO that is used to obtain access to the database
      */
     AtlasDAO getAtlasDAO();
-
-    /**
-     * Get the {@link DataSource} that is being used to connect to the database.  This will be merged with the DAO in
-     * future, so explicit reference to the DataSource is no longer required.
-     *
-     * @return the datasource being used to connect to the database
-     */
-    DataSource getDataSource();
-
-    /**
-     * Set the {@link DataSource} that is being used to connect to the database.  This will be merged with the DAO in
-     * future, so explicit reference to the DataSource is no longer required.
-     *
-     * @param dataSource the datasource being used to connect to the database
-     */
-    void setDataSource(DataSource dataSource);
 
     /**
      * Set the location for the experiment repository, that new experiments can be loaded from.  Note that

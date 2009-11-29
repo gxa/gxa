@@ -9,7 +9,6 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
-import javax.sql.DataSource;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.concurrent.*;
  */
 public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBean {
     private AtlasDAO atlasDAO;
-    private DataSource dataSource;
     private URL repositoryLocation;
 
     private AtlasLoaderService<URL> atlasLoaderService;
@@ -45,14 +43,6 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
     }
 
     public URL getRepositoryLocation() {
@@ -72,7 +62,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
             // do some initialization...
 
             // create the service
-            atlasLoaderService = new AtlasMAGETABLoader(dataSource, atlasDAO);
+            atlasLoaderService = new AtlasMAGETABLoader(atlasDAO);
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();

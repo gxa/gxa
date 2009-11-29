@@ -15,81 +15,85 @@ import java.sql.*;
 import java.util.Map;
 
 /**
- * Utils for writing atlas loader API objects (see also {@link
- * uk.ac.ebi.microarray.atlas.model}) to a database.  Should be supplied a
- * connection
+ * Utils for writing atlas loader API objects (see also {@link uk.ac.ebi.microarray.atlas.model}) to a database.  Should
+ * be supplied a connection
  *
  * @author Andrey Zorin
  * @date Aug 26, 2009 Time: 5:14:19 PM
  */
 public class AtlasDB {
-  // fixme: this connection object MUST be an OracleConnection, else we'll get a ClassCastException from ArrayDescriptor.createDescriptor()
-  public static Array toSqlArray(Connection connection,
-                                 String typeName,
-                                 Object[] value)
-      throws SQLException {
-    ArrayDescriptor adExpressionValueTable =
-        ArrayDescriptor.createDescriptor(typeName, connection);
-
-    return new ARRAY(adExpressionValueTable, connection, value);
-  }
-
-  // fixme: this connection object MUST be an OracleConnection, else we'll get a ClassCastException from StructDescriptor.createDescriptor()
-  public static STRUCT toSqlStruct(Connection connection, String typeName,
+    // fixme: this connection object MUST be an OracleConnection, else we'll get a ClassCastException from ArrayDescriptor.createDescriptor()
+    public static Array toSqlArray(Connection connection,
+                                   String typeName,
                                    Object[] value)
-      throws SQLException {
-    StructDescriptor sdExpressionValue =
-        StructDescriptor.createDescriptor(typeName, connection);
+            throws SQLException {
+        ArrayDescriptor adExpressionValueTable =
+                ArrayDescriptor.createDescriptor(typeName, connection);
 
-    return new STRUCT(sdExpressionValue, connection, value);
-  }
+        return new ARRAY(adExpressionValueTable, connection, value);
+    }
 
-  // bind arrayDesignQuery to query parameter
-  public static void setArrayDesignQuery(CallableStatement stmt, int ordinal, ArrayDesignQuery arrayDesignQuery) throws SQLException{
+    // fixme: this connection object MUST be an OracleConnection, else we'll get a ClassCastException from StructDescriptor.createDescriptor()
+    public static STRUCT toSqlStruct(Connection connection, String typeName,
+                                     Object[] value)
+            throws SQLException {
+        StructDescriptor sdExpressionValue =
+                StructDescriptor.createDescriptor(typeName, connection);
 
-      //nested accession query
-      Object[] acc = new Object[2];
+        return new STRUCT(sdExpressionValue, connection, value);
+    }
 
-      acc[0] = arrayDesignQuery.getId();
-      acc[1] = arrayDesignQuery.getAccession();
-                                                                                                    
-      //array design query
-      Object[] arr = new Object[4];
-      arr[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY",acc);  //AccessionQuery
-      arr[1] = arrayDesignQuery.getName();
-      arr[2] = arrayDesignQuery.getType();
-      arr[3] = arrayDesignQuery.getProvider();
+    // bind arrayDesignQuery to query parameter
+    public static void setArrayDesignQuery(CallableStatement stmt, int ordinal, ArrayDesignQuery arrayDesignQuery)
+            throws SQLException {
 
-      stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ARRAYDESIGNQUERY", arr));
-  }
+        //nested accession query
+        Object[] acc = new Object[2];
 
-   public static void setAssayQuery(CallableStatement stmt, int ordinal, AssayQuery assayQuery, AtlasDao dao) throws SQLException, GxaException {
-       Object[] PropertyIDs = null;
+        acc[0] = arrayDesignQuery.getId();
+        acc[1] = arrayDesignQuery.getAccession();
 
-       //pull IDs from DB - IO heavy
-       if(null != assayQuery.getPropertyQuery()){
-           PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(assayQuery.getPropertyQuery())); //first query
-       }
+        //array design query
+        Object[] arr = new Object[4];
+        arr[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);  //AccessionQuery
+        arr[1] = arrayDesignQuery.getName();
+        arr[2] = arrayDesignQuery.getType();
+        arr[3] = arrayDesignQuery.getProvider();
 
-       //nested accession query
-       Object[] acc = new Object[2];
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "ARRAYDESIGNQUERY", arr));
+    }
 
-       acc[0] = assayQuery.getId();
-       acc[1] = assayQuery.getAccession();
-
-       Object[] asq = new Object[2];
-       asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
-       asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
-
-       stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"ASSAYQUERY", asq));
-   }
-
-    public static void setSampleQuery(CallableStatement stmt, int ordinal, SampleQuery sampleQuery, AtlasDao dao) throws SQLException, GxaException {
+    public static void setAssayQuery(CallableStatement stmt, int ordinal, AssayQuery assayQuery, AtlasDao dao)
+            throws SQLException, GxaException {
         Object[] PropertyIDs = null;
 
         //pull IDs from DB - IO heavy
-        if(null != sampleQuery.getPropertyQuery()){
-            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(sampleQuery.getPropertyQuery())); //first query
+        if (null != assayQuery.getPropertyQuery()) {
+            PropertyIDs = ToObjectArray(stmt.getConnection(),
+                                        dao.getPropertyIDs(assayQuery.getPropertyQuery())); //first query
+        }
+
+        //nested accession query
+        Object[] acc = new Object[2];
+
+        acc[0] = assayQuery.getId();
+        acc[1] = assayQuery.getAccession();
+
+        Object[] asq = new Object[2];
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);
+        asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "ASSAYQUERY", asq));
+    }
+
+    public static void setSampleQuery(CallableStatement stmt, int ordinal, SampleQuery sampleQuery, AtlasDao dao)
+            throws SQLException, GxaException {
+        Object[] PropertyIDs = null;
+
+        //pull IDs from DB - IO heavy
+        if (null != sampleQuery.getPropertyQuery()) {
+            PropertyIDs = ToObjectArray(stmt.getConnection(),
+                                        dao.getPropertyIDs(sampleQuery.getPropertyQuery())); //first query
         }
 
         //nested accession query
@@ -99,22 +103,26 @@ public class AtlasDB {
         acc[1] = sampleQuery.getAccession();
 
         Object[] asq = new Object[2];
-        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);
         asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
 
-        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"SAMPLEQUERY", asq));
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "SAMPLEQUERY", asq));
     }
 
-    public static void setExperimentQuery(CallableStatement stmt, int ordinal, ExperimentQuery experimentQuery, AtlasDao dao) throws SQLException, GxaException {
+    public static void setExperimentQuery(CallableStatement stmt,
+                                          int ordinal,
+                                          ExperimentQuery experimentQuery,
+                                          AtlasDao dao) throws SQLException, GxaException {
         Object[] PropertyIDs = null;
         Object[] GeneIDs = null;
 
         //pull IDs from DB - IO heavy
-        if(null != experimentQuery.getPropertyQuery()){
-            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(experimentQuery.getPropertyQuery())); //first query
+        if (null != experimentQuery.getPropertyQuery()) {
+            PropertyIDs = ToObjectArray(stmt.getConnection(),
+                                        dao.getPropertyIDs(experimentQuery.getPropertyQuery())); //first query
         }
 
-        if(null != experimentQuery.getGeneQuery()){
+        if (null != experimentQuery.getGeneQuery()) {
             GeneIDs = ToObjectArray(stmt.getConnection(), dao.getGeneIDs(experimentQuery.getGeneQuery())); //first query
         }
 
@@ -125,21 +133,23 @@ public class AtlasDB {
         acc[1] = experimentQuery.getAccession();
 
         Object[] asq = new Object[5];
-        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);
         asq[1] = experimentQuery.getLab();
         asq[2] = experimentQuery.getPerformer();
         asq[3] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", GeneIDs);
         asq[4] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
 
-        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"EXPERIMENTQUERY", asq));
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "EXPERIMENTQUERY", asq));
     }
 
-    public static void setGeneQuery(CallableStatement stmt, int ordinal, GeneQuery geneQuery, AtlasDao dao) throws SQLException, GxaException {
+    public static void setGeneQuery(CallableStatement stmt, int ordinal, GeneQuery geneQuery, AtlasDao dao)
+            throws SQLException, GxaException {
         Object[] PropertyIDs = null;
 
         //pull IDs from DB - IO heavy
-        if(null != geneQuery.getPropertyQueries()  && (0<geneQuery.getPropertyQueries().size()) ){
-            PropertyIDs = ToObjectArray(stmt.getConnection(), dao.getPropertyIDs(geneQuery.getPropertyQueries().get(0))); //first query
+        if (null != geneQuery.getPropertyQueries() && (0 < geneQuery.getPropertyQueries().size())) {
+            PropertyIDs = ToObjectArray(stmt.getConnection(),
+                                        dao.getPropertyIDs(geneQuery.getPropertyQueries().get(0))); //first query
         }
 
         //nested accession query
@@ -149,44 +159,49 @@ public class AtlasDB {
         acc[1] = geneQuery.getAccession();
 
         Object[] asq = new Object[2];
-        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(),"ACCESSIONQUERY", acc);
+        asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);
         asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
 
-        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"GENEQUERY", asq));
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "GENEQUERY", asq));
     }
 
     public static Object[] ToObjectArray(Connection con, Integer[] ids) throws SQLException {
-        if(null == ids)
+        if (null == ids) {
             return null;
+        }
 
         Object[] result = new Object[ids.length];
 
-          for(int i=0; i!=ids.length; i++ ){
-              Object[] PropertyID = new Object[1];
-              PropertyID[0] = ids[i];
+        for (int i = 0; i != ids.length; i++) {
+            Object[] PropertyID = new Object[1];
+            PropertyID[0] = ids[i];
 
-              result[i] = AtlasDB.toSqlStruct(con,"INTRECORD",PropertyID);
-          }
+            result[i] = AtlasDB.toSqlStruct(con, "INTRECORD", PropertyID);
+        }
 
         return result;
     }
 
-    public static void setPropertyQuery(CallableStatement stmt, int ordinal, PropertyQuery propertyQuery, AtlasDao dao) throws SQLException, GxaException {
+    public static void setPropertyQuery(CallableStatement stmt, int ordinal, PropertyQuery propertyQuery, AtlasDao dao)
+            throws SQLException, GxaException {
         Object[] AssayIDs = null;
         Object[] SampleIDs = null;
         Object[] ExperimentIDs = null;
 
         //pull IDs from DB - IO heavy
-        if((null != propertyQuery.getAssayQueries()) && (0<propertyQuery.getAssayQueries().size())){
-            AssayIDs = ToObjectArray(stmt.getConnection(), dao.getAssayIDs(propertyQuery.getAssayQueries().get(0))); //first query
+        if ((null != propertyQuery.getAssayQueries()) && (0 < propertyQuery.getAssayQueries().size())) {
+            AssayIDs = ToObjectArray(stmt.getConnection(),
+                                     dao.getAssayIDs(propertyQuery.getAssayQueries().get(0))); //first query
         }
 
-        if((null != propertyQuery.getSampleQueries()) && (0<propertyQuery.getSampleQueries().size())){
-            SampleIDs = ToObjectArray(stmt.getConnection(), dao.getSampleIDs(propertyQuery.getSampleQueries().get(0))); //first query
+        if ((null != propertyQuery.getSampleQueries()) && (0 < propertyQuery.getSampleQueries().size())) {
+            SampleIDs = ToObjectArray(stmt.getConnection(),
+                                      dao.getSampleIDs(propertyQuery.getSampleQueries().get(0))); //first query
         }
 
-        if((null != propertyQuery.getExperimentQueries()) && (0<propertyQuery.getExperimentQueries().size())){
-            ExperimentIDs = ToObjectArray(stmt.getConnection(), dao.getExperimentIDs(propertyQuery.getExperimentQueries().get(0))); //first query
+        if ((null != propertyQuery.getExperimentQueries()) && (0 < propertyQuery.getExperimentQueries().size())) {
+            ExperimentIDs = ToObjectArray(stmt.getConnection(), dao.getExperimentIDs(
+                    propertyQuery.getExperimentQueries().get(0))); //first query
         }
 
         Object[] asq = new Object[7];
@@ -198,11 +213,12 @@ public class AtlasDB {
         asq[5] = propertyQuery.isAssayProperty() ? 1 : 0;
         asq[6] = propertyQuery.isSampleProperty() ? 1 : 0;
 
-        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"PROPERTYQUERY", asq));
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "PROPERTYQUERY", asq));
     }
 
     // bind PageSortParam to query parameter
-    public static void setPageSortParams(CallableStatement stmt, int ordinal, PageSortParams pageSortParams) throws SQLException{
+    public static void setPageSortParams(CallableStatement stmt, int ordinal, PageSortParams pageSortParams)
+            throws SQLException {
 
         //PageSortParams
         Object[] arr = new Object[3];
@@ -210,45 +226,47 @@ public class AtlasDB {
         arr[1] = pageSortParams.getRows();
         arr[2] = pageSortParams.getOrderBy();
 
-        stmt.setObject(ordinal,AtlasDB.toSqlStruct(stmt.getConnection(),"PAGESORTPARAMS", arr));
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "PAGESORTPARAMS", arr));
     }
-                                                                                       
-  public static void writeExperiment(Connection connection, Experiment value)
-      throws SQLException {
-    CallableStatement stmt = null;
-    try {
-      //1  TheAccession varchar2
-      //2  TheDescription varchar2
-      //3  ThePerformer varchar2
-      //4  TheLab varchar2
-      stmt = connection.prepareCall("{call a2_ExperimentSet(?,?,?,?)}");
 
-      stmt.setString(1, value.getAccession());
-      stmt.setString(2, value.getDescription());
-      stmt.setString(3, value.getPerformer());
-      stmt.setString(4, value.getLab());  //properties
+    @Deprecated
+    public static void writeExperiment(Connection connection, Experiment value)
+            throws SQLException {
+        CallableStatement stmt = null;
+        try {
+            //1  TheAccession varchar2
+            //2  TheDescription varchar2
+            //3  ThePerformer varchar2
+            //4  TheLab varchar2
+            stmt = connection.prepareCall("{call a2_ExperimentSet(?,?,?,?)}");
 
-      // execute statement
-      stmt.execute();
+            stmt.setString(1, value.getAccession());
+            stmt.setString(2, value.getDescription());
+            stmt.setString(3, value.getPerformer());
+            stmt.setString(4, value.getLab());  //properties
+
+            // execute statement
+            stmt.execute();
+        }
+        finally {
+            if (stmt != null) {
+                // close statement
+                stmt.close();
+            }
+        }
     }
-    finally {
-      if (stmt != null) {
-        // close statement
-        stmt.close();
-      }
-    }
-  }
 
-  public static void writeAssay(Connection connection, Assay value)
-      throws SQLException {
-    CallableStatement stmt = null;
-    try {
-      //1  Accession varchar2
-      //2  ExperimentAccession  varchar2
-      //3  ArrayDesignAccession varchar2
-      //4  Properties PropertyTable
-      //5  ExpressionValues ExpressionValueTable
-      stmt = connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
+    @Deprecated
+    public static void writeAssay(Connection connection, Assay value)
+            throws SQLException {
+        CallableStatement stmt = null;
+        try {
+            //1  Accession varchar2
+            //2  ExperimentAccession  varchar2
+            //3  ArrayDesignAccession varchar2
+            //4  Properties PropertyTable
+            //5  ExpressionValues ExpressionValueTable
+            stmt = connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
 
 //      Object[] expressionValues =
 //          new Object[null == value.getExpressionValues() ? 0
@@ -267,183 +285,149 @@ public class AtlasDB {
 //        }
 //      }
 
-      // replacing expression value lookup with mapped values lookup
-      Object[] expressionValues =
-          new Object[null == value.getExpressionValuesByAccession() ? 0
-              : value.getExpressionValuesByAccession().keySet().size()];
-      //placeholders for all properties of ExpressionValue structure
-      Object[] members = new Object[2];
+            // replacing expression value lookup with mapped values lookup
+            Object[] expressionValues =
+                    new Object[null == value.getExpressionValuesByAccession() ? 0
+                            : value.getExpressionValuesByAccession().keySet().size()];
+            //placeholders for all properties of ExpressionValue structure
+            Object[] members = new Object[2];
 
-      if (value.getExpressionValuesByAccession() != null) {
-        int i = 0;
-        for (Map.Entry<String, Float> expressionValue :
-            value.getExpressionValuesByAccession().entrySet()) {
-          members[0] = expressionValue.getKey();
-          members[1] = expressionValue.getValue();
+            if (value.getExpressionValuesByAccession() != null) {
+                int i = 0;
+                for (Map.Entry<String, Float> expressionValue :
+                        value.getExpressionValuesByAccession().entrySet()) {
+                    members[0] = expressionValue.getKey();
+                    members[1] = expressionValue.getValue();
 
-          expressionValues[i++] =
-              toSqlStruct(connection, "EXPRESSIONVALUE", members);
+                    expressionValues[i++] =
+                            toSqlStruct(connection, "EXPRESSIONVALUE", members);
+                }
+            }
+
+            Object[] properties = new Object[null == value.getProperties()
+                    ? 0
+                    : value.getProperties().size()];
+            //placeholders for all properties of ExpressionValue structure
+            Object[] members1 = new Object[4];
+
+            if (value.getProperties() != null) {
+                int i = 0;
+                for (Property v : value.getProperties()) {
+                    members1[0] = v.getAccession(); //accession
+                    members1[1] = v.getName();
+                    members1[2] = v.getValue();
+                    members1[3] = v.isFactorValue();
+
+                    properties[i++] = toSqlStruct(connection, "PROPERTY", members1);
+                }
+            }
+
+            stmt.setString(1, value.getAccession());
+            stmt.setString(2, value.getExperimentAccession());
+            stmt.setString(3, value.getArrayDesignAccession());
+            stmt.setArray(4, toSqlArray(connection, "PROPERTYTABLE", properties));
+            stmt.setArray(5, toSqlArray(connection, "EXPRESSIONVALUETABLE",
+                                        expressionValues));
+
+            // execute statement
+            stmt.execute();
         }
-      }
-
-      Object[] properties = new Object[null == value.getProperties()
-          ? 0
-          : value.getProperties().size()];
-      //placeholders for all properties of ExpressionValue structure
-      Object[] members1 = new Object[4];
-
-      if (value.getProperties() != null) {
-        int i = 0;
-        for (Property v : value.getProperties()) {
-          members1[0] = v.getAccession(); //accession
-          members1[1] = v.getName();
-          members1[2] = v.getValue();
-          members1[3] = v.isFactorValue();
-
-          properties[i++] = toSqlStruct(connection, "PROPERTY", members1);
+        finally {
+            if (stmt != null) {
+                // close statement
+                stmt.close();
+            }
         }
-      }
-
-      stmt.setString(1, value.getAccession());
-      stmt.setString(2, value.getExperimentAccession());
-      stmt.setString(3, value.getArrayDesignAccession());
-      stmt.setArray(4, toSqlArray(connection, "PROPERTYTABLE", properties));
-      stmt.setArray(5, toSqlArray(connection, "EXPRESSIONVALUETABLE",
-                                  expressionValues));
-
-      // execute statement
-      stmt.execute();
     }
-    finally {
-      if (stmt != null) {
-        // close statement
-        stmt.close();
-      }
-    }
-  }
 
-  public static void writeSample(Connection connection, Sample value)
-      throws SQLException {
-    CallableStatement stmt = null;
-    try {
-      //1  Accession varchar2
-      //2  Assays AccessionTable
-      //3  Properties PropertyTable
-      //4  Species varchar2
-      //5  Channel varchar2
-      stmt = connection.prepareCall("{call a2_SampleSet(?,?,?,?,?)}");
+    @Deprecated
+    public static void writeSample(Connection connection, Sample value)
+            throws SQLException {
+        CallableStatement stmt = null;
+        try {
+            //1  Accession varchar2
+            //2  Assays AccessionTable
+            //3  Properties PropertyTable
+            //4  Species varchar2
+            //5  Channel varchar2
+            stmt = connection.prepareCall("{call a2_SampleSet(?,?,?,?,?)}");
 
-      Object[] properties =
-          new Object[null == value.getProperties() ? 0
-              : value.getProperties().size()];
-      Object[] members =
-          new Object[4]; //placeholders for all properties of ExpressionValue structure
+            Object[] properties =
+                    new Object[null == value.getProperties() ? 0
+                            : value.getProperties().size()];
+            Object[] members =
+                    new Object[4]; //placeholders for all properties of ExpressionValue structure
 
-      if (value.getProperties() != null) {
-        int i = 0;
-        for (Property v : value.getProperties()) {
-          members[0] = v.getAccession(); //accession
-          members[1] = v.getName();
-          members[2] = v.getValue();
-          members[3] = v.isFactorValue();
+            if (value.getProperties() != null) {
+                int i = 0;
+                for (Property v : value.getProperties()) {
+                    members[0] = v.getAccession(); //accession
+                    members[1] = v.getName();
+                    members[2] = v.getValue();
+                    members[3] = v.isFactorValue();
 
-          properties[i++] = toSqlStruct(connection, "PROPERTY", members);
+                    properties[i++] = toSqlStruct(connection, "PROPERTY", members);
+                }
+            }
+
+            Object[] assayAccessions = new Object[null == value.getAssayAccessions()
+                    ? 0
+                    : value.getAssayAccessions().size()];
+            if (value.getAssayAccessions() != null) {
+                int i = 0;
+                for (String v : value.getAssayAccessions()) {
+                    assayAccessions[i++] = v;
+                }
+            }
+
+            stmt.setString(1, value.getAccession());
+            stmt.setArray(2,
+                          toSqlArray(connection, "ACCESSIONTABLE", assayAccessions));
+            stmt.setArray(3, toSqlArray(connection, "PROPERTYTABLE", properties));
+            stmt.setString(4, value.getSpecies());  //properties
+            stmt.setString(5, value.getChannel());
+
+            // execute statement
+            stmt.execute();
         }
-      }
-
-      Object[] assayAccessions = new Object[null == value.getAssayAccessions()
-          ? 0
-          : value.getAssayAccessions().size()];
-      if (value.getAssayAccessions() != null) {
-        int i = 0;
-        for (String v : value.getAssayAccessions()) {
-          assayAccessions[i++] = v;
+        finally {
+            if (stmt != null) {
+                // close statement
+                stmt.close();
+            }
         }
-      }
-
-      stmt.setString(1, value.getAccession());
-      stmt.setArray(2,
-                    toSqlArray(connection, "ACCESSIONTABLE", assayAccessions));
-      stmt.setArray(3, toSqlArray(connection, "PROPERTYTABLE", properties));
-      stmt.setString(4, value.getSpecies());  //properties
-      stmt.setString(5, value.getChannel());
-
-      // execute statement
-      stmt.execute();
     }
-    finally {
-      if (stmt != null) {
-        // close statement
-        stmt.close();
-      }
+
+    /**
+     * A convenience method for querying for the presence of an experiment in the atlas database.  This method returns
+     * true if the experiment already exists in the database, and false if it could not be found.  You should not reload
+     * an experiment that already exists without first deleting the old one.
+     *
+     * @param connection the connection to the atlas database
+     * @param accession  the accession number of the experiment to query for
+     * @return true if thie experiment already exists in the database, false otherwise
+     * @throws java.sql.SQLException if there was a problem communicating with the database
+     */
+    public static boolean experimentExists(Connection connection,
+                                           String accession) throws SQLException {
+        Statement stmt = null;
+        try {
+            stmt = connection.prepareStatement(
+                    "select count(*) from A2_EXPERIMENT " +
+                            "where accession='?'");
+
+            // execute the query
+            ResultSet rs = stmt.executeQuery(accession);
+
+            int size = (rs.next() ? rs.getInt(0) : 0);
+
+            return size > 0;
+        }
+        finally {
+            if (stmt != null) {
+                // close statement
+                stmt.close();
+            }
+        }
     }
-  }
-
-  public static void ExperimentDel(String accession) {
-
-  }
-
-  /**
-   * A convenience method for querying for the presence of an experiment in the
-   * atlas database.  This method returns true if the experiment already exists
-   * in the database, and false if it could not be found.  You should not reload
-   * an experiment that already exists without first deleting the old one.
-   *
-   * @param connection the connection to the atlas database
-   * @param accession  the accession number of the experiment to query for
-   * @return true if thie experiment already exists in the database, false
-   *         otherwise
-   * @throws java.sql.SQLException if there was a problem communicating with the
-   *                               database
-   */
-  public static boolean experimentExists(Connection connection,
-                                         String accession) throws SQLException {
-    Statement stmt = null;
-    try {
-      stmt = connection.prepareStatement(
-          "select count(*) from A2_EXPERIMENT " +
-              "where accession='?'");
-
-      // execute the query
-      ResultSet rs = stmt.executeQuery(accession);
-
-      int size = (rs.next() ? rs.getInt(0) : 0);
-
-      return size > 0;
-    }
-    finally {
-      if (stmt != null) {
-        // close statement
-        stmt.close();
-      }
-    }
-  }
-
-//  public static Set<String> fetchDesignElementsByArrayDesign(
-//      Connection connection, String arrayDesignAccession) throws SQLException {
-//    PreparedStatement stmt = null;
-//    try {
-//      stmt = connection.prepareStatement(
-//          "select de.accession from A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
-//              "where ad.accession=? " +
-//              "and de.arraydesignid=ad.arraydesignid");
-//
-//      // execute the query
-//      stmt.setString(1, arrayDesignAccession);
-//      ResultSet rs = stmt.executeQuery();
-//
-//      Set<String> results = new HashSet<String>();
-//      while (rs.next()) {
-//        results.add(rs.getString(1));
-//      }
-//
-//      return results;
-//    }
-//    finally {
-//      if (stmt != null) {
-//        // close statement
-//        stmt.close();
-//      }
-//    }
-//  }
 }

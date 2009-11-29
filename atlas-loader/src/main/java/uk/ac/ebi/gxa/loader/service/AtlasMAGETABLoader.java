@@ -16,7 +16,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
-import uk.ac.ebi.gxa.db.utils.AtlasDB;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -33,12 +32,8 @@ import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import javax.sql.DataSource;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -56,8 +51,8 @@ import java.util.*;
  * @date 26-Aug-2009
  */
 public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
-    public AtlasMAGETABLoader(DataSource dataSource, AtlasDAO atlasDAO) {
-        super(dataSource, atlasDAO);
+    public AtlasMAGETABLoader(AtlasDAO atlasDAO) {
+        super(atlasDAO);
     }
 
     /**
@@ -151,160 +146,86 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
-        int numOfObjects =
-                cache.fetchAllExperiments().size() + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
-        Connection conn = null;
-        try {
-            // validate the load(s)
-            for (Experiment exp : cache.fetchAllExperiments()) {
-                if (!validateLoad(exp.getAccession())) {
-                    getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
-                            "it has been previously loaded or is loading right now.  Unable to load duplicates!");
-                    return false;
-                }
-            }
+        int numOfObjects = cache.fetchAllExperiments().size() +
+                cache.fetchAllSamples().size() +
+                cache.fetchAllAssays().size();
 
-            // start the load(s)
-            for (Experiment exp : cache.fetchAllExperiments()) {
-                startLoad(exp.getAccession());
-            }
-
-            // get a connection from the datasource
-            conn = getDataSource().getConnection();
-
-            // fixme: prior to writing, do some data cleanup to handle missing design elements.
-            // this is workaround for legacy data, can be removed when loader is improved
-            getLog().info("Cleaning up data - removing any expression values linked " +
-                    "to design elements missing from the database");
-            long start = System.currentTimeMillis();
-            Map<String, Set<String>> designElementsByArray =
-                    new HashMap<String, Set<String>>();
-            int missingCount = 0;
-            for (Assay assay : cache.fetchAllAssays()) {
-                // get the array design for this assay
-                String arrayDesignAcc = assay.getArrayDesignAccession();
-
-                // check that this array design is loaded
-                if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
-                    getLog().error(
-                            "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
-                                    "MUST be loaded before experiments using this array can be loaded.");
-                    return false;
-                }
-
-                // get the missing design elements - either DB lookup or fetch from map
-                Set<String> missingDesignElements;
-                if (!designElementsByArray.containsKey(arrayDesignAcc)) {
-                    missingDesignElements =
-                            lookupMissingDesignElements(
-                                    assay.getExpressionValuesByAccession(),
-                                    assay.getArrayDesignAccession());
-
-                    // add to our cache for known missing design elements
-                    designElementsByArray.put(arrayDesignAcc, missingDesignElements);
-
-                    missingCount += missingDesignElements.size();
-                }
-                else {
-                    missingDesignElements = designElementsByArray.get(arrayDesignAcc);
-                }
-
-                // finally, trim the missing design elements from this assay
-                trimMissingDesignElements(assay, missingDesignElements);
-            }
-            getLog().info("Removed all expression values for " + missingCount +
-                    " missing design elements from cache of assays to load");
-            long end = System.currentTimeMillis();
-
-            String total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Data cleanup took " + total + "s.");
-
-            // now write the cleaned up data
-            getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
-
-            // first, load experiments
-            for (Experiment experiment : cache.fetchAllExperiments()) {
-                AtlasDB.writeExperiment(conn, experiment);
-            }
-
-            // next, write assays
-            int count = 0;
-            System.out.print("Writing assays...");
-            for (Assay assay : cache.fetchAllAssays()) {
-                System.out.print(".");
-                AtlasDB.writeAssay(conn, assay);
-                if (count % 100 == 0) {
-                    System.out.print(count);
-                }
-                count++;
-            }
-            System.out.println("done");
-
-            // finally, load samples
-            for (Sample sample : cache.fetchAllSamples()) {
-                AtlasDB.writeSample(conn, sample);
-            }
-
-            // everything saved ok, so commit
-            conn.commit();
-
-            // end the load(s)
-            for (Experiment exp : cache.fetchAllExperiments()) {
-                endLoad(exp.getAccession(), true);
-            }
-
-            // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " completed successfully");
-            return true;
-        }
-        catch (Exception e) {
-            // something went wrong with our load, try and rollback
-            try {
-                if (conn != null) {
-                    // initState is null, so we might not be able to completely rollback
-                    // but try rollback anyway
-                    getLog().warn("A problem occurred during loading, rolling back changes");
-                    conn.rollback();
-                    e.printStackTrace();
-                }
-                else {
-                    // connection is null, nothing to rollback
-                }
-
-                // end the load(s)
-                for (Experiment exp : cache.fetchAllExperiments()) {
-                    endLoad(exp.getAccession(), false);
-                }
-            }
-            catch (SQLException e1) {
-                // we've done the best we can
-                getLog().error("Rollback after a load error failed.  " +
-                        "No changes should have been committed, " +
-                        "but there may be other problems");
-                e1.printStackTrace();
-            }
-            getLog().error("An SQL exception occurred. " + e.getMessage());
-            e.printStackTrace();
-
-            // and because the write failed, return false
-            return false;
-        }
-        finally {
-            // finally clear the cache, as we're done with this run
-            cache.clear();
-
-            getLog().debug("Emptied cache, cleaning up connections");
-
-            // clean up resources
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            }
-            catch (SQLException e) {
-                // we did our best!
+        // validate the load(s)
+        for (Experiment exp : cache.fetchAllExperiments()) {
+            if (!validateLoad(exp.getAccession())) {
+                getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
+                        "it has been previously loaded or is loading right now.  Unable to load duplicates!");
+                return false;
             }
         }
+
+        // start the load(s)
+        for (Experiment exp : cache.fetchAllExperiments()) {
+            startLoad(exp.getAccession());
+        }
+
+        // fixme: prior to writing, do some data cleanup to handle missing design elements.
+        // this is workaround for legacy data, can be removed when loader is improved
+        getLog().info("Cleaning up data - removing any expression values linked " +
+                "to design elements missing from the database");
+        long start = System.currentTimeMillis();
+        Map<String, Set<String>> designElementsByArray =
+                new HashMap<String, Set<String>>();
+        int missingCount = 0;
+        for (Assay assay : cache.fetchAllAssays()) {
+            // get the array design for this assay
+            String arrayDesignAcc = assay.getArrayDesignAccession();
+
+            // check that this array design is loaded
+            if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
+                getLog().error(
+                        "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
+                                "MUST be loaded before experiments using this array can be loaded.");
+                return false;
+            }
+
+            // get the missing design elements - either DB lookup or fetch from map
+            Set<String> missingDesignElements;
+            if (!designElementsByArray.containsKey(arrayDesignAcc)) {
+                missingDesignElements =
+                        lookupMissingDesignElements(
+                                assay.getExpressionValuesByAccession(),
+                                assay.getArrayDesignAccession());
+
+                // add to our cache for known missing design elements
+                designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+
+                missingCount += missingDesignElements.size();
+            }
+            else {
+                missingDesignElements = designElementsByArray.get(arrayDesignAcc);
+            }
+
+            // finally, trim the missing design elements from this assay
+            trimMissingDesignElements(assay, missingDesignElements);
+        }
+        getLog().info("Removed all expression values for " + missingCount +
+                " missing design elements from cache of assays to load");
+        long end = System.currentTimeMillis();
+
+        String total = new DecimalFormat("#.##").format((end - start) / 1000);
+        getLog().info("Data cleanup took " + total + "s.");
+
+        // now write the cleaned up data
+        getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
+
+        // write all the data
+        getAtlasDAO().writeExperimentsBundle(
+                cache.fetchAllExperiments(), cache.fetchAllAssays(), cache.fetchAllSamples());
+
+        // end the load(s)
+        for (Experiment exp : cache.fetchAllExperiments()) {
+            endLoad(exp.getAccession(), true);
+        }
+
+        // and return true - everything loaded ok
+        getLog().info("Writing " + numOfObjects + " completed successfully");
+        return true;
     }
 
     private boolean validateLoad(String accession) {
@@ -329,19 +250,17 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         return true;
     }
 
-    private void startLoad(String accession) throws SQLException {
+    private void startLoad(String accession) {
         getLog().info("Updating load_monitor: starting load for " + accession);
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
     }
 
-    private void endLoad(String accession, boolean success) throws SQLException {
+    private void endLoad(String accession, boolean success) {
         getLog().info("Updating load_monitor: ending load for " + accession);
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
-    private Set<String> lookupMissingDesignElements(
-            Map<String, Float> expressionValues,
-            String arrayDesignAccession) throws SQLException {
+    private Set<String> lookupMissingDesignElements(Map<String, Float> expressionValues, String arrayDesignAccession) {
         // use our dao to lookup design elements, instead of the writer class
         Map<Integer, String> designElements = getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
 
@@ -373,8 +292,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         return missingDesignElements;
     }
 
-    private void trimMissingDesignElements(Assay assay,
-                                           Set<String> missingDesignElements) {
+    private void trimMissingDesignElements(Assay assay, Set<String> missingDesignElements) {
         for (String deAcc : missingDesignElements) {
             if (assay.getExpressionValuesByAccession().containsKey(deAcc)) {
                 getLog().debug("Missing design element " + deAcc + " will be " +
