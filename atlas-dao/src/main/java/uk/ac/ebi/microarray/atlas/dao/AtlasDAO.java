@@ -3,6 +3,8 @@ package uk.ac.ebi.microarray.atlas.dao;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
+import oracle.sql.ArrayDescriptor;
+import oracle.sql.ARRAY;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -19,10 +21,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -302,65 +301,15 @@ public class AtlasDAO {
         this.transactionTemplate = transactionTemplate;
     }
 
+    /*
+    DAO read methods
+     */
+
     public List<LoadDetails> getLoadDetails() {
         List results = template.query(LOAD_MONITOR_SELECT,
                                       new LoadDetailsMapper());
         return (List<LoadDetails>) results;
     }
-
-    public void writeLoadDetails(final String experimentAccession,
-                                 final LoadStage loadStage,
-                                 final LoadStatus loadStatus) {
-        // execute this procedure in it's own transaction...
-        /*
-        create or replace procedure load_progress(
-          experiment_accession varchar
-          ,stage varchar --load, netcdf, similarity, ranking, searchindex
-          ,status varchar --done, pending
-        )
-        */
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                try {
-                    // create stored procedure call
-                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
-
-                    // map parameters...
-                    MapSqlParameterSource params = new MapSqlParameterSource();
-                    params.addValue("experiment_accession", experimentAccession);
-                    params.addValue("stage", loadStage.toString().toLowerCase());
-                    params.addValue("status", loadStatus.toString().toLowerCase());
-
-                    procedure.execute(params);
-                }
-                catch (Exception e) {
-                    log.error("load_progress transaction update failed! " + e.getMessage());
-                    e.printStackTrace();
-                    transactionStatus.setRollbackOnly();
-                }
-            }
-        });
-    }
-
-    // todo - migrate stored procedures in AtlasDB to here, which will stop ClassCastExceptions from managed datasources and also remove DataSource dependency
-//    public void writeStoredProcedureForOracleSTRUCT(final Object[] value) {
-//        // code to call stored procedures that take oracle params looks like...
-//        SimpleJdbcCall procedure = new SimpleJdbcCall(template);
-//        procedure.withCatalogName("PACKAGE_NAME");
-//        procedure.withFunctionName("FUNCTION_NAME");
-//        procedure.addDeclaredParameter(new SqlParameter("IN_PARAM", OracleTypes.STRUCT, "IN_PARAM_TYPE"));
-//        procedure.compile();
-//
-//        SqlTypeValue inValue = new AbstractSqlTypeValue() {
-//            protected Object createTypeValue(Connection conn, int sqlType, String typeName) throws SQLException {
-//                StructDescriptor sdExpressionValue = StructDescriptor.createDescriptor(typeName, conn);
-//                return new STRUCT(sdExpressionValue, conn, value);
-//            }
-//        };
-//
-//        Map<String, Object> inParameters = new HashMap<String, Object>();
-//        inParameters.put("IN_PARAM", inValue);
-//    }
 
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
@@ -771,6 +720,169 @@ public class AtlasDAO {
         return stats;
     }
 
+    /*
+    DAO write methods
+     */
+
+    public void writeLoadDetails(final String experimentAccession,
+                                 final LoadStage loadStage,
+                                 final LoadStatus loadStatus) {
+        // execute this procedure in it's own transaction...
+        /*
+        create or replace procedure load_progress(
+          experiment_accession varchar
+          ,stage varchar --load, netcdf, similarity, ranking, searchindex
+          ,status varchar --done, pending
+        )
+        */
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                try {
+                    // create stored procedure call
+                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
+
+                    // map parameters...
+                    MapSqlParameterSource params = new MapSqlParameterSource()
+                            .addValue("experiment_accession", experimentAccession)
+                            .addValue("stage", loadStage.toString().toLowerCase())
+                            .addValue("status", loadStatus.toString().toLowerCase());
+
+                    procedure.execute(params);
+                }
+                catch (Exception e) {
+                    log.error("load_progress transaction update failed! " + e.getMessage());
+                    e.printStackTrace();
+                    transactionStatus.setRollbackOnly();
+                }
+            }
+        });
+    }
+
+    /**
+     * Writes a fully comprehensive "bundle" of data related to one or many experiments.  The parameters passed should
+     * be related experiments plus all the associated assays and samples.  All the related data will be written, or none
+     * at all - if anything fails, all changes should be rolled back.
+     *
+     * @param experiments the collection of experiments to write to the datasource
+     * @param assays      all assays associated with the collection of experiments being written
+     * @param samples     all samples associated with the collection of experiments being written
+     */
+    public void writeExperimentsBundle(final Collection<Experiment> experiments,
+                                       final Collection<Assay> assays,
+                                       final Collection<Sample> samples) {
+        // this operation runs in an isolated transaction - if one update fails, everything should be rolled back
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                try {
+                    // write experiments first
+                    for (Experiment expt : experiments) {
+                        writeExperiment(expt);
+                    }
+                    // then write assays
+                    for (Assay assay : assays) {
+                        writeAssay(assay);
+                    }
+                    // finally write samples
+                    for (Sample sample : samples) {
+                        writeSample(sample);
+                    }
+                }
+                catch (Exception e) {
+                    log.error("experiments bundle transaction update failed! " + e.getMessage());
+                    e.printStackTrace();
+                    transactionStatus.setRollbackOnly();
+                }
+            }
+        });
+    }
+
+    /**
+     * Writes the given experiment to the database, using the default transaction strategy configured for the
+     * datasource.
+     *
+     * @param experiment the experiment to write
+     */
+    public void writeExperiment(final Experiment experiment) {
+        // execute stored procedure a2_ExperimentSet - standard param types
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_ExperimentSet");
+
+        // map parameters...
+        //1  TheAccession varchar2
+        //2  TheDescription varchar2
+        //3  ThePerformer varchar2
+        //4  TheLab varchar2
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("TheAccession", experiment.getAccession())
+                .addValue("TheDescription", experiment.getDescription())
+                .addValue("ThePerformer", experiment.getPerformer())
+                .addValue("TheLab", experiment.getLab());
+
+        procedure.execute(params);
+    }
+
+    /**
+     * Writes the given assay to the database, using the default transaction strategy configured for the datasource.
+     *
+     * @param assay the assay to write
+     */
+    public void writeAssay(final Assay assay) {
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_AssaySet");
+
+        // map parameters...
+        //1  Accession varchar2
+        //2  ExperimentAccession  varchar2
+        //3  ArrayDesignAccession varchar2
+        //4  Properties PropertyTable
+        //5  ExpressionValues ExpressionValueTable
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("Accession", assay.getAccession())
+                .addValue("ExperimentAccession", assay.getExperimentAccession())
+                .addValue("ArrayDesignAccession", assay.getArrayDesignAccession())
+                .addValue("Properties",
+                          convertPropertiesToOracleARRAY(assay.getProperties()),
+                          OracleTypes.ARRAY,
+                          "PROPERTYTABLE")
+                .addValue("ExpressionValues",
+                          convertExpressionValuesToOracleARRAY(assay.getExpressionValuesByAccession()),
+                          OracleTypes.ARRAY,
+                          "EXPRESSIONVALUETABLE");
+
+        procedure.execute(params);
+    }
+
+    /**
+     * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
+     *
+     * @param sample the sample to write
+     */
+    public void writeSample(final Sample sample) {
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_SampleSet");
+
+        //1  Accession varchar2
+        //2  Assays AccessionTable
+        //3  Properties PropertyTable
+        //4  Species varchar2
+        //5  Channel varchar2
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("Accession", sample.getAccession())
+                .addValue("Assays",
+                          convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions()),
+                          OracleTypes.ARRAY,
+                          "ACCESSIONTABLE")
+                .addValue("Properties",
+                          convertPropertiesToOracleARRAY(sample.getProperties()),
+                          OracleTypes.ARRAY,
+                          "PROPERTYTABLE")
+                .addValue("Species", sample.getSpecies())
+                .addValue("Channel", sample.getChannel());
+
+        procedure.execute(params);
+    }
+
+    /*
+    utils methods for doing standard stuff
+     */
+
     private void fillOutGenes(List<Gene> genes) {
         // map genes to gene id
         Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
@@ -847,6 +959,78 @@ public class AtlasDAO {
         MapSqlParameterSource propertyParams = new MapSqlParameterSource();
         propertyParams.addValue("sampleids", samplesByID.keySet());
         namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
+    }
+
+    private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
+        return new AbstractSqlTypeValue() {
+            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // this should be creating an oracle ARRAY of properties
+                // the array of STRUCTS representing each property
+                Object[] propArrayValues = new Object[properties.size()];
+
+                // convert each property to an oracle STRUCT
+                // descriptor for PROPERTY type
+                StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
+                int i = 0;
+                Object[] propStructValues = new Object[4];
+                for (Property property : properties) {
+                    // array representing the values to go in the STRUCT
+                    propStructValues[0] = property.getAccession();
+                    propStructValues[1] = property.getName();
+                    propStructValues[2] = property.getValue();
+                    propStructValues[3] = property.isFactorValue();
+
+                    propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
+                }
+
+                // created the array of STRUCTs, group into ARRAY
+                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                return new ARRAY(arrayDescriptor, connection, propArrayValues);
+            }
+        };
+    }
+
+    private SqlTypeValue convertExpressionValuesToOracleARRAY(final Map<String, Float> expressionValues) {
+        return new AbstractSqlTypeValue() {
+            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // this should be creating an oracle ARRAY of expression values
+                // the array of STRUCTS representing each expression value
+                Object[] evArrayValues = new Object[expressionValues.size()];
+
+                // convert each property to an oracle STRUCT
+                // descriptor for EXPRESSIONVALUE type
+                StructDescriptor structDescriptor = StructDescriptor.createDescriptor("EXPRESSIONVALUE", connection);
+                int i = 0;
+                Object[] evStructValues = new Object[2];
+                for (Map.Entry<String, Float> expressionValue : expressionValues.entrySet()) {
+                    // array representing the values to go in the STRUCT
+                    evStructValues[0] = expressionValue.getKey();
+                    evStructValues[1] = expressionValue.getValue();
+
+                    evArrayValues[i++] = new STRUCT(structDescriptor, connection, evStructValues);
+                }
+
+                // created the array of STRUCTs, group into ARRAY
+                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                return new ARRAY(arrayDescriptor, connection, evArrayValues);
+            }
+        };
+    }
+
+    private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
+        return new AbstractSqlTypeValue() {
+            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                Object[] accessions = new Object[assayAccessions.size()];
+                int i = 0;
+                for (String assayAccession : assayAccessions) {
+                    accessions[i++] = assayAccession;
+                }
+
+                // created the array of STRUCTs, group into ARRAY
+                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                return new ARRAY(arrayDescriptor, connection, accessions);
+            }
+        };
     }
 
     private class LoadDetailsMapper implements RowMapper {

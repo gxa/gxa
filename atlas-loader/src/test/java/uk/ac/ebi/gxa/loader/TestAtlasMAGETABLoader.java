@@ -157,7 +157,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     }
 
     public void testLoadAndCompare() {
-        AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getDataSource(), getAtlasDAO());
+        AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getAtlasDAO());
         boolean result = loader.load(parseURL);
         // now check expected objects can be retrieved with DAO
         try {
