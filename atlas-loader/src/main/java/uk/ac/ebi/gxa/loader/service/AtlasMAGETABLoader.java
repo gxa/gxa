@@ -16,6 +16,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -160,72 +161,88 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
 
         // start the load(s)
+        boolean success = false;
         for (Experiment exp : cache.fetchAllExperiments()) {
             startLoad(exp.getAccession());
         }
 
-        // fixme: prior to writing, do some data cleanup to handle missing design elements.
-        // this is workaround for legacy data, can be removed when loader is improved
-        getLog().info("Cleaning up data - removing any expression values linked " +
-                "to design elements missing from the database");
-        long start = System.currentTimeMillis();
-        Map<String, Set<String>> designElementsByArray =
-                new HashMap<String, Set<String>>();
-        int missingCount = 0;
-        for (Assay assay : cache.fetchAllAssays()) {
-            // get the array design for this assay
-            String arrayDesignAcc = assay.getArrayDesignAccession();
+        try {
+            // prior to writing, do some data cleanup to handle missing design elements.
+            // this is workaround for legacy data, can be removed when loader is improved
+            getLog().info("Cleaning up data - removing any expression values linked " +
+                    "to design elements missing from the database");
+            long start = System.currentTimeMillis();
+            Map<String, Set<String>> designElementsByArray =
+                    new HashMap<String, Set<String>>();
+            int missingCount = 0;
+            for (Assay assay : cache.fetchAllAssays()) {
+                // get the array design for this assay
+                String arrayDesignAcc = assay.getArrayDesignAccession();
 
-            // check that this array design is loaded
-            if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
-                getLog().error(
-                        "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
-                                "MUST be loaded before experiments using this array can be loaded.");
-                return false;
+                // check that this array design is loaded
+                if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
+                    getLog().error(
+                            "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
+                                    "MUST be loaded before experiments using this array can be loaded.");
+                    return success = false;
+                }
+
+                // get the missing design elements - either DB lookup or fetch from map
+                Set<String> missingDesignElements;
+                try {
+                    if (!designElementsByArray.containsKey(arrayDesignAcc)) {
+                        missingDesignElements =
+                                lookupMissingDesignElements(
+                                        assay.getExpressionValuesByAccession(),
+                                        assay.getArrayDesignAccession());
+
+                        // add to our cache for known missing design elements
+                        designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+
+                        missingCount += missingDesignElements.size();
+                    }
+                    else {
+                        missingDesignElements = designElementsByArray.get(arrayDesignAcc);
+                    }
+                }
+                catch (AtlasLoaderException e) {
+                    // this occurs if we exceed the cutoff, so just return false
+                    return success = false;
+                }
+
+                // finally, trim the missing design elements from this assay
+                trimMissingDesignElements(assay, missingDesignElements);
             }
+            getLog().info("Removed all expression values for " + missingCount +
+                    " missing design elements from cache of assays to load");
+            long end = System.currentTimeMillis();
 
-            // get the missing design elements - either DB lookup or fetch from map
-            Set<String> missingDesignElements;
-            if (!designElementsByArray.containsKey(arrayDesignAcc)) {
-                missingDesignElements =
-                        lookupMissingDesignElements(
-                                assay.getExpressionValuesByAccession(),
-                                assay.getArrayDesignAccession());
+            String total = new DecimalFormat("#.##").format((end - start) / 1000);
+            getLog().info("Data cleanup took " + total + "s.");
 
-                // add to our cache for known missing design elements
-                designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+            // now write the cleaned up data
+            getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
-                missingCount += missingDesignElements.size();
-            }
-            else {
-                missingDesignElements = designElementsByArray.get(arrayDesignAcc);
-            }
+            // write all the data
+            getAtlasDAO().writeExperimentsBundle(
+                    cache.fetchAllExperiments(), cache.fetchAllAssays(), cache.fetchAllSamples());
 
-            // finally, trim the missing design elements from this assay
-            trimMissingDesignElements(assay, missingDesignElements);
+            // and return true - everything loaded ok
+            getLog().info("Writing " + numOfObjects + " completed successfully");
+            return success = true;
         }
-        getLog().info("Removed all expression values for " + missingCount +
-                " missing design elements from cache of assays to load");
-        long end = System.currentTimeMillis();
-
-        String total = new DecimalFormat("#.##").format((end - start) / 1000);
-        getLog().info("Data cleanup took " + total + "s.");
-
-        // now write the cleaned up data
-        getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
-
-        // write all the data
-        getAtlasDAO().writeExperimentsBundle(
-                cache.fetchAllExperiments(), cache.fetchAllAssays(), cache.fetchAllSamples());
-
-        // end the load(s)
-        for (Experiment exp : cache.fetchAllExperiments()) {
-            endLoad(exp.getAccession(), true);
+        catch (Exception e) {
+            getLog().error("Writing " + numOfObjects + " failed: " + e.getMessage() + ".  " +
+                    "Changes have been rolled back.");
+            e.printStackTrace();
+            return success = false;
         }
-
-        // and return true - everything loaded ok
-        getLog().info("Writing " + numOfObjects + " completed successfully");
-        return true;
+        finally {
+            // end the load(s)
+            for (Experiment exp : cache.fetchAllExperiments()) {
+                endLoad(exp.getAccession(), success);
+            }
+        }
     }
 
     private boolean validateLoad(String accession) {
@@ -260,7 +277,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
-    private Set<String> lookupMissingDesignElements(Map<String, Float> expressionValues, String arrayDesignAccession) {
+    private Set<String> lookupMissingDesignElements(Map<String, Float> expressionValues, String arrayDesignAccession)
+            throws AtlasLoaderException {
         // use our dao to lookup design elements, instead of the writer class
         Map<Integer, String> designElements = getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
 
@@ -282,12 +300,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         int missingDEs = missingDesignElements.size();
 
         // log the number of missing DEs for this array design
-        String percent = new DecimalFormat("#.#").format(
-                ((double) missingDEs / (double) totalDEs) * 100);
+        double percentMissing = ((double) missingDEs / (double) totalDEs);
+        String percentMissingStr = new DecimalFormat("#.#").format(percentMissing * 100);
+        String percentCutoffStr = new DecimalFormat("#.#").format(getMissingDesignElementsCutoff() * 100);
 
-        getLog().error("Total number of missing design elements for " +
-                arrayDesignAccession + ": " + missingDEs + "/" +
-                totalDEs + " (" + percent + " %)");
+        getLog().warn("Missing design elements for " + arrayDesignAccession + ": " +
+                missingDEs + "/" + totalDEs + " (" + percentMissingStr + " %)");
+
+        // check this percentage against the cut-off configured
+        if (percentMissing > getMissingDesignElementsCutoff()) {
+            String msg = "The total number of missing design elements exceeds allowed cutoff: " + percentMissingStr +
+                    "% (max " + percentCutoffStr + "%)";
+            getLog().error(msg);
+            throw new AtlasLoaderException(msg);
+        }
 
         return missingDesignElements;
     }

@@ -1,14 +1,17 @@
 package uk.ac.ebi.microarray.atlas.dao;
 
 import oracle.jdbc.OracleTypes;
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
-import oracle.sql.ArrayDescriptor;
-import oracle.sql.ARRAY;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlTypeValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
@@ -446,7 +449,7 @@ public class AtlasDAO {
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
                                       new Object[]{experimentAccession,
-                                              arrayAccession},
+                                                   arrayAccession},
                                       new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
@@ -727,19 +730,21 @@ public class AtlasDAO {
     public void writeLoadDetails(final String experimentAccession,
                                  final LoadStage loadStage,
                                  final LoadStatus loadStatus) {
-        // execute this procedure in it's own transaction...
-        /*
-        create or replace procedure load_progress(
-          experiment_accession varchar
-          ,stage varchar --load, netcdf, similarity, ranking, searchindex
-          ,status varchar --done, pending
-        )
-        */
+        // load monitor updates in it's own transaction
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 try {
                     // create stored procedure call
-                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("load_progress");
+                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
+
+                    // execute this procedure...
+                    /*
+                    create or replace procedure load_progress(
+                      experiment_accession varchar
+                      ,stage varchar --load, netcdf, similarity, ranking, searchindex
+                      ,status varchar --done, pending
+                    )
+                    */
 
                     // map parameters...
                     MapSqlParameterSource params = new MapSqlParameterSource()
@@ -753,6 +758,7 @@ public class AtlasDAO {
                     log.error("load_progress transaction update failed! " + e.getMessage());
                     e.printStackTrace();
                     transactionStatus.setRollbackOnly();
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -788,9 +794,10 @@ public class AtlasDAO {
                     }
                 }
                 catch (Exception e) {
-                    log.error("experiments bundle transaction update failed! " + e.getMessage());
+                    log.error("Experiments bundle transaction update failed! " + e.getMessage());
                     e.printStackTrace();
                     transactionStatus.setRollbackOnly();
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -804,18 +811,24 @@ public class AtlasDAO {
      */
     public void writeExperiment(final Experiment experiment) {
         // execute stored procedure a2_ExperimentSet - standard param types
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_ExperimentSet");
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_EXPERIMENTSET");
+
+        // execute this procedure...
+        /*
+        create or replace PROCEDURE "A2_EXPERIMENTSET" (
+          TheAccession varchar2
+          ,TheDescription varchar2
+          ,ThePerformer varchar2
+          ,TheLab varchar2
+        )
+        */
 
         // map parameters...
-        //1  TheAccession varchar2
-        //2  TheDescription varchar2
-        //3  ThePerformer varchar2
-        //4  TheLab varchar2
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("TheAccession", experiment.getAccession())
-                .addValue("TheDescription", experiment.getDescription())
-                .addValue("ThePerformer", experiment.getPerformer())
-                .addValue("TheLab", experiment.getLab());
+        params.addValue("THEACCESSION", experiment.getAccession())
+                .addValue("THEDESCRIPTION", experiment.getDescription())
+                .addValue("THEPERFORMER", experiment.getPerformer())
+                .addValue("THELAB", experiment.getLab());
 
         procedure.execute(params);
     }
@@ -826,23 +839,29 @@ public class AtlasDAO {
      * @param assay the assay to write
      */
     public void writeAssay(final Assay assay) {
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_AssaySet");
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_ASSAYSET");
+
+        // execute this procedure...
+        /*
+        create or replace PROCEDURE "A2_ASSAYSET" (
+           TheAccession varchar2
+          ,TheExperimentAccession  varchar2
+          ,TheArrayDesignAccession varchar2
+          ,TheProperties PropertyTable
+          ,TheExpressionValues ExpressionValueTable
+        )
+        */
 
         // map parameters...
-        //1  Accession varchar2
-        //2  ExperimentAccession  varchar2
-        //3  ArrayDesignAccession varchar2
-        //4  Properties PropertyTable
-        //5  ExpressionValues ExpressionValueTable
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("Accession", assay.getAccession())
-                .addValue("ExperimentAccession", assay.getExperimentAccession())
-                .addValue("ArrayDesignAccession", assay.getArrayDesignAccession())
-                .addValue("Properties",
+        params.addValue("THEACCESSION", assay.getAccession())
+                .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
+                .addValue("THEARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
+                .addValue("THEPROPERTIES",
                           convertPropertiesToOracleARRAY(assay.getProperties()),
                           OracleTypes.ARRAY,
                           "PROPERTYTABLE")
-                .addValue("ExpressionValues",
+                .addValue("THEEXPRESSIONVALUES",
                           convertExpressionValuesToOracleARRAY(assay.getExpressionValuesByAccession()),
                           OracleTypes.ARRAY,
                           "EXPRESSIONVALUETABLE");
@@ -856,25 +875,32 @@ public class AtlasDAO {
      * @param sample the sample to write
      */
     public void writeSample(final Sample sample) {
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("a2_SampleSet");
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_SAMPLESET");
 
-        //1  Accession varchar2
-        //2  Assays AccessionTable
-        //3  Properties PropertyTable
-        //4  Species varchar2
-        //5  Channel varchar2
+        // execute this procedure...
+        /*
+        create or replace PROCEDURE "A2_SAMPLESET" (
+            p_Accession varchar2
+          , p_Assays AccessionTable
+          , p_Properties PropertyTable
+          , p_Species varchar2
+          , p_Channel varchar2
+        )
+        */
+
+        // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("Accession", sample.getAccession())
-                .addValue("Assays",
+        params.addValue("P_ACCESSION", sample.getAccession())
+                .addValue("P_ASSAYS",
                           convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions()),
                           OracleTypes.ARRAY,
                           "ACCESSIONTABLE")
-                .addValue("Properties",
+                .addValue("P_PROPERTIES",
                           convertPropertiesToOracleARRAY(sample.getProperties()),
                           OracleTypes.ARRAY,
                           "PROPERTYTABLE")
-                .addValue("Species", sample.getSpecies())
-                .addValue("Channel", sample.getChannel());
+                .addValue("P_SPECIES", sample.getSpecies())
+                .addValue("P_CHANNEL", sample.getChannel());
 
         procedure.execute(params);
     }
