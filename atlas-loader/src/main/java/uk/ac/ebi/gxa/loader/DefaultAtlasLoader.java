@@ -28,6 +28,7 @@ import java.util.concurrent.*;
 public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBean {
     private AtlasDAO atlasDAO;
     private URL repositoryLocation;
+    private double missingDesignElementsCutoff = -1;
 
     private AtlasLoaderService<URL> atlasLoaderService;
 
@@ -53,6 +54,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
         this.repositoryLocation = repositoryLocation;
     }
 
+    public double getMissingDesignElementsCutoff() {
+        return missingDesignElementsCutoff;
+    }
+
+    public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) {
+        this.missingDesignElementsCutoff = missingDesignElementsCutoff;
+    }
+
     public void afterPropertiesSet() throws Exception {
         startup();
     }
@@ -63,6 +72,10 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
             // create the service
             atlasLoaderService = new AtlasMAGETABLoader(atlasDAO);
+            // if we have set the cutoff for missing design elements, set on the service
+            if (missingDesignElementsCutoff != -1) {
+                atlasLoaderService.setMissingDesignElementsCutoff(missingDesignElementsCutoff);
+            }
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();
