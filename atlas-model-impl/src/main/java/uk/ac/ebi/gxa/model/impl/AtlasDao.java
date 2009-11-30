@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import oracle.jdbc.OracleConnection;
 import oracle.sql.ARRAY;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Test;
 
 public class AtlasDao implements Dao {
 
@@ -56,15 +57,67 @@ public class AtlasDao implements Dao {
         CallableStatement stmt = null;
 
         try{
-          stmt = connection.prepareCall("{call a2_ArrayDesignGet(?,?,?)}");
+          stmt = connection.prepareCall("{call AtlasAPI.a2_ArrayDesignGet(?,?,?,?)}");
 
           AtlasDB.setArrayDesignQuery(stmt,1,atlasArrayDesignQuery);
 
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
             
-          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //arrayDesigns
+          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //designElements
 
           stmt.execute();
+
+          /*
+            ArrayList<Assay> assays = new ArrayList<Assay>();
+
+            ResultSet rsAssays = (ResultSet) stmt.getObject(3);
+            ResultSet rsSamples = (ResultSet) stmt.getObject(4);
+            ResultSet rsProperties = (ResultSet) stmt.getObject(5);
+
+            rsSamples.next();
+            rsProperties.next();
+
+            while(rsAssays.next()){
+              AtlasAssay a = new AtlasAssay();
+
+              int AssayID = rsAssays.getInt("AssayId");
+
+              a.setid(AssayID);
+              a.setAccession(rsAssays.getString("Accession"));
+              a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
+
+              ArrayList<String> sampleAccessions = new ArrayList<String>();
+
+              while(AssayID == rsSamples.getInt("AssayId")){
+                  sampleAccessions.add(rsSamples.getString("SampleAccession"));
+
+                  rsSamples.next();
+              }
+
+              a.setSampleAccessions(sampleAccessions);
+
+              ArrayList<Property> assayproperties = new ArrayList<Property>();
+
+              while(AssayID == rsProperties.getInt("AssayId")){
+
+                  AtlasProperty atlasProperty = new AtlasProperty();
+                  atlasProperty.setName(rsProperties.getString("Property"));
+
+                  ArrayList<String> values = new ArrayList<String>();
+                  values.add(rsProperties.getString("PropertyValue"));
+
+                  atlasProperty.setValues(values);
+
+                  assayproperties.add(atlasProperty);
+
+                  rsProperties.next();
+              }
+
+              a.setProperties(new AtlasPropertyCollection(assayproperties));
+              assays.add(a);
+          }*/
+            
 
           return null;
         }
@@ -105,7 +158,7 @@ public class AtlasDao implements Dao {
         try{
           //fierce nesting
 
-          stmt = connection.prepareCall("{call a2_AssayGet(?,?,?,?,?)}");
+          stmt = connection.prepareCall("{call AtlasAPI.a2_AssayGet(?,?,?,?,?)}");
 
           AtlasDB.setAssayQuery(stmt,1,atlasAssayQuery, this); //pass ref to DAO, method pulls list of PropertyDs
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
@@ -319,7 +372,7 @@ public class AtlasDao implements Dao {
 
         try{
 
-          stmt = connection.prepareCall("{call a2_PropertyGet(?,?,?)}");
+          stmt = connection.prepareCall("{call AtlasAPI.a2_PropertyGet(?,?,?)}");
 
           AtlasDB.setPropertyQuery(stmt,1,atlasPropertyQuery, this); //pass ref to DAO, method pulls list of PropertyDs
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
@@ -358,7 +411,7 @@ public class AtlasDao implements Dao {
 
         }
         catch(Exception ex){
-            throw new GxaException(ex.getMessage());
+            throw new GxaException(ex);
         }
         finally {
               if (stmt != null) {
@@ -389,7 +442,7 @@ public class AtlasDao implements Dao {
         CallableStatement stmt = null;
 
         try{
-          stmt = connection.prepareCall("{call a2_GeneGet(?,?,?,?)}");
+          stmt = connection.prepareCall("{call AtlasAPI.a2_GeneGet(?,?,?,?)}");
 
           AtlasDB.setGeneQuery(stmt,1,atlasGeneQuery, this); //pass ref to DAO, method pulls list of PropertyDs
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
@@ -505,7 +558,7 @@ public class AtlasDao implements Dao {
     public Integer[] getPropertyIDs(PropertyQuery atlasPropertyQuery) throws GxaException{
         try{
 
-         requestByID request = new requestByID("a2_PropertyGet_ID");
+         requestByID request = new requestByID("AtlasAPI.a2_PropertyGet_ID");
          AtlasDB.setPropertyQuery(request.getSatatement(),2,atlasPropertyQuery,this);
          return request.execute();
 
@@ -518,7 +571,7 @@ public class AtlasDao implements Dao {
     public Integer[] getSampleIDs(SampleQuery atlasSampleQuery) throws GxaException{
         try{
 
-         requestByID request = new requestByID("a2_SampleGet_ID");
+         requestByID request = new requestByID("AtlasAPI.a2_SampleGet_ID");
          AtlasDB.setSampleQuery(request.getSatatement(),2,atlasSampleQuery,this);
          return request.execute();
 
@@ -531,7 +584,7 @@ public class AtlasDao implements Dao {
     public Integer[] getAssayIDs(AssayQuery atlasAssayQuery) throws GxaException{
         try{
 
-         requestByID request = new requestByID("a2_AssayGet_ID");
+         requestByID request = new requestByID("AtlasAPI.a2_AssayGet_ID");
          AtlasDB.setAssayQuery(request.getSatatement(),2,atlasAssayQuery,this);
          return request.execute();
 
@@ -544,7 +597,7 @@ public class AtlasDao implements Dao {
     public Integer[] getExperimentIDs(ExperimentQuery atlasExperimentQuery) throws GxaException{
         try{
 
-         requestByID request = new requestByID("a2_ExperimentGet_ID");
+         requestByID request = new requestByID("AtlasAPI.a2_ExperimentGet_ID");
          AtlasDB.setExperimentQuery(request.getSatatement(),2,atlasExperimentQuery,this);
          return request.execute();
 
@@ -557,7 +610,7 @@ public class AtlasDao implements Dao {
     public Integer[] getGeneIDs(GeneQuery atlasGeneQuery) throws GxaException{
         try{
 
-         requestByID request = new requestByID("a2_GeneGet_ID");
+         requestByID request = new requestByID("AtlasAPI.a2_GeneGet_ID");
          AtlasDB.setGeneQuery(request.getSatatement(),2,atlasGeneQuery,this);
          return request.execute();
 

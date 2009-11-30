@@ -210,8 +210,12 @@ public class AtlasDB {
         asq[2] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", SampleIDs);
         asq[3] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", AssayIDs);
         asq[4] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", ExperimentIDs);
-        asq[5] = propertyQuery.isAssayProperty() ? 1 : 0;
-        asq[6] = propertyQuery.isSampleProperty() ? 1 : 0;
+
+        if(null!=propertyQuery.isAssayProperty())
+            asq[5] = propertyQuery.isAssayProperty() ? 1 : 0;
+
+        if(null!=propertyQuery.isSampleProperty())
+            asq[6] = propertyQuery.isSampleProperty() ? 1 : 0;
 
         stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "PROPERTYQUERY", asq));
     }
