@@ -228,12 +228,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     cache.fetchAllExperiments(), cache.fetchAllAssays(), cache.fetchAllSamples());
 
             // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " completed successfully");
+            getLog().info("Writing " + numOfObjects + " objects completed successfully");
             return success = true;
         }
         catch (Exception e) {
-            getLog().error("Writing " + numOfObjects + " failed: " + e.getMessage() + ".  " +
-                    "Changes have been rolled back.");
+            getLog().error("Writing " + numOfObjects + " objects failed: " + e.getMessage() +
+                    "\nChanges have been rolled back.");
             e.printStackTrace();
             return success = false;
         }
@@ -309,7 +309,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
         // check this percentage against the cut-off configured
         if (percentMissing > getMissingDesignElementsCutoff()) {
-            String msg = "The total number of missing design elements exceeds allowed cutoff: " + percentMissingStr +
+            String msg = "The total number of missing design elements for exceeds allowed cutoff: " + percentMissingStr +
                     "% (max " + percentCutoffStr + "%)";
             getLog().error(msg);
             throw new AtlasLoaderException(msg);

@@ -8,14 +8,12 @@ import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlTypeValue;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -24,6 +22,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 
 /**
@@ -777,6 +776,7 @@ public class AtlasDAO {
                                        final Collection<Assay> assays,
                                        final Collection<Sample> samples) {
         // this operation runs in an isolated transaction - if one update fails, everything should be rolled back
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 try {
@@ -839,8 +839,6 @@ public class AtlasDAO {
      * @param assay the assay to write
      */
     public void writeAssay(final Assay assay) {
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_ASSAYSET");
-
         // execute this procedure...
         /*
         create or replace PROCEDURE "A2_ASSAYSET" (
@@ -851,21 +849,47 @@ public class AtlasDAO {
           ,TheExpressionValues ExpressionValueTable
         )
         */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("A2_ASSAYSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("THEACCESSION")
+                        .useInParameterNames("THEEXPERIMENTACCESSION")
+                        .useInParameterNames("THEARRAYDESIGNACCESSION")
+                        .useInParameterNames("THEPROPERTIES")
+                        .useInParameterNames("THEEXPRESSIONVALUES")
+                        .declareParameters(
+                                new SqlParameter("THEACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("THEEXPERIMENTACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("THEARRAYDESIGNACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("THEPROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
+                        .declareParameters(
+                                new SqlParameter("THEEXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
 
         // map parameters...
+        List<Property> props = assay.getProperties() == null
+                ? new ArrayList<Property>()
+                : assay.getProperties();
+        Map<String, Float> evs = assay.getExpressionValuesByAccession() == null
+                ? new HashMap<String, Float>()
+                : assay.getExpressionValuesByAccession();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("THEACCESSION", assay.getAccession())
                 .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
                 .addValue("THEARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
                 .addValue("THEPROPERTIES",
-                          convertPropertiesToOracleARRAY(assay.getProperties()),
+                          convertPropertiesToOracleARRAY(props),
                           OracleTypes.ARRAY,
                           "PROPERTYTABLE")
                 .addValue("THEEXPRESSIONVALUES",
-                          convertExpressionValuesToOracleARRAY(assay.getExpressionValuesByAccession()),
+                          convertExpressionValuesToOracleARRAY(evs),
                           OracleTypes.ARRAY,
                           "EXPRESSIONVALUETABLE");
 
+        // and execute
         procedure.execute(params);
     }
 
@@ -875,8 +899,6 @@ public class AtlasDAO {
      * @param sample the sample to write
      */
     public void writeSample(final Sample sample) {
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_SAMPLESET");
-
         // execute this procedure...
         /*
         create or replace PROCEDURE "A2_SAMPLESET" (
@@ -887,6 +909,25 @@ public class AtlasDAO {
           , p_Channel varchar2
         )
         */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("A2_SAMPLESET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("P_ACCESSION")
+                        .useInParameterNames("P_ASSAYS")
+                        .useInParameterNames("P_PROPERTIES")
+                        .useInParameterNames("P_SPECIES")
+                        .useInParameterNames("P_CHANNEL")
+                        .declareParameters(
+                                new SqlParameter("P_ACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("P_ASSAYS", OracleTypes.ARRAY, "ACCESSIONTABLE"))
+                        .declareParameters(
+                                new SqlParameter("P_PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
+                        .declareParameters(
+                                new SqlParameter("P_SPECIES", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("P_CHANNEL", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -902,6 +943,7 @@ public class AtlasDAO {
                 .addValue("P_SPECIES", sample.getSpecies())
                 .addValue("P_CHANNEL", sample.getChannel());
 
+        // and execute
         procedure.execute(params);
     }
 
@@ -990,13 +1032,13 @@ public class AtlasDAO {
     private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
+
                 // this should be creating an oracle ARRAY of properties
                 // the array of STRUCTS representing each property
                 Object[] propArrayValues = new Object[properties.size()];
 
                 // convert each property to an oracle STRUCT
-                // descriptor for PROPERTY type
-                StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
                 int i = 0;
                 Object[] propStructValues = new Object[4];
                 for (Property property : properties) {
@@ -1006,6 +1048,9 @@ public class AtlasDAO {
                     propStructValues[2] = property.getValue();
                     propStructValues[3] = property.isFactorValue();
 
+                    // descriptor for PROPERTY type
+                    StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
+                    // each array value is a new STRUCT
                     propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
                 }
 
@@ -1019,6 +1064,8 @@ public class AtlasDAO {
     private SqlTypeValue convertExpressionValuesToOracleARRAY(final Map<String, Float> expressionValues) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
+
                 // this should be creating an oracle ARRAY of expression values
                 // the array of STRUCTS representing each expression value
                 Object[] evArrayValues = new Object[expressionValues.size()];
@@ -1046,6 +1093,8 @@ public class AtlasDAO {
     private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
+
                 Object[] accessions = new Object[assayAccessions.size()];
                 int i = 0;
                 for (String assayAccession : assayAccessions) {
