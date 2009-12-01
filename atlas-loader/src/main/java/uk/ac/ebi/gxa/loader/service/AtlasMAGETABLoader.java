@@ -304,13 +304,17 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         String percentMissingStr = new DecimalFormat("#.#").format(percentMissing * 100);
         String percentCutoffStr = new DecimalFormat("#.#").format(getMissingDesignElementsCutoff() * 100);
 
-        getLog().warn("Missing design elements for " + arrayDesignAccession + ": " +
-                missingDEs + "/" + totalDEs + " (" + percentMissingStr + " %)");
+        // if there are missing design elements, warn
+        if (percentMissing > 0) {
+            getLog().warn("Missing design elements for " + arrayDesignAccession + ": " +
+                    missingDEs + "/" + totalDEs + " (" + percentMissingStr + " %)");
+        }
 
         // check this percentage against the cut-off configured
         if (percentMissing > getMissingDesignElementsCutoff()) {
-            String msg = "The total number of missing design elements for exceeds allowed cutoff: " + percentMissingStr +
-                    "% (max " + percentCutoffStr + "%)";
+            String msg =
+                    "The total number of missing design elements for exceeds allowed cutoff: " + percentMissingStr +
+                            "% (max " + percentCutoffStr + "%)";
             getLog().error(msg);
             throw new AtlasLoaderException(msg);
         }
