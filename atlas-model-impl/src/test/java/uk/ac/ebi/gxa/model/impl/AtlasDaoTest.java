@@ -28,8 +28,27 @@ public class AtlasDaoTest {
     }
 
     @Test
+    public void test_getArrayDesign() throws Exception{
+
+    }
+
+    @Test
+    public void test_getAssay() throws Exception{
+
+    }
+
+    @Test
+    public void test_getSample() throws Exception{
+
+    }
+
+    @Test
+    public void test_getExperiment() throws Exception{
+
+    }
+
+    @Test
     public void test_getProperty() throws Exception{
-        try{
         PropertyQuery query = new PropertyQuery();
 
         query.isAssayProperty(true);
@@ -37,19 +56,21 @@ public class AtlasDaoTest {
         QueryResultSet<Property> result = dao.getProperty(query);
 
         assertNotNull(result);
-        assertNotNull(result.getItems());    
-
-        }
-        catch (Exception ex){
-            throw ex;        
-        }
+        assertNotNull(result.getItems());
     }
 
     @Test
     public void test_getGene() throws Exception{
         Gene gene = dao.getGene(new GeneQuery().hasId("170040868")).getItem();  //? ????-?? ?? ????????. ge.getGene=170040868,
 
-        System.out.print(gene.getAccession());
+        assertNotNull(gene);
+    }
+
+    @Test
+    public void getExpressionStat() throws Exception{
         
     }
+
+
+    
 }
