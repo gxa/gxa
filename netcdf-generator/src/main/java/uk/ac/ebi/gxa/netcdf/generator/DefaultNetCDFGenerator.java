@@ -156,18 +156,24 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
 
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws NetCDFGeneratorException {
-                log.info("Starting NetCDF generations");
+                try {
+                    log.info("Starting NetCDF generations");
 
-                if (experimentAccession == null) {
-                    netCDFService.generateNetCDFs();
+                    if (experimentAccession == null) {
+                        netCDFService.generateNetCDFs();
+                    }
+                    else {
+                        netCDFService.generateNetCDFsForExperiment(experimentAccession);
+                    }
+
+                    log.debug("Finished NetCDF generations");
+
+                    return true;
                 }
-                else {
-                    netCDFService.generateNetCDFsForExperiment(experimentAccession);
+                catch (Exception e) {
+                    log.error("Caught unchecked exception: " + e.getMessage());
+                    return false;
                 }
-
-                log.debug("Finished NetCDF generations");
-
-                return true;
             }
         }));
 

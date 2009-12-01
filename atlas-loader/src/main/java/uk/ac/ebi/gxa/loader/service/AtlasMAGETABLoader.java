@@ -33,10 +33,14 @@ import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -112,6 +116,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
         try {
             parser.parse(idfFileLocation, investigation);
+            getLog().debug("Parsing finished");
         }
         catch (ParseException e) {
             // something went wrong - no objects have been created though
@@ -223,9 +228,23 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             // now write the cleaned up data
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
-            // write all the data
-            getAtlasDAO().writeExperimentsBundle(
-                    cache.fetchAllExperiments(), cache.fetchAllAssays(), cache.fetchAllSamples());
+            // first, load experiments
+            getLog().debug("Writing experiment(s)");
+            for (Experiment experiment : cache.fetchAllExperiments()) {
+                getAtlasDAO().writeExperiment(experiment);
+            }
+
+            // next, write assays
+            getLog().debug("Writing assays");
+            for (Assay assay : cache.fetchAllAssays()) {
+                getAtlasDAO().writeAssay(assay);
+            }
+
+            // finally, load samples
+            getLog().debug("Writing samples");
+            for (Sample sample : cache.fetchAllSamples()) {
+                getAtlasDAO().writeSample(sample);
+            }
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
@@ -246,25 +265,23 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     }
 
     private boolean validateLoad(String accession) {
-        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
-        for (Experiment experiment : experiments) {
-            if (experiment.getAccession().equals(accession)) {
-                // can't reload - experiment with matching accession already loaded!
-                return false;
+        // check load_monitor for this accession
+        getLog().debug("Fetching load details for " + accession);
+        LoadDetails loadDetails = getAtlasDAO().getLoadDetailsByAccession(accession);
+        if (loadDetails != null) {
+            // there are details: load is valid only if the load status is "failed"
+            boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
+            if (priorFailure) {
+                getLog().warn("Experiment " + accession + " was previously loaded, but failed.  " +
+                        "Any bad data will be overwritten");
             }
+            return priorFailure;
         }
-
-        // no experiment with this accession, so check load_monitor too
-        List<LoadDetails> loadDetails = getAtlasDAO().getLoadDetails();
-        for (LoadDetails details : loadDetails) {
-            if (details.getAccession().equals(accession)) {
-                // can't reload - experiment with matching accession already loaded!
-                return false;
-            }
+        else {
+            // no experiment present in load_monitor table
+            getLog().debug("No load details obtained");
+            return true;
         }
-
-        // no experiment loaded or loading, so return true
-        return true;
     }
 
     private void startLoad(String accession) {

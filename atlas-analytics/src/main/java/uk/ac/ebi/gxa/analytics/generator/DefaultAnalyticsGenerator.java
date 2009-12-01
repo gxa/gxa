@@ -165,18 +165,25 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
 
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws AnalyticsGeneratorException {
-                log.info("Starting analytics generations");
+                try {
+                    log.info("Starting analytics generations");
 
-                if (experimentAccession == null) {
-                    analyticsService.generateAnalytics();
+                    if (experimentAccession == null) {
+                        analyticsService.generateAnalytics();
+                    }
+                    else {
+                        analyticsService.generateAnalyticsForExperiment(experimentAccession);
+                    }
+
+                    log.debug("Finished analytics generations");
+
+                    return true;
                 }
-                else {
-                    analyticsService.generateAnalyticsForExperiment(experimentAccession);
+                catch (Exception e) {
+                    log.error("Caught unchecked exception: " + e.getMessage());
+                    return false;
                 }
 
-                log.debug("Finished analytics generations");
-
-                return true;
             }
         }));
 
