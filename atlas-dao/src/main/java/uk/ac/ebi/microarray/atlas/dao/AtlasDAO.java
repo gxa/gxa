@@ -448,7 +448,7 @@ public class AtlasDAO {
                                                      String arrayAccession) {
         List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
                                       new Object[]{experimentAccession,
-                                                   arrayAccession},
+                                              arrayAccession},
                                       new AssayMapper());
 
         List<Assay> assays = (List<Assay>) results;
@@ -1032,8 +1032,6 @@ public class AtlasDAO {
     private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
-
                 // this should be creating an oracle ARRAY of properties
                 // the array of STRUCTS representing each property
                 Object[] propArrayValues = new Object[properties.size()];
@@ -1064,8 +1062,6 @@ public class AtlasDAO {
     private SqlTypeValue convertExpressionValuesToOracleARRAY(final Map<String, Float> expressionValues) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
-
                 // this should be creating an oracle ARRAY of expression values
                 // the array of STRUCTS representing each expression value
                 Object[] evArrayValues = new Object[expressionValues.size()];
@@ -1093,8 +1089,6 @@ public class AtlasDAO {
     private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // fixme: might need to extract the OracleConnection here if ClassCastExceptions occur - but hopefully spring manages this
-
                 Object[] accessions = new Object[assayAccessions.size()];
                 int i = 0;
                 for (String assayAccession : assayAccessions) {
