@@ -2,8 +2,13 @@ package uk.ac.ebi.gxa.model.impl;
 
 import org.junit.Test;
 import org.junit.Before;
+import org.junit.Assert;
 import static org.junit.Assert.assertNotNull;
 import uk.ac.ebi.gxa.model.*;
+import uk.ac.ebi.gxa.db.utils.AtlasDB;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,22 +28,65 @@ public class AtlasDaoTest {
 
         ao.Connect("jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT", "Atlas2",  "Atlas2");
 
-        dao = ao;
+        setTrace(ao.getConnection(), true);
 
+        dao = ao;
     }
+
+    private static void setTrace(Connection con, Boolean traceOn) throws Exception{
+
+        CallableStatement stmt = null;
+
+        stmt = con.prepareCall("ALTER SESSION SET SQL_TRACE = false");   //TODO
+
+        stmt.execute();
+    }
+
 
     @Test
     public void test_getArrayDesign() throws Exception{
+        ArrayDesignQuery query = new ArrayDesignQuery();
 
+        query.hasProvider("affy%"); // %metrix
+
+        QueryResultSet<ArrayDesign> result = dao.getArrayDesign(query);
+
+        assertNotNull(result);
     }
 
     @Test
     public void test_getAssay() throws Exception{
+        AssayQuery assayQuery = new AssayQuery();
+
+        PropertyQuery propertyQuery = new PropertyQuery();
+
+        propertyQuery.fullTextQuery("%Gata4%");
+
+        assayQuery.hasProperty(propertyQuery);
+
+        QueryResultSet<Assay> result = dao.getAssay(assayQuery);
+
+        assertNotNull(result);
 
     }
 
     @Test
     public void test_getSample() throws Exception{
+
+        //ExperimentQuery q = new ExperimentQuery();
+        //q.hasId("206548223");
+
+        PropertyQuery q = new PropertyQuery();
+
+        q.hasValue("memory-impaired");
+        //q.hasValue("")
+        
+        SampleQuery q1 = new SampleQuery();
+        q1.hasProperty(q);
+
+        QueryResultSet<Sample> result = dao.getSample(q1);
+
+        Assert.assertEquals(8, result.getItems().size());
 
     }
 
@@ -57,6 +105,30 @@ public class AtlasDaoTest {
 
         assertNotNull(result);
         assertNotNull(result.getItems());
+
+
+        {
+        PropertyQuery propertyQuery2 = new PropertyQuery();
+
+        propertyQuery2.fullTextQuery("%Gata4%");
+
+        QueryResultSet<Property> result2 = dao.getProperty(propertyQuery2);
+
+        assertNotNull(result2);
+        }
+
+        {
+        PropertyQuery propertyQuery1 = new PropertyQuery();
+
+        propertyQuery1.hasValue("memory-impaired");
+
+        QueryResultSet<Property> result1 = dao.getProperty(propertyQuery1);
+
+        assertNotNull(result1);
+
+        Assert.assertEquals(2, result1.getItems().size());    
+        }
+
     }
 
     @Test
@@ -64,6 +136,8 @@ public class AtlasDaoTest {
         Gene gene = dao.getGene(new GeneQuery().hasId("170040868")).getItem();  //? ????-?? ?? ????????. ge.getGene=170040868,
 
         assertNotNull(gene);
+
+        Assert.assertEquals(gene.getId(),170040868);
     }
 
     @Test
