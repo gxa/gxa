@@ -17,6 +17,7 @@ public class SampleQuery extends AccessionQuery<SampleQuery>{
     }
 
     public SampleQuery hasProperty(PropertyQuery propertyQuery){
+        this.propertyQuery = propertyQuery;
         return this;
     }
 
