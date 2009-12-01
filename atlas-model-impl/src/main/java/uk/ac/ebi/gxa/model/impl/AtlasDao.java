@@ -465,7 +465,7 @@ public class AtlasDao implements Dao {
             int GeneID = rsGenes.getInt("GeneId");
 
             a.setid(GeneID);
-            a.setAccession(rsGenes.getString("Accession"));
+            a.setAccession(rsGenes.getString("Identifier"));
 
             ArrayList<Property> geneproperties = new ArrayList<Property>();
 
@@ -481,7 +481,8 @@ public class AtlasDao implements Dao {
 
                 geneproperties.add(atlasProperty);
 
-                rsProperties.next();
+                if(!rsProperties.next())
+                    break;
             }
 
             a.setProperties(new AtlasPropertyCollection(geneproperties));
@@ -493,7 +494,7 @@ public class AtlasDao implements Dao {
         return result;
         }
         catch(Exception ex){
-            throw new GxaException(ex.getMessage());
+            throw new GxaException(ex);
         }
         finally {
               if (stmt != null) {
