@@ -152,13 +152,19 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws AtlasLoaderException {
-                log.info("Starting load operation on " + experimentResource.toString());
+                try {
+                    log.info("Starting load operation on " + experimentResource.toString());
 
-                atlasLoaderService.load(experimentResource);
+                    atlasLoaderService.load(experimentResource);
 
-                log.debug("Finished load operation on " + experimentResource.toString());
+                    log.debug("Finished load operation on " + experimentResource.toString());
 
-                return true;
+                    return true;
+                }
+                catch (Exception e) {
+                    log.error("Caught unchecked exception: " + e.getMessage());
+                    return false;
+                }
             }
         }));
 

@@ -5,25 +5,22 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -35,8 +32,11 @@ import java.util.*;
 public class AtlasDAO {
     // load monitor
     private static final String LOAD_MONITOR_SELECT =
-            "SELECT accession, netcdf, similarity, ranking, searchindex, load_type " +
+            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
                     "FROM load_monitor";
+    private static final String LOAD_MONITOR_BY_ACC_SELECT =
+            LOAD_MONITOR_SELECT + " " +
+                    "WHERE accession=?";
 
     // experiment queries
     private static final String EXPERIMENTS_SELECT =
@@ -283,9 +283,6 @@ public class AtlasDAO {
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     private JdbcTemplate template;
-    private TransactionTemplate transactionTemplate;
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public JdbcTemplate getJdbcTemplate() {
         return template;
@@ -293,14 +290,6 @@ public class AtlasDAO {
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
-    }
-
-    public TransactionTemplate getTransactionTemplate() {
-        return transactionTemplate;
-    }
-
-    public void setTransactionTemplate(TransactionTemplate transactionTemplate) {
-        this.transactionTemplate = transactionTemplate;
     }
 
     /*
@@ -312,6 +301,14 @@ public class AtlasDAO {
                                       new LoadDetailsMapper());
         return (List<LoadDetails>) results;
     }
+
+    public LoadDetails getLoadDetailsByAccession(String accession) {
+        List results = template.query(LOAD_MONITOR_BY_ACC_SELECT,
+                                      new Object[]{accession},
+                                      new LoadDetailsMapper());
+        return results.size() > 0 ? (LoadDetails) results.get(0) : null;
+    }
+
 
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
@@ -729,78 +726,25 @@ public class AtlasDAO {
     public void writeLoadDetails(final String experimentAccession,
                                  final LoadStage loadStage,
                                  final LoadStatus loadStatus) {
-        // load monitor updates in it's own transaction
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                try {
-                    // create stored procedure call
-                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
+        // create stored procedure call
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
 
-                    // execute this procedure...
-                    /*
-                    create or replace procedure load_progress(
-                      experiment_accession varchar
-                      ,stage varchar --load, netcdf, similarity, ranking, searchindex
-                      ,status varchar --done, pending
-                    )
-                    */
+        // execute this procedure...
+        /*
+        create or replace procedure load_progress(
+          experiment_accession varchar
+          ,stage varchar --load, netcdf, similarity, ranking, searchindex
+          ,status varchar --done, pending
+        )
+        */
 
-                    // map parameters...
-                    MapSqlParameterSource params = new MapSqlParameterSource()
-                            .addValue("experiment_accession", experimentAccession)
-                            .addValue("stage", loadStage.toString().toLowerCase())
-                            .addValue("status", loadStatus.toString().toLowerCase());
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("experiment_accession", experimentAccession)
+                .addValue("stage", loadStage.toString().toLowerCase())
+                .addValue("status", loadStatus.toString().toLowerCase());
 
-                    procedure.execute(params);
-                }
-                catch (Exception e) {
-                    log.error("load_progress transaction update failed! " + e.getMessage());
-                    e.printStackTrace();
-                    transactionStatus.setRollbackOnly();
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Writes a fully comprehensive "bundle" of data related to one or many experiments.  The parameters passed should
-     * be related experiments plus all the associated assays and samples.  All the related data will be written, or none
-     * at all - if anything fails, all changes should be rolled back.
-     *
-     * @param experiments the collection of experiments to write to the datasource
-     * @param assays      all assays associated with the collection of experiments being written
-     * @param samples     all samples associated with the collection of experiments being written
-     */
-    public void writeExperimentsBundle(final Collection<Experiment> experiments,
-                                       final Collection<Assay> assays,
-                                       final Collection<Sample> samples) {
-        // this operation runs in an isolated transaction - if one update fails, everything should be rolled back
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                try {
-                    // write experiments first
-                    for (Experiment expt : experiments) {
-                        writeExperiment(expt);
-                    }
-                    // then write assays
-                    for (Assay assay : assays) {
-                        writeAssay(assay);
-                    }
-                    // finally write samples
-                    for (Sample sample : samples) {
-                        writeSample(sample);
-                    }
-                }
-                catch (Exception e) {
-                    log.error("Experiments bundle transaction update failed! " + e.getMessage());
-                    e.printStackTrace();
-                    transactionStatus.setRollbackOnly();
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        procedure.execute(params);
     }
 
     /**
@@ -1109,11 +1053,12 @@ public class AtlasDAO {
 
             // accession, netcdf, similarity, ranking, searchindex
             details.setAccession(resultSet.getString(1));
-            details.setNetCDF(resultSet.getString(2));
-            details.setSimilarity(resultSet.getString(3));
-            details.setRanking(resultSet.getString(4));
-            details.setSearchIndex(resultSet.getString(5));
-            details.setLoadType(resultSet.getString(6));
+            details.setStatus(resultSet.getString(2));
+            details.setNetCDF(resultSet.getString(3));
+            details.setSimilarity(resultSet.getString(4));
+            details.setRanking(resultSet.getString(5));
+            details.setSearchIndex(resultSet.getString(6));
+            details.setLoadType(resultSet.getString(7));
 
             return details;
         }

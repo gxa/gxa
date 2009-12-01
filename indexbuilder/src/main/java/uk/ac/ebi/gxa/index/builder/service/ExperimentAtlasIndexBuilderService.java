@@ -76,7 +76,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
                             for (Assay assay : assays) {
                                 // get assay properties and values
-                                System.out.println("Getting properties for assay " + assay.getAssayID());
+                                getLog().debug("Getting properties for assay " + assay.getAssayID());
                                 for (Property prop : assay.getProperties()) {
                                     String p = prop.getName();
                                     String pv = prop.getValue();

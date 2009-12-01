@@ -257,9 +257,15 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         if (experiments) {
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
-                    log.info("Starting building of experiments index");
-                    exptIndexBuilder.buildIndex(pending);
-                    return true;
+                    try {
+                        log.info("Starting building of experiments index");
+                        exptIndexBuilder.buildIndex(pending);
+                        return true;
+                    }
+                    catch (Exception e) {
+                        log.error("Caught unchecked exception: " + e.getMessage());
+                        return false;
+                    }
                 }
             }));
         }
@@ -267,9 +273,15 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         if (genes) {
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
-                    log.info("Starting building of atlas gene index");
-                    geneIndexBuilder.buildIndex(pending);
-                    return true;
+                    try {
+                        log.info("Starting building of atlas gene index");
+                        geneIndexBuilder.buildIndex(pending);
+                        return true;
+                    }
+                    catch (Exception e) {
+                        log.error("Caught unchecked exception: " + e.getMessage());
+                        return false;
+                    }
                 }
             }));
         }
