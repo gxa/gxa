@@ -9,6 +9,16 @@
         </layout>
     </appender>
 
+    <appender name="atlas-test" class="org.apache.log4j.RollingFileAppender">
+        <param name="file" value="atlas-test.log"/>
+        <!-- Keep one backup file -->
+        <param name="MaxBackupIndex" value="1"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern"
+                   value="%d %-5p [%t] %C (%F:%L) - %m%n"/>
+        </layout>
+    </appender>
+
     <logger name="org.apache.solr" additivity="false">
         <level value="WARN"/>
         <appender-ref ref="console"/>
@@ -16,17 +26,17 @@
 
     <logger name="uk.ac.ebi.gxa" additivity="false">
         <level value="DEBUG"/>
-        <appender-ref ref="console"/>
+        <appender-ref ref="atlas-test"/>
     </logger>
 
     <logger name="uk.ac.ebi.microarray" additivity="false">
         <level value="DEBUG"/>
-        <appender-ref ref="console"/>
+        <appender-ref ref="atlas-test"/>
     </logger>
 
     <logger name="org.springframework" additivity="false">
         <level value="DEBUG"/>
-        <appender-ref ref="console"/>
+        <appender-ref ref="atlas-test"/>
     </logger>
 
 </log4j:configuration>
