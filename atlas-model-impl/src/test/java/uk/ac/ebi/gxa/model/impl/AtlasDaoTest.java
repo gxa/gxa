@@ -97,6 +97,9 @@ public class AtlasDaoTest {
 
     @Test
     public void test_getProperty() throws Exception{
+
+        /*
+        {
         PropertyQuery query = new PropertyQuery();
 
         query.isAssayProperty(true);
@@ -105,6 +108,7 @@ public class AtlasDaoTest {
 
         assertNotNull(result);
         assertNotNull(result.getItems());
+        }
 
 
         {
@@ -129,6 +133,27 @@ public class AtlasDaoTest {
         Assert.assertEquals(2, result1.getItems().size());    
         }
 
+        {
+        PropertyQuery propertyQuery2 = new PropertyQuery();
+
+        propertyQuery2.fullTextQuery("%Gata4%");
+
+        QueryResultSet<Property> result2 = dao.getProperty(propertyQuery2);
+
+        assertNotNull(result2);
+        } */
+
+        {
+        QueryResultSet<Property> result = dao.getProperty(new PropertyQuery().hasValue("liver"));
+
+        Assert.assertEquals(2, result.getItems().size());
+        }
+
+        {
+        QueryResultSet<Property> result = dao.getProperty(new PropertyQuery().fullTextQuery("%liver%"));
+
+        Assert.assertEquals(17, result.getItems().size());    
+        }
     }
 
     @Test

@@ -17,7 +17,6 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
     private List<AssayQuery> assayQueries = new ArrayList<AssayQuery>();
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
     private int propertyID;
-    private String keyword;
 
     public PropertyQuery(){};
     public PropertyQuery(AccessionQuery accessionQuery){
@@ -54,11 +53,6 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
         return this;
     }
 
-    public PropertyQuery hasKeyword(String keyword){
-        this.keyword = keyword;
-        return this;
-    }
-
     public List<ExperimentQuery> getExperimentQueries() {
         return experimentQueries;
     }
@@ -81,9 +75,5 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
 
     public int getPropertyID(){
         return this.propertyID;
-    }
-
-    public String getKeyword(){
-        return this.keyword;
     }
 }

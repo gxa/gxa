@@ -1,5 +1,7 @@
 package  uk.ac.ebi.gxa.model;
 
+import static org.apache.solr.common.util.StrUtils.join;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -35,8 +37,16 @@ public class AbstractPropertyQuery<T> extends AccessionQuery<T>{
         return values;
     }
 
+    public String getValue(){
+        return join(values,',');
+    }
+
     public List<String> getFullTextQueries() {
         return fullTextQueries;
+    }
+
+    public String getFullTextQuery(){
+        return join(fullTextQueries, ' ');
     }
 
 }
