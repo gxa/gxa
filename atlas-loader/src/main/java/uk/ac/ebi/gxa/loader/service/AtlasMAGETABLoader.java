@@ -252,7 +252,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
         catch (Exception e) {
             getLog().error("Writing " + numOfObjects + " objects failed: " + e.getMessage() +
-                    "\nChanges have been rolled back.");
+                    "\nData may be left in an inconsistent state: rerun this load to overwrite.");
             e.printStackTrace();
             return success = false;
         }

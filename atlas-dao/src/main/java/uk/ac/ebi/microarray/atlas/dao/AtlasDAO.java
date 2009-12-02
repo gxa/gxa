@@ -17,10 +17,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -178,6 +175,10 @@ public class AtlasDAO {
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid=?";
+    private static final String DESIGN_ELEMENTS_BY_RELATED_ARRAY =
+            "SELECT de.arraydesignid, de.designelementid, de.accession " +
+                    "FROM a2_designelement de " +
+                    "WHERE de.arraydesignid IN (:arraydesignids)";
     private static final String DESIGN_ELEMENTS_BY_GENEID =
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
@@ -540,6 +541,14 @@ public class AtlasDAO {
         return (Integer) result;
     }
 
+    /**
+     * Returns all array designs in the underlying datasource.  Note that, to reduce query times, this method does NOT
+     * prepopulate ArrayDesigns with their associated design elements (unlike other methods to retrieve array designs
+     * more specifically).  For this reason, you should always ensure that after calling this method you use the {@link
+     * #getDesignElementsForArrayDesigns(java.util.List)} method on the resulting list.
+     *
+     * @return the list of array designs, not prepopulated with design elements.
+     */
     public List<ArrayDesign> getAllArrayDesigns() {
         List results = template.query(ARRAY_DESIGN_SELECT,
                                       new ArrayDesignMapper());
@@ -566,8 +575,7 @@ public class AtlasDAO {
                 results.size() > 0 ? (ArrayDesign) results.get(0) : null;
 
         if (arrayDesign != null) {
-            arrayDesign.setDesignElements(
-                    getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
+            fillOutArrayDesigns(Collections.singletonList(arrayDesign));
         }
 
         return arrayDesign;
@@ -583,12 +591,18 @@ public class AtlasDAO {
         List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
 
         // and populate design elements for each
-        for (ArrayDesign arrayDesign : arrayDesigns) {
-            arrayDesign.setDesignElements(
-                    getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
+        if (arrayDesigns.size() > 0) {
+            fillOutArrayDesigns(arrayDesigns);
         }
 
         return arrayDesigns;
+    }
+
+    public void getDesignElementsForArrayDesigns(List<ArrayDesign> arrayDesigns) {
+        // populate the other info for these assays
+        if (arrayDesigns.size() > 0) {
+            fillOutArrayDesigns(arrayDesigns);
+        }
     }
 
     /**
@@ -895,6 +909,28 @@ public class AtlasDAO {
     utils methods for doing standard stuff
      */
 
+    private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
+        // map array designs to array design id
+        Map<Integer, ArrayDesign> arrayDesignsByID = new HashMap<Integer, ArrayDesign>();
+        for (ArrayDesign array : arrayDesigns) {
+            // index this array
+            arrayDesignsByID.put(array.getArrayDesignID(), array);
+
+            // also initialize design elements is null - once this method is called, you should never get an NPE
+            if (array.getDesignElements() == null) {
+                array.setDesignElements(new HashMap<Integer, String>());
+            }
+        }
+
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // now query for design elements that map to one of these array designs
+        ArrayDesignElementMapper arrayDesignElementMapper = new ArrayDesignElementMapper(arrayDesignsByID);
+        MapSqlParameterSource arrayParams = new MapSqlParameterSource();
+        arrayParams.addValue("arraydesignids", arrayDesignsByID.keySet());
+        namedTemplate.query(DESIGN_ELEMENTS_BY_RELATED_ARRAY, arrayParams, arrayDesignElementMapper);
+    }
+
     private void fillOutGenes(List<Gene> genes) {
         // map genes to gene id
         Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
@@ -908,14 +944,37 @@ public class AtlasDAO {
             }
         }
 
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // now query for properties that map to one of these genes
+        // map of genes and their properties
         GenePropertyMapper genePropertyMapper = new GenePropertyMapper(genesByID);
-        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-        propertyParams.addValue("geneids", genesByID.keySet());
-        namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
 
+        // if we have more than 500 genes, split into smaller queries
+        // 1000 is default oracle list, but do 500 to be extra-safe
+        List<Integer> geneIDs = new ArrayList<Integer>(genesByID.keySet());
+        boolean done = false;
+        int startpos, endpos;
+
+        while (!done) {
+            List<Integer> geneIDsChunk;
+            startpos = 0;
+            endpos = 500;
+            if (endpos > geneIDs.size()) {
+                geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
+                done = true;
+            }
+            else {
+                geneIDsChunk = geneIDs.subList(startpos, endpos);
+            }
+
+            // now send this sectioned query
+            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+            // now query for properties that map to one of these genes
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("geneids", geneIDsChunk);
+            namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
+        }
+
+        // we've now queried for all the properties we need, so store
         for (Gene gene : genes) {
             gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
         }
@@ -934,13 +993,34 @@ public class AtlasDAO {
             }
         }
 
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // now query for properties that map to one of these samples
+        // maps properties to assays
         AssayPropertyMapper assayPropertyMapper = new AssayPropertyMapper(assaysByID);
-        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-        propertyParams.addValue("assayids", assaysByID.keySet());
-        namedTemplate.query(PROPERTIES_BY_RELATED_ASSAYS, propertyParams, assayPropertyMapper);
+
+        // if we have more than 500 assays, split into smaller queries
+        // 1000 is default oracle list, but do 500 to be extra-safe
+        List<Integer> assayIDs = new ArrayList<Integer>(assaysByID.keySet());
+        boolean done = false;
+        int startpos, endpos;
+
+        while (!done) {
+            List<Integer> assayIDsChunk;
+            startpos = 0;
+            endpos = 500;
+            if (endpos > assayIDs.size()) {
+                assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
+                done = true;
+            }
+            else {
+                assayIDsChunk = assayIDs.subList(startpos, endpos);
+            }
+
+            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+            // now query for properties that map to one of these samples
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("assayids", assayIDsChunk);
+            namedTemplate.query(PROPERTIES_BY_RELATED_ASSAYS, propertyParams, assayPropertyMapper);
+        }
     }
 
     private void fillOutSamples(List<Sample> samples) {
@@ -958,19 +1038,40 @@ public class AtlasDAO {
             }
         }
 
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // now query for assays that map to one of these samples
+        // maps properties and assays to relevant sample
         AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
-        MapSqlParameterSource assayParams = new MapSqlParameterSource();
-        assayParams.addValue("sampleids", samplesByID.keySet());
-        namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
-
-        // now query for properties that map to one of these samples
         SamplePropertyMapper samplePropertyMapper = new SamplePropertyMapper(samplesByID);
-        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-        propertyParams.addValue("sampleids", samplesByID.keySet());
-        namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
+
+        // if we have more than 500 samples, split into smaller queries
+        // 1000 is default oracle list, but do 500 to be extra-safe
+        List<Integer> sampleIDs = new ArrayList<Integer>(samplesByID.keySet());
+        boolean done = false;
+        int startpos, endpos;
+
+        while (!done) {
+            List<Integer> sampleIDsChunk;
+            startpos = 0;
+            endpos = 500;
+            if (endpos > sampleIDs.size()) {
+                sampleIDsChunk = sampleIDs.subList(startpos, sampleIDs.size());
+                done = true;
+            }
+            else {
+                sampleIDsChunk = sampleIDs.subList(startpos, endpos);
+            }
+
+            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+            // now query for assays that map to one of these samples
+            MapSqlParameterSource assayParams = new MapSqlParameterSource();
+            assayParams.addValue("sampleids", sampleIDsChunk);
+            namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
+
+            // now query for properties that map to one of these samples
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("sampleids", sampleIDsChunk);
+            namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
+        }
     }
 
     private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
@@ -1215,6 +1316,25 @@ public class AtlasDAO {
             mapping.setFactorValue(resultSet.getBoolean(7));
 
             return mapping;
+        }
+    }
+
+    private class ArrayDesignElementMapper implements RowMapper {
+        private Map<Integer, ArrayDesign> arrayByID;
+
+        public ArrayDesignElementMapper(Map<Integer, ArrayDesign> arraysByID) {
+            this.arrayByID = arraysByID;
+        }
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            int assayID = resultSet.getInt(1);
+
+            Integer id = resultSet.getInt(2);
+            String acc = resultSet.getString(3);
+
+            arrayByID.get(assayID).getDesignElements().put(id, acc);
+
+            return null;
         }
     }
 
