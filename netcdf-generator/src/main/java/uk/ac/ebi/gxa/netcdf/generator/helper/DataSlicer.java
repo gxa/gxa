@@ -13,12 +13,10 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 /**
- * A device for slicing the data in a single experiment into bits that are
- * suitable for storing in NetCDFs.  Generally, this means a single slice of
- * data per array design, and each slice indexes every sample by the assay it is
- * associated with.  Only the assays appropriate for the paired array design are
- * present.  This class basically takes an AtlasDAO it can use to fetch any
- * additional data, and performs the slicing on a supplied experiment.
+ * A device for slicing the data in a single experiment into bits that are suitable for storing in NetCDFs.  Generally,
+ * this means a single slice of data per array design, and each slice indexes every sample by the assay it is associated
+ * with.  Only the assays appropriate for the paired array design are present.  This class basically takes an AtlasDAO
+ * it can use to fetch any additional data, and performs the slicing on a supplied experiment.
  *
  * @author Tony Burdett
  * @date 30-Sep-2009
@@ -50,7 +48,13 @@ public class DataSlicer {
                 service.submit(new Callable<List<Gene>>() {
                     public List<Gene> call() throws Exception {
                         log.debug("Fetching genes data for " + experiment.getAccession());
-                        return getAtlasDAO().getGenesByExperimentAccession(experiment.getAccession());
+                        List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(experiment.getAccession());
+
+                        // also prefetch design elements for these genes
+                        getAtlasDAO().getDesignElementsForGenes(genes);
+
+                        // and return
+                        return genes;
                     }
                 });
 
@@ -86,12 +90,18 @@ public class DataSlicer {
             Set<DataSlice> results = exptFetching.get();
             log.debug("Experiment slicing task completed");
 
+            // this should mean that fetchGenesTask and fetchAnalyticsTask have completed, but fetch anyway
+            log.debug("Waiting for gene and expression analytics to complete fetching");
+            int genesCount = fetchGenesTask.get().size();
+            int analyticsCount = fetchAnalyticsTask.get().size();
+            log.debug("Gene, analytics counts acquired");
+
             synchronized (unmappedGenes) {
                 synchronized (unmappedAnalytics) {
                     if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
-                        log.warn(unmappedGenes.size() + "/" + fetchGenesTask.get().size() +
+                        log.warn(unmappedGenes.size() + "/" + genesCount +
                                 " genes and " + unmappedAnalytics.size() + "/" +
-                                fetchAnalyticsTask.get().size() + " expression analytics " +
+                                analyticsCount + " expression analytics " +
                                 "that were recovered for " + experiment.getAccession() +
                                 " could not be mapped to known design elements");
 
@@ -113,8 +123,9 @@ public class DataSlicer {
                         (e.getMessage() == null || e.getMessage().equals("")
                                 ? e.getCause().getClass().getSimpleName()
                                 : e.getMessage()),
-                        e.getCause());
-            } else {
+                                               e.getCause());
+            }
+            else {
                 throw new DataSlicingException("A thread handling data slicing failed", e);
             }
         }
@@ -129,7 +140,8 @@ public class DataSlicer {
                     //noinspection ThrowFromFinallyBlock
                     throw new DataSlicingException("Failed to terminate service for " + getClass().getSimpleName() +
                             " cleanly - suspended tasks were found");
-                } else {
+                }
+                else {
                     log.debug("Executor service exited cleanly");
                 }
             }
