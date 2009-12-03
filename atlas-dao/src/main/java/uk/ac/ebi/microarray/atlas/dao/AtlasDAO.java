@@ -92,6 +92,10 @@ public class AtlasDAO {
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid " +
                     "AND gpv.geneid IN (:geneids)";
+    private static final String DESIGN_ELEMENTS_BY_RELATED_GENES =
+            "SELECT de.geneid, de.designelementid " +
+                    "FROM a2_designelement de " +
+                    "WHERE de.geneid IN (:geneids)";
     private static final String GENE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
@@ -433,7 +437,14 @@ public class AtlasDAO {
     public void getPropertiesForGenes(List<Gene> genes) {
         // populate the other info for these genes
         if (genes.size() > 0) {
-            fillOutGenes(genes);
+            fillOutGeneProperties(genes);
+        }
+    }
+
+    public void getDesignElementsForGenes(List<Gene> genes) {
+        // populate the other info for these genes
+        if (genes.size() > 0) {
+            fillOutGeneDesignElements(genes);
         }
     }
 
@@ -1008,7 +1019,7 @@ public class AtlasDAO {
         namedTemplate.query(DESIGN_ELEMENTS_BY_RELATED_ARRAY, arrayParams, arrayDesignElementMapper);
     }
 
-    private void fillOutGenes(List<Gene> genes) {
+    private void fillOutGeneProperties(List<Gene> genes) {
         // map genes to gene id
         Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
         for (Gene gene : genes) {
@@ -1051,6 +1062,52 @@ public class AtlasDAO {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
+        }
+    }
+
+    private void fillOutGeneDesignElements(List<Gene> genes) {
+        // map genes to gene id
+        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        for (Gene gene : genes) {
+            // index this assay
+            genesByID.put(gene.getGeneID(), gene);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (gene.getDesignElementIDs() == null) {
+                gene.setDesignElementIDs(new HashSet<Integer>());
+            }
+        }
+
+        // map of genes and their properties
+        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
+
+        // query template for genes
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // if we have more than 'maxQueryParams' genes, split into smaller queries
+        List<Integer> geneIDs = new ArrayList<Integer>(genesByID.keySet());
+        boolean done = false;
+        int startpos = 0;
+        int endpos = maxQueryParams;
+
+        while (!done) {
+            List<Integer> geneIDsChunk;
+            if (endpos > geneIDs.size()) {
+                // we've reached the last segment, so query all of these
+                geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
+                done = true;
+            }
+            else {
+                // still more left - take next sublist and increment counts
+                geneIDsChunk = geneIDs.subList(startpos, endpos);
+                startpos += endpos;
+                endpos += maxQueryParams;
+            }
+
+            // now query for properties that map to one of these genes
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("geneids", geneIDsChunk);
+            namedTemplate.query(DESIGN_ELEMENTS_BY_RELATED_GENES, propertyParams, geneDesignElementMapper);
         }
     }
 
@@ -1500,6 +1557,24 @@ public class AtlasDAO {
             genesByID.get(geneID).addProperty(property);
 
             return property;
+        }
+    }
+
+    private class GeneDesignElementMapper implements RowMapper {
+        private Map<Integer, Gene> genesByID;
+
+        public GeneDesignElementMapper(Map<Integer, Gene> genesByID) {
+            this.genesByID = genesByID;
+        }
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            int geneID = resultSet.getInt(1);
+            int designElementID = resultSet.getInt(2);
+
+            System.out.println("Mapping gene: " + geneID + " to design element: " + designElementID);
+            genesByID.get(geneID).getDesignElementIDs().add(designElementID);
+
+            return designElementID;
         }
     }
 
