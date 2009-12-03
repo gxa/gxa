@@ -5,6 +5,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -48,12 +49,18 @@ public class ExpressionStatDao {
             if(and())
                 return this;
 
-            // TODO: rewrite this part
-            final String field = "id".equals(property) ? "gene_id" : GeneProperties.convertPropertyToSearchField(property);
-            if(field == null)
-                throw new NullPointerException("Can't find property");
-            
-            queryPart.append(field).append(":(").append(EscapeUtil.escapeSolrValueList(values)).append(")");
+            final String valuesString = EscapeUtil.escapeSolrValueList(values);
+            if("".equals(property)) {
+                queryPart.append("(gene_ids:(").append(valuesString).append(")")
+                        .append(" gene_desc:(").append(valuesString).append("))");
+            } else {
+                // TODO: rewrite this part
+                final String field = "id".equals(property) ? "gene_id" : GeneProperties.convertPropertyToSearchField(property);
+                if(field == null)
+                    throw new NullPointerException("Can't find property");
+
+                queryPart.append(field).append(":(").append(valuesString).append(")");
+            }
             return this;
         }
 
@@ -109,27 +116,15 @@ public class ExpressionStatDao {
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
         SolrQueryBuilder sqb = new SolrQueryBuilder();
 
+
         for(GeneQuery geneq : atlasExpressionStatQuery.getGeneQueries()) {
-            for(PropertyQuery propertyQuery : geneq.getPropertyQueries()) {
-                List<String> values = new ArrayList<String>(propertyQuery.getValues());
-                values.addAll(propertyQuery.getFullTextQueries());
-                sqb.andGeneProperty(propertyQuery.getAccession(), values);
-            }
-            for(ExperimentQuery expq : geneq.getExperimentQueries()) {
-                QueryResultSet<uk.ac.ebi.gxa.model.Experiment> exps = dao.getExperiment(expq);
-                for(uk.ac.ebi.gxa.model.Experiment experiment : exps.getItems())
-                    sqb.andExperiment(experiment.getAccession());
-            }
-            if(geneq.getId() != null)
-                sqb.andGeneProperty("id", Collections.singleton(geneq.getId()));
-            if(geneq.getAccession() != null)
-                sqb.andGeneProperty("identifier", Collections.singleton(geneq.getAccession()));
+            appendGeneQuery(sqb, geneq);
         }
 
         for(Pair<ExpressionQuery,PropertyQuery> propq : atlasExpressionStatQuery.getActivityQueries()) {
-            QueryResultSet<Property> props = dao.getProperty(propq.getSecond());
+            QueryResultSet<Property> props = dao.getProperty(propq.getSecond().isAssayProperty(true));
             for(Property property : props.getItems())
-                sqb.andActive(propq.getFirst(), property.getAccession(), property.getValues());
+                sqb.andActive(propq.getFirst(), property.getName(), property.getValues());
         }
 
         SolrQuery solrq = new SolrQuery(sqb.toSolrQuery());
@@ -137,10 +132,11 @@ public class ExpressionStatDao {
         solrq.addField("score");
         solrq.setRows(pageSortParams.getRows());
         solrq.setStart(pageSortParams.getStart());
-
+                
         final Set<String> autoFactors = new HashSet<String>();
-        for(Property property : dao.getProperty(new PropertyQuery().isAssayProperty(true)).getItems())
-            autoFactors.add(property.getAccession());
+        for(Property property : dao.getProperty(new PropertyQuery().isAssayProperty(true), PageSortParams.ALL).getItems())
+            if(property.getName() != null)
+                autoFactors.add(property.getName());
 
         if(atlasExpressionStatQuery.isFacets()) {
             for(String factor : autoFactors) {
@@ -163,14 +159,15 @@ public class ExpressionStatDao {
                         return new Iterator<Property>() {
                             private Iterator<Pair<String,Iterator>> fIter = new FilterIterator<String,Pair<String,Iterator>>(autoFactors.iterator()) {
                                 public Pair<String, Iterator> map(String factor) {
-                                    return new Pair<String, Iterator>(factor, sd.getFieldValues("efvs_ud_" + factor).iterator());
+                                    Collection vals = sd.getFieldValues("efvs_ud_" + factor);
+                                    return vals == null || vals.isEmpty() ? null : new Pair<String, Iterator>(factor, vals.iterator());
                                 }
                             };
 
                             private Pair<String,Iterator> current = null;
 
                             public boolean hasNext() {
-                                return fIter.hasNext() && current != null && current.getSecond().hasNext();
+                                return fIter.hasNext() || (current != null && current.getSecond().hasNext());
                             }
 
                             public Property next() {
@@ -179,6 +176,9 @@ public class ExpressionStatDao {
                                 }
                                 final String factor = current.getFirst();
                                 final String value = current.getSecond().next().toString();
+                                if(!current.getSecond().hasNext())
+                                    current = fIter.next();
+                                
                                 return new Property() {
                                     public int getId() {
                                         return 0;
@@ -189,7 +189,7 @@ public class ExpressionStatDao {
                                     }
 
                                     public String getName() {
-                                        return getAccession();
+                                        return factor;
                                     }
 
                                     public Collection<String> getValues() {
@@ -207,7 +207,7 @@ public class ExpressionStatDao {
                     private CountCache countCache = null;
 
                     public String getGene() {
-                        return sd.getFirstValue("gene_identifier").toString();
+                        return sd.getFirstValue("gene_id").toString();
                     }
 
                     public Float getRank() {
@@ -236,7 +236,7 @@ public class ExpressionStatDao {
                                 return new MappingIterator<Property, PropertyExpressionStat<ExperimentExpressionStat>>(properties.iterator()) {
                                     @Override
                                     public PropertyExpressionStat<ExperimentExpressionStat> map(final Property property) {
-                                        final String factor = property.getAccession();
+                                        final String factor = property.getName();
                                         final String value = property.getValues().iterator().next();
                                         final String fieldId = EscapeUtil.encode(factor, value);
                                         return new PropertyExpressionStat<ExperimentExpressionStat>() {
@@ -249,19 +249,19 @@ public class ExpressionStatDao {
                                             }
 
                                             public Integer getUpExperimentsCount() {
-                                                return Integer.valueOf(sd.getFieldValue("cnt_up_" + fieldId).toString());
+                                                return nullzero((Short)sd.getFieldValue("cnt_" + fieldId + "_up"));
                                             }
 
                                             public Integer getDnExperimentsCount() {
-                                                return Integer.valueOf(sd.getFieldValue("cnt_dn_" + fieldId).toString());
+                                                return nullzero((Short)sd.getFieldValue("cnt_" + fieldId + "_dn"));
                                             }
 
                                             public Double getUpPvalue() {
-                                                return Double.valueOf(sd.getFieldValue("minpval_up_" + fieldId).toString());
+                                                return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_up"));
                                             }
 
                                             public Double getDnPvalue() {
-                                                return Double.valueOf(sd.getFieldValue("minpval_dn_" + fieldId).toString());
+                                                return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_dn"));
                                             }
 
                                             public Iterable<ExperimentExpressionStat> drillDown() {
@@ -365,6 +365,113 @@ public class ExpressionStatDao {
             return resultSet;
         } catch(SolrServerException e) {
             throw new GxaException("Solr server exception", e);
+        }
+    }
+
+    private void appendGeneQuery(SolrQueryBuilder sqb, GeneQuery geneq) throws GxaException {
+        for(PropertyQuery propertyQuery : geneq.getPropertyQueries()) {
+            List<String> values = new ArrayList<String>(propertyQuery.getValues());
+            values.addAll(propertyQuery.getFullTextQueries());
+            sqb.andGeneProperty(propertyQuery.getAccession(), values);
+        }
+        for(ExperimentQuery expq : geneq.getExperimentQueries()) {
+            QueryResultSet<uk.ac.ebi.gxa.model.Experiment> exps = dao.getExperiment(expq);
+            for(uk.ac.ebi.gxa.model.Experiment experiment : exps.getItems())
+                sqb.andExperiment(experiment.getAccession());
+        }
+        if(geneq.getId() != null)
+            sqb.andGeneProperty("id", Collections.singleton(geneq.getId()));
+        if(geneq.getAccession() != null)
+            sqb.andGeneProperty("identifier", Collections.singleton(geneq.getAccession()));
+    }
+
+    private static String getSafeSolrFieldValue(SolrDocument sd, String name) {
+        return sd.getFieldValue(name) != null ? sd.getFieldValue(name).toString() : null;
+    }
+
+    private static Collection<String> getSafeSolrFieldValues(SolrDocument sd, String name) {
+        return sd.getFieldValues(name) != null ? (Collection)sd.getFieldValues(name) : new ArrayList<String>();
+    }
+
+    public QueryResultSet<Gene> getGene(GeneQuery geneQuery, PageSortParams pageSortParams) throws GxaException {
+        SolrQueryBuilder sqb = new SolrQueryBuilder();
+        appendGeneQuery(sqb, geneQuery);
+
+        SolrQuery solrq = new SolrQuery(sqb.toSolrQuery());
+        solrq.addField("*");
+        solrq.addField("score");
+        solrq.setRows(pageSortParams.getRows());
+        solrq.setStart(pageSortParams.getStart());
+
+        try {
+            QueryResponse response = geneServer.query(solrq);
+            List<Gene> genes = new ArrayList<Gene>();
+            for(SolrDocument document : response.getResults()) {
+                final String species = getSafeSolrFieldValue(document, "gene_species");
+                final String id = getSafeSolrFieldValue(document, "gene_id");
+                final String accession = getSafeSolrFieldValue(document, "gene_name");
+
+                final Map<String,Property> propertiesMap = new HashMap<String,Property>();
+
+                for(GeneProperties.Prop propertyDesc : GeneProperties.allProperties()) {
+                    final String name = propertyDesc.id;
+                    final Collection<String> values = getSafeSolrFieldValues(document, propertyDesc.searchField);
+                    propertiesMap.put(name, new Property() {
+                        public String getName() {
+                            return name;
+                        }
+
+                        public Collection<String> getValues() {
+                            return values;
+                        }
+
+                        public int getId() {
+                            return 0;  // TODO: solve this
+                        }
+
+                        public String getAccession() {
+                            return name;
+                        }
+                    });
+                }
+
+                final PropertyCollection properties = new PropertyCollection() {
+                    public Collection<Property> getProperties() {
+                        return propertiesMap.values();
+                    }
+
+                    public Property getByName(String name) {
+                        return propertiesMap.get(name);
+                    }
+                };
+
+                genes.add(new Gene() {
+                    public String getSpecies() {
+                        return species;
+                    }
+
+                    public int getId() {
+                        return Integer.valueOf(id);
+                    }
+
+                    public String getAccession() {
+                        return accession;
+                    }
+
+                    public PropertyCollection getProperties() {
+                        return properties;
+                    }
+                });
+            }
+
+            final QueryResultSet<Gene> resultSet = new QueryResultSet<Gene>();
+            resultSet.setItems(genes);
+            resultSet.setIsMulti(true);
+            resultSet.setStartingFrom(pageSortParams.getStart());
+            resultSet.setTotalResults((int)response.getResults().getNumFound());
+            return resultSet;
+        } catch (SolrServerException sse) {
+            throw new GxaException(sse);
         }
     }
 

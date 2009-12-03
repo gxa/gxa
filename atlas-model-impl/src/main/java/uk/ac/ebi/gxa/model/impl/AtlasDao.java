@@ -26,7 +26,7 @@ import org.junit.Test;
 public class AtlasDao implements Dao {
 
     private OracleConnection connection;
-    private ExpressionStatDao expressionStatDao = new ExpressionStatDao();
+    private ExpressionStatDao expressionStatDao;
 
     class ProperyValuePair {
         public String property;
@@ -35,6 +35,10 @@ public class AtlasDao implements Dao {
             this.property = property;
             this.value = value;
         }
+    }
+    
+    public void setExpressionStatDao(ExpressionStatDao expressionStatDao) {
+        this.expressionStatDao = expressionStatDao;
     }
 
     public OracleConnection getConnection(){
@@ -436,7 +440,7 @@ public class AtlasDao implements Dao {
     };
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException{
-        return getProperty(atlasPropertyQuery, new PageSortParams());
+        return getProperty(atlasPropertyQuery, PageSortParams.ALL);
     };
 
     public Property                 getPropertyByAccession(AccessionQuery accessionQuery) throws GxaException{
@@ -447,75 +451,77 @@ public class AtlasDao implements Dao {
     ///Gene
 
     public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery, PageSortParams pageSortParams) throws GxaException{
-        QueryResultSet<Gene> result = new QueryResultSet<Gene>();
-        CallableStatement stmt = null;
+        return expressionStatDao.getGene(atlasGeneQuery, pageSortParams);
 
-        try{
-          stmt = connection.prepareCall("{call AtlasAPI.a2_GeneGet(?,?,?,?)}");
-
-          AtlasDB.setGeneQuery(stmt,1,atlasGeneQuery, this); //pass ref to DAO, method pulls list of PropertyDs
-          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
-
-          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //genes
-          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //properties
-
-          stmt.execute();
-
-          ArrayList<Gene> genes = new ArrayList<Gene>();
-
-          ResultSet rsGenes = (ResultSet) stmt.getObject(3);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(4);
-
-          rsProperties.next();
-
-          while(rsGenes.next()){
-            AtlasGene a = new AtlasGene();
-
-            int GeneID = rsGenes.getInt("GeneId");
-
-            a.setid(GeneID);
-            a.setAccession(rsGenes.getString("Identifier"));
-
-            ArrayList<Property> geneproperties = new ArrayList<Property>();
-
-            while(GeneID == rsProperties.getInt("GeneId")){
-
-                AtlasProperty atlasProperty = new AtlasProperty();
-                atlasProperty.setName(rsProperties.getString("Property"));
-
-                ArrayList<String> values = new ArrayList<String>();
-                values.add(rsProperties.getString("PropertyValue"));
-
-                atlasProperty.setValues(values);
-
-                geneproperties.add(atlasProperty);
-
-                if(!rsProperties.next())
-                    break;
-            }
-
-            a.setProperties(new AtlasPropertyCollection(geneproperties));
-            genes.add(a);
-        }
-
-        result.setItems(genes);
-
-        return result;
-        }
-        catch(Exception ex){
-            throw new GxaException(ex);
-        }
-        finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
-                  }
-                  catch(Exception ex){
-                      throw new GxaException(ex.getMessage());
-                  }
-              }
-        }
+//        QueryResultSet<Gene> result = new QueryResultSet<Gene>();
+//        CallableStatement stmt = null;
+//
+//        try{
+//          stmt = connection.prepareCall("{call AtlasAPI.a2_GeneGet(?,?,?,?)}");
+//
+//          AtlasDB.setGeneQuery(stmt,1,atlasGeneQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+//          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+//
+//          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //genes
+//          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //properties
+//
+//          stmt.execute();
+//
+//          ArrayList<Gene> genes = new ArrayList<Gene>();
+//
+//          ResultSet rsGenes = (ResultSet) stmt.getObject(3);
+//          ResultSet rsProperties = (ResultSet) stmt.getObject(4);
+//
+//          rsProperties.next();
+//
+//          while(rsGenes.next()){
+//            AtlasGene a = new AtlasGene();
+//
+//            int GeneID = rsGenes.getInt("GeneId");
+//
+//            a.setid(GeneID);
+//            a.setAccession(rsGenes.getString("Identifier"));
+//
+//            ArrayList<Property> geneproperties = new ArrayList<Property>();
+//
+//            while(GeneID == rsProperties.getInt("GeneId")){
+//
+//                AtlasProperty atlasProperty = new AtlasProperty();
+//                atlasProperty.setName(rsProperties.getString("Property"));
+//
+//                ArrayList<String> values = new ArrayList<String>();
+//                values.add(rsProperties.getString("PropertyValue"));
+//
+//                atlasProperty.setValues(values);
+//
+//                geneproperties.add(atlasProperty);
+//
+//                if(!rsProperties.next())
+//                    break;
+//            }
+//
+//            a.setProperties(new AtlasPropertyCollection(geneproperties));
+//            genes.add(a);
+//        }
+//
+//        result.setItems(genes);
+//
+//        return result;
+//        }
+//        catch(Exception ex){
+//            throw new GxaException(ex);
+//        }
+//        finally {
+//              if (stmt != null) {
+//                // close statement
+//                  try{
+//                stmt.close();
+//                  }
+//                  catch(Exception ex){
+//                      throw new GxaException(ex.getMessage());
+//                  }
+//              }
+//        }
     };
 
     public QueryResultSet<Gene> getGene(GeneQuery atlasGeneQuery) throws GxaException{
