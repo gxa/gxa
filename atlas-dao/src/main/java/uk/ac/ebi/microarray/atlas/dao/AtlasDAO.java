@@ -5,12 +5,17 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -115,13 +120,13 @@ public class AtlasDAO {
                     "AND apv.assayid IN (:assayids)";
 
     // expression value queries
-    private static final String EXPRESSION_VALUES_BY_ASSAY_ID =
-            "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
+    private static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
+            "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev, a2_designelement de " +
                     "WHERE ev.designelementid=de.designelementid " +
-                    "AND ev.assayid=?";
+                    "AND ev.assayid IN (:assayids)";
     private static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
-            "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
+            "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev, a2_designelement de " +
                     "WHERE ev.designelementid=de.designelementid " +
                     "AND ev.experimentid=? " +
@@ -284,6 +289,10 @@ public class AtlasDAO {
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     private JdbcTemplate template;
+    private TransactionTemplate transactionTemplate;
+    private int maxQueryParams = 500;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public JdbcTemplate getJdbcTemplate() {
         return template;
@@ -293,9 +302,44 @@ public class AtlasDAO {
         this.template = template;
     }
 
-    /*
-    DAO read methods
+    public TransactionTemplate getTransactionTemplate() {
+        return transactionTemplate;
+    }
+
+    public void setTransactionTemplate(TransactionTemplate transactionTemplate) {
+        this.transactionTemplate = transactionTemplate;
+    }
+
+    /**
+     * Get the maximum allowed number of parameters that can be supplied to a parameterised query.  This is effectively
+     * the maximum bound for an "IN" list - i.e. SELECT * FROM foo WHERE foo.bar IN (?,?,?,...,?).  If unset, this
+     * defaults to 500.  Typically, the limit for oracle databases is 1000.  If, for any query that takes a list, the
+     * size of the list is greater than this value, the query will be split into several smaller subqueries and the
+     * results aggregated.  As a user, you should not notice any difference.
+     *
+     * @return the maximum bound on the query list size
      */
+    public int getMaxQueryParams() {
+        return maxQueryParams;
+    }
+
+    /**
+     * Set the maximum allowed number of parameters that can be supplied to a parameterised query.  This is effectively
+     * the maximum bound for an "IN" list - i.e. SELECT * FROM foo WHERE foo.bar IN (?,?,?,...,?).  If unset, this
+     * defaults to 500.  Typically, the limit for oracle databases is 1000.  If, for any query that takes a list, the
+     * size of the list is greater than this value, the query will be split into several smaller subqueries and the
+     * results aggregated.
+     *
+     * @param maxQueryParams the maximum bound on the query list size - this should never be greater than that allowed
+     *                       by the database, but can be smaller
+     */
+    public void setMaxQueryParams(int maxQueryParams) {
+        this.maxQueryParams = maxQueryParams;
+    }
+
+    /*
+   DAO read methods
+    */
 
     public List<LoadDetails> getLoadDetails() {
         List results = template.query(LOAD_MONITOR_SELECT,
@@ -369,17 +413,18 @@ public class AtlasDAO {
         return (List<Gene>) results;
     }
 
+    /**
+     * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
+     * property information, to keep query time down.  If you require this data, you can fetch it for the list of genes
+     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     *
+     * @param exptAccession the accession number of the experiment to query for
+     * @return the list of all genes in the database.
+     */
     public List<Gene> getGenesByExperimentAccession(String exptAccession) {
         List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{exptAccession},
                                       new GeneMapper());
-
-        List<Gene> genes = (List<Gene>) results;
-
-        // populate the other info for these genes
-        if (genes.size() > 0) {
-            fillOutGenes(genes);
-        }
 
         // and return
         return (List<Gene>) results;
@@ -468,19 +513,48 @@ public class AtlasDAO {
     }
 
     public void getExpressionValuesForAssays(List<Assay> assays) {
-        // fetch all expression values
+        // map assays to assay id
+        Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
         for (Assay assay : assays) {
-            // fixme: this is inefficient - we'll end up generating lots of queries.  Is it better to handle with a big join?
-            Object results = template.query(EXPRESSION_VALUES_BY_ASSAY_ID,
-                                            new Object[]{assay.getAssayID()},
-                                            new ExpressionValueMapper());
+            // index this assay
+            assaysByID.put(assay.getAssayID(), assay);
 
-            // cast the result to the map, and extract the map for this assay
-            Map<Integer, Map<Integer, Float>> map =
-                    (Map<Integer, Map<Integer, Float>>) results;
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (assay.getExpressionValues() == null) {
+                assay.setExpressionValues(new HashMap<Integer, Float>());
+            }
+        }
 
-            // extract and set the values map on this assay
-            assay.setExpressionValues(map.get(assay.getAssayID()));
+        // maps properties to assays
+        AssayExpressionValueMapper assayExpressionValueMapper = new AssayExpressionValueMapper(assaysByID);
+
+        // query template for assays
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // if we have more than 'maxQueryParams' assays, split into smaller queries
+        List<Integer> assayIDs = new ArrayList<Integer>(assaysByID.keySet());
+        boolean done = false;
+        int startpos = 0;
+        int endpos = maxQueryParams;
+
+        while (!done) {
+            List<Integer> assayIDsChunk;
+            if (endpos > assayIDs.size()) {
+                // we've reached the last segment, so query all of these
+                assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
+                done = true;
+            }
+            else {
+                // still more left - take next sublist and increment counts
+                assayIDsChunk = assayIDs.subList(startpos, endpos);
+                startpos += endpos;
+                endpos += maxQueryParams;
+            }
+
+            // now query for properties that map to one of the samples in the sublist
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("assayids", assayIDsChunk);
+            namedTemplate.query(EXPRESSION_VALUES_BY_RELATED_ASSAYS, propertyParams, assayExpressionValueMapper);
         }
     }
 
@@ -489,7 +563,6 @@ public class AtlasDAO {
         Object results = template.query(EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
                                         new Object[]{experimentID, arrayDesignID},
                                         new ExpressionValueMapper());
-
 
         return (Map<Integer, Map<Integer, Float>>) results;
     }
@@ -553,16 +626,7 @@ public class AtlasDAO {
         List results = template.query(ARRAY_DESIGN_SELECT,
                                       new ArrayDesignMapper());
 
-        // cast to correct type
-        List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
-
-        // and populate design elements for each
-        for (ArrayDesign arrayDesign : arrayDesigns) {
-            arrayDesign.setDesignElements(
-                    getDesignElementsByArrayID(arrayDesign.getArrayDesignID()));
-        }
-
-        return arrayDesigns;
+        return (List<ArrayDesign>) results;
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -740,25 +804,38 @@ public class AtlasDAO {
     public void writeLoadDetails(final String experimentAccession,
                                  final LoadStage loadStage,
                                  final LoadStatus loadStatus) {
-        // create stored procedure call
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
+        // load monitor updates in it's own transaction
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                try {
+                    // create stored procedure call
+                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
 
-        // execute this procedure...
-        /*
-        create or replace procedure load_progress(
-          experiment_accession varchar
-          ,stage varchar --load, netcdf, similarity, ranking, searchindex
-          ,status varchar --done, pending
-        )
-        */
+                    // execute this procedure...
+                    /*
+                    create or replace procedure load_progress(
+                      experiment_accession varchar
+                      ,stage varchar --load, netcdf, similarity, ranking, searchindex
+                      ,status varchar --done, pending
+                    )
+                    */
 
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("experiment_accession", experimentAccession)
-                .addValue("stage", loadStage.toString().toLowerCase())
-                .addValue("status", loadStatus.toString().toLowerCase());
+                    // map parameters...
+                    MapSqlParameterSource params = new MapSqlParameterSource()
+                            .addValue("experiment_accession", experimentAccession)
+                            .addValue("stage", loadStage.toString().toLowerCase())
+                            .addValue("status", loadStatus.toString().toLowerCase());
 
-        procedure.execute(params);
+                    procedure.execute(params);
+                }
+                catch (Exception e) {
+                    log.error("load_progress transaction update failed! " + e.getMessage());
+                    e.printStackTrace();
+                    transactionStatus.setRollbackOnly();
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     /**
@@ -947,36 +1024,33 @@ public class AtlasDAO {
         // map of genes and their properties
         GenePropertyMapper genePropertyMapper = new GenePropertyMapper(genesByID);
 
-        // if we have more than 500 genes, split into smaller queries
-        // 1000 is default oracle list, but do 500 to be extra-safe
+        // query template for genes
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Integer> geneIDs = new ArrayList<Integer>(genesByID.keySet());
         boolean done = false;
-        int startpos, endpos;
+        int startpos = 0;
+        int endpos = maxQueryParams;
 
         while (!done) {
             List<Integer> geneIDsChunk;
-            startpos = 0;
-            endpos = 500;
             if (endpos > geneIDs.size()) {
+                // we've reached the last segment, so query all of these
                 geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
                 done = true;
             }
             else {
+                // still more left - take next sublist and increment counts
                 geneIDsChunk = geneIDs.subList(startpos, endpos);
+                startpos += endpos;
+                endpos += maxQueryParams;
             }
-
-            // now send this sectioned query
-            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
-        }
-
-        // we've now queried for all the properties we need, so store
-        for (Gene gene : genes) {
-            gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
         }
     }
 
@@ -996,27 +1070,30 @@ public class AtlasDAO {
         // maps properties to assays
         AssayPropertyMapper assayPropertyMapper = new AssayPropertyMapper(assaysByID);
 
-        // if we have more than 500 assays, split into smaller queries
-        // 1000 is default oracle list, but do 500 to be extra-safe
+        // query template for assays
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // if we have more than 'maxQueryParams' assays, split into smaller queries
         List<Integer> assayIDs = new ArrayList<Integer>(assaysByID.keySet());
         boolean done = false;
-        int startpos, endpos;
+        int startpos = 0;
+        int endpos = maxQueryParams;
 
         while (!done) {
             List<Integer> assayIDsChunk;
-            startpos = 0;
-            endpos = 500;
             if (endpos > assayIDs.size()) {
+                // we've reached the last segment, so query all of these
                 assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
                 done = true;
             }
             else {
+                // still more left - take next sublist and increment counts
                 assayIDsChunk = assayIDs.subList(startpos, endpos);
+                startpos += endpos;
+                endpos += maxQueryParams;
             }
 
-            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-            // now query for properties that map to one of these samples
+            // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_ASSAYS, propertyParams, assayPropertyMapper);
@@ -1042,25 +1119,26 @@ public class AtlasDAO {
         AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
         SamplePropertyMapper samplePropertyMapper = new SamplePropertyMapper(samplesByID);
 
-        // if we have more than 500 samples, split into smaller queries
-        // 1000 is default oracle list, but do 500 to be extra-safe
+        // query template for samples
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        // if we have more than 'maxQueryParams' samples, split into smaller queries
         List<Integer> sampleIDs = new ArrayList<Integer>(samplesByID.keySet());
         boolean done = false;
-        int startpos, endpos;
+        int startpos = 0;
+        int endpos = maxQueryParams;
 
         while (!done) {
             List<Integer> sampleIDsChunk;
-            startpos = 0;
-            endpos = 500;
             if (endpos > sampleIDs.size()) {
                 sampleIDsChunk = sampleIDs.subList(startpos, sampleIDs.size());
                 done = true;
             }
             else {
                 sampleIDsChunk = sampleIDs.subList(startpos, endpos);
+                startpos += endpos;
+                endpos += maxQueryParams;
             }
-
-            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
@@ -1215,11 +1293,11 @@ public class AtlasDAO {
 
             while (resultSet.next()) {
                 // get assay ID key
-                int assayID = resultSet.getInt(2);
+                int assayID = resultSet.getInt(1);
                 // get design element id key
-                int designElementID = resultSet.getInt(1);
+                int designElementID = resultSet.getInt(2);
                 // get expression value
-                float value = resultSet.getFloat(4);
+                float value = resultSet.getFloat(3);
                 // check assay key - can we add new expression value to existing map?
                 if (!assayToEVs.containsKey(assayID)) {
                     // if not, create a new expression values maps
@@ -1230,6 +1308,27 @@ public class AtlasDAO {
             }
 
             return assayToEVs;
+        }
+    }
+
+    private class AssayExpressionValueMapper implements RowMapper {
+        private Map<Integer, Assay> assaysByID;
+
+        public AssayExpressionValueMapper(Map<Integer, Assay> assaysByID) {
+            this.assaysByID = assaysByID;
+        }
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            // get assay ID key
+            int assayID = resultSet.getInt(1);
+            // get design element id key
+            int designElementID = resultSet.getInt(2);
+            // get expression value
+            float value = resultSet.getFloat(3);
+
+            assaysByID.get(assayID).getExpressionValues().put(designElementID, value);
+
+            return null;
         }
     }
 

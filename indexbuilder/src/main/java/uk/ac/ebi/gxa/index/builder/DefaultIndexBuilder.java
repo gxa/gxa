@@ -264,6 +264,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                     }
                     catch (Exception e) {
                         log.error("Caught unchecked exception: " + e.getMessage());
+                        e.printStackTrace();
                         return false;
                     }
                 }
@@ -280,6 +281,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                     }
                     catch (Exception e) {
                         log.error("Caught unchecked exception: " + e.getMessage());
+                        e.printStackTrace();
                         return false;
                     }
                 }
