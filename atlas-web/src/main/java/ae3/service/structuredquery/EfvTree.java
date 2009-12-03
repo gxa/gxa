@@ -101,6 +101,26 @@ public class EfvTree<Payload extends Comparable<Payload>> {
                     ", pl=" + Payload +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            EfEfv efEfv = (EfEfv) o;
+
+            if (ef != null ? !ef.equals(efEfv.ef) : efEfv.ef != null) return false;
+            if (efv != null ? !efv.equals(efEfv.efv) : efEfv.efv != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = ef != null ? ef.hashCode() : 0;
+            result = 31 * result + (efv != null ? efv.hashCode() : 0);
+            return result;
+        }
     }
 
     private SortedMap<String,SortedMap<String, Payload>> efvs = new TreeMap<String,SortedMap<String, Payload>>();
@@ -147,16 +167,17 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return pl;
     }
 
-    public void put(EfEfv<Payload> efEfv)
+    public EfEfv<Payload> put(EfEfv<Payload> efEfv)
     {
-        put(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
+        return put(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
     }
 
-    public void put(String ef, String efv, Payload Payload)
+    public EfEfv<Payload> put(String ef, String efv, Payload payload)
     {
         if(!efvs.containsKey(ef))
             efvs.put(ef, new TreeMap<String,Payload>());
-        efvs.get(ef).put(efv, Payload);
+        efvs.get(ef).put(efv, payload);
+        return new EfEfv<Payload>(ef, efv, payload);
     }
 
     public int getNumEfvs()

@@ -15,6 +15,7 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
 
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
     private List<PropertyQuery> propertyQueries = new ArrayList<PropertyQuery>();
+    private List<PropertyQuery> propertyNotQueries = new ArrayList<PropertyQuery>();
 
     public GeneQuery(){};
 
@@ -29,6 +30,11 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
 
     public GeneQuery hasProperty(PropertyQuery propertyQuery) {
         propertyQueries.add(propertyQuery);
+        return this;
+    }
+
+    public GeneQuery hasNotProperty(PropertyQuery propertyQuery) {
+        propertyNotQueries.add(propertyQuery);
         return this;
     }
 

@@ -1,12 +1,11 @@
 package uk.ac.ebi.gxa.model.impl;
 
 import org.junit.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.model.*;
@@ -129,7 +128,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
             }
 
             public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException {
-                return null;
+                return getProperty(atlasPropertyQuery);
             }
 
             public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery) throws GxaException {
@@ -200,7 +199,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertEquals(1, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
-        assertEquals("ENSG00000120471", result.getItem().getGene());
+        assertEquals("153074124", result.getItem().getGene());
     }
 
     @Test
@@ -216,7 +215,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertEquals(1, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
-        assertEquals("ENSG00000120471", result.getItem().getGene());
+        assertEquals("153074124", result.getItem().getGene());
     }
 
     @Test
@@ -234,7 +233,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void testGetExpressionStat_gene_species() throws GxaException {
+    public void testGetExpressionStat_gene_species() throws GxaException, SolrServerException {
 
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
@@ -251,7 +250,11 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertNotNull(result.getItem());
 
         for(GeneExpressionStat stat : result.getItems()) {
-            assertTrue(stat.getGene().startsWith("ENSG")); // only human genes should be here
+            SolrQuery q = new SolrQuery("gene_id:" + stat.getGene());
+            q.setFields("gene_species");
+            q.setRows(1);
+            QueryResponse qr = geneServer.query(q);
+            assertEquals("HOMO SAPIENS", qr.getResults().get(0).getFieldValue("gene_species"));
         }
     }
 
@@ -276,8 +279,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getAccession().equals("organismpart"))
-                    assertTrue(pstat.getUpPvalue() > 0);
+                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                    assertTrue(pstat.getUpExperimentsCount() > 0);
             }
         }
 
@@ -298,8 +301,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getAccession().equals("organismpart"))
-                    assertTrue(pstat.getDnPvalue() > 0);
+                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                    assertTrue(pstat.getDnExperimentsCount() > 0);
             }
         }
 
@@ -320,8 +323,8 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getAccession().equals("organismpart"))
-                    assertTrue(pstat.getUpPvalue() > 0 || pstat.getDnPvalue() > 0);
+                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                    assertTrue(pstat.getUpExperimentsCount() > 0 || pstat.getDnExperimentsCount() > 0);
             }
         }
 

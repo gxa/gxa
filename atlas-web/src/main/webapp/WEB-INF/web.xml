@@ -309,6 +309,19 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>New Search JSP Servlet</display-name>
+        <servlet-name>nqrs</servlet-name>
+        <servlet-class>ae3.servlet.structuredquery.NewStructuredQueryServlet
+        </servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>nqrs</servlet-name>
+        <url-pattern>/nqrs</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>API Search JSP Servlet</display-name>
         <servlet-name>apiqrs</servlet-name>
         <servlet-class>ae3.servlet.structuredquery.ApiStructuredQueryServlet
