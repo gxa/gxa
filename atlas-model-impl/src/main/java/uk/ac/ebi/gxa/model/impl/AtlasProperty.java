@@ -18,9 +18,6 @@ public class AtlasProperty implements Property {
     private String accession;
     private int id;
 
-    public String getName(){
-        return name;
-    }
     public void setName(String name){
         this.name = name;
     }

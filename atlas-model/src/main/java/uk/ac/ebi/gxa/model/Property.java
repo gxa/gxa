@@ -11,7 +11,5 @@ import java.util.Collection;
  */
 public interface Property extends Accessible {
 
-    public String getName();
-
     public Collection<String> getValues();
 }

@@ -124,7 +124,7 @@ public class ExpressionStatDao {
         for(Pair<ExpressionQuery,PropertyQuery> propq : atlasExpressionStatQuery.getActivityQueries()) {
             QueryResultSet<Property> props = dao.getProperty(propq.getSecond().isAssayProperty(true));
             for(Property property : props.getItems())
-                sqb.andActive(propq.getFirst(), property.getName(), property.getValues());
+                sqb.andActive(propq.getFirst(), property.getAccession(), property.getValues());
         }
 
         SolrQuery solrq = new SolrQuery(sqb.toSolrQuery());
@@ -135,8 +135,8 @@ public class ExpressionStatDao {
                 
         final Set<String> autoFactors = new HashSet<String>();
         for(Property property : dao.getProperty(new PropertyQuery().isAssayProperty(true), PageSortParams.ALL).getItems())
-            if(property.getName() != null)
-                autoFactors.add(property.getName());
+            if(property.getAccession() != null)
+                autoFactors.add(property.getAccession());
 
         if(atlasExpressionStatQuery.isFacets()) {
             for(String factor : autoFactors) {
@@ -188,10 +188,6 @@ public class ExpressionStatDao {
                                         return factor;
                                     }
 
-                                    public String getName() {
-                                        return factor;
-                                    }
-
                                     public Collection<String> getValues() {
                                         return Collections.singletonList(value);
                                     }
@@ -236,7 +232,7 @@ public class ExpressionStatDao {
                                 return new MappingIterator<Property, PropertyExpressionStat<ExperimentExpressionStat>>(properties.iterator()) {
                                     @Override
                                     public PropertyExpressionStat<ExperimentExpressionStat> map(final Property property) {
-                                        final String factor = property.getName();
+                                        final String factor = property.getAccession();
                                         final String value = property.getValues().iterator().next();
                                         final String fieldId = EscapeUtil.encode(factor, value);
                                         return new PropertyExpressionStat<ExperimentExpressionStat>() {
@@ -417,9 +413,6 @@ public class ExpressionStatDao {
                     final String name = propertyDesc.id;
                     final Collection<String> values = getSafeSolrFieldValues(document, propertyDesc.searchField);
                     propertiesMap.put(name, new Property() {
-                        public String getName() {
-                            return name;
-                        }
 
                         public Collection<String> getValues() {
                             return values;
@@ -440,8 +433,8 @@ public class ExpressionStatDao {
                         return propertiesMap.values();
                     }
 
-                    public Property getByName(String name) {
-                        return propertiesMap.get(name);
+                    public Property getByAccession(String accession) {
+                        return propertiesMap.get(accession);
                     }
                 };
 
