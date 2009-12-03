@@ -13,6 +13,7 @@ import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
@@ -389,7 +390,7 @@ public class AtlasDao implements Dao {
 
           ResultSet rsProperties = (ResultSet) stmt.getObject(3);
 
-          Integer currentPropertyID = 0;
+          String currentPropertyID = "0";
 
           while(rsProperties.next()){
             AtlasProperty a = new AtlasProperty();
@@ -404,6 +405,8 @@ public class AtlasDao implements Dao {
 
                 properties.add(property);
             }
+
+            currentPropertyID = rsProperties.getString("PropertyID");
 
             properties.get(properties.size()-1).getValues().add(rsProperties.getString("Value"));
          }
@@ -686,4 +689,48 @@ public class AtlasDao implements Dao {
         return expressionStatDao.getExpressionStat(atlasExpressionStatQuery, new PageSortParams());
     }
 
-}
+    public void testSome() throws Exception{
+        CallableStatement stmt = null;
+
+        stmt = connection.prepareCall("{call ATLASLDR.SomeProcedure(?)}");
+
+        Object[] arr = new Object[3];
+        arr[0] = 1;
+        arr[1] = "hello";
+
+        stmt.setObject(1, AtlasDB.toSqlStruct(stmt.getConnection(), "ATLASLDR.SomeQuery", arr));
+
+        stmt.execute();
+
+
+    }
+
+        public void displayDbProperties(){
+            java.sql.DatabaseMetaData dm = null;
+            java.sql.ResultSet rs = null;
+            try{
+                if(connection!=null){
+                dm = connection.getMetaData(); 
+                    System.out.println("\nDriver Information");
+                    System.out.println("\tDriver Name: "+ dm.getDriverName());
+                    System.out.println("\tDriver Version: "+ dm.getDriverVersion ());
+                    System.out.println("\nDatabase Information ");
+                    System.out.println("\tDatabase Name: "+ dm.getDatabaseProductName());
+                    System.out.println("\tDatabase Version: "+ dm.getDatabaseProductVersion());
+                    System.out.println("\tMaximum Connection (If zero--> no limit): "+dm.getMaxConnections());
+                    System.out.println("\tNumeric Functions: "+dm.getNumericFunctions());
+                    System.out.println("Avalilable Catalogs ");
+                    rs = dm.getCatalogs();
+                    while(rs.next()){
+                        System.out.println("\tcatalog: "+ rs.getString(1));
+                    }
+                    rs.close();
+                    rs = null;
+                }else
+                    System.out.println("Error: No active Connection");
+            }catch(Exception e){
+                e.printStackTrace();
+            } dm=null;
+        }
+    }
+ 

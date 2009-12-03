@@ -167,7 +167,8 @@ public class AtlasDaoTest {
 
     @Test
     public void getExpressionStat() throws Exception{
-        
+             //((AtlasDao)dao).testSome();
+             ((AtlasDao)dao).displayDbProperties();
     }
 
 
