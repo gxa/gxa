@@ -181,6 +181,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
                 }
                 catch (Exception e) {
                     log.error("Caught unchecked exception: " + e.getMessage());
+                    e.printStackTrace();
                     return false;
                 }
 

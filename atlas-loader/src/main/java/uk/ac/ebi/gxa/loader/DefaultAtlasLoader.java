@@ -163,6 +163,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
                 }
                 catch (Exception e) {
                     log.error("Caught unchecked exception: " + e.getMessage());
+                    e.printStackTrace();
                     return false;
                 }
             }

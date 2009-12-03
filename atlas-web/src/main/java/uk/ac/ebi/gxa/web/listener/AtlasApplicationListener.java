@@ -101,7 +101,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         try {
             Connection c = atlasDataSource.getConnection();
             DatabaseMetaData dmd = c.getMetaData();
-            System.out.println("Got metadata ok!");
             atlasDatasourceUrl = dmd.getURL();
             c.close();
         }

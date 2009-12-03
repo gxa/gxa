@@ -24,6 +24,13 @@
         <property name="removeAbandoned" value="true"/>
     </bean>
 
+    <!-- Spring transaction template for db operations that require their own transaction -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource"/>
+    </bean>
+    <bean name="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
     <bean name="nativeJdbcExtractor"
           class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
 
@@ -36,6 +43,7 @@
     <!-- Configure AtlasDAO for this datasource -->
     <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="template"/>
+        <property name="transactionTemplate" ref="transactionTemplate" />
     </bean>
 
 </beans>

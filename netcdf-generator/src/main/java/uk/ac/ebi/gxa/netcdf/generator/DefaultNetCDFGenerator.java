@@ -172,6 +172,7 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
                 }
                 catch (Exception e) {
                     log.error("Caught unchecked exception: " + e.getMessage());
+                    e.printStackTrace();
                     return false;
                 }
             }

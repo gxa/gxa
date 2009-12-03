@@ -4,6 +4,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -106,13 +107,13 @@ public class AtlasDAOBenchmarks {
                     "AND apv.assayid IN (:assayids)";
 
     // expression value queries
-    private static final String EXPRESSION_VALUES_BY_ASSAY_ID =
-            "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
+    private static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
+            "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev, a2_designelement de " +
                     "WHERE ev.designelementid=de.designelementid " +
-                    "AND ev.assayid=?";
+                    "AND ev.assayid IN (:assayids)";
     private static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
-            "SELECT ev.designelementid, ev.assayid, de.accession, ev.value " +
+            "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev, a2_designelement de " +
                     "WHERE ev.designelementid=de.designelementid " +
                     "AND ev.experimentid=? " +
@@ -321,8 +322,8 @@ public class AtlasDAOBenchmarks {
     public void runBenchmarking() {
         // just run all benchmarking tests
         System.out.print("Running benchmarks...");
-//        benchmarkGetAllArrayDesigns();
-//        System.out.print(".");
+        benchmarkGetAllArrayDesigns();
+        System.out.print(".");
         benchmarkGetAllAssays();
         System.out.print(".");
         benchmarkGetAllExperiments();
@@ -489,7 +490,14 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetPropertiesForGenes() {
-
+        final String acc = extractParameter("experiment.accession");
+        final List<Gene> genes = atlasDAO.getGenesByExperimentAccession(acc);
+        reportBenchmarks("getPropertiesForAssays()", PROPERTIES_BY_RELATED_ASSAYS + "(for experiment " + acc + ")",
+                         timer.execute(new TimedOperation() {
+                             void doOperation() {
+                                 atlasDAO.getPropertiesForGenes(genes.subList(0, 1));
+                             }
+                         }));
     }
 
     public void benchmarkGetGeneCount() {
@@ -540,20 +548,17 @@ public class AtlasDAOBenchmarks {
                                  atlasDAO.getPropertiesForAssays(assays);
                              }
                          }));
-
-
     }
 
     public void benchmarkGetExpressionValuesForAssays() {
         final String acc = extractParameter("experiment.accession");
         final List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(acc);
-        reportBenchmarks("getExpressionValuesForAssays()", EXPRESSION_VALUES_BY_ASSAY_ID + " (x N)",
+        reportBenchmarks("getExpressionValuesForAssays()", EXPRESSION_VALUES_BY_RELATED_ASSAYS,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
                                  atlasDAO.getExpressionValuesForAssays(assays);
                              }
                          }));
-
     }
 
     public void benchmarkGetExpressionValuesByExperimentAndArray() {
@@ -565,7 +570,6 @@ public class AtlasDAOBenchmarks {
                                  atlasDAO.getExpressionValuesByExperimentAndArray(expID, arrayID);
                              }
                          }));
-
     }
 
     public void benchmarkGetSamplesByAssayAccession() {
@@ -576,7 +580,6 @@ public class AtlasDAOBenchmarks {
                                  atlasDAO.getSamplesByAssayAccession(assayAccession);
                              }
                          }));
-
     }
 
     public void benchmarkGetSamplesByExperimentAccession() {
@@ -731,6 +734,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAtlasResults() {
+
     }
 
     public void benchmarkGetAtlasStatisticsByDataRelease() {
