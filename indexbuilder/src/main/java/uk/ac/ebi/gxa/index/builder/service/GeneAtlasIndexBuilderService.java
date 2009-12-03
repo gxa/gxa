@@ -103,6 +103,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             }
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
+                            // make sure we have design elements for this gene
+                            getAtlasDAO().getDesignElementsForGenes(Collections.singletonList(gene));
+
                             // add EFO counts for this gene
                             if (addEfoCounts(solrInputDoc, gene.getDesignElementIDs())) {
                                 getLog().debug("Updated solr document with EFO counts");
