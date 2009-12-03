@@ -12,7 +12,7 @@ import java.util.Collection;
 public interface PropertyCollection {
     public Collection<Property> getProperties();
 
-    public Property getByName(String name);
+    public Property getByAccession(String accession);
 
 
 }

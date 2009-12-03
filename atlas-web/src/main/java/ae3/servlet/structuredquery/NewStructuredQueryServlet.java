@@ -205,7 +205,7 @@ public class NewStructuredQueryServlet extends HttpServlet {
                     QueryResultSet<Property> props = dao.getProperty(propq.getSecond().isAssayProperty(true), PageSortParams.ALL);
                     for(Property property : props.getItems()) {
                         for(String value : property.getValues())
-                            queryEfvs.put(property.getName(), value, true);
+                            queryEfvs.put(property.getAccession(), value, true);
                     }
                 }
                 request.setAttribute("result", new ResultWrapper(result, dao, queryEfvs));

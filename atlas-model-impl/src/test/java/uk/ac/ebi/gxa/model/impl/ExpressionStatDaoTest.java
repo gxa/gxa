@@ -135,9 +135,6 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                 QueryResultSet<Property> res = new QueryResultSet<Property>();
                 res.setIsMulti(false);
                 res.setItem(new Property() {
-                    public String getName() {
-                        return "organismpart";
-                    }
 
                     public Collection<String> getValues() {
                         return Collections.singleton("liver");
@@ -279,7 +276,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getUpExperimentsCount() > 0);
             }
         }
@@ -301,7 +298,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getDnExperimentsCount() > 0);
             }
         }
@@ -323,7 +320,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
             for(PropertyExpressionStat pstat : gstat.drillDown()) {
-                if(pstat.getProperty().getName().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
+                if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getUpExperimentsCount() > 0 || pstat.getDnExperimentsCount() > 0);
             }
         }

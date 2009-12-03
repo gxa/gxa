@@ -23,9 +23,9 @@ public class AtlasPropertyCollection implements PropertyCollection {
         return this.properties;
     }
 
-    public Property getByName(String name){
+    public Property getByAccession(String accession){
         for(Property p : properties){
-            if(name == p.getName()){
+            if(p.getAccession().equals(accession)){
                 return p;
             }
         }
