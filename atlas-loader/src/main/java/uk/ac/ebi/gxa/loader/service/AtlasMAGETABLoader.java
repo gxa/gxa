@@ -30,17 +30,11 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.LoadDetails;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -102,13 +96,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                         message = item.getComment();
                     }
                 }
+                String comment = item.getComment();
 
                 // log the error
                 // todo: this should go to a different log stream, part of loader report -
                 // probably should dynamically creating an appender that writes to the magetab directory
                 getLog().error(
                         "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
                                 "occurred in parsing " + item.getParsedFile() + " " +
                                 "[line " + item.getLine() + ", column " + item.getCol() + "].");
             }
@@ -120,8 +115,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
         catch (ParseException e) {
             // something went wrong - no objects have been created though
-            getLog().error(
-                    "There was a problem whilst trying to parse " + idfFileLocation);
+            getLog().error("There was a problem whilst trying to parse " + idfFileLocation);
+            e.printStackTrace();
             return false;
         }
 
@@ -157,12 +152,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 cache.fetchAllAssays().size();
 
         // validate the load(s)
-        for (Experiment exp : cache.fetchAllExperiments()) {
-            if (!validateLoad(exp.getAccession())) {
-                getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
-                        "it has been previously loaded or is loading right now.  Unable to load duplicates!");
-                return false;
-            }
+        if (!validateLoad(cache.fetchAllExperiments(), cache.fetchAllAssays())) {
+            return false;
         }
 
         // start the load(s)
@@ -264,7 +255,33 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private boolean validateLoad(String accession) {
+    private boolean validateLoad(Collection<Experiment> experiments, Collection<Assay> assays) {
+        for (Experiment exp : experiments) {
+            if (!checkExperiment(exp.getAccession())) {
+                getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
+                        "it has been previously loaded or is loading right now.  Unable to load duplicates!");
+                return false;
+            }
+        }
+        Set<String> referencedArrayDesigns = new HashSet<String>();
+        for (Assay assay : assays) {
+            if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
+                if (!checkArray(assay.getArrayDesignAccession())) {
+                    getLog().error("The array design " + assay.getArrayDesignAccession() + " was not found in the " +
+                            "database: it is prerequisite that referenced arrays are present prior to " +
+                            "loading experiments");
+                    return false;
+                }
+
+                referencedArrayDesigns.add(assay.getArrayDesignAccession());
+            }
+        }
+
+        // all checks passed if we got here
+        return true;
+    }
+
+    private boolean checkExperiment(String accession) {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsByAccession(accession);
@@ -280,6 +297,22 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         else {
             // no experiment present in load_monitor table
             getLog().debug("No load details obtained");
+            return true;
+        }
+    }
+
+    private boolean checkArray(String accession) {
+        // check load_monitor for this accession
+        getLog().debug("Fetching load details for " + accession);
+        ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(accession);
+        if (arrayDesign == null) {
+            // this array design is absent
+            getLog().debug("DAO lookup found array design " + accession);
+            return false;
+        }
+        else {
+            // no experiment present in load_monitor table
+            getLog().debug("DAO lookup returned null for " + accession);
             return true;
         }
     }

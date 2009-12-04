@@ -58,9 +58,9 @@ public class DataMatrixFileBuffer {
     }
 
     private URL dataMatrixURL;
-    private Map<String, Integer> assayRefToEVColumn;
-    //  private Map<String, List<ExpressionValue>> assayRefToEVs;
-    private Map<String, Map<String, Float>> assayRefToEVs;
+    private String referenceColumnName;
+    private Map<String, Integer> refToEVColumn;
+    private Map<String, Map<String, Float>> refToEVs;
 
     private boolean ready = false;
     private ParseException initFailed = null;
@@ -69,19 +69,44 @@ public class DataMatrixFileBuffer {
 
     private DataMatrixFileBuffer(URL dataMatrixURL) {
         this.dataMatrixURL = dataMatrixURL;
-        this.assayRefToEVColumn = new HashMap<String, Integer>();
-        this.assayRefToEVs = new HashMap<String, Map<String, Float>>();
+        this.refToEVColumn = new HashMap<String, Integer>();
+        this.refToEVs = new HashMap<String, Map<String, Float>>();
+    }
+
+    /**
+     * Returns the reference column name for this data matrix file.  This is the left most string value on the first
+     * line, and references the column name in the SDRF graph for which all the subsequent values are taken from.  This
+     * will usually be "hybridization name", "assay name" or "scan name"
+     *
+     * @return the reference column name
+     */
+    public String readReferenceColumnName() {
+        // block until ready
+        synchronized (this) {
+            while (!ready && initFailed == null) {
+                try {
+                    log.debug("Blocking whilst buffer initializes...");
+                    wait();
+                }
+                catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+
+        return referenceColumnName.replace("ref", "name");
     }
 
     /**
      * Read off expression values for the given assay ref.  This buffer object automatically knows which columns must be
-     * read, as a dictionary lookup on column names was performed on initialization.  You can configure the dictionary of
-     * terms to use manually - for more on this see {@link QuantitationTypeDictionary}.  This method blocks until
+     * read, as a dictionary lookup on column names was performed on initialization.  You can configure the dictionary
+     * of terms to use manually - for more on this see {@link QuantitationTypeDictionary}.  This method blocks until
      * initialization has completed, and this buffer knows which columns to read to obtain expression values.
      *
      * @param assayRefs the references of the assays you wish to find expression values for
      * @return a map of expression values read, indexed by assay ref
-     * @throws ParseException if the file could not be parsed, either at initialization or when reading expression values
+     * @throws ParseException if the file could not be parsed, either at initialization or when reading expression
+     *                        values
      */
     public Map<String, Map<String, Float>> readAssayExpressionValues(
             String... assayRefs)
@@ -111,13 +136,13 @@ public class DataMatrixFileBuffer {
         // if we've read these expression values before
         Set<String> bufferedAssays = new HashSet<String>();
         for (String assayRef : assayRefs) {
-            if (assayRefToEVs.containsKey(assayRef)) {
-                result.put(assayRef, assayRefToEVs.get(assayRef));
+            if (refToEVs.containsKey(assayRef)) {
+                result.put(assayRef, refToEVs.get(assayRef));
                 bufferedAssays.add(assayRef);
             }
             else {
                 // cached map contains no result for this assay, create new list
-                assayRefToEVs.put(assayRef, new HashMap<String, Float>());
+                refToEVs.put(assayRef, new HashMap<String, Float>());
                 // and create list for results
                 result.put(assayRef, new HashMap<String, Float>());
             }
@@ -131,8 +156,7 @@ public class DataMatrixFileBuffer {
 
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(
-                    dataMatrixURL.openStream()));
+            reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
 
             // now, we have a map of assay names to expression value columns...
             // so read every line of the file, parsing the columns we need
@@ -156,7 +180,9 @@ public class DataMatrixFileBuffer {
                         // ignore header lines
                         String maybeHeader = MAGETABUtils.digestHeader(designElement);
                         if (maybeHeader.equals("hybridizationref") ||
-                                maybeHeader.equals("reporterref") ||
+                                maybeHeader.equals("assayref") ||
+                                maybeHeader.equals("hybridizationref") ||
+                                maybeHeader.equals("scanref") ||
                                 maybeHeader.equals("compositeelementref") ||
                                 maybeHeader.startsWith("termsourceref:") ||
                                 maybeHeader.startsWith("coordinatesref:")) {
@@ -173,11 +199,11 @@ public class DataMatrixFileBuffer {
                                             "element: " + designElement + "...");
 
                                     log.debug("Index of expression value (" + assayRef + "): " +
-                                            assayRefToEVColumn.get(assayRef));
+                                            refToEVColumn.get(assayRef));
 
-                                    if (assayRefToEVColumn.get(assayRef) == null) {
+                                    if (refToEVColumn.get(assayRef) == null) {
                                         // we have a missing expression value - is the whole column missing?
-                                        if (assayRefToEVColumn.get(assayRef) == null) {
+                                        if (refToEVColumn.get(assayRef) == null) {
                                             // just warn the first time
                                             if (!missingAssayRefColumns.contains(assayRef)) {
                                                 missingAssayRefColumns.add(assayRef);
@@ -190,16 +216,14 @@ public class DataMatrixFileBuffer {
                                             log.warn("No expression values present for " + assayRef +
                                                     " in data matrix file at " +
                                                     "line: " + lineCount + ", " +
-                                                    "column: " + assayRefToEVColumn.get(assayRef));
+                                                    "column: " + refToEVColumn.get(assayRef));
                                         }
                                     }
                                     else {
-                                        float evFloatValue = Float.parseFloat(
-                                                tokens[assayRefToEVColumn.get(assayRef)]);
+                                        float evFloatValue = Float.parseFloat(tokens[refToEVColumn.get(assayRef)]);
 
                                         // finished reading, store in buffer...
-                                        // fixme: we may want to remove this, if we suffer on memory here it's better to reread instead of buffer
-                                        assayRefToEVs.get(assayRef).put(designElement, evFloatValue);
+                                        refToEVs.get(assayRef).put(designElement, evFloatValue);
                                         // and now add to result map
                                         result.get(assayRef).put(designElement, evFloatValue);
                                     }
@@ -230,7 +254,9 @@ public class DataMatrixFileBuffer {
         finally {
             try {
                 log.info("Finished reading from " + dataMatrixURL + ", closing");
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             }
             catch (IOException e) {
                 // ignore
@@ -246,8 +272,7 @@ public class DataMatrixFileBuffer {
                     BufferedReader reader = null;
                     try {
                         // create a buffered reader
-                        reader = new BufferedReader(new InputStreamReader(
-                                dataMatrixURL.openStream()));
+                        reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
 
                         // parse the headers
                         Header[] headers;
@@ -263,8 +288,7 @@ public class DataMatrixFileBuffer {
                         }
 
                         // now, iterate over headers, doing dictionary lookup for qtTypes
-                        QuantitationTypeDictionary dictionary =
-                                QuantitationTypeDictionary.getQTDictionary();
+                        QuantitationTypeDictionary dictionary = QuantitationTypeDictionary.getQTDictionary();
                         for (Header header : headers) {
                             List<String> possibleTypes = new ArrayList<String>();
                             for (String qtType : header.getQuantitationTypes()) {
@@ -272,14 +296,14 @@ public class DataMatrixFileBuffer {
                                         "for " + header.assayRef);
                                 if (dictionary.lookupTerm(qtType)) {
                                     possibleTypes.add(qtType);
-                                    if (!assayRefToEVColumn.containsKey(header.assayRef)) {
+                                    if (!refToEVColumn.containsKey(header.assayRef)) {
                                         log.debug("Term " + qtType +
                                                 " is in dictionary, inserting column " +
                                                 header.getIndexOfQuantitationType(qtType) +
                                                 " into map for " + header.assayRef);
-                                        assayRefToEVColumn.put(header.assayRef,
-                                                               header.getIndexOfQuantitationType(
-                                                                       qtType));
+                                        refToEVColumn.put(header.assayRef,
+                                                          header.getIndexOfQuantitationType(
+                                                                  qtType));
                                     }
                                 }
                             }
@@ -294,9 +318,10 @@ public class DataMatrixFileBuffer {
                                 sb.append("]");
 
                                 String message =
-                                        "Unable to load - data matrix file contains multiple " +
-                                                "candidate quantitation types to use for expression " +
-                                                "values, could be one of: " + sb.toString();
+                                        "Unable to load - data matrix file contains " + possibleTypes.size() + " " +
+                                                "recognised candidate quantitation types to use for " +
+                                                "expression values.\n" +
+                                                "Ambiguity over which QT type should be used, from: " + sb.toString();
                                 ErrorItem error =
                                         ErrorItemFactory
                                                 .getErrorItemFactory(getClass().getClassLoader())
@@ -405,12 +430,12 @@ public class DataMatrixFileBuffer {
         log.debug("Headers parsing, read first two non-comment, non-empty lines");
 
         // tokenise the first line
-        String[] hybRefs = lines.get(0).split("\t");
+        String[] valRefs = lines.get(0).split("\t");
         String[] qtTypes = lines.get(1).split("\t");
 
         // do some integrity checking before parsing
         // check they have the same number of tokens
-        if (hybRefs.length != qtTypes.length) {
+        if (valRefs.length != qtTypes.length) {
             // this file looks wrong, so generate error item and throw exception
             String message =
                     "Failed to parse the derived array data matrix file - there were " +
@@ -426,14 +451,17 @@ public class DataMatrixFileBuffer {
 
             throw new ParseException(error, true);
         }
-        // check first column of hybRefs should be "hybridizationref" (i.e. the title)
-        String title = MAGETABUtils.digestHeader(hybRefs[0]);
-        if (!title.startsWith("hybridizationref")) {
+        // check first column of valRefs refers to a real SDRF column -
+        // should be hybridizationref, assayref, or scanref
+        String refName = MAGETABUtils.digestHeader(valRefs[0]);
+        if (!refName.startsWith("hybridizationref")
+                && !refName.startsWith("assayref")
+                && !refName.startsWith("scanref")) {
             // this file looks wrong, so generate error item and throw exception
             String message =
                     "Failed to parse the derived array data matrix file - the " +
-                            "first line started with '" + title + "' when " +
-                            "'hybridizationref' was expected";
+                            "first line started with '" + refName + "' when one of " +
+                            "'hybridizationref', 'assayref' or 'scanref' was expected";
             ErrorItem error =
                     ErrorItemFactory
                             .getErrorItemFactory(getClass().getClassLoader())
@@ -444,6 +472,10 @@ public class DataMatrixFileBuffer {
 
             throw new ParseException(error, true);
         }
+        else {
+            referenceColumnName = refName;
+        }
+
         // check our list of headers has size = 2
         if (lines.size() != 2) {
             // generate error item and throw exception
@@ -468,9 +500,9 @@ public class DataMatrixFileBuffer {
         // passed checks, so now parse fully
         List<Header> headers = new ArrayList<Header>();
         Header header = null;
-        for (int column = 1; column < hybRefs.length; column++) {
+        for (int column = 1; column < valRefs.length; column++) {
             // grab the normalized values
-            String hybRef = hybRefs[column];
+            String hybRef = valRefs[column];
             String qtType = MAGETABUtils.digestHeader(qtTypes[column]);
 
             // also, only care about the last bit (ignore 'namespacey' type crap
