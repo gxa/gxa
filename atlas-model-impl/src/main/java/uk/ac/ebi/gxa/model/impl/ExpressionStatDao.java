@@ -14,6 +14,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -97,8 +98,19 @@ public class ExpressionStatDao {
             return this;
         }
 
-        public SolrQueryBuilder andExperiment(String experiment) {
-            // TODO: experiment support
+        public SolrQueryBuilder andExperiment(Iterator<String> experiments, ExpressionQuery expq) {
+            if(and())
+                return this;
+
+            String expIds = StringUtils.join(experiments, " ");
+            if(expIds.length() > 0) {
+                queryPart.append("(");
+                if(expq == ExpressionQuery.UP || expq == ExpressionQuery.UP_OR_DOWN)
+                    queryPart.append("exp_up_ids:(").append(expIds).append(") ");
+                if(expq == ExpressionQuery.DOWN || expq == ExpressionQuery.UP_OR_DOWN)
+                    queryPart.append("exp_dn_ids:(").append(expIds).append(") ");
+                queryPart.append(")");
+            }
             return this;
         }
 
@@ -365,16 +377,23 @@ public class ExpressionStatDao {
     }
 
     private void appendGeneQuery(SolrQueryBuilder sqb, GeneQuery geneq) throws GxaException {
+        
         for(PropertyQuery propertyQuery : geneq.getPropertyQueries()) {
             List<String> values = new ArrayList<String>(propertyQuery.getValues());
             values.addAll(propertyQuery.getFullTextQueries());
             sqb.andGeneProperty(propertyQuery.getAccession(), values);
         }
+
         for(ExperimentQuery expq : geneq.getExperimentQueries()) {
             QueryResultSet<uk.ac.ebi.gxa.model.Experiment> exps = dao.getExperiment(expq);
-            for(uk.ac.ebi.gxa.model.Experiment experiment : exps.getItems())
-                sqb.andExperiment(experiment.getAccession());
+            if(exps.isFound())
+                sqb.andExperiment(new MappingIterator<uk.ac.ebi.gxa.model.Experiment,String>(exps.getItems().iterator()) {
+                    public String map(uk.ac.ebi.gxa.model.Experiment experiment) {
+                        return experiment.getAccession();
+                    }
+                }, ExpressionQuery.UP_OR_DOWN);
         }
+
         if(geneq.getId() != null)
             sqb.andGeneProperty("id", Collections.singleton(geneq.getId()));
         if(geneq.getAccession() != null)
