@@ -131,10 +131,10 @@ public class AtlasDAO {
                     "AND ev.assayid IN (:assayids)";
     private static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
             "SELECT ev.assayid, ev.designelementid, ev.value " +
-                    "FROM a2_expressionvalue ev, a2_designelement de " +
-                    "WHERE ev.designelementid=de.designelementid " +
-                    "AND ev.experimentid=? " +
-                    "AND de.arraydesignid=?";
+                    "FROM a2_expressionvalue ev " +
+                    "JOIN a2_designelement de ON de.designelementid=ev.designelementid " +
+                    "JOIN a2_assay a ON a.assayid = ev.assayid " +
+                    "WHERE a.experimentid=? AND de.arraydesignid=?";
 
     // sample queries
     private static final String SAMPLES_BY_ASSAY_ACCESSION =

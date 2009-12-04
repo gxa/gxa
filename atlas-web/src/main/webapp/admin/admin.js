@@ -19,6 +19,7 @@ function buildIndex(pendingOnly, form) {
 }
 
 function checkLoadDetails(accession) {
+    // kick off periodical updates for these load details
     progressupdater = new Ajax.PeriodicalUpdater('trash', url, {
         asynchronous:true,
         onSuccess:function(request) {
@@ -65,6 +66,56 @@ function checkLoadDetails(accession) {
         parameters: {action: 'checkReasonerStatus'},
         onFailure: reportError
     });
+}
+
+function writeWorkingElement() {
+
+}
+
+function writeDoneElement(accession, elementType) {
+    var elementID;
+    var formID;
+    var formAction;
+    var buttonName;
+
+    // element type one of index, netcdf, analytics
+    if (elementType == "index") {
+        elementID = "expt_" + accession + "_index";
+        formAction = "dereschedule.web";
+    }
+    else if (elementType == "netcdf") {
+        elementID = "expt_" + accession + "_index";
+        formAction = "donetcdf.web";
+    }
+    else if (elementType == "analytics") {
+            elementID = "expt_" + accession + "_index";
+            formAction = "doanalytics.web";
+        }
+        else {
+            alert("Unrecoginsed element type: " + elementType + " not known!");
+            return;
+        }
+
+    formID = elementID + "_form";
+    buttonName = "regenerate";
+
+    $(elementID).innerHTML = "<td>" +
+                             "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
+                             "</td>" +
+                             "<td>" +
+                             "<form id=\"" + formID + "\"" +
+                             "action=\"" + formAction + "\"" +
+                             "method=\"post\"" +
+                             "enctype=\"application/x-www-form-urlencoded\">" +
+                             "<input type=\"hidden\" name=\"type\" value=\"<%=details.getLoadType()%>\"/>" +
+                             "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+                             "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
+                             "</form>" +
+                             "</td>";
+}
+
+function writePendingElement() {
+
 }
 
 // table row html
