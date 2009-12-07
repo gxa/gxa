@@ -12,7 +12,8 @@ public class LoadProgress {
     public static void call(Connection conn,
                             String accession,
                             String stage,
-                            String status)
+                            String status,
+                            String load_type)
             throws Exception {
         // this mimics the stored procedure load_progress in the actual DB
 
