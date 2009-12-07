@@ -12,6 +12,7 @@ import java.util.ArrayList;
  */
 
 public class GeneQuery extends AccessionQuery<GeneQuery> {
+    private String species = null;
 
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
     private List<PropertyQuery> propertyQueries = new ArrayList<PropertyQuery>();
@@ -44,6 +45,15 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
 
     public List<PropertyQuery> getPropertyQueries() {
         return propertyQueries;
+    }
+
+    public GeneQuery hasSpecies(String species){
+        this.species = species;
+        return this;
+    }
+
+    public String getSpecies(){
+        return this.species;
     }
 
 }
