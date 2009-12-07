@@ -16,7 +16,7 @@
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <property name="missingDesignElementsCutoff" value="1.0"/>
     </bean>
 
@@ -24,7 +24,7 @@
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <!-- location of SOLR index, local filesystem directory -->
         <property name="indexLocation" ref="atlasIndex"/>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
@@ -36,7 +36,7 @@
 
     <bean name="netCDFGenerator" class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
         <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
     </bean>
@@ -45,7 +45,7 @@
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
         <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
         <!-- atlasRFactory provides access to RServices independent of environment -->
@@ -57,7 +57,7 @@
     <!-- interface search service, uses both DB and index to acquire results -->
     <bean name="atlasSearchService" class="uk.ac.ebi.gxa.web.AtlasSearchService">
         <property name="atlasIndex" ref="atlasIndex"/>
-        <property name="atlasDatabaseDAO" ref="atlasDAO"/>
+        <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="atlasDownloadService" ref="atlasDownloadService"/>
         <!-- fixme: do SOLR server injection, which would allow injection of query service here -->
@@ -83,31 +83,38 @@
         <property name="atlasSearchService" ref="atlasSearchService"/>
     </bean>
 
-    <!-- Other required configuration -->
+    <!-- Required spring driven data access configuration for web interface -->
 
     <!-- Spring JDBC template for database queries -->
-    <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
+    <bean name="interfaceTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
-    <!-- Spring transaction template for db operations that require their own transaction -->
-    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="atlasDataSource"/>
+    <!-- Configure AtlasDAO for this datasource -->
+    <bean name="atlasInterfaceDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="interfaceTemplate"/>
     </bean>
-    <bean name="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
-        <property name="transactionManager" ref="transactionManager"/>
+
+    <!-- Required spring driven data access configuration for loader components -->
+
+    <!-- Spring JDBC template for database queries -->
+    <bean name="loaderTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <!-- datasource bean, from JNDI -->
+        <property name="dataSource" ref="atlasDataSource2"/>
+        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
+
+    <!-- Configure AtlasDAO for this datasource -->
+    <bean name="atlasLoaderDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="loaderTemplate"/>
+    </bean>
+
+    <!-- Common spring-drive data access configuration -->
     <!-- native extractor for fetching oracle connections from pool wrapper etc -->
     <bean name="nativeJdbcExtractor"
           class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
-
-    <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="template"/>
-        <property name="transactionTemplate" ref="transactionTemplate"/>
-    </bean>
 
     <!--Configure R workbench -->
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly biocep.properties too -->
