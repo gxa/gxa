@@ -7,9 +7,7 @@ import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
@@ -87,11 +85,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-
-        // set transaction template
-        DataSourceTransactionManager txManager = new DataSourceTransactionManager();
-        txManager.setDataSource(atlasDataSource);
-        atlasDAO.setTransactionTemplate(new TransactionTemplate(txManager));
     }
 
     protected void tearDown() throws Exception {
