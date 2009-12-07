@@ -6,7 +6,7 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>1.0-alpha-3</version>
+        <version>1.0-beta-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-skin</artifactId>
