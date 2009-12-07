@@ -158,9 +158,10 @@ public class AtlasDB {
         acc[0] = geneQuery.getId();
         acc[1] = geneQuery.getAccession();
 
-        Object[] asq = new Object[2];
+        Object[] asq = new Object[3];
         asq[0] = AtlasDB.toSqlStruct(stmt.getConnection(), "ACCESSIONQUERY", acc);
         asq[1] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", PropertyIDs);
+        asq[2] = geneQuery.getSpecies();
 
         stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "GENEQUERY", asq));
     }
