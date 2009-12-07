@@ -13,14 +13,9 @@ import java.util.Collection;
  */
 public class AtlasProperty implements Property {
 
-    private String name;
     private Collection<String> values;
     private String accession;
     private int id;
-
-    public void setName(String name){
-        this.name = name;
-    }
 
     public Collection<String> getValues(){
         return values;
@@ -28,7 +23,6 @@ public class AtlasProperty implements Property {
     public void setValues(Collection<String> values){
         this.values = values;
     }
-
 
     public String getAccession(){
         return accession;

@@ -205,7 +205,7 @@ public class AtlasDB {
         }
 
         Object[] asq = new Object[8];
-        asq[0] = propertyQuery.getPropertyID();
+        asq[0] = propertyQuery.getId();
         asq[1] = propertyQuery.getValue();
         asq[2] = propertyQuery.getFullTextQuery();
         asq[3] = AtlasDB.toSqlArray(stmt.getConnection(), "TBLINT", SampleIDs);
@@ -219,6 +219,18 @@ public class AtlasDB {
             asq[7] = propertyQuery.isSampleProperty() ? 1 : 0;
 
         stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "PROPERTYQUERY", asq));
+    }
+
+
+    public static void setGenePropertyQuery(CallableStatement stmt, int ordinal, GenePropertyQuery propertyQuery, AtlasDao dao)
+       throws SQLException, GxaException {
+
+        Object[] asq = new Object[8];
+        asq[0] = propertyQuery.getId();
+        asq[1] = propertyQuery.getValue();
+        asq[2] = propertyQuery.getFullTextQuery();
+
+        stmt.setObject(ordinal, AtlasDB.toSqlStruct(stmt.getConnection(), "GENEPROPERTYQUERY", asq));
     }
 
     // bind PageSortParam to query parameter

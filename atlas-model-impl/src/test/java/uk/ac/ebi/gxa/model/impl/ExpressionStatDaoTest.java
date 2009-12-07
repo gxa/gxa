@@ -178,6 +178,16 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
             public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException {
                 return null;  //To change body of implemented methods use File | Settings | File Templates.
             }
+
+            public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery, PageSortParams pageSortParams) throws GxaException{
+                return null;
+            }
+            public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery) throws GxaException{
+                return null;
+            }
+            public Property                 getGenePropertyByAccession(AccessionQuery accession) throws GxaException{
+                return null;
+            }
         });
     }
 

@@ -48,10 +48,12 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
         return this;
     }
 
+    /** redundant - use AccessionQuery.hasId()
     public PropertyQuery hasPropertyID(int propertyID){
         this.propertyID = propertyID;
         return this;
     }
+    **/
 
     public List<ExperimentQuery> getExperimentQueries() {
         return experimentQueries;
@@ -73,7 +75,9 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
         return sampleProperty;
     }
 
+    /**
     public int getPropertyID(){
         return this.propertyID;
     }
+    **/ 
 }
