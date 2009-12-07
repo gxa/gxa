@@ -542,7 +542,7 @@ public class AtlasDAO {
             else {
                 // still more left - take next sublist and increment counts
                 assayIDsChunk = assayIDs.subList(startpos, endpos);
-                startpos += endpos;
+                startpos = endpos;
                 endpos += maxQueryParams;
             }
 
@@ -799,6 +799,13 @@ public class AtlasDAO {
     public void writeLoadDetails(final String accession,
                                  final LoadStage loadStage,
                                  final LoadStatus loadStatus) {
+        writeLoadDetails(accession, loadStage, loadStatus, LoadType.EXPERIMENT);
+    }
+
+    public void writeLoadDetails(final String accession,
+                                 final LoadStage loadStage,
+                                 final LoadStatus loadStatus,
+                                 final LoadType loadType) {
         // execute this procedure...
         /*
         create or replace procedure load_progress(
@@ -814,15 +821,19 @@ public class AtlasDAO {
                         .useInParameterNames("EXPERIMENT_ACCESSION")
                         .useInParameterNames("STAGE")
                         .useInParameterNames("STATUS")
+                        .useInParameterNames("LOAD_TYPE")
                         .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
                         .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR));
+                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("EXPERIMENT_ACCESSION", accession)
                 .addValue("STAGE", loadStage.toString().toLowerCase())
-                .addValue("STATUS", loadStatus.toString().toLowerCase());
+                .addValue("STATUS", loadStatus.toString().toLowerCase())
+                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
+
 
         procedure.execute(params);
     }
@@ -1041,7 +1052,7 @@ public class AtlasDAO {
             else {
                 // still more left - take next sublist and increment counts
                 geneIDsChunk = geneIDs.subList(startpos, endpos);
-                startpos += endpos;
+                startpos = endpos;
                 endpos += maxQueryParams;
             }
 
@@ -1087,7 +1098,7 @@ public class AtlasDAO {
             else {
                 // still more left - take next sublist and increment counts
                 geneIDsChunk = geneIDs.subList(startpos, endpos);
-                startpos += endpos;
+                startpos = endpos;
                 endpos += maxQueryParams;
             }
 
@@ -1133,7 +1144,7 @@ public class AtlasDAO {
             else {
                 // still more left - take next sublist and increment counts
                 assayIDsChunk = assayIDs.subList(startpos, endpos);
-                startpos += endpos;
+                startpos = endpos;
                 endpos += maxQueryParams;
             }
 
@@ -1180,7 +1191,7 @@ public class AtlasDAO {
             }
             else {
                 sampleIDsChunk = sampleIDs.subList(startpos, endpos);
-                startpos += endpos;
+                startpos = endpos;
                 endpos += maxQueryParams;
             }
 
@@ -1558,7 +1569,6 @@ public class AtlasDAO {
             int geneID = resultSet.getInt(1);
             int designElementID = resultSet.getInt(2);
 
-            System.out.println("Mapping gene: " + geneID + " to design element: " + designElementID);
             genesByID.get(geneID).getDesignElementIDs().add(designElementID);
 
             return designElementID;

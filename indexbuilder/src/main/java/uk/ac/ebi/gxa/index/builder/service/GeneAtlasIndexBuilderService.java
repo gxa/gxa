@@ -13,6 +13,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
+import uk.ac.ebi.microarray.atlas.dao.LoadType;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -77,7 +78,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             // update loadmonitor - gene is indexing
                             getLog().debug("Updating load_monitor table: status = working");
                             getAtlasDAO().writeLoadDetails(
-                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING);
+                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING, LoadType.GENE);
                             getLog().debug("Load_monitor table updated");
 
                             // get the properties for all these genes
@@ -115,7 +116,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                                 // update loadmonitor table - experiment has completed indexing
                                 getAtlasDAO().writeLoadDetails(
-                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
+                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
 
                                 return response;
                             }
@@ -130,7 +131,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
                             if (response == null) {
                                 getAtlasDAO().writeLoadDetails(
-                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
+                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
                             }
                         }
                     }

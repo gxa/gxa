@@ -77,6 +77,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             for (Assay assay : assays) {
                                 // get assay properties and values
                                 getLog().debug("Getting properties for assay " + assay.getAssayID());
+                                if (assay.getProperties().size() == 0) {
+                                    getLog().warn("No properties present for assay " + assay.getAssayID() +
+                                            " (" + experiment.getAccession() + ")");
+                                }
+
                                 for (Property prop : assay.getProperties()) {
                                     String p = prop.getName();
                                     String pv = prop.getValue();
@@ -95,6 +100,13 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             }
 
                             for (Sample sample : samples) {
+                                // get assay properties and values
+                                getLog().debug("Getting properties for sample " + sample.getSampleID());
+                                if (sample.getProperties().size() == 0) {
+                                    getLog().warn("No properties present for sample " + sample.getSampleID() +
+                                            " (" + experiment.getAccession() + ")");
+                                }
+
                                 // get sample properties and values
                                 for (Property prop : sample.getProperties()) {
                                     String p = prop.getName();
