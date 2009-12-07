@@ -287,12 +287,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsByAccession(accession);
         if (loadDetails != null) {
             // there are details: load is valid only if the load status is "failed"
+            boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
             boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
             if (priorFailure) {
                 getLog().warn("Experiment " + accession + " was previously loaded, but failed.  " +
                         "Any bad data will be overwritten");
             }
-            return priorFailure;
+            return pending || priorFailure;
         }
         else {
             // no experiment present in load_monitor table

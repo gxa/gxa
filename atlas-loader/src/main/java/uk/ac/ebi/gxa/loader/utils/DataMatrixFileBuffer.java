@@ -170,7 +170,7 @@ public class DataMatrixFileBuffer {
             int lineCount = 0;
             while ((line = reader.readLine()) != null) {
                 lineCount++;
-                log.debug("Read line " + lineCount);
+                log.debug(new StringBuffer().append("Read line ").append(lineCount).toString());
                 // ignore empty lines
                 if (!line.trim().equals("")) {
                     if (!line.startsWith("#")) {
@@ -195,33 +195,31 @@ public class DataMatrixFileBuffer {
                                 // only look for this value if we've not got it cached
                                 if (!bufferedAssays.contains(assayRef)) {
                                     // read all expression values for this line
-                                    log.debug("Attempting to read expression values for " +
-                                            "element: " + designElement + "...");
-
-                                    log.debug("Index of expression value (" + assayRef + "): " +
-                                            refToEVColumn.get(assayRef));
-
                                     if (refToEVColumn.get(assayRef) == null) {
                                         // we have a missing expression value - is the whole column missing?
                                         if (refToEVColumn.get(assayRef) == null) {
                                             // just warn the first time
                                             if (!missingAssayRefColumns.contains(assayRef)) {
                                                 missingAssayRefColumns.add(assayRef);
-                                                log.warn("Missing column in data file: " +
-                                                        "no reference to assay " + assayRef + " could be found");
+                                                log.warn(new StringBuffer()
+                                                        .append("Missing column in data file: no reference to assay ")
+                                                        .append(assayRef)
+                                                        .append(" could be found").toString());
                                             }
                                         }
                                         else {
                                             // warn each time, as the column is present but just this value is missing
-                                            log.warn("No expression values present for " + assayRef +
-                                                    " in data matrix file at " +
-                                                    "line: " + lineCount + ", " +
-                                                    "column: " + refToEVColumn.get(assayRef));
+                                            log.warn(new StringBuffer()
+                                                    .append("No expression values present for ")
+                                                    .append(assayRef)
+                                                    .append(" in data matrix file at line: ")
+                                                    .append(lineCount)
+                                                    .append(", column: ")
+                                                    .append(refToEVColumn.get(assayRef)).toString());
                                         }
                                     }
                                     else {
-                                        float evFloatValue = Float.parseFloat(tokens[refToEVColumn.get(assayRef)]);
-
+                                        Float evFloatValue = Float.parseFloat(tokens[refToEVColumn.get(assayRef)]);
                                         // finished reading, store in buffer...
                                         refToEVs.get(assayRef).put(designElement, evFloatValue);
                                         // and now add to result map

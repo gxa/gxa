@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -10,13 +9,15 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
+import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -66,10 +67,62 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         // find the type of nodes we need - lookup from data matrix buffer
                         String refNodeName = buffer.readReferenceColumnName();
 
-                        // find all upstream assay nodes
-                        getLog().debug("Locating upstream assay nodes");
-                        List<SDRFNode> referenceNodes = findUpstreamAssays(
-                                investigation.SDRF, (DerivedArrayDataMatrixNode) node);
+                        // grab the class associated with the refNodeName type
+                        Class<? extends SDRFNode> refNodeType =
+                                investigation.SDRF.lookupNodes(refNodeName).iterator().next().getClass();
+
+                        // first, find all upstream nodes of the refNodeType
+                        getLog().debug("Locating upstream nodes of type: " + refNodeType.getSimpleName());
+
+                        // look for ref nodes
+                        Collection<? extends SDRFNode> referenceNodes = SDRFWritingUtils.findUpstreamNodes(
+                                investigation.SDRF, node, refNodeType);
+
+                        // if our ref nodes are Scan nodes, we need to map to the first assay node directly upstream of it
+                        boolean refsAreScans;
+                        Map<String, String> scanToAssayMapping = new HashMap<String, String>();
+                        if (refNodeType == ScanNode.class) {
+                            refsAreScans = true;
+
+                            // and map each scan
+                            for (SDRFNode referenceNode : referenceNodes) {
+                                // collect all the possible 'assay' forming nodes
+                                Collection<HybridizationNode> hybTypeNodes = SDRFWritingUtils.findUpstreamNodes(
+                                        investigation.SDRF, referenceNode, HybridizationNode.class);
+                                Collection<AssayNode> assayTypeNodes = SDRFWritingUtils.findUpstreamNodes(
+                                        investigation.SDRF, referenceNode, AssayNode.class);
+
+                                // lump the two together
+                                Collection<SDRFNode> assayNodes = new HashSet<SDRFNode>();
+                                assayNodes.addAll(hybTypeNodes);
+                                assayNodes.addAll(assayTypeNodes);
+
+                                // now check we have 1:1 mappings so that we can resolve our scans
+                                if (assayNodes.size() == 1) {
+                                    scanToAssayMapping.put(referenceNode.getNodeName(),
+                                                           assayNodes.iterator().next().getNodeName());
+                                }
+                                else {
+                                    // many to one scan-to-assay, we can't load this
+                                    // generate error item and throw exception
+                                    String message = "Unable to update resolve expression values to assays for " +
+                                            investigation.accession + " - data matrix file references scans, " +
+                                            "and in this experiment scans do not map one to one with assays.  " +
+                                            "This is not supported, as it would result in " +
+                                            (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
+                                            "values per assay.";
+
+                                    ErrorItem error =
+                                            ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                    .generateErrorItem(message, 1023, this.getClass());
+
+                                    throw new ObjectConversionException(error, true);
+                                }
+                            }
+                        }
+                        else {
+                            refsAreScans = false;
+                        }
 
                         // fetch the ids
                         String[] refNodes = new String[referenceNodes.size()];
@@ -91,10 +144,28 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             String accession = AtlasLoaderUtils.getNodeAccession(investigation, referenceNode);
 
                             Map<String, Float> evs = evMap.get(assayRef);
+
+                            // now we have then next expression value - if refsAreScans, map to the right assay, else just set
                             try {
-                                getLog().debug("Retrieving assay " + assayRef + " ready for updates...");
-                                Assay assay = AtlasLoaderUtils.waitForAssay(accession, investigation,
-                                                                            this.getClass().getSimpleName(), getLog());
+                                Assay assay;
+                                if (refsAreScans) {
+                                    getLog().debug("Retrieving assay " + assayRef + ", " +
+                                            "ready to update expression values");
+                                    assay = AtlasLoaderUtils.waitForAssay(scanToAssayMapping.get(accession),
+                                                                          investigation,
+                                                                          this.getClass().getSimpleName(),
+                                                                          getLog());
+                                }
+                                else {
+                                    // retrieve the assay we really want
+                                    getLog().debug("Retrieving assay associated with scan " + assayRef + ", " +
+                                            "ready to update expression values");
+                                    assay = AtlasLoaderUtils.waitForAssay(accession,
+                                                                          investigation,
+                                                                          this.getClass().getSimpleName(),
+                                                                          getLog());
+
+                                }
                                 getLog().debug("Updating assay " + assayRef + " with " + evs.size() +
                                         " expression values");
                                 assay.setExpressionValuesByAccession(evs);
@@ -106,7 +177,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                                 ErrorItem error =
                                         ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                                .generateErrorItem(message, 1023, this.getClass());
+                                                .generateErrorItem(message, 1032, this.getClass());
 
                                 throw new ObjectConversionException(error, true);
                             }
@@ -158,71 +229,5 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
             throw new ObjectConversionException(error, true);
         }
-    }
-
-    private List<SDRFNode> findUpstreamAssays(SDRF sdrf,
-                                              DerivedArrayDataMatrixNode node) {
-        List<SDRFNode> foundNodes = new ArrayList<SDRFNode>();
-
-        for (HybridizationNode hybNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
-            // walk downstream, if there is a child matching this node then we want this
-            if (hasDataMatrixNodeAsChild(sdrf, hybNode, node)) {
-                foundNodes.add(hybNode);
-            }
-        }
-
-        for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
-            // walk downstream, if there is a child matching this node then we want this
-            if (hasDataMatrixNodeAsChild(sdrf, assayNode, node)) {
-                foundNodes.add(assayNode);
-            }
-        }
-
-        // return all the nodes we found
-        return foundNodes;
-    }
-
-    private boolean hasDataMatrixNodeAsChild(SDRF sdrf, SDRFNode node,
-                                             DerivedArrayDataMatrixNode target) {
-        // check current node
-        if (node.getChildNodeValues().contains(target.getNodeName())) {
-            // does have the target as a child
-            return true;
-        }
-        else {
-            // we don't want this node, but now walk to children
-            for (String nodeName : node.getChildNodeValues()) {
-                SDRFNode nextNode = sdrf.lookupNode(nodeName, node.getChildNodeType());
-                // if we found the child here, return true
-                if (nextNode != null &&
-                        hasDataMatrixNodeAsChild(sdrf, nextNode, target)) {
-                    return true;
-                }
-            }
-        }
-
-        // if we got to here, no children of node match, so return false
-        return false;
-    }
-
-    private boolean hasScanNodeAsChild(SDRF sdrf, SDRFNode node, ScanNode target) {
-        // check current node
-        if (node.getChildNodeValues().contains(target.getNodeName())) {
-            // does have the target as a child
-            return true;
-        }
-        else {
-            // we don't want this node, but now walk to children
-            for (String nodeName : node.getChildNodeValues()) {
-                SDRFNode nextNode = sdrf.lookupNode(nodeName, node.getChildNodeType());
-                // if we found the child here, return true
-                if (nextNode != null && hasScanNodeAsChild(sdrf, nextNode, target)) {
-                    return true;
-                }
-            }
-        }
-
-        // if we got to here, no children of node match, so return false
-        return false;
     }
 }

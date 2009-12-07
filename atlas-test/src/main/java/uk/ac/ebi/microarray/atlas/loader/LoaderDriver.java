@@ -43,95 +43,95 @@ public class LoaderDriver {
         final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
 
         // run the loader
-//        try {
-//            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt").toURL();
-//            final long indexStart = System.currentTimeMillis();
-//            loader.loadExperiment(url, new AtlasLoaderListener() {
-//
-//                public void loadSuccess(AtlasLoaderEvent event) {
-//                    final long indexEnd = System.currentTimeMillis();
-//
-//                    String total = new DecimalFormat("#.##").format(
-//                            (indexEnd - indexStart) / 60000);
-//                    System.out.println(
-//                            "Load completed successfully in " + total + " mins.");
-//
-//                    try {
-//                        loader.shutdown();
-//                    }
-//                    catch (AtlasLoaderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                public void loadError(AtlasLoaderEvent event) {
-//                    System.out.println("Load failed");
-//                    for (Throwable t : event.getErrors()) {
-//                        t.printStackTrace();
-//                        try {
-//                            loader.shutdown();
-//                        }
-//                        catch (AtlasLoaderException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//        catch (MalformedURLException e) {
-//            e.printStackTrace();
-//            System.out.println("Load failed - inaccessible URL");
-//        }
-
-        // in case we don't run loader
         try {
-            loader.shutdown();
-        }
-        catch (AtlasLoaderException e) {
-            e.printStackTrace();
-        }
+            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt").toURL();
+            final long indexStart = System.currentTimeMillis();
+            loader.loadExperiment(url, new AtlasLoaderListener() {
 
-        // run the index builder
-        final long indexStart = System.currentTimeMillis();
-        builder.buildIndex(new IndexBuilderListener() {
+                public void loadSuccess(AtlasLoaderEvent event) {
+                    final long indexEnd = System.currentTimeMillis();
 
-            public void buildSuccess(IndexBuilderEvent event) {
-                final long indexEnd = System.currentTimeMillis();
+                    String total = new DecimalFormat("#.##").format(
+                            (indexEnd - indexStart) / 60000);
+                    System.out.println(
+                            "Load completed successfully in " + total + " mins.");
 
-                String total = new DecimalFormat("#.##").format(
-                        (indexEnd - indexStart) / 60000);
-                System.out.println(
-                        "Index built successfully in " + total + " mins.");
-
-                try {
-                    builder.shutdown();
-                }
-                catch (IndexBuilderException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            public void buildError(IndexBuilderEvent event) {
-                System.out.println("Index failed to build");
-                for (Throwable t : event.getErrors()) {
-                    t.printStackTrace();
                     try {
-                        builder.shutdown();
+                        loader.shutdown();
                     }
-                    catch (IndexBuilderException e) {
+                    catch (AtlasLoaderException e) {
                         e.printStackTrace();
                     }
                 }
-            }
-        });
 
-        // in case we don't run indexbuilder
+                public void loadError(AtlasLoaderEvent event) {
+                    System.out.println("Load failed");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                        try {
+                            loader.shutdown();
+                        }
+                        catch (AtlasLoaderException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("Load failed - inaccessible URL");
+        }
+
+        // in case we don't run loader
 //        try {
-//            builder.shutdown();
+//            loader.shutdown();
 //        }
-//        catch (IndexBuilderException e) {
+//        catch (AtlasLoaderException e) {
 //            e.printStackTrace();
 //        }
+
+        // run the index builder
+//        final long indexStart = System.currentTimeMillis();
+//        builder.buildIndex(new IndexBuilderListener() {
+//
+//            public void buildSuccess(IndexBuilderEvent event) {
+//                final long indexEnd = System.currentTimeMillis();
+//
+//                String total = new DecimalFormat("#.##").format(
+//                        (indexEnd - indexStart) / 60000);
+//                System.out.println(
+//                        "Index built successfully in " + total + " mins.");
+//
+//                try {
+//                    builder.shutdown();
+//                }
+//                catch (IndexBuilderException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            public void buildError(IndexBuilderEvent event) {
+//                System.out.println("Index failed to build");
+//                for (Throwable t : event.getErrors()) {
+//                    t.printStackTrace();
+//                    try {
+//                        builder.shutdown();
+//                    }
+//                    catch (IndexBuilderException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
+
+        // in case we don't run indexbuilder
+        try {
+            builder.shutdown();
+        }
+        catch (IndexBuilderException e) {
+            e.printStackTrace();
+        }
 
         // run the NetCDFGenerator
 //        final long netStart = System.currentTimeMillis();
