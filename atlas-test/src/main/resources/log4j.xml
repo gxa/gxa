@@ -24,19 +24,24 @@
         <appender-ref ref="console"/>
     </logger>
 
-    <logger name="uk.ac.ebi.gxa" additivity="false">
-        <level value="DEBUG"/>
-        <appender-ref ref="atlas-test"/>
+    <logger name="uk.ac.ebi">
+        <level value="INFO"/>
+        <appender-ref ref="console" />
     </logger>
 
-    <logger name="uk.ac.ebi.microarray" additivity="false">
-        <level value="DEBUG"/>
-        <appender-ref ref="atlas-test"/>
-    </logger>
+    <!--<logger name="uk.ac.ebi.gxa" additivity="false">-->
+        <!--<level value="DEBUG"/>-->
+        <!--<appender-ref ref="atlas-test"/>-->
+    <!--</logger>-->
 
-    <logger name="org.springframework" additivity="false">
-        <level value="DEBUG"/>
-        <appender-ref ref="atlas-test"/>
-    </logger>
+    <!--<logger name="uk.ac.ebi.microarray" additivity="false">-->
+        <!--<level value="DEBUG"/>-->
+        <!--<appender-ref ref="atlas-test"/>-->
+    <!--</logger>-->
+
+    <!--<logger name="org.springframework" additivity="false">-->
+        <!--<level value="DEBUG"/>-->
+        <!--<appender-ref ref="atlas-test"/>-->
+    <!--</logger>-->
 
 </log4j:configuration>

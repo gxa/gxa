@@ -60,7 +60,7 @@
         <property name="indexLocation" ref="atlasIndex"/>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeGenes" value="true"/>
-        <property name="includeExperiments" value="true"/>
+        <property name="includeExperiments" value="false"/>
     </bean>
 
     <bean name="netcdfGenerator"

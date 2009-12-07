@@ -91,47 +91,47 @@ public class LoaderDriver {
             e.printStackTrace();
         }
 
-//        // run the index builder
-//        final long indexStart = System.currentTimeMillis();
-//        builder.buildIndex(new IndexBuilderListener() {
-//
-//            public void buildSuccess(IndexBuilderEvent event) {
-//                final long indexEnd = System.currentTimeMillis();
-//
-//                String total = new DecimalFormat("#.##").format(
-//                        (indexEnd - indexStart) / 60000);
-//                System.out.println(
-//                        "Index built successfully in " + total + " mins.");
-//
-//                try {
-//                    builder.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            public void buildError(IndexBuilderEvent event) {
-//                System.out.println("Index failed to build");
-//                for (Throwable t : event.getErrors()) {
-//                    t.printStackTrace();
-//                    try {
-//                        builder.shutdown();
-//                    }
-//                    catch (IndexBuilderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+        // run the index builder
+        final long indexStart = System.currentTimeMillis();
+        builder.buildIndex(new IndexBuilderListener() {
+
+            public void buildSuccess(IndexBuilderEvent event) {
+                final long indexEnd = System.currentTimeMillis();
+
+                String total = new DecimalFormat("#.##").format(
+                        (indexEnd - indexStart) / 60000);
+                System.out.println(
+                        "Index built successfully in " + total + " mins.");
+
+                try {
+                    builder.shutdown();
+                }
+                catch (IndexBuilderException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public void buildError(IndexBuilderEvent event) {
+                System.out.println("Index failed to build");
+                for (Throwable t : event.getErrors()) {
+                    t.printStackTrace();
+                    try {
+                        builder.shutdown();
+                    }
+                    catch (IndexBuilderException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
 
         // in case we don't run indexbuilder
-        try {
-            builder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            builder.shutdown();
+//        }
+//        catch (IndexBuilderException e) {
+//            e.printStackTrace();
+//        }
 
         // run the NetCDFGenerator
 //        final long netStart = System.currentTimeMillis();
@@ -176,24 +176,24 @@ public class LoaderDriver {
             e.printStackTrace();
         }
 
-        // do a test load_monitor update
-        final AtlasDAO atlasDAO =
-                (AtlasDAO) factory.getBean("atlasDAO");
-        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.WORKING);
-        System.out.println("Set index-test: searchindex = working");
-
-        // wait 30 seconds
-        final Object o = new Object();
-        synchronized (o) {
-            try {
-                o.wait(30000);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.DONE);
-        System.out.println("Set index-test: searchindex = done");
+//        // do a load_monitor update
+//        final AtlasDAO atlasDAO =
+//                (AtlasDAO) factory.getBean("atlasDAO");
+//        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.WORKING);
+//        System.out.println("Set index-test: searchindex = working");
+//
+//        // wait 30 seconds
+//        final Object o = new Object();
+//        synchronized (o) {
+//            try {
+//                o.wait(30000);
+//            }
+//            catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.DONE);
+//        System.out.println("Set index-test: searchindex = done");
     }
 }
