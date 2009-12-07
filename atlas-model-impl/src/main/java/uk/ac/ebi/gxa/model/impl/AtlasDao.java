@@ -211,7 +211,7 @@ public class AtlasDao implements Dao {
             while(AssayID == rsProperties.getInt("AssayId")){
 
                 AtlasProperty atlasProperty = new AtlasProperty();
-                atlasProperty.setName(rsProperties.getString("Property"));
+                atlasProperty.setAccession(rsProperties.getString("Property"));
 
                 ArrayList<String> values = new ArrayList<String>();
                 values.add(rsProperties.getString("PropertyValue"));
@@ -313,7 +313,7 @@ public class AtlasDao implements Dao {
             while(SampleID == rsProperties.getInt("SampleId")){
 
                 AtlasProperty atlasProperty = new AtlasProperty();
-                atlasProperty.setName(rsProperties.getString("Property"));
+                atlasProperty.setAccession(rsProperties.getString("Property"));
 
                 ArrayList<String> values = new ArrayList<String>();
                 values.add(rsProperties.getString("PropertyValue"));
@@ -403,7 +403,7 @@ public class AtlasDao implements Dao {
                 AtlasProperty property = new AtlasProperty();
 
                 property.setid(rsProperties.getInt("PropertyID"));
-                property.setName(rsProperties.getString("PropertyName"));
+                property.setAccession(rsProperties.getString("PropertyName"));
 
                 property.setValues(new ArrayList<String>());
 
@@ -685,6 +685,78 @@ public class AtlasDao implements Dao {
        // return null; <- why unreachable?
     }
     ****/
+
+    public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery, PageSortParams pageSortParams) throws GxaException{
+        CallableStatement stmt = null;
+        ArrayList<Property> properties = new ArrayList<Property>();
+
+        try{
+
+          stmt = connection.prepareCall("{call AtlasAPI.a2_GenePropertyGet(?,?,?)}");
+
+          AtlasDB.setGenePropertyQuery(stmt,1,atlasGenePropertyQuery, this);
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //assays
+
+          stmt.execute();
+
+          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
+
+          String currentPropertyID = "0";
+
+          while(rsProperties.next()){
+            AtlasProperty a = new AtlasProperty();
+
+            if(!currentPropertyID.equals(rsProperties.getString("GenePropertyID"))){
+                AtlasProperty property = new AtlasProperty();
+
+                property.setid(rsProperties.getInt("GenePropertyID"));
+                property.setAccession(rsProperties.getString("GenePropertyName"));
+
+                property.setValues(new ArrayList<String>());
+
+                properties.add(property);
+            }
+
+            currentPropertyID = rsProperties.getString("GenePropertyID");
+
+            properties.get(properties.size()-1).getValues().add(rsProperties.getString("Value"));
+         }
+
+         QueryResultSet<Property> result = new QueryResultSet<Property>();
+
+         result.setItems(properties);
+
+         return result;
+
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex);
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                       stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
+    };
+    public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery) throws GxaException{
+        return  getGeneProperty(atlasGenePropertyQuery, new PageSortParams());
+
+    };
+    public Property                 getGenePropertyByAccession(AccessionQuery accessionQuery) throws GxaException{
+        QueryResultSet<Property> result = this.getGeneProperty(new GenePropertyQuery(accessionQuery));
+        return result.getItem();
+    };
+
+
 
 
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {

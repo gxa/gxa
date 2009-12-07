@@ -8,4 +8,9 @@ package uk.ac.ebi.gxa.model;
  * To change this template use File | Settings | File Templates.
  */
 public class GenePropertyQuery extends AbstractPropertyQuery<GenePropertyQuery> {
+    public GenePropertyQuery(){};
+
+    public GenePropertyQuery(AccessionQuery accessionQuery){
+        super(accessionQuery);
+    }
 }

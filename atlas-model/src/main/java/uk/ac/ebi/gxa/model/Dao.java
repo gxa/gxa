@@ -39,6 +39,11 @@ public interface Dao {
     public Gene                 getGeneByAccession(AccessionQuery accession) throws GxaException;
 //    public Integer[]            getGeneIDs(GeneQuery atlasGeneQuery) throws GxaException;
 
+    public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery, PageSortParams pageSortParams) throws GxaException;
+    public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery) throws GxaException;
+    public Property                 getGenePropertyByAccession(AccessionQuery accession) throws GxaException;
+//    public Integer[]                getGenePropertyIDs(GenePropertyQuery atlasPropertyQuery) throws GxaException;
+
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException;
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery) throws GxaException;
 
