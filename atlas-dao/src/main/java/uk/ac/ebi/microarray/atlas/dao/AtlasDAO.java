@@ -5,17 +5,12 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -293,10 +288,7 @@ public class AtlasDAO {
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     private JdbcTemplate template;
-    private TransactionTemplate transactionTemplate;
     private int maxQueryParams = 500;
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public JdbcTemplate getJdbcTemplate() {
         return template;
@@ -304,14 +296,6 @@ public class AtlasDAO {
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
-    }
-
-    public TransactionTemplate getTransactionTemplate() {
-        return transactionTemplate;
-    }
-
-    public void setTransactionTemplate(TransactionTemplate transactionTemplate) {
-        this.transactionTemplate = transactionTemplate;
     }
 
     /**
@@ -812,41 +796,35 @@ public class AtlasDAO {
     DAO write methods
      */
 
-    public void writeLoadDetails(final String experimentAccession,
+    public void writeLoadDetails(final String accession,
                                  final LoadStage loadStage,
                                  final LoadStatus loadStatus) {
-        // load monitor updates in it's own transaction
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                try {
-                    // create stored procedure call
-                    SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("LOAD_PROGRESS");
+        // execute this procedure...
+        /*
+        create or replace procedure load_progress(
+          experiment_accession varchar
+          ,stage varchar --load, netcdf, similarity, ranking, searchindex
+          ,status varchar --done, pending
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("LOAD_PROGRESS")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENT_ACCESSION")
+                        .useInParameterNames("STAGE")
+                        .useInParameterNames("STATUS")
+                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR));
 
-                    // execute this procedure...
-                    /*
-                    create or replace procedure load_progress(
-                      experiment_accession varchar
-                      ,stage varchar --load, netcdf, similarity, ranking, searchindex
-                      ,status varchar --done, pending
-                    )
-                    */
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("EXPERIMENT_ACCESSION", accession)
+                .addValue("STAGE", loadStage.toString().toLowerCase())
+                .addValue("STATUS", loadStatus.toString().toLowerCase());
 
-                    // map parameters...
-                    MapSqlParameterSource params = new MapSqlParameterSource()
-                            .addValue("experiment_accession", experimentAccession)
-                            .addValue("stage", loadStage.toString().toLowerCase())
-                            .addValue("status", loadStatus.toString().toLowerCase());
-
-                    procedure.execute(params);
-                }
-                catch (Exception e) {
-                    log.error("load_progress transaction update failed! " + e.getMessage());
-                    e.printStackTrace();
-                    transactionStatus.setRollbackOnly();
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        procedure.execute(params);
     }
 
     /**
@@ -856,9 +834,6 @@ public class AtlasDAO {
      * @param experiment the experiment to write
      */
     public void writeExperiment(final Experiment experiment) {
-        // execute stored procedure a2_ExperimentSet - standard param types
-        SimpleJdbcCall procedure = new SimpleJdbcCall(template).withProcedureName("A2_EXPERIMENTSET");
-
         // execute this procedure...
         /*
         create or replace PROCEDURE "A2_EXPERIMENTSET" (
@@ -868,6 +843,18 @@ public class AtlasDAO {
           ,TheLab varchar2
         )
         */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("A2_EXPERIMENTSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("THEACCESSION")
+                        .useInParameterNames("THEDESCRIPTION")
+                        .useInParameterNames("THEPERFORMER")
+                        .useInParameterNames("THELAB")
+                        .declareParameters(new SqlParameter("THEACCESSION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("THEDESCRIPTION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("THEPERFORMER", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("THELAB", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
