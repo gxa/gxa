@@ -6,6 +6,8 @@ import server.DirectJNI;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.dao.LoadStage;
+import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.*;
@@ -48,13 +50,28 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 tasks.add(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
+                        boolean success = false;
                         try {
+                            // update loadmonitor - experiment is indexing
+                            getAtlasDAO().writeLoadDetails(
+                                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.WORKING);
+
                             createAnalyticsForExperiment(experiment.getAccession());
-                            return true;
+                            success = true;
+
+                            // update loadmonitor - experiment is indexing
+                            getAtlasDAO().writeLoadDetails(
+                                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.DONE);
+
+                            return success;
                         }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                            throw e;
+                        finally {
+                            // if success if true, everything completed as expected, but if it's false we got
+                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
+                            if (!success) {
+                                getAtlasDAO().writeLoadDetails(
+                                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
+                            }
                         }
                     }
                 }));

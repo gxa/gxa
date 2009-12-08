@@ -299,7 +299,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
             else {
                 // not suppressing reloads, so just continue regardless
-                getLog().warn("Experiment " + accession + " was previously reloaded, but reloads are not " +
+                getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
                 return true;
             }
