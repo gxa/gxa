@@ -50,6 +50,8 @@
     <!-- Requires a loader -->
     <bean id="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="missingDesignElementsCutoff" value="1.0"/>
+        <property name="allowReloading" value="true"/>
     </bean>
 
     <!-- Requires an Index Builder -->

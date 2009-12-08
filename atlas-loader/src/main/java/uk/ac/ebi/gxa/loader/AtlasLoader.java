@@ -83,6 +83,24 @@ public interface AtlasLoader<R, L> {
     double getMissingDesignElementsCutoff();
 
     /**
+     * Sets whether reloads are permissible by this loader.  If true, experiments that are already present in the
+     * backing datasource will be reloaded unchecked (with an optional warning log statement).  If false, attempting to
+     * reload an existing experiment will cause an exception to be thrown.
+     *
+     * @param allowReloading true if reloads are permissible, false otherwise
+     */
+    void setAllowReloading(boolean allowReloading);
+
+    /**
+     * Gets whether reloads are permissible by this loader.  If true, experiments that are already present in the
+     * backing datasource will be reloaded unchecked (with an optional warning log statement).  If false, attempting to
+     * reload an existing experiment will cause an exception to be thrown.
+     *
+     * @return whether or not reloads are allowed - true indicates they are
+     */
+    boolean getAllowReloading();
+
+    /**
      * Initializes this loader and any resources it requires.
      *
      * @throws AtlasLoaderException if startup fails for any reason

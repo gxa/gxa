@@ -34,6 +34,8 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof SourceNode) {
+                    getLog().debug("Writing sample from source node '" + node.getNodeName() + "'");
+                    
                     Sample sample = new Sample();
                     sample.setAccession(AtlasLoaderUtils.getNodeAccession(investigation, node));
 

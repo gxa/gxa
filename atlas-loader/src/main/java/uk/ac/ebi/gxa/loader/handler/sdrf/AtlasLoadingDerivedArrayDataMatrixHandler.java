@@ -6,6 +6,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
@@ -37,6 +38,14 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof DerivedArrayDataMatrixNode) {
+                    getLog().debug("Writing expression values from data file referenced by " +
+                            "derived array data matrix node '" + node.getNodeName() + "'");
+
+                    if (node.getNodeName().equals(MissingDataFile.DERIVED_ARRAY_DATA_MATRIX_FILE)) {
+                        // this data matrix is missing, no expression values present - so simply continue to next
+                        continue;
+                    }
+
                     // sdrf location
                     URL sdrfURL = investigation.SDRF.getLocation();
 

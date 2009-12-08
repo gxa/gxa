@@ -44,7 +44,7 @@ public class LoaderDriver {
 
         // run the loader
         try {
-            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-3790/E-GEOD-3790.idf.txt").toURL();
+            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-MEXP-2048/E-MEXP-2048.idf.txt").toURL();
             final long indexStart = System.currentTimeMillis();
             loader.loadExperiment(url, new AtlasLoaderListener() {
 

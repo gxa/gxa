@@ -220,19 +220,19 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
             // first, load experiments
-            getLog().debug("Writing experiment(s)");
+            getLog().debug("Writing " + cache.fetchAllExperiments().size() + " experiment(s)");
             for (Experiment experiment : cache.fetchAllExperiments()) {
                 getAtlasDAO().writeExperiment(experiment);
             }
 
             // next, write assays
-            getLog().debug("Writing assays");
+            getLog().debug("Writing " + cache.fetchAllAssays().size() + " assays");
             for (Assay assay : cache.fetchAllAssays()) {
                 getAtlasDAO().writeAssay(assay);
             }
 
             // finally, load samples
-            getLog().debug("Writing samples");
+            getLog().debug("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 getAtlasDAO().writeSample(sample);
             }
@@ -258,8 +258,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     private boolean validateLoad(Collection<Experiment> experiments, Collection<Assay> assays) {
         for (Experiment exp : experiments) {
             if (!checkExperiment(exp.getAccession())) {
-                getLog().error("The experiment " + exp.getAccession() + " was found in the database: " +
-                        "it has been previously loaded or is loading right now.  Unable to load duplicates!");
                 return false;
             }
         }
@@ -286,14 +284,25 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsByAccession(accession);
         if (loadDetails != null) {
-            // there are details: load is valid only if the load status is "failed"
-            boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
-            boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
-            if (priorFailure) {
-                getLog().warn("Experiment " + accession + " was previously loaded, but failed.  " +
-                        "Any bad data will be overwritten");
+            getLog().info("Found load details for " + accession);
+            // if we are suppressing reloads, check the details further
+            if (!allowReloading()) {
+                getLog().info("Load details present, reloads not allowed...");
+                // there are details: load is valid only if the load status is "pending" or "failed"
+                boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
+                boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
+                if (priorFailure) {
+                    getLog().warn("Experiment " + accession + " was previously loaded, but failed.  " +
+                            "Any bad data will be overwritten");
+                }
+                return pending || priorFailure;
             }
-            return pending || priorFailure;
+            else {
+                // not suppressing reloads, so just continue regardless
+                getLog().warn("Experiment " + accession + " was previously reloaded, but reloads are not " +
+                        "automatically suppressed");
+                return true;
+            }
         }
         else {
             // no experiment present in load_monitor table
