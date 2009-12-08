@@ -88,7 +88,7 @@ public abstract class NetCDFGeneratorService<T> {
         try {
             Properties properties = new Properties();
             InputStream in = getClass().getClassLoader().
-                    getResourceAsStream("META-INF/maven/uk.ac.ebi.microarray.atlas/" +
+                    getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa/" +
                             "netcdf-generator/pom.properties");
             properties.load(in);
 
