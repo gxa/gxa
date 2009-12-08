@@ -94,7 +94,7 @@ public class DataMatrixFileBuffer {
             }
         }
 
-        return referenceColumnName.replace("ref", "name");
+        return referenceColumnName;
     }
 
     /**
@@ -471,7 +471,8 @@ public class DataMatrixFileBuffer {
             throw new ParseException(error, true);
         }
         else {
-            referenceColumnName = refName;
+            referenceColumnName = refName.replace("ref", "name");
+            log.debug("Reference column set to '" + referenceColumnName + "'");
         }
 
         // check our list of headers has size = 2

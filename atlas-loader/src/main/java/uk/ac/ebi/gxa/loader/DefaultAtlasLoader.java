@@ -29,6 +29,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
     private AtlasDAO atlasDAO;
     private URL repositoryLocation;
     private double missingDesignElementsCutoff = -1;
+    private boolean allowReloading = false;
 
     private AtlasLoaderService<URL> atlasLoaderService;
 
@@ -62,6 +63,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
         this.missingDesignElementsCutoff = missingDesignElementsCutoff;
     }
 
+    public boolean getAllowReloading() {
+        return allowReloading;
+    }
+
+    public void setAllowReloading(boolean allowReloading) {
+        this.allowReloading = allowReloading;
+    }
+
     public void afterPropertiesSet() throws Exception {
         startup();
     }
@@ -72,6 +81,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
             // create the service
             atlasLoaderService = new AtlasMAGETABLoader(atlasDAO);
+            atlasLoaderService.setAllowReloading(allowReloading);
             // if we have set the cutoff for missing design elements, set on the service
             if (missingDesignElementsCutoff != -1) {
                 atlasLoaderService.setMissingDesignElementsCutoff(missingDesignElementsCutoff);
@@ -155,11 +165,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
                 try {
                     log.info("Starting load operation on " + experimentResource.toString());
 
-                    atlasLoaderService.load(experimentResource);
+                    boolean result = atlasLoaderService.load(experimentResource);
 
                     log.debug("Finished load operation on " + experimentResource.toString());
 
-                    return true;
+                    return result;
                 }
                 catch (Exception e) {
                     log.error("Caught unchecked exception: " + e.getMessage());

@@ -32,6 +32,8 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof AssayNode) {
+                    getLog().debug("Writing assay from assay node '" + node.getNodeName() + "'");
+
                     AssayNode assayNode = (AssayNode) node;
 
                     Assay assay = new Assay();

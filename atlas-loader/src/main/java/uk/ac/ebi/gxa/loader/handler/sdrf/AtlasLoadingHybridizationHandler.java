@@ -32,6 +32,8 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof HybridizationNode) {
+                    getLog().debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
+
                     HybridizationNode hybNode = (HybridizationNode) node;
 
                     Assay assay = new Assay();

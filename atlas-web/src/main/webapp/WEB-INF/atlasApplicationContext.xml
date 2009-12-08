@@ -17,7 +17,8 @@
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasLoaderDAO"/>
-        <property name="missingDesignElementsCutoff" value="1.0"/>
+        <property name="missingDesignElementsCutoff" value="0.25"/>
+        <property name="allowReloading" value="true"/>
     </bean>
 
     <!-- Index Builder component -->

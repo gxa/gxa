@@ -14,6 +14,7 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 public abstract class AtlasLoaderService<T> {
     private AtlasDAO atlasDAO;
     private double missingDesignElementsCutoff = 1.0;
+    private boolean allowReloading = false;
 
     // logging
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -28,6 +29,10 @@ public abstract class AtlasLoaderService<T> {
 
     protected double getMissingDesignElementsCutoff() {
         return missingDesignElementsCutoff;
+    }
+
+    protected boolean allowReloading() {
+        return allowReloading;
     }
 
     protected Logger getLog() {
@@ -45,6 +50,17 @@ public abstract class AtlasLoaderService<T> {
      */
     public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) {
         this.missingDesignElementsCutoff = missingDesignElementsCutoff;
+    }
+
+    /**
+     * Sets whether or not reloads should be suppressed by this load service.  If this is set to true, attempting to
+     * reload an existing experiment will cause an exception.  If false, reloads will procede like any other load
+     * (although a warning should be issued to the log stream by implementations of this class).
+     *
+     * @param allowReloading whether or not to automatically allow reloads
+     */
+    public void setAllowReloading(boolean allowReloading) {
+        this.allowReloading = allowReloading;
     }
 
     /**
