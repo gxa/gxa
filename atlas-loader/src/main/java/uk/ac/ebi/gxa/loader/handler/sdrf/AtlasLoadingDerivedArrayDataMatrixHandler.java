@@ -5,8 +5,8 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
@@ -89,8 +89,10 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                         // if our ref nodes are Scan nodes, we need to map to the first assay node directly upstream of it
                         boolean refsAreScans;
-                        Map<String, String> scanToAssayMapping = new HashMap<String, String>();
+                        Map<SDRFNode, SDRFNode> scanToAssayMapping = new HashMap<SDRFNode, SDRFNode>();
                         if (refNodeType == ScanNode.class) {
+                            getLog().debug(
+                                    "Data matrix file references Scan nodes - resolving scans to associated assays");
                             refsAreScans = true;
 
                             // and map each scan
@@ -108,8 +110,10 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                                 // now check we have 1:1 mappings so that we can resolve our scans
                                 if (assayNodes.size() == 1) {
-                                    scanToAssayMapping.put(referenceNode.getNodeName(),
-                                                           assayNodes.iterator().next().getNodeName());
+                                    SDRFNode assayNode = assayNodes.iterator().next();
+                                    getLog().debug("Scan node " + referenceNode.getNodeName() + " resolves to " +
+                                            assayNode.getNodeName());
+                                    scanToAssayMapping.put(referenceNode, assayNode);
                                 }
                                 else {
                                     // many to one scan-to-assay, we can't load this
@@ -149,32 +153,26 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                         // now fetch each assay and add expression values
                         for (SDRFNode referenceNode : referenceNodes) {
-                            String assayRef = referenceNode.getNodeName();
-                            String accession = AtlasLoaderUtils.getNodeAccession(investigation, referenceNode);
+                            // reference node name (might be a scan)
+                            getLog().debug("Reference node " + referenceNode.getNodeName() + " is a scan - " +
+                                    "resolving to assay before setting expression values");
+                            SDRFNode assayNode = refsAreScans
+                                    ? scanToAssayMapping.get(referenceNode)
+                                    : referenceNode;
 
-                            Map<String, Float> evs = evMap.get(assayRef);
+                            String accession = AtlasLoaderUtils.getNodeAccession(investigation, assayNode);
+                            String assayRef = assayNode.getNodeName();
+
+                            Map<String, Float> evs = evMap.get(referenceNode.getNodeName());
 
                             // now we have then next expression value - if refsAreScans, map to the right assay, else just set
                             try {
                                 Assay assay;
-                                if (refsAreScans) {
-                                    getLog().debug("Retrieving assay " + assayRef + ", " +
-                                            "ready to update expression values");
-                                    assay = AtlasLoaderUtils.waitForAssay(scanToAssayMapping.get(accession),
-                                                                          investigation,
-                                                                          this.getClass().getSimpleName(),
-                                                                          getLog());
-                                }
-                                else {
-                                    // retrieve the assay we really want
-                                    getLog().debug("Retrieving assay associated with scan " + assayRef + ", " +
-                                            "ready to update expression values");
-                                    assay = AtlasLoaderUtils.waitForAssay(accession,
-                                                                          investigation,
-                                                                          this.getClass().getSimpleName(),
-                                                                          getLog());
-
-                                }
+                                getLog().debug("Retrieving assay " + assayRef + ", ready to update expression values");
+                                assay = AtlasLoaderUtils.waitForAssay(accession,
+                                                                      investigation,
+                                                                      this.getClass().getSimpleName(),
+                                                                      getLog());
                                 getLog().debug("Updating assay " + assayRef + " with " + evs.size() +
                                         " expression values");
                                 assay.setExpressionValuesByAccession(evs);
@@ -188,7 +186,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                         ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
                                                 .generateErrorItem(message, 1032, this.getClass());
 
-                                throw new ObjectConversionException(error, true);
+                                throw new ObjectConversionException(error, true, e);
                             }
                             evCount = evs.size();
                         }

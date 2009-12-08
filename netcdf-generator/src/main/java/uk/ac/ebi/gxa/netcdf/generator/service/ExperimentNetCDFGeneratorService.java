@@ -182,7 +182,12 @@ public class ExperimentNetCDFGeneratorService
                 tasks.add(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
+                        boolean success = false;
                         try {
+                            // update loadmonitor - experiment is netcdf-ing
+                            getAtlasDAO().writeLoadDetails(
+                                    dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
+
                             // create a new NetCDF document
                             NetcdfFileWriteable netCDF = createNetCDF(
                                     dataSlice.getExperiment(),
@@ -201,15 +206,25 @@ public class ExperimentNetCDFGeneratorService
 
                             // save and close the netCDF
                             netCDF.close();
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                            throw e;
-                        }
 
-                        getLog().info(
-                                "Finalising NetCDF changes for " + dataSlice.toString());
-                        return true;
+                            getLog().info("Finalising NetCDF changes for " +
+                                    dataSlice.getExperiment().getAccession());
+                            success = true;
+
+                            // update loadmonitor - experiment has completed netcdf-ing
+                            getAtlasDAO().writeLoadDetails(
+                                    dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
+
+                            return success;
+                        }
+                        finally {
+                            // if success if true, everything completed as expected, but if it's false we got
+                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
+                            if (!success) {
+                                getAtlasDAO().writeLoadDetails(
+                                        dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
+                            }
+                        }
                     }
                 }));
             }

@@ -170,7 +170,6 @@ public class DataMatrixFileBuffer {
             int lineCount = 0;
             while ((line = reader.readLine()) != null) {
                 lineCount++;
-                log.debug(new StringBuffer().append("Read line ").append(lineCount).toString());
                 // ignore empty lines
                 if (!line.trim().equals("")) {
                     if (!line.startsWith("#")) {

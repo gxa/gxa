@@ -43,53 +43,53 @@ public class LoaderDriver {
         final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
 
         // run the loader
-        try {
-            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-MEXP-2048/E-MEXP-2048.idf.txt").toURL();
-            final long indexStart = System.currentTimeMillis();
-            loader.loadExperiment(url, new AtlasLoaderListener() {
-
-                public void loadSuccess(AtlasLoaderEvent event) {
-                    final long indexEnd = System.currentTimeMillis();
-
-                    String total = new DecimalFormat("#.##").format(
-                            (indexEnd - indexStart) / 60000);
-                    System.out.println(
-                            "Load completed successfully in " + total + " mins.");
-
-                    try {
-                        loader.shutdown();
-                    }
-                    catch (AtlasLoaderException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                public void loadError(AtlasLoaderEvent event) {
-                    System.out.println("Load failed");
-                    for (Throwable t : event.getErrors()) {
-                        t.printStackTrace();
-                        try {
-                            loader.shutdown();
-                        }
-                        catch (AtlasLoaderException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-            System.out.println("Load failed - inaccessible URL");
-        }
+//        try {
+//            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-11990/E-GEOD-11990.idf.txt").toURL();
+//            final long indexStart = System.currentTimeMillis();
+//            loader.loadExperiment(url, new AtlasLoaderListener() {
+//
+//                public void loadSuccess(AtlasLoaderEvent event) {
+//                    final long indexEnd = System.currentTimeMillis();
+//
+//                    String total = new DecimalFormat("#.##").format(
+//                            (indexEnd - indexStart) / 60000);
+//                    System.out.println(
+//                            "Load completed successfully in " + total + " mins.");
+//
+//                    try {
+//                        loader.shutdown();
+//                    }
+//                    catch (AtlasLoaderException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//
+//                public void loadError(AtlasLoaderEvent event) {
+//                    System.out.println("Load failed");
+//                    for (Throwable t : event.getErrors()) {
+//                        t.printStackTrace();
+//                        try {
+//                            loader.shutdown();
+//                        }
+//                        catch (AtlasLoaderException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//            });
+//        }
+//        catch (MalformedURLException e) {
+//            e.printStackTrace();
+//            System.out.println("Load failed - inaccessible URL");
+//        }
 
         // in case we don't run loader
-//        try {
-//            loader.shutdown();
-//        }
-//        catch (AtlasLoaderException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            loader.shutdown();
+        }
+        catch (AtlasLoaderException e) {
+            e.printStackTrace();
+        }
 
         // run the index builder
 //        final long indexStart = System.currentTimeMillis();
@@ -134,47 +134,47 @@ public class LoaderDriver {
         }
 
         // run the NetCDFGenerator
-//        final long netStart = System.currentTimeMillis();
-//        generator.generateNetCDFsForExperiment(
-//                "E-GEOD-1725",
-//                new NetCDFGeneratorListener() {
-//                    public void buildSuccess(NetCDFGenerationEvent event) {
-//                        final long netEnd = System.currentTimeMillis();
-//
-//                        String total = new DecimalFormat("#.##").format(
-//                                (netEnd - netStart) / 60000);
-//                        System.out.println(
-//                                "NetCDFs generated successfully in " + total + " mins.");
-//
-//                        try {
-//                            generator.shutdown();
-//                        }
-//                        catch (NetCDFGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    public void buildError(NetCDFGenerationEvent event) {
-//                        System.out.println("NetCDF Generation failed!");
-//                        for (Throwable t : event.getErrors()) {
-//                            t.printStackTrace();
-//                            try {
-//                                generator.shutdown();
-//                            }
-//                            catch (NetCDFGeneratorException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
+        final long netStart = System.currentTimeMillis();
+        generator.generateNetCDFsForExperiment(
+                "E-GEOD-11990",
+                new NetCDFGeneratorListener() {
+                    public void buildSuccess(NetCDFGenerationEvent event) {
+                        final long netEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (netEnd - netStart) / 60000);
+                        System.out.println(
+                                "NetCDFs generated successfully in " + total + " mins.");
+
+                        try {
+                            generator.shutdown();
+                        }
+                        catch (NetCDFGeneratorException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void buildError(NetCDFGenerationEvent event) {
+                        System.out.println("NetCDF Generation failed!");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                            try {
+                                generator.shutdown();
+                            }
+                            catch (NetCDFGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
 
         // in case we don't run netCDF generator
-        try {
-            generator.shutdown();
-        }
-        catch (NetCDFGeneratorException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            generator.shutdown();
+//        }
+//        catch (NetCDFGeneratorException e) {
+//            e.printStackTrace();
+//        }
 
 //        // do a load_monitor update
 //        final AtlasDAO atlasDAO =
