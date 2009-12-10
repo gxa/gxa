@@ -104,6 +104,9 @@ public class ExperimentNetCDFGeneratorService
                                 getAtlasDAO().writeLoadDetails(
                                         experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
                             }
+
+                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
+                            System.gc();
                         }
                     }
                 }));
@@ -170,11 +173,15 @@ public class ExperimentNetCDFGeneratorService
                 new ArrayList<Future<Boolean>>();
 
         try {
-            // create a data slicer to slice up this experiment
-            DataSlicer slicer = new DataSlicer(getAtlasDAO());
-
             getLog().info("Generating NetCDFs - experiment " +
                     experiment.getAccession());
+
+            // update loadmonitor - experiment is netcdf-ing
+            getAtlasDAO().writeLoadDetails(
+                    experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
+
+            // create a data slicer to slice up this experiment
+            DataSlicer slicer = new DataSlicer(getAtlasDAO());
 
             // slice our experiment first
             for (final DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
@@ -182,12 +189,7 @@ public class ExperimentNetCDFGeneratorService
                 tasks.add(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
-                        boolean success = false;
                         try {
-                            // update loadmonitor - experiment is netcdf-ing
-                            getAtlasDAO().writeLoadDetails(
-                                    dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
-
                             // create a new NetCDF document
                             NetcdfFileWriteable netCDF = createNetCDF(
                                     dataSlice.getExperiment(),
@@ -207,45 +209,45 @@ public class ExperimentNetCDFGeneratorService
                             // save and close the netCDF
                             netCDF.close();
 
-                            getLog().info("Finalising NetCDF changes for " +
-                                    dataSlice.getExperiment().getAccession());
-                            success = true;
-
-                            // update loadmonitor - experiment has completed netcdf-ing
-                            getAtlasDAO().writeLoadDetails(
-                                    dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
-
-                            return success;
+                            getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
+                                    "and " + dataSlice.getArrayDesign().getAccession());
+                            return true;
                         }
                         finally {
-                            // if success if true, everything completed as expected, but if it's false we got
-                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-                            if (!success) {
-                                getAtlasDAO().writeLoadDetails(
-                                        dataSlice.getExperiment().getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
-                            }
+                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
+                            System.gc();
                         }
                     }
                 }));
             }
 
             // block until completion, and throw any errors
-            for (Future<Boolean> task : tasks) {
-                try {
-                    task.get();
+            boolean success = true;
+            try {
+                for (Future<Boolean> task : tasks) {
+                    success = success && task.get();
                 }
-                catch (ExecutionException e) {
-                    if (e.getCause() instanceof NetCDFGeneratorException) {
-                        throw (NetCDFGeneratorException) e.getCause();
-                    }
-                    else {
-                        throw new NetCDFGeneratorException(
-                                "An error occurred updating NetCDFs", e);
-                    }
+            }
+            catch (ExecutionException e) {
+                success = false;
+                if (e.getCause() instanceof NetCDFGeneratorException) {
+                    throw (NetCDFGeneratorException) e.getCause();
                 }
-                catch (InterruptedException e) {
-                    throw new NetCDFGeneratorException(
-                            "An error occurred updating NetCDFs", e);
+                else {
+                    throw new NetCDFGeneratorException("An error occurred updating NetCDFs", e);
+                }
+            }
+            catch (InterruptedException e) {
+                success = false;
+                throw new NetCDFGeneratorException("An error occurred updating NetCDFs", e);
+            }
+            finally {
+                // update loadmonitor - experiment has completed netcdf-ing
+                if (success) {
+                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
+                }
+                else {
+                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
                 }
             }
         }

@@ -10,7 +10,6 @@ import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import ae3.servlet.SimilarityResultSet;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;

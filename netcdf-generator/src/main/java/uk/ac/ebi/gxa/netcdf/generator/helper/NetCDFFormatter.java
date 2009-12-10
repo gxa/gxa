@@ -101,12 +101,11 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Creates dimensions and variables in a NetCDF for a list of assays.  This
-     * results in the creation of the "AS" dimension and variable.
+     * Creates dimensions and variables in a NetCDF for a list of assays.  This results in the creation of the "AS"
+     * dimension and variable.
      *
      * @param netCDF the NetCDF model to modify
-     * @param assays the list of assays that will be used to configure this
-     *               NetCDF
+     * @param assays the list of assays that will be used to configure this NetCDF
      */
     private void createAssayVariables(NetcdfFileWriteable netCDF, List<Assay> assays) {
         if (assays.size() > 0) {
@@ -114,9 +113,9 @@ public class NetCDFFormatter {
             assayDimension = netCDF.addDimension("AS", assays.size());
             // add assay data variable
             netCDF.addVariable("AS", DataType.INT, new Dimension[]{assayDimension});
-        } else {
-            log.warn("Encountered an empty set of assays whilst generating " +
-                    "the NetCDF for " + dataSliceStr);
+        }
+        else {
+            log.warn("Encountered an empty set of assays whilst generating the NetCDF for " + dataSliceStr);
         }
 
         log.debug("Initialized assay dimensions and variables ok.");
@@ -124,12 +123,11 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Creates dimensions and variables in a NetCDF for a list of samples.  This
-     * results in the creation of the "BS" dimension and variable.
+     * Creates dimensions and variables in a NetCDF for a list of samples.  This results in the creation of the "BS"
+     * dimension and variable.
      *
      * @param netCDF  the NetCDF model to modify
-     * @param samples the list of samples that will be used to configure this
-     *                NetCDF
+     * @param samples the list of samples that will be used to configure this NetCDF
      */
     private void createSampleVariables(NetcdfFileWriteable netCDF, List<Sample> samples) {
         if (samples.size() > 0) {
@@ -137,9 +135,9 @@ public class NetCDFFormatter {
             sampleDimension = netCDF.addDimension("BS", samples.size());
             // add sample variable
             netCDF.addVariable("BS", DataType.INT, new Dimension[]{sampleDimension});
-        } else {
-            log.warn("Encountered an empty set of samples whilst generating " +
-                    "the NetCDF for " + dataSliceStr);
+        }
+        else {
+            log.warn("Encountered an empty set of samples whilst generating the NetCDF for " + dataSliceStr);
         }
 
         log.debug("Initialized sample dimensions and variables ok.");
@@ -147,16 +145,14 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Create the variables that map samples to assay.  This variable is a 2D
-     * matrix, sized by the sample dimension vs. the assay dimension.  1's and 0's
-     * are inserted into each cell depending on whether there is a correspondence
+     * Create the variables that map samples to assay.  This variable is a 2D matrix, sized by the sample dimension vs.
+     * the assay dimension.  1's and 0's are inserted into each cell depending on whether there is a correspondence
      * between these two or not.
      * <p/>
-     * Because this variable is sized by assays and samples, these dimensions must
-     * have been created first.  An exception is thrown if these dimnesions have
-     * not been created first.  Note that if these dimnesions have not been
-     * initialized because they have zero length, this method will not throw an
-     * exception but will rather result in no variable being created.
+     * Because this variable is sized by assays and samples, these dimensions must have been created first.  An
+     * exception is thrown if these dimnesions have not been created first.  Note that if these dimnesions have not been
+     * initialized because they have zero length, this method will not throw an exception but will rather result in no
+     * variable being created.
      *
      * @param netCDF the NetCDF model to modify
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
@@ -165,43 +161,37 @@ public class NetCDFFormatter {
     private void createSampleAssayVariable(NetcdfFileWriteable netCDF)
             throws NetCDFGeneratorException {
         if (!sampleInitialized) {
-            throw new NetCDFGeneratorException("Cannot create 'BS2AS' variable " +
-                    "without first assessing 'BS' dimension");
+            throw new NetCDFGeneratorException("Cannot create 'BS2AS' variable without first assessing 'BS' dimension");
         }
         if (!assayInitialized) {
-            throw new NetCDFGeneratorException("Cannot create 'BS2AS' variable " +
-                    "without first assessing 'BS' dimension");
+            throw new NetCDFGeneratorException("Cannot create 'BS2AS' variable without first assessing 'BS' dimension");
         }
 
         if (sampleDimension != null && assayDimension != null) {
             // add assay to sample variable
             netCDF.addVariable("BS2AS", DataType.INT,
-                    new Dimension[]{sampleDimension, assayDimension});
+                               new Dimension[]{sampleDimension, assayDimension});
         }
         log.debug("Initialized assay2sample dimensions and variables ok.");
     }
 
     /**
-     * Creates dimensions and variables in a NetCDF for a list of design element
-     * identifiers.  This results in the creation of the "DE" dimension and
-     * variable.
+     * Creates dimensions and variables in a NetCDF for a list of design element identifiers.  This results in the
+     * creation of the "DE" dimension and variable.
      *
      * @param netCDF         the NetCDF model to modify
-     * @param designElements the design elements map - the keyset is the list of
-     *                       unique identifiers for design elements that will be
-     *                       used to configure this NetCDF
+     * @param designElements the design elements map - the keyset is the list of unique identifiers for design elements
+     *                       that will be used to configure this NetCDF
      */
     private void createDesignElementVariables(NetcdfFileWriteable netCDF, Map<Integer, String> designElements) {
         if (designElements.keySet().size() > 0) {
             // update the netCDF with the genes count
-            designElementDimension =
-                    netCDF.addDimension("DE", designElements.keySet().size());
+            designElementDimension = netCDF.addDimension("DE", designElements.keySet().size());
             // add gene variable
-            netCDF.addVariable("DE", DataType.INT,
-                    new Dimension[]{designElementDimension});
-        } else {
-            log.warn("Encountered an empty set of design elements whilst " +
-                    "generating the NetCDF for " + dataSliceStr);
+            netCDF.addVariable("DE", DataType.INT, new Dimension[]{designElementDimension});
+        }
+        else {
+            log.warn("Encountered an empty set of design elements whilst generating the NetCDF for " + dataSliceStr);
         }
 
         log.debug("Initialized design element dimensions and variables ok.");
@@ -209,15 +199,13 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Creates dimensions and variables in a NetCDF for a list of genes.  This
-     * results in the creation of the "GN" dimension and variable.
+     * Creates dimensions and variables in a NetCDF for a list of genes.  This results in the creation of the "GN"
+     * dimension and variable.
      *
      * @param netCDF         the NetCDF model to modify
-     * @param designElements the design elements map - the keyset is the list of
-     *                       unique identifiers for design elements that will be
-     *                       used to configure this NetCDF
-     * @param genes          the mapping of design element ids to genes that will
-     *                       be used to configure this NetCDF
+     * @param designElements the design elements map - the keyset is the list of unique identifiers for design elements
+     *                       that will be used to configure this NetCDF
+     * @param genes          the mapping of design element ids to genes that will be used to configure this NetCDF
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
      *          if the number of genes exceeds the number of design elements
      */
@@ -227,14 +215,15 @@ public class NetCDFFormatter {
             // check that we have an appropriate mapping
             if (genes.size() < designElements.keySet().size()) {
                 log.warn(
-                        "Mismatched design element/gene counts: " +
-                                "Some design elements have no annotations.  " +
+                        "Mismatched design element/gene counts (" + designElements.keySet().size() + "/" +
+                                genes.size() + ").  Some design elements have no annotations.  " +
                                 "GN will be created using design element counts");
                 // update the netCDF with the genes count
                 geneDimension = netCDF.addDimension("GN", designElements.keySet().size());
                 // add gene variable
                 netCDF.addVariable("GN", DataType.INT, new Dimension[]{geneDimension});
-            } else {
+            }
+            else {
                 if (genes.size() > designElements.keySet().size()) {
                     throw new NetCDFGeneratorException(
                             "Mismatched design element/gene counts: " +
@@ -247,28 +236,25 @@ public class NetCDFFormatter {
                 // update the netCDF with the genes count
                 geneDimension = netCDF.addDimension("GN", genes.size());
                 // add gene variable
-                netCDF.addVariable("GN", DataType.INT,
-                        new Dimension[]{geneDimension});
+                netCDF.addVariable("GN", DataType.INT, new Dimension[]{geneDimension});
             }
-        } else {
-            log.warn("Encountered an empty set of genes whilst generating " +
-                    "the NetCDF for " + dataSliceStr);
+        }
+        else {
+            log.warn("Encountered an empty set of genes whilst generating the NetCDF for " + dataSliceStr);
         }
         log.debug("Initialized gene dimensions and variables ok.");
         geneInitialized = true;
     }
 
     /**
-     * Create the variables that map design elements to genes.  This variable is a 2D
-     * matrix, sized by the design element dimension vs. the gene dimension.  1's and 0's
-     * are inserted into each cell depending on whether there is a correspondence
-     * between these two or not.
+     * Create the variables that map design elements to genes.  This variable is a 2D matrix, sized by the design
+     * element dimension vs. the gene dimension.  1's and 0's are inserted into each cell depending on whether there is
+     * a correspondence between these two or not.
      * <p/>
-     * Because this variable is sized by design elements and genes, these dimensions must
-     * have been created first.  An exception is thrown if these dimnesions have
-     * not been created first.  Note that if these dimensions have not been
-     * initialized because they have zero length, this method will not throw an
-     * exception but will rather result in no variable being created.
+     * Because this variable is sized by design elements and genes, these dimensions must have been created first.  An
+     * exception is thrown if these dimnesions have not been created first.  Note that if these dimensions have not been
+     * initialized because they have zero length, this method will not throw an exception but will rather result in no
+     * variable being created.
      *
      * @param netCDF the NetCDF model to modify
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
@@ -277,44 +263,35 @@ public class NetCDFFormatter {
     private void createDesignElementGeneVariable(NetcdfFileWriteable netCDF)
             throws NetCDFGeneratorException {
         if (!designElementInitialized) {
-            throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable " +
-                    "without first assessing 'DE' dimension");
+            throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable without first assessing 'DE' dimension");
         }
         if (!geneInitialized) {
-            throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable " +
-                    "without first assessing 'GN' dimension");
+            throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable without first assessing 'GN' dimension");
         }
 
         if (designElementDimension != null && geneDimension != null) {
             // add assay to sample variable
+            log.debug("DE2GN will be sized " + designElementDimension.getLength() + " x " + geneDimension.getLength());
             netCDF.addVariable("DE2GN", DataType.INT, new Dimension[]{designElementDimension, geneDimension});
         }
         log.debug("Initialized designelement2gene dimensions and variables ok.");
     }
 
     /**
-     * Creates the variables for the property-based matrices.  There are several
-     * matrices created here, "EF", "EFV", "uEFV" and "uEFVnum".  In turn, these
-     * represent the experiment factors (or assay properties) in the data, the
-     * experiment factor values, the unique experiment factor/experiment factor
-     * value combinations, and the number of times a unique combination of
-     * experiment factor/experiment factor value was seen.
+     * Creates the variables for the property-based matrices.  There are several matrices created here, "EF", "EFV",
+     * "uEFV" and "uEFVnum".  In turn, these represent the experiment factors (or assay properties) in the data, the
+     * experiment factor values, the unique experiment factor/experiment factor value combinations, and the number of
+     * times a unique combination of experiment factor/experiment factor value was seen.
      * <p/>
-     * Some of these matrices map values to assays, and some to samples, and as
-     * such the "AS" and "BS" dimensions should already be present in the supplied
-     * NetCDF.
+     * Some of these matrices map values to assays, and some to samples, and as such the "AS" and "BS" dimensions should
+     * already be present in the supplied NetCDF.
      *
-     * @param netCDF                  the NetcdfFileWriteable currently being set
-     *                                up
-     * @param experimentFactorMap     the mapping between experiment factors and
-     *                                their values
-     * @param assayFactorValueMap     the mapping between assays and observed
-     *                                factor values
-     * @param sampleCharacteristicMap the mapping between sample characteristics
-     *                                and their values
+     * @param netCDF                  the NetcdfFileWriteable currently being set up
+     * @param experimentFactorMap     the mapping between experiment factors and their values
+     * @param assayFactorValueMap     the mapping between assays and observed factor values
+     * @param sampleCharacteristicMap the mapping between sample characteristics and their values
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
-     *          if dependent matrices "AS" or "BS" have not previously been
-     *          configured for this NetCDF.
+     *          if dependent matrices "AS" or "BS" have not previously been configured for this NetCDF.
      */
     private void createPropertyVariables(NetcdfFileWriteable netCDF,
                                          Map<String, List<String>> experimentFactorMap,
@@ -322,12 +299,12 @@ public class NetCDFFormatter {
                                          Map<String, List<String>> sampleCharacteristicMap)
             throws NetCDFGeneratorException {
         if (!sampleInitialized) {
-            throw new NetCDFGeneratorException("Cannot create property variables " +
-                    "without first assessing 'BS' dimension");
+            throw new NetCDFGeneratorException(
+                    "Cannot create property variables without first assessing 'BS' dimension");
         }
         if (!assayInitialized) {
-            throw new NetCDFGeneratorException("Cannot create property variables " +
-                    "without first assessing 'BS' dimension");
+            throw new NetCDFGeneratorException(
+                    "Cannot create property variables without first assessing 'BS' dimension");
         }
 
         if (assayDimension != null && sampleDimension != null) {
@@ -364,16 +341,12 @@ public class NetCDFFormatter {
                 uefvDimension = netCDF.addDimension("uEFV", uniqueFactorValues.size());
 
                 // now add variables
-                netCDF.addVariable("EF", DataType.CHAR,
-                        new Dimension[]{efDimension, efvDimension});
-                netCDF.addVariable("EFV", DataType.CHAR,
-                        new Dimension[]{efDimension, assayDimension,
-                                efvDimension});
-                netCDF.addVariable("uEFV", DataType.CHAR,
-                        new Dimension[]{uefvDimension, efvDimension});
-                netCDF.addVariable("uEFVnum", DataType.INT,
-                        new Dimension[]{efDimension});
-            } else {
+                netCDF.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, efvDimension});
+                netCDF.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvDimension});
+                netCDF.addVariable("uEFV", DataType.CHAR, new Dimension[]{uefvDimension, efvDimension});
+                netCDF.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
+            }
+            else {
                 log.warn("Encountered an empty set of assay properties whilst generating the NetCDF for " +
                         dataSliceStr);
             }
@@ -404,12 +377,10 @@ public class NetCDFFormatter {
                 Dimension sclDimension = netCDF.addDimension("SClen", maxLength);
 
                 // and add variables
-                netCDF.addVariable("SC", DataType.CHAR,
-                        new Dimension[]{scDimension, sclDimension});
-                netCDF.addVariable("SCV", DataType.CHAR,
-                        new Dimension[]{scDimension, sampleDimension,
-                                sclDimension});
-            } else {
+                netCDF.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclDimension});
+                netCDF.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, sclDimension});
+            }
+            else {
                 log.warn("Encountered an empty set of sample properties whilst " +
                         "generating the NetCDF for " + dataSliceStr);
             }
@@ -420,9 +391,8 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Creates the variables for the expression value matrix.  This matrix is
-     * keyed on the name "BDC".  It is a 2D matrix of expression values for design
-     * elements against assays, so this method requires that both "DE" and "AS"
+     * Creates the variables for the expression value matrix.  This matrix is keyed on the name "BDC".  It is a 2D
+     * matrix of expression values for design elements against assays, so this method requires that both "DE" and "AS"
      * dimensions have already been created in the NetcdfFileWriteable supplied.
      *
      * @param netCDF the NetcdfFileWriteable currently being set up
@@ -437,25 +407,20 @@ public class NetCDFFormatter {
         }
 
         if (assayDimension != null) {
-            netCDF.addVariable("BDC", DataType.DOUBLE,
-                    new Dimension[]{designElementDimension,
-                            assayDimension});
+            netCDF.addVariable("BDC", DataType.DOUBLE, new Dimension[]{designElementDimension, assayDimension});
         }
         log.debug("Initialized expression dimensions and variables ok.");
     }
 
     /**
-     * This creates the variables for the statistics matrices.  This actually
-     * builds two matrices, one of P value statistics and one of T statistics.
-     * These matrices are both 2D matrices of T or P values for design elements
-     * against unique property/property value combinations.  This method therefore
-     * requires that both these "DE" and "uEFV" dimensions have already been
-     * created in the NetcdfFileWriteable supplied.
+     * This creates the variables for the statistics matrices.  This actually builds two matrices, one of P value
+     * statistics and one of T statistics. These matrices are both 2D matrices of T or P values for design elements
+     * against unique property/property value combinations.  This method therefore requires that both these "DE" and
+     * "uEFV" dimensions have already been created in the NetcdfFileWriteable supplied.
      *
      * @param netCDF the NetcdfFileWriteable currently being set up
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
-     *          if the dependent matrices "DE" and "uEFV" haven't first been
-     *          created
+     *          if the dependent matrices "DE" and "uEFV" haven't first been created
      */
     private void createStatsMatricesVariables(NetcdfFileWriteable netCDF)
             throws NetCDFGeneratorException {

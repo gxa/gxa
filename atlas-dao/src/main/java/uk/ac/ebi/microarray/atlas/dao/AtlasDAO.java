@@ -5,6 +5,8 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -71,7 +73,7 @@ public class AtlasDAO {
                     "FROM a2_designelement de";
     private static final String GENES_PENDING_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, load_monitor lm " +
+                    "FROM a2_gene g, a2_spec s, load_monitor lm " +
                     "WHERE g.specid=s.specid " +
                     "AND g.identifier=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
@@ -302,6 +304,8 @@ public class AtlasDAO {
     private JdbcTemplate template;
     private int maxQueryParams = 500;
 
+    private Logger log = LoggerFactory.getLogger(getClass());
+
     public JdbcTemplate getJdbcTemplate() {
         return template;
     }
@@ -396,9 +400,10 @@ public class AtlasDAO {
     /**
      * Fetches all genes in the database.  Note that genes are not automatically prepopulated with property information,
      * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
-     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes <b>are</b> prepopulated with
+     * design element information, however.
      *
-     * @return the list of all genes in the database.
+     * @return the list of all genes in the database
      */
     public List<Gene> getAllGenes() {
         // do the first query to fetch genes without design elements
@@ -430,6 +435,14 @@ public class AtlasDAO {
         return genes;
     }
 
+    /**
+     * Fetches all genes in the database that are pending indexing.  Note that genes are not automatically prepopulated
+     * with property information, to keep query time down.  If you require this data, you can fetch it for the list of
+     * genes you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes
+     * <b>are</b> prepopulated with design element information, however.
+     *
+     * @return the list of all genes in the database that are pending indexing
+     */
     public List<Gene> getAllPendingGenes() {
         // do the first query to fetch genes without design elements
         List results = template.query(GENES_PENDING_SELECT,
@@ -463,17 +476,19 @@ public class AtlasDAO {
     /**
      * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
      * property information, to keep query time down.  If you require this data, you can fetch it for the list of genes
-     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes are
+     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes <b>are</b>
      * prepopulated with design element information, however.
      *
      * @param exptAccession the accession number of the experiment to query for
-     * @return the list of all genes in the database.
+     * @return the list of all genes in the database for this experiment accession
      */
     public List<Gene> getGenesByExperimentAccession(String exptAccession) {
         // do the first query to fetch genes without design elements
+        log.debug("Querying for genes by experiment " + exptAccession);
         List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{exptAccession},
                                       new GeneMapper());
+        log.debug("Genes for " + exptAccession + " acquired");
 
         // do the second query to obtain design elements
         List<Gene> genes = (List<Gene>) results;
@@ -494,9 +509,12 @@ public class AtlasDAO {
         GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
 
         // now query for design elements, and genes, by the experiment accession, and map them together
+        log.debug("Querying for design elements mapped to genes of " + exptAccession);
         template.query(DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION,
                        new Object[]{exptAccession},
                        geneDesignElementMapper);
+        log.debug("Design elements for genes of " + exptAccession + " acquired");
+        
         // and return
         return genes;
     }
@@ -505,14 +523,6 @@ public class AtlasDAO {
         // populate the other info for these genes
         if (genes.size() > 0) {
             fillOutGeneProperties(genes);
-        }
-    }
-
-    @Deprecated
-    public void getDesignElementsForGenes(List<Gene> genes) {
-        // populate the other info for these genes
-        if (genes.size() > 0) {
-//            fillOutGeneDesignElements(genes);
         }
     }
 
@@ -918,8 +928,10 @@ public class AtlasDAO {
                 .addValue("STATUS", loadStatus.toString().toLowerCase())
                 .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
 
-
+        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
+                loadStatus + ", " + loadType + ")");
         procedure.execute(params);
+        log.debug("load_progress stored procedure completed");
     }
 
     /**
