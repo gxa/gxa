@@ -16,6 +16,10 @@ import java.util.Date;
 public class AtlasExperiment implements Experiment {
     private String accession;
     private int id;
+    private Collection<String> assayAccessions = null;
+    private Collection<String> sampleAccessions = null;
+    private PropertyCollection properties = null;
+
 
     public String getAccession(){
         return accession;
@@ -57,15 +61,26 @@ public class AtlasExperiment implements Experiment {
         }
 
         public Collection<String> getAssayAccessions(){
-            return null;
+            return this.assayAccessions;
         }
 
         public Collection<String> getSampleAccessions(){
-            return null;
+            return this.sampleAccessions;
         }
 
         public PropertyCollection getProperties(){
-            return null;
+            return properties;
         }
-    
+
+        public void setSampleAccessions(Collection<String> accessions){
+            this.sampleAccessions = accessions;
+        }
+
+        public void setAssayAccessions(Collection<String> accessions){
+            this.assayAccessions = accessions;
+        }
+
+        public void setProperties(PropertyCollection properties){
+            this.properties = properties;
+        }
 }

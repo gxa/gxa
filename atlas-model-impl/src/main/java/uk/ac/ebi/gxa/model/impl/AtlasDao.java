@@ -362,7 +362,81 @@ public class AtlasDao implements Dao {
     ////Experiment
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery, PageSortParams pageSortParams) throws GxaException{
-        throw new GxaException("not implemented");
+        QueryResultSet<Experiment> result = new QueryResultSet<Experiment>();
+        CallableStatement stmt = null;
+
+        try{
+          stmt = connection.prepareCall("{call AtlasAPI.a2_ExperimentGet(?,?,?,?,?)}");
+
+          AtlasDB.setExperimentQuery(stmt,1,atlasExperimentQuery, this); //pass ref to DAO, method pulls list of PropertyDs
+          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
+
+          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //experiments
+          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
+          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //assays
+
+          stmt.execute();
+
+          ArrayList<Experiment> experiments = new ArrayList<Experiment>();
+
+          ResultSet rsExperiments = (ResultSet) stmt.getObject(3);
+          ResultSet rsSamples = (ResultSet) stmt.getObject(4);
+          ResultSet rsAssays = (ResultSet) stmt.getObject(5);
+
+          rsSamples.next();
+          rsAssays.next();
+
+          while(rsExperiments.next()){
+            AtlasExperiment a = new AtlasExperiment();
+
+            int ExperimentID = rsExperiments.getInt("ExperimentID");
+
+            a.setid(ExperimentID);
+            a.setAccession(rsExperiments.getString("Accession"));
+            //a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
+
+            ArrayList<String> assayAccessions = new ArrayList<String>();
+
+            while(ExperimentID == rsAssays.getInt("ExperimentId")){
+                assayAccessions.add(rsAssays.getString("Accession"));
+
+                if(!rsAssays.next())
+                    break;
+            }
+
+              ArrayList<String> sampleAccessions = new ArrayList<String>();
+
+              while(ExperimentID == rsSamples.getInt("ExperimentId")){
+                  sampleAccessions.add(rsSamples.getString("Accession"));
+
+                  if(!rsSamples.next())
+                      break;
+              }
+
+            a.setAssayAccessions(assayAccessions);
+
+            a.setSampleAccessions(sampleAccessions);
+
+            experiments.add(a);
+        }
+
+        result.setItems(experiments);
+        return result;
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+        finally {
+              if (stmt != null) {
+                // close statement
+                  try{
+                stmt.close();
+                  }
+                  catch(Exception ex){
+                      throw new GxaException(ex.getMessage());
+                  }
+              }
+        }
     };
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery) throws GxaException{
