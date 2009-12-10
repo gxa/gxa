@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
@@ -99,10 +100,10 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         String atlasDatasourceUrl;
         try {
-            Connection c = atlasDataSource.getConnection();
+            Connection c = DataSourceUtils.getConnection(atlasDataSource);
             DatabaseMetaData dmd = c.getMetaData();
             atlasDatasourceUrl = dmd.getURL();
-            c.close();
+            DataSourceUtils.releaseConnection(c, atlasDataSource);
         }
         catch (SQLException e) {
             e.printStackTrace();
