@@ -93,6 +93,14 @@ public class AtlasDaoTest {
     @Test
     public void test_getExperiment() throws Exception{
 
+        ExperimentQuery q = new ExperimentQuery();
+
+        q.hasAccession("E-GEOD-3440");
+
+        QueryResultSet<Experiment> result = dao.getExperiment(q);
+
+        Assert.assertEquals("E-GEOD-3440",result.getItem().getAccession());
+
     }
 
     @Test
