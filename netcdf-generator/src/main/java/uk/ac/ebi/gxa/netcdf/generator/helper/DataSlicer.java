@@ -48,13 +48,7 @@ public class DataSlicer {
                 service.submit(new Callable<List<Gene>>() {
                     public List<Gene> call() throws Exception {
                         log.debug("Fetching genes data for " + experiment.getAccession());
-                        List<Gene> genes = getAtlasDAO().getGenesByExperimentAccession(experiment.getAccession());
-
-                        // also prefetch design elements for these genes
-                        getAtlasDAO().getDesignElementsForGenes(genes);
-
-                        // and return
-                        return genes;
+                        return getAtlasDAO().getGenesByExperimentAccession(experiment.getAccession());
                     }
                 });
 
