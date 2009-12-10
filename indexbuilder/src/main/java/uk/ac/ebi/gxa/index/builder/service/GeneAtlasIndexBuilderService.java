@@ -130,6 +130,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 getAtlasDAO().writeLoadDetails(
                                         gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
                             }
+
+                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
+                            System.gc();
                         }
                     }
                 }));

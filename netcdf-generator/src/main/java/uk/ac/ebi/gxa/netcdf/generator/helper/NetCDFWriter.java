@@ -138,7 +138,7 @@ public class NetCDFWriter {
             int assayIndex = 0;
             int sampleIndex = 0;
             ArrayInt bs2as = new ArrayInt.D2(samples.size(),
-                    assays.size());
+                                             assays.size());
             // iterate over assays and samples,
             // and work out which spots in the matrix to set to 1
             for (Assay assay : assays) {
@@ -146,7 +146,8 @@ public class NetCDFWriter {
                     // insert value
                     if (assayToSamples.get(assay).contains(sample)) {
                         bs2as.setInt(bs2as.getIndex().set(sampleIndex, assayIndex), 1);
-                    } else {
+                    }
+                    else {
                         bs2as.setInt(bs2as.getIndex().set(sampleIndex, assayIndex), 0);
                     }
 
@@ -207,16 +208,41 @@ public class NetCDFWriter {
             // index counters
             int deIndex = 0;
             int geneIndex = 0;
-            ArrayInt de2gn = new ArrayInt.D2(designElements.size(), genes.size());
-            // iterate over assays and samples,
+
+            // create the array
+            int deSize = netCDF.findDimension("DE").getLength();
+            int gnSize = netCDF.findDimension("GN").getLength();
+            ArrayInt de2gn = new ArrayInt.D2(deSize, gnSize);
+
+            // iterate over design elements and genes,
             // and work out which spots in the matrix to set to 1
             for (Integer designElement : designElements.keySet()) {
                 for (Gene gene : genes) {
                     // insert value
                     if (designElementsToGenes.get(designElement).contains(gene)) {
-                        de2gn.setInt(de2gn.getIndex().set(geneIndex, deIndex), 1);
-                    } else {
-                        de2gn.setInt(de2gn.getIndex().set(geneIndex, deIndex), 0);
+                        try {
+                            de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 1);
+                        }
+                        catch (ArrayIndexOutOfBoundsException e) {
+                            log.error("Out of bounds at indexes: " +
+                                    "DE: " + deIndex + " (max " + deSize + "), " +
+                                    "GN: " + geneIndex + " (max " + gnSize + ")");
+                            throw e;
+                        }
+                    }
+                    else {
+                        // this is a zero - but only if we haven't done all genes already
+                        if (geneIndex < netCDF.findDimension("GN").getLength()) {
+                            try {
+                                de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 0);
+                            }
+                            catch (ArrayIndexOutOfBoundsException e) {
+                                log.error("Out of bounds at indexes: " +
+                                        "DE: " + deIndex + " (max " + deSize + "), " +
+                                        "GN: " + geneIndex + " (max " + gnSize + ")");
+                                throw e;
+                            }
+                        }
                     }
 
                     // increment sample index by one
@@ -274,7 +300,8 @@ public class NetCDFWriter {
                         efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
                         // increment index count on efv axis
                         efvIndex++;
-                    } else {
+                    }
+                    else {
                         // fixme:
                         // this will occur if there are multiple property values assigned
                         // to the same property for single assay - in theory this shouldn't
@@ -350,7 +377,8 @@ public class NetCDFWriter {
                         scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
                         // increment index count on scv axis
                         scvIndex++;
-                    } else {
+                    }
+                    else {
                         // fixme:
                         // this will occur if there are multiple property values assigned
                         // to the same property for single sample - in theory this shouldn't
@@ -456,7 +484,8 @@ public class NetCDFWriter {
                             unmappedProperties.add(designElementID + ":" + propertyValue);
                         }
                     }
-                } else {
+                }
+                else {
                     unmappedDesignElements.add(designElementID);
                 }
             }

@@ -136,7 +136,7 @@ public class LoaderDriver {
         // run the NetCDFGenerator
         final long netStart = System.currentTimeMillis();
         generator.generateNetCDFsForExperiment(
-                "E-GEOD-11990",
+                "E-TABM-199",
                 new NetCDFGeneratorListener() {
                     public void buildSuccess(NetCDFGenerationEvent event) {
                         final long netEnd = System.currentTimeMillis();
@@ -195,5 +195,7 @@ public class LoaderDriver {
 //
 //        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.DONE);
 //        System.out.println("Set index-test: searchindex = done");
+
+        // do a test
     }
 }

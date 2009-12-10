@@ -153,6 +153,24 @@ public class AtlasPlotter {
 
     public JSONObject createJSON(NetCDFProxy netCDF, String ef, List<String> topFVs, List<Integer> geneIndices)
             throws IOException {
+        StringBuffer sb = new StringBuffer();
+        sb.append("{");
+        for (String topFV : topFVs) {
+            sb.append(topFV).append(",");
+        }
+        sb.append("}");
+        String topFVStr = sb.toString();
+
+        sb = new StringBuffer();
+        sb.append("{");
+        for (int geneIndex : geneIndices) {
+            sb.append(geneIndex).append(",");
+        }
+        sb.append("}");
+        String geneIndexStr = sb.toString();
+
+        log.debug("Creating plot... EF: " + ef + ", Top FVs: " + topFVStr + ", Gene indices: " + geneIndexStr);
+
         // the data for our plot
         JSONObject plotData = new JSONObject();
         try {
@@ -163,8 +181,9 @@ public class AtlasPlotter {
             // data for individual series
             JSONArray seriesList = new JSONArray();
 
-            // get factor values, ordered by assay
-            String[] fvs = netCDF.getFactorValues(ef);
+            // get unique factor values
+            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
+            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
             // sort the factor values into a good order
             Integer[] sortedFVindexes = sortFVs(fvs);
@@ -172,18 +191,25 @@ public class AtlasPlotter {
             // get the datapoints we want, indexed by factor value and gene
             Map<String, Map<Integer, List<Double>>> datapoints =
                     getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
+            // the index of the datapoint -
+            // this runs across all samples/factor values
+            int datapointIndex = 0;
 
             // iterate over each factor value (in sorted order)
             String lastFactorValue = "";
+
             // data for mean series
             JSONObject meanSeries = new JSONObject();
             JSONArray meanSeriesData = null;
+
             // map holding mean data
             Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
 
             for (int factorValueIndex : sortedFVindexes) {
                 // get the factor value at this index
                 String factorValue = fvs[factorValueIndex];
+                log.debug("Next factor value is '" + factorValue + "', starting at datapoint index " +
+                        datapointIndex);
 
                 // if this is the first new factorValue, start a new mean series
                 if (!factorValue.equals(lastFactorValue)) {
@@ -230,12 +256,15 @@ public class AtlasPlotter {
                         JSONArray point = new JSONArray();
 
                         // store our data - in json, points are 1-indexed not 0-indexed so shift position by one
-                        point.put(sampleIndex + 1);
+                        datapointIndex++;
+                        point.put(datapointIndex);
                         // check the datapoint isn't a default (i.e. missing expression data) - set to null if so
                         point.put(datapoint <= -1000000 ? null : datapoint);
 
                         // store this point in our series data
                         seriesData.put(point);
+
+                        log.trace("Adding datapoint: " + point.toString() + " for " + ef + ";" + factorValue);
 
                         // if we haven't done so, calculate mean data
                         if (!meanDataByFactorValue.containsKey(factorValue)) {
@@ -246,7 +275,7 @@ public class AtlasPlotter {
                         double fvMean = meanDataByFactorValue.get(factorValue);
                         // create a point and store the mean value
                         point = new JSONArray();
-                        point.put(sampleIndex + 1);
+                        point.put(datapointIndex);
                         point.put(fvMean);
                         meanSeriesData.put(point);
                     }
@@ -261,24 +290,12 @@ public class AtlasPlotter {
                 series.put("label", factorValue);
                 series.put("legend", new JSONObject("{show:true}"));
 
-                // choose series color for these are insignificant factor values
-                StringBuffer sb = new StringBuffer();
-                sb.append("{");
-                for (String topFV : topFVs) {
-                    sb.append(topFV).append(", ");
-                }
-                sb.append("}");
-                log.info("Looking for factorValue '" + factorValue.toLowerCase() + "' in " + sb.toString());
-
+                // choose alternate series color for any insignificant factor values
                 if (!topFVs.contains(factorValue.toLowerCase())) {
-                    log.info("Found factorValue :-)");
                     series.put("color", altColors[counter % 2]);
                     series.put("legend", new JSONObject("{show:false}"));
                     counter++;
                     insignificantSeries = true;
-                }
-                else {
-                    log.info("Couldn't find factorValue :-(");
                 }
 
                 seriesList.put(series);
@@ -299,14 +316,25 @@ public class AtlasPlotter {
 
     public JSONObject createThumbnailJSON(NetCDFProxy netCDF, String ef, String efv, List<Integer> geneIndices)
             throws IOException {
+        StringBuffer sb = new StringBuffer();
+        sb.append("{");
+        for (int geneIndex : geneIndices) {
+            sb.append(geneIndex).append(",");
+        }
+        sb.append("}");
+        String geneIndexStr = sb.toString();
+
+        log.debug("Creating thumbnail plot... EF: " + ef + ", EFV: " + efv + ", Gene indices: " + geneIndexStr);
+
         // the data for our plot
         JSONObject plotData = new JSONObject();
         try {
             // data for individual series
             JSONArray seriesList = new JSONArray();
 
-            // get factor values, ordered by assay
-            String[] fvs = netCDF.getFactorValues(ef);
+            // get unique factor values
+            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
+            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
             // sort the factor values into a good order
             Integer[] sortedFVindexes = sortFVs(fvs);
@@ -391,6 +419,25 @@ public class AtlasPlotter {
                                         List<String> geneNames,
                                         String gplotIds,
                                         List<Integer> geneIndices) throws IOException {
+        StringBuffer sb = new StringBuffer();
+        sb.append("{");
+        for (String geneName : geneNames) {
+            sb.append(geneName).append(",");
+        }
+        sb.append("}");
+        String topFVStr = sb.toString();
+
+        sb = new StringBuffer();
+        sb.append("{");
+        for (int geneIndex : geneIndices) {
+            sb.append(geneIndex).append(",");
+        }
+        sb.append("}");
+        String geneIndexStr = sb.toString();
+
+        log.debug("Creating big plot... EF: " + ef + ", Gene Names: " + topFVStr + ", Gene plot Ids: " + gplotIds +
+                ", Gene indices: " + geneIndexStr);
+
         // the data for our plot
         JSONObject plotData = new JSONObject();
 
@@ -401,8 +448,9 @@ public class AtlasPlotter {
             // data for individual series
             JSONArray seriesList = new JSONArray();
 
-            // get factor values, ordered by assay
-            String[] fvs = netCDF.getFactorValues(ef);
+            // get unique factor values
+            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
+            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
             // sort the factor values into a good order
             Integer[] sortedFVindexes = sortFVs(fvs);

@@ -157,6 +157,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                 getAtlasDAO().writeLoadDetails(
                                         experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
                             }
+
+                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
+                            System.gc();
                         }
                     }
                 }));

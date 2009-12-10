@@ -26,6 +26,11 @@
         <appender-ref ref="atlas-log"/>
     </logger>
 
+    <logger name="uk.ac.ebi.gxa.web" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
     <root>
         <priority value="INFO"/>
         <appender-ref ref="atlas-log"/>
