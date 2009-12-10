@@ -195,12 +195,9 @@ public class AtlasPlotter {
             // this runs across all samples/factor values
             int datapointIndex = 0;
 
-            // iterate over each factor value (in sorted order)
-            String lastFactorValue = "";
-
             // data for mean series
             JSONObject meanSeries = new JSONObject();
-            JSONArray meanSeriesData = null;
+            JSONArray meanSeriesData = new JSONArray();
 
             // map holding mean data
             Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
@@ -210,30 +207,6 @@ public class AtlasPlotter {
                 String factorValue = fvs[factorValueIndex];
                 log.debug("Next factor value is '" + factorValue + "', starting at datapoint index " +
                         datapointIndex);
-
-                // if this is the first new factorValue, start a new mean series
-                if (!factorValue.equals(lastFactorValue)) {
-                    // if not, need to start a new mean series
-
-                    // create mean series, using mean data up to this point
-                    if (meanSeriesData != null) { // skip first one
-                        meanSeries.put("data", meanSeriesData);
-                        meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
-                        meanSeries.put("bars", new JSONObject("{show:false}"));
-                        meanSeries.put("points", new JSONObject("{show:false}"));
-                        meanSeries.put("color", "#5e5e5e");
-                        meanSeries.put("label", "Mean");
-                        meanSeries.put("legend", new JSONObject("{show:false}"));
-                        meanSeries.put("hoverable", "false");
-                        meanSeries.put("shadowSize", 2);
-                    }
-
-                    // put our mean series into the series list too
-                    seriesList.put(meanSeries);
-
-                    // start the new meanSeries
-                    meanSeriesData = new JSONArray();
-                }
 
                 // now extract datapoints for this factor value
                 Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
@@ -299,9 +272,19 @@ public class AtlasPlotter {
                 }
 
                 seriesList.put(series);
-
-                lastFactorValue = factorValue;
             }
+
+            // create the mean series
+            meanSeries.put("data", meanSeriesData);
+            meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
+            meanSeries.put("bars", new JSONObject("{show:false}"));
+            meanSeries.put("points", new JSONObject("{show:false}"));
+            meanSeries.put("color", "#5e5e5e");
+            meanSeries.put("label", "Mean");
+            meanSeries.put("legend", new JSONObject("{show:false}"));
+            meanSeries.put("hoverable", "false");
+            meanSeries.put("shadowSize", 2);
+            seriesList.put(meanSeries);
 
             // and put all data into the plot, flagging whether it is significant or not
             plotData.put("series", seriesList);
