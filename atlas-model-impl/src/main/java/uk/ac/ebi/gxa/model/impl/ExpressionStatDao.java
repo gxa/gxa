@@ -46,6 +46,9 @@ public class ExpressionStatDao {
         private StringBuilder queryPart = new StringBuilder();
         private StringBuilder scorePart = new StringBuilder();
 
+        private Set<Pair<String,String>> allEfEfvs = new HashSet<Pair<String, String>>();
+        private Set<String> allExps = new HashSet<String>();
+
         public SolrQueryBuilder andGeneProperty(String property, Iterable<String> values) {
             if(and())
                 return this;
@@ -72,6 +75,7 @@ public class ExpressionStatDao {
             boolean first = true;
             
             for(String v : values) {
+                allEfEfvs.add(new Pair<String, String>(property, v));
                 if(first)
                     queryPart.append("(");
                 first = false;
@@ -103,6 +107,8 @@ public class ExpressionStatDao {
                 return this;
 
             String expIds = StringUtils.join(experiments, " ");
+            Collections.addAll(allExps, expIds.split(" ")); // TODO: optimize this
+
             if(expIds.length() > 0) {
                 queryPart.append("(");
                 if(expq == ExpressionQuery.UP || expq == ExpressionQuery.UP_OR_DOWN)
@@ -123,6 +129,14 @@ public class ExpressionStatDao {
         public String toSolrQuery() {
             return queryPart.toString() + (scorePart.length() > 0 ? " AND _val_:\"sum(" + scorePart.toString() + ")\"" : "");
         }
+
+        boolean hasExperiment(String experiment) {
+            return allExps.contains(experiment);
+        }
+
+        boolean hasEfEfv(String ef, String efv) {
+            return allEfEfvs.contains(new Pair<String, String>(ef, efv));
+        }
     }
 
     public <T extends ExpressionStat> FacetQueryResultSet<T, ExpressionStatFacet> getExpressionStat(ExpressionStatQuery atlasExpressionStatQuery, PageSortParams pageSortParams) throws GxaException {
@@ -135,8 +149,9 @@ public class ExpressionStatDao {
 
         for(Pair<ExpressionQuery,PropertyQuery> propq : atlasExpressionStatQuery.getActivityQueries()) {
             QueryResultSet<Property> props = dao.getProperty(propq.getSecond().isAssayProperty(true));
-            for(Property property : props.getItems())
+            for(Property property : props.getItems()) {
                 sqb.andActive(propq.getFirst(), property.getAccession(), property.getValues());
+            }
         }
 
         SolrQuery solrq = new SolrQuery(sqb.toSolrQuery());
@@ -151,11 +166,19 @@ public class ExpressionStatDao {
                 autoFactors.add(property.getAccession());
 
         if(atlasExpressionStatQuery.isFacets()) {
+            solrq.setFacet(true);
+            solrq.setFacetMinCount(2);
+            solrq.setFacetLimit(100);
+
+            solrq.setFacetSort(true);
             for(String factor : autoFactors) {
                 solrq.addFacetField("efvs_up_" + factor);
                 solrq.addFacetField("efvs_ud_" + factor);
-                solrq.addFacetField("exp_up");
-                solrq.addFacetField("exp_dn");
+                solrq.addFacetField("exp_up_ids");
+                solrq.addFacetField("exp_dn_ids");
+            }
+            for(GeneProperties.Prop p : GeneProperties.allDrillDowns()) {
+                solrq.addFacetField(p.facetField);
             }
         }
 
@@ -223,22 +246,22 @@ public class ExpressionStatDao {
                     }
 
                     public Integer getUpExperimentsCount() {
-                        return countCache != null ? countCache.upExperimentsCount : (countCache = sumCache(drillDown())).upExperimentsCount;
+                        return countCache != null ? countCache.upExperimentsCount : (countCache = sumCache(getDrillDown())).upExperimentsCount;
                     }
 
                     public Integer getDnExperimentsCount() {
-                        return countCache != null ? countCache.dnExperimentsCount : (countCache = sumCache(drillDown())).dnExperimentsCount;
+                        return countCache != null ? countCache.dnExperimentsCount : (countCache = sumCache(getDrillDown())).dnExperimentsCount;
                     }
 
                     public Double getUpPvalue() {
-                        return countCache != null ? countCache.upPvalue : (countCache = sumCache(drillDown())).upPvalue;
+                        return countCache != null ? countCache.upPvalue : (countCache = sumCache(getDrillDown())).upPvalue;
                     }
 
                     public Double getDnPvalue() {
-                        return countCache != null ? countCache.dnPvalue : (countCache = sumCache(drillDown())).dnPvalue;
+                        return countCache != null ? countCache.dnPvalue : (countCache = sumCache(getDrillDown())).dnPvalue;
                     }
 
-                    public Iterable<PropertyExpressionStat<ExperimentExpressionStat>> drillDown() {
+                    public Iterable<PropertyExpressionStat<ExperimentExpressionStat>> getDrillDown() {
                         return new Iterable<PropertyExpressionStat<ExperimentExpressionStat>>() {
                             public Iterator<PropertyExpressionStat<ExperimentExpressionStat>> iterator() {
                                 return new MappingIterator<Property, PropertyExpressionStat<ExperimentExpressionStat>>(properties.iterator()) {
@@ -272,7 +295,7 @@ public class ExpressionStatDao {
                                                 return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_dn"));
                                             }
 
-                                            public Iterable<ExperimentExpressionStat> drillDown() {
+                                            public Iterable<ExperimentExpressionStat> getDrillDown() {
                                                 final ExperimentsTable table = ExperimentsTable.deserialize((String)sd.getFieldValue("exp_info"));
                                                 return new Iterable<ExperimentExpressionStat>() {
                                                     public Iterator<ExperimentExpressionStat> iterator() {
@@ -284,7 +307,9 @@ public class ExpressionStatDao {
                                                                         try {
                                                                             return dao.getExperimentByAccession(new AccessionQuery<AccessionQuery>().hasId(String.valueOf(experimentExpression.getId()))).getAccession();
                                                                         } catch(GxaException e) {
-                                                                            throw new RuntimeException(e);
+                                                                            return null;
+                                                                            // throw new RuntimeException(e);
+                                                                            // TODO: okay for now
                                                                         }
                                                                     }
 
@@ -292,8 +317,8 @@ public class ExpressionStatDao {
                                                                         return 2.0f - (float)(getUpPvalue() + getDnPvalue());
                                                                     }
 
-                                                                    public Integer getUpExperimentsCount() { return null; }
-                                                                    public Integer getDnExperimentsCount() { return null; }
+                                                                    public Integer getUpExperimentsCount() { return experimentExpression.getExpression().isUp() ? 1 : 0; }
+                                                                    public Integer getDnExperimentsCount() { return experimentExpression.getExpression().isUp() ? 0 : 1; }
 
                                                                     public Double getUpPvalue() {
                                                                         return experimentExpression.getPvalue();
@@ -303,7 +328,7 @@ public class ExpressionStatDao {
                                                                         return experimentExpression.getPvalue();
                                                                     }
 
-                                                                    public Iterable<ExpressionStat> drillDown() { return null; }
+                                                                    public Iterable<ExpressionStat> getDrillDown() { return null; }
                                                                 };
                                                             }
                                                         };
@@ -319,48 +344,62 @@ public class ExpressionStatDao {
                 };
                 items.add((T)geneStat);
             }
+
             final FacetQueryResultSet<T, ExpressionStatFacet> resultSet = new FacetQueryResultSet<T, ExpressionStatFacet>();
             resultSet.setItems(items);
             resultSet.setIsMulti(true);
             resultSet.setStartingFrom(pageSortParams.getStart());
             resultSet.setTotalResults((int)response.getResults().getNumFound());
 
-            if(atlasExpressionStatQuery.isFacets()) {
+            if(atlasExpressionStatQuery.isFacets() && response.getFacetFields() != null) {
                 Map<String, ExpressionStatFacet> facetsMap = new HashMap<String, ExpressionStatFacet>();
                 for(FacetField ff : response.getFacetFields()) {
                     if(ff.getValueCount() > 1) {
                         if(ff.getName().startsWith("efvs_")) {
-                            if(true /* already there */)
-                            {
-                                String ef = ff.getName().substring(8);
-                                if(!facetsMap.containsKey(ef))
-                                    facetsMap.put(ef, new ExpressionStatFacet(ef));
-                                ExpressionStatFacet facet = facetsMap.get(ef);
-                                for (FacetField.Count ffc : ff.getValues())
+                            String ef = ff.getName().substring(8);
+                            ExpressionStatFacet facet = facetsMap.get(ef);
+                            if(facet == null)
+                                facetsMap.put(ef, facet = new ExpressionStatFacet(ef));
+
+                            for (FacetField.Count ffc : ff.getValues())
+                                if(!sqb.hasEfEfv(ef, ffc.getName()))
                                 {
                                     int count = (int)ffc.getCount();
                                     facet.getOrCreateValue(ffc.getName())
                                             .add(count, ff.getName().substring(5,7).equals("up"));
                                 }
-                            }
                         } else if(ff.getName().startsWith("exp_")) {
+                            ExpressionStatFacet facet = facetsMap.get("experiment");
+                            if(facet == null)
+                                facetsMap.put("experiment", facet = new ExpressionStatFacet("experiment"));
                             for (FacetField.Count ffc : ff.getValues())
-                                if(true /* already there */)
+                                if(!sqb.hasExperiment(ffc.getName()))
                                 {
-                                    if(!facetsMap.containsKey("experiment"))
-                                        facetsMap.put("experiment", new ExpressionStatFacet("experiment"));
-                                    ExpressionStatFacet facet = facetsMap.get("experiment");
-                                    uk.ac.ebi.gxa.model.Experiment exp = dao.getExperiment(new ExperimentQuery().hasId(ffc.getName())).getItem();
-                                    if(exp != null) {
-                                        String expName = exp.getAccession();
-                                        if(expName != null)
-                                        {
-                                            int count = (int)ffc.getCount();
-                                            facet.getOrCreateValue(expName)
-                                                    .add(count, ff.getName().substring(4,6).equals("up"));
+                                    try {
+                                        uk.ac.ebi.gxa.model.Experiment exp = dao.getExperiment(new ExperimentQuery().hasId(ffc.getName())).getItem();
+                                        if(exp != null) {
+                                            String expName = exp.getAccession();
+                                            if(expName != null)
+                                            {
+                                                int count = (int)ffc.getCount();
+                                                facet.getOrCreateValue(expName)
+                                                        .add(count, ff.getName().substring(4,6).equals("up"));
+                                            }
                                         }
+                                    } catch (GxaException e) {
+                                        // TODO: okay for now
                                     }
                                 }
+                        } else if(ff.getName().startsWith("gene_")) {
+                            String id = GeneProperties.findPropByFacetField(ff.getName()).id;
+                            ExpressionStatFacet facet = facetsMap.get(id);
+                            if(facet == null)
+                                facetsMap.put(id, facet = new ExpressionStatFacet(id));
+                            for (FacetField.Count ffc : ff.getValues()) {
+                                int count = (int)ffc.getCount();
+                                facet.getOrCreateValue(ffc.getName()).add(count, true);
+                                facet.getOrCreateValue(ffc.getName()).add(count, false);
+                            }
                         }
                     }
 
@@ -389,10 +428,13 @@ public class ExpressionStatDao {
             if(exps.isFound())
                 sqb.andExperiment(new MappingIterator<uk.ac.ebi.gxa.model.Experiment,String>(exps.getItems().iterator()) {
                     public String map(uk.ac.ebi.gxa.model.Experiment experiment) {
-                        return experiment.getAccession();
+                        return String.valueOf(experiment.getId());
                     }
                 }, ExpressionQuery.UP_OR_DOWN);
         }
+
+        if(!geneq.getSpecies().isEmpty())
+            sqb.andGeneProperty("species", geneq.getSpecies());
 
         if(geneq.getId() != null)
             sqb.andGeneProperty("id", Collections.singleton(geneq.getId()));

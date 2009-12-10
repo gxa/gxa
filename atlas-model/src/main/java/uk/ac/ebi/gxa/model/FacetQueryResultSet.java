@@ -24,11 +24,11 @@ public class FacetQueryResultSet<ResultType,FacetType extends FacetQueryResultSe
             return facetMap.get(key);
         }
 
-        public Iterable<Map.Entry<Key,Value>> byKey() {
+        public Collection<Map.Entry<Key,Value>> getListByKey() {
             return facetMap.entrySet();
         }
 
-        public Iterable<Map.Entry<Key,Value>> byValue() {
+        public Collection<Map.Entry<Key,Value>> getListByValue() {
             List<Map.Entry<Key,Value>> sortedList = new ArrayList<Map.Entry<Key,Value>>(facetMap.entrySet());
             Collections.sort(sortedList, new Comparator<Map.Entry<Key, Value>>() {
                 public int compare(Map.Entry<Key, Value> o1, Map.Entry<Key, Value> o2) {

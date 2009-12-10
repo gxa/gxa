@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 
 public class GeneQuery extends AccessionQuery<GeneQuery> {
-    private String species = null;
+    private List<String> species = new ArrayList<String>();
 
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
     private List<PropertyQuery> propertyQueries = new ArrayList<PropertyQuery>();
@@ -48,12 +48,16 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
     }
 
     public GeneQuery hasSpecies(String species){
-        this.species = species;
+        this.species.add(species);
         return this;
     }
 
-    public String getSpecies(){
+    public List<String> getSpecies(){
         return this.species;
     }
 
+
+    public List<PropertyQuery> getPropertyNotQueries() {
+        return propertyNotQueries;
+    }
 }

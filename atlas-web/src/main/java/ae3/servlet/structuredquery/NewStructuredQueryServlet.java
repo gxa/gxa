@@ -1,6 +1,7 @@
 package ae3.servlet.structuredquery;
 
 import ae3.service.structuredquery.*;
+import ae3.util.HtmlHelper;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,7 +15,6 @@ import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.model.impl.AtlasDao;
 import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 import uk.ac.ebi.gxa.model.*;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringUtils;
 
@@ -32,54 +32,62 @@ public class NewStructuredQueryServlet extends HttpServlet {
         doIt(httpServletRequest, httpServletResponse);
     }
 
-    private static final String PARAM_EXPRESSION = "fexp_";
-    private static final String PARAM_FACTOR = "fact_";
-    private static final String PARAM_FACTORVALUE = "fval_";
-    private static final String PARAM_GENE = "gval_";
-    private static final String PARAM_GENENOT = "gnot_";
-    private static final String PARAM_GENEPROP = "gprop_";
-    private static final String PARAM_SPECIE = "specie_";
-    private static final String PARAM_START = "p";
-    private static final String PARAM_EXPAND = "fexp";
-
     public static class ResultWrapper {
         private EfvTree<Boolean> resultEfvs = new EfvTree<Boolean>();
         private int total;
+        private AtlasStructuredQuery atlasQuery;
 
-        private List<Pair<Map<String, String>,Map<EfvTree.EfEfv, ExpressionStat>>> results = new ArrayList<Pair<Map<String, String>, Map<EfvTree.EfEfv, ExpressionStat>>>();
+        private Map<String, Experiment> experimentMap = new HashMap<String, Experiment>();
 
-        public ResultWrapper(FacetQueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>, ExpressionStatFacet> results, Dao dao, EfvTree<Boolean> queryEfvs) {
+        private List<Pair<Map<String, String>,SortedMap<EfvTree.EfEfv, ExpressionStat>>> results = new ArrayList<Pair<Map<String, String>, SortedMap<EfvTree.EfEfv, ExpressionStat>>>();
+
+        public ResultWrapper(FacetQueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>, ExpressionStatFacet> results,
+                             Dao dao,
+                             EfvTree<Boolean> queryEfvs,
+                             AtlasStructuredQuery atlasQuery) throws GxaException {
             final boolean hasQueryEfvs = queryEfvs.getNumEfvs() > 0;
 
-            total = results.getTotalResults();
+            this.atlasQuery = atlasQuery;
+            this.total = results.getTotalResults();
 
             if(hasQueryEfvs)
                 resultEfvs = queryEfvs;
 
             for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> ge : results.getItems()) {
-                Map<EfvTree.EfEfv, ExpressionStat> exprs = new HashMap<EfvTree.EfEfv, ExpressionStat>();
-                for(PropertyExpressionStat pe : ge.drillDown()) {
+                SortedMap<EfvTree.EfEfv, ExpressionStat> exprs = new TreeMap<EfvTree.EfEfv, ExpressionStat>();
+                for(PropertyExpressionStat<ExperimentExpressionStat> pe : ge.getDrillDown()) {
                     final String ef = pe.getProperty().getAccession();
                     final String efv = pe.getProperty().getValues().iterator().next();
                     EfvTree.EfEfv efEfv = hasQueryEfvs ? new EfvTree.EfEfv<Boolean>(ef, efv, true) : resultEfvs.put(ef, efv, true);
                     if(!hasQueryEfvs || resultEfvs.has(ef, efv))
                         exprs.put(efEfv, pe);
+
+                    for(ExperimentExpressionStat ee : pe.getDrillDown()) {
+                        if(!experimentMap.containsKey(ee.getExperiment())) {
+                            try {
+                                Experiment experiment = dao.getExperiment(new ExperimentQuery().hasId(ee.getExperiment())).getItem();
+                                experimentMap.put(ee.getExperiment(), experiment);
+                            } catch (GxaException e) {
+                                // okay
+                            }
+                        }
+                    }
                 }
 
                 Map<String, String> geneProps = new HashMap<String, String>();
-                try {
-                    Gene gene = dao.getGene(new GeneQuery().hasId(ge.getGene())).getItem();
-                    for(Property property : gene.getProperties().getProperties()) {
-                        geneProps.put(property.getAccession(), StringUtils.join(property.getValues(), ", "));
-                    }
-                    geneProps.put("name", gene.getAccession());
-                    geneProps.put("id", String.valueOf(gene.getId()));
-                    geneProps.put("species", gene.getSpecies());
-                    this.results.add(new Pair<Map<String, String>, Map<EfvTree.EfEfv, ExpressionStat>>(geneProps, exprs));
-                } catch(GxaException gxae) {
-                    throw new RuntimeException(gxae);
+                Gene gene = dao.getGene(new GeneQuery().hasId(ge.getGene())).getItem();
+                for(Property property : gene.getProperties().getProperties()) {
+                    geneProps.put(property.getAccession(), StringUtils.join(property.getValues(), ", "));
                 }
+                geneProps.put("name", gene.getAccession());
+                geneProps.put("id", String.valueOf(gene.getId()));
+                geneProps.put("species", gene.getSpecies());
+                this.results.add(new Pair<Map<String, String>, SortedMap<EfvTree.EfEfv, ExpressionStat>>(geneProps, exprs));
             }
+        }
+
+        public Map<String, Experiment> getExperimentMap() {
+            return experimentMap;
         }
 
         public int getSize() {
@@ -91,18 +99,18 @@ public class NewStructuredQueryServlet extends HttpServlet {
         }
 
         public int getPage() {
-            return 0;
+            return atlasQuery.getStart() / getRowsPerPage();
         }
 
         public int getRowsPerPage() {
-            return 100;
+            return atlasQuery.getRowsPerPage();
         }
 
         public EfvTree<Boolean> getResultEfvs() {
             return resultEfvs;
         }
 
-        public List<Pair<Map<String, String>, Map<EfvTree.EfEfv, ExpressionStat>>> getResults() {
+        public List<Pair<Map<String, String>, SortedMap<EfvTree.EfEfv, ExpressionStat>>> getResults() {
             return results;
         }
     }
@@ -110,6 +118,7 @@ public class NewStructuredQueryServlet extends HttpServlet {
     AtlasDao dao;
 
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        long startTime = HtmlHelper.currentTime();
 
         AtlasSearchService searchService =
                 (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
@@ -129,75 +138,45 @@ public class NewStructuredQueryServlet extends HttpServlet {
 
 
         try {
-            boolean hasQuery = false;
-            PageSortParams params = new PageSortParams();
-            params.setRows(100);
-            params.setStart(0);
+            AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
 
-            ExpressionStatQuery query = new ExpressionStatQuery();
+            if (!atlasQuery.isNone()) {
+                ExpressionStatQuery query = new ExpressionStatQuery();
 
-            GeneQuery gq = new GeneQuery();
-            for(String id : AtlasStructuredQueryParser.findPrefixParamsSuffixes(request, PARAM_GENEPROP)) {
-                try {
-                    String nots = request.getParameter(PARAM_GENENOT + id);
-                    boolean not = nots != null && !"".equals(nots) && !"0".equals(nots);
-
-                    String factor = request.getParameter(PARAM_GENEPROP + id);
-                    if(factor == null)
-                        throw new IllegalArgumentException("Empty gene property name rowid:" + id);
-
-                    String value = request.getParameter(PARAM_GENE + id);
-                    List<String> values = value != null ? EscapeUtil.parseQuotedList(value) : new ArrayList<String>();
-                    if(values.size() > 0)
-                    {
-                        PropertyQuery propq = new PropertyQuery().hasAccession(factor);
-                        for(String v : values)
-                            propq.fullTextQuery(v);
-                        if(not)
-                            gq.hasNotProperty(propq);
-                        else
-                            gq.hasProperty(propq);
-                    }
-                    hasQuery = true;
-                } catch (IllegalArgumentException e) {
-                    // Ignore this one, may be better stop future handling
-                }
-            }
-
-            query.hasGene(gq);            
-
-            for(String id : AtlasStructuredQueryParser.findPrefixParamsSuffixes(request, PARAM_FACTOR)) {
-                try {
-                    String exps = request.getParameter(PARAM_EXPRESSION + id);
-                    ExpressionQuery exp;
-                    if(exps.equalsIgnoreCase("UP"))
-                        exp = ExpressionQuery.UP;
-                    else if(exps.equalsIgnoreCase("DOWN"))
-                        exp = ExpressionQuery.DOWN;
+                GeneQuery gq = new GeneQuery();
+                for(GeneQueryCondition g : atlasQuery.getGeneConditions()) {
+                    PropertyQuery propq = new PropertyQuery().hasAccession(g.getFactor());
+                    for(String v : g.getFactorValues())
+                        propq.fullTextQuery(v);
+                    if(g.isNegated())
+                        gq.hasNotProperty(propq);
                     else
-                        exp = ExpressionQuery.UP_OR_DOWN;
-
-                    String factor = request.getParameter(PARAM_FACTOR + id);
-                    if(factor == null)
-                        throw new IllegalArgumentException("Empty factor name rowid:" + id);
-
-                    String value = request.getParameter(PARAM_FACTORVALUE + id);
-                    List<String> values = value != null ? EscapeUtil.parseQuotedList(value) : new ArrayList<String>();
-
-                    if(values.size() > 0)
-                    {
-                        PropertyQuery propq = new PropertyQuery().hasAccession(factor);
-                        for(String v : values)
-                            propq.fullTextQuery(v);
-                        query.activeIn(exp, propq);
-                    }
-                    hasQuery = true;
-                } catch (IllegalArgumentException e) {
-                    // Ignore this one, may be better stop future handling
+                        gq.hasProperty(propq);
                 }
-            }
+                query.hasGene(gq);
 
-            if(hasQuery) {
+                for(ExpFactorQueryCondition e : atlasQuery.getConditions()) {
+                    PropertyQuery propq = new PropertyQuery().hasAccession(e.getFactor());
+                    for(String v : e.getFactorValues())
+                        propq.fullTextQuery(v);
+                    if(e.getExpression() == QueryExpression.UP)
+                        query.activeIn(ExpressionQuery.UP, propq);
+                    else if(e.getExpression() == QueryExpression.DOWN)
+                        query.activeIn(ExpressionQuery.DOWN, propq);
+                    else if(e.getExpression() == QueryExpression.UP_DOWN)
+                        query.activeIn(ExpressionQuery.UP_OR_DOWN, propq);
+                }
+
+                if(!atlasQuery.getSpecies().isEmpty())
+                    for(String s : atlasQuery.getSpecies())
+                        query.hasGene(new GeneQuery().hasSpecies(s));
+
+                PageSortParams params = new PageSortParams();
+                params.setRows(atlasQuery.getRowsPerPage());
+                params.setStart(atlasQuery.getStart());
+                // TODO: params.setWhat??(atlasQuery.getExpsPerGene())
+
+                query.setFacets(true);
                 FacetQueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>, ExpressionStatFacet> result = dao.getExpressionStat(query, params);
 
                 EfvTree<Boolean> queryEfvs = new EfvTree<Boolean>();
@@ -208,14 +187,21 @@ public class NewStructuredQueryServlet extends HttpServlet {
                             queryEfvs.put(property.getAccession(), value, true);
                     }
                 }
-                request.setAttribute("result", new ResultWrapper(result, dao, queryEfvs));
+                
+                request.setAttribute("result", new ResultWrapper(result, dao, queryEfvs, atlasQuery));
             }
+
+            request.setAttribute("query", atlasQuery);
+            request.setAttribute("timeStart", startTime);
+            request.setAttribute("heatmap", atlasQuery.getViewType() == ViewType.HEATMAP);
+            request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
+            request.setAttribute("forcestruct", request.getParameter("struct") != null);
+            request.setAttribute("service", searchService);
 
         } catch (GxaException gxae) {
             throw new RuntimeException(gxae);
         }
 
-        request.setAttribute("heatmap", true);
         request.getRequestDispatcher("new-structured-query.jsp").forward(request, response);
     }
 }
