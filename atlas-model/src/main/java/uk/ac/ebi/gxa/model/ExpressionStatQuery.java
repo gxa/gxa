@@ -42,7 +42,7 @@ public class ExpressionStatQuery {
         return facets;
     }
 
-    public ExpressionStatQuery facets(boolean facets) {
+    public ExpressionStatQuery setFacets(boolean facets) {
         this.facets = facets;
         return this;
     }

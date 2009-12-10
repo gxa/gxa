@@ -62,7 +62,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     }
 
     @RestOut(xmlItemName = "expression", forProfile = ExperimentRestProfile.class) 
-    public static class EfEfv<Payload> {
+    public static class EfEfv<Payload> implements Comparable<EfEfv<Payload>> {
         private String ef;
         private String efv;
 
@@ -120,6 +120,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             int result = ef != null ? ef.hashCode() : 0;
             result = 31 * result + (efv != null ? efv.hashCode() : 0);
             return result;
+        }
+
+        public int compareTo(EfEfv<Payload> o) {
+            int d = getEf().compareTo(o.getEf());
+            return d != 0 ? d : getEfv().compareTo(o.getEfv());
         }
     }
 

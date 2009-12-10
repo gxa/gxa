@@ -208,6 +208,11 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         ],
         species : [<c:forEach var="i" varStatus="s" items="${query.species}">'${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if></c:forEach>],
         conditions : [
+            <c:forEach var="c" varStatus="s" items="${query.conditions}">
+            {   factor: '${u:escapeJS(c.factor)}',
+                expression: '${u:escapeJS(c.expression)}',
+                values: '${u:escapeJS(c.jointFactorValues)}'
+            }<c:if test="${!s.last}">,</c:if></c:forEach>
         ],
         view: '${heatmap ? 'hm' : 'list'}'
     };
@@ -427,8 +432,118 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 </c:when>
 <c:otherwise>
+    <table id="squery" class="tablesorter" style="width:100%;table-layout:fixed;">
+        <colgroup>
+            <col style="width:20px" />
+            <col style="width:110px" />
+            <col style="width:150px" />
+            <col style="width:180px"  />
+            <col style="width:100%" />
+            <col style="width:26px" />
+            <col style="width:80px" />
+        </colgroup>
 
-    <!--- list results go here --->
+        <thead>
+            <tr class="header">
+                <th style="border-right:none"></th>
+                <th style="border-left:none" class="padded">Gene</th>
+                <th class="padded">Organism</th>
+                <th class="padded">Experimental Factor</th>
+                <th class="padded">Factor Value</th>
+                <th></th>
+                <th class="padded">P-value</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <c:set var="rindex" value="0"/>
+            <c:forEach var="row" items="${result.results}">
+            <c:forEach var="erow" items="${row.second}" varStatus="j">
+                <tr id="${row.first}_${erow.key.ef}_${rindex}">
+                    <td class="collapsible" style="border-right:none;border-bottom:none;" title="Click here to show experiments..."></td>
+                    <td class="padded genename" style="border-left:none">
+                        <a href="gene/${f:escapeXml(gene.first.id)}">${gene.first.name}</a>
+                        <div class="gtooltip">
+                            <div class="genename"><b>${f:escapeXml(row.first.name)}</b> (<c:if test="${!empty row.first.synonym}">${f:escapeXml(row.first.synonym)},</c:if>${row.first.id})</div>
+                            <c:if test="${!empty row.first.keyword}"><b>Keyword:</b> ${f:escapeXml(row.first.keyword)}<br></c:if>
+                            <c:if test="${!empty row.first.goterm}"><b>Go Term:</b> ${f:escapeXml(row.first.goterm)}<br></c:if>
+                            <c:if test="${!empty row.first.interproterm}"><b>InterPro Term:</b> ${f:escapeXml(row.first.interproterm)}<br></c:if>
+                        </div>
+                    </td>
+                    <td class="padded wrapok">${f:escapeXml(row.first.species)}</td>
+                    <td class="padded wrapok"><fmt:message key="head.ef.${erow.key.ef}"/></td>
+                    <td class="padded wrapok lvrowefv">${f:escapeXml(erow.key.efv)}</td>
+
+
+                    <c:set var="ud" value="${erow.value}"/>
+                    <c:choose>
+                        <c:when test="${empty ud || ud.upExperimentsCount + ud.dnExperimentsCount == 0}">
+                            <td class="counter"><div class="osq"></div></td>
+                        </c:when>
+                        <c:when test="${ud.upExperimentsCount == 0 && ud.dnExperimentsCount > 0}">
+                            <td class="acounter" style="background-color:${u:expressionBackNew(ud,-1)};color:${u:expressionTextNew(ud,-1)}"
+                                title="${f:escapeXml(empty row.first.name ? row.first.id : row.first.name)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.dnExperimentsCount} experiment(s)."
+                                ><div class="osq">${ud.dnExperimentsCount}</div></td>
+                        </c:when>
+                        <c:when test="${ud.dnExperimentsCount == 0 && ud.upExperimentsCount > 0}">
+                            <td class="acounter" style="background-color:${u:expressionBackNew(ud,1)};color:${u:expressionTextNew(ud,1)}"
+                                title="${f:escapeXml(empty row.first.name ? row.first.id : row.first.name)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.upExperimentsCount} experiment(s)."
+                                ><div class="osq">${ud.upExperimentsCount}</div></td>
+                        </c:when>
+                        <c:otherwise>
+                            <td class="acounter"
+                                title="${f:escapeXml(empty row.first.name ? row.first.id : row.first.name)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.upExperimentsCount} and underexpressed in ${ud.dnExperimentsCount} experiment(s)."
+                                ><div class="sq"><div class="tri" style="border-right-color:${u:expressionBackNew(ud,-1)};border-top-color:${u:expressionBackNew(ud,1)};"></div><div style="color:${u:expressionTextNew(ud,-1)}" class="dnval">${ud.dnExperimentsCount}</div><div style="color:${u:expressionTextNew(ud,1)}" class="upval">${ud.upExperimentsCount}</div></div></td>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <td class="padded"><fmt:formatNumber value="${ud.upPvalue > ud.dnPvalue ? ud.dnPvalue : ud.upPvalue}" pattern="#.##E0" /></td>
+                </tr>
+                <tr class="expand-child">
+                    <td class="empty"></td>
+                    <th colspan="6" class="thickborder"></th>
+                </tr>
+                <c:forEach var="xrow" items="${ud.drillDown}">
+                    <c:set var="exp" value="${results.experimentsMap[xrow.experiment]}"/>
+                    <tr class="expand-child">
+                        <td class="empty"></td>
+                        <td class="padded genename">
+                            <a target="_blank" href="http://www.ebi.ac.uk/microarray-as/ae/browse.html?keywords=${exp.experimentAccession}">${exp.experimentAccession}</a>
+                        </td>
+                        <td class="expdesc wrapok" colspan="3">
+                                ${f:escapeXml(exp.description)}
+                        </td>
+                        <td class="expthumb">
+                            <div class="outer">
+                                <a title="Show expression profile" href="experiment/${exp.accession}?gid=${row.first.id}&ef=${erow.key.ef}">
+                                    <div id="${exp.id}_${exp.upExperimentsCount}${exp.dnExperimentsCount}" class="thumb thumb${rindex}">
+                                        <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
+                                    </div>
+                                </a>
+                            </div>
+                        </td>
+                        <c:choose>
+                            <c:when test="${xrow.upExperimentsCount > 0}">
+                                <td style="color: red;" class="pvalue padded">
+                                    &#8593;&nbsp;<fmt:formatNumber value="${exp.upPvalue}" pattern="#.##E0" />
+                                </td>
+                            </c:when>
+                            <c:otherwise>
+                                <td style="color: blue;" class="pvalue padded">
+                                    &#8595;&nbsp;<fmt:formatNumber value="${exp.dnPvalue}" pattern="#.##E0" />
+                                </td>
+                            </c:otherwise>
+                        </c:choose>
+                    </tr>
+                </c:forEach>
+                <tr class="expand-child">
+                    <td class="empty"></td>
+                    <th colspan="6" class="thickborder"></th>
+                </tr>
+            </c:forEach>
+            </c:forEach>
+        </tbody>
+    </table>
 </c:otherwise>
 </c:choose>
 

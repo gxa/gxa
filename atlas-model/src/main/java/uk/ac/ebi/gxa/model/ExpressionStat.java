@@ -22,5 +22,5 @@ public interface ExpressionStat<NextType extends ExpressionStat> {
     public Double getUpPvalue();
     public Double getDnPvalue();
 
-    public Iterable<NextType> drillDown();
+    public Iterable<NextType> getDrillDown();
 }

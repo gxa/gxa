@@ -285,7 +285,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertNotNull(result.getItem());
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
-            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+            for(PropertyExpressionStat pstat : gstat.getDrillDown()) {
                 if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getUpExperimentsCount() > 0);
             }
@@ -307,7 +307,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertNotNull(result.getItem());
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
-            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+            for(PropertyExpressionStat pstat : gstat.getDrillDown()) {
                 if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getDnExperimentsCount() > 0);
             }
@@ -329,7 +329,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertNotNull(result.getItem());
 
         for(GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>> gstat : result.getItems()) {
-            for(PropertyExpressionStat pstat : gstat.drillDown()) {
+            for(PropertyExpressionStat pstat : gstat.getDrillDown()) {
                 if(pstat.getProperty().getAccession().equals("organismpart") && pstat.getProperty().getValues().iterator().next().equals("liver"))
                     assertTrue(pstat.getUpExperimentsCount() > 0 || pstat.getDnExperimentsCount() > 0);
             }
