@@ -66,10 +66,20 @@ public class AtlasDAO {
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_spec s " +
                     "WHERE g.specid=s.specid";
+    private static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
+            "SELECT de.geneid, de.designelementid " +
+                    "FROM a2_designelement de";
     private static final String GENES_PENDING_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_spec s, load_monitor lm " +
+                    "FROM a2_gene g, load_monitor lm " +
                     "WHERE g.specid=s.specid " +
+                    "AND g.identifier=lm.accession " +
+                    "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
+                    "AND lm.load_type='gene'";
+    private static final String DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT =
+            "SELECT de.geneid, de.designelementid " +
+                    "FROM a2_designelement de, a2_gene g, load_monitor lm " +
+                    "WHERE de.geneid=g.geneid " +
                     "AND g.identifier=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='gene'";
@@ -82,15 +92,17 @@ public class AtlasDAO {
                     "AND d.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
+    private static final String DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION =
+            "SELECT de.geneid, de.designelementid " +
+                    "FROM a2_designelement de, a2_assay a, a2_experiment e " +
+                    "WHERE de.arraydesignid=a.arraydesignid " +
+                    "AND a.experimentid=e.experimentid " +
+                    "AND e.accession=?";
     private static final String PROPERTIES_BY_RELATED_GENES =
             "SELECT gpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid " +
                     "AND gpv.geneid IN (:geneids)";
-    private static final String DESIGN_ELEMENTS_BY_RELATED_GENES =
-            "SELECT de.geneid, de.designelementid " +
-                    "FROM a2_designelement de " +
-                    "WHERE de.geneid IN (:geneids)";
     private static final String GENE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
@@ -389,33 +401,104 @@ public class AtlasDAO {
      * @return the list of all genes in the database.
      */
     public List<Gene> getAllGenes() {
+        // do the first query to fetch genes without design elements
         List results = template.query(GENES_SELECT,
                                       new GeneMapper());
 
-        return (List<Gene>) results;
+        // do the second query to obtain design elements
+        List<Gene> genes = (List<Gene>) results;
+
+        // map genes to gene id
+        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        for (Gene gene : genes) {
+            // index this assay
+            genesByID.put(gene.getGeneID(), gene);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (gene.getDesignElementIDs() == null) {
+                gene.setDesignElementIDs(new HashSet<Integer>());
+            }
+        }
+
+        // map of genes and their design elements
+        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
+
+        // now query for design elements, and genes, by the experiment accession, and map them together
+        template.query(DESIGN_ELEMENTS_AND_GENES_SELECT,
+                       geneDesignElementMapper);
+        // and return
+        return genes;
     }
 
     public List<Gene> getAllPendingGenes() {
+        // do the first query to fetch genes without design elements
         List results = template.query(GENES_PENDING_SELECT,
                                       new GeneMapper());
-        return (List<Gene>) results;
+
+        // do the second query to obtain design elements
+        List<Gene> genes = (List<Gene>) results;
+
+        // map genes to gene id
+        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        for (Gene gene : genes) {
+            // index this assay
+            genesByID.put(gene.getGeneID(), gene);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (gene.getDesignElementIDs() == null) {
+                gene.setDesignElementIDs(new HashSet<Integer>());
+            }
+        }
+
+        // map of genes and their design elements
+        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
+
+        // now query for design elements, and genes, by the experiment accession, and map them together
+        template.query(DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT,
+                       geneDesignElementMapper);
+        // and return
+        return genes;
     }
 
     /**
      * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
      * property information, to keep query time down.  If you require this data, you can fetch it for the list of genes
-     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes are
+     * prepopulated with design element information, however.
      *
      * @param exptAccession the accession number of the experiment to query for
      * @return the list of all genes in the database.
      */
     public List<Gene> getGenesByExperimentAccession(String exptAccession) {
+        // do the first query to fetch genes without design elements
         List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{exptAccession},
                                       new GeneMapper());
 
+        // do the second query to obtain design elements
+        List<Gene> genes = (List<Gene>) results;
+
+        // map genes to gene id
+        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        for (Gene gene : genes) {
+            // index this assay
+            genesByID.put(gene.getGeneID(), gene);
+
+            // also, initialize properties if null - once this method is called, you should never get an NPE
+            if (gene.getDesignElementIDs() == null) {
+                gene.setDesignElementIDs(new HashSet<Integer>());
+            }
+        }
+
+        // map of genes and their design elements
+        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
+
+        // now query for design elements, and genes, by the experiment accession, and map them together
+        template.query(DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION,
+                       new Object[]{exptAccession},
+                       geneDesignElementMapper);
         // and return
-        return (List<Gene>) results;
+        return genes;
     }
 
     public void getPropertiesForGenes(List<Gene> genes) {
@@ -425,10 +508,11 @@ public class AtlasDAO {
         }
     }
 
+    @Deprecated
     public void getDesignElementsForGenes(List<Gene> genes) {
         // populate the other info for these genes
         if (genes.size() > 0) {
-            fillOutGeneDesignElements(genes);
+//            fillOutGeneDesignElements(genes);
         }
     }
 
@@ -1060,52 +1144,6 @@ public class AtlasDAO {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
-        }
-    }
-
-    private void fillOutGeneDesignElements(List<Gene> genes) {
-        // map genes to gene id
-        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
-        for (Gene gene : genes) {
-            // index this assay
-            genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Integer>());
-            }
-        }
-
-        // map of genes and their properties
-        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
-
-        // query template for genes
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // if we have more than 'maxQueryParams' genes, split into smaller queries
-        List<Integer> geneIDs = new ArrayList<Integer>(genesByID.keySet());
-        boolean done = false;
-        int startpos = 0;
-        int endpos = maxQueryParams;
-
-        while (!done) {
-            List<Integer> geneIDsChunk;
-            if (endpos > geneIDs.size()) {
-                // we've reached the last segment, so query all of these
-                geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
-                done = true;
-            }
-            else {
-                // still more left - take next sublist and increment counts
-                geneIDsChunk = geneIDs.subList(startpos, endpos);
-                startpos = endpos;
-                endpos += maxQueryParams;
-            }
-
-            // now query for properties that map to one of these genes
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("geneids", geneIDsChunk);
-            namedTemplate.query(DESIGN_ELEMENTS_BY_RELATED_GENES, propertyParams, geneDesignElementMapper);
         }
     }
 
