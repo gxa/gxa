@@ -230,7 +230,6 @@ function drawPlot(jsonObj, plot_id){
     function redrawPlotForFactor(eid,gid,ef,mark,efv){
 
         var plot_id;
-        ef = "ba_"+ef;
         plot_id= eid+"_"+gid+"_plot";
         $.ajax({
    			type: "GET",

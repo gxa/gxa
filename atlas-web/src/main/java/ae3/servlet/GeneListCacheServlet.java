@@ -70,8 +70,9 @@ public class GeneListCacheServlet extends HttpServlet {
                     bfind.write("</r>".getBytes());
                 }
                 catch (Exception ex) {
-                    log.info("ERROR creating gene names cache:" + ex.getMessage());
-
+                    log.error("Could not create gene names cache" +
+                            (ex.getMessage() != null ? " (" + ex.getMessage() + ")" : ""));
+                    ex.printStackTrace();
                 }
                 finally {
                     if (null != bfind) {
