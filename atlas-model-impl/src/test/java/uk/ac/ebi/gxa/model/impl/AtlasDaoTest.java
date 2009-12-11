@@ -56,17 +56,20 @@ public class AtlasDaoTest {
 
     @Test
     public void test_getAssay() throws Exception{
+        for(int i=0;i!=1000;i++){
         AssayQuery assayQuery = new AssayQuery();
 
         PropertyQuery propertyQuery = new PropertyQuery();
 
         propertyQuery.fullTextQuery("%Gata4%");
 
-        assayQuery.hasProperty(propertyQuery);
+        //assayQuery.hasProperty(propertyQuery);
+         assayQuery.hasId("884197637");
 
         QueryResultSet<Assay> result = dao.getAssay(assayQuery);
 
         assertNotNull(result);
+        }
 
     }
 
