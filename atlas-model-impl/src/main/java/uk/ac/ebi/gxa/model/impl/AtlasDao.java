@@ -16,6 +16,7 @@ import java.sql.DriverManager;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 import java.math.BigDecimal;
 
 import oracle.jdbc.OracleConnection;
@@ -162,10 +163,19 @@ public class AtlasDao implements Dao {
     public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery, PageSortParams pageSortParams) throws GxaException{
         QueryResultSet<Assay> result = new QueryResultSet<Assay>();
 
-        CallableStatement stmt = null;
+        CallableStatement stmt  = null;
+        ResultSet rsAssays      = null;
+        ResultSet rsSamples     = null;
+        ResultSet rsProperties  = null;
+
+        long t_prepare  =0
+             ,t_execute =0
+             ,t_parse   =0;
 
         try{
-          //fierce nesting
+
+          long l_start = (new Date()).getTime();
+                    
 
           stmt = connection.prepareCall("{call AtlasAPI.a2_AssayGet(?,?,?,?,?)}");
 
@@ -176,13 +186,17 @@ public class AtlasDao implements Dao {
           stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
           stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //properties
 
+          long l_prepare = (new Date()).getTime();
+
           stmt.execute();
+
+          long l_execute = (new Date()).getTime();
 
           ArrayList<Assay> assays = new ArrayList<Assay>();
 
-          ResultSet rsAssays = (ResultSet) stmt.getObject(3);
-          ResultSet rsSamples = (ResultSet) stmt.getObject(4);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(5);
+          rsAssays = (ResultSet) stmt.getObject(3);
+          rsSamples = (ResultSet) stmt.getObject(4);
+          rsProperties = (ResultSet) stmt.getObject(5);
 
           rsSamples.next();
           rsProperties.next();
@@ -201,7 +215,8 @@ public class AtlasDao implements Dao {
             while(AssayID == rsSamples.getInt("AssayId")){
                 sampleAccessions.add(rsSamples.getString("SampleAccession"));
 
-                rsSamples.next();
+                if(!rsSamples.next())
+                    break;
             }
 
             a.setSampleAccessions(sampleAccessions);
@@ -220,7 +235,8 @@ public class AtlasDao implements Dao {
 
                 assayproperties.add(atlasProperty);
 
-                rsProperties.next();
+                if(!rsProperties.next())
+                    break;
             }
 
             a.setProperties(new AtlasPropertyCollection(assayproperties));
@@ -228,23 +244,36 @@ public class AtlasDao implements Dao {
         }
 
         result.setItems(assays);
+
+        long l_parse = (new Date()).getTime();
+
+        t_prepare += (l_prepare - l_start);
+        t_execute += (l_execute - l_prepare);
+        t_parse += (l_parse - l_execute);
+            
         return result;
         }
         catch(Exception ex){
             throw new GxaException(ex.getMessage());
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
-                  }
+              try{
+                if(rsAssays != null)
+                    rsAssays.close();
+
+                if(rsSamples != null)
+                     rsSamples.close();
+
+                  if(rsProperties != null)
+                       rsProperties.close();
+
+                if(stmt != null)
+                    stmt.close();
+            }
                   catch(Exception ex){
                       throw new GxaException(ex.getMessage());
-                  }
-              }
+            }
         }
-
     };
 
     public QueryResultSet<Assay> getAssay(AssayQuery atlasAssayQuery) throws GxaException{
@@ -266,6 +295,10 @@ public class AtlasDao implements Dao {
 
         QueryResultSet<Sample> result = new QueryResultSet<Sample>();
         CallableStatement stmt = null;
+        ResultSet rsSamples = null;
+        ResultSet rsAssays = null;
+        ResultSet rsProperties = null;
+
 
         try{
           stmt = connection.prepareCall("{call AtlasAPI.a2_SampleGet(?,?,?,?,?)}");
@@ -281,9 +314,9 @@ public class AtlasDao implements Dao {
 
           ArrayList<Sample> assays = new ArrayList<Sample>();
 
-          ResultSet rsSamples = (ResultSet) stmt.getObject(3);
-          ResultSet rsAssays = (ResultSet) stmt.getObject(4);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(5);
+          rsSamples = (ResultSet) stmt.getObject(3);
+          rsAssays = (ResultSet) stmt.getObject(4);
+          rsProperties = (ResultSet) stmt.getObject(5);
 
           rsAssays.next();
           rsProperties.next();
@@ -337,15 +370,23 @@ public class AtlasDao implements Dao {
             throw new GxaException(ex.getMessage());
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
+               try{
+                    if (stmt != null)
+                          stmt.close();
+
+                   if(rsSamples != null)
+                          rsSamples.close();
+
+                   if(rsAssays != null)
+                         rsAssays.close();
+
+                   if(rsProperties != null)
+                         rsProperties.close();
+
                   }
                   catch(Exception ex){
                       throw new GxaException(ex.getMessage());
                   }
-              }
         }
     };
 
@@ -378,6 +419,7 @@ public class AtlasDao implements Dao {
 
     public QueryResultSet<Property> getProperty(PropertyQuery atlasPropertyQuery, PageSortParams pageSortParams) throws GxaException{
         CallableStatement stmt = null;
+        ResultSet rsProperties = null;
 
         ArrayList<Property> properties = new ArrayList<Property>();
 
@@ -392,7 +434,7 @@ public class AtlasDao implements Dao {
 
           stmt.execute();
 
-          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
+          rsProperties = (ResultSet) stmt.getObject(3);
 
           String currentPropertyID = "0";
 
@@ -427,15 +469,17 @@ public class AtlasDao implements Dao {
             throw new GxaException(ex);
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                       stmt.close();
+               try{
+                    if (stmt != null)
+                          stmt.close();
+
+                   if(rsProperties != null)
+                         rsProperties.close();
+
                   }
                   catch(Exception ex){
                       throw new GxaException(ex.getMessage());
                   }
-              }
         }
     };
 
@@ -455,6 +499,8 @@ public class AtlasDao implements Dao {
 
         QueryResultSet<Gene> result = new QueryResultSet<Gene>();
         CallableStatement stmt = null;
+        ResultSet rsGenes = null;
+        ResultSet rsProperties = null;
 
         try{
           stmt = connection.prepareCall("{call AtlasAPI.a2_GeneGet(?,?,?,?)}");
@@ -469,8 +515,8 @@ public class AtlasDao implements Dao {
 
           ArrayList<Gene> genes = new ArrayList<Gene>();
 
-          ResultSet rsGenes = (ResultSet) stmt.getObject(3);
-          ResultSet rsProperties = (ResultSet) stmt.getObject(4);
+          rsGenes = (ResultSet) stmt.getObject(3);
+          rsProperties = (ResultSet) stmt.getObject(4);
 
           rsProperties.next();
 
@@ -512,15 +558,20 @@ public class AtlasDao implements Dao {
             throw new GxaException(ex);
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
+               try{
+                    if (stmt != null)
+                          stmt.close();
+
+                   if(rsGenes != null)
+                         rsGenes.close();
+
+                   if(rsProperties != null)
+                         rsProperties.close();
+
                   }
                   catch(Exception ex){
                       throw new GxaException(ex.getMessage());
                   }
-              }
         }
     };
 
@@ -688,6 +739,8 @@ public class AtlasDao implements Dao {
 
     public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery, PageSortParams pageSortParams) throws GxaException{
         CallableStatement stmt = null;
+        ResultSet rsProperties = null;
+
         ArrayList<Property> properties = new ArrayList<Property>();
 
         try{
@@ -701,7 +754,7 @@ public class AtlasDao implements Dao {
 
           stmt.execute();
 
-          ResultSet rsProperties = (ResultSet) stmt.getObject(3);
+          rsProperties = (ResultSet) stmt.getObject(3);
 
           String currentPropertyID = "0";
 
@@ -736,15 +789,17 @@ public class AtlasDao implements Dao {
             throw new GxaException(ex);
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                       stmt.close();
+               try{
+                    if (stmt != null)
+                          stmt.close();
+
+                   if(rsProperties != null)
+                         rsProperties.close();
+
                   }
                   catch(Exception ex){
                       throw new GxaException(ex.getMessage());
                   }
-              }
         }
     };
     public QueryResultSet<Property> getGeneProperty(GenePropertyQuery atlasGenePropertyQuery) throws GxaException{
