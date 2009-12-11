@@ -35,7 +35,7 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetArrayDesign() throws IOException {
-        System.out.println("ArrayDesign: " + netCDF.getArrayDesign());
+        System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
     }
 
     public void testGetAssays() throws IOException {

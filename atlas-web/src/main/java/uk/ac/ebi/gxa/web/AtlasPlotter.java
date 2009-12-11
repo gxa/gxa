@@ -132,7 +132,7 @@ public class AtlasPlotter {
                     List<AtlasTuple> atlasTuples = atlasGene.getTopFVs(Long.valueOf(experimentID));
 
                     for (AtlasTuple at : atlasTuples) {
-                        if (at.getEf().equalsIgnoreCase(efToPlot.substring(3)) && !at.getEfv().equals("V1")) {
+                        if (at.getEf().equalsIgnoreCase(efToPlot) && !at.getEfv().equals("V1")) {
                             topFVs.add(at.getEfv().toLowerCase());
                         }
                     }
@@ -169,7 +169,7 @@ public class AtlasPlotter {
         sb.append("}");
         String geneIndexStr = sb.toString();
 
-        log.debug("Creating plot... EF: " + ef + ", Top FVs: " + topFVStr + ", Gene indices: " + geneIndexStr);
+        log.debug("Creating plot... EF: {}, Top FVs: {}, Gene indices: {}", new Object[]{ef, topFVStr, geneIndexStr});
 
         // the data for our plot
         JSONObject plotData = new JSONObject();
@@ -186,7 +186,7 @@ public class AtlasPlotter {
             String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
             // sort the factor values into a good order
-            Integer[] sortedFVindexes = sortFVs(fvs);
+            Integer[] sortedFVIndices = sortFVs(fvs);
 
             // get the datapoints we want, indexed by factor value and gene
             Map<String, Map<Integer, List<Double>>> datapoints =
@@ -202,11 +202,11 @@ public class AtlasPlotter {
             // map holding mean data
             Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
 
-            for (int factorValueIndex : sortedFVindexes) {
+            for (int factorValueIndex : sortedFVIndices) {
                 // get the factor value at this index
                 String factorValue = fvs[factorValueIndex];
-                log.debug("Next factor value is '" + factorValue + "', starting at datapoint index " +
-                        datapointIndex);
+                log.debug("Next factor value is '{}', starting at datapoint index {}",
+                          new Object[]{factorValue, datapointIndex});
 
                 // now extract datapoints for this factor value
                 Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
@@ -237,7 +237,7 @@ public class AtlasPlotter {
                         // store this point in our series data
                         seriesData.put(point);
 
-                        log.trace("Adding datapoint: " + point.toString() + " for " + ef + ";" + factorValue);
+                        log.trace("Adding datapoint: {} for {};{}", new Object[]{point.toString(), ef, factorValue});
 
                         // if we haven't done so, calculate mean data
                         if (!meanDataByFactorValue.containsKey(factorValue)) {
@@ -269,6 +269,12 @@ public class AtlasPlotter {
                     series.put("legend", new JSONObject("{show:false}"));
                     counter++;
                     insignificantSeries = true;
+                    StringBuffer sb2 = new StringBuffer();
+                    for (String topFV : topFVs) {
+                        sb2.append(topFV).append(", ");
+                    }
+                    log.debug("Factor value: " + factorValue + " not present in topFVs (" + sb2.toString() + "), " +
+                            "flagging this series insignificant");
                 }
 
                 seriesList.put(series);
@@ -307,7 +313,8 @@ public class AtlasPlotter {
         sb.append("}");
         String geneIndexStr = sb.toString();
 
-        log.debug("Creating thumbnail plot... EF: " + ef + ", EFV: " + efv + ", Gene indices: " + geneIndexStr);
+        log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, Gene indices: {}",
+                  new Object[]{ef, efv, geneIndexStr});
 
         // the data for our plot
         JSONObject plotData = new JSONObject();
@@ -320,7 +327,7 @@ public class AtlasPlotter {
             String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
             // sort the factor values into a good order
-            Integer[] sortedFVindexes = sortFVs(fvs);
+            Integer[] sortedFVIndices = sortFVs(fvs);
 
             // get the datapoints we want, indexed by factor value and gene
             Map<String, Map<Integer, List<Double>>> datapoints =
@@ -335,7 +342,7 @@ public class AtlasPlotter {
             int index = 1;
 
             // iterate over each factor value (in sorted order)
-            for (int factorValueIndex : sortedFVindexes) {
+            for (int factorValueIndex : sortedFVIndices) {
                 // get the factor value at this index
                 String factorValue = fvs[factorValueIndex];
 
@@ -418,8 +425,8 @@ public class AtlasPlotter {
         sb.append("}");
         String geneIndexStr = sb.toString();
 
-        log.debug("Creating big plot... EF: " + ef + ", Gene Names: " + topFVStr + ", Gene plot Ids: " + gplotIds +
-                ", Gene indices: " + geneIndexStr);
+        log.debug("Creating big plot... EF: {}, Gene Names: {}, Gene plot ids: {}, Gene indices: {}",
+                  new Object[]{ef, topFVStr, gplotIds, geneIndexStr});
 
         // the data for our plot
         JSONObject plotData = new JSONObject();
@@ -435,13 +442,20 @@ public class AtlasPlotter {
             Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
             String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
 
-            // sort the factor values into a good order
-            Integer[] sortedFVindexes = sortFVs(fvs);
+            // sort the unique factor values into a good order
+            Integer[] sortedFVIndices = sortFVs(fvs);
+
+            // get the list of all factor values
+            String[] allfvs = netCDF.getFactorValues(ef);
+
+            // sort all factor values into a good order
+            Integer[] sortedAllFVIndices = sortFVs(allfvs);
 
             // get the whole data matrix
             double[][] datamatrix = netCDF.getExpressionMatrix();
 
             // iterate over design elements axis
+            // fixme: this assumes gene indices and design element indices are the same, actually we need to do a lookup
             for (int i = 0; i < geneIndices.size(); i++) {
                 int geneIndex = geneIndices.get(i);
 
@@ -459,7 +473,7 @@ public class AtlasPlotter {
                     point.put(x + 0.5);
 
                     // get the data point for the assay for this (sorted) factor value
-                    Double datapoint = geneData[sortedFVindexes[x]];
+                    Double datapoint = geneData[sortedAllFVIndices[x]];
 
                     // store this datapoint
                     point.put(datapoint <= -1000000 ? null : datapoint);
@@ -495,8 +509,8 @@ public class AtlasPlotter {
             String markings = "";
 
             // iterate over each factor value (in sorted order)
-            for (int i = 0; i < sortedFVindexes.length; i++) {
-                int factorValueIndex = sortedFVindexes[i];
+            for (int i = 0; i < sortedFVIndices.length; i++) {
+                int factorValueIndex = sortedFVIndices[i];
 
                 // get the factor value at this index
                 String factorValue = fvs[factorValueIndex];
@@ -519,35 +533,44 @@ public class AtlasPlotter {
                 cursor += sampleCount;
             }
 
+            // add the rest of the data for the required genes to this plot
+            plotData.put("series", seriesList);
+            plotData.put("markings", markings);
+
             // create an array of assays, sorted by factor value
             JSONStringer sortedAssayIds = new JSONStringer();
             sortedAssayIds.array();
             int[] unSortedAssayIds = netCDF.getAssays();
             for (int i = 0; i < unSortedAssayIds.length; i++) {
-                sortedAssayIds.value(unSortedAssayIds[sortedFVindexes[i]]);
+                sortedAssayIds.value(unSortedAssayIds[sortedAllFVIndices[i]]);
             }
             sortedAssayIds.endArray();
 
-            // add the rest of the data for the required genes to this plot
-            plotData.put("series", seriesList);
-            plotData.put("markings", markings);
-            plotData.put("assay_ids", sortedAssayIds);
-
+            // create an array of characteristics
             JSONStringer sampleChars = new JSONStringer();
             JSONStringer sampleCharValues = new JSONStringer();
             getCharacteristics(netCDF, sampleChars, sampleCharValues);
 
+            // get array design id
+            int adID = netCDF.getArrayDesignID();
+            if (adID == -1) {
+                log.warn("Looking up ADid from database - this will not be supported in future releases");
+                adID = atlasSearchService.getAtlasDatabaseDAO()
+                        .getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
+            }
+
             plotData.put("sAttrs", getSampleAttributes(netCDF));
+            plotData.put("assay_ids", sortedAssayIds);
             plotData.put("assay2samples", getSampleAssayMap(netCDF, ef));
             plotData.put("characteristics", sampleChars);
             plotData.put("charValues", sampleCharValues);
-            plotData.put("currEF", ef.substring(3));
-            plotData.put("ADid", netCDF.getArrayDesign());
+            plotData.put("currEF", ef);
+            plotData.put("ADid", adID);
             // fixme: this should be returning the small subset of values appropriate to this factor, NOT everthing!!
             plotData.put("geneNames", getJSONarray(geneNames));
             plotData.put("DEids", getJSONarrayFromIntArray(netCDF.getDesignElements(), geneIndices));
             plotData.put("GNids", getJSONarrayFromIntArray(netCDF.getGenes(), geneIndices));
-            plotData.put("EFs", getJSONarrayFromStringArray(netCDF.getFactors()));
+            plotData.put("EFs", getJSONarrayFromStringArray(stripLegacyPrefixes(netCDF.getFactors())));
         }
         catch (JSONException e) {
             log.error("Error construction JSON!", e);
@@ -569,22 +592,26 @@ public class AtlasPlotter {
             sampleAttrs.object();
             for (String scar : characteristics) {
                 String charValue = netCDF.getCharacteristicValues(scar)[i];
-
-                sampleAttrs.key(scar.substring(3)).value(charValue);
+                sampleAttrs.key(stripLegacyPrefixes(scar)[0]).value(stripLegacyPrefixes(charValue)[0]);
             }
             sampleAttrs.endObject();
         }
 
         int[] assays = netCDF.getAssays();
-        String[] efs = netCDF.getFactors();
+        String[] efs = stripLegacyPrefixes(netCDF.getFactors());
         for (int i = 0; i < assays.length; i++) {
             int assay_id = assays[i];
             sampleAttrs.key("a" + Integer.toString(assay_id));
             sampleAttrs.object();
             for (String ef : efs) {
-                if (!characteristicsSet.contains("bs_" + ef.substring(3))) {
+                if (!characteristicsSet.contains(ef) && !characteristicsSet.contains("bs_" + ef)) {
+                    StringBuffer charSetBuffer = new StringBuffer();
+                    for (String s : characteristicsSet) {
+                        charSetBuffer.append(s).append(",");
+                    }
+                    log.trace("Factor {} not found in characteristics set {}", ef, charSetBuffer.toString());
                     String factorValue = netCDF.getFactorValues(ef)[i];
-                    sampleAttrs.key(ef.substring(3)).value(factorValue);
+                    sampleAttrs.key(stripLegacyPrefixes(ef)[0]).value(stripLegacyPrefixes(factorValue)[0]);
                 }
             }
             sampleAttrs.endObject();
@@ -595,22 +622,46 @@ public class AtlasPlotter {
     }
 
     public JSONStringer getSampleAssayMap(NetCDFProxy netCDF, String ef) throws JSONException, IOException {
-        JSONStringer map = new JSONStringer();
+        // get factor values, ordering is the same as assays
         String[] efvs = netCDF.getFactorValues(ef);
-        Integer[] sortedFVindexes = sortFVs(efvs);
-        int[][] assays2samples = netCDF.getAssaysToSamples();
+        // sort them logically
+        Integer[] sortedFVIndices = sortFVs(efvs);
+        // get all samples, and the assay2samples mapping matrix - these have the same ordering
+        int[] assays = netCDF.getAssays();
+        int[] samples = netCDF.getSamples();
+        int[][] samples2assays = netCDF.getSamplesToAssays();
 
+        Map<Integer, List<String>> assayPositionToSamples = new HashMap<Integer, List<String>>();
+        for (int sampleIndex = 0; sampleIndex < samples2assays.length; sampleIndex++) {
+            int[] bs2as = samples2assays[sampleIndex];
+            for (int assayIndex : sortedFVIndices) {
+                if (bs2as[assayIndex] == 1) {
+                    log.trace("BS2AS mapping: " +
+                            "sample index " + sampleIndex + "[" + samples[sampleIndex] + "], " +
+                            "assay index " + assayIndex + "[" + assays[assayIndex] + "] " +
+                            "(for factor " + ef + " and factor value " + efvs[assayIndex]);
+
+                    // insert this sample into the map
+                    String sampleRef = "s" + samples[sampleIndex];
+                    if (assayPositionToSamples.get(assayIndex) == null) {
+                        assayPositionToSamples.put(assayIndex, new ArrayList<String>());
+                    }
+                    assayPositionToSamples.get(assayIndex).add(sampleRef);
+                }
+            }
+        }
+
+        JSONStringer map = new JSONStringer();
         map.array();
-        for (int i = 0; i < efvs.length; i++) {
-            int assayIndex = sortedFVindexes[i];
-            int[] samples = assays2samples[assayIndex];
+        for (int assayIndex : sortedFVIndices) {
             map.array();
-            for (Integer sample : samples) {
-                map.value("s" + sample);
+            for (String sampleRef : assayPositionToSamples.get(assayIndex)) {
+                map.value(sampleRef);
             }
             map.endArray();
         }
         map.endArray();
+
         return map;
     }
 
@@ -619,12 +670,16 @@ public class AtlasPlotter {
 
         sampleChars.array();
         sampleCharValues.object();
-        for (String characteristic : netCDF.getCharacteristics()) {
+        for (String characteristic : stripLegacyPrefixes(netCDF.getCharacteristics())) {
             sampleChars.value(characteristic);
             sampleCharValues.key(characteristic);
             sampleCharValues.array();
 
-            for (String charValue : netCDF.getCharacteristicValues(characteristic)) {
+            // get all characteristic values
+            Set<String> uniqueSCVs = new HashSet<String>(Arrays.asList(netCDF.getCharacteristicValues(characteristic)));
+            String[] scvs = uniqueSCVs.toArray(new String[uniqueSCVs.size()]);
+
+            for (String charValue : scvs) {
                 sampleCharValues.value(charValue);
             }
             sampleCharValues.endArray();
@@ -794,5 +849,20 @@ public class AtlasPlotter {
         }
 
         return datapointsByFactorValue;
+    }
+
+    private static String[] stripLegacyPrefixes(String... strings) {
+        String[] result = new String[strings.length];
+        int i = 0;
+        for (String s : strings) {
+            if (s.startsWith("bs_") || s.startsWith("ba_")) {
+                result[i] = s.substring(3);
+            }
+            else {
+                result[i] = s;
+            }
+            i++;
+        }
+        return result;
     }
 }

@@ -312,6 +312,9 @@ public class ExperimentNetCDFGeneratorService
                 "ADaccession",
                 arrayDesign.getAccession());
         netcdfFile.addGlobalAttribute(
+                "ADid",
+                arrayDesign.getArrayDesignID());
+        netcdfFile.addGlobalAttribute(
                 "ADname",
                 arrayDesign.getName());
 

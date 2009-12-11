@@ -65,12 +65,24 @@ public class NetCDFProxy {
         return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 
-    public String getArrayDesign() throws IOException {
+    public String getArrayDesignAccession() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
+    }
+
+    public int getArrayDesignID() throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        if (netCDF.findGlobalAttribute("ADid") != null) {
+            return Integer.parseInt(netCDF.findGlobalAttribute("ADid").getStringValue());
+        }
+
+        return -1;
     }
 
     public int[] getAssays() throws IOException {
@@ -99,7 +111,7 @@ public class NetCDFProxy {
         }
     }
 
-    public int[][] getAssaysToSamples() throws IOException {
+    public int[][] getSamplesToAssays() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
