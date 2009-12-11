@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.model.impl; /**
  * User: Andrey
  * Date: Oct 27, 2009
  * Time: 1:56:37 PM
- * To change this template use File | Settings | File Template s.
+ * To change this template u se File | Settings | File Templates.
  */
 
 import uk.ac.ebi.gxa.model.*;
@@ -36,7 +36,7 @@ public class AtlasDao implements Dao {
             this.value = value;
         }
     }
-    
+
     public void setExpressionStatDao(ExpressionStatDao expressionStatDao) {
         this.expressionStatDao = expressionStatDao;
     }
@@ -50,7 +50,7 @@ public class AtlasDao implements Dao {
         try{
 
             DriverManager.registerDriver (new oracle.jdbc.OracleDriver());
-            
+
             connection = (OracleConnection) DriverManager.getConnection(connectionString,userName,password);
         }
         catch(Exception ex){
@@ -71,7 +71,7 @@ public class AtlasDao implements Dao {
           AtlasDB.setArrayDesignQuery(stmt,1,atlasArrayDesignQuery);
 
           AtlasDB.setPageSortParams(stmt,2,pageSortParams);
-            
+
           stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //arrayDesigns
           stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //designElements
 
@@ -126,7 +126,7 @@ public class AtlasDao implements Dao {
               a.setProperties(new AtlasPropertyCollection(assayproperties));
               assays.add(a);
           }*/
-            
+
 
           return null;
         }
@@ -191,7 +191,7 @@ public class AtlasDao implements Dao {
             AtlasAssay a = new AtlasAssay();
 
             int AssayID = rsAssays.getInt("AssayId");
-                                                                                                              
+
             a.setid(AssayID);
             a.setAccession(rsAssays.getString("Accession"));
             a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
@@ -362,86 +362,12 @@ public class AtlasDao implements Dao {
     ////Experiment
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery, PageSortParams pageSortParams) throws GxaException{
-        QueryResultSet<Experiment> result = new QueryResultSet<Experiment>();
-        CallableStatement stmt = null;
-
-        try{
-          stmt = connection.prepareCall("{call AtlasAPI.a2_ExperimentGet(?,?,?,?,?)}");
-
-          AtlasDB.setExperimentQuery(stmt,1,atlasExperimentQuery, this); //pass ref to DAO, method pulls list of PropertyDs
-          AtlasDB.setPageSortParams(stmt,2,pageSortParams);
-
-          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //experiments
-          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //samples
-          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //assays
-
-          stmt.execute();
-
-          ArrayList<Experiment> experiments = new ArrayList<Experiment>();
-
-          ResultSet rsExperiments = (ResultSet) stmt.getObject(3);
-          ResultSet rsSamples = (ResultSet) stmt.getObject(4);
-          ResultSet rsAssays = (ResultSet) stmt.getObject(5);
-
-          rsSamples.next();
-          rsAssays.next();
-
-          while(rsExperiments.next()){
-            AtlasExperiment a = new AtlasExperiment();
-
-            int ExperimentID = rsExperiments.getInt("ExperimentID");
-
-            a.setid(ExperimentID);
-            a.setAccession(rsExperiments.getString("Accession"));
-            //a.setExperimentAccession(rsAssays.getString("ExperimentAccession"));
-
-            ArrayList<String> assayAccessions = new ArrayList<String>();
-
-            while(ExperimentID == rsAssays.getInt("ExperimentId")){
-                assayAccessions.add(rsAssays.getString("Accession"));
-
-                if(!rsAssays.next())
-                    break;
-            }
-
-              ArrayList<String> sampleAccessions = new ArrayList<String>();
-
-              while(ExperimentID == rsSamples.getInt("ExperimentId")){
-                  sampleAccessions.add(rsSamples.getString("Accession"));
-
-                  if(!rsSamples.next())
-                      break;
-              }
-
-            a.setAssayAccessions(assayAccessions);
-
-            a.setSampleAccessions(sampleAccessions);
-
-            experiments.add(a);
-        }
-
-        result.setItems(experiments);
-        return result;
-        }
-        catch(Exception ex){
-            throw new GxaException(ex.getMessage());
-        }
-        finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
-                  }
-                  catch(Exception ex){
-                      throw new GxaException(ex.getMessage());
-                  }
-              }
-        }
+        throw new GxaException("not implemented");
     };
 
     public QueryResultSet<Experiment> getExperiment(ExperimentQuery atlasExperimentQuery) throws GxaException{
         return getExperiment(atlasExperimentQuery, new PageSortParams());
-    };                                                                                                         
+    };
 
     public Experiment                 getExperimentByAccession(AccessionQuery accessionQuery) throws GxaException{
         QueryResultSet<Experiment> result = this.getExperiment(new ExperimentQuery(accessionQuery));
@@ -862,7 +788,7 @@ public class AtlasDao implements Dao {
             java.sql.ResultSet rs = null;
             try{
                 if(connection!=null){
-                dm = connection.getMetaData(); 
+                dm = connection.getMetaData();
                     System.out.println("\nDriver Information");
                     System.out.println("\tDriver Name: "+ dm.getDriverName());
                     System.out.println("\tDriver Version: "+ dm.getDriverVersion ());
@@ -885,4 +811,4 @@ public class AtlasDao implements Dao {
             } dm=null;
         }
     }
- 
+
