@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.model.impl; /**
  * User: Andrey
  * Date: Oct 27, 2009
  * Time: 1:56:37 PM
- * To change this template use File | Settings | File Templates.
+ * To change this template use File | Settings | File Template s.
  */
 
 import uk.ac.ebi.gxa.model.*;
