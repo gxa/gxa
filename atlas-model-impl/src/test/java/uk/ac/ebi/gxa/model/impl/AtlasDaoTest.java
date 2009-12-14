@@ -9,6 +9,7 @@ import uk.ac.ebi.gxa.db.utils.AtlasDB;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.util.Date;
 
 /**
  * Created by IntelliJ IDEA.
@@ -169,11 +170,19 @@ public class AtlasDaoTest {
 
     @Test
     public void test_getGene() throws Exception{
+        for(int i=0; i!=1000; i++){
+        long l_begin = (new Date()).getTime();
+
         Gene gene = dao.getGene(new GeneQuery().hasId("170040868")).getItem();  //? ????-?? ?? ????????. ge.getGene=170040868,
+
+        long l_end = (new Date()).getTime();
+
+        long t = l_end - l_begin;
 
         assertNotNull(gene);
 
         Assert.assertEquals(gene.getId(),170040868);
+        }
     }
 
     @Test
