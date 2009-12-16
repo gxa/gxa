@@ -406,6 +406,10 @@ public class AtlasDao implements Dao {
                 QueryResultSet<Experiment> result = new QueryResultSet<Experiment>();
         CallableStatement stmt = null;
 
+        ResultSet rsExperiments = null;
+        ResultSet rsSamples = null;
+        ResultSet rsAssays = null;
+
         try{
           stmt = connection.prepareCall("{call AtlasAPI.a2_ExperimentGet(?,?,?,?,?)}");
 
@@ -420,9 +424,9 @@ public class AtlasDao implements Dao {
 
           ArrayList<Experiment> experiments = new ArrayList<Experiment>();
 
-          ResultSet rsExperiments = (ResultSet) stmt.getObject(3);
-          ResultSet rsSamples = (ResultSet) stmt.getObject(4);
-          ResultSet rsAssays = (ResultSet) stmt.getObject(5);
+          rsExperiments = (ResultSet) stmt.getObject(3);
+          rsSamples = (ResultSet) stmt.getObject(4);
+          rsAssays = (ResultSet) stmt.getObject(5);
 
           rsSamples.next();
           rsAssays.next();
@@ -468,15 +472,23 @@ public class AtlasDao implements Dao {
             throw new GxaException(ex.getMessage());
         }
         finally {
-              if (stmt != null) {
-                // close statement
-                  try{
-                stmt.close();
-                  }
-                  catch(Exception ex){
-                      throw new GxaException(ex.getMessage());
-                  }
-              }
+            try{
+                 if (stmt != null)
+                       stmt.close();
+
+                if(rsSamples != null)
+                       rsSamples.close();
+
+                if(rsAssays != null)
+                      rsAssays.close();
+
+                if(rsExperiments != null)
+                      rsExperiments.close();
+
+               }
+               catch(Exception ex){
+                   throw new GxaException(ex.getMessage());
+               }
         }
     };
 

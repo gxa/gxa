@@ -15,8 +15,8 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
     private List<String> species = new ArrayList<String>();
 
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
-    private List<PropertyQuery> propertyQueries = new ArrayList<PropertyQuery>();
-    private List<PropertyQuery> propertyNotQueries = new ArrayList<PropertyQuery>();
+    private List<GenePropertyQuery> propertyQueries = new ArrayList<GenePropertyQuery>();
+    private List<GenePropertyQuery> propertyNotQueries = new ArrayList<GenePropertyQuery>();
 
     public GeneQuery(){};
 
@@ -29,12 +29,12 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
         return this;
     }
 
-    public GeneQuery hasProperty(PropertyQuery propertyQuery) {
+    public GeneQuery hasProperty(GenePropertyQuery propertyQuery) {
         propertyQueries.add(propertyQuery);
         return this;
     }
 
-    public GeneQuery hasNotProperty(PropertyQuery propertyQuery) {
+    public GeneQuery hasNotProperty(GenePropertyQuery propertyQuery) {
         propertyNotQueries.add(propertyQuery);
         return this;
     }
@@ -43,7 +43,7 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
         return experimentQueries;
     }
 
-    public List<PropertyQuery> getPropertyQueries() {
+    public List<GenePropertyQuery> getPropertyQueries() {
         return propertyQueries;
     }
 
@@ -57,7 +57,7 @@ public class GeneQuery extends AccessionQuery<GeneQuery> {
     }
 
 
-    public List<PropertyQuery> getPropertyNotQueries() {
+    public List<GenePropertyQuery> getPropertyNotQueries() {
         return propertyNotQueries;
     }
 }
