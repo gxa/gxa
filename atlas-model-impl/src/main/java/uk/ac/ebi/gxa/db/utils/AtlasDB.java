@@ -149,7 +149,7 @@ public class AtlasDB {
         //pull IDs from DB - IO heavy
         if (null != geneQuery.getPropertyQueries() && (0 < geneQuery.getPropertyQueries().size())) {
             PropertyIDs = ToObjectArray(stmt.getConnection(),
-                                        dao.getPropertyIDs(geneQuery.getPropertyQueries().get(0))); //first query
+                                        dao.getGenePropertyIDs(geneQuery.getPropertyQueries().get(0))); //first query
         }
 
         //nested accession query
