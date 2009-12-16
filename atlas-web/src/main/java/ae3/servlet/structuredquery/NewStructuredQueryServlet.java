@@ -145,7 +145,7 @@ public class NewStructuredQueryServlet extends HttpServlet {
 
                 GeneQuery gq = new GeneQuery();
                 for(GeneQueryCondition g : atlasQuery.getGeneConditions()) {
-                    PropertyQuery propq = new PropertyQuery().hasAccession(g.getFactor());
+                    GenePropertyQuery propq = new GenePropertyQuery().hasAccession(g.getFactor());
                     for(String v : g.getFactorValues())
                         propq.fullTextQuery(v);
                     if(g.isNegated())
