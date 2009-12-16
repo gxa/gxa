@@ -1,9 +1,12 @@
 package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.kchine.r.RDataFrame;
+import org.kchine.r.RList;
+import org.kchine.r.RObject;
 import org.kchine.r.server.RServices;
 import server.DirectJNI;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
@@ -129,10 +132,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             getLog().info("Generating analytics for experiment " + experimentAccession);
 
             // create a R service - DirectJNI gets an R service on the local machine
-            RServices rs = DirectJNI.getInstance().getRServices();
+            RServices rs = getAtlasRFactory().createRServices();
+//            RServices rs = DirectJNI.getInstance().getRServices();
 
             // load the R code that runs the analytics
-            rs.sourceFromResource("analytics.R");
+            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
             // work out where the NetCDF(s) are located
             final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
@@ -144,15 +148,60 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             });
 
             for (File netCDF : netCDFs) {
-                String callSim = "computeAnalytics(" + netCDF + "')";
-                RDataFrame analytics = (RDataFrame) rs.getObject(callSim);
+//                String callSim = "computeAnalytics(" + netCDF + "')";
+//                RList analytics = (RList) rs.getObject(callSim);
 
-                analytics.getRowNames(); // todo - write analytics back to the database
+                rs.getObject("computeAnalytics("  + netCDF.getAbsolutePath() + ")");
+
+                RObject r = rs.getObject("computeAnalytics('/ebi/ArrayExpress-files/NetCDFs.ATLAS.OTTO/325701228_170473054.nc')");//rs.getObject("2+2");
+
+                // experiment design
+//                > pData(eset)
+//             ba_genmodif        ba_genotype
+//325701235 gene_knock_out miRNA-1-2 knockout
+//325701236 gene_knock_out miRNA-1-2 knockout
+//325701237           none          wild_type
+//325701238 gene_knock_out miRNA-1-2 knockout
+//325701239           none          wild_type
+//325701240           none          wild_type
+
+
+                // after analytics, variable length as long as nr of EFs
+//               > names(res)
+//[1] "ba_genmodif" "ba_genotype"
+
+//                for(i = 0 ... ///String ef : analytics.getNames()) {
+//                    RObject[] analyticsFrames = analytics.getValue();
+
+
+                    // for each EF get a data frame looking like
+
+//                > head(res[["ba_genotype"]],n=2)
+//                 A        t.1        t.2 p.value.1 p.value.2 p.value.adj.1
+//172585796 8.514054 -0.1442487  0.1442487 0.8884583 0.8884583     0.9996772
+//172611612 6.596359  0.2683077 -0.2683077 0.7944649 0.7944649     0.9996772
+//          p.value.adj.2 Res.miRNA-1-2 knockout Res.wild_type          F
+//172585796     0.9996772                      0             0 0.02080768
+//172611612     0.9996772                      0             0 0.07198903
+//          F.p.value F.p.value.adj  Genes.gn  Genes.de  Genes.ID
+//172585796 0.8884583     0.9996772 169918541 172585796 172585796
+//172611612 0.7944649     0.9996772 169918541 172611612 172611612
+
+
+                // ((RDataFrame) analyticsFrames[0]).getRowNames();
+//                ((RDataFrame) analyticsFrames[0]).getData();
+                //   these are the column headings above - .N corresponds to the EFV numbers in the EF
+                //   Res.XYZ to the EFV names, Res.XYZ contains -1,0,1 up/dn, t.N - tstat, p.value.adj.N - p vals, Genes.gn - gene id,
+                //   genes.de - designelt id, F.p.value.adj - per EF.
+  //              }
             }
 
             getLog().info("Finalising analytics changes for " + experimentAccession);
         }
         catch (IOException e) {
+            throw new AnalyticsGeneratorException(e);
+        }
+        catch (AtlasRServicesException e) {
             throw new AnalyticsGeneratorException(e);
         }
     }
@@ -167,7 +216,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         StringBuffer sb = new StringBuffer();
         String line;
         while ((line = reader.readLine()) != null) {
-            sb.append(line);
+            sb.append(line).append("\n");
         }
 
         String rCode = sb.toString();

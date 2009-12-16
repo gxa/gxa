@@ -6,6 +6,7 @@ function handleKeyPress(e, form) {
         form.submit();
     }
 }
+;
 
 /**
  * Build the index for experiments and/or genes, depending on how the IndexBuilder service is configured in the backend.
@@ -17,92 +18,140 @@ function buildIndex(pendingOnly, form) {
     form.pending.value = pendingOnly;
     form.submit();
 }
+;
 
-function checkLoadDetails(accession) {
-    // kick off periodical updates for these load details
-    progressupdater = new Ajax.PeriodicalUpdater('trash', url, {
-        asynchronous:true,
-        onSuccess:function(request) {
-            var json = eval("(" + request.responseText + ")");
-            var done = false;
+function checkLoadDetails(accession, objectType) {
+    alert("Checking for " + accession);
+    // first create the row to make sure we've got the correct dom structure, and show it's updating
+    createUpdatingRow(accession, objectType);
 
-            if (json.cancelled)
-            {
-                done = true;
-                log.info(json.message + " - Reasoner process cancelled");
-                $('statusinfo').innerHTML += json.message + "<br/><b>Reasoner process cancelled</b>";
-            }
-            else
-            {
-                if (json.finished)
-                {
-                    done = true;
-                    log.info(json.message + " - Reasoner process complete");
-                    $('statusinfo').innerHTML += json.message + "<br/><b>Reasoner process complete</b>";
-                }
-                else
-                {
-                    done = false;
-
-                    if (json.message == "")
-                    {
-                        $('statusinfo').innerHTML = "<i>Initialising...</i><br/>";
-                    }
-                    else
-                    {
-                        log.info(json.message);
-                        $('statusinfo').innerHTML = json.message + "<br/>";
-                    }
-                }
-            }
-
-            if (done)
-            {
-                progressupdater.stop();
-            }
-        },
-        frequency:1,
-        method: 'post',
-        parameters: {action: 'checkReasonerStatus'},
-        onFailure: reportError
-    });
+    // now trigger the update to write back the correct details
+    progressupdater =
+    Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'ajaxType':'periodical', 'doOnSuccess':updateLoadDetails});
 }
+;
 
-function writeWorkingElement() {
+var updateLoadDetails = function(json) {
+    // this is the doOnSuccess method for AJAX responses for LoadDetails
+    var done = false;
 
-}
+    if (json.failedLoad = "true") {
+        // load failed, write appropriate element
+        done = true;
+        writeFailedLoadRow(json.accession, json.loadType);
+    }
+    else {
+        // check netcdf, analytics, index to see if any are still working
+        var netcdf = json.netcdf;
+        if (netcdf == "working") {
+            writeWorkingElement(json.accession, json.loadType, "netcdf");
+        }
+        else {
+            if (netcdf == "pending") {
+                writePendingElement(json.accession, json.loadType, "netcdf");
+            }
+            else {
+                // done or failed?
+                if (netcdf == "failed") {
+                    writeFailedElement(json.accession, json.loadType, "netcdf");
+                }
+                else {
+                    writeDoneElement(json.accession, json.loadType, "netcdf");
+                }
+            }
+        }
 
-function writeDoneElement(accession, elementType) {
-    var elementID;
-    var formID;
+        var analytics = json.analytics;
+        if (analytics == "working") {
+            writeWorkingElement(json.accession, json.loadType, "analytics");
+        }
+        else {
+            if (analytics == "pending") {
+                writePendingElement(json.accession, json.loadType, "analytics");
+            }
+            else {
+                // done or failed?
+                if (analytics == "failed") {
+                    writeFailedElement(json.accession, json.loadType, "analytics");
+                }
+                else {
+                    writeDoneElement(json.accession, json.loadType, "analytics");
+                }
+            }
+        }
+
+        var index = json.index;
+        if (index == "working") {
+            writeWorkingElement(json.accession, json.loadType, "index");
+        }
+        else {
+            if (index == "pending") {
+                writePendingElement(json.accession, json.loadType, "index");
+            }
+            else {
+                // done or failed?
+                if (index == "failed") {
+                    writeFailedElement(json.accession, json.loadType, "index");
+                }
+                else {
+                    writeDoneElement(json.accession, json.loadType, "index");
+                }
+            }
+        }
+    }
+
+    if (done) {
+        progressupdater.stop();
+    }
+};
+
+var createUpdatingRow = function(accession, objectType) {
+    // check the row first of all - might need to insert new <td> elements
+    var rowID = extractTableRowID(accession, objectType);
+
+    document.getElementById(rowID).innerHTML =
+    "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
+    "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
+    "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>" +
+    "</td>" +
+    "<td id=\"" + objectType + "_" + accession + "_analytics\" align=\"left\">" +
+    "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>" +
+    "</td>" +
+    "<td id=\"" + objectType + "_" + accession + "_index\" align=\"left\">" +
+    "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>" +
+    "</td>";
+};
+
+var writeWorkingElement = function(accession, objectType, elementType) {
+    var elementID = extractTableColumnID(accession, objectType, elementType);
+
+    document.getElementById(rowID).innerHTML =
+    "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>";
+};
+
+var writeDoneElement = function(accession, objectType, elementType) {
+    var elementID = extractTableColumnID(accession, objectType, elementType);
+    var formID = elementID + "_form";
     var formAction;
     var buttonName;
 
     // element type one of index, netcdf, analytics
     if (elementType == "index") {
-        elementID = "expt_" + accession + "_index";
-        formAction = "dereschedule.web";
+        formAction = "doreschedule.web";
     }
-    else if (elementType == "netcdf") {
-        elementID = "expt_" + accession + "_index";
-        formAction = "donetcdf.web";
+    else if (elementType == "netcdf" || elementType == "analytics") {
+        formAction = "do" + elementType + ".web";
     }
-    else if (elementType == "analytics") {
-            elementID = "expt_" + accession + "_index";
-            formAction = "doanalytics.web";
-        }
-        else {
-            alert("Unrecoginsed element type: " + elementType + " not known!");
-            return;
-        }
+    else {
+        alert("Unrecognised element type: " + elementType + " not known!");
+        return;
+    }
 
     formID = elementID + "_form";
     buttonName = "regenerate";
 
-    $(elementID).innerHTML = "<td>" +
-                             "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
-                             "</td>" +
-                             "<td>" +
+    document.getElementById(rowID).innerHTML =
+    "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
                              "<form id=\"" + formID + "\"" +
                              "action=\"" + formAction + "\"" +
                              "method=\"post\"" +
@@ -110,45 +159,106 @@ function writeDoneElement(accession, elementType) {
                              "<input type=\"hidden\" name=\"type\" value=\"<%=details.getLoadType()%>\"/>" +
                              "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
                              "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
-                             "</form>" +
-                             "</td>";
+                             "</form>";
+};
+
+var writePendingElement = function(accession, objectType, elementType) {
+    var elementID = extractTableColumnID(accession, objectType, elementType);
+    var formID = elementID + "_form";
+    var formAction;
+    var buttonName;
+
+    // element type one of index, netcdf, analytics
+    if (elementType == "index") {
+        document.getElementById(rowID).innerHTML =
+        "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
+    }
+    else if (elementType == "netcdf" || elementType == "analytics") {
+        formAction = "do" + elementType + ".web";
+        formID = elementID + "_form";
+        buttonName = "generate";
+
+        document.getElementById(rowID).innerHTML =
+        "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\">" +
+                                 "<form id=\"" + formID + "\"" +
+                                 "action=\"" + formAction + "\"" +
+                                 "method=\"post\"" +
+                                 "enctype=\"application/x-www-form-urlencoded\">" +
+                                 "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
+                                 "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+                                 "<input type=\"button\" value=\"" + buttonName +
+                                 "\" onclick=\"this.form.submit();\"/>" +
+                                 "</form>";
+    }
+    else {
+        alert("Unrecognised element type: " + elementType + " not known!");
+        return;
+    }
+};
+
+var writeFailedElement = function(accession, objectType, elementType) {
+    var elementID = extractTableColumnID(accession, objectType, elementType);
+    var formID = elementID + "_form";
+    var formAction;
+    var buttonName;
+
+    // element type one of index, netcdf, analytics
+    if (elementType == "index") {
+        document.getElementById(rowID).innerHTML =
+        "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
+    }
+    else if (elementType == "netcdf" || elementType == "analytics") {
+        formAction = "do" + elementType + ".web";
+        formID = elementID + "_form";
+        buttonName = "retry";
+
+        document.getElementById(rowID).innerHTML =
+        "<img src=\"../images/red-cross.png\" alt=\"failed\" align=\"left\">" +
+                                 "<form id=\"" + formID + "\"" +
+                                 "action=\"" + formAction + "\"" +
+                                 "method=\"post\"" +
+                                 "enctype=\"application/x-www-form-urlencoded\">" +
+                                 "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
+                                 "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+                                 "<input type=\"button\" value=\"" + buttonName +
+                                 "\" onclick=\"this.form.submit();\"/>" +
+                                 "</form>";
+    }
+    else {
+        alert("Unrecognised element type: " + elementType + " not known!");
+        return;
+    }
 }
 
-function writePendingElement() {
+var writeFailedLoadRow = function(accession, objectType) {
+    // check the row first of all - might need to insert new <td> elements
+    var rowID = extractTableRowID(accession, objectType);
 
-}
+    document.getElementById(rowID).innerHTML =
+    "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
+                         "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
+                         "<img src=\"../images/dialog-warning.png\" alt=\"Failed load!\"/>This load failed, please reload!" +
+                         "</td>" +
+                         "<td id=\"" + objectType + "_" + accession + "_analytics\" align=\"left\">" +
+                         "</td>" +
+                         "<td id=\"" + objectType + "_" + accession + "_index\" align=\"left\">" +
+                         "</td>";
+};
 
-// table row html
-//<tr id="expt_<%=expt.getAccession()%>">
-//    <td id="expt_<%=expt.getAccession()%>_accession"><%=expt.getAccession()%></td>
-//    <td id="expt_<%=expt.getAccession()%>_index" colspan="2"> - if working, whirly, else if done green tick form, else red cross form </td>
-//    <td id="expt_<%=expt.getAccession()%>_netcdf" colspan="2"> - if working, whirly, else if done green tick form, else red cross form </td>
-//    <td id="expt_<%=expt.getAccession()%>_analytics" colspan="2"> - if working, whirly, else if done green tick form, else red cross form </td>
-//</tr>
+var extractTableRowID = function(accession, objectType) {
+    // element type can be gene or experiment
+    if (objectType == "experiment") {
+        return "expt_" + accession;
+    }
+    else if (objectType == "gene") {
+        return "gene_" + accession;
+    }
+    else {
+        alert("Bad object type: " + objectType);
+        return null;
+    }
+};
 
-// green tick columns
-//    <td>
-//        <img src="../images/green-tick.png" alt="done" align="left">
-//    </td>
-//    <td>
-//        <!-- form to regenerate NetCDF -->
-//        <form id="{my.form.id}"
-//        name="{action.name}"
-//        action="{post.request}"
-//        method="post"
-//        enctype="application/x-www-form-urlencoded">
-//
-//            <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-//            <input type="hidden" name="accession" value="<%=accession%>"/>
-//            <input type="button" value="{button.name}" onclick="this.form.submit();"/>
-//        </form>
-//    </td>
-
-// red cross columns
-//    <td>
-//        <img src="../images/red-cross.png" alt="pending" align="left">
-//    </td>
-//    <td>
-//        Pending indexing
-//    </td>
-
+var extractTableColumnID = function(accession, objectType, elementType) {
+    return extractTableRowID(accession, objectType) + "_" + elementType;
+};

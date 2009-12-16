@@ -18,6 +18,8 @@
 <html>
 <head>
     <script src="admin.js" type="text/javascript" language="JavaScript"></script>
+    <script src="prototype.js" type="text/javascript" language="JavaScript"></script>
+    <script src="fluxion-ajax.js" type="text/javascript" language="JavaScript"></script>
     <title>Atlas Administration - Load or recompute data in the Atlas</title>
 </head>
 <body>

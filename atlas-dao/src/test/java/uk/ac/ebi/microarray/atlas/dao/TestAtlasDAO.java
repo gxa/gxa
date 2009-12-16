@@ -473,4 +473,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             fail();
         }
     }
+
+    public void testWriteAssays() {
+        // create test assay
+        Assay assay = new Assay();
+        assay.setAccession("assay-test-assay-1");
+    }
 }

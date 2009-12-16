@@ -71,4 +71,23 @@
         <property name="repositoryLocation" ref="atlasNetCDFs"/>
     </bean>
 
+    <!-- Analytics Generator component -->
+
+    <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
+        <!-- DAO for data access, ready-to-use -->
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <!-- repository of NetCDFs, local filesystem directory -->
+        <property name="repositoryLocation" ref="atlasNetCDFs"/>
+        <!-- atlasRFactory provides access to RServices independent of environment -->
+        <property name="atlasRFactory" ref="atlasRFactory"/>
+    </bean>
+
+    <!--Configure R workbench -->
+    <!-- note that no-arg factory method reads R.properties from classpath, and possibly biocep.properties too -->
+    <bean name="atlasRFactory" factory-bean="atlasRFactoryBuilder" factory-method="buildAtlasRFactory"/>
+
+    <bean name="atlasRFactoryBuilder"
+          class="uk.ac.ebi.gxa.R.AtlasRFactoryBuilder"
+          factory-method="getAtlasRFactoryBuilder"/>
+    
 </beans>

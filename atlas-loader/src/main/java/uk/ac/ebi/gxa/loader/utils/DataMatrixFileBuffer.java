@@ -166,6 +166,10 @@ public class DataMatrixFileBuffer {
             // read line by line - but if assay refs are missing, we don't want to warn every time
             Set<String> missingAssayRefColumns = new HashSet<String>();
 
+            // fields we need to set to update the data matrix representation
+            String designElement;
+            Float evFloatValue;
+
             // NB this uses same reader we used to parse headers, so just continue reading
             int lineCount = 0;
             while ((line = reader.readLine()) != null) {
@@ -174,7 +178,7 @@ public class DataMatrixFileBuffer {
                 if (!line.trim().equals("")) {
                     if (!line.startsWith("#")) {
                         String[] tokens = line.split("\t");
-                        String designElement = tokens[0];
+                        designElement = tokens[0];
 
                         // ignore header lines
                         String maybeHeader = MAGETABUtils.digestHeader(designElement);
@@ -218,11 +222,13 @@ public class DataMatrixFileBuffer {
                                         }
                                     }
                                     else {
-                                        Float evFloatValue = Float.parseFloat(tokens[refToEVColumn.get(assayRef)]);
+                                        evFloatValue = Float.parseFloat(tokens[refToEVColumn.get(assayRef)]);
                                         // finished reading, store in buffer...
                                         refToEVs.get(assayRef).put(designElement, evFloatValue);
                                         // and now add to result map
                                         result.get(assayRef).put(designElement, evFloatValue);
+                                        // reset to null to be sure we don't reuse it accidentally
+                                        evFloatValue = null;
                                     }
                                 }
                             }
