@@ -307,9 +307,7 @@ public class ExpressionStatDao {
                                                                         try {
                                                                             return dao.getExperimentByAccession(new AccessionQuery<AccessionQuery>().hasId(String.valueOf(experimentExpression.getId()))).getAccession();
                                                                         } catch(GxaException e) {
-                                                                            return null;
-                                                                            // throw new RuntimeException(e);
-                                                                            // TODO: okay for now
+                                                                            throw new RuntimeException(e);
                                                                         }
                                                                     }
 
@@ -387,7 +385,7 @@ public class ExpressionStatDao {
                                             }
                                         }
                                     } catch (GxaException e) {
-                                        // TODO: okay for now
+                                        throw new RuntimeException(e);
                                     }
                                 }
                         } else if(ff.getName().startsWith("gene_")) {
@@ -417,7 +415,7 @@ public class ExpressionStatDao {
 
     private void appendGeneQuery(SolrQueryBuilder sqb, GeneQuery geneq) throws GxaException {
         
-        for(PropertyQuery propertyQuery : geneq.getPropertyQueries()) {
+        for(GenePropertyQuery propertyQuery : geneq.getPropertyQueries()) {
             List<String> values = new ArrayList<String>(propertyQuery.getValues());
             values.addAll(propertyQuery.getFullTextQueries());
             sqb.andGeneProperty(propertyQuery.getAccession(), values);
