@@ -721,6 +721,19 @@ public class AtlasDao implements Dao {
         }
     }
 
+    public Integer[] getGenePropertyIDs(GenePropertyQuery atlasGenePropertyQuery) throws GxaException{
+        try{
+
+         RequestByID request = new RequestByID("AtlasAPI.a2_GenePropertyGet_ID");
+         AtlasDB.setGenePropertyQuery(request.getSatatement(),2,atlasGenePropertyQuery,this);
+         return request.execute();
+
+        }
+        catch(Exception ex){
+            throw new GxaException(ex.getMessage());
+        }
+    }
+
     public Integer[] getSampleIDs(SampleQuery atlasSampleQuery) throws GxaException{
         try{
 
