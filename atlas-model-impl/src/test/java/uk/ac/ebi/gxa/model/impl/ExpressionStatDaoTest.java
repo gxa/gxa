@@ -245,7 +245,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
                 new ExpressionStatQuery().hasGene(new GeneQuery().hasProperty(
-                        new PropertyQuery().hasAccession("species").fullTextQuery("Homo"))
+                        new GenePropertyQuery().hasAccession("species").fullTextQuery("Homo"))
                 ),
                 new PageSortParams()
         );
