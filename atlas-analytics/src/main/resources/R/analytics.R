@@ -221,7 +221,7 @@ process.atlas.nc<-
 }
 
 ### Atlas analytics, returns instead of writing
-process.atlas.nc2 <-
+computeAnalytics <-
 function (nc)
 {
   eset = read.atlas.nc(nc)

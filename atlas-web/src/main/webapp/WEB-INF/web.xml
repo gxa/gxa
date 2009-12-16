@@ -53,6 +53,7 @@
         <param-value>
             WEB-INF/beans.xml
             WEB-INF/atlasApplicationContext.xml
+            WEB-INF/fluxion/ajax.xml
         </param-value>
     </context-param>
     <!-- localization -->
