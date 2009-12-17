@@ -4,44 +4,54 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="atlasAnalyticsController" class="uk.ac.ebi.gxa.web.controller.AtlasAnalyticsController">
-        <property name="analyticsGenerator" ref="analyticsGenerator" />
-        <property name="successView" value="redirect:admin.jsp" />
+        <property name="analyticsGenerator" ref="analyticsGenerator"/>
+        <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 
     <bean id="atlasIndexController" class="uk.ac.ebi.gxa.web.controller.AtlasIndexController">
-        <property name="indexBuilder" ref="indexBuilder" />
-        <property name="successView" value="redirect:admin.jsp" />
+        <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 
     <bean id="atlasLoadController" class="uk.ac.ebi.gxa.web.controller.AtlasLoadController">
-        <property name="loader" ref="atlasLoader" />
-        <property name="successView" value="redirect:admin.jsp" />
+        <property name="loader" ref="atlasLoader"/>
+        <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 
     <bean id="atlasNetCDFController" class="uk.ac.ebi.gxa.web.controller.AtlasNetCDFController">
-        <property name="netCDFGenerator" ref="netCDFGenerator" />
-        <property name="successView" value="redirect:admin.jsp" />
+        <property name="netCDFGenerator" ref="netCDFGenerator"/>
+        <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 
     <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.web.controller.AtlasReschedulerController">
-        <property name="atlasDAO" ref="atlasLoaderDAO" />
-        <property name="successView" value="redirect:admin.jsp" />
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="successView" value="redirect:admin.jsp"/>
     </bean>
+
+    <bean id="ajaxController" class="net.sourceforge.fluxion.ajax.controller.AjaxController">
+        <property name="ajaxExporter" ref="ajaxExporter"/>
+        <property name="ajaxHandler" ref="ajaxHandler"/>
+    </bean>
+
+    <bean id="ajaxExporter" class="net.sourceforge.fluxion.ajax.AjaxExporter"/>
+
+    <bean id="ajaxHandler" class="net.sourceforge.fluxion.ajax.handler.impl.AjaxHandlerImpl"/>
 
     <!-- handler mapping for incoming requests -->
     <bean id="handlerMapping"
           class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
         <property name="urlMap">
             <map>
-                <entry key="admin/doload.web" value-ref="atlasLoadController" />
-                <entry key="admin/doindex.web" value-ref="atlasIndexController" />
-                <entry key="admin/donetcdf.web" value-ref="atlasNetCDFController" />
-                <entry key="admin/doanalytics.web" value-ref="atlasAnalyticsController" />
-                <entry key="admin/doreschedule.web" value-ref="atlasReschedulerController" />
+                <entry key="admin/doload.web" value-ref="atlasLoadController"/>
+                <entry key="admin/doindex.web" value-ref="atlasIndexController"/>
+                <entry key="admin/donetcdf.web" value-ref="atlasNetCDFController"/>
+                <entry key="admin/doanalytics.web" value-ref="atlasAnalyticsController"/>
+                <entry key="admin/doreschedule.web" value-ref="atlasReschedulerController"/>
+                <entry key="admin/ajax.web" value-ref="ajaxController"/>
             </map>
         </property>
     </bean>
 
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" />
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"/>
 
 </beans>
