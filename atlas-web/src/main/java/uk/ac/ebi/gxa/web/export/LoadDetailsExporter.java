@@ -49,6 +49,8 @@ public class LoadDetailsExporter {
 
     public JSONObject getLoadDetails(HttpSession session, JSONObject input) {
         try {
+            log.info("Getting load details for " + input.toString());
+
             // extract accession param
             String accession = input.getString("accession");
 

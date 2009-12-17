@@ -21,7 +21,6 @@ function buildIndex(pendingOnly, form) {
 ;
 
 function checkLoadDetails(accession, objectType) {
-    alert("Checking for " + accession);
     // first create the row to make sure we've got the correct dom structure, and show it's updating
     createUpdatingRow(accession, objectType);
 
@@ -32,6 +31,7 @@ function checkLoadDetails(accession, objectType) {
 ;
 
 var updateLoadDetails = function(json) {
+    alert("Updating load details for " + json);
     // this is the doOnSuccess method for AJAX responses for LoadDetails
     var done = false;
 
@@ -109,7 +109,7 @@ var createUpdatingRow = function(accession, objectType) {
     // check the row first of all - might need to insert new <td> elements
     var rowID = extractTableRowID(accession, objectType);
 
-    document.getElementById(rowID).innerHTML =
+    $(rowID).innerHTML =
     "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
     "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
     "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>" +
@@ -125,7 +125,7 @@ var createUpdatingRow = function(accession, objectType) {
 var writeWorkingElement = function(accession, objectType, elementType) {
     var elementID = extractTableColumnID(accession, objectType, elementType);
 
-    document.getElementById(rowID).innerHTML =
+    $(elementID).innerHTML =
     "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>";
 };
 
@@ -150,7 +150,7 @@ var writeDoneElement = function(accession, objectType, elementType) {
     formID = elementID + "_form";
     buttonName = "regenerate";
 
-    document.getElementById(rowID).innerHTML =
+    $(elementID).innerHTML =
     "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
                              "<form id=\"" + formID + "\"" +
                              "action=\"" + formAction + "\"" +
@@ -170,7 +170,7 @@ var writePendingElement = function(accession, objectType, elementType) {
 
     // element type one of index, netcdf, analytics
     if (elementType == "index") {
-        document.getElementById(rowID).innerHTML =
+        $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
     }
     else if (elementType == "netcdf" || elementType == "analytics") {
@@ -178,7 +178,7 @@ var writePendingElement = function(accession, objectType, elementType) {
         formID = elementID + "_form";
         buttonName = "generate";
 
-        document.getElementById(rowID).innerHTML =
+        $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\">" +
                                  "<form id=\"" + formID + "\"" +
                                  "action=\"" + formAction + "\"" +
@@ -204,7 +204,7 @@ var writeFailedElement = function(accession, objectType, elementType) {
 
     // element type one of index, netcdf, analytics
     if (elementType == "index") {
-        document.getElementById(rowID).innerHTML =
+        $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
     }
     else if (elementType == "netcdf" || elementType == "analytics") {
@@ -212,7 +212,7 @@ var writeFailedElement = function(accession, objectType, elementType) {
         formID = elementID + "_form";
         buttonName = "retry";
 
-        document.getElementById(rowID).innerHTML =
+        $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"failed\" align=\"left\">" +
                                  "<form id=\"" + formID + "\"" +
                                  "action=\"" + formAction + "\"" +
@@ -234,7 +234,7 @@ var writeFailedLoadRow = function(accession, objectType) {
     // check the row first of all - might need to insert new <td> elements
     var rowID = extractTableRowID(accession, objectType);
 
-    document.getElementById(rowID).innerHTML =
+    $(rowID).innerHTML =
     "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
                          "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
                          "<img src=\"../images/dialog-warning.png\" alt=\"Failed load!\"/>This load failed, please reload!" +
@@ -248,7 +248,7 @@ var writeFailedLoadRow = function(accession, objectType) {
 var extractTableRowID = function(accession, objectType) {
     // element type can be gene or experiment
     if (objectType == "experiment") {
-        return "expt_" + accession;
+        return "experiment_" + accession;
     }
     else if (objectType == "gene") {
         return "gene_" + accession;

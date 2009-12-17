@@ -19,7 +19,9 @@ Installation Instructions for the Gene Expression Atlas
  this database.
 
  This database must be an Oracle database (preferrably a recent release - we use 11g).  If you have an oracle database
- ready, you can download and install the Atlas 2 schema using this SQL script: [link required].
+ ready, you can download and install the Atlas 2 schema using the bundle of SQL scripts provided here: {{{http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}},
+ or alternatively grab the database export from FTP.  There are instructions on how to do that provided here:
+ {{{beta-release.html}beta-release.html}}.
 
 ** SOLR Index and NetCDF Repository
 

@@ -109,13 +109,13 @@
                 <td id="experiment_<%=expt.getAccession()%>_accession"><%=expt.getAccession()%>
                 </td>
                 <td id="experiment_<%=expt.getAccession()%>_netcdf" align="left">
-                    <img src="../images/ajax-loader.gif" alt="checking status with database..."/>
+                    <img src="../images/ajax-loader.gif" alt="?"/>
                 </td>
                 <td id="experiment_<%=expt.getAccession()%>_analytics" align="left">
-                    <img src="../images/ajax-loader.gif" alt="checking status with database..."/>
+                    <img src="../images/ajax-loader.gif" alt="?"/>
                 </td>
                 <td id="experiment_<%=expt.getAccession()%>_index" align="left">
-                    <img src="../images/ajax-loader.gif" alt="checking status with database..."/>
+                    <img src="../images/ajax-loader.gif" alt="?"/>
                 </td>
             </tr>
             <%

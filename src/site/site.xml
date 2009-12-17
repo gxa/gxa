@@ -31,6 +31,7 @@
 
         <menu name="Release Info">
             <item name="Alpha release" href="alpha-release.html"/>
+            <item name="Beta release" href="beta-release.html"/>
         </menu>
 
         <menu name="Project Links">
