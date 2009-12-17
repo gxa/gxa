@@ -31,10 +31,10 @@ function checkLoadDetails(accession, objectType) {
 ;
 
 var updateLoadDetails = function(json) {
-    alert("Updating load details for " + json);
     // this is the doOnSuccess method for AJAX responses for LoadDetails
     var done = false;
 
+    alert("Updating load details for " + json.accession);
     if (json.failedLoad = "true") {
         // load failed, write appropriate element
         done = true;
@@ -152,14 +152,14 @@ var writeDoneElement = function(accession, objectType, elementType) {
 
     $(elementID).innerHTML =
     "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
-                             "<form id=\"" + formID + "\"" +
-                             "action=\"" + formAction + "\"" +
-                             "method=\"post\"" +
-                             "enctype=\"application/x-www-form-urlencoded\">" +
-                             "<input type=\"hidden\" name=\"type\" value=\"<%=details.getLoadType()%>\"/>" +
-                             "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
-                             "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
-                             "</form>";
+    "<form id=\"" + formID + "\"" +
+    "action=\"" + formAction + "\"" +
+    "method=\"post\"" +
+    "enctype=\"application/x-www-form-urlencoded\">" +
+    "<input type=\"hidden\" name=\"type\" value=\"<%=details.getLoadType()%>\"/>" +
+    "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+    "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
+    "</form>";
 };
 
 var writePendingElement = function(accession, objectType, elementType) {
@@ -180,15 +180,15 @@ var writePendingElement = function(accession, objectType, elementType) {
 
         $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\">" +
-                                 "<form id=\"" + formID + "\"" +
-                                 "action=\"" + formAction + "\"" +
-                                 "method=\"post\"" +
-                                 "enctype=\"application/x-www-form-urlencoded\">" +
-                                 "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
-                                 "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
-                                 "<input type=\"button\" value=\"" + buttonName +
-                                 "\" onclick=\"this.form.submit();\"/>" +
-                                 "</form>";
+        "<form id=\"" + formID + "\"" +
+        "action=\"" + formAction + "\"" +
+        "method=\"post\"" +
+        "enctype=\"application/x-www-form-urlencoded\">" +
+        "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
+        "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+        "<input type=\"button\" value=\"" + buttonName +
+        "\" onclick=\"this.form.submit();\"/>" +
+        "</form>";
     }
     else {
         alert("Unrecognised element type: " + elementType + " not known!");
@@ -214,15 +214,15 @@ var writeFailedElement = function(accession, objectType, elementType) {
 
         $(elementID).innerHTML =
         "<img src=\"../images/red-cross.png\" alt=\"failed\" align=\"left\">" +
-                                 "<form id=\"" + formID + "\"" +
-                                 "action=\"" + formAction + "\"" +
-                                 "method=\"post\"" +
-                                 "enctype=\"application/x-www-form-urlencoded\">" +
-                                 "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
-                                 "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
-                                 "<input type=\"button\" value=\"" + buttonName +
-                                 "\" onclick=\"this.form.submit();\"/>" +
-                                 "</form>";
+        "<form id=\"" + formID + "\"" +
+        "action=\"" + formAction + "\"" +
+        "method=\"post\"" +
+        "enctype=\"application/x-www-form-urlencoded\">" +
+        "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
+        "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
+        "<input type=\"button\" value=\"" + buttonName +
+        "\" onclick=\"this.form.submit();\"/>" +
+        "</form>";
     }
     else {
         alert("Unrecognised element type: " + elementType + " not known!");
@@ -236,13 +236,13 @@ var writeFailedLoadRow = function(accession, objectType) {
 
     $(rowID).innerHTML =
     "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
-                         "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
-                         "<img src=\"../images/dialog-warning.png\" alt=\"Failed load!\"/>This load failed, please reload!" +
-                         "</td>" +
-                         "<td id=\"" + objectType + "_" + accession + "_analytics\" align=\"left\">" +
-                         "</td>" +
-                         "<td id=\"" + objectType + "_" + accession + "_index\" align=\"left\">" +
-                         "</td>";
+    "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
+    "<img src=\"../images/dialog-warning.png\" alt=\"Failed load!\"/>This load failed, please reload!" +
+    "</td>" +
+    "<td id=\"" + objectType + "_" + accession + "_analytics\" align=\"left\">" +
+    "</td>" +
+    "<td id=\"" + objectType + "_" + accession + "_index\" align=\"left\">" +
+    "</td>";
 };
 
 var extractTableRowID = function(accession, objectType) {

@@ -125,8 +125,7 @@
         <script type="text/javascript">
             window.onload = function() {
                 var exptArray = eval('(<%=json.toString()%>)');
-                for (var i = 0; i < exptArray.length; i++) {
-                    alert("next expt: " + exptArray[i]);
+                for (var i = 0; i < 10; i++) {
                     checkLoadDetails(exptArray[i], "experiment");
                 }
             };
