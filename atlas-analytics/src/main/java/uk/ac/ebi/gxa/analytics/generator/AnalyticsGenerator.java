@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
-import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
@@ -45,20 +45,20 @@ public interface AnalyticsGenerator<T> {
     T getRepositoryLocation();
 
     /**
-     * Set the {@link uk.ac.ebi.gxa.R.AtlasRFactory} that will be used to obtain {@link org.kchine.r.server.RServices}
-     * for this generator.
+     * Set the {@link uk.ac.ebi.gxa.analytics.compute.AtlasComputeService} that will be used to run R computations for
+     * this generator.
      *
-     * @param atlasRFactory the AtlasRFactory to acquire {@link org.kchine.r.server.RServices} from
+     * @param atlasComputeService the atlas compute service that we will use to run our R analyses.
      */
-    void setAtlasRFactory(AtlasRFactory atlasRFactory);
+    void setAtlasComputeService(AtlasComputeService atlasComputeService);
 
     /**
-     * Set the {@link uk.ac.ebi.gxa.R.AtlasRFactory} that will be used to obtain {@link org.kchine.r.server.RServices}
-     * for this generator.
+     * Set the {@link uk.ac.ebi.gxa.analytics.compute.AtlasComputeService} that will be used to run R computations for
+     * this generator.
      *
-     * @return the AtlasRFactory to acquire {@link org.kchine.r.server.RServices} from
+     * @return the atlas compute service that we will use to run our R analyses.
      */
-    AtlasRFactory getAtlasRFactory();
+    AtlasComputeService getAtlasComputeService();
 
     /**
      * Initialise this IndexBuilder and any resources required by it.

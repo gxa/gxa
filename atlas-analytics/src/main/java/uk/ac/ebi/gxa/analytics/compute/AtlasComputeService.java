@@ -52,11 +52,12 @@ public class AtlasComputeService implements Compute {
             return task.compute(rService);
         }
         catch (Exception e) {
-            log.error("Problem computing task!", e.getMessage());
+            log.error("Problem computing task! ({})", e.getMessage());
+            e.printStackTrace();
             return null;
         }
         finally {
-            if (null != rService) {
+            if (rService != null) {
                 try {
                     log.info("Recycling R service");
                     getAtlasRFactory().recycleRServices(rService);

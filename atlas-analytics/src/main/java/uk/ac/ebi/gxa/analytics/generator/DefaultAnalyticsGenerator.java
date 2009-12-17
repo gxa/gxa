@@ -3,11 +3,11 @@ package uk.ac.ebi.gxa.analytics.generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.File;
@@ -24,7 +24,7 @@ import java.util.concurrent.*;
 public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, InitializingBean {
     private AtlasDAO atlasDAO;
     private File repositoryLocation;
-    private AtlasRFactory atlasRFactory;
+    private AtlasComputeService atlasComputeService;
 
     private AnalyticsGeneratorService analyticsService;
 
@@ -51,12 +51,12 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
         this.repositoryLocation = repositoryLocation;
     }
 
-    public AtlasRFactory getAtlasRFactory() {
-        return atlasRFactory;
+    public AtlasComputeService getAtlasComputeService() {
+        return atlasComputeService;
     }
 
-    public void setAtlasRFactory(AtlasRFactory atlasRFactory) {
-        this.atlasRFactory = atlasRFactory;
+    public void setAtlasComputeService(AtlasComputeService atlasComputeService) {
+        this.atlasComputeService = atlasComputeService;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -78,7 +78,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
             }
 
             // create the service
-            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, repositoryLocation, atlasRFactory);
+            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, repositoryLocation, atlasComputeService);
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();
