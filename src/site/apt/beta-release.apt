@@ -1,0 +1,101 @@
+ ------
+ Gene Expression Atlas
+ ------
+ Tony Burdett
+ ------
+ 16/12/2009
+ ------
+
+Gene Expression Atlas, Beta Release
+
+* What's in the Beta Release
+
+ The beta release is a fully featured (with a couple of minor exceptions) release of the standalone version of the Gene
+ Expression Atlas, ready for beta testing.  It contains the following components:
+
+ * The atlas interface,
+
+ * A loader for MAGE-TAB format data,
+
+ * A NetCDF generator component that generates NetCDF files required by the interface and statistical analysis packages,
+
+ * A tool for generating the statistical analyses using R,
+
+ * An Index Builder, that generates the SOLR index used by the atlas web interface,
+
+ * An installer for building the Atlas Standalone suite, customized to a specific environment.
+
+ * An early version of an administrator interface for interacting with the above components through a Web UI.
+
+ []
+
+ The installer requires an Atlas 2 database to be installed locally, and also requires sufficient diskspace allocated to
+ build the NetCDF and SOLR index files.  It also requires a local installation of R; more notes on this below.
+
+** Note on the Atlas Database
+
+ Before installing the standalone Atlas, you will need to have created a database that conforms to the Atlas 2
+ specification.  To construct an Atlas 2 compliant database, you can download the bundle of sql scripts from
+ {{{http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}},
+ or build the database directly from a dump we provide.  This dump contains all the array designs and associated data,
+ and is available from the EBI FTP site - follow the instructiuons below to obtain this.
+
+*** Atlas 2 Database Dump
+
+ ftp to ftp1.ebi.ac.uk
+ Name and password are both 'aexpress'
+
+ This is a restricted ftp site, so you won't be able to list the contents, and to download the files you need to know
+ the file names - these are ATLAS2_AEDWT.dmp for the database export, and ATLAS2_AEDWT.log for the associated log file.
+ Use the get command to download them to your working directory.
+
+ Then, quit to exit.
+
+ Your session should look something like this
+
++------
+>: ftp ftp1.ebi.ac.uk
+Connected to ftp1.ebi.ac.uk.
+220-
+220- ftp1.ebi.ac.uk FTP server
+220
+Name (ftp1.ebi.ac.uk:***): aexpress
+331 Please specify the password.
+Password:
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> get ATLAS2_AEDWT.dmp
+local: ATLAS2_AEDWT.dmp remote: ATLAS2_AEDWT.dmp
+200 PORT command successful. Consider using PASV.
+150 Opening BINARY mode data connection for ATLAS2_AEDWT.dmp (41356427264 bytes).
+
+ftp> quit
+>:
++------
+
+** Notes on the Data Loading
+
+ The loader requires array designs, and associated data, to be prepopulated prior to experiment loading.  There is an
+ array design loading component currently in development, but it didn't make it into the beta, so you will need a
+ dump of some of the data already in the ArrayExpress Atlas before you can start loading data, as discussed above.
+
+ You will also need your data stored in MAGE-TAB format.  The MAGE-TAB specification is
+ {{{http://www.mged.org/mage-tab/MAGE-TABv1.0.pdf}here}}.  Please contact me ({{{mailto:tburdett@ebi.ac.uk}tburdett@ebi.ac.uk}})
+ if you need advice on how to reformat your current data.
+
+** Notes on R
+
+ The Atlas Analytics data process requires an installation of R to run.  The bridge between the Atlas webapp and the
+ local/cloud-based R installation is still a little buggy.  The database export does currently contain our analytics
+ data computed internally.  The analytics workbench will be fixed shortly, so may not work correctly right now.
+
+** Notes on Admin tools
+
+ There is an atlas "admin page" for interacting with the various components of the standalone atlas.  This is located
+ at /admin/admin.jsp under the atlas interface, on startup.  On this page there is a facility for invoking loads,
+ netcdf generations, index rebuilds, etc.  This is synchronized with a load monitoring table in the database, and so
+ presents up to date information about the status of experiments in the database.  But, this is still a relatively early
+ release and so you should take care to avoid invoking multiple duplicate loads or indexing operations at this point.
+
+ Thanks, Tony.

@@ -5,11 +5,11 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>1.0-beta-SNAPSHOT</version>
+        <version>1.0-beta</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>indexbuilder</artifactId>
-    <version>1.0-beta-SNAPSHOT</version>
+    <version>1.0-beta</version>
     <packaging>jar</packaging>
     <name>Gene Expression Atlas Indexbuilder</name>
     <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
@@ -20,12 +20,12 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>1.0-beta-SNAPSHOT</version>
+            <version>1.0-beta</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>
-            <version>1.0-beta-SNAPSHOT</version>
+            <version>1.0-beta</version>
         </dependency>
 
         <dependency>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>1.0-beta-SNAPSHOT</version>
+            <version>1.0-beta</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
