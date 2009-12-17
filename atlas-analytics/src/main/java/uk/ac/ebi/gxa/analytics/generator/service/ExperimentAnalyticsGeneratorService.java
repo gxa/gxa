@@ -2,20 +2,21 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.kchine.r.RDataFrame;
 import org.kchine.r.RList;
-import org.kchine.r.RObject;
+import org.kchine.r.RNumeric;
+import org.kchine.r.RArray;
 import org.kchine.r.server.RServices;
-import server.DirectJNI;
-import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRServicesException;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.rmi.RemoteException;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -29,8 +30,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                File repositoryLocation,
-                                               AtlasRFactory atlasRFactory) {
-        super(atlasDAO, repositoryLocation, atlasRFactory);
+                                               AtlasComputeService atlasComputeService) {
+        super(atlasDAO, repositoryLocation, atlasComputeService);
     }
 
     protected void createAnalytics() throws AnalyticsGeneratorException {
@@ -128,34 +129,73 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
-        try {
-            getLog().info("Generating analytics for experiment " + experimentAccession);
+        getLog().info("Generating analytics for experiment " + experimentAccession);
 
-            // create a R service - DirectJNI gets an R service on the local machine
-            RServices rs = getAtlasRFactory().createRServices();
-//            RServices rs = DirectJNI.getInstance().getRServices();
+        // work out where the NetCDF(s) are located
+        final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
+        File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
 
-            // load the R code that runs the analytics
-            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+            public boolean accept(File file, String name) {
+                return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
+            }
+        });
 
-            // work out where the NetCDF(s) are located
-            final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-            File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
+        for (final File netCDF : netCDFs) {
+            ComputeTask<RList> computeAnalytics = new ComputeTask<RList>() {
+                public RList compute(RServices rs) throws RemoteException {
+                    try {
+                        // first, make sure we load the R code that runs the analytics
+                        rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
-                public boolean accept(File file, String name) {
-                    return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
+                        // fixme: this MUST be on the same filesystem where the workers run
+                        return (RList) rs.getObject(
+                                "computeAnalytics('/ebi/ArrayExpress-files/NetCDFs.ATLAS.OTTO/325701228_170473054.nc')");
+//                        return (RList) rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                        throw new RemoteException("Unable to load R source from R/analytics.R");
+                    }
                 }
-            });
+            };
 
-            for (File netCDF : netCDFs) {
-//                String callSim = "computeAnalytics(" + netCDF + "')";
-//                RList analytics = (RList) rs.getObject(callSim);
+            // now run this compute task
+            RList analytics = getAtlasComputeService().computeTask(computeAnalytics);
 
-                rs.getObject("computeAnalytics("  + netCDF.getAbsolutePath() + ")");
+            // analytics is a list of named frames - getNames[i] should corresponde to getValue[i] ?
+            // loop over every named frame in the list - names are EFs
+            int efIndex = 0;
+            for (String ef : analytics.getNames()) {
+                if (analytics.getValue().length > efIndex && analytics.getValue()[efIndex] != null) {
+                    // this is the analytics data frame for a single EF
+                    RDataFrame analyticsFrame = (RDataFrame) analytics.getValue()[efIndex];
 
-                RObject r = rs.getObject("computeAnalytics('/ebi/ArrayExpress-files/NetCDFs.ATLAS.OTTO/325701228_170473054.nc')");//rs.getObject("2+2");
+                    // iterate over the data row by row
+                    RList efData = analyticsFrame.getData();
 
-                // experiment design
+                    // map efData names to the 
+
+                    for (int rowIndex = 0; rowIndex < analyticsFrame.getRowNames().length; rowIndex++) {
+                        // next row
+                        StringBuffer sb = new StringBuffer();
+                        sb.append(analyticsFrame.getRowNames()[rowIndex]).append(" [");
+                        for (int dataIndex = 0; dataIndex < efData.getNames().length; dataIndex++) {
+//                            System.out.println("Next datatype: " + efData.getNames()[dataIndex] + " = " + efData.getValue()[dataIndex].getClass().getSimpleName());
+                        }
+                        sb.append("]\n");
+//                        System.out.println("\n" + sb.toString());
+                    }
+                }
+                else {
+                    getLog().warn("Ignoring EF " + ef + ", no analytics data available");
+                }
+
+                efIndex++;
+            }
+
+            // write analytics results back to the database
+
+            // experiment design
 //                > pData(eset)
 //             ba_genmodif        ba_genotype
 //325701235 gene_knock_out miRNA-1-2 knockout
@@ -166,7 +206,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 //325701240           none          wild_type
 
 
-                // after analytics, variable length as long as nr of EFs
+            // after analytics, variable length as long as nr of EFs
 //               > names(res)
 //[1] "ba_genmodif" "ba_genotype"
 
@@ -174,7 +214,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 //                    RObject[] analyticsFrames = analytics.getValue();
 
 
-                    // for each EF get a data frame looking like
+            // for each EF get a data frame looking like
 
 //                > head(res[["ba_genotype"]],n=2)
 //                 A        t.1        t.2 p.value.1 p.value.2 p.value.adj.1
@@ -188,22 +228,15 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 //172611612 0.7944649     0.9996772 169918541 172611612 172611612
 
 
-                // ((RDataFrame) analyticsFrames[0]).getRowNames();
+            // ((RDataFrame) analyticsFrames[0]).getRowNames();
 //                ((RDataFrame) analyticsFrames[0]).getData();
-                //   these are the column headings above - .N corresponds to the EFV numbers in the EF
-                //   Res.XYZ to the EFV names, Res.XYZ contains -1,0,1 up/dn, t.N - tstat, p.value.adj.N - p vals, Genes.gn - gene id,
-                //   genes.de - designelt id, F.p.value.adj - per EF.
-  //              }
-            }
+            //   these are the column headings above - .N corresponds to the EFV numbers in the EF
+            //   Res.XYZ to the EFV names, Res.XYZ contains -1,0,1 up/dn, t.N - tstat, p.value.adj.N - p vals, Genes.gn - gene id,
+            //   genes.de - designelt id, F.p.value.adj - per EF.
+            //              }
+        }
 
-            getLog().info("Finalising analytics changes for " + experimentAccession);
-        }
-        catch (IOException e) {
-            throw new AnalyticsGeneratorException(e);
-        }
-        catch (AtlasRServicesException e) {
-            throw new AnalyticsGeneratorException(e);
-        }
+        getLog().info("Finalising analytics changes for " + experimentAccession);
     }
 
     private String getRCodeFromResource(String resourcePath) throws IOException {
@@ -219,9 +252,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             sb.append(line).append("\n");
         }
 
-        String rCode = sb.toString();
-        System.out.println(rCode);
-
-        return rCode;
+        return sb.toString();
     }
 }

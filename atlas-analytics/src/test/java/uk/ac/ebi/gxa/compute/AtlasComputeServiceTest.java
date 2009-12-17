@@ -7,17 +7,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kchine.r.RNumeric;
 import org.kchine.r.server.RServices;
-import server.DirectJNI;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
-import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 
-import java.io.*;
 import java.rmi.RemoteException;
-import java.util.Map;
-import java.util.Properties;
 
 
 public class AtlasComputeServiceTest {
@@ -56,5 +51,4 @@ public class AtlasComputeServiceTest {
         System.out.println("1 + 3 = " + i.getValue()[0]);
         assertEquals(i.getValue()[0], 4);
     }
-
 }

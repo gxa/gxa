@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
@@ -28,7 +28,7 @@ public abstract class AnalyticsGeneratorService<T> {
     private AtlasDAO atlasDAO;
     private T repositoryLocation;
 
-    private AtlasRFactory atlasRFactory;
+    private AtlasComputeService atlasComputeService;
 
     private boolean updateMode = false;
     private boolean pendingOnly = false;
@@ -37,10 +37,10 @@ public abstract class AnalyticsGeneratorService<T> {
 
     protected String versionDescriptor;
 
-    public AnalyticsGeneratorService(AtlasDAO atlasDAO, T repositoryLocation, AtlasRFactory atlasRFactory) {
+    public AnalyticsGeneratorService(AtlasDAO atlasDAO, T repositoryLocation, AtlasComputeService atlasComputeService) {
         this.atlasDAO = atlasDAO;
         this.repositoryLocation = repositoryLocation;
-        this.atlasRFactory = atlasRFactory;
+        this.atlasComputeService = atlasComputeService;
     }
 
     public boolean getUpdateMode() {
@@ -71,8 +71,8 @@ public abstract class AnalyticsGeneratorService<T> {
         return repositoryLocation;
     }
 
-    protected AtlasRFactory getAtlasRFactory() {
-        return atlasRFactory;
+    protected AtlasComputeService getAtlasComputeService() {
+        return atlasComputeService;
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
