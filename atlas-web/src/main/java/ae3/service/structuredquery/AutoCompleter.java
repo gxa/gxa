@@ -7,7 +7,7 @@ import java.util.Collection;
  * Interface for value listers, allowing to listing and autocompletion of values for gene properties or EFs
  * @author pashky
  */
-public interface IValueListHelper {
+public interface AutoCompleter {
     /**
      * Auto-completion helper method, returning list of matching values and counters for specific factor/property and prefix
      * @param property factor or property to autocomplete values for, can be empty for any factor
@@ -16,13 +16,6 @@ public interface IValueListHelper {
      * @return map of values and counters
      */
     public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters);
-
-    /**
-     * Returns list of all values for specific factor or property
-     * @param property factor
-     * @return iterable list of strings
-     */
-    public Collection<String> listAllValues(String property);
 
     /**
      * Utility method called after creation to populate internal data structures with cached values

@@ -4,8 +4,9 @@ import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.util.CuratedTexts;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
-import uk.ac.ebi.ae3.indexbuilder.Efo;
+import ae3.service.structuredquery.Constants;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
@@ -37,7 +38,7 @@ public class ExperimentsServlet extends RestServlet {
 
             if (isEfo) {
                 Efo efo = Efo.getEfo();
-                Efo.Term term = efo.getTermById(factorValue);
+                EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
                 }

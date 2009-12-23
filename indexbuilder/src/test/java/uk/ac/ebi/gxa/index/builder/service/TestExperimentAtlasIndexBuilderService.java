@@ -4,7 +4,6 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dbunit.dataset.ITable;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
 
 import java.util.Collection;
 import java.util.Map;
@@ -62,19 +61,19 @@ public class TestExperimentAtlasIndexBuilderService
 
             // check experiment ids
             dbFieldName = "experimentid";
-            constant = Constants.FIELD_DWEXP_ID;
+            constant = "id";
             result = checkMatches(tableName, dbFieldName, constant, queryResponse);
             assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
 
             // check experiment accessions
             dbFieldName = "accession";
-            constant = Constants.FIELD_DWEXP_ACCESSION;
+            constant = "accession";
             result = checkMatches(tableName, dbFieldName, constant, queryResponse);
             assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
 
             // check experiment description
             dbFieldName = "description";
-            constant = Constants.FIELD_DWEXP_EXPDESC;
+            constant = "description";
             result = checkMatches(tableName, dbFieldName, constant, queryResponse);
             assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
 
@@ -183,7 +182,7 @@ public class TestExperimentAtlasIndexBuilderService
 
                                 // check against solr docs
                                 boolean matched = false;
-                                String constant = Constants.PREFIX_DWE + propName;
+                                String constant = "a_property_" + propName;
                                 for (SolrDocument createdDoc : queryResponse.getResults()) {
                                     Collection values = createdDoc.getFieldValues(constant);
 

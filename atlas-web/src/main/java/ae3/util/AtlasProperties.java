@@ -2,6 +2,8 @@ package ae3.util;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.List;
+import java.util.Arrays;
 
 /**
  * Helper wrapper class for properties file
@@ -22,6 +24,10 @@ public class AtlasProperties {
 
     public static String getProperty(String key) {
         return props.getProperty(key) != null ? props.getProperty(key) : "";
+    }
+
+    public static List<String> getListProperty(String key) {
+        return Arrays.asList(getProperty(key).split(","));
     }
 
     public static int getIntProperty(String key) {

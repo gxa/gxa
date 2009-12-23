@@ -68,6 +68,10 @@ public class AtlasDAO {
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_spec s " +
                     "WHERE g.specid=s.specid";
+    private static final String GENE_BY_IDENTIFIER =
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_spec s " +
+                    "WHERE g.identifier=?";
     private static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
@@ -205,7 +209,8 @@ public class AtlasDAO {
     // other useful queries
     private static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
-                    "a.designelementid, a.tstat, a.pvaladj " +
+                    "a.designelementid, a.tstat, a.pvaladj, " +
+                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
                     "FROM a2_expressionanalytics a " +
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
@@ -213,21 +218,23 @@ public class AtlasDAO {
                     "WHERE a.experimentid=?";
     private static final String EXPRESSIONANALYTICS_BY_GENEID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.geneid, " +
-                    "a.tstat, a.pvaladj " +
+                    "a.tstat, a.pvaladj, " +
+                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
                     "FROM a2_expressionanalytics a " +
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "WHERE a.geneid=?";
     private static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.geneid, " +
-                    "a.tstat, a.pvaladj " +
+                    "a.tstat, a.pvaladj, " +
+                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
                     "FROM a2_expressionanalytics a " +
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "WHERE a.designelementid=?";
     private static final String ONTOLOGY_MAPPINGS_SELECT =
-            "SELECT accession, property, propertyvalue, ontologyterm, " +
-                    "issampleproperty, isassayproperty, isfactorvalue " +
+            "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
+                    "issampleproperty, isassayproperty, isfactorvalue, experimentid " +
                     "FROM a2_ontologymapping";
     private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             ONTOLOGY_MAPPINGS_SELECT + " " +
@@ -244,7 +251,7 @@ public class AtlasDAO {
                     "p.name AS property, " +
                     "pv.name AS propertyvalue, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
-                    "ea.pvaladj, " +
+                    "min(ea.pvaladj), " +
                     "FROM a2_expressionanalytics ea " +
                     "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
                     "JOIN a2_property p ON p.propertyid=pv.propertyid " +
@@ -257,8 +264,10 @@ public class AtlasDAO {
                     "p.name AS property, " +
                     "pv.name AS propertyvalue, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
-                    "ea.pvaladj, " +
-                    "COUNT(DISTINCT(g.geneid)) AS genes " +
+                    "min(ea.pvaladj), " +
+                    "COUNT(DISTINCT(g.geneid)) AS genes, " +
+                    "min(p.propertyid) AS propertyid, " +
+                    "min(pv.propertyvalueid)  AS propertyvalueid " +
                     "FROM a2_expressionanalytics ea " +
                     "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
                     "JOIN a2_property p ON p.propertyid=pv.propertyid " +
@@ -267,7 +276,7 @@ public class AtlasDAO {
     private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
             ATLAS_COUNTS_SELECT + " " +
                     "WHERE ea.experimentid=? " +
-                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "GROUP BY ea.experimentid, p.name, pv.name, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
     private static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
@@ -277,7 +286,7 @@ public class AtlasDAO {
                     "AND updn='1' " +
                     "AND TOPN<=20 " +
                     "ORDER BY ea.pvaladj " +
-                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
+                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
     private static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
@@ -300,6 +309,24 @@ public class AtlasDAO {
                     "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
+
+    private static final String SPECIES_ALL =
+            "SELECT specid, name FROM A2_SPEC";
+
+//    private static final String PROPERTIES_ALL =
+//            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, count(spv.isfactorvalue)+count(apv.isfactorvalue) as isfactorvalue " +
+//                    "FROM a2_property p, a2_propertyvalue pv " +
+//                    "LEFT OUTER JOIN a2_assaypropertyvalue apv on apv.propertyvalueid = pv.propertyvalueid " +
+//                    "LEFT OUTER JOIN a2_samplepropertyvalue spv on spv.propertyvalueid = pv.propertyvalueid " +
+//                    "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
+
+    private static final String PROPERTIES_ALL =
+            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
+                    "FROM a2_property p, a2_propertyvalue pv " +
+                    "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
+
+    private static final String GENEPROPERTY_ALL_NAMES =
+            "SELECT name FROM A2_GENEPROPERTY";
 
     private JdbcTemplate template;
     private int maxQueryParams = 500;
@@ -434,6 +461,21 @@ public class AtlasDAO {
         // and return
         return genes;
     }
+
+    public Gene getGeneByIdentifier(String identifier) {
+        // do the query to fetch gene without design elements
+        List results = template.query(GENE_BY_IDENTIFIER,
+                new Object[]{identifier},
+                new GeneMapper());
+
+        if(results.size() > 0) {
+            Gene gene = (Gene) results.get(0);
+            gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
+            return gene;
+        }
+        return null;
+    }
+
 
     /**
      * Fetches all genes in the database that are pending indexing.  Note that genes are not automatically prepopulated
@@ -843,6 +885,25 @@ public class AtlasDAO {
         return (List<AtlasCount>) results;
     }
 
+    public List<Species> getAllSpecies() {
+        List results = template.query(SPECIES_ALL, new SpeciesMapper());
+        return (List<Species>) results;
+    }
+
+    public List<Property> getAllProperties() {
+        List results = template.query(PROPERTIES_ALL, new PropertyMapper());
+        return (List<Property>) results;
+    }
+
+    public Set<String> getAllGenePropertyNames() {
+        List results = template.query(GENEPROPERTY_ALL_NAMES, new RowMapper() {
+            public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                return resultSet.getString(1);
+            }
+        });
+        return new HashSet<String>(results);
+    }
+
     public List<AtlasTableResult> getAtlasResults(int[] geneIds, int[] exptIds, int upOrDown, String[] efvs) {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
@@ -908,30 +969,30 @@ public class AtlasDAO {
           ,status varchar --done, pending
         )
         */
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("LOAD_PROGRESS")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("EXPERIMENT_ACCESSION")
-                        .useInParameterNames("STAGE")
-                        .useInParameterNames("STATUS")
-                        .useInParameterNames("LOAD_TYPE")
-                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
-
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("EXPERIMENT_ACCESSION", accession)
-                .addValue("STAGE", loadStage.toString().toLowerCase())
-                .addValue("STATUS", loadStatus.toString().toLowerCase())
-                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
-
-        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
-                loadStatus + ", " + loadType + ")");
-        procedure.execute(params);
-        log.debug("load_progress stored procedure completed");
+//        SimpleJdbcCall procedure =
+//                new SimpleJdbcCall(template)
+//                        .withProcedureName("LOAD_PROGRESS")
+//                        .withoutProcedureColumnMetaDataAccess()
+//                        .useInParameterNames("EXPERIMENT_ACCESSION")
+//                        .useInParameterNames("STAGE")
+//                        .useInParameterNames("STATUS")
+//                        .useInParameterNames("LOAD_TYPE")
+//                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
+//                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
+//                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
+//                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
+//
+//        // map parameters...
+//        MapSqlParameterSource params = new MapSqlParameterSource()
+//                .addValue("EXPERIMENT_ACCESSION", accession)
+//                .addValue("STAGE", loadStage.toString().toLowerCase())
+//                .addValue("STATUS", loadStatus.toString().toLowerCase())
+//                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
+//
+//        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
+//                loadStatus + ", " + loadType + ")");
+//        procedure.execute(params);
+//        log.debug("load_progress stored procedure completed");
     }
 
     /**
@@ -1503,6 +1564,9 @@ public class AtlasDAO {
             ea.setTStatistic(resultSet.getDouble(5));
             ea.setPValAdjusted(resultSet.getDouble(6));
 
+            ea.setEfId(resultSet.getInt(7));
+            ea.setEfvId(resultSet.getInt(8));
+
             return ea;
         }
     }
@@ -1518,6 +1582,7 @@ public class AtlasDAO {
             mapping.setSampleProperty(resultSet.getBoolean(5));
             mapping.setAssayProperty(resultSet.getBoolean(6));
             mapping.setFactorValue(resultSet.getBoolean(7));
+            mapping.setExperimentId(resultSet.getLong(8));
 
             return mapping;
         }
@@ -1635,6 +1700,9 @@ public class AtlasDAO {
             atlasCount.setUpOrDown(resultSet.getString(4));
             atlasCount.setGeneCount(resultSet.getInt(6));
 
+            atlasCount.setPropertyId(resultSet.getInt(7));
+            atlasCount.setPropertyValueId(resultSet.getInt(8));
+
             return atlasCount;
         }
     }
@@ -1651,6 +1719,25 @@ public class AtlasDAO {
             atlasTableResult.setPValAdj(resultSet.getDouble(6));
 
             return atlasTableResult;
+        }
+    }
+
+    private static class SpeciesMapper implements RowMapper {
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            return new Species(resultSet.getInt(1), resultSet.getString(2));
+        }
+    }
+
+    private static class PropertyMapper implements RowMapper {
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            Property property = new Property();
+            property.setPropertyId(resultSet.getInt(1));
+            property.setAccession(resultSet.getString(2));
+            property.setName(resultSet.getString(2));
+            property.setPropertyValueId(resultSet.getInt(3));
+            property.setValue(resultSet.getString(4));
+            property.setFactorValue(resultSet.getInt(5) > 0);
+            return property;
         }
     }
 }

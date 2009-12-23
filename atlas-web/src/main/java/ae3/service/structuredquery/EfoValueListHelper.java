@@ -1,7 +1,8 @@
 package ae3.service.structuredquery;
 
-import uk.ac.ebi.ae3.indexbuilder.Efo;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
+import ae3.service.structuredquery.Constants;
 
 import java.util.*;
 
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * EFO value list helper class, implementing autocompletion and value listing for EFO
  * @author pashky
  */
-public class EfoValueListHelper implements IValueListHelper {
+public class EfoValueListHelper implements AutoCompleter {
     final private Logger log = LoggerFactory.getLogger(getClass());
     private SolrServer solrAtlas;
     private final Map<String,Long> counts = new HashMap<String,Long>();
@@ -42,7 +43,7 @@ public class EfoValueListHelper implements IValueListHelper {
             log.info("Getting counts for ontoltogy");
             Set<String> availIds = getEfo().getAllTermIds();
 
-            SolrQuery q = new SolrQuery("gene_id:[* TO *]");
+            SolrQuery q = new SolrQuery("id:[* TO *]");
             q.setRows(0);
             q.setFacet(true);
             q.setFacetMinCount(1);
@@ -90,7 +91,7 @@ public class EfoValueListHelper implements IValueListHelper {
         for(String id : found) {
             all.addAll(efo.getTermParents(id, true));
         }
-        for(Efo.Term term : efo.getSubTree(all)) {
+        for(EfoTerm term : efo.getSubTree(all)) {
             if(limit >= 0 && limit-- <= 0)
                 break;
 
@@ -108,7 +109,7 @@ public class EfoValueListHelper implements IValueListHelper {
      */
     public Collection<String> listAllValues(String property) {
         List<String> result = new ArrayList<String>();
-        for(Efo.Term term : getEfo().getAllTerms()) {
+        for(EfoTerm term : getEfo().getAllTerms()) {
             result.add(term.getTerm());
         }
         return result;
@@ -133,7 +134,7 @@ public class EfoValueListHelper implements IValueListHelper {
      * Wrapping class, enriching term information with gene count
      */
     public static class EfoTermCount {
-        private Efo.Term term;
+        private EfoTerm term;
         private long count;
 
         /**
@@ -141,7 +142,7 @@ public class EfoValueListHelper implements IValueListHelper {
          * @param term term
          * @param count gene count
          */
-        public EfoTermCount(Efo.Term term, long count) {
+        public EfoTermCount(EfoTerm term, long count) {
             this.term = term;
             this.count = count;
         }
@@ -211,15 +212,15 @@ public class EfoValueListHelper implements IValueListHelper {
     public Collection<EfoTermCount> getTermChildren(String id) {
         List<EfoTermCount> result = new ArrayList<EfoTermCount>();
         if(id == null) {
-            for(Efo.Term root : getEfo().getRoots()) {
+            for(EfoTerm root : getEfo().getRoots()) {
                 Long count = getCount(root.getId());
                 if(count != null)
                     result.add(new EfoTermCount(root, count));
             }
         } else  {
-            Collection<Efo.Term> children = getEfo().getTermChildren(id);
+            Collection<EfoTerm> children = getEfo().getTermChildren(id);
             if(children != null)
-                for(Efo.Term term : children) {
+                for(EfoTerm term : children) {
                     Long count = getCount(term.getId());
                     if(count != null)
                         result.add(new EfoTermCount(term, count));
@@ -234,25 +235,25 @@ public class EfoValueListHelper implements IValueListHelper {
      * @return collection of lists of EfoTermCount
      */
     public Collection<List<EfoTermCount>> getTermParentPaths(String id) {
-        Collection<List<Efo.Term>> paths = getEfo().getTermParentPaths(id, true);
+        Collection<List<EfoTerm>> paths = getEfo().getTermParentPaths(id, true);
         if(paths == null)
             return null;
 
         List<List<EfoTermCount>> result = new ArrayList<List<EfoTermCount>>();
-        for(List<Efo.Term> path : paths) {
+        for(List<EfoTerm> path : paths) {
             int depth = 0;
             List<EfoTermCount> current = new ArrayList<EfoTermCount>();
             Collections.reverse(path);
-            for(Efo.Term term : path) {
+            for(EfoTerm term : path) {
                 Long count = getCount(term.getId());
                 if(count != null) {
-                    current.add(new EfoTermCount(new Efo.Term(term, depth++), count));
+                    current.add(new EfoTermCount(new EfoTerm(term, depth++), count));
                 }
             }
             if(!current.isEmpty()) {
                 Long count = getCount(id);
                 if(count != null) {
-                    current.add(new EfoTermCount(new Efo.Term(getEfo().getTermById(id), depth), count));
+                    current.add(new EfoTermCount(new EfoTerm(getEfo().getTermById(id), depth), count));
                     result.add(current);
                 }
             }
@@ -267,13 +268,13 @@ public class EfoValueListHelper implements IValueListHelper {
      */
     public Collection<EfoTermCount> getTreeDownToTerm(String id) {
 
-        for(Efo.Term found : getEfo().searchTerm(id))
+        for(EfoTerm found : getEfo().searchTerm(id))
             if(getCount(found.getId()) != null) {
-                Collection<Efo.Term> tree = getEfo().getTreeDownTo(found.getId());
+                Collection<EfoTerm> tree = getEfo().getTreeDownTo(found.getId());
 
                 List<EfoTermCount> result = new ArrayList<EfoTermCount>();
                 if (tree != null) {
-                    for (Efo.Term term : tree) {
+                    for (EfoTerm term : tree) {
                         Long count = getCount(term.getId());
                         if (count != null) {
                             result.add(new EfoTermCount(term, count));
@@ -294,7 +295,7 @@ public class EfoValueListHelper implements IValueListHelper {
         List<EfoTermCount> result = new ArrayList<EfoTermCount>();
         Set<String> ids = new HashSet<String>();
         for(String val : values) {
-            for (Efo.Term term : getEfo().searchTerm(val)) {
+            for (EfoTerm term : getEfo().searchTerm(val)) {
                 Long count = getCount(term.getId());
                 if (count != null && !ids.contains(term.getId())) {
                     result.add(new EfoTermCount(term, count));

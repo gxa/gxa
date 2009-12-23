@@ -24,7 +24,7 @@ public class AtlasGene {
     }
 
     public String getGeneSpecies() {
-        Collection fval = geneSolrDocument.getFieldValues("gene_species");
+        Collection fval = geneSolrDocument.getFieldValues("species");
         if(fval != null && fval.size() > 0) {
             String species = (String)fval.iterator().next();
             return species.substring(0, 1).toUpperCase() + species.substring(1, species.length()).toLowerCase();
@@ -46,31 +46,31 @@ public class AtlasGene {
     }
 
     public String getGeneId() {
-        return getValue("gene_id");
+        return getValue("id");
     }
 
     @RestOut(name="name")
     public String getGeneName() {
-        return getValue("gene_name");
+        return getValue("name");
     }
 
     @RestOut(name="id")
     public String getGeneIdentifier() {
-        return getValue("gene_identifier");
+        return getValue("identifier");
     }
 
     @RestOut(name="ensemblGeneId", exposeEmpty = false)
     public String getGeneEnsembl() {
-        return getValue("gene_ensgene");
+        return getValue("property_ENSGENE");
     }
 
     public String getGoTerm() {
-        return getValue("gene_goterm");
+        return getValue("property_GOTERM");
     }
 
     @RestOut(name="goTerms", exposeEmpty = false)
     public Collection<String> getGoTerms() {
-        return getValues("gene_goterm");
+        return getValues("property_GOTERM");
     }
 
     public String getShortValue(String name){
@@ -86,35 +86,39 @@ public class AtlasGene {
     }
 
     public String getInterProTerm() {
-        return getValue("gene_interproterm");
+        return getValue("property_INTERPROTERM");
     }
 
     @RestOut(name="interProIds", exposeEmpty = false)
     public Collection<String> getInterProIds() {
-        return getValues("gene_interproid");
+        return getValues("property_INTERPRO");
     }
 
     @RestOut(name="interProTerms", exposeEmpty = false)
     public Collection<String> getInterProTerms() {
-        return getValues("gene_interproterm");
+        return getValues("property_INTERPRO");
     }
 
     public String getKeyword() {
-        return getValue("gene_keyword");
+        return getValue("property_KEYWORD");
     }
 
     @RestOut(name="keywords", exposeEmpty = false)
     public Collection<String> getKeywords() {
-        return getValues("gene_keyword");
+        return getValues("property_KEYWORD");
     }
 
     public String getDisease(){
-    	return getValue("gene_disease");
+    	return getValue("property_DISEASE");
     }
 
     @RestOut(name="diseases", exposeEmpty = false)
     public Collection<String> getDiseases(){
-    	return getValues("gene_disease");
+    	return getValues("property_DISEASE");
+    }
+
+    public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
+        this.geneHighlights = geneHighlights;
     }
 
     private String getHilitValue(String name) {
@@ -125,35 +129,31 @@ public class AtlasGene {
     }
 
     public String getHilitInterProTerm() {
-        return getHilitValue("gene_interproterm");
+        return getHilitValue("property_INTERPROTERM");
     }
 
     public String getHilitGoTerm() {
-        return getHilitValue("gene_goterm");
+        return getHilitValue("property_GOTERM");
     }
 
     public String getHilitGeneName() {
-        return getHilitValue("gene_name");
+        return getHilitValue("name");
     }
 
     public String getHilitKeyword() {
-        return getHilitValue("gene_keyword");
-    }
-
-    public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
-        this.geneHighlights = geneHighlights;
+        return getHilitValue("property_KEYWORD");
     }
 
     public String getShortGOTerms(){
-    	return getShortValue("gene_goterm");
+    	return getShortValue("property_GOTERM");
     }
 
     public String getShortInterProTerms(){
-    	return getShortValue("gene_interproterm");
+    	return getShortValue("property_INTERPROTERM");
     }
 
     public String getShortDiseases(){
-    	return getShortValue("gene_disease");
+    	return getShortValue("property_DIEASE");
     }
 
     public SolrDocument getGeneSolrDocument() {
@@ -161,25 +161,25 @@ public class AtlasGene {
     }
 
     public String getUniprotId(){
-    	return getValue("gene_uniprot");
+    	return getValue("property_UNIPROTID");
     }
 
     @RestOut(name="uniprotIds", exposeEmpty = false)
     public Collection<String> getUniprotIds(){
-    	return getValues("gene_uniprot");
+    	return getValues("property_UNIPROTID");
     }
 
     public String getSynonym(){
-    	return getValue("gene_synonym");
+    	return getValue("property_SYNONYM");
     }
 
     @RestOut(name="synonyms", exposeEmpty = false)
     public Collection<String> getSynonyms(){
-    	return getValues("gene_synonym");
+    	return getValues("property_SYNONYM");
     }
 
     public String getHilitSynonym(){
-    	return getHilitValue("gene_synonym");
+    	return getHilitValue("property_SYNONYM");
     }
 
     public String getGeneHighlightStringForHtml() {
@@ -198,22 +198,7 @@ public class AtlasGene {
         return "";
     }
 
-    public HashMap serializeForWebServices() {
-        HashMap h = new HashMap();
-        SolrDocument gene = this.getGeneSolrDocument();
-
-        if(gene != null) {
-            Map m = gene.getFieldValuesMap();
-            for (Object key : m.keySet()) {
-                Collection<String> s = (Collection<String>) m.get(key);
-                h.put(key, StringUtils.join(s, "\t"));
-            }
-        }
-
-        return h;
-    }
-
-	public Set<String> getAllFactorValues(String ef) {
+    public Set<String> getAllFactorValues(String ef) {
 		Set<String> efvs = new HashSet<String>();;
 
 		Collection<String> fields = (Collection)geneSolrDocument.getFieldValues("efvs_up_" + EscapeUtil.encode(ef));
@@ -226,18 +211,18 @@ public class AtlasGene {
 	}
 
 	public String getOrthologsIds() {
-		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("gene_ortholog");
+		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("property_ORTHOLOG");
 		return StringUtils.join(orths, "+");
 	}
 
     @RestOut(name="orthologs", exposeEmpty = false)
 	public List<String> getOrthologs() {
-        Collection orths = geneSolrDocument.getFieldValues("gene_ortholog");
+        Collection orths = geneSolrDocument.getFieldValues("property_ORTHOLOG");
 		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
 	}
 
     @RestOut(name="proteins", exposeEmpty = false)
-	public Collection<String> getProteins() { return getValues("gene_proteins"); }
+	public Collection<String> getProteins() { return getValues("property_PROTEINNAME"); }
 
     @RestOut(name="goIds", exposeEmpty = false)
 	public Collection<String> getGoIds() { return getValues("gene_goid"); }

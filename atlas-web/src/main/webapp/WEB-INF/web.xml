@@ -51,7 +51,6 @@
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
-            WEB-INF/beans.xml
             WEB-INF/atlasApplicationContext.xml
             WEB-INF/fluxion/ajax.xml
         </param-value>
@@ -91,21 +90,6 @@
             <param-value>true</param-value>
         </init-param>
     </servlet>
-
-    <!-- CXF -->
-    <servlet>
-        <display-name>CXF Servlet</display-name>
-        <servlet-name>CXFServlet</servlet-name>
-        <servlet-class>
-            org.apache.cxf.transport.servlet.CXFServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>CXFServlet</servlet-name>
-        <url-pattern>/services/*</url-pattern>
-    </servlet-mapping>
 
 
     <!-- DAS integration -->
@@ -307,19 +291,6 @@
     <servlet-mapping>
         <servlet-name>qrs</servlet-name>
         <url-pattern>/qrs</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>New Search JSP Servlet</display-name>
-        <servlet-name>nqrs</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.NewStructuredQueryServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>nqrs</servlet-name>
-        <url-pattern>/nqrs</url-pattern>
     </servlet-mapping>
 
     <servlet>

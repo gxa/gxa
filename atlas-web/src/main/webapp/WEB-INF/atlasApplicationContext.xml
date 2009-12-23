@@ -29,8 +29,13 @@
         <!-- location of SOLR index, local filesystem directory -->
         <property name="indexLocation" ref="atlasIndex"/>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
-        <property name="includeGenes" value="true"/>
-        <property name="includeExperiments" value="true"/>
+        <property name="includeIndices">
+            <util:list>
+                <value>properties</value>
+                <value>experiments</value>
+                <value>genes</value>
+            </util:list>
+        </property>
     </bean>
 
     <!-- NetCDF Generator component -->
@@ -77,11 +82,6 @@
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasSearchService" ref="atlasSearchService"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
-    </bean>
-
-    <!-- Web service component -->
-    <bean name="atlasWebService" class="ae3.service.webservices.AtlasWebServiceImpl">
-        <property name="atlasSearchService" ref="atlasSearchService"/>
     </bean>
 
     <!-- Required spring driven data access configuration for web interface -->

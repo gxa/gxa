@@ -1,12 +1,9 @@
 package ae3.service.structuredquery;
 
-import org.apache.solr.core.CoreContainer;
 import org.junit.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
-
-import java.io.File;
 
 /**
  * @author pashky
@@ -36,11 +33,11 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
     @Test
     public void test_getGeneProperties() {
-        Iterable<String> gprops = service.getGeneProperties();
+        Iterable<String> gprops = service.getGenePropertyOptions();
         assertTrue(gprops.iterator().hasNext());
         assertTrue(containsString(gprops, "gene"));
-        assertTrue(containsString(gprops, "keyword"));
-        assertTrue(containsString(gprops, "goterm"));
+        assertTrue(containsString(gprops, "KEYWORD"));
+        assertTrue(containsString(gprops, "GOTERM"));
     }
 
 

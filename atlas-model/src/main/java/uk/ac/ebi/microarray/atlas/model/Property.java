@@ -6,50 +6,70 @@ package uk.ac.ebi.microarray.atlas.model;
  */
 
 public class Property {
-  private String accession;
-  private String name;
-  private String value;
-  private boolean isFactorValue;
+    private int propertyId;
+    private int propertyValueId;
+    private String accession;
+    private String name;
+    private String value;
+    private boolean isFactorValue;
 
-  public String getAccession() {
-    return accession;
-  }
+    public String getAccession() {
+        return accession;
+    }
 
-  public void setAccession(String accession) {
-    this.accession = accession;
-  }
+    public void setAccession(String accession) {
+        this.accession = accession;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public String getValue() {
-    return value;
-  }
+    public String getValue() {
+        return value;
+    }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-  public boolean isFactorValue() {
-    return isFactorValue;
-  }
+    public boolean isFactorValue() {
+        return isFactorValue;
+    }
 
-  public void setFactorValue(boolean factorValue) {
-    isFactorValue = factorValue;
-  }
+    public void setFactorValue(boolean factorValue) {
+        isFactorValue = factorValue;
+    }
 
-  @Override
-  public String toString() {
-    return "Property{" +
-        "accession='" + accession + '\'' +
-        ", name='" + name + '\'' +
-        ", value='" + value + '\'' +
-        ", isFactorValue=" + isFactorValue +
-        '}';
-  }
+    public int getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(int propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    public int getPropertyValueId() {
+        return propertyValueId;
+    }
+
+    public void setPropertyValueId(int propertyValueId) {
+        this.propertyValueId = propertyValueId;
+    }
+
+    @Override
+    public String toString() {
+        return "Property{" +
+                "propertyId=" + propertyId +
+                ", propertyValueId=" + propertyValueId +
+                ", accession='" + accession + '\'' +
+                ", name='" + name + '\'' +
+                ", value='" + value + '\'' +
+                ", isFactorValue=" + isFactorValue +
+                '}';
+    }
 }

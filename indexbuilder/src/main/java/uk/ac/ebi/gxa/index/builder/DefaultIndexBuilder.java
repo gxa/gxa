@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.index.builder;
 
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -9,17 +9,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
+import uk.ac.ebi.gxa.index.builder.service.*;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -34,16 +30,15 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     private AtlasDAO atlasDAO;
     private File indexLocation;
 
-    private boolean genes = true;
-    private boolean experiments = true;
-
     // these are initialised by this bean, not spring managed
     private CoreContainer coreContainer;
-    private IndexBuilderService geneIndexBuilder;
-    private IndexBuilderService exptIndexBuilder;
 
     private ExecutorService service;
     private boolean running = false;
+
+    private List<String> includeIndices;
+
+    private List<Pair<String,IndexBuilderService>> services;
 
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -64,25 +59,23 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         return indexLocation;
     }
 
-    public void setIncludeGenes(boolean genes) {
-        this.genes = genes;
+    public List<String> getIncludeIndices() {
+        return includeIndices;
     }
 
-    public boolean getIncludeGenes() {
-        return genes;
-    }
-
-    public void setIncludeExperiments(boolean experiments) {
-        this.experiments = experiments;
-    }
-
-    public boolean getIncludeExperiments() {
-        return experiments;
+    public void setIncludeIndices(List<String> includeIndices) {
+        this.includeIndices = includeIndices;
     }
 
     public void afterPropertiesSet() throws Exception {
         // simply delegates to startup(), this allows automated spring startup
         startup();
+    }
+
+    {
+        IndexBuilderServiceRegistry.registerFactory(new PropertiesIndexBuilderService.Factory());
+        IndexBuilderServiceRegistry.registerFactory(new ExperimentAtlasIndexBuilderService.Factory());
+        IndexBuilderServiceRegistry.registerFactory(new GeneAtlasIndexBuilderService.Factory());
     }
 
     /**
@@ -123,18 +116,19 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                 }
 
                 // first, create a solr CoreContainer
-                log.debug("Creating new SOLR container and embedded servers...");
+                log.debug("Creating new SOLR container...");
                 coreContainer = new CoreContainer();
                 coreContainer.load(indexLocation.getAbsolutePath(), solr);
 
-                // create an embedded solr server for experiments and genes from this container
-                EmbeddedSolrServer exptServer = new EmbeddedSolrServer(coreContainer, "expt");
-                EmbeddedSolrServer atlasServer = new EmbeddedSolrServer(coreContainer, "atlas");
-
                 // create IndexBuilderServices for genes (atlas) and experiments
-                log.debug("Creating index building services for experiments and genes");
-                exptIndexBuilder = new ExperimentAtlasIndexBuilderService(atlasDAO, exptServer);
-                geneIndexBuilder = new GeneAtlasIndexBuilderService(atlasDAO, atlasServer);
+                log.debug("Creating index building services for " + StringUtils.join(getIncludeIndices(), ","));
+
+                services = new ArrayList<Pair<String, IndexBuilderService>>();
+                for(String name : includeIndices)
+                    services.add(new Pair<String, IndexBuilderService>(
+                            name,
+                            IndexBuilderServiceRegistry.getFactoryByName(name).create(atlasDAO, coreContainer)
+                    ));
 
                 // finally, create an executor service for processing calls to build the index
                 service = Executors.newCachedThreadPool();
@@ -229,11 +223,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     public void buildIndex(IndexBuilderListener listener) {
         startIndexBuild(listener, false);
-        log.info("Started IndexBuilder: " +
-                "Building for " +
-                (experiments ? "experiments " : "") +
-                (experiments && genes ? " and " : "") +
-                (genes ? "atlas " : ""));
+        log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndices(), ","));
     }
 
     public void updateIndex() {
@@ -243,10 +233,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     public void updateIndex(IndexBuilderListener listener) {
         startIndexBuild(listener, true);
         log.info("Started IndexBuilder: " +
-                "Updating for " +
-                (experiments ? "experiments " : "") +
-                (experiments && genes ? " and " : "") +
-                (genes ? "atlas " : ""));
+                "Updating for " + StringUtils.join(getIncludeIndices(), ","));
     }
 
     private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
@@ -254,29 +241,12 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
 
-        if (experiments) {
+        for(final Pair<String, IndexBuilderService> ibService : services) {
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
                     try {
-                        log.info("Starting building of experiments index");
-                        exptIndexBuilder.buildIndex(pending);
-                        return true;
-                    }
-                    catch (Exception e) {
-                        log.error("Caught unchecked exception: " + e.getMessage());
-                        e.printStackTrace();
-                        return false;
-                    }
-                }
-            }));
-        }
-
-        if (genes) {
-            indexingTasks.add(service.submit(new Callable<Boolean>() {
-                public Boolean call() throws IndexBuilderException {
-                    try {
-                        log.info("Starting building of atlas gene index");
-                        geneIndexBuilder.buildIndex(pending);
+                        log.info("Starting building of index: " + ibService.getFirst());
+                        ibService.getSecond().buildIndex(pending);
                         return true;
                     }
                     catch (Exception e) {
@@ -331,71 +301,11 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
      */
     private void unpackAtlasIndexTemplate(File indexLocation) throws IOException {
         // configure a list of resources we need from the indexbuilder jar
-        Map<String, File> resourceMap = new HashMap<String, File>();
-        resourceMap.put("solr/solr.xml",
-                        new File(indexLocation,
-                                 "solr.xml"));
-        resourceMap.put("solr/atlas/conf/scripts.conf",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "scripts.conf"));
-        resourceMap.put("solr/atlas/conf/admin-extra.html",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "admin-extra.html"));
-        resourceMap.put("solr/atlas/conf/protwords.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "protwords.txt"));
-        resourceMap.put("solr/atlas/conf/stopwords.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "stopwords.txt"));
-        resourceMap.put("solr/atlas/conf/synonyms.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "synonyms.txt"));
-        resourceMap.put("solr/atlas/conf/schema.xml",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "schema.xml"));
-        resourceMap.put("solr/atlas/conf/solrconfig.xml",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "solrconfig.xml"));
-        resourceMap.put("solr/expt/conf/scripts.conf",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "scripts.conf"));
-        resourceMap.put("solr/expt/conf/admin-extra.html",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "admin-extra.html"));
-        resourceMap.put("solr/expt/conf/protwords.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "protwords.txt"));
-        resourceMap.put("solr/expt/conf/stopwords.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "stopwords.txt"));
-        resourceMap.put("solr/expt/conf/synonyms.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "synonyms.txt"));
-        resourceMap.put("solr/expt/conf/schema.xml",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "schema.xml"));
-        resourceMap.put("solr/expt/conf/solrconfig.xml",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "solrconfig.xml"));
+        writeResourceToFile("solr/solr.xml", new File(indexLocation, "solr.xml"));
 
-        // write out these resources
-        for (String resourceName : resourceMap.keySet()) {
-            writeResourceToFile(resourceName, resourceMap.get(resourceName));
-        }
+        for(String factory : IndexBuilderServiceRegistry.getAvailableFactories())
+            for(String fileName : IndexBuilderServiceRegistry.getFactoryByName(factory).getConfigFiles())
+                writeResourceToFile("solr/" + fileName, new File(indexLocation, fileName.replaceAll("/", File.separator)));
     }
 
     /**

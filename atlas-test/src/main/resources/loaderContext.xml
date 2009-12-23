@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
     <!--<bean id="atlasDataSource"-->
     <!--class="org.springframework.jdbc.datasource.SingleConnectionDataSource">-->
@@ -22,6 +22,10 @@
         <property name="defaultAutoCommit" value="false"/>
         <property name="maxActive" value="50"/>
         <property name="removeAbandoned" value="true"/>
+        <property name="poolPreparedStatements" value="true" />
+        <property name="initialSize" value="32" />
+        <property name="maxOpenPreparedStatements" value="-1"/>
+        <property name="maxIdle" value="-1"/>
     </bean>
 
     <!-- etxract native jdbc connection for working with oracle connections -->
@@ -32,6 +36,7 @@
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
+        <property name="ignoreWarnings" value="true"/>
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
@@ -40,11 +45,11 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/index"/>
+        <constructor-arg value="/Users/pashky/projects/atlas2/index"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
+        <constructor-arg value="/Users/pashky/projects/atlas2/netcdf"/>
     </bean>
 
     <!-- Requires a loader -->
@@ -61,8 +66,13 @@
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="indexLocation" ref="atlasIndex"/>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
-        <property name="includeGenes" value="true"/>
-        <property name="includeExperiments" value="false"/>
+        <property name="includeIndices">
+            <util:list>
+                <value>genes</value>
+                <!--<value>experiments</value>-->
+                <!--<value>properties</value>-->
+            </util:list>
+        </property>
     </bean>
 
     <bean name="netcdfGenerator"

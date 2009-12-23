@@ -129,8 +129,8 @@
             <td>
                 <select name="specie_0" id="species0" style="width:180px">
                     <option value="">(any)</option>
-                    <c:forEach var="s" items="${service.allAvailableAtlasSpecies}">
-                        <option value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                    <c:forEach var="s" items="${service.atlasQueryService.speciesOptions}">
+                        <option value="${f:escapeXml(s)}">${u:upcaseFirst(f:escapeXml(s))}</option>
                     </c:forEach>
                 </select>
             </td>

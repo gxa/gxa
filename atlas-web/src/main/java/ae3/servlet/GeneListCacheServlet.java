@@ -2,7 +2,7 @@ package ae3.servlet;
 
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.AutoCompleteItem;
-import ae3.service.structuredquery.GeneProperties;
+import ae3.service.structuredquery.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -144,12 +144,12 @@ public class GeneListCacheServlet extends HttpServlet {
         AtlasStructuredQueryService queryService = searchService.getAtlasQueryService();
 
         Collection<AutoCompleteItem> Genes = queryService.getGeneListHelper()
-                .autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME, prefix, recordCount, null);
+                .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount, null);
 
         //AZ:2008-07-07 "0" means all numbers
         if (prefix.equals("0")) {
             for (int i = 1; i != 10; i++) {
-                Genes.addAll((queryService.getGeneListHelper().autoCompleteValues(GeneProperties.GENE_PROPERTY_NAME,
+                Genes.addAll((queryService.getGeneListHelper().autoCompleteValues(Constants.GENE_PROPERTY_NAME,
                                                                                   String.valueOf(i), recordCount,
                                                                                   null)));
             }

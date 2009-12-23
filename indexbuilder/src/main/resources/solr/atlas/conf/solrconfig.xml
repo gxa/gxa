@@ -388,7 +388,6 @@
   <!-- config for the admin interface --> 
   <admin>
     <defaultQuery>solr</defaultQuery>
-    <gettableFiles>solrconfig.xml schema.xml admin-extra.html</gettableFiles>
     <!-- pingQuery should be "URLish" ...
          &amp; separated key=val pairs ... but there shouldn't be any
          URL escaping of the values -->

@@ -256,7 +256,7 @@ if(!atlas)
                         var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
                         return '<em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em>';
                     } else {
-                        return '<em>' + row.property + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em>';
+                        return '<em>' + row.property.toLowerCase() + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em>';
                     }
                 } else {
                     return '<nobr>' + text + ' (' + row.count + ')</nobr>';
@@ -264,12 +264,12 @@ if(!atlas)
             },
 
             formatToken: function(row) {
-                var text = row.property == 'gene' && row.valueSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text = row.property == 'gene' && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
             },
 
             formatTokenTooltip: function(row) {
-                return row.property == 'gene' && row.valueSource == 'identifier' && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                return row.property == 'gene' && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
             },
 
             formatId: function(res) {

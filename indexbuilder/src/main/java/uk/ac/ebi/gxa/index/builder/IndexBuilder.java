@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.index.builder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
+import java.util.List;
+
 /**
  * Interface for building a Gene Expression Atlas index.  Implementations should provide a way of setting the index
  * location, which may be of a generic type to allow the index to be backed by a database, file system, or some other
@@ -50,26 +52,17 @@ public interface IndexBuilder<T> {
     T getIndexLocation();
 
     /**
-     * Flags that genes should be included in the construction of this index.
-     * <p/>
-     * This is true by default.
-     *
-     * @param genes whether to include genes in this build
+     * Set collection of index names to build
+     * @param includeIndices collection of names
      */
-    void setIncludeGenes(boolean genes);
-
-    boolean getIncludeGenes();
+    void setIncludeIndices(List<String> includeIndices);
 
     /**
-     * Flags that experiments should be included in the construction of this index.
-     * <p/>
-     * This is true by default.
+     * Get collection of index names to build
      *
-     * @param experiments whether to include experiments in this build
+     * @return set of names
      */
-    void setIncludeExperiments(boolean experiments);
-
-    boolean getIncludeExperiments();
+    List<String> getIncludeIndices();
 
     /**
      * Initialise this IndexBuilder and any resources required by it.

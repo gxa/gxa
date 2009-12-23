@@ -1,23 +1,25 @@
 package ae3.servlet.structuredquery;
 
-import ae3.dao.AtlasDao;
-import ae3.model.AtlasExperiment;
-import ae3.model.AtlasGene;
 import ae3.service.structuredquery.*;
 import ae3.servlet.structuredquery.result.ErrorResult;
 import ae3.servlet.structuredquery.result.ExperimentRestProfile;
 import ae3.servlet.structuredquery.result.ExperimentResultAdapter;
 import ae3.servlet.structuredquery.result.HeatmapResultAdapter;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.dao.AtlasDao;
+import org.apache.commons.lang.NotImplementedException;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
- * REST APIU structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
+ * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  *
  * @author pashky
  */
@@ -87,7 +89,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
             AtlasStructuredQueryService asqs = searchService.getAtlasQueryService();
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, GeneProperties.allPropertyIds(), asqs.getExperimentalFactors());
+                    request, asqs.getGenePropertyOptions(), asqs.getExperimentalFactors());
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);

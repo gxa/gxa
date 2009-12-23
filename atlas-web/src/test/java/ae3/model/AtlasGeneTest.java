@@ -124,19 +124,6 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_serializeForWebServices() {
-        HashMap hmap = gene.serializeForWebServices();
-        for(Object o : hmap.keySet()) {
-            assertTrue(o instanceof String);
-            String s = o.toString();
-            assertTrue(s.length() > 0);
-
-            Object v = hmap.get(o);
-            assertTrue(v instanceof String);
-        }
-    }
-
-    @Test
 	public void test_getAllFactorValues() {
         Collection<String> efvs = gene.getAllFactorValues("cellline");
         assertNotNull(efvs);

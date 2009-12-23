@@ -12,7 +12,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
+import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -26,7 +26,6 @@ import java.util.*;
  */
 public class AtlasDao {
     final private Logger log = LoggerFactory.getLogger(getClass());
-    final private int MAX_GENES = 100000;
     final private int MAX_EXPERIMENTS = 10000;
 
     private SolrServer solrAtlas;
@@ -49,7 +48,7 @@ public class AtlasDao {
      * @return experiment if found, null if not
      */
     public AtlasExperiment getExperimentById(String experiment_id_key) {
-        return getExperimentByQuery(Constants.FIELD_DWEXP_ID + ":" + EscapeUtil.escapeSolr(experiment_id_key));
+        return getExperimentByQuery("id:" + EscapeUtil.escapeSolr(experiment_id_key));
     }
 
     /**
@@ -69,7 +68,7 @@ public class AtlasDao {
      * @return
      */
     public AtlasExperiment getExperimentByAccession(String accessionId) {
-        return getExperimentByQuery(Constants.FIELD_DWEXP_ACCESSION + ":" + EscapeUtil.escapeSolr(accessionId));
+        return getExperimentByQuery("accession:" + EscapeUtil.escapeSolr(accessionId));
     }
 
     private AtlasExperiment getExperimentByQuery(String query) {
@@ -123,7 +122,7 @@ public class AtlasDao {
         SolrQuery q = new SolrQuery("*:*");
         q.setRows(MAX_EXPERIMENTS);
         q.setFields("");
-        q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
+        q.addSortField("id", SolrQuery.ORDER.asc);
 
         try {
 
@@ -135,9 +134,9 @@ public class AtlasDao {
             }
 
             for (SolrDocument exptDoc : documentList) {
-                SolrQuery q1 = new SolrQuery("exp_ud_ids:" + exptDoc.getFieldValue("dwe_exp_id"));
+                SolrQuery q1 = new SolrQuery("exp_ud_ids:" + exptDoc.getFieldValue("id"));
                 q1.setRows(1);
-                q1.setFields("gene_id");
+                q1.setFields("id");
 
                 QueryResponse qr1 = solrAtlas.query(q1);
 
@@ -159,7 +158,7 @@ public class AtlasDao {
 
 
     public AtlasGeneResult getGeneById(String gene_id_key) {
-        return getGeneByQuery("gene_id:" + EscapeUtil.escapeSolr(gene_id_key));
+        return getGeneByQuery("id:" + EscapeUtil.escapeSolr(gene_id_key));
     }
 
     public static class AtlasGeneResult {
@@ -208,7 +207,7 @@ public class AtlasDao {
 
         SolrQuery q = new SolrQuery("*:*");
         q.setRows(1000);
-        q.setFields("gene_name,gene_id,gene_identifier");
+        q.setFields("name,id,identifier");
         try {
             QueryResponse queryResponse = solrAtlas.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
@@ -234,8 +233,7 @@ public class AtlasDao {
      * @return AtlasGene
      */
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
-        return getGeneByQuery("gene_ids:" + EscapeUtil.escapeSolr(gene_identifier) + " gene_identifier:" +
-                EscapeUtil.escapeSolr(gene_identifier) + " gene_desc:" + EscapeUtil.escapeSolr(gene_identifier));
+        return getGeneByQuery(EscapeUtil.escapeSolr(gene_identifier));
     }
 
     public void retrieveOrthoGenes(AtlasGene atlasGene) {
