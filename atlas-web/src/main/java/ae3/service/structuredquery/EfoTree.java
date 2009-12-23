@@ -7,7 +7,8 @@ package ae3.service.structuredquery;
 
 import java.util.*;
 
-import uk.ac.ebi.ae3.indexbuilder.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 
 /**
  * EFO tree handling helper class
@@ -98,11 +99,11 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      * @param <PayLoad> payload type
      */
     public static class EfoItem<PayLoad extends Comparable<PayLoad>> {
-        private Efo.Term term;
+        private EfoTerm term;
         private PayLoad payload;
         private boolean explicit;
 
-        private EfoItem(Efo.Term term, PayLoad payload, boolean explicit) {
+        private EfoItem(EfoTerm term, PayLoad payload, boolean explicit) {
             this.term = term;
             this.payload = payload;
             this.explicit = explicit;
@@ -173,7 +174,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     public List<EfoItem<PayLoad>> getMarkedSubTreeList()
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
-        for (Efo.Term t : efo.getSubTree(marked)) {
+        for (EfoTerm t : efo.getSubTree(marked)) {
             result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
@@ -193,7 +194,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
             }
         });
         for (String id : ids) {
-            Efo.Term t = efo.getTermById(id);
+            EfoTerm t = efo.getTermById(id);
             result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;
@@ -207,7 +208,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         for (String id : explicitEfos) {
-            Efo.Term t = efo.getTermById(id);
+            EfoTerm t = efo.getTermById(id);
             result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
         }
         return result;

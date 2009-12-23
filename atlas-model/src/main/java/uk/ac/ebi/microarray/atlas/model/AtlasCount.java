@@ -11,49 +11,70 @@ package uk.ac.ebi.microarray.atlas.model;
  * @date 14-Oct-2009
  */
 public class AtlasCount {
-  private String property;
-  private String propertyValue;
-  private String upOrDown;
-  private int geneCount;
+    private String property;
+    private String propertyValue;
+    private String upOrDown;
+    private int geneCount;
+    private int propertyId;
+    private int propertyValueId;
 
-  public String getProperty() {
-    return property;
-  }
+    public String getProperty() {
+        return property;
+    }
 
-  public void setProperty(String property) {
-    this.property = property;
-  }
+    public void setProperty(String property) {
+        this.property = property;
+    }
 
-  public String getPropertyValue() {
-    return propertyValue;
-  }
+    public String getPropertyValue() {
+        return propertyValue;
+    }
 
-  public void setPropertyValue(String propertyValue) {
-    this.propertyValue = propertyValue;
-  }
+    public void setPropertyValue(String propertyValue) {
+        this.propertyValue = propertyValue;
+    }
 
-  public String getUpOrDown() {
-    return upOrDown;
-  }
+    public String getUpOrDown() {
+        return upOrDown;
+    }
 
-  public void setUpOrDown(String upOrDown) {
-    this.upOrDown = upOrDown;
-  }
+    public void setUpOrDown(String upOrDown) {
+        this.upOrDown = upOrDown;
+    }
 
-  public int getGeneCount() {
-    return geneCount;
-  }
+    public int getGeneCount() {
+        return geneCount;
+    }
 
-  public void setGeneCount(int geneCount) {
-    this.geneCount = geneCount;
-  }
+    public void setGeneCount(int geneCount) {
+        this.geneCount = geneCount;
+    }
 
-  public String toString() {
-    return "AtlasCount{" +
-        "property='" + property + '\'' +
-        ", propertyValue='" + propertyValue + '\'' +
-        ", upOrDown='" + upOrDown + '\'' +
-        ", geneCount=" + geneCount +
-        '}';
-  }
+    public int getPropertyId() {
+        return propertyId;
+    }
+
+    public void setPropertyId(int propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    public int getPropertyValueId() {
+        return propertyValueId;
+    }
+
+    public void setPropertyValueId(int propertyValueId) {
+        this.propertyValueId = propertyValueId;
+    }
+
+    @Override
+    public String toString() {
+        return "AtlasCount{" +
+                "property='" + property + '\'' +
+                ", propertyValue='" + propertyValue + '\'' +
+                ", upOrDown='" + upOrDown + '\'' +
+                ", geneCount=" + geneCount +
+                ", propertyId=" + propertyId +
+                ", propertyValueId=" + propertyValueId +
+                '}';
+    }
 }

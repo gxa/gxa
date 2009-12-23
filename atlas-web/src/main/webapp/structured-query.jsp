@@ -83,8 +83,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <select name="specie_0" id="species0" style="width:180px">
                         <option value="">(any)</option>
                         <c:forEach var="s"
-                                   items="${service.allAvailableAtlasSpecies}">
-                            <option ${!empty query.species && f:toLowerCase(s) == f:toLowerCase(query.species[0]) ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(s)}</option>
+                                   items="${service.atlasQueryService.speciesOptions}">
+                            <option ${!empty query.species && f:toLowerCase(s) == f:toLowerCase(query.species[0]) ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(u:upcaseFirst(s))}</option>
                         </c:forEach>
                     </select>
                 </td>
@@ -136,7 +136,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                             <select id="geneprops" >
                                 <option value="" selected="selected">Gene property</option>
                                 <option value="">(any)</option>
-                                <c:forEach var="i" items="${service.geneProperties}">
+                                <c:forEach var="i" items="${service.atlasQueryService.genePropertyOptions}">
                                     <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
                                 </c:forEach>
                             </select>
@@ -154,8 +154,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <td>
                             <select id="species">
                                 <option value="" selected="selected">Organism</option>
-                                <c:forEach var="i" items="${service.allAvailableAtlasSpecies}">
-                                    <option value="${f:escapeXml(i)}">${f:escapeXml(i)}</option>
+                                <c:forEach var="i" items="${service.atlasQueryService.speciesOptions}">
+                                    <option value="${f:escapeXml(i)}">${u:upcaseFirst(f:escapeXml(i))}</option>
                                 </c:forEach>
                             </select>
                         </td>
@@ -198,7 +198,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             </c:forEach>
         ],
         species : [
-            <c:forEach var="i" varStatus="s" items="${service.allAvailableAtlasSpecies}">
+            <c:forEach var="i" varStatus="s" items="${service.atlasQueryService.speciesOptions}">
             '${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if>
             </c:forEach>
         ]
@@ -256,7 +256,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
     $("#loading_display").hide();
     var resultGenes = [
-            <c:forEach var="row" varStatus="s" items="${result.results}">{ geneDwId: '${u:escapeJS(row.gene.geneIdentifier)}', geneAtlasId: '${u:escapeJS(row.gene.geneId)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
+            <c:forEach var="row" varStatus="s" items="${result.results}">${u:escapeJS(row.gene.geneId)}<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
 
     var resultEfvs = [

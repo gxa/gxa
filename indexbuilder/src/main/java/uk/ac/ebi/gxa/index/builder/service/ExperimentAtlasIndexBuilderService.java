@@ -2,20 +2,22 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
+import org.apache.solr.core.CoreContainer;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.net.URLEncoder;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -58,13 +60,12 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             // Create a new solr document
                             SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-                            // Add field "exp_in_dw" = true, to show this experiment is present
                             getLog().info("Updating index - adding experiment " + experiment.getAccession());
                             getLog().debug("Adding standard fields for experiment stats");
-                            solrInputDoc.addField(Constants.FIELD_EXP_IN_DW, true);
-                            solrInputDoc.addField(Constants.FIELD_DWEXP_ID, experiment.getExperimentID());
-                            solrInputDoc.addField(Constants.FIELD_DWEXP_ACCESSION, experiment.getAccession());
-                            solrInputDoc.addField(Constants.FIELD_DWEXP_EXPDESC, experiment.getDescription());
+
+                            solrInputDoc.addField("id", experiment.getExperimentID());
+                            solrInputDoc.addField("accession", experiment.getAccession());
+                            solrInputDoc.addField("description", experiment.getDescription());
 
                             // now, fetch assays for this experiment
                             List<Assay> assays =
@@ -87,7 +88,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                     String pv = prop.getValue();
 
                                     getLog().trace("Updating index, assay property " + p + " = " + pv);
-                                    solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
+                                    solrInputDoc.addField("a_property_" + p, pv);
                                     getLog().trace("Wrote " + p + " = " + pv);
                                 }
                             }
@@ -113,7 +114,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                     String pv = prop.getValue();
 
                                     getLog().trace("Updating index, sample property " + p + " = " + pv);
-                                    solrInputDoc.addField(Constants.PREFIX_DWE + p, pv);
+                                    solrInputDoc.addField("s_property_" + p, pv);
                                     getLog().trace("Wrote " + p + " = " + pv);
                                 }
                             }
@@ -125,13 +126,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             getLog().debug(experiment.getAccession() + " has " + atlasCounts.size() +
                                     " atlas count objects");
                             for (AtlasCount count : atlasCounts) {
-                                // encode values in UTF-8 format for indexing
-                                String ef = URLEncoder.encode(count.getProperty(), "UTF-8");
-                                String efv = URLEncoder.encode(count.getPropertyValue(), "UTF-8");
                                 // efvid is concatenation of ef and efv
-                                String efvid = ef + "_" + efv;
+                                String efvid = EscapeUtil.encode(count.getProperty(), count.getPropertyValue());
                                 // field name is efvid_up / efvid_dn depending on expression
-                                String fieldname = efvid + "_" + (count.getUpOrDown().equals("-1") ? "dn" : "up");
+                                String fieldname = "c_" + efvid + "_" + (count.getUpOrDown().equals("-1") ? "dn" : "up");
 
                                 // add a field:
                                 // key is the fieldname, value is the total count
@@ -187,6 +185,20 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             // shutdown the service
             getLog().debug("Experiment index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
+        }
+    }
+
+    public static class Factory implements IndexBuilderService.Factory {
+        public IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer) {
+            return new ExperimentAtlasIndexBuilderService(atlasDAO, new EmbeddedSolrServer(coreContainer, "expt"));
+        }
+
+        public String getName() {
+            return "experiments";
+        }
+
+        public String[] getConfigFiles() {
+            return getBasicConfigFilesForCore("expt");
         }
     }
 }

@@ -11,6 +11,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 
+import uk.ac.ebi.gxa.utils.FileUtil;
+
 /**
  * @author pashky
  */
@@ -19,49 +21,6 @@ public abstract class BaseAbstractIndexTest{
 
     public static File getSolrPath() {
         return solrPath;
-    }
-    
-    private static void writeFileFromResource(File solrPath, String resource, String target) {
-        File file = new File(solrPath, target);
-
-        File path = file.getParentFile();
-        if(!path.exists() && !path.mkdirs())
-            throw new RuntimeException("Can't create target directories: " + path);
-
-        InputStream istream = BaseAbstractIndexTest.class.getClassLoader().getResourceAsStream("META-INF/" + resource);
-        try {
-            FileOutputStream ostream = new FileOutputStream(file);
-            byte b[] = new byte[2048];
-            int i;
-            while((i = istream.read(b)) >= 0)
-                ostream.write(b, 0, i);
-            ostream.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }                                                                 
-
-    private static File createTempDirectory(String prefix) {
-        File path;
-        int counter = 0;
-        do {
-            path = new File(System.getProperty("java.io.tmpdir"), prefix + (counter++));
-        } while(!path.mkdirs());
-        return path;
-    }
-
-    private static void deleteDirectory(File dir){
-		if(dir.isDirectory()) {
-            for (File file : dir.listFiles())
-                deleteDirectory(file);
-		}
-        dir.delete();
-	}
-
-    private static void createDirectory(File path, String local) {
-        if(!new File(path, local).mkdirs())
-            throw new RuntimeException("Can't create temporary directory: " + local + " in :" + path);
     }
 
     private static void loadSolrDump(CoreContainer container, String core, String dump) throws SolrServerException, IOException, TransformerException {
@@ -86,23 +45,23 @@ public abstract class BaseAbstractIndexTest{
     
 
     protected static void deployTemporarySolr() throws Exception {
-        solrPath = createTempDirectory("solr");
+        solrPath = FileUtil.createTempDirectory("solr");
 
-        writeFileFromResource(solrPath, "solr.xml", "solr.xml");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "solr.xml", solrPath, "solr.xml");
 
-        writeFileFromResource(solrPath, "solrconfig.xml", "atlas/conf/solrconfig.xml");
-        writeFileFromResource(solrPath, "stopwords.txt", "atlas/conf/stopwords.txt");
-        writeFileFromResource(solrPath, "protwords.txt", "atlas/conf/protwords.txt");
-        writeFileFromResource(solrPath, "synonyms.txt", "atlas/conf/synonyms.txt");
-        writeFileFromResource(solrPath, "schema-atlas.xml", "atlas/conf/schema.xml");
-        createDirectory(solrPath, "atlas/data");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "solrconfig.xml", solrPath, "atlas/conf/solrconfig.xml");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "stopwords.txt", solrPath, "atlas/conf/stopwords.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "protwords.txt", solrPath, "atlas/conf/protwords.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "synonyms.txt", solrPath, "atlas/conf/synonyms.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "schema-atlas.xml", solrPath, "atlas/conf/schema.xml");
+        FileUtil.createDirectory(solrPath, "atlas/data");
 
-        writeFileFromResource(solrPath, "solrconfig.xml", "expt/conf/solrconfig.xml");
-        writeFileFromResource(solrPath, "stopwords.txt", "expt/conf/stopwords.txt");
-        writeFileFromResource(solrPath, "protwords.txt", "expt/conf/protwords.txt");
-        writeFileFromResource(solrPath, "synonyms.txt", "expt/conf/synonyms.txt");
-        writeFileFromResource(solrPath, "schema-expt.xml", "expt/conf/schema.xml");
-        createDirectory(solrPath, "expt/data");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "solrconfig.xml", solrPath, "expt/conf/solrconfig.xml");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "stopwords.txt", solrPath, "expt/conf/stopwords.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "protwords.txt", solrPath, "expt/conf/protwords.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "synonyms.txt", solrPath, "expt/conf/synonyms.txt");
+        FileUtil.writeFileFromResource(BaseAbstractIndexTest.class, "schema-expt.xml", solrPath, "expt/conf/schema.xml");
+        FileUtil.createDirectory(solrPath, "expt/data");
     }
 
     protected static void populateTemporarySolr() throws Exception {
@@ -115,6 +74,6 @@ public abstract class BaseAbstractIndexTest{
     }
 
     protected static void removeTemporarySolr() throws Exception {
-        deleteDirectory(solrPath);
+        FileUtil.deleteDirectory(solrPath);
     }
 }

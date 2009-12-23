@@ -428,7 +428,7 @@ if(!atlas)
                     url: 'experiments',
                     dataType: "json",
                     data: {
-                        gene:gene.geneAtlasId,
+                        gene:gene,
                         ef: efo ? 'efo' : efv.ef,
                         efv: efo ? efo : efv.efv
                     },
@@ -466,7 +466,7 @@ if(!atlas)
                                     type: "GET",
                                     url: ""+ atlas.homeUrl +"plot.jsp",
                                     data: {
-                                        gid: gene.geneAtlasId,
+                                        gid: gene,
                                         eid: resp.experiments[iexp].id,
                                         ef: 'ba_' + resp.experiments[iexp].efs[ief].ef,
                                         plot: 'bar' 

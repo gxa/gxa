@@ -8,7 +8,6 @@ import ae3.service.structuredquery.*;
 import ae3.util.FilterIterator;
 import ae3.util.JoinIterator;
 import ae3.util.MappingIterator;
-import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 
 import java.util.Iterator;
@@ -93,7 +92,8 @@ public class HeatmapResultAdapter {
             }
 
             Iterator<Experiment> expiter() {
-                return row.getGene().getExperimentsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
+                throw new RuntimeException("TODO");
+                //return row.getGene().getExperimentsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
             }
         }
 
@@ -114,8 +114,9 @@ public class HeatmapResultAdapter {
             }
 
             Iterator<Experiment> expiter() {
-                return row.getGene().getExperimentsTable()
-                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
+                throw new RuntimeException("TODO");
+//                return row.getGene().getExperimentsTable()
+//                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
             }
         }
 
@@ -124,7 +125,8 @@ public class HeatmapResultAdapter {
         }
 
         public AtlasGene getGene() {
-            return row.getGene();
+            throw new RuntimeException("TODO");
+//            return row.getGene();
         }
 
         public Iterator<ResultRow.Expression> getExpressions() {

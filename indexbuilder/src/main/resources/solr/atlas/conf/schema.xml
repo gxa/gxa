@@ -53,7 +53,7 @@ http://wiki.apache.org/solr/SchemaXml
              ]]> -->
         <fieldtype name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 
-        
+
         <fieldtype name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
 
         <!-- <![CDATA[ The optional sortMissingLast and sortMissingFirst attributes are
@@ -67,12 +67,12 @@ http://wiki.apache.org/solr/SchemaXml
              - If sortMissingLast="false" and sortMissingFirst="false" (the default),
              then default lucene sorting will be used which places docs without the
              field first in an ascending sort and last in a descending sort.
-             ]]> -->    
+             ]]> -->
 
 
         <!-- <![CDATA[ numeric field types that store and index the text
-             value verbatim (and hence don't support range queries, since the
-             lexicographic ordering isn't equal to the numeric ordering) ]]> -->
+value verbatim (and hence don't support range queries, since the
+lexicographic ordering isn't equal to the numeric ordering) ]]> -->
         <fieldtype name="integer" class="solr.IntField" omitNorms="true"/>
         <fieldtype name="short" class="solr.ShortField" omitNorms="true"/>
         <fieldtype name="long" class="solr.LongField" omitNorms="true"/>
@@ -131,7 +131,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
              </fieldType>
              ]]> -->
 
-        
+
         <fieldtype name="text_ws" class="solr.TextField" positionIncrementGap="100">
             <analyzer>
                 <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -197,7 +197,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
                      when you want your sorting to be case insensitive
                      ]]> -->
                 <filter class="solr.LowerCaseFilterFactory" />
-                
+
                 <filter class="solr.TrimFilterFactory" />
                 <!-- <![CDATA[ The PatternReplaceFilter gives you the flexibility to use
                      Java Regular expression to replace any sequence of characters
@@ -262,58 +262,23 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
              fields or fields that need an index-time boost need norms.
              ]]> -->
 
-        <field name="gene_id" type="string" indexed="true" stored="true"/>
-        <field name="gene_name" type="text" indexed="true" stored="true"/>
-        <field name="gene_name_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_disease" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_disease_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_dbxref" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_embl" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_ensfamily" type="text" indexed="true" stored="true" multiValued="true"/> 
-        <field name="gene_ensgene" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_ensprotein" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_enstranscript" type="string" indexed="true" stored="true" multiValued="true"/> 
-        <field name="gene_goid" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_goterm" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_goterm_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_image" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_interproid" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_interproterm" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_interproterm_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_keyword" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_keyword_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_locuslink" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_omimid" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_orf" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_ortholog" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_protein" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_protein_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_refseq" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_species" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_species_exact" type="string" indexed="true" stored="false" multiValued="true"/>
-        <field name="gene_synonym" type="text" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_unigene" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_uniprot" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_hmdb" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_chebi" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_cas" type="string" indexed="true" stored="true" multiValued="true"/>
-        <field name="gene_uniprotmetenz" type="string" indexed="true" stored="true" multiValued="true"/>
-
-        <field name="gene_identifier" type="string" indexed="true" stored="true"/>
-        <field name="gene_ids" type="string" indexed="true" stored="false" multiValued="true"/> 
-        <field name="gene_desc" type="text" indexed="true" stored="false" multiValued="true"/> 
-        <!-- <![CDATA[ non-tokenized version of manufacturer to make it easier to sort or group
-             results by manufacturer.  copied from "manu" via copyField ]]> -->
-        <field name="manu_exact" type="string" indexed="true" stored="false"/>
-        
+        <field name="id" type="integer" indexed="true" stored="true"/>
+        <field name="identifier" type="string" indexed="true" stored="true"/>
         <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
-        <field name="suggest_full" type="prefix_full" indexed="true" stored="false"  multiValued="true"/>
-        <field name="suggest_token" type="prefix_token" indexed="true" stored="false"  multiValued="true"/>
-        
+
+        <field name="species" type="string" indexed="true" stored="true"/>
+        <field name="species_id" type="integer" indexed="true" stored="true"/>
+
+        <field name="name" type="text" indexed="true" stored="true" />
+        <field name="name_f" type="string" indexed="true" stored="false" />
+
+        <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />
+        <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true" />
+
         <dynamicField name="cnt_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="s_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="minpval_*" type="float" indexed="true" stored="true" multiValued="false" />
-        
+
         <field name="exp_up_ids" type="long" indexed="true" stored="false" multiValued="true" />
         <field name="exp_dn_ids" type="long" indexed="true" stored="false" multiValued="true" />
         <field name="exp_ud_ids" type="long" indexed="true" stored="false" multiValued="true" />
@@ -322,88 +287,34 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="efvs_ud_*" type="string" indexed="true" stored="true" multiValued="true" />
 
-        
         <field name="efos_up" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="efos_dn" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="efos_ud" type="string" indexed="true" stored="true" multiValued="true" />
 
-        <field name="exp_info" type="string" indexed="false" stored="true" multiValued="false" />
+        <field name="alltext" type="text" indexed="true" stored="false" multiValued="true" />
+
+        <field name="exp_info" type="string" indexed="false" stored="true" />
     </fields>
 
+    <uniqueKey>id</uniqueKey>
 
-    
-    <uniqueKey>gene_id</uniqueKey>
 
-    
-    <defaultSearchField>gene_desc</defaultSearchField>
+    <defaultSearchField>alltext</defaultSearchField>
 
-    
+
     <solrQueryParser defaultOperator="OR"/>
 
     <!-- <![CDATA[ copyField commands copy one field to another at the time a document
          is added to the index.  It's used either to index the same field differently,
          or to add multiple fields to the same field for easier/faster searching.  ]]> -->
 
-    
-    <copyField source="gene_id" dest="gene_ids"/>
-    <copyField source="gene_dbxref" dest="gene_ids"/>
-    <copyField source="gene_embl" dest="gene_ids"/>
-    <copyField source="gene_ensfamily" dest="gene_ids"/>
-    <copyField source="gene_ensgene" dest="gene_ids"/>
-    <copyField source="gene_ensprotein" dest="gene_ids"/>
-    <copyField source="gene_enstranscript" dest="gene_ids"/>
-    <copyField source="gene_goid" dest="gene_ids"/>
-    <copyField source="gene_image" dest="gene_ids"/>
-    <copyField source="gene_interproid" dest="gene_ids"/>
-    <copyField source="gene_locuslink" dest="gene_ids"/>
-    <copyField source="gene_omimid" dest="gene_ids"/>
-    <copyField source="gene_orf" dest="gene_ids"/>
-    <copyField source="gene_refseq" dest="gene_ids"/>
-    <copyField source="gene_unigene" dest="gene_ids"/>
-    <copyField source="gene_uniprot" dest="gene_ids"/>
-    <copyField source="gene_hmdb" dest="gene_ids"/>
-    <copyField source="gene_chebi" dest="gene_ids"/>
-    <copyField source="gene_cas" dest="gene_ids"/>
-    <copyField source="gene_uniprotmetenz" dest="gene_ids"/>
+    <copyField source="property_*" dest="property_f_*"/>
 
-    <copyField source="gene_name" dest="gene_desc"/>
-    <copyField source="gene_disease" dest="gene_desc"/>
-    <copyField source="gene_goterm" dest="gene_desc"/>
-    <copyField source="gene_interproterm" dest="gene_desc"/>
-    <copyField source="gene_keyword" dest="gene_desc"/>
-    <copyField source="gene_protein" dest="gene_desc"/>
-    <copyField source="gene_synonym" dest="gene_desc"/>
-    
-    <copyField source="gene_name" dest="gene_name_exact"/>
-    <copyField source="gene_disease" dest="gene_disease_exact"/>
-    <copyField source="gene_goterm" dest="gene_goterm_exact"/>
-    <copyField source="gene_interproterm" dest="gene_interproterm_exact"/>
-    <copyField source="gene_keyword" dest="gene_keyword_exact"/>
-    <copyField source="gene_protein" dest="gene_protein_exact"/>
-    <copyField source="gene_synonym" dest="gene_name_exact"/>
+    <copyField source="name" dest="alltext"/>
+    <copyField source="species" dest="alltext"/>
+    <copyField source="property_*" dest="alltext"/>
 
-    <copyField source="gene_name" dest="suggest_full"/>
-    <copyField source="gene_disease" dest="suggest_full"/>
-    <copyField source="gene_goterm" dest="suggest_full"/>
-    <copyField source="gene_interproterm" dest="suggest_full"/>
-    <copyField source="gene_keyword" dest="suggest_full"/>
-    <copyField source="gene_protein" dest="suggest_full"/>
-    <copyField source="gene_synonym" dest="suggest_full"/>
+    <copyField source="name" dest="name_f"/>
 
-    <copyField source="gene_name" dest="suggest_token"/>
-    <copyField source="gene_disease" dest="suggest_token"/>
-    <copyField source="gene_goterm" dest="suggest_token"/>
-    <copyField source="gene_interproterm" dest="suggest_token"/>
-    <copyField source="gene_keyword" dest="suggest_token"/>
-    <copyField source="gene_protein" dest="suggest_token"/>
-    <copyField source="gene_synonym" dest="suggest_token"/>
-   
-    <copyField source="gene_species" dest="gene_species_exact"/>
-
-
-    <!-- <![CDATA[ Similarity is the scoring routine for each document vs. a query.
-         A custom similarity may be specified here, but the default is fine
-         for most applications.  ]]> -->
-    
 
 </schema>

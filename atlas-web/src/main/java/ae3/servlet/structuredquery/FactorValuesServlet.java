@@ -3,7 +3,7 @@ package ae3.servlet.structuredquery;
 import ae3.restresult.RestOut;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.AutoCompleteItem;
-import ae3.service.structuredquery.IValueListHelper;
+import ae3.service.structuredquery.AutoCompleter;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasSearchService;
 
@@ -31,7 +31,7 @@ public class FactorValuesServlet extends RestServlet {
                 (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
         AtlasStructuredQueryService service = searchService.getAtlasQueryService();
 
-        List<IValueListHelper> listers = new ArrayList<IValueListHelper>();
+        List<AutoCompleter> listers = new ArrayList<AutoCompleter>();
 
         String type = request.getParameter("type");
         if ("gene".equals(type)) {
@@ -53,60 +53,50 @@ public class FactorValuesServlet extends RestServlet {
         String factor = request.getParameter("factor");
         result.put("factor", factor);
 
-        if ("all".equals(request.getParameter("mode"))) {
-
-            List<String> resultList = new ArrayList<String>();
-            for (IValueListHelper lister : listers) {
-                resultList.addAll(lister.listAllValues(factor));
+        int nlimit = 100;
+        try {
+            nlimit = Integer.parseInt(request.getParameter("limit"));
+            if (nlimit > 1000) {
+                nlimit = 1000;
             }
-            result.put("values", resultList);
         }
-        else {
-            int nlimit = 100;
-            try {
-                nlimit = Integer.parseInt(request.getParameter("limit"));
-                if (nlimit > 1000) {
-                    nlimit = 1000;
+        catch (Exception e) {
+            // just ignore
+        }
+        String[] queries = request.getParameterValues("q");
+
+        Map<String, List<AutoCompleteItem>> values = new ACMap();
+        result.put("completions", values);
+
+        for (String query : queries) {
+            String q = query != null ? query : "";
+            if (q.startsWith("\"")) {
+                q = q.substring(1);
+            }
+            if (q.endsWith("\"")) {
+                q = q.substring(0, q.length() - 1);
+            }
+
+            Map<String, String> filters = new HashMap<String, String>();
+            String[] filtps = request.getParameterValues("f");
+            if (filtps != null) {
+                for (String filter : filtps) {
+                    filters.put(filter, request.getParameter(filter));
                 }
             }
-            catch (Exception e) {
-                // just ignore
+
+            List<AutoCompleteItem> resultList = new ACList();
+            for (AutoCompleter lister : listers) {
+                if (resultList.size() < nlimit) {
+                    resultList.addAll(lister.autoCompleteValues(
+                            factor,
+                            q,
+                            nlimit - resultList.size(),
+                            filters
+                    ));
+                }
             }
-            String[] queries = request.getParameterValues("q");
-
-            Map<String, List<AutoCompleteItem>> values = new ACMap();
-            result.put("completions", values);
-
-            for (String query : queries) {
-                String q = query != null ? query : "";
-                if (q.startsWith("\"")) {
-                    q = q.substring(1);
-                }
-                if (q.endsWith("\"")) {
-                    q = q.substring(0, q.length() - 1);
-                }
-
-                Map<String, String> filters = new HashMap<String, String>();
-                String[] filtps = request.getParameterValues("f");
-                if (filtps != null) {
-                    for (String filter : filtps) {
-                        filters.put(filter, request.getParameter(filter));
-                    }
-                }
-
-                List<AutoCompleteItem> resultList = new ACList();
-                for (IValueListHelper lister : listers) {
-                    if (resultList.size() < nlimit) {
-                        resultList.addAll(lister.autoCompleteValues(
-                                factor,
-                                q,
-                                nlimit - resultList.size(),
-                                filters
-                        ));
-                    }
-                }
-                values.put(q != null ? q : "", resultList);
-            }
+            values.put(q != null ? q : "", resultList);
         }
 
         return result;

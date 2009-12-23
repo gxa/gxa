@@ -139,9 +139,10 @@ public class HtmlHelper {
         return r;
     }
 
-    public static String FormatDate(String format, Date date ){
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
-        //System.out.println("Date is : " + formatter.format(date));
-        return formatter.format(date); 
+    public static String upcaseFirst(String s) {
+        if(s.length() > 1)
+            return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+        return s.toUpperCase();
     }
 }
+

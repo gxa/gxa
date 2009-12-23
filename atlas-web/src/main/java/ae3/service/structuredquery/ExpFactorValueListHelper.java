@@ -8,7 +8,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.ae3.indexbuilder.Constants;
+import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
@@ -16,9 +16,9 @@ import java.util.*;
 /**
  * EFVs listing and autocompletion helper implementation
  * @author pashky
- * @see ae3.service.structuredquery.IValueListHelper
+ * @see AutoCompleter
  */
-public class ExpFactorValueListHelper implements IValueListHelper {
+public class ExpFactorValueListHelper implements AutoCompleter {
 
     private SolrServer solrAtlas;
     private SolrServer solrExpt;
@@ -46,7 +46,7 @@ public class ExpFactorValueListHelper implements IValueListHelper {
         synchronized(prefixTrees) {
             if(!prefixTrees.containsKey(property)) {
                 log.info("Loading factor values and counts for " + property);
-                SolrQuery q = new SolrQuery("gene_id:[* TO *]");
+                SolrQuery q = new SolrQuery("id:[* TO *]");
                 q.setRows(0);
                 q.setFacet(true);
                 q.setFacetMinCount(1);
@@ -58,15 +58,15 @@ public class ExpFactorValueListHelper implements IValueListHelper {
                     if(Constants.EXP_FACTOR_NAME.equals(property)) {
                         q.addFacetField("exp_ud_ids");
 
-                        SolrQuery exptMapQ = new SolrQuery("dwe_exp_id:[* TO *]");
+                        SolrQuery exptMapQ = new SolrQuery("id:[* TO *]");
                         exptMapQ.setRows(1000000);
-                        exptMapQ.addField("dwe_exp_id");
-                        exptMapQ.addField("dwe_exp_accession");
+                        exptMapQ.addField("id");
+                        exptMapQ.addField("accession");
                         QueryResponse qr = solrExpt.query(exptMapQ);
                         for(SolrDocument doc : qr.getResults())
                         {
-                            Object id = doc.getFieldValue("dwe_exp_id");
-                            String accession = (String)doc.getFieldValue("dwe_exp_accession");
+                            Object id = doc.getFieldValue("id");
+                            String accession = (String)doc.getFieldValue("accession");
                             if(id != null && accession != null)
                                 valMap.put(id.toString(), accession);
                         }

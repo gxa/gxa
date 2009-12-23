@@ -146,6 +146,14 @@
     </function>
 
     <function>
+        <name>upcaseFirst</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            java.lang.String upcaseFirst(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
         <name>GeneUrl</name>
         <function-class>ae3.util.URLUtil</function-class>
         <function-signature>

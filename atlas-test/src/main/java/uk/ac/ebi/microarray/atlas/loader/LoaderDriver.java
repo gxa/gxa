@@ -2,6 +2,7 @@ package uk.ac.ebi.microarray.atlas.loader;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
@@ -26,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URI;
 import java.text.DecimalFormat;
+import java.util.logging.LogManager;
 
 /**
  * Javadocs go here!
@@ -34,6 +36,16 @@ import java.text.DecimalFormat;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
+
+    static {
+	        try {
+	            LogManager.getLogManager().readConfiguration(LoaderDriver.class.getResourceAsStream("logging.properties"));
+	        } catch(Exception e) {
+
+	        }
+	        SLF4JBridgeHandler.install();
+	    }
+
     public static void main(String[] args) {
         // load spring config
         BeanFactory factory =
@@ -98,46 +110,46 @@ public class LoaderDriver {
         }
 
         // run the index builder
-//        final long indexStart = System.currentTimeMillis();
-//        builder.buildIndex(new IndexBuilderListener() {
-//
-//            public void buildSuccess(IndexBuilderEvent event) {
-//                final long indexEnd = System.currentTimeMillis();
-//
-//                String total = new DecimalFormat("#.##").format(
-//                        (indexEnd - indexStart) / 60000);
-//                System.out.println(
-//                        "Index built successfully in " + total + " mins.");
-//
-//                try {
-//                    builder.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            public void buildError(IndexBuilderEvent event) {
-//                System.out.println("Index failed to build");
-//                for (Throwable t : event.getErrors()) {
-//                    t.printStackTrace();
-//                    try {
-//                        builder.shutdown();
-//                    }
-//                    catch (IndexBuilderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+        final long indexStart = System.currentTimeMillis();
+        builder.buildIndex(new IndexBuilderListener() {
 
-        // in case we don't run indexbuilder
-        try {
-            builder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-        }
+            public void buildSuccess(IndexBuilderEvent event) {
+                final long indexEnd = System.currentTimeMillis();
+
+                String total = new DecimalFormat("#.##").format(
+                        (indexEnd - indexStart) / 60000);
+                System.out.println(
+                        "Index built successfully in " + total + " mins.");
+
+                try {
+                    builder.shutdown();
+                }
+                catch (IndexBuilderException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public void buildError(IndexBuilderEvent event) {
+                System.out.println("Index failed to build");
+                for (Throwable t : event.getErrors()) {
+                    t.printStackTrace();
+                    try {
+                        builder.shutdown();
+                    }
+                    catch (IndexBuilderException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+//        // in case we don't run indexbuilder
+//        try {
+//            builder.shutdown();
+//        }
+//        catch (IndexBuilderException e) {
+//            e.printStackTrace();
+//        }
 
         // run the NetCDFGenerator
 //        final long netStart = System.currentTimeMillis();
@@ -183,39 +195,39 @@ public class LoaderDriver {
         }
 
         // run the analytics
-        final long netStart = System.currentTimeMillis();
-        analytics.generateAnalyticsForExperiment(
-                "E-TABM-199",
-                new AnalyticsGeneratorListener() {
-                    public void buildSuccess(AnalyticsGenerationEvent event) {
-                        final long netEnd = System.currentTimeMillis();
-
-                        String total = new DecimalFormat("#.##").format(
-                                (netEnd - netStart) / 60000);
-                        System.out.println(
-                                "NetCDFs generated successfully in " + total + " mins.");
-
-                        try {
-                            analytics.shutdown();
-                        }
-                        catch (AnalyticsGeneratorException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    public void buildError(AnalyticsGenerationEvent event) {
-                        System.out.println("NetCDF Generation failed!");
-                        for (Throwable t : event.getErrors()) {
-                            t.printStackTrace();
-                            try {
-                                analytics.shutdown();
-                            }
-                            catch (AnalyticsGeneratorException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
+//        final long netStart = System.currentTimeMillis();
+//        analytics.generateAnalyticsForExperiment(
+//                "E-TABM-199",
+//                new AnalyticsGeneratorListener() {
+//                    public void buildSuccess(AnalyticsGenerationEvent event) {
+//                        final long netEnd = System.currentTimeMillis();
+//
+//                        String total = new DecimalFormat("#.##").format(
+//                                (netEnd - netStart) / 60000);
+//                        System.out.println(
+//                                "NetCDFs generated successfully in " + total + " mins.");
+//
+//                        try {
+//                            analytics.shutdown();
+//                        }
+//                        catch (AnalyticsGeneratorException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                    public void buildError(AnalyticsGenerationEvent event) {
+//                        System.out.println("NetCDF Generation failed!");
+//                        for (Throwable t : event.getErrors()) {
+//                            t.printStackTrace();
+//                            try {
+//                                analytics.shutdown();
+//                            }
+//                            catch (AnalyticsGeneratorException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                });
 
         // in case we don't run analytics
 //        try {

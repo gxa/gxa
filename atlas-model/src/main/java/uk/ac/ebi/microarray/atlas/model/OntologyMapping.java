@@ -7,67 +7,76 @@ package uk.ac.ebi.microarray.atlas.model;
  * @date 25-Sep-2009
  */
 public class OntologyMapping {
-  private String experimentAccession;
-  private String property;
-  private String propertyValue;
-  private String ontologyTerm;
-  private boolean isSampleProperty;
-  private boolean isAssayProperty;
-  private boolean isFactorValue;
+    private Long experimentId;
+    private String experimentAccession;
+    private String property;
+    private String propertyValue;
+    private String ontologyTerm;
+    private boolean isSampleProperty;
+    private boolean isAssayProperty;
+    private boolean isFactorValue;
 
-  public String getExperimentAccession() {
-    return experimentAccession;
-  }
+    public Long getExperimentId() {
+        return experimentId;
+    }
 
-  public void setExperimentAccession(String experimentAccession) {
-    this.experimentAccession = experimentAccession;
-  }
+    public void setExperimentId(Long experimentId) {
+        this.experimentId = experimentId;
+    }
 
-  public String getProperty() {
-    return property;
-  }
+    public String getExperimentAccession() {
+        return experimentAccession;
+    }
 
-  public void setProperty(String property) {
-    this.property = property;
-  }
+    public void setExperimentAccession(String experimentAccession) {
+        this.experimentAccession = experimentAccession;
+    }
 
-  public String getPropertyValue() {
-    return propertyValue;
-  }
+    public String getProperty() {
+        return property;
+    }
 
-  public void setPropertyValue(String propertyValue) {
-    this.propertyValue = propertyValue;
-  }
+    public void setProperty(String property) {
+        this.property = property;
+    }
 
-  public String getOntologyTerm() {
-    return ontologyTerm;
-  }
+    public String getPropertyValue() {
+        return propertyValue;
+    }
 
-  public void setOntologyTerm(String ontologyTerm) {
-    this.ontologyTerm = ontologyTerm;
-  }
+    public void setPropertyValue(String propertyValue) {
+        this.propertyValue = propertyValue;
+    }
 
-  public boolean isSampleProperty() {
-    return isSampleProperty;
-  }
+    public String getOntologyTerm() {
+        return ontologyTerm;
+    }
 
-  public void setSampleProperty(boolean sampleProperty) {
-    isSampleProperty = sampleProperty;
-  }
+    public void setOntologyTerm(String ontologyTerm) {
+        this.ontologyTerm = ontologyTerm;
+    }
 
-  public boolean isAssayProperty() {
-    return isAssayProperty;
-  }
+    public boolean isSampleProperty() {
+        return isSampleProperty;
+    }
 
-  public void setAssayProperty(boolean assayProperty) {
-    isAssayProperty = assayProperty;
-  }
+    public void setSampleProperty(boolean sampleProperty) {
+        isSampleProperty = sampleProperty;
+    }
 
-  public boolean isFactorValue() {
-    return isFactorValue;
-  }
+    public boolean isAssayProperty() {
+        return isAssayProperty;
+    }
 
-  public void setFactorValue(boolean factorValue) {
-    isFactorValue = factorValue;
-  }
+    public void setAssayProperty(boolean assayProperty) {
+        isAssayProperty = assayProperty;
+    }
+
+    public boolean isFactorValue() {
+        return isFactorValue;
+    }
+
+    public void setFactorValue(boolean factorValue) {
+        isFactorValue = factorValue;
+    }
 }

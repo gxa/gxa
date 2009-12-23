@@ -2,12 +2,15 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.ae3.indexbuilder.Efo;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
@@ -22,6 +25,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -38,7 +42,7 @@ import java.util.concurrent.*;
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int NUM_THREADS = 64;
+    private static final int NUM_THREADS = 32;
 
     private Map<String, List<String>> ontomap =
             new HashMap<String, List<String>>();
@@ -56,6 +60,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         loadEfoMapping();
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
+        getLog().info("Fetching genes to index");
         // fetch genes
         List<Gene> genes = pendingOnly
                 ? getAtlasDAO().getAllPendingGenes()
@@ -64,6 +69,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         // the list of futures - we need these so we can block until completion
         List<Future<UpdateResponse>> tasks =
                 new ArrayList<Future<UpdateResponse>>();
+
+        final AtomicInteger processed = new AtomicInteger(0);
+        final int total = genes.size();
+
+        final long timeStart = System.currentTimeMillis();
+
+        getLog().info("Found " + total + " genes");
 
         try {
             // index all genes in parallel
@@ -92,18 +104,18 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = new SolrInputDocument();
                             getLog().debug("Updating index with properties for " + gene.getIdentifier());
                             // add the gene id field
-                            solrInputDoc.addField("gene_id", gene.getGeneID());
+                            solrInputDoc.addField("id", gene.getGeneID());
+                            solrInputDoc.addField("species", gene.getSpecies());
+                            solrInputDoc.addField("name", gene.getName());
+                            solrInputDoc.addField("identifier", gene.getIdentifier());
+
                             for (Property prop : gene.getProperties()) {
-                                // fixme: hack to support known index format
-                                String p = (prop.getName().equalsIgnoreCase("go") ||
-                                        prop.getName().equalsIgnoreCase("interpro") ||
-                                        prop.getName().equalsIgnoreCase("omim"))
-                                        ? "gene_" + prop.getName().toLowerCase() + "id"
-                                        : "gene_" + prop.getName().toLowerCase();
+                                String p = "property_" + prop.getName();
                                 String pv = prop.getValue();
 
                                 getLog().trace("Updating index, gene property " + p + " = " + pv);
-                                solrInputDoc.addField(p, pv);
+                                if(pv != null)
+                                    solrInputDoc.addField(p, pv);
                             }
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
@@ -112,12 +124,21 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             getLog().debug("Updated solr document with EFO counts for " +
                                     gene.getDesignElementIDs().size() + " design elements");
                             // finally, add the document to the index
-                            getLog().info("Finalising changes for " + gene.getIdentifier());
+                            getLog().debug("Finalising changes for " + gene.getIdentifier());
                             response = getSolrServer().add(solrInputDoc);
 
                             // update loadmonitor table - experiment has completed indexing
                             getAtlasDAO().writeLoadDetails(
                                     gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
+
+                            int processedNow = processed.incrementAndGet();
+                            if(processedNow % 1000 == 0) {
+                                long diff = System.currentTimeMillis() - timeStart;
+                                long estimated = (total - processedNow) * diff / (processedNow * 1000) / 60;
+                                getLog().info("Processed " + processedNow + "/" + total + " genes " +
+                                        (processedNow * 100/total) + "% " + (processedNow*1000/diff) +
+                                        " genes per sec, estimated " + estimated + " mins.");
+                            }
 
                             return response;
                         }
@@ -134,8 +155,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                         gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
                             }
 
-                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
-                            System.gc();
                         }
                     }
                 }));
@@ -176,7 +195,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             return;
         }
 
-        for (Efo.Term child : efo.getTermChildren(currentId)) {
+        for (EfoTerm child : efo.getTermChildren(currentId)) {
             calcChildren(child.getId(), efoupdn);
             current.addChild(efoupdn.get(child.getId()));
         }
@@ -209,14 +228,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             List<ExpressionAnalysis> expressionAnalytics =
                     getAtlasDAO().getExpressionAnalyticsByDesignElementID(designElementID);
             if (expressionAnalytics.size() == 0) {
-                getLog().warn("Design element " + designElementID + " has 0 expression analytics, " +
+                getLog().debug("Design element " + designElementID + " has 0 expression analytics, " +
                         "this design element will be excluded");
             }
 
             for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
                 Long experimentId = (long) expressionAnalytic.getExperimentID();
                 if (experimentId == 0) {
-                    getLog().warn("Design element " + designElementID + " references an experiment where " +
+                    getLog().debug("Design element " + designElementID + " references an experiment where " +
                             "experimentid=0, this design element will be excluded");
                     continue;
                 }
@@ -229,7 +248,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 List<String> accessions =
                         ontomap.get(experimentId + "_" + ef + "_" + efv);
 
-                String efvid = EscapeUtil.encode(ef, efv);
+                String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
                 if (!efvupdn.containsKey(efvid)) {
                     efvupdn.put(efvid, new UpDn());
                 }
@@ -425,11 +444,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private void loadEfoMapping() {
         log.info("Fetching ontology mappings...");
 
-        // todo - query by ontology name necessary?
-        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappings();
+        // we don't support enything else yet
+        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            String mapKey = mapping.getExperimentAccession() + "_" +
-                    mapping.getProperty().toLowerCase() + "_" +
+            String mapKey = mapping.getExperimentId() + "_" +
+                    mapping.getProperty() + "_" +
                     mapping.getPropertyValue();
 
             if (ontomap.containsKey(mapKey)) {
@@ -490,5 +509,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         int cdn = 0;
         double pup = 1;
         double pdn = 1;
+    }
+
+    public static class Factory implements IndexBuilderService.Factory {
+        public IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer) {
+            return new GeneAtlasIndexBuilderService(atlasDAO, new EmbeddedSolrServer(coreContainer, "atlas"));
+        }
+
+        public String getName() {
+            return "genes";
+        }
+
+        public String[] getConfigFiles() {
+            return getBasicConfigFilesForCore("atlas");
+        }
     }
 }

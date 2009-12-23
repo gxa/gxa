@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -85,4 +86,26 @@ public abstract class IndexBuilderService {
      *          if there is a problem whilst trying to generate the index documents
      */
     protected abstract void createIndexDocs(boolean pendingOnly) throws IndexBuilderException;
+
+    public interface Factory {
+        IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer);
+        String getName();
+        String[] getConfigFiles(); 
+    }
+    
+    protected static String[] getBasicConfigFilesForCore(String name) {
+        final String [] files = {
+                "solrconfig.xml",
+                "stopwords.txt",
+                "protwords.txt",
+                "synonyms.txt",
+                "schema.xml"
+        };
+        String[] result = new String[files.length];
+        int i = 0;
+        for(String f : files) {
+            result[i++] = name + "/conf/" + f;
+        }
+        return result;
+    }
 }

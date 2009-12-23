@@ -1,7 +1,7 @@
 package ae3.service.structuredquery;
 
-import ae3.service.structuredquery.GeneProperties.Prop;
-import ae3.service.structuredquery.GeneProperties.PropType;
+import ae3.util.AtlasProperties;
+import ae3.util.HtmlHelper;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -18,10 +18,16 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 /**
  * Gene properties values listing and autocompletion helper implementation
  * @author pashky
- * @see ae3.service.structuredquery.IValueListHelper
+ * @see AutoCompleter
  */
-public class GenePropValueListHelper implements IValueListHelper {
-    private SolrServer solrAtlas;
+public class GenePropValueListHelper implements AutoCompleter {
+    private final SolrServer solrAtlas;
+    private final Set<String> idProperties;
+    private final Set<String> descProperties;
+    private final List<String> nameFields;
+    private final int nameLimit;
+    private final int idLimit;
+
     private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
@@ -29,16 +35,28 @@ public class GenePropValueListHelper implements IValueListHelper {
     public GenePropValueListHelper(SolrServer solrAtlas)
     {
         this.solrAtlas = solrAtlas;
+
+        this.idProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.ids").split(",")));
+        this.descProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.descs").split(",")));
+
+        this.idLimit = AtlasProperties.getIntProperty("atlas.gene.autocomplete.ids.limit");
+        this.nameLimit = AtlasProperties.getIntProperty("atlas.gene.autocomplete.names.limit");
+
+        this.nameFields = new ArrayList<String>();
+        nameFields.add("identifier");
+        nameFields.add("name_f");
+        for(String nameProp : AtlasProperties.getProperty("atlas.gene.autocomplete.names").split(","))
+            nameFields.add("property_f_" + nameProp);
     }
 
     private Collection<GeneAutoCompleteItem> treeAutocomplete(final String property, final String prefix, final int limit) {
-        PrefixNode root = treeGetOrLoad(property);
+        PrefixNode root = treeGetOrLoad("property_f_" + property);
 
         final List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
         if(root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null, null));
+                    result.add(new GeneAutoCompleteItem(property, name, (long)count, null, null, null));
                 }
                 public boolean enough() {
                     return limit >=0 && result.size() >= limit;
@@ -49,27 +67,27 @@ public class GenePropValueListHelper implements IValueListHelper {
     }
 
     public void preloadData() {
-        for(String property : GeneProperties.allPropertyIds()) {
-            treeGetOrLoad(property);
-        }
+        for(String property : idProperties)
+            treeGetOrLoad("property_f_" + property + "_f");
+        for(String property : descProperties)
+            treeGetOrLoad("property_f_" + property + "_f");
+        for(String field : nameFields)
+            treeGetOrLoad(field);
     }
 
-    private PrefixNode treeGetOrLoad(String property) {
+    private PrefixNode treeGetOrLoad(String field) {
         PrefixNode root;
         synchronized(prefixTrees) {
-            if(!prefixTrees.containsKey(property)) {
-                log.info("Loading gene property values and counts for " + property);
-                SolrQuery q = new SolrQuery("gene_id:[* TO *]");
+            if(!prefixTrees.containsKey(field)) {
+                log.info("Loading gene property values and counts for " + field);
+                SolrQuery q = new SolrQuery("id:[* TO *]");
                 q.setRows(0);
                 q.setFacet(true);
                 q.setFacetMinCount(1);
                 q.setFacetLimit(-1);
                 q.setFacetSort(true);
-                String field = GeneProperties.convertPropertyToFacetField(property);
-                if(field == null)
-                    return null;
-                
                 q.addFacetField(field);
+                
                 try {
                     QueryResponse qr = solrAtlas.query(q);
                     root = new PrefixNode();
@@ -80,46 +98,15 @@ public class GenePropValueListHelper implements IValueListHelper {
                                 root.add(ffc.getName(), (int)ffc.getCount());
                             }
                     }
-                    prefixTrees.put(property, root);
+                    prefixTrees.put(field, root);
                 } catch (SolrServerException e) {
                     throw new RuntimeException(e);
                 }
-                log.info("Done loading gene property values and counts for " + property);
+                log.info("Done loading gene property values and counts for " + field);
             }
-            root = prefixTrees.get(property);
+            root = prefixTrees.get(field);
         }
         return root;
-    }
-
-    public Collection<String> listAllValues(String property) {
-        final List<String> result = new ArrayList<String>();
-        PrefixNode.WalkResult rc = new PrefixNode.WalkResult() {
-            public void put(String name, int count) {
-                result.add(name);
-            }
-            public boolean enough() {
-                return false;
-            }
-        };
-        if(null == property || "".equals(property)) {
-            for(String prop : GeneProperties.allPropertyIds()) {
-                PrefixNode root = treeGetOrLoad(prop);
-                if(root != null)
-                    root.collect("", rc);
-            }
-        } else if(GeneProperties.isNameProperty(property) || GeneProperties.GENE_PROPERTY_NAME.equals(property))  {
-            for(Prop p : GeneProperties.allProperties())
-                if(p.type == PropType.NAME) {
-                    PrefixNode root = treeGetOrLoad(p.id);
-                    if(root != null)
-                        root.collect("", rc);
-                }
-        } else {
-            PrefixNode root = treeGetOrLoad(property);
-            if(root != null)
-                root.collect("", rc);
-        }
-        return result;
     }
 
     public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
@@ -128,117 +115,111 @@ public class GenePropValueListHelper implements IValueListHelper {
         if(hasPrefix)
             query = query.toLowerCase();
 
+        int speciesFilter = -1;
+        try {
+            speciesFilter = Integer.valueOf(filters.get("species"));
+        } catch(Exception e) {
+            // okay
+        }
+
         boolean anyProp = property == null || property.equals("");
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
-        try {
-            if(anyProp) {
+        if(anyProp) {
 
-                EnumMap<PropType, List<GeneAutoCompleteItem>> resmap = new EnumMap<PropType, List<GeneAutoCompleteItem>>(PropType.class);
-                for(PropType e : PropType.values())
-                    resmap.put(e, new ArrayList<GeneAutoCompleteItem>());
+            for(String p : idProperties)
+                result.addAll(treeAutocomplete(p, query, idLimit));
+            Collections.sort(result);
+            if(result.size() > idLimit)
+                result = result.subList(0, idLimit);
 
-                for(Prop p : GeneProperties.allProperties()) {
-                    resmap.get(p.type).addAll(treeAutocomplete(p.id, query, p.type.limit));
-                }
+            result.addAll(joinGeneNames(query, speciesFilter, nameLimit));
 
-                joinGeneNames(query, result, resmap.get(PropType.NAME), filters.get("species"), PropType.NAME.limit);
+            for(String p : descProperties)
+                result.addAll(treeAutocomplete(p, query, limit > 0 ? limit - result.size() : -1));
 
-                for(PropType p : PropType.values())
-                    if(p != PropType.NAME)
-                    {
-                        List<GeneAutoCompleteItem> l = p.limit > 0 && p.limit < resmap.get(p).size()
-                                ? resmap.get(p).subList(0, p.limit) : resmap.get(p);
-
-                        Collections.sort(l);
-                        result.addAll(l);
-                        if(limit > 0 && result.size() >= limit)
-                            break;
-                    }
-                result = result.subList(0, Math.min(result.size(), limit));
-            } else {
-                if(GeneProperties.isNameProperty(property) || GeneProperties.GENE_PROPERTY_NAME.equals(property)) {
-                    List<GeneAutoCompleteItem> list = new ArrayList<GeneAutoCompleteItem>();
-                    for(Prop p : GeneProperties.allProperties())
-                        if(p.type == PropType.NAME)
-                            list.addAll(treeAutocomplete(p.id, query, limit));
-                    joinGeneNames(query, result, list, null, limit);
-                } else if(null == GeneProperties.convertPropertyToFacetField(property)) {
-                    return result;
-                } else {
-                    result.addAll(treeAutocomplete(property, query, limit));
-                }
-
-                Collections.sort(result);
-                if(limit > 0)
-                    result = result.subList(0, Math.min(result.size(), limit));
+            result = result.subList(0, Math.min(result.size(), limit));
+        } else {
+            if(Constants.GENE_PROPERTY_NAME.equals(property)) {
+                result.addAll(joinGeneNames(query, -1, limit));
+            } else if(idProperties.contains(property) || descProperties.contains(property)) {
+                result.addAll(treeAutocomplete(property, query, limit));
             }
-        } catch (SolrServerException e) {
-            log.error("Error querying Atlas index", e);
+            Collections.sort(result);
         }
 
         return result;
     }
 
-    private void joinGeneNames(String query, List<AutoCompleteItem> result, Iterable<GeneAutoCompleteItem> source, String speciesFilter, int limit) throws SolrServerException {
-        Iterator<GeneAutoCompleteItem> iterator = source.iterator();
-        if(!iterator.hasNext())
-            return;
+    private List<AutoCompleteItem> joinGeneNames(final String query, final int speciesFilter, final int limit) {
+        final List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
+        final Set<String> ids = new HashSet<String>();
 
-        Set<String> ids = new HashSet<String>();
-        List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
-        while(iterator.hasNext()) {
-            SolrQuery q;
-            StringBuffer sb = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
 
-            int num = 0;
-            while(num++ < 50 && iterator.hasNext()) {
-                GeneAutoCompleteItem i = iterator.next();
-                if(sb.length() > 0)
-                    sb.append(" ");
+        for(final String field : nameFields) {
+            treeGetOrLoad(field).walk(query, 0, "", new PrefixNode.WalkResult() {
+                public void put(String name, int count) {
+                    if(sb.length() > 0)
+                        sb.append(" ");
+                    sb.append(field).append(":").append(EscapeUtil.escapeSolr(name));
+                    if(sb.length() > 800) {
+                        if(speciesFilter >= 0)
+                            sb.insert(0, "(").append(") AND species_id:").append(speciesFilter);
+                        findAutoCompleteGenes(sb.toString(), query, res, ids);
+                        sb.setLength(0);
+                    }
+                }
+                public boolean enough() {
+                    return res.size() >= limit;
+                }
+            });
+        }
 
-                sb.append(GeneProperties.convertPropertyToFacetField(i.getProperty()))
-                        .append(":")
-                        .append(EscapeUtil.escapeSolr(i.getValue()));
-            }
+        if(sb.length() > 0) {
+            if(speciesFilter >= 0)
+                sb.insert(0, "(").append(") AND species_id:").append(speciesFilter);
+            findAutoCompleteGenes(sb.toString(), query, res, ids);
+        }
 
-            if(speciesFilter != null && speciesFilter.length() > 0)
-                sb.insert(0, "(").append(") AND gene_species:(").append(EscapeUtil.escapeSolr(speciesFilter)).append(")");
+        Collections.sort(res);
+        return res.subList(0, Math.min(limit >= 0 ? limit : res.size(), res.size()));
+    }
 
-            q = new SolrQuery(sb.toString());
-            q.setStart(0);
-            q.setRows(50);
-            for(Prop p : GeneProperties.allProperties())
-                if(p.type == PropType.NAME)
-                    q.addField(p.searchField);
-            q.addField("gene_species");
-            q.addField("gene_identifier");
+    private void findAutoCompleteGenes(final String query, final String prefix, List<AutoCompleteItem> res, Set<String> ids) {
+        SolrQuery q = new SolrQuery(query);
+        q.setStart(0);
+        q.setRows(50);
+        for(String field : nameFields)
+            q.addField(field);
+        q.addField("species");
+        q.addField("identifier");
+        q.addField("name");
+        try {
             QueryResponse qr = solrAtlas.query(q);
             for(SolrDocument doc : qr.getResults())
             {
                 String name = null;
-                String nameSource = null;
 
-                String species = (String)doc.getFieldValue("gene_species");
+                String species = (String)doc.getFieldValue("species");
                 if(species == null)
                     species = "";
                 else
-                    species = species.substring(0,1).toUpperCase().concat(species.substring(1).toLowerCase()).replace("$","");
+                    species = HtmlHelper.upcaseFirst(species.replace("$",""));
 
-                String geneId = (String)doc.getFieldValue("gene_identifier");
+                String geneId = (String)doc.getFieldValue("identifier");
 
                 List<String> names = new ArrayList<String>();
                 for(String s : doc.getFieldNames())
-                    if(!s.equals("gene_species")) {
-                        Collection c = doc.getFieldValues(s);
+                    if(!s.equals("species")) {
+                        @SuppressWarnings("unchecked")
+                        Collection<String> c = (Collection)doc.getFieldValues(s);
                         if(c != null)
-                            for(String v : (Collection<String>)c) {
-                                if(name == null && v.toLowerCase().startsWith(query)) {
-                                    nameSource = GeneProperties.findPropBySearchField(s).id;
+                            for(String v : c) {
+                                if(name == null && v.toLowerCase().startsWith(prefix)) {
                                     name = v;
-                                } else if(name != null && v.toLowerCase().startsWith(query) && v.toLowerCase().length() < name.length()) {
+                                } else if(name != null && v.toLowerCase().startsWith(prefix) && v.toLowerCase().length() < name.length()) {
                                     names.add(name);
-                                    nameSource = GeneProperties.findPropBySearchField(s).id;
                                     name = v;
                                 } else if(!v.equals(name) && !names.contains(v))
                                     names.add(v);
@@ -247,11 +228,11 @@ public class GenePropValueListHelper implements IValueListHelper {
 
                 if(name != null && !ids.contains(geneId)) {
                     ids.add(geneId);
-                    res.add(new GeneAutoCompleteItem(GeneProperties.GENE_PROPERTY_NAME, name, 1L, species, geneId, names, nameSource));
+                    res.add(new GeneAutoCompleteItem(Constants.GENE_PROPERTY_NAME, name, 1L, species, geneId, names));
                 }
             }
+        } catch(SolrServerException e) {
+            throw new RuntimeException(e);
         }
-        Collections.sort(res);
-        result.addAll(res.subList(0, Math.min(limit >= 0 ? limit : res.size(), res.size())));
     }
 }

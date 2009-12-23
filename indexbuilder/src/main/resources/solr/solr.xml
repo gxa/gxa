@@ -3,5 +3,6 @@
     <cores adminPath="/admin/cores">
         <core name="expt" instanceDir="expt"/>
         <core name="atlas" instanceDir="atlas"/>
+        <core name="properties" instanceDir="properties"/>
     </cores>
 </solr>
