@@ -40,6 +40,8 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     private List<Pair<String,IndexBuilderService>> services;
 
+    private List<IndexUpdateHandler> updateHandlers = new ArrayList<IndexUpdateHandler>();
+
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -59,11 +61,11 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         return indexLocation;
     }
 
-    public List<String> getIncludeIndices() {
+    public List<String> getIncludeIndexes() {
         return includeIndices;
     }
 
-    public void setIncludeIndices(List<String> includeIndices) {
+    public void setIncludeIndexes(List<String> includeIndices) {
         this.includeIndices = includeIndices;
     }
 
@@ -121,7 +123,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                 coreContainer.load(indexLocation.getAbsolutePath(), solr);
 
                 // create IndexBuilderServices for genes (atlas) and experiments
-                log.debug("Creating index building services for " + StringUtils.join(getIncludeIndices(), ","));
+                log.debug("Creating index building services for " + StringUtils.join(getIncludeIndexes(), ","));
 
                 services = new ArrayList<Pair<String, IndexBuilderService>>();
                 for(String name : includeIndices)
@@ -219,21 +221,37 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     public void buildIndex() {
         buildIndex(null);
+        notifyUpdateHandlers();
+    }
+
+    private void notifyUpdateHandlers() {
+        for(IndexUpdateHandler handler : updateHandlers)
+            handler.onIndexUpdate(this);
     }
 
     public void buildIndex(IndexBuilderListener listener) {
         startIndexBuild(listener, false);
-        log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndices(), ","));
+        log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
     }
 
     public void updateIndex() {
         updateIndex(null);
+        notifyUpdateHandlers();
     }
 
     public void updateIndex(IndexBuilderListener listener) {
         startIndexBuild(listener, true);
         log.info("Started IndexBuilder: " +
-                "Updating for " + StringUtils.join(getIncludeIndices(), ","));
+                "Updating for " + StringUtils.join(getIncludeIndexes(), ","));
+    }
+
+    public void registerIndexUpdateHandler(IndexUpdateHandler handler) {
+        if(!updateHandlers.contains(handler))
+            updateHandlers.add(handler);
+    }
+
+    public void unregisterIndexUpdateHandler(IndexUpdateHandler handler) {
+        updateHandlers.remove(handler);
     }
 
     private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {

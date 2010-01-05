@@ -53,16 +53,16 @@ public interface IndexBuilder<T> {
 
     /**
      * Set collection of index names to build
-     * @param includeIndices collection of names
+     * @param includeIndexes collection of names
      */
-    void setIncludeIndices(List<String> includeIndices);
+    void setIncludeIndexes(List<String> includeIndexes);
 
     /**
      * Get collection of index names to build
      *
      * @return set of names
      */
-    List<String> getIncludeIndices();
+    List<String> getIncludeIndexes();
 
     /**
      * Initialise this IndexBuilder and any resources required by it.
@@ -132,4 +132,8 @@ public interface IndexBuilder<T> {
      *                 errors occur.
      */
     void updateIndex(IndexBuilderListener listener);
+
+    void registerIndexUpdateHandler(IndexUpdateHandler handler);
+
+    void unregisterIndexUpdateHandler(IndexUpdateHandler handler);
 }

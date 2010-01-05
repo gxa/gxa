@@ -46,7 +46,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
     </tr>
-</table>                                                     se
+</table>
 
 <c:set var="simpleformvisible" value="${(query.none && !forcestruct) || (!query.none && query.simple)}" />
 <div id="topcontainer">

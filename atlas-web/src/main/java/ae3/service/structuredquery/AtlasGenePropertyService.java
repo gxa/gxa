@@ -11,6 +11,8 @@ import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
 
 import java.util.*;
 
@@ -19,7 +21,7 @@ import java.util.*;
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasGenePropertyService implements AutoCompleter {
+public class AtlasGenePropertyService implements AutoCompleter, IndexUpdateHandler {
     private SolrServer solrServerAtlas;
 
     private final Set<String> idProperties;
@@ -241,4 +243,13 @@ public class AtlasGenePropertyService implements AutoCompleter {
             throw new RuntimeException(e);
         }
     }
+
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexUpdateHandler(this);
+    }
+
+    public void onIndexUpdate(IndexBuilder builder) {
+        prefixTrees.clear();
+    }
+
 }

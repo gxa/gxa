@@ -86,7 +86,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
         else {
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getExperimentalFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);

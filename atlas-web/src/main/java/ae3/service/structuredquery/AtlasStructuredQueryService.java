@@ -25,6 +25,8 @@ import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 
 import java.util.*;
 
@@ -32,7 +34,7 @@ import java.util.*;
  * Structured query support class
  * @author pashky
  */
-public class AtlasStructuredQueryService {
+public class AtlasStructuredQueryService implements IndexUpdateHandler {
 
     private static final int MAX_EFV_COLUMNS = 120;
 
@@ -42,8 +44,6 @@ public class AtlasStructuredQueryService {
     private SolrServer solrServerExpt;
     private SolrServer solrServerProp;
 
-    private Set<String> allFactors = new TreeSet<String>();
-    
     private AtlasEfvService efvService;
     private AtlasEfoService efoService;
 
@@ -138,9 +138,12 @@ public class AtlasStructuredQueryService {
         this.atlasSolrDAO = solrAtlasDAO;
     }
 
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexUpdateHandler(this);
+    }
+
     /**
      * Constructor. Requires SOLR core container reference to work.
-     * @param coreContainer reference to core container with cores "expt" and "atlas"
      */
     public AtlasStructuredQueryService() {
         this.allGeneProperties = new HashSet<String>();
@@ -626,7 +629,7 @@ public class AtlasStructuredQueryService {
             public Integer make() { return num++; }
         };
 
-        Iterable<String> autoFactors = query.isFullHeatmap() ? getExperimentalFactors() : getConfiguredFactors("anycondition");
+        Iterable<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getConfiguredFactors("anycondition");
 
         for(SolrDocument doc : docs) {
             Integer id = (Integer)doc.getFieldValue("id");
@@ -850,14 +853,6 @@ public class AtlasStructuredQueryService {
     }
 
 
-    private Set<String> getConfiguredFactors(String category)
-    {
-        Set<String> result = new TreeSet<String>();
-        result.addAll(getExperimentalFactors());
-        result.removeAll(AtlasProperties.getListProperty("atlas." + category + ".ignore.efs"));
-        return result;
-    }
-
     private SolrQuery setupSolrQuery(AtlasStructuredQuery query, QueryState qstate) {
         SolrQuery q = new SolrQuery(qstate.getSolrq().toString());
 
@@ -920,7 +915,7 @@ public class AtlasStructuredQueryService {
         q.addFacetField("exp_up_ids");
         q.addFacetField("exp_dn_ids");
 
-        for(String ef : getConfiguredFactors("facet"))
+        for(String ef : efvService.getConfiguredFactors("facet"))
         {
             q.addFacetField("efvs_up_" + ef);
             q.addFacetField("efvs_dn_" + ef);
@@ -1013,7 +1008,7 @@ public class AtlasStructuredQueryService {
      */
     public Collection<String> getExperimentalFactorOptions() {
         List<String> factors = new ArrayList<String>();
-        factors.addAll(getConfiguredFactors("options"));
+        factors.addAll(efvService.getConfiguredFactors("options"));
         factors.add(Constants.EXP_FACTOR_NAME);
         Collections.sort(factors, String.CASE_INSENSITIVE_ORDER);
         return factors;
@@ -1024,33 +1019,6 @@ public class AtlasStructuredQueryService {
         result.addAll(allGeneProperties);
         result.add(Constants.GENE_PROPERTY_NAME);
         return result;
-    }
-
-    /**
-     * Returns set of experimental factors
-     * @return set of strings representing experimental factors
-     */
-    public Set<String> getExperimentalFactors() {
-        if(allFactors.isEmpty()) {
-            SolrQuery q = new SolrQuery("value_id:[* TO *]");
-            q.setRows(0);
-            q.addFacetField("property_f");
-            q.setFacet(true);
-            q.setFacetLimit(-1);
-            q.setFacetMinCount(1);
-            q.setFacetSort(true);
-            try {
-                QueryResponse qr = solrServerProp.query(q);
-                if (qr.getFacetFields().get(0).getValues() != null) {
-                    for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                        allFactors.add(ffc.getName());
-                    }
-                }
-            } catch(SolrServerException e) {
-                throw new RuntimeException("Can't fetch all factors", e);
-            }
-        }
-        return allFactors;
     }
 
     public SortedSet<String> getSpeciesOptions() {
@@ -1074,5 +1042,9 @@ public class AtlasStructuredQueryService {
             }
         }
         return allSpecies;
+    }
+
+    public void onIndexUpdate(IndexBuilder builder) {
+        allSpecies.clear();
     }
 }

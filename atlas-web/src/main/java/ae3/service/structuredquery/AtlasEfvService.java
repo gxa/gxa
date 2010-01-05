@@ -9,15 +9,19 @@ import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
 
 import java.util.*;
+
+import ae3.util.AtlasProperties;
 
 /**
  * EFVs listing and autocompletion helper implementation
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasEfvService implements AutoCompleter {
+public class AtlasEfvService implements AutoCompleter, IndexUpdateHandler {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
@@ -59,7 +63,15 @@ public class AtlasEfvService implements AutoCompleter {
         treeGetOrLoad(Constants.EXP_FACTOR_NAME);
     }
 
-    private Set<String> getAllFactors() {
+    public Set<String> getConfiguredFactors(String category)
+    {
+        Set<String> result = new TreeSet<String>();
+        result.addAll(getAllFactors());
+        result.removeAll(AtlasProperties.getListProperty("atlas." + category + ".ignore.efs"));
+        return result;
+    }
+
+    public Set<String> getAllFactors() {
         if(allFactors.isEmpty()) {
             SolrQuery q = new SolrQuery("value_id:[* TO *]");
             q.setRows(0);
@@ -109,9 +121,7 @@ public class AtlasEfvService implements AutoCompleter {
                             if(id != null && accession != null)
                                 valMap.put(id.toString(), accession);
                         }
-                    } else if(!getAllFactors().contains(property))
-                        return null;
-                    else
+                    } else
                         q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
 
                     QueryResponse qr = solrServerAtlas.query(q);
@@ -148,18 +158,9 @@ public class AtlasEfvService implements AutoCompleter {
                 return false;
             }
         };
-        if(null == property || "".equals(property)) {
-            for(String prop : getAllFactors()) {
-                PrefixNode root = treeGetOrLoad(prop);
-                if(root != null)
-                    root.collect("", rc);
-            }
-            Collections.sort(result);
-        } else {
-            PrefixNode root = treeGetOrLoad(property);
-            if(root != null)
-                root.collect("", rc);
-        }
+        PrefixNode root = treeGetOrLoad(property);
+        if(root != null)
+            root.collect("", rc);
         return result;
     }
 
@@ -174,11 +175,12 @@ public class AtlasEfvService implements AutoCompleter {
         Collection<AutoCompleteItem> result;
         if(anyProp) {
             result = new TreeSet<AutoCompleteItem>();
-            for(final String prop : allFactors)
+            for(final String prop : getConfiguredFactors("options"))
                 treeAutocomplete(prop, query, limit, result);
         } else {
             result = new ArrayList<AutoCompleteItem>();
-            treeAutocomplete(property, query, limit, result);
+            if(getConfiguredFactors("options").contains(property) && !property.equals(Constants.EXP_FACTOR_NAME))
+                treeAutocomplete(property, query, limit, result);
         }
         return result;
     }
@@ -197,4 +199,14 @@ public class AtlasEfvService implements AutoCompleter {
             });
         }
     }
+
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexUpdateHandler(this);
+    }
+
+    public void onIndexUpdate(IndexBuilder builder) {
+        allFactors.clear();
+        prefixTrees.clear();
+    }
+
 }
