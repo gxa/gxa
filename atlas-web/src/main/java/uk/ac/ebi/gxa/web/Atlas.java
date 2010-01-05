@@ -16,7 +16,7 @@ public enum Atlas {
     DOWNLOAD_SERVICE("atlas.download.service"),
     PLOTTER("atlas.plotter"),
     GENES_CACHE("atlas.genelist.cache.servlet"),
-    ATLAS_SOLR_DAO("atlas.dao"),       
+    ATLAS_SOLR_DAO("atlas.solr.dao"),       
     ATLAS_DAO("atlas.dao");
 
     private String key;
