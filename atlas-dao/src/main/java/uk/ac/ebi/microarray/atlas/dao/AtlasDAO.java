@@ -38,6 +38,9 @@ public class AtlasDAO {
                     "WHERE accession=?";
 
     // experiment queries
+    private static final String EXPERIMENTS_COUNT =
+            "SELECT COUNT(*) FROM a2_experiment";
+
     private static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid " +
                     "FROM a2_experiment";
@@ -64,6 +67,9 @@ public class AtlasDAO {
                     "WHERE accession=?";
 
     // gene queries
+    private static final String GENES_COUNT =
+            "SELECT COUNT(*) FROM a2_gene";
+
     private static final String GENES_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_spec s " +
@@ -113,6 +119,9 @@ public class AtlasDAO {
             "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
     // assay queries
+    private static final String ASSAYS_COUNT =
+            "SELECT COUNT(*) FROM a2_assay";
+
     private static final String ASSAYS_SELECT =
             "SELECT a.accession, e.accession, ad.accession, a.assayid " +
                     "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
@@ -938,9 +947,9 @@ public class AtlasDAO {
         AtlasStatistics stats = new AtlasStatistics();
 
         stats.setDataRelease(dataRelease);
-        stats.setExperimentCount(getAllExperiments().size());
-        stats.setAssayCount(getAllAssays().size());
-        stats.setGeneCount(getAllGenes().size());
+        stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
+        stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
+        stats.setGeneCount(template.queryForInt(GENES_COUNT));
         stats.setNewExperimentCount(0);
         stats.setPropertyValueCount(getPropertyValueCount());
 
