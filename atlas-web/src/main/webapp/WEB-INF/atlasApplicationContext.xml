@@ -65,7 +65,10 @@
         <property name="atlasIndex" ref="atlasIndex" />
     </bean>
 
-    <bean name="solrContainer" factory-bean="solrContainerFactory" factory-method="createContainer" />
+    <bean name="solrContainer"
+          factory-bean="solrContainerFactory"
+          factory-method="createContainer" 
+          destroy-method="shutdown" />
 
     <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
         <constructor-arg ref="solrContainer" />
@@ -115,11 +118,13 @@
     </bean>
 
     <!-- interface compute service -->
-    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService">
+    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService"
+          destroy-method="shutdown">
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
     <!-- interface download service -->
-    <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService">
+    <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
+          destroy-method="shutdown">
         <property name="atlasQueryService" ref="atlasQueryService" />
     </bean>
     <!-- interface plotter -->

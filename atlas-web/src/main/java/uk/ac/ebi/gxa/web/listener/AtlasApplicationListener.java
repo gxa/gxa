@@ -38,6 +38,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.LogManager;
 
 /**
  * A {@link ServletContextListener} for the Atlas web application.  To use the atlas codebase, a listener should be
@@ -51,9 +52,16 @@ import java.util.Properties;
 public class AtlasApplicationListener implements ServletContextListener, HttpSessionListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public void contextInitialized(ServletContextEvent sce) {
-        // setup SLF4J bridge, in case any dependencies use other logging solutions
+    static {
+        try {
+            LogManager.getLogManager().readConfiguration(AtlasApplicationListener.class.getResourceAsStream("logging.properties"));
+        } catch(Exception e) {
+
+        }
         SLF4JBridgeHandler.install();
+    }
+
+    public void contextInitialized(ServletContextEvent sce) {
 
         long start = System.currentTimeMillis();
         log.info("Starting up atlas");
@@ -206,23 +214,9 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
         application.removeAttribute(Atlas.ANALYTICS_GENERATOR.key());
 
-        // shutdown and remove AtlasDownloadService from session
-        AtlasDownloadService downloadService = (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
-        downloadService.shutdown();
         application.removeAttribute(Atlas.DOWNLOAD_SERVICE.key());
-
-        // shutdown compute service
-        AtlasComputeService computeService = (AtlasComputeService) application.getAttribute(Atlas.COMPUTE_SERVICE.key());
-        computeService.shutdown();
         application.removeAttribute(Atlas.COMPUTE_SERVICE.key());
-
-        // remove plotter
         application.removeAttribute(Atlas.PLOTTER.key());
-
-        // shutdown solr
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(application);
-        CoreContainer coreContainer = (CoreContainer)context.getBean("solrContainer");
-        coreContainer.shutdown();
 
         // clean-up efo
         Efo.getEfo().close();
