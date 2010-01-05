@@ -44,7 +44,7 @@ public class AtlasStructuredQueryService {
     private SolrServer solrProp;
 
     private Set<String> allFactors = new TreeSet<String>();
-    
+
     private final ExpFactorValueListHelper efvListHelper;
     private final GenePropValueListHelper geneListHelper;
     private final EfoValueListHelper efoListHelper;
@@ -93,7 +93,7 @@ public class AtlasStructuredQueryService {
         this.efoListHelper = new EfoValueListHelper(solrAtlas);
 
         this.atlasDao = new AtlasDao(solrAtlas, solrExpt);
-        
+
         this.allGeneProperties = new HashSet<String>();
         this.allGeneProperties.addAll(AtlasProperties.getListProperty("atlas.gene.autocomplete.ids"));
         this.allGeneProperties.addAll(AtlasProperties.getListProperty("atlas.gene.autocomplete.descs"));
@@ -264,7 +264,7 @@ public class AtlasStructuredQueryService {
 
                 SolrQuery q = setupSolrQuery(query, qstate);
                 QueryResponse response = solrAtlas.query(q);
-                
+
                 processResultGenes(response, result, qstate, query);
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -289,7 +289,7 @@ public class AtlasStructuredQueryService {
                 }
             } catch (SolrServerException e) {
                 log.error("Error in structured query!", e);
-            }            
+            }
         }
 
         return result;
@@ -304,7 +304,7 @@ public class AtlasStructuredQueryService {
                 .startFrom(start)
                 .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
     }
-        
+
     private Efo getEfo() {
         return Efo.getEfo();
     }
@@ -365,7 +365,7 @@ public class AtlasStructuredQueryService {
         List<String> result = new ArrayList<String>();
         if(query.length() == 0)
             return result;
-        
+
         SolrQuery q = new SolrQuery(query);
         q.addField("*");
         q.setRows(50);
@@ -423,7 +423,7 @@ public class AtlasStructuredQueryService {
                             solrq.appendExpScores("s_", efefvId, c.getExpression());
 
                             notifyCache(efefvId + c.getExpression());
-                            
+
                             if(Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv());
                             } else {
@@ -712,7 +712,6 @@ public class AtlasStructuredQueryService {
     /**
      * TODO
      * @param result
-     * @param table
      * @param efvTree
      * @param efoTree
      * @param experiments
@@ -769,7 +768,7 @@ public class AtlasStructuredQueryService {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getId(), 
+                map.get(key).add(new ListResultRowExperiment(exp.getId(),
                         aexp.getDwExpAccession(),
                         aexp.getDwExpDescription(),
                         exp.getPvalue(), exp.getExpression()));
@@ -780,7 +779,7 @@ public class AtlasStructuredQueryService {
         for(Map.Entry<Pair<String,String>,List<ListResultRowExperiment>> e : map.entrySet()) {
             if(listRowsPerGene++ >= result.getRowsPerGene())
                 break;
-            
+
             int cup = 0, cdn = 0;
             double pup = 1, pdn = 1;
             for(ListResultRowExperiment exp : e.getValue())
@@ -805,7 +804,7 @@ public class AtlasStructuredQueryService {
         }
     }
 
-    
+
     private Set<String> getConfiguredFactors(String category)
     {
         Set<String> result = new TreeSet<String>();
@@ -901,7 +900,7 @@ public class AtlasStructuredQueryService {
     private Iterable<FacetCounter> getGeneFacet(QueryResponse response, final String name, Set<String> values) {
         List<FacetCounter> facet = new ArrayList<FacetCounter>();
         FacetField ff = response.getFacetField(name);
-        if(ff == null || ff.getValueCount() < 2)
+        if(ff == null || ff.getValueCount() < 2 || ff.getValues() == null)
             return new ArrayList<FacetCounter>();
 
         for (FacetField.Count ffc : ff.getValues())
@@ -920,8 +919,7 @@ public class AtlasStructuredQueryService {
         EfoEfvPayloadCreator<FacetUpDn> creator = new EfoEfvPayloadCreator<FacetUpDn>() {
             public FacetUpDn make() { return new FacetUpDn(); }
         };
-        for (FacetField ff : response.getFacetFields())
-        {
+        for (FacetField ff : response.getFacetFields()) {
             if(ff.getValueCount() > 1) {
                 if(ff.getName().startsWith("efvs_")) {
                     String ef = ff.getName().substring(8);
@@ -998,8 +996,10 @@ public class AtlasStructuredQueryService {
             q.setFacetSort(true);
             try {
                 QueryResponse qr = solrProp.query(q);
-                for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                    allFactors.add(ffc.getName());
+                if (qr.getFacetFields().get(0).getValues() != null) {
+                    for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                        allFactors.add(ffc.getName());
+                    }
                 }
             } catch(SolrServerException e) {
                 throw new RuntimeException("Can't fetch all factors", e);
@@ -1019,8 +1019,11 @@ public class AtlasStructuredQueryService {
             q.setFacetSort(true);
             try {
                 QueryResponse qr = solrAtlas.query(q);
-                for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                    allSpecies.add(ffc.getName());
+                if (qr.getFacetFields().get(0).getValues() != null) {
+                    for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                        allSpecies.add(ffc.getName());
+                    }
+                }
             } catch(SolrServerException e) {
                 throw new RuntimeException("Can't fetch all factors", e);
             }

@@ -206,13 +206,18 @@ public class NetCDFWriter {
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("DE") != null && netCDF.findDimension("GN") != null) {
             // index counters
-            int deIndex = 0;
+            int deIndex;
             int geneIndex = 0;
+            int de2gnIndex = 0;
 
-            // create the array
-            int deSize = netCDF.findDimension("DE").getLength();
-            int gnSize = netCDF.findDimension("GN").getLength();
-            ArrayInt de2gn = new ArrayInt.D2(deSize, gnSize);
+            // create the array of 2 ints to store each position
+            int[] pair = new int[]{0};
+            ArrayInt mapping = new ArrayInt.D1(2);
+
+//            // create the array
+//            int deSize = netCDF.findDimension("DE").getLength();
+//            int gnSize = netCDF.findDimension("GN").getLength();
+//            ArrayInt de2gn = new ArrayInt.D2(deSize, gnSize);
 
             // iterate over design elements and genes,
             // and work out which spots in the matrix to set to 1
@@ -220,37 +225,44 @@ public class NetCDFWriter {
                 for (Gene gene : genes) {
                     // insert value
                     if (designElementsToGenes.get(designElement).contains(gene)) {
-                        try {
-                            de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 1);
-                        }
-                        catch (ArrayIndexOutOfBoundsException e) {
-                            log.error("Out of bounds at indexes: " +
-                                    "DE: " + deIndex + " (max " + deSize + "), " +
-                                    "GN: " + geneIndex + " (max " + gnSize + ")");
-                            throw e;
-                        }
-                    }
-                    else {
-                        // this is a zero - but only if we haven't done all genes already
-                        if (geneIndex < netCDF.findDimension("GN").getLength()) {
-                            try {
-                                de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 0);
-                            }
-                            catch (ArrayIndexOutOfBoundsException e) {
-                                log.error("Out of bounds at indexes: " +
-                                        "DE: " + deIndex + " (max " + deSize + "), " +
-                                        "GN: " + geneIndex + " (max " + gnSize + ")");
-                                throw e;
-                            }
-                        }
-                    }
+                        // got a mapping between design element id='designElement' and gene, lookup position in DE
+                        deIndex = designElementIndex.get(designElement);
 
-                    // increment sample index by one
+                        // now store position to position mapping
+                        netCDF.write("DE2GN", );
+
+
+
+//                        try {
+//                            de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 1);
+//                        }
+//                        catch (ArrayIndexOutOfBoundsException e) {
+//                            log.error("Out of bounds at indexes: " +
+//                                    "DE: " + deIndex + " (max " + deSize + "), " +
+//                                    "GN: " + geneIndex + " (max " + gnSize + ")");
+//                            throw e;
+//                        }
+                    }
+//                    else {
+//                        // this is a zero - but only if we haven't done all genes already
+//                        if (geneIndex < netCDF.findDimension("GN").getLength()) {
+//                            try {
+//                                de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 0);
+//                            }
+//                            catch (ArrayIndexOutOfBoundsException e) {
+//                                log.error("Out of bounds at indexes: " +
+//                                        "DE: " + deIndex + " (max " + deSize + "), " +
+//                                        "GN: " + geneIndex + " (max " + gnSize + ")");
+//                                throw e;
+//                            }
+//                        }
+//                    }
+
+                    // increment gene index by one
                     geneIndex++;
                 }
 
-                // increment assayIndex up one and reset sampleIndex
-                deIndex++;
+                // reset gene index (next row)
                 geneIndex = 0;
             }
 

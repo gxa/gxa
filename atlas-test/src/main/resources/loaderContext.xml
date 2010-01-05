@@ -45,11 +45,11 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/Users/pashky/projects/atlas2/index"/>
+        <constructor-arg value="/home/tburdett/atlas/index"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/Users/pashky/projects/atlas2/netcdf"/>
+        <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
     </bean>
 
     <!-- Requires a loader -->
@@ -69,8 +69,8 @@
         <property name="includeIndices">
             <util:list>
                 <value>genes</value>
-                <!--<value>experiments</value>-->
-                <!--<value>properties</value>-->
+                <value>experiments</value>
+                <value>properties</value>
             </util:list>
         </property>
     </bean>

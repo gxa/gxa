@@ -93,6 +93,11 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
     public void shutdown() throws AnalyticsGeneratorException {
         if (running) {
             log.debug("Shutting down " + getClass().getSimpleName() + "...");
+
+            // shutdown compute service
+            atlasComputeService.shutdown();
+
+            // shutdown this service
             service.shutdown();
             try {
                 log.debug("Waiting for termination of running jobs");

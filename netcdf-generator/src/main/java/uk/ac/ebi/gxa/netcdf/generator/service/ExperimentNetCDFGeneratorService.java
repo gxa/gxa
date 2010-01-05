@@ -43,8 +43,7 @@ public class ExperimentNetCDFGeneratorService
                 : getAtlasDAO().getAllExperiments();
 
         // the list of futures - we need these so we can block until completion
-        List<Future<Boolean>> tasks =
-                new ArrayList<Future<Boolean>>();
+        List<Future<Boolean>> tasks = new ArrayList<Future<Boolean>>();
 
         try {
             // process each experiment to build the netcdfs

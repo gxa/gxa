@@ -37,24 +37,30 @@ Installation Instructions for the Gene Expression Atlas
 
  Atlas utilises the R workbench to perform statistical analyses of loaded data.  It can be configured to perform local R
  analyses (i.e. on the same machine the atlas is running on) or remote analyses (on a different dedicated machine, or a
- compute cluster).  In the latter case it is possible to run R analyses throug a biocep cloud.  You should pick one of
+ compute cluster).  In the latter case it is possible to run R analyses through a biocep cloud.  You should pick one of
  these options before install, bearing in mind that running analyses locally may slow down the interface.
 
  An installation guide to R and/or biocep is outside the scope of this document.
 
  -- Update with details of how to configure analyses].
 
-** Software dependencies
+** Tomcat
 
  To run Atlas you will need a Tomcat server installed and running.  Atlas should work on any tomcat version
  after 4.0.  We use 5.5.29, but it has been tested on later versions up to 6.0.  The Atlas web application will be
  deployed here.  Tomcat can be downloaded {{{http://tomcat.apache.org/}here}}.
 
  The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat.  For this reason, you will
- need to make database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or
+ need to make Oracle database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or
  $CATALINA_HOME/common/lib directory, depending on your version of Tomcat.  See
  {{{http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}}
  for more information on setting up JNDI resources.
+
+ Make sure that you have the latest version of the Oracle Java 5 drivers installed in the tomcat library directory.  We
+ recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers here:
+ {{{http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html}http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html}}
+
+** Maven
 
  To download, install and build a localised mirror of the Atlas, you will need to install the Maven software management
  tool.  Maven is available {{{http://maven.apache.org/}here}}.

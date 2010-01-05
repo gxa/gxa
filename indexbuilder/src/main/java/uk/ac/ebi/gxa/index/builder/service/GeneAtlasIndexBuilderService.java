@@ -87,11 +87,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             IndexBuilderException {
                         UpdateResponse response = null;
                         try {
-                            // update loadmonitor - gene is indexing
-                            getLog().debug("Updating load_monitor table: status = working");
-                            getAtlasDAO().writeLoadDetails(
-                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING, LoadType.GENE);
-                            getLog().debug("Load_monitor table updated");
+                            // todo - gene indexing needs to update loadmonitor on an arraydesign level
+//                            getLog().debug("Updating load_monitor table: status = working");
+//                            getAtlasDAO().writeLoadDetails(
+//                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING, LoadType.GENE);
+//                            getLog().debug("Load_monitor table updated");
 
                             // get the properties for all these genes
                             getLog().debug("Fetching properties for " + gene.getIdentifier());
@@ -147,15 +147,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             e.printStackTrace();
                             throw e;
                         }
-                        finally {
-                            // if the response was set, everything completed as expected, but if it's null we got
-                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-                            if (response == null) {
-                                getAtlasDAO().writeLoadDetails(
-                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
-                            }
-
-                        }
+//                        finally {
+//                            // todo - gene indexing needs to update loadmonitor on an arraydesign level
+//                            // if the response was set, everything completed as expected, but if it's null we got
+//                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
+//                            if (response == null) {
+//                                getAtlasDAO().writeLoadDetails(
+//                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
+//                            }
+//                        }
                     }
                 }));
             }
