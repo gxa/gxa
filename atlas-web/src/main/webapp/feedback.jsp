@@ -1,9 +1,9 @@
-<%@ page import="java.util.Properties" %>
-<%@ page import="javax.mail.Session" %>
 <%@ page import="javax.mail.Message" %>
+<%@ page import="javax.mail.Session" %>
+<%@ page import="javax.mail.Transport" %>
 <%@ page import="javax.mail.internet.InternetAddress" %>
 <%@ page import="javax.mail.internet.MimeMessage" %>
-<%@ page import="javax.mail.Transport" %>
+<%@ page import="java.util.Properties" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     try {

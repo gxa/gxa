@@ -5,13 +5,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,27 +31,25 @@ import java.util.zip.GZIPOutputStream;
 public class GoogleSitemapXmlServlet extends FileDownloadServlet {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
+    private CoreContainer coreContainer;
+
+    public CoreContainer getCoreContainer() {
+        return coreContainer;
+    }
+
+    public void setCoreContainer(CoreContainer coreContainer) {
+        this.coreContainer = coreContainer;
+    }
 
     @Override
     public void init() throws ServletException {
         setBasePath(System.getProperty("java.io.tmpdir"));
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        setCoreContainer((CoreContainer)context.getBean("solrContainer"));
 
         new Thread() {
             public void run() {
-                SolrCore core = null;
-                try {
-                    AtlasSearchService searchService =
-                            (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-                    core = searchService.getSolrCore("atlas");
-                    writeGeneSitemap(core);
-                }
-                finally {
-                    if (core != null) {
-                        core.close();
-                    }
-                }
-
-                // writeExptSitemap(ArrayExpressSearchService.instance().getSolrCore("expt"));
+                writeGeneSitemap();
             }
         }.start();
     }
@@ -66,19 +65,7 @@ public class GoogleSitemapXmlServlet extends FileDownloadServlet {
         final File geneSitemapIndexFile = new File(getBasePath() + File.separator + "geneSitemapIndex.xml.gz");
 
         if (!geneSitemapIndexFile.exists()) {
-            SolrCore core = null;
-            try {
-                AtlasSearchService searchService =
-                        (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-
-                core = searchService.getSolrCore("atlas");
-                writeGeneSitemap(core);
-            }
-            finally {
-                if (core != null) {
-                    core.close();
-                }
-            }
+            writeGeneSitemap();
         }
 
         final String reqPI = request.getPathInfo();
@@ -91,10 +78,12 @@ public class GoogleSitemapXmlServlet extends FileDownloadServlet {
     /**
      * Generates a special file containing all gene identifiers, for external users to use for linking.
      *
-     * @param core SolrCore to use
      */
-    public void writeGeneSitemap(SolrCore core) {
+    public void writeGeneSitemap() {
+        SolrCore core = null;
         try {
+            core = getCoreContainer().getCore("atlas");
+
             final String geneSitemapIndexFile = getBasePath() + File.separator + "geneSitemapIndex.xml";
 
             RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
@@ -156,6 +145,10 @@ public class GoogleSitemapXmlServlet extends FileDownloadServlet {
         }
         catch (IOException e) {
             log.error("Failed to create gene sitemap from index", e);
+        }
+        finally {
+            if(core != null)
+                core.close();
         }
     }
 }

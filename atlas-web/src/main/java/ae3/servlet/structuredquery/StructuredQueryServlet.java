@@ -1,9 +1,10 @@
 package ae3.servlet.structuredquery;
 
+import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -28,20 +29,20 @@ public class StructuredQueryServlet extends HttpServlet {
     private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         long startTime = HtmlHelper.currentTime();
 
-        AtlasSearchService searchService =
-                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService)context.getBean("atlasQueryService");
+        AtlasDownloadService downloadService = (AtlasDownloadService)context.getBean("atlasDownloadService");
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
 
         if (!atlasQuery.isNone()) {
             if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
-                int queryId = searchService.getAtlasDownloadService().requestDownload(request.getSession(), atlasQuery);
+                int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
                 response.getOutputStream().print("{qid:" + queryId + "}");
                 return;
             }
             else {
-                AtlasStructuredQueryResult atlasResult = searchService.getAtlasQueryService()
-                        .doStructuredAtlasQuery(atlasQuery);
+                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 request.setAttribute("result", atlasResult);
 
                 if (atlasResult.getSize() == 1) {
@@ -59,9 +60,7 @@ public class StructuredQueryServlet extends HttpServlet {
         request.setAttribute("heatmap", atlasQuery.getViewType() == ViewType.HEATMAP);
         request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
-        request.setAttribute("service", searchService);
-        request.setAttribute("noDownloads", searchService.getAtlasDownloadService()
-                .getNumOfDownloads(request.getSession().getId()));
+        request.setAttribute("noDownloads", downloadService.getNumOfDownloads(request.getSession().getId()));
 
         request.getRequestDispatcher("structured-query.jsp").forward(request, response);
     }

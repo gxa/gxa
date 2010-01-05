@@ -1,20 +1,18 @@
 package ae3.util;
 
 import info.bliki.wiki.model.WikiModel;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.InputStreamReader;
-import java.util.Map;
-
-import javax.servlet.jsp.tagext.TagSupport;
-import javax.servlet.jsp.tagext.Tag;
-import javax.servlet.jsp.JspException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.ServletContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.Tag;
+import javax.servlet.jsp.tagext.TagSupport;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Map;
 
 /**
  * JSP tag to render Wiki content stored in static MediaWiki-formatted files to HTML.

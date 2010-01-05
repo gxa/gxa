@@ -1,7 +1,7 @@
 package ae3.util;
 
-import java.util.Properties;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author pashky

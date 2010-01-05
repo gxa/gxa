@@ -11,12 +11,12 @@ public enum Atlas {
     INDEX_BUILDER("atlas.index.builder"),
     NETCDF_GENERATOR("atlas.netcdf.generator"),
     ANALYTICS_GENERATOR("atlas.analytics.generator"),
-    SEARCH_SERVICE("atlas.search.service"),
     STATISTICS_SERVICE("atlas.statistics.service"),
     COMPUTE_SERVICE("atlas.compute.service"),
     DOWNLOAD_SERVICE("atlas.download.service"),
     PLOTTER("atlas.plotter"),
     GENES_CACHE("atlas.genelist.cache.servlet"),
+    ATLAS_SOLR_DAO("atlas.dao"),       
     ATLAS_DAO("atlas.dao");
 
     private String key;

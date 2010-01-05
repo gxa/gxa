@@ -1,7 +1,7 @@
 package ae3.model;
 
-import uk.ac.ebi.ae3.indexbuilder.Expression;
 import ae3.restresult.RestOut;
+import uk.ac.ebi.ae3.indexbuilder.Expression;
 
 /**
  * @author pashky

@@ -229,7 +229,7 @@ public class NetCDFWriter {
                         deIndex = designElementIndex.get(designElement);
 
                         // now store position to position mapping
-                        netCDF.write("DE2GN", );
+         //               netCDF.write("DE2GN", );
 
 
 
@@ -267,7 +267,7 @@ public class NetCDFWriter {
             }
 
             // finally, write
-            netCDF.write("DE2GN", de2gn);
+        //    netCDF.write("DE2GN", de2gn);
         }
         log.debug("Wrote designElement2gene data matrix ok.");
     }

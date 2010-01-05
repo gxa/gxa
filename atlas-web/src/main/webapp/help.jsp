@@ -8,7 +8,12 @@
 <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help
 <jsp:include page="end_head.jsp"></jsp:include>
 
-<jsp:include page="query-includes.jsp" />
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
+<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-impromptu.1.5.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
+
 
 <style type="text/css">
     /* TODO: display contents appropriately */
@@ -40,7 +45,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        name = '.toc';
+        var name = '.toc';
         $('.toc ~ hr').hide();
 
         var menuYloc = 0;
@@ -60,17 +65,17 @@
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
         <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="<%=request.getContextPath()%>/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+            <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
-            <a href="<%=request.getContextPath()%>">home</a> |
-            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
-            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
+            <a href="${pageContext.request.contextPath}">home</a> |
+            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
-            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
-            <a href="<%=request.getContextPath()%>/help">help</a>
+	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+            <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
     </tr>
 </table>

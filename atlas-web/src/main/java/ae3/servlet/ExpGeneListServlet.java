@@ -8,11 +8,10 @@ import org.kchine.r.RDataFrame;
 import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import ae3.servlet.SimilarityResultSet;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -52,9 +51,8 @@ public class ExpGeneListServlet extends HttpServlet {
             start = 0;
         }
 
-        AtlasSearchService searchService =
-                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-        AtlasStructuredQueryService service = searchService.getAtlasQueryService();
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService)context.getBean("atlasQueryService");
 
         if (qryType.equals("sim")) {
             String DEid = request.getParameter("deid");
@@ -62,7 +60,7 @@ public class ExpGeneListServlet extends HttpServlet {
             final SimilarityResultSet simRS = new SimilarityResultSet(eid, DEid, ADid);
 
             try {
-                AtlasComputeService computeService = searchService.getAtlasComputeService();
+                AtlasComputeService computeService = (AtlasComputeService)context.getBean("atlasComputeService");
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
 
                     public RDataFrame compute(RServices R) throws RemoteException {
@@ -78,7 +76,7 @@ public class ExpGeneListServlet extends HttpServlet {
                 if (null != sim) {
                     simRS.loadResult(sim);
                     ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
-                    result = service.findGenesForExperiment(simGeneIds, eAcc, start, NUM_GENES);
+                    result = queryService.findGenesForExperiment(simGeneIds, eAcc, start, NUM_GENES);
                     request.setAttribute("genes", result.getListResults());
                     request.setAttribute("simRS", simRS);
                 }
@@ -90,7 +88,7 @@ public class ExpGeneListServlet extends HttpServlet {
 
         } else if (qryType.equals("top")) {
 
-            result = service.findGenesForExperiment("", eAcc, start, NUM_GENES);
+            result = queryService.findGenesForExperiment("", eAcc, start, NUM_GENES);
 
             Collection<ListResultRow> a = result.getListResults();
 
@@ -98,7 +96,7 @@ public class ExpGeneListServlet extends HttpServlet {
 
         } else if (qryType.equals("search")) {
             String geneQuery = request.getParameter("gene");
-            result = service.findGenesForExperiment(geneQuery != null ? geneQuery : "", eAcc, start, NUM_GENES);
+            result = queryService.findGenesForExperiment(geneQuery != null ? geneQuery : "", eAcc, start, NUM_GENES);
             request.setAttribute("genes", result.getListResults());
         }
         request.setAttribute("result", result);

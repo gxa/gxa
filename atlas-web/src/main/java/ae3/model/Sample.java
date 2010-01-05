@@ -1,9 +1,13 @@
 package ae3.model;
 
-import ae3.restresult.*;
+import ae3.restresult.RestOut;
+import ae3.restresult.XmlRestResultRenderer;
 import ae3.util.MappingIterator;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}

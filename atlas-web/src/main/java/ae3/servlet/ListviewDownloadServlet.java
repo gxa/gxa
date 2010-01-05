@@ -3,9 +3,8 @@ package ae3.servlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletException;
-import java.io.File;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author ostolop

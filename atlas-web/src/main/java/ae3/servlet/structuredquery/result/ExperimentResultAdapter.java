@@ -1,13 +1,15 @@
 package ae3.servlet.structuredquery.result;
 
 import ae3.model.*;
-import ae3.restresult.*;
+import ae3.restresult.JsonRestResultRenderer;
+import ae3.restresult.RestOut;
+import ae3.restresult.RestOuts;
+import ae3.restresult.XmlRestResultRenderer;
 import ae3.service.structuredquery.EfvTree;
 import ae3.util.MappingIterator;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author pashky

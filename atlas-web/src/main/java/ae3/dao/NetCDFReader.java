@@ -1,17 +1,17 @@
 package ae3.dao;
 
 import ae3.model.*;
-import ae3.util.AtlasProperties;
 import ae3.service.structuredquery.EfvTree;
+import ae3.util.AtlasProperties;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.io.IOException;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

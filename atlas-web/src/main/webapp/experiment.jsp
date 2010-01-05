@@ -4,15 +4,13 @@
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@page import="ae3.dao.AtlasDao" %>
 <%@page import="ae3.model.AtlasExperiment" %>
-<%@page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%
     String expAcc = request.getParameter("eid");
     String geneId = request.getParameter("gid");
     String ef = request.getParameter("ef");
-    AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    AtlasDao dao = searchService.getAtlasSolrDAO();
+    AtlasDao dao = (AtlasDao)application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
     if (expAcc != null && !"".equals(expAcc)) {
         AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
         if (exp != null) {
@@ -37,13 +35,11 @@
     request.setAttribute("eAcc", expAcc);
 %>
 
-<jsp:include page="AtlasHomeUrl.jsp"/>
-
 <jsp:include page="start_head.jsp"/>
 Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp"/>
 
-<script src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
+<script src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="<%=request
@@ -51,25 +47,25 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
 <script language="javascript"
         type="text/javascript"
-        src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery-ui.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.selectboxes.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.token.autocomplete.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tooltip.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/common-query.js"></script>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css"/>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/listview.css" type="text/css"/>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css"/>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/jquery-ui-1.7.2.atlas.css" type="text/css"/>
+        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.token.autocomplete.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tooltip.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 
 
-<link rel="stylesheet" href="<%=request.getContextPath()%>/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
         display: none;
@@ -116,7 +112,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     $(document).ready(function()
     {
 
-        $("#topGenes").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
+        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
             initPaging();
             addToolTips();
         });
@@ -159,14 +155,14 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         $("#simForm").submit(function() {
             $("#simResult").empty();
             var name = $('select option:selected').text();
-            $("#simHeader").html("<img src='<%=request.getContextPath()%>/images/indicator.gif' />&nbsp;Searching for profiles similar to " +
+            $("#simHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Searching for profiles similar to " +
                                  name + "...");
             $("#simHeader").show();
             var DEid_ADid = $("select option:selected").val();
             var tokens = DEid_ADid.split('_');
             var DEid = tokens[0];
             var ADid = tokens[1];
-            $("#simResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
+            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
                 $("#simHeader").hide();
                 addToolTips();
             });
@@ -175,8 +171,8 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
 
         $("#searchForm").submit(function() {
             var qry = $("#geneInExp_qry").fullVal();
-            $("#qryHeader").html("<img src='<%= request.getContextPath()%>/images/indicator.gif' />&nbsp;Loading...");
-            $("#qryResult").load("<%=request.getContextPath()%>/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
+            $("#qryHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Loading...");
+            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
                 $("#qryHeader").hide()
                 addToolTips();
             });
@@ -291,22 +287,22 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
             <tr>
                 <td align="left" valign="bottom" width="55"
-                    style="padding-right: 10px;"><a href="<%= request.getContextPath()%>/"
+                    style="padding-right: 10px;"><a href="${pageContext.request.contextPath}/"
                                                     title="Gene Expression Atlas Homepage"><img border="0" width="55"
-                                                                                                src="<%= request.getContextPath()%>/images/atlas-logo.png"
+                                                                                                src="${pageContext.request.contextPath}/images/atlas-logo.png"
                                                                                                 alt="Gene Expression Atlas"/></a>
                 </td>
                 <td align="right" valign="bottom">
-                    <a href="<%=request.getContextPath()%>/">home</a> |
-                    <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a>
+                    <a href="${pageContext.request.contextPath}/">home</a> |
+                    <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+                    <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a>
                     <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks"
                                                                                                  style="font-weight: bold; display: none">thanks!</span>
                     |
                     <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
-                    <a href="<%=request.getContextPath()%>/help">help</a></td>
+                    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+                    <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+                    <a href="${pageContext.request.contextPath}/help">help</a></td>
             </tr>
         </table>
 
@@ -345,7 +341,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                 <tr>
                                     <td style="padding:0px;width:500px">
                                         <div class="bigplot" id="plot"
-                                             style="width:500px;height:150px;padding:0px;background:url('<%= request.getContextPath()%>/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
+                                             style="width:500px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
                                         <div id="plot_thm"
                                              style="border:thin; height: 120px;padding:0px"></div>
                                     </td>
@@ -410,7 +406,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                             <div><a href="#" style="font-size:12px">Choose from top ten differentially
                                 expressed genes</a></div>
                             <div>
-                                <div id="topGenes"><img src='<%= request.getContextPath()%>/images/indicator.gif'/>&nbsp;Loading
+                                <div id="topGenes"><img src='${pageContext.request.contextPath}/images/indicator.gif'/>&nbsp;Loading
                                     gene
                                     list...
                                 </div>

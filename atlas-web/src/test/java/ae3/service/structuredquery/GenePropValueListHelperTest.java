@@ -14,11 +14,12 @@ import java.util.Iterator;
  */
 public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
-    private static AutoCompleter service;
+    private static AtlasGenePropertyService service;
 
     @BeforeClass
     public static  void initContainer() throws Exception {
-        service = new GenePropValueListHelper(new EmbeddedSolrServer(getContainer(), "atlas"));
+        service = new AtlasGenePropertyService();
+        service.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
     }
 
     @AfterClass

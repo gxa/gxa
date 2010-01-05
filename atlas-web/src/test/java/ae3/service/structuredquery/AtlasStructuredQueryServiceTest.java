@@ -3,7 +3,9 @@ package ae3.service.structuredquery;
 import org.junit.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import ae3.dao.AtlasDao;
 
 /**
  * @author pashky
@@ -15,7 +17,29 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     @Before
     public void createService()
     {
-        service = new AtlasStructuredQueryService(getContainer());
+        EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
+        EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
+        EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
+
+        AtlasDao dao = new AtlasDao();
+        dao.setSolrServerAtlas(solrServerAtlas);
+        dao.setSolrServerExpt(expt);
+
+        AtlasEfvService efvService = new AtlasEfvService();
+        efvService.setSolrServerAtlas(solrServerAtlas);
+        efvService.setSolrServerExpt(expt);
+        efvService.setSolrServerProp(serverProp);
+
+        AtlasEfoService efoService = new AtlasEfoService();
+        efoService.setSolrServerAtlas(solrServerAtlas);
+
+        service = new AtlasStructuredQueryService();
+        service.setSolrServerAtlas(solrServerAtlas);
+        service.setSolrServerExpt(expt);
+        service.setSolrServerProp(serverProp);
+        service.setAtlasSolrDAO(dao);
+        service.setEfoService(efoService);
+        service.setEfvService(efvService);
     }
 
     @After

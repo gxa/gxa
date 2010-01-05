@@ -10,32 +10,38 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
-
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 /**
  * Gene properties values listing and autocompletion helper implementation
  * @author pashky
  * @see AutoCompleter
  */
-public class GenePropValueListHelper implements AutoCompleter {
-    private final SolrServer solrAtlas;
+public class AtlasGenePropertyService implements AutoCompleter {
+    private SolrServer solrServerAtlas;
+
     private final Set<String> idProperties;
     private final Set<String> descProperties;
     private final List<String> nameFields;
     private final int nameLimit;
     private final int idLimit;
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
 
-    public GenePropValueListHelper(SolrServer solrAtlas)
-    {
-        this.solrAtlas = solrAtlas;
+    public SolrServer getSolrServerAtlas() {
+        return solrServerAtlas;
+    }
 
+    public void setSolrServerAtlas(SolrServer solrServiceAtlas) {
+        this.solrServerAtlas = solrServiceAtlas;
+    }
+
+    public AtlasGenePropertyService()
+    {
         this.idProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.ids").split(",")));
         this.descProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.descs").split(",")));
 
@@ -89,7 +95,7 @@ public class GenePropValueListHelper implements AutoCompleter {
                 q.addFacetField(field);
                 
                 try {
-                    QueryResponse qr = solrAtlas.query(q);
+                    QueryResponse qr = solrServerAtlas.query(q);
                     root = new PrefixNode();
                     if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
                             && qr.getFacetFields().get(0).getValues() != null) {
@@ -196,7 +202,7 @@ public class GenePropValueListHelper implements AutoCompleter {
         q.addField("identifier");
         q.addField("name");
         try {
-            QueryResponse qr = solrAtlas.query(q);
+            QueryResponse qr = solrServerAtlas.query(q);
             for(SolrDocument doc : qr.getResults())
             {
                 String name = null;

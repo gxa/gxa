@@ -1,12 +1,8 @@
 package ae3.service.structuredquery;
 
 import ae3.model.AtlasGene;
-import ae3.util.DecoratedSolrDocument;
 
 import java.util.List;
-import java.util.Map;
-
-import org.apache.solr.common.SolrDocument;
 
 /**
  * @author pashky

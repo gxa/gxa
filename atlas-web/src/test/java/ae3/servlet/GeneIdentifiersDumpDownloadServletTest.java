@@ -24,29 +24,17 @@ public class GeneIdentifiersDumpDownloadServletTest extends AbstractOnceIndexTes
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private SolrCore core;
-
-    @Before
-    public void setUp() throws IOException, ParserConfigurationException, SAXException {
-        core = getContainer().getCore("atlas");
-    }
-
-    @After
-    public void tearDown() {
-        core.close();
-        core = null;
-    }
-
     @Test
     public void testDumpGeneIdentifiers() {
         String testDumpFile = System.getProperty("java.io.tmpdir") + File.separator + "gene_identifiers.txt";
 
         GeneIdentifiersDumpDownloadServlet svt = new GeneIdentifiersDumpDownloadServlet();
 
+        svt.setCoreContainer(getContainer());
         svt.setBasePath(System.getProperty("java.io.tmpdir"));
         svt.setDumpGeneIdsFilename("gene_identifiers.txt");
 
-        svt.dumpGeneIdentifiers(core);
+        svt.dumpGeneIdentifiers();
 
         File dumpFile = new File(testDumpFile);
         assertTrue(dumpFile.exists());

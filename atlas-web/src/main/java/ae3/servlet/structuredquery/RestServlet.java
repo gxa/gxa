@@ -1,5 +1,9 @@
 package ae3.servlet.structuredquery;
 
+import ae3.restresult.JsonRestResultRenderer;
+import ae3.restresult.RestResultRenderer;
+import ae3.restresult.XmlRestResultRenderer;
+import ae3.servlet.structuredquery.result.ErrorResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import ae3.restresult.*;
-import ae3.servlet.structuredquery.result.ErrorResult;
 
 /**
  * REST API base servlet, implementing common functions as output format and style parameters handling,

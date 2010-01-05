@@ -2,50 +2,40 @@
 <%@ page import="ae3.dao.AtlasDao" %>
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@ page import="java.util.List" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <%
-    List<AtlasExperiment> expz = (List<AtlasExperiment>) application.getAttribute("allexpts");
-
-    if (null == expz) {
-        AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-        request.setAttribute("service", searchService);
-
-        AtlasDao dao = searchService.getAtlasSolrDAO();
-
-        expz = dao.getExperiments();
-        application.setAttribute("allexpts", expz);
-    }
-
-    System.out.println("Got expz: found " + expz.size() + " experiments");
+    AtlasDao dao = (AtlasDao) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
+    List<AtlasExperiment> expz = dao.getExperiments();
+    request.setAttribute("allexpts", expz);
 %>
 
 <jsp:include page="start_head.jsp"/>
 Gene Expression Atlas - Experiment Index
 <jsp:include page="end_head.jsp"/>
 
-<meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
+<meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords"
       content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
 <script type="text/javascript"
         language="javascript"
-        src="<%=request.getContextPath()%>/scripts/jquery-1.3.2.min.js"></script>
+        src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquerydefaultvalue.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/plots.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/feedback.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquerydefaultvalue.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script language="javascript"
         type="text/javascript"
-        src="<%=request.getContextPath()%>/scripts/jquery.flot.atlas.js"></script>
+        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
 
 <script type="text/javascript">
     jQuery(document).ready(function()
@@ -54,15 +44,15 @@ Gene Expression Atlas - Experiment Index
     });
 </script>
 
-<link rel="stylesheet" href="<%=request.getContextPath()%>/atlas.css" type="text/css"/>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/geneView.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 
 <link rel="stylesheet"
-      href="<%= request.getContextPath()%>/blue/style.css"
+      href="${pageContext.request.contextPath}/blue/style.css"
       type="text/css"
       media="print, projection, screen"/>
-<link rel="stylesheet" href="<%= request.getContextPath()%>/jquery.autocomplete.css" type="text/css"/>
-<link rel="stylesheet" href="<%= request.getContextPath()%>/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/jquery.autocomplete.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 
 <style type="text/css">
 
@@ -80,24 +70,24 @@ Gene Expression Atlas - Experiment Index
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td align="left" valign="bottom">
-                    <a href="<%= request.getContextPath()%>/" title="Home"><img width="55"
-                                                                                src="<%= request.getContextPath()%>/images/atlas-logo.png"
+                    <a href="${pageContext.request.contextPath}/" title="Home"><img width="55"
+                                                                                src="${pageContext.request.contextPath}/images/atlas-logo.png"
                                                                                 alt="Gene Expression Atlas"
-                                                                                title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.experimentCount} experiments, ${service.stats.assayCount} assays, ${service.stats.propertyValueCount} conditions"
+                                                                                title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
                                                                                 border="0"></a>
                 </td>
 
                 <td width="100%" valign="bottom" align="right">
-                    <a href="<%=request.getContextPath()%>/">home</a> |
-                    <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
+                    <a href="${pageContext.request.contextPath}/">home</a> |
+                    <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+                    <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
                     <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
                                                                                                   style="font-weight:bold;display:none">thanks!</span>
                     |
                     <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
-                    <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
-                    <a href="<%=request.getContextPath()%>/help">help</a>
+                    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+                    <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+                    <a href="${pageContext.request.contextPath}/help">help</a>
                 </td>
                 <td align="right" valign="bottom">
                 </td>
@@ -132,7 +122,7 @@ Gene Expression Atlas - Experiment Index
                     <span title="No differentially expressed genes found for this experiment"><%=i.getDwExpAccession()%>&nbsp;</span>
                     <% }
                     else { %>
-                    <a href="<%=request.getContextPath()%>/experiment/<%= i.getDwExpAccession() %>"
+                    <a href="${pageContext.request.contextPath}/experiment/<%= i.getDwExpAccession() %>"
                        title="Experiment Data For <%= i.getDwExpAccession() %>"
                        target="_self"><%= i.getDwExpAccession() %>
                     </a>&nbsp;

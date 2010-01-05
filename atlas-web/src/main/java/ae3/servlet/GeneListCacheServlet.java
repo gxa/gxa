@@ -1,16 +1,17 @@
 package ae3.servlet;
 
-import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.AtlasGenePropertyService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,7 +37,13 @@ public class GeneListCacheServlet extends HttpServlet {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private AtlasGenePropertyService service;
+
     public void init() throws ServletException {
+
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        service = (AtlasGenePropertyService)context.getBean("atlasGenePropertyService");
+
         new Thread() {
             public void run() {
 
@@ -86,7 +93,7 @@ public class GeneListCacheServlet extends HttpServlet {
                     }
                 }
             }
-        }.start();
+        };//.start();
 
         // add a reference to this servlet to the context
         getServletContext().setAttribute(Atlas.GENES_CACHE.key(), this);
@@ -138,20 +145,17 @@ public class GeneListCacheServlet extends HttpServlet {
     }
 
     private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) throws Exception {
-        AtlasSearchService searchService =
-                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
 
-        AtlasStructuredQueryService queryService = searchService.getAtlasQueryService();
 
-        Collection<AutoCompleteItem> Genes = queryService.getGeneListHelper()
+        Collection<AutoCompleteItem> Genes = service
                 .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount, null);
 
         //AZ:2008-07-07 "0" means all numbers
         if (prefix.equals("0")) {
             for (int i = 1; i != 10; i++) {
-                Genes.addAll((queryService.getGeneListHelper().autoCompleteValues(Constants.GENE_PROPERTY_NAME,
+                Genes.addAll(service.autoCompleteValues(Constants.GENE_PROPERTY_NAME,
                                                                                   String.valueOf(i), recordCount,
-                                                                                  null)));
+                                                                                  null));
             }
 
         }

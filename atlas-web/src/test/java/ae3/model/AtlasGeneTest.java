@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 
 import java.util.*;
 
@@ -23,7 +24,9 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Before
     public void initGene() {
-        AtlasDao dao = new AtlasDao(getContainer());
+        AtlasDao dao = new AtlasDao();
+        dao.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
+        dao.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
         gene = dao.getGeneByIdentifier("ENSG00000066279").getGene();
     }
 

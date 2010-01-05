@@ -1,13 +1,19 @@
 package uk.ac.ebi.gxa.web.listener;
 
+import ae3.dao.AtlasDao;
+import ae3.service.AtlasDownloadService;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.apache.solr.core.CoreContainer;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -17,8 +23,8 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -63,6 +69,10 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         IndexBuilder indexBuilder = (IndexBuilder) context.getBean("indexBuilder");
         NetCDFGenerator netCDFGenerator = (NetCDFGenerator) context.getBean("netCDFGenerator");
         AnalyticsGenerator analyticsGenerator = (AnalyticsGenerator) context.getBean("analyticsGenerator");
+        AtlasDownloadService downloadService = (AtlasDownloadService) context.getBean("atlasDownloadService");
+        AtlasComputeService computeService = (AtlasComputeService) context.getBean("atlasComputeService");
+        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
+        AtlasDao atlasSolrDAO = (AtlasDao) context.getBean("atlasSolrDAO");
 
         // store in session
         application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
@@ -70,17 +80,21 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.setAttribute(Atlas.INDEX_BUILDER.key(), indexBuilder);
         application.setAttribute(Atlas.NETCDF_GENERATOR.key(), netCDFGenerator);
         application.setAttribute(Atlas.ANALYTICS_GENERATOR.key(), analyticsGenerator);
+        application.setAttribute(Atlas.DOWNLOAD_SERVICE.key(), downloadService);
+        application.setAttribute(Atlas.COMPUTE_SERVICE.key(), computeService);
+        application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), atlasSolrDAO);
 
-        // initialize and store in-session the AtlasSearchService
-        AtlasSearchService searchService = (AtlasSearchService) context.getBean("atlasSearchService");
-        application.setAttribute(Atlas.SEARCH_SERVICE.key(), searchService);
+        String dataRelease = AtlasProperties.getProperty("atlas.data.release");
+        AtlasStatistics statistics = atlasDAO.getAtlasStatisticsByDataRelease(dataRelease);
+        application.setAttribute("atlasStatistics", statistics);
+        application.setAttribute("atlasQueryService", queryService);
 
         try {
             // check that the AtlasRFactory associated with our search service is actually working
             // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...  
             // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
             // that will bring down tomcat if R environment is not configured correctly, but variables are set
-            if (!searchService.getAtlasComputeService().getAtlasRFactory().validateEnvironment()) {
+            if (!computeService.getAtlasRFactory().validateEnvironment()) {
                 log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
             }
             else {
@@ -158,6 +172,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         ServletContext application = sce.getServletContext();
 
         // shutdown and remove services from session
+        application.removeAttribute(Atlas.ATLAS_SOLR_DAO.key());
         application.removeAttribute(Atlas.ATLAS_DAO.key());
         application.removeAttribute(Atlas.ATLAS_MAGETAB_LOADER.key());
 
@@ -191,13 +206,26 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
         application.removeAttribute(Atlas.ANALYTICS_GENERATOR.key());
 
-        // shutdown and remove AtlasSearchService from session
-        AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-        searchService.shutdown();
-        application.removeAttribute(Atlas.SEARCH_SERVICE.key());
+        // shutdown and remove AtlasDownloadService from session
+        AtlasDownloadService downloadService = (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
+        downloadService.shutdown();
+        application.removeAttribute(Atlas.DOWNLOAD_SERVICE.key());
+
+        // shutdown compute service
+        AtlasComputeService computeService = (AtlasComputeService) application.getAttribute(Atlas.COMPUTE_SERVICE.key());
+        computeService.shutdown();
+        application.removeAttribute(Atlas.COMPUTE_SERVICE.key());
 
         // remove plotter
         application.removeAttribute(Atlas.PLOTTER.key());
+
+        // shutdown solr
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(application);
+        CoreContainer coreContainer = (CoreContainer)context.getBean("solrContainer");
+        coreContainer.shutdown();
+
+        // clean-up efo
+        Efo.getEfo().close();
 
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;
@@ -212,7 +240,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         ServletContext application = se.getSession().getServletContext();
 
         // cleanup any downloads being done in this session
-        AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-        searchService.getAtlasDownloadService().cleanupDownloads(se.getSession().getId());
+        AtlasDownloadService downloadService = (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
+        downloadService.cleanupDownloads(se.getSession().getId());
     }
 }

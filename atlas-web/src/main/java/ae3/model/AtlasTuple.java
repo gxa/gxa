@@ -2,8 +2,6 @@ package ae3.model;
 
 import org.apache.commons.lang.WordUtils;
 
-import java.util.Arrays;
-
 /**
  * Created by IntelliJ IDEA.
  * User: ostolop

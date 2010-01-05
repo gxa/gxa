@@ -2,14 +2,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
-<%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%
-    AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    request.setAttribute("service", searchService);
-%>
+<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <jsp:include page="start_head.jsp"/>
 Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
@@ -22,7 +16,6 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
 <jsp:include page="query-includes.jsp"/>
 <link rel="stylesheet" href="structured-query.css" type="text/css"/>
-<script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/jquery.corner.js"></script>
 
 
@@ -45,9 +38,6 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
 </style>
 
-<meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
-<meta name="y_key" content="fcb0c3c66fb1ff11">
-
 <jsp:include page="start_body_no_menus.jsp"/>
 
 <div id="contents" class="contents">
@@ -67,32 +57,32 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
             <div style="float:left; width:200px;" class="roundCorner">
                 <div style="padding:10px">
                     <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release <c:out
-                            value="${service.stats.dataRelease}"/>:
+                            value="${atlasStatistics.dataRelease}"/>:
                     </div>
                     <table cellpadding="0" cellspacing="0" width="100%">
                         <tr>
                             <td align="left">new experiments</td>
-                            <td align="right"><c:out value="${service.stats.newExperimentCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.newExperimentCount}"/></td>
                         </tr>
                         <tr>
-                            <td align="left">total <a href="<%= request.getContextPath() %>/experiment/index.htm"
+                            <td align="left">total <a href="${pageContext.request.contextPath}/experiment/index.htm"
                                                       title="Atlas Experiment Index">experiments</a></td>
-                            <td align="right"><c:out value="${service.stats.experimentCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.experimentCount}"/></td>
                         </tr>
 
                         <tr>
-                            <td align="left">total <a href="<%= request.getContextPath() %>/gene/index.htm"
+                            <td align="left">total <a href="${pageContext.request.contextPath}/gene/index.htm"
                                                       title="Atlas Gene Index">genes</a></td>
-                            <td align="right"><c:out value="${service.stats.geneCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.geneCount}"/></td>
                         </tr>
 
                         <tr>
                             <td align="left">assays</td>
-                            <td align="right"><c:out value="${service.stats.assayCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.assayCount}"/></td>
                         </tr>
                         <tr>
                             <td align="left">conditions</td>
-                            <td align="right"><c:out value="${service.stats.propertyValueCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.propertyValueCount}"/></td>
                         </tr>
                     </table>
                 </div>

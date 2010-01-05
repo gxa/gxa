@@ -1,12 +1,11 @@
 package ae3.model;
 
+import ae3.service.GxaDasDataSource;
 import ae3.util.CuratedTexts;
 import ae3.util.StringUtils;
-import ae3.service.GxaDasDataSource;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
 
 import java.util.*;
-
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
 
 /**
  * Created by IntelliJ IDEA.

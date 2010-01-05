@@ -1,12 +1,11 @@
 package ae3.service.structuredquery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ae3.model.ListResultRow;
 import ae3.model.AtlasGene;
+import ae3.model.ListResultRow;
 import ae3.restresult.RestOut;
 import ae3.util.MappingIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 

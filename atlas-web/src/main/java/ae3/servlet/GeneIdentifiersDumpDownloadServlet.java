@@ -5,13 +5,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private String dumpGeneIdsFilename;
+    private CoreContainer coreContainer;
 
 
     public String getDumpGeneIdsFilename() {
@@ -39,25 +41,26 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         this.dumpGeneIdsFilename = dumpGeneIdsFilename;
     }
 
+    public CoreContainer getCoreContainer() {
+        return coreContainer;
+    }
+
+    public void setCoreContainer(CoreContainer coreContainer) {
+        this.coreContainer = coreContainer;
+    }
+
     @Override
     public void init() throws ServletException {
         setBasePath(System.getProperty("java.io.tmpdir"));
         setDumpGeneIdsFilename(AtlasProperties.getProperty("atlas.dump.geneidentifiers.filename"));
 
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        setCoreContainer((CoreContainer)context.getBean("solrContainer"));
+
+
         new Thread() {
             public void run() {
-                SolrCore core = null;
-                try {
-                    AtlasSearchService searchService =
-                            (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-                    core = searchService.getSolrCore("atlas");
-                    dumpGeneIdentifiers(core);
-                }
-                finally {
-                    if (core != null) {
-                        core.close();
-                    }
-                }
+                dumpGeneIdentifiers();
             }
         }.start();
     }
@@ -75,18 +78,7 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
 
         if (!dumpGeneIdsFile.exists()) {
-            SolrCore core = null;
-            try {
-                AtlasSearchService searchService =
-                        (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-                core = searchService.getSolrCore("atlas");
-                dumpGeneIdentifiers(core);
-            }
-            finally {
-                if (core != null) {
-                    core.close();
-                }
-            }
+            dumpGeneIdentifiers();
         }
 
         log.info("Gene identifiers dump download request");
@@ -96,11 +88,12 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
 
     /**
      * Generates a special file containing all gene identifiers, for external users to use for linking.
-     *
-     * @param core SolrCore to use
      */
-    public void dumpGeneIdentifiers(SolrCore core) {
+    public void dumpGeneIdentifiers() {
+        SolrCore core = null;
         try {
+            core = getCoreContainer().getCore("atlas");
+
             String dumpGeneIdsAbsoluteFilename = getBasePath() + File.separator + getDumpGeneIdsFilename();
             File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
 
@@ -131,6 +124,10 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         }
         catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);
+        }
+        finally {
+            if(core != null)
+                core.close();
         }
     }
 }
