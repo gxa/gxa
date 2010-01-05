@@ -247,14 +247,12 @@ public class NetCDFFormatter {
     }
 
     /**
-     * Create the variables that map design elements to genes.  This variable is a 2D matrix, sized by the design
-     * element dimension vs. the gene dimension.  1's and 0's are inserted into each cell depending on whether there is
-     * a correspondence between these two or not.
-     * <p/>
-     * Because this variable is sized by design elements and genes, these dimensions must have been created first.  An
-     * exception is thrown if these dimnesions have not been created first.  Note that if these dimensions have not been
-     * initialized because they have zero length, this method will not throw an exception but will rather result in no
-     * variable being created.
+     * Create the variables that map design elements to genes.  Unlike the BS2AS matrix, this is not simply a matrix of
+     * zeros and ones for each design element to gene - this would result in the creation of a huge, highly sparse
+     * matrix.  Instead, design element to genes are stored as a matrix of integer pairs, storing the position in the
+     * design element matrix and the position in the gene matrix for every unique mapping.  The size of this matrix is
+     * therefore variable, and not necessarily the same size as either the DE or GN matirx (except where there is 1:1
+     * mappings between all elements).
      *
      * @param netCDF the NetCDF model to modify
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
@@ -269,10 +267,13 @@ public class NetCDFFormatter {
             throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable without first assessing 'GN' dimension");
         }
 
+        // DE2GN is an array of unlimited length (i.e. increases with each unique pair) by 2, (i.e. pairs of De to GN mappings)
+        Dimension pairsDimension = netCDF.addUnlimitedDimension("DE2GNPairs");
+        Dimension mappingsDimension = netCDF.addDimension("DE2GNMapping", 2);
         if (designElementDimension != null && geneDimension != null) {
             // add assay to sample variable
-            log.debug("DE2GN will be sized " + designElementDimension.getLength() + " x " + geneDimension.getLength());
-            netCDF.addVariable("DE2GN", DataType.INT, new Dimension[]{designElementDimension, geneDimension});
+//            log.debug("DE2GN will be sized " + designElementDimension.getLength() + " x " + geneDimension.getLength());
+            netCDF.addVariable("DE2GN", DataType.INT, new Dimension[]{pairsDimension, mappingsDimension});
         }
         log.debug("Initialized designelement2gene dimensions and variables ok.");
     }

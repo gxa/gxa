@@ -112,7 +112,7 @@ public class AtlasSearchService implements InitializingBean {
         try {
             System.out.println("Initializing AtlasSearchService");
 
-            // fixme: this shuld be configured low-level, e.g. in a DAO module and injected
+            // fixme: this should be configured low-level, e.g. in a DAO module and injected
             // startup SOLR server
             multiCore = new CoreContainer(atlasIndex.getAbsolutePath(), new File(atlasIndex, "solr.xml"));
 

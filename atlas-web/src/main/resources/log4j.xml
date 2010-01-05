@@ -21,6 +21,11 @@
         <appender-ref ref="atlas-log"/>
     </logger>
 
+    <logger name="ae3.service.structuredquery">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log" />
+    </logger>
+    
     <root>
         <priority value="INFO"/>
         <appender-ref ref="atlas-log"/>

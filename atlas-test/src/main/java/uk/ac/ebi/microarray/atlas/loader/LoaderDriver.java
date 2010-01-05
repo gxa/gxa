@@ -110,91 +110,91 @@ public class LoaderDriver {
         }
 
         // run the index builder
-        final long indexStart = System.currentTimeMillis();
-        builder.buildIndex(new IndexBuilderListener() {
-
-            public void buildSuccess(IndexBuilderEvent event) {
-                final long indexEnd = System.currentTimeMillis();
-
-                String total = new DecimalFormat("#.##").format(
-                        (indexEnd - indexStart) / 60000);
-                System.out.println(
-                        "Index built successfully in " + total + " mins.");
-
-                try {
-                    builder.shutdown();
-                }
-                catch (IndexBuilderException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            public void buildError(IndexBuilderEvent event) {
-                System.out.println("Index failed to build");
-                for (Throwable t : event.getErrors()) {
-                    t.printStackTrace();
-                    try {
-                        builder.shutdown();
-                    }
-                    catch (IndexBuilderException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-
-//        // in case we don't run indexbuilder
-//        try {
-//            builder.shutdown();
-//        }
-//        catch (IndexBuilderException e) {
-//            e.printStackTrace();
-//        }
-
-        // run the NetCDFGenerator
-//        final long netStart = System.currentTimeMillis();
-//        generator.generateNetCDFsForExperiment(
-//                "E-TABM-199",
-//                new NetCDFGeneratorListener() {
-//                    public void buildSuccess(NetCDFGenerationEvent event) {
-//                        final long netEnd = System.currentTimeMillis();
+//        final long indexStart = System.currentTimeMillis();
+//        builder.buildIndex(new IndexBuilderListener() {
 //
-//                        String total = new DecimalFormat("#.##").format(
-//                                (netEnd - netStart) / 60000);
-//                        System.out.println(
-//                                "NetCDFs generated successfully in " + total + " mins.");
+//            public void buildSuccess(IndexBuilderEvent event) {
+//                final long indexEnd = System.currentTimeMillis();
 //
-//                        try {
-//                            generator.shutdown();
-//                        }
-//                        catch (NetCDFGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
+//                String total = new DecimalFormat("#.##").format(
+//                        (indexEnd - indexStart) / 60000);
+//                System.out.println(
+//                        "Index built successfully in " + total + " mins.");
+//
+//                try {
+//                    builder.shutdown();
+//                }
+//                catch (IndexBuilderException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            public void buildError(IndexBuilderEvent event) {
+//                System.out.println("Index failed to build");
+//                for (Throwable t : event.getErrors()) {
+//                    t.printStackTrace();
+//                    try {
+//                        builder.shutdown();
 //                    }
-//
-//                    public void buildError(NetCDFGenerationEvent event) {
-//                        System.out.println("NetCDF Generation failed!");
-//                        for (Throwable t : event.getErrors()) {
-//                            t.printStackTrace();
-//                            try {
-//                                generator.shutdown();
-//                            }
-//                            catch (NetCDFGeneratorException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
+//                    catch (IndexBuilderException e) {
+//                        e.printStackTrace();
 //                    }
-//                });
+//                }
+//            }
+//        });
 
-        // in case we don't run netCDF generator
+        // in case we don't run indexbuilder
         try {
-            generator.shutdown();
+            builder.shutdown();
         }
-        catch (NetCDFGeneratorException e) {
+        catch (IndexBuilderException e) {
             e.printStackTrace();
         }
 
-        // run the analytics
+        // run the NetCDFGenerator
+        final long netStart = System.currentTimeMillis();
+        generator.generateNetCDFsForExperiment(
+                "E-TABM-199",
+                new NetCDFGeneratorListener() {
+                    public void buildSuccess(NetCDFGenerationEvent event) {
+                        final long netEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (netEnd - netStart) / 60000);
+                        System.out.println(
+                                "NetCDFs generated successfully in " + total + " mins.");
+
+                        try {
+                            generator.shutdown();
+                        }
+                        catch (NetCDFGeneratorException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void buildError(NetCDFGenerationEvent event) {
+                        System.out.println("NetCDF Generation failed!");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                            try {
+                                generator.shutdown();
+                            }
+                            catch (NetCDFGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+
+//        // in case we don't run netCDF generator
+//        try {
+//            generator.shutdown();
+//        }
+//        catch (NetCDFGeneratorException e) {
+//            e.printStackTrace();
+//        }
+
+//        // run the analytics
 //        final long netStart = System.currentTimeMillis();
 //        analytics.generateAnalyticsForExperiment(
 //                "E-TABM-199",
@@ -205,7 +205,7 @@ public class LoaderDriver {
 //                        String total = new DecimalFormat("#.##").format(
 //                                (netEnd - netStart) / 60000);
 //                        System.out.println(
-//                                "NetCDFs generated successfully in " + total + " mins.");
+//                                "Analytics generated successfully in " + total + " mins.");
 //
 //                        try {
 //                            analytics.shutdown();
@@ -216,7 +216,7 @@ public class LoaderDriver {
 //                    }
 //
 //                    public void buildError(AnalyticsGenerationEvent event) {
-//                        System.out.println("NetCDF Generation failed!");
+//                        System.out.println("Analytics Generation failed!");
 //                        for (Throwable t : event.getErrors()) {
 //                            t.printStackTrace();
 //                            try {
@@ -230,12 +230,12 @@ public class LoaderDriver {
 //                });
 
         // in case we don't run analytics
-//        try {
-//            analytics.shutdown();
-//        }
-//        catch (AnalyticsGeneratorException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            analytics.shutdown();
+        }
+        catch (AnalyticsGeneratorException e) {
+            e.printStackTrace();
+        }
 
 //        // do a load_monitor update
 //        final AtlasDAO atlasDAO =
