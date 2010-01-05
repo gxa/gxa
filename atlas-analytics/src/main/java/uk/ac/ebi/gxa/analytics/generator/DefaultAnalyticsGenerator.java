@@ -94,9 +94,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
         if (running) {
             log.debug("Shutting down " + getClass().getSimpleName() + "...");
 
-            // shutdown compute service
-            atlasComputeService.shutdown();
-
             // shutdown this service
             service.shutdown();
             try {
