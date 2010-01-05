@@ -1,13 +1,13 @@
 package ae3.servlet;
 
+import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
 import ae3.service.XML4dbDumps;
 import ae3.util.AtlasProperties;
-import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -40,18 +40,7 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
 
         new Thread() {
             public void run() {
-                SolrCore core = null;
-                try {
-                    AtlasSearchService searchService =
-                            (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-                    core = searchService.getSolrCore("atlas");
-                    dumpGeneIdentifiers();
-                }
-                finally {
-                    if (core != null) {
-                        core.close();
-                    }
-                }
+                dumpGeneIdentifiers();
             }
         }.start();
     }
@@ -69,18 +58,7 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
         File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
 
         if (!dumpGeneIdsFile.exists()) {
-            SolrCore core = null;
-            try {
-                AtlasSearchService searchService =
-                        (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-                core = searchService.getSolrCore("atlas");
-                dumpGeneIdentifiers();
-            }
-            finally {
-                if (core != null) {
-                    core.close();
-                }
-            }
+            dumpGeneIdentifiers();
         }
 
         log.info("Gene identifiers dump download request");
@@ -93,9 +71,9 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
      */
     public void dumpGeneIdentifiers() {
         try {
-            AtlasSearchService searchService =
-                    (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-            List<AtlasGene> genes = searchService.getAtlasSolrDAO().getGenes();
+            WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+            AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
+            List<AtlasGene> genes = dao.getGenes();
 
             XML4dbDumps.Document d1 = new XML4dbDumps.Document();
             d1.setName("Gene Expression Atlas"); //db_name

@@ -3,6 +3,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
+<jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 
 <jsp:include page="start_head.jsp"></jsp:include>
 Gene Expression Atlas Search Results - Gene Expression Atlas
@@ -17,7 +19,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="scripts/common-query.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
 <script type="text/javascript" src="scripts/jquery.tablesorter.mod.js"></script>
 <!-- >script type="text/javascript" src="scripts/jquery.tablesorter.pager.js"></script-->
@@ -32,20 +33,20 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
         <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="<%=request.getContextPath()%>/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
+            <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
         <td align="right" valign="bottom">
-            <a href="<%=request.getContextPath()%>/">home</a> |
-            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
-            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
+            <a href="${pageContext.request.contextPath}/">home</a> |
+            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
-	    <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
-            <a href="<%=request.getContextPath()%>/help">help</a>
+	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+	    <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+            <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
     </tr>
-</table>
+</table>                                                     se
 
 <c:set var="simpleformvisible" value="${(query.none && !forcestruct) || (!query.none && query.simple)}" />
 <div id="topcontainer">
@@ -73,7 +74,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td>
                     <select name="fexp_0" id="expr0">
                         <c:forEach var="s"
-                                   items="${service.atlasQueryService.geneExpressionOptions}">
+                                   items="${atlasQueryService.geneExpressionOptions}">
                             <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
                         </c:forEach>
                     </select>
@@ -83,7 +84,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <select name="specie_0" id="species0" style="width:180px">
                         <option value="">(any)</option>
                         <c:forEach var="s"
-                                   items="${service.atlasQueryService.speciesOptions}">
+                                   items="${atlasQueryService.speciesOptions}">
                             <option ${!empty query.species && f:toLowerCase(s) == f:toLowerCase(query.species[0]) ? 'selected="selected"' : ''} value="${f:escapeXml(s)}">${f:escapeXml(u:upcaseFirst(s))}</option>
                         </c:forEach>
                     </select>
@@ -136,7 +137,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                             <select id="geneprops" >
                                 <option value="" selected="selected">Gene property</option>
                                 <option value="">(any)</option>
-                                <c:forEach var="i" items="${service.atlasQueryService.genePropertyOptions}">
+                                <c:forEach var="i" items="${atlasQueryService.genePropertyOptions}">
                                     <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
                                 </c:forEach>
                             </select>
@@ -146,7 +147,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="" selected="selected">Experimental factor</option>
                                 <option value="">(any)</option>
                                 <option value="efo">EFO</option>
-                                <c:forEach var="i" items="${service.atlasQueryService.experimentalFactorOptions}">
+                                <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
                                     <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
                                 </c:forEach>
                             </select>
@@ -154,7 +155,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <td>
                             <select id="species">
                                 <option value="" selected="selected">Organism</option>
-                                <c:forEach var="i" items="${service.atlasQueryService.speciesOptions}">
+                                <c:forEach var="i" items="${atlasQueryService.speciesOptions}">
                                     <option value="${f:escapeXml(i)}">${u:upcaseFirst(f:escapeXml(i))}</option>
                                 </c:forEach>
                             </select>
@@ -193,12 +194,12 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript">
     var options = {
         expressions : [
-            <c:forEach var="i" varStatus="s" items="${service.atlasQueryService.geneExpressionOptions}">
+            <c:forEach var="i" varStatus="s" items="${atlasQueryService.geneExpressionOptions}">
             [ '${u:escapeJS(i[0])}', 'is ${u:escapeJS(i[1])} in' ]<c:if test="${!s.last}">,</c:if>
             </c:forEach>
         ],
         species : [
-            <c:forEach var="i" varStatus="s" items="${service.atlasQueryService.speciesOptions}">
+            <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
             '${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if>
             </c:forEach>
         ]

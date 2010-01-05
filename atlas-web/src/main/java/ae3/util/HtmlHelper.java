@@ -1,16 +1,12 @@
 package ae3.util;
 
 import ae3.service.structuredquery.UpdownCounter;
+import uk.ac.ebi.gxa.model.ExpressionStat;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.Set;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-
-import org.springframework.beans.MethodInvocationException;
-import uk.ac.ebi.gxa.model.ExpressionStat;
 
 /**
  * Helper functions for parsing and managing structured query

@@ -1,9 +1,9 @@
 package ae3.servlet.structuredquery;
 
 import ae3.restresult.RestOut;
-import ae3.service.structuredquery.EfoValueListHelper;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
+import ae3.service.structuredquery.AtlasEfoService;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,12 +35,11 @@ public class EfoServlet extends RestServlet {
     }
 
     public Object process(HttpServletRequest request) {
-        AtlasSearchService searchService =
-                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
-        EfoValueListHelper service = searchService.getAtlasQueryService().getEfoListHelper();
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        AtlasEfoService service = (AtlasEfoService)context.getBean("atlasEfoService");
 
 
-        Collection result = null;
+        Collection<AtlasEfoService.EfoTermCount> result = null;
         String id = request.getParameter("childrenOf");
 
         if (id != null) {
@@ -65,8 +64,8 @@ public class EfoServlet extends RestServlet {
                 id = request.getParameter("parentsOf");
                 if (id != null && id.length() != 0) {
                     log.info("EFO request for parents of " + id);
-                    result = new ArrayList();
-                    for (List<EfoValueListHelper.EfoTermCount> i : service.getTermParentPaths(id)) {
+                    result = new ArrayList<AtlasEfoService.EfoTermCount>();
+                    for (List<AtlasEfoService.EfoTermCount> i : service.getTermParentPaths(id)) {
                         result.addAll(i);
                     }
                 }

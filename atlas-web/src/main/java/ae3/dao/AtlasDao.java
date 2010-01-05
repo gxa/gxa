@@ -5,14 +5,11 @@ import ae3.model.AtlasGene;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -28,17 +25,23 @@ public class AtlasDao {
     final private Logger log = LoggerFactory.getLogger(getClass());
     final private int MAX_EXPERIMENTS = 10000;
 
-    private SolrServer solrAtlas;
-    private SolrServer solrExpt;
+    private SolrServer solrServerAtlas;
+    private SolrServer solrServerExpt;
 
-    public AtlasDao(CoreContainer coreContainer) {
-        this.solrAtlas = new EmbeddedSolrServer(coreContainer, Constants.CORE_ATLAS);
-        this.solrExpt = new EmbeddedSolrServer(coreContainer, Constants.CORE_EXPT);
+    public SolrServer getSolrServerAtlas() {
+        return solrServerAtlas;
     }
 
-    public AtlasDao(SolrServer solrAtlas, SolrServer solrExpt) {
-        this.solrAtlas = solrAtlas;
-        this.solrExpt = solrExpt;
+    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
+        this.solrServerAtlas = solrServerAtlas;
+    }
+
+    public SolrServer getSolrServerExpt() {
+        return solrServerExpt;
+    }
+
+    public void setSolrServerExpt(SolrServer solrServerExpt) {
+        this.solrServerExpt = solrServerExpt;
     }
 
     /**
@@ -76,7 +79,7 @@ public class AtlasDao {
         q.setRows(1);
         q.setFields("*");
         try {
-            QueryResponse queryResponse = solrExpt.query(q);
+            QueryResponse queryResponse = solrServerExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             if (documentList == null || documentList.size() < 1) {
@@ -98,7 +101,7 @@ public class AtlasDao {
         q.setFields("*");
 
         try {
-            QueryResponse queryResponse = solrExpt.query(q);
+            QueryResponse queryResponse = solrServerExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
             List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
@@ -126,7 +129,7 @@ public class AtlasDao {
 
         try {
 
-            QueryResponse queryResponse = solrExpt.query(q);
+            QueryResponse queryResponse = solrServerExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             if (documentList == null || documentList.size() < 1) {
@@ -138,7 +141,7 @@ public class AtlasDao {
                 q1.setRows(1);
                 q1.setFields("id");
 
-                QueryResponse qr1 = solrAtlas.query(q1);
+                QueryResponse qr1 = solrServerAtlas.query(q1);
 
                 AtlasExperiment ae = new AtlasExperiment(exptDoc);
 
@@ -188,7 +191,7 @@ public class AtlasDao {
         q.setRows(1);
         q.setFields("*");
         try {
-            QueryResponse queryResponse = solrAtlas.query(q);
+            QueryResponse queryResponse = solrServerAtlas.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             if (documentList == null || documentList.size() == 0) {
@@ -209,7 +212,7 @@ public class AtlasDao {
         q.setRows(1000);
         q.setFields("name,id,identifier");
         try {
-            QueryResponse queryResponse = solrAtlas.query(q);
+            QueryResponse queryResponse = solrServerAtlas.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             for (SolrDocument d : documentList) {
@@ -233,7 +236,8 @@ public class AtlasDao {
      * @return AtlasGene
      */
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
-        return getGeneByQuery(EscapeUtil.escapeSolr(gene_identifier));
+        final String id = EscapeUtil.escapeSolr(gene_identifier);
+        return getGeneByQuery("id:" + id + " identifier:" + id);
     }
 
     public void retrieveOrthoGenes(AtlasGene atlasGene) {

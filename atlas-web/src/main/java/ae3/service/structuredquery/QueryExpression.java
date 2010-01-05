@@ -1,7 +1,7 @@
 package ae3.service.structuredquery;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
      * Gene epxression option

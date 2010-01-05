@@ -1,4 +1,9 @@
-<%@page contentType="text/plain;encoding=UTF-8"%>
+<%@page import="ae3.dao.AtlasDao"%>
+<%@page import="ae3.model.AtlasExperiment"%>
+<%@page import="uk.ac.ebi.gxa.web.Atlas"%>
+<%@ page import="java.util.List"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
 String geneId = request.getParameter("gid");
 int fromRow = -1;
@@ -10,8 +15,7 @@ String ef = request.getParameter("factor");
 String efv = request.getParameter("efv");
 
 if (geneId != null) {
-    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    AtlasDao dao = searchService.getAtlasSolrDAO();
+    AtlasDao dao = (AtlasDao)application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
     AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
     if(atlasGene.isFound()) {
         List<AtlasExperiment> exps = dao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
@@ -21,17 +25,9 @@ if (geneId != null) {
 }    
 
 %>
-<%@page import="ae3.dao.AtlasDao"%>
-<%@page import="ae3.model.AtlasExperiment"%>
-<%@page import="uk.ac.ebi.gxa.web.AtlasSearchService"%>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas"%>
-<%@ page import="java.util.List"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 <script type="text/javascript">
-<!--
 
 	var exp_ids;
 	var exps;
@@ -80,10 +76,6 @@ if (geneId != null) {
     
     
     
-    
-    
-//-->
-
 	function showThumbnail(id){
         var thumb = $("#" + id + '_plot_thm');
         var legend_ext = $("#" + id + '_legend_ext');
@@ -157,7 +149,7 @@ if (geneId != null) {
 					<!-- div style="position:relative"-->
 					<tr align="left">
 						<td align="center">
-							<a  title="Show expression profile" href="<%= request.getContextPath() %>/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('<%= request.getContextPath()%>/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
+							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.dwExpId}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
 							<div id="${exp.dwExpId}_${atlasGene.geneId}_plot_thm" > </div>
 						</td>
 					</tr>
@@ -186,7 +178,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="<%= request.getContextPath() %>/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneIdentifier}">expression profile</a>
+			Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.dwExpAccession}?gid=${atlasGene.geneIdentifier}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.dwExpAccession}&detailedview=on">experiment details</a>
 			<br/><br/>
@@ -201,4 +193,4 @@ if (geneId != null) {
 
 </table>
 
-<img src="<%=request.getContextPath() %>/images/1.gif" onload="drawPlots();"/>
+<img src="${pageContext.request.contextPath}/images/1.gif" onload="drawPlots();"/>

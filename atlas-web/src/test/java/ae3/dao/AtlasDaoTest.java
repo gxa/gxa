@@ -6,6 +6,7 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 
 import java.util.ArrayList;
@@ -17,7 +18,9 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 
     @Before
     public void initDao() {
-        dao = new AtlasDao(getContainer());
+        dao = new AtlasDao();
+        dao.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
+        dao.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
     }
 
     @Test

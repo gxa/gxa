@@ -1,11 +1,11 @@
 package ae3.model;
 
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import ae3.util.CuratedTexts;
 import ae3.util.StringUtils;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.

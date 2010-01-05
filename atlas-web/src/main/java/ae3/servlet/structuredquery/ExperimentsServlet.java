@@ -3,13 +3,13 @@ package ae3.servlet.structuredquery;
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.util.CuratedTexts;
 import ae3.service.structuredquery.Constants;
+import ae3.util.CuratedTexts;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -22,8 +22,8 @@ public class ExperimentsServlet extends RestServlet {
     public Object process(HttpServletRequest request) {
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
-        AtlasSearchService searchService =
-                (AtlasSearchService) getServletContext().getAttribute(Atlas.SEARCH_SERVICE.key());
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
 
         String geneIdKey = request.getParameter("gene");
         String factor = request.getParameter("ef");
@@ -44,7 +44,6 @@ public class ExperimentsServlet extends RestServlet {
                 }
             }
 
-            AtlasDao dao = searchService.getAtlasSolrDAO();
             AtlasDao.AtlasGeneResult result = dao.getGeneById(geneIdKey);
             if (!result.isFound()) {
                 throw new IllegalArgumentException("Atlas gene " + geneIdKey + " not found");

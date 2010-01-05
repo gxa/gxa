@@ -6,4 +6,6 @@
     <meta http-equiv="Content-Language" content="en-GB" />
     <meta http-equiv="Window-target" content="_top" />
     <meta name="no-email-collection" content="http://www.unspam.com/noemailcollection/" />
+    <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
+    <meta name="y_key" content="fcb0c3c66fb1ff11">
     <title>

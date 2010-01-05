@@ -1,13 +1,14 @@
 package ae3.service;
 
+import ae3.dao.AtlasDao;
 import ae3.model.*;
 import ae3.util.CuratedTexts;
 import ae3.util.HtmlHelper;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.Expression;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.web.AtlasSearchService;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
@@ -40,6 +41,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
     ServletContext svCon;
     Map<String, String> globalParameters;
     DataSourceConfiguration config;
+    AtlasDao dao;
 
 
     /**
@@ -70,6 +72,9 @@ public class GxaDasDataSource implements AnnotationDataSource {
         this.svCon = servletContext;
         this.globalParameters = globalParameters;
         this.config = dataSourceConfig;
+
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(svCon);
+        dao = (AtlasDao)context.getBean("atlasSolrDAO");
     }
 
     /**
@@ -179,8 +184,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
             ExperimentsTable tbl = atlasGene.getExperimentsTable();
             for (Experiment e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
                 // lookup search service from context
-                AtlasSearchService searchService = (AtlasSearchService) svCon.getAttribute(Atlas.SEARCH_SERVICE.key());
-                AtlasExperiment atlasExperiment = searchService.getAtlasSolrDAO().getExperimentById(e.getId());
+                AtlasExperiment atlasExperiment = dao.getExperimentById(e.getId());
 
                 if (null == atlasExperiment) {
                     continue;
@@ -317,8 +321,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
         String geneId = segmentReference;
 
         //AtlasGeneService.getAtlasGene(geneId);
-        AtlasSearchService searchService = (AtlasSearchService) svCon.getAttribute(Atlas.SEARCH_SERVICE.key());
-        AtlasGene atlasGene = searchService.getAtlasSolrDAO().getGeneByIdentifier(geneId).getGene();
+        AtlasGene atlasGene = dao.getGeneByIdentifier(geneId).getGene();
 
         if (null == atlasGene) {
             //this.cacheManager.emptyCache();
@@ -351,8 +354,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
             feat.add(HeatmapDasFeature(atlasGene, i));
         }
 
-        List<AtlasExperiment> t =
-                searchService.getAtlasSolrDAO().getRankedGeneExperiments(atlasGene, null, null, -1, -1);
+        List<AtlasExperiment> t = dao.getRankedGeneExperiments(atlasGene, null, null, -1, -1);
         for (AtlasExperiment e : t) {
             feat.add(ExperimentDasFeature(atlasGene, e));
         }

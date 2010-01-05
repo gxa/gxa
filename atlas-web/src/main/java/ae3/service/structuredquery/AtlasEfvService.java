@@ -8,7 +8,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
@@ -18,20 +17,39 @@ import java.util.*;
  * @author pashky
  * @see AutoCompleter
  */
-public class ExpFactorValueListHelper implements AutoCompleter {
+public class AtlasEfvService implements AutoCompleter {
 
-    private SolrServer solrAtlas;
-    private SolrServer solrExpt;
+    private SolrServer solrServerAtlas;
+    private SolrServer solrServerExpt;
+    private SolrServer solrServerProp;
+
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
-    private Set<String> allFactors;
+    private Set<String> allFactors = new HashSet<String>();
 
-    public ExpFactorValueListHelper(SolrServer solrAtlas, SolrServer solrExpt, Collection<String> allFactors)
-    {
-        this.solrAtlas = solrAtlas;
-        this.solrExpt = solrExpt;
-        this.allFactors = new HashSet<String>(allFactors);
+    public SolrServer getSolrServerAtlas() {
+        return solrServerAtlas;
+    }
+
+    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
+        this.solrServerAtlas = solrServerAtlas;
+    }
+
+    public SolrServer getSolrServerExpt() {
+        return solrServerExpt;
+    }
+
+    public void setSolrServerExpt(SolrServer solrServerExpt) {
+        this.solrServerExpt = solrServerExpt;
+    }
+
+    public SolrServer getSolrServerProp() {
+        return solrServerProp;
+    }
+
+    public void setSolrServerProp(SolrServer solrServerProp) {
+        this.solrServerProp = solrServerProp;
     }
 
     public void preloadData() {
@@ -39,6 +57,27 @@ public class ExpFactorValueListHelper implements AutoCompleter {
             treeGetOrLoad(property);
         }
         treeGetOrLoad(Constants.EXP_FACTOR_NAME);
+    }
+
+    private Set<String> getAllFactors() {
+        if(allFactors.isEmpty()) {
+            SolrQuery q = new SolrQuery("value_id:[* TO *]");
+            q.setRows(0);
+            q.addFacetField("property_f");
+            q.setFacet(true);
+            q.setFacetLimit(-1);
+            q.setFacetMinCount(1);
+            q.setFacetSort(true);
+            try {
+                QueryResponse qr = solrServerProp.query(q);
+                for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                    allFactors.add(ffc.getName());
+                }
+            } catch(SolrServerException e) {
+                throw new RuntimeException("Can't fetch all factors", e);
+            }
+        }
+        return allFactors;
     }
 
     private PrefixNode treeGetOrLoad(String property) {
@@ -62,7 +101,7 @@ public class ExpFactorValueListHelper implements AutoCompleter {
                         exptMapQ.setRows(1000000);
                         exptMapQ.addField("id");
                         exptMapQ.addField("accession");
-                        QueryResponse qr = solrExpt.query(exptMapQ);
+                        QueryResponse qr = solrServerExpt.query(exptMapQ);
                         for(SolrDocument doc : qr.getResults())
                         {
                             Object id = doc.getFieldValue("id");
@@ -70,12 +109,12 @@ public class ExpFactorValueListHelper implements AutoCompleter {
                             if(id != null && accession != null)
                                 valMap.put(id.toString(), accession);
                         }
-                    } else if(!allFactors.contains(property))
+                    } else if(!getAllFactors().contains(property))
                         return null;
                     else
                         q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
 
-                    QueryResponse qr = solrAtlas.query(q);
+                    QueryResponse qr = solrServerAtlas.query(q);
                     root = new PrefixNode();
                     if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
                             && qr.getFacetFields().get(0).getValues() != null) {
@@ -110,7 +149,7 @@ public class ExpFactorValueListHelper implements AutoCompleter {
             }
         };
         if(null == property || "".equals(property)) {
-            for(String prop : allFactors) {
+            for(String prop : getAllFactors()) {
                 PrefixNode root = treeGetOrLoad(prop);
                 if(root != null)
                     root.collect("", rc);

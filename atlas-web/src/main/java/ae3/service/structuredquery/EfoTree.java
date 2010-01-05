@@ -5,10 +5,10 @@
 
 package ae3.service.structuredquery;
 
-import java.util.*;
-
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
+
+import java.util.*;
 
 /**
  * EFO tree handling helper class

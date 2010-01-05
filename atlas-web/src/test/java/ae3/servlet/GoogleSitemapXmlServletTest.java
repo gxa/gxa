@@ -23,18 +23,8 @@ import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
 public class GoogleSitemapXmlServletTest extends AbstractOnceIndexTest {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private SolrCore core;
-
-    @Before
-    public void setUp() throws IOException, ParserConfigurationException, SAXException {
-        core = getContainer().getCore("atlas");
-    }
-
     @After
     public void tearDown() {
-        core.close();
-        core = null;
-
         // cleanup
         String[] filesToDelete = new File(System.getProperty("java.io.tmpdir")).list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -54,9 +44,10 @@ public class GoogleSitemapXmlServletTest extends AbstractOnceIndexTest {
     @Test
     public void testWriteGeneSitemap() {
         GoogleSitemapXmlServlet svt = new GoogleSitemapXmlServlet();
+        svt.setCoreContainer(getContainer());
 
         svt.setBasePath(System.getProperty("java.io.tmpdir"));
-        svt.writeGeneSitemap(core);
+        svt.writeGeneSitemap();
 
         File geneSitemapIndex = new File(svt.getBasePath() + File.separator + "geneSitemapIndex.xml");
         assertTrue(geneSitemapIndex.exists());

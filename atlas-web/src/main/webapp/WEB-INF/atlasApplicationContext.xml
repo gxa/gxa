@@ -61,27 +61,71 @@
 
     <!-- Web interface component -->
 
-    <!-- interface search service, uses both DB and index to acquire results -->
-    <bean name="atlasSearchService" class="uk.ac.ebi.gxa.web.AtlasSearchService">
-        <property name="atlasIndex" ref="atlasIndex"/>
-        <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
-        <property name="atlasComputeService" ref="atlasComputeService"/>
-        <property name="atlasDownloadService" ref="atlasDownloadService"/>
-        <!-- fixme: do SOLR server injection, which would allow injection of query service here -->
-        <!--<property name="atlasQueryService" ref="atlasQueryService" />-->
+    <bean id="solrContainerFactory" class="ae3.dao.SolrContainerFactory">
+        <property name="atlasIndex" ref="atlasIndex" />
     </bean>
+
+    <bean name="solrContainer" factory-bean="solrContainerFactory" factory-method="createContainer" />
+
+    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="atlas" />
+    </bean>
+
+    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="expt" />
+    </bean>
+
+    <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="properties" />
+    </bean>
+
+    <bean name="atlasSolrDAO" class="ae3.dao.AtlasDao">
+        <property name="solrServerAtlas" ref="solrServerAtlas" />
+        <property name="solrServerExpt" ref="solrServerExpt" />
+    </bean>
+
+    <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
+        <property name="solrServerAtlas" ref="solrServerAtlas" />
+        <property name="solrServerExpt" ref="solrServerExpt" />
+        <property name="solrServerProp" ref="solrServerProp" />
+    </bean>
+
+    <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
+        <property name="solrServerAtlas" ref="solrServerAtlas" />
+    </bean>
+
+    <bean name="atlasGenePropertyService" class="ae3.service.structuredquery.AtlasGenePropertyService">
+        <property name="solrServerAtlas" ref="solrServerAtlas" />
+    </bean>
+
+    <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
+        <property name="solrServerAtlas" ref="solrServerAtlas" />
+        <property name="solrServerExpt" ref="solrServerExpt" />
+        <property name="solrServerProp" ref="solrServerProp" />
+        <property name="atlasSolrDAO" ref="atlasSolrDAO" />
+        <property name="efoService" ref="atlasEfoService" />
+        <property name="efvService" ref="atlasEfvService" />
+
+        <!-- hack: it doesn't need to know about core container,
+                   but it uses it to close searcher and clean cache to prevent OOMs -->
+        <property name="coreContainer" ref="solrContainer" />
+    </bean>
+
     <!-- interface compute service -->
     <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService">
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
     <!-- interface download service -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService">
-        <!-- fixme: do SOLR server injection, which would allow injection of query service here -->
-        <!--<property name="atlasQueryService" ref="atlasQueryService" />-->
+        <property name="atlasQueryService" ref="atlasQueryService" />
     </bean>
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
-        <property name="atlasSearchService" ref="atlasSearchService"/>
+        <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
+        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
     </bean>
 

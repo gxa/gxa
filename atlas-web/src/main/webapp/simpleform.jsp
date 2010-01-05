@@ -1,9 +1,11 @@
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
+<jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
+
 <script type="text/javascript">
     function toggleAtlasHelp() {
         if ($("div.atlasHelp").is(":hidden")) {
@@ -74,26 +76,22 @@
     }
 
 </style>
-<%
-    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    request.setAttribute("service", searchService);
-%>
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td align="left" valign="bottom">
-            <c:if test="${param.logolink}"><a href="<%=request.getContextPath()%>/"></c:if>
-            <img src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(service.stats.dataRelease)}: ${service.stats.experimentCount} experiments, ${service.stats.assayCount} assays, ${service.stats.propertyValueCount} conditions" border="0">
+            <c:if test="${param.logolink}"><a href="${pageContext.request.contextPath}/"></c:if>
+            <img src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions" border="0">
             <c:if test="${param.logolink}"></a></c:if>
         </td>
 
         <td width="100%" valign="bottom" align="right">
-            <a href="<%=request.getContextPath()%>/help/AboutAtlas">about the project</a> |
-            <a href="<%=request.getContextPath()%>/help/AtlasFaq">faq</a> |
+            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="<%=request.getContextPath()%>/help/AtlasDasSource">das</a> |
-            <a href="<%=request.getContextPath()%>/help/AtlasApis">api</a> <b>new</b> |
-            <a href="<%=request.getContextPath()%>/help">help</a>
+	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+            <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
         <td align="right" valign="bottom">
         </td>
@@ -115,12 +113,12 @@
         </tr>
         <tr>
             <td>
-                <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneQueries[0].factor) : ''}">
-                <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneQueries[0].jointFactorValues) : ''}" /><br>
+                <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneConditions[0].factor) : ''}">
+                <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneConditions[0].jointFactorValues) : ''}" /><br>
             </td>
             <td>
                 <select name="fexp_0" id="expr0">
-                    <c:forEach var="s" items="${service.atlasQueryService.geneExpressionOptions}">
+                    <c:forEach var="s" items="${atlasQueryService.geneExpressionOptions}">
                         <option value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
                     </c:forEach>
                 </select>
@@ -129,7 +127,7 @@
             <td>
                 <select name="specie_0" id="species0" style="width:180px">
                     <option value="">(any)</option>
-                    <c:forEach var="s" items="${service.atlasQueryService.speciesOptions}">
+                    <c:forEach var="s" items="${atlasQueryService.speciesOptions}">
                         <option value="${f:escapeXml(s)}">${u:upcaseFirst(f:escapeXml(s))}</option>
                     </c:forEach>
                 </select>

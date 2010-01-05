@@ -1,9 +1,8 @@
-<%@ page import="ae3.util.AtlasProperties" %>
 <%@ page import="ae3.util.URLUtil" %>
 
 <?xml version='1.0' encoding='UTF-8' ?>
 <SOURCES>
- <SOURCE uri="<%= URLUtil.getDasUrl(request) %>"
+    <SOURCE uri="<%= URLUtil.getDasUrl(request) %>"
          title="Gene Expression Atlas"
          doc_href="http://www.ebi.ac.uk/gxa"
          description="Gene Expression Atlas DAS Server">

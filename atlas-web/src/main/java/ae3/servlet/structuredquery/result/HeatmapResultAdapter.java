@@ -9,6 +9,7 @@ import ae3.util.FilterIterator;
 import ae3.util.JoinIterator;
 import ae3.util.MappingIterator;
 import uk.ac.ebi.ae3.indexbuilder.Experiment;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 
 import java.util.Iterator;
 
@@ -92,8 +93,7 @@ public class HeatmapResultAdapter {
             }
 
             Iterator<Experiment> expiter() {
-                throw new RuntimeException("TODO");
-                //return row.getGene().getExperimentsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
+                return row.getGene().getExperimentsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
             }
         }
 
@@ -101,7 +101,7 @@ public class HeatmapResultAdapter {
             private EfoTree.EfoItem<Integer> efo;
 
             public EfoExp(EfoTree.EfoItem<Integer> efo) {
-                this.efo = efo;
+                this.efo = efo;                
                 this.counter = row.getCounters().get(efo.getPayload());
             }
 
@@ -114,9 +114,8 @@ public class HeatmapResultAdapter {
             }
 
             Iterator<Experiment> expiter() {
-                throw new RuntimeException("TODO");
-//                return row.getGene().getExperimentsTable()
-//                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
+                return row.getGene().getExperimentsTable()
+                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
             }
         }
 
@@ -125,8 +124,7 @@ public class HeatmapResultAdapter {
         }
 
         public AtlasGene getGene() {
-            throw new RuntimeException("TODO");
-//            return row.getGene();
+            return row.getGene();
         }
 
         public Iterator<ResultRow.Expression> getExpressions() {

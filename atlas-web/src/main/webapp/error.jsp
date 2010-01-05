@@ -2,14 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page buffer="0kb" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%
-    AtlasSearchService searchService = (AtlasSearchService) application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    request.setAttribute("service", searchService);
-%>
 
 <jsp:include page="start_head.jsp"></jsp:include>
 Gene Expression Atlas
@@ -17,10 +10,9 @@ Gene Expression Atlas
 
 
 <jsp:include page="query-includes.jsp"/>
-<link rel="stylesheet" href="<%= request.getContextPath()%>/structured-query.css" type="text/css"/>
-<script type="text/javascript" src="<%= request.getContextPath()%>/scripts/common-query.js"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 
-<meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
 <jsp:include page="start_body_no_menus.jsp"></jsp:include>
 
 <jsp:include page="end_menu.jsp"></jsp:include>

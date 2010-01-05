@@ -1,10 +1,11 @@
 package ae3.service.structuredquery;
 
-import ae3.service.structuredquery.EfoValueListHelper.EfoTermCount;
+import ae3.service.structuredquery.AtlasEfoService.EfoTermCount;
+
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
      * Structured query condition expanded by query service
@@ -12,7 +13,7 @@ import java.util.HashSet;
 public class ExpFactorResultCondition {
     private ExpFactorQueryCondition condition;
     private boolean ignored;
-    private Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths;
+    private Collection<List<AtlasEfoService.EfoTermCount>> efoPaths;
 
     /**
      * Constructor for condition
@@ -20,7 +21,7 @@ public class ExpFactorResultCondition {
      * @param efoPaths EFO paths rendered by condition
      * @param ignored if condition is ignored
      */
-    public ExpFactorResultCondition(ExpFactorQueryCondition condition, Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths, boolean ignored) {
+    public ExpFactorResultCondition(ExpFactorQueryCondition condition, Collection<List<AtlasEfoService.EfoTermCount>> efoPaths, boolean ignored) {
         this.condition = condition;
         this.efoPaths = efoPaths;
         this.ignored = ignored;

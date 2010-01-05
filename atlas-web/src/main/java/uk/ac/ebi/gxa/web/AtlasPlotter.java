@@ -11,6 +11,7 @@ import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -19,8 +20,9 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class AtlasPlotter {
-    private AtlasSearchService atlasSearchService;
     private File atlasNetCDFRepo;
+    private AtlasDAO atlasDatabaseDAO;
+    private AtlasDao atlasSolrDAO;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -28,12 +30,21 @@ public class AtlasPlotter {
     private static final String[] markingColors = {"#F0FFFF", "#F5F5DC"};
     private static final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
 
-    public AtlasSearchService getAtlasSearchService() {
-        return atlasSearchService;
+
+    public AtlasDAO getAtlasDatabaseDAO() {
+        return atlasDatabaseDAO;
     }
 
-    public void setAtlasSearchService(AtlasSearchService atlasSearchService) {
-        this.atlasSearchService = atlasSearchService;
+    public void setAtlasDatabaseDAO(AtlasDAO atlasDatabaseDAO) {
+        this.atlasDatabaseDAO = atlasDatabaseDAO;
+    }
+
+    public AtlasDao getAtlasSolrDAO() {
+        return atlasSolrDAO;
+    }
+
+    public void setAtlasSolrDAO(AtlasDao atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public File getAtlasNetCDFRepo() {
@@ -53,8 +64,7 @@ public class AtlasPlotter {
         String efToPlot;
         String[] geneIDs = geneIdKey.split(",");
 
-        AtlasDao dao = atlasSearchService.getAtlasSolrDAO();
-        AtlasGene atlasGene = dao.getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
+        AtlasGene atlasGene = getAtlasSolrDAO().getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
 
         // if ef is "default" fetch highest ranked EF using SOLR index
         if (ef.equals("default")) {
@@ -555,7 +565,7 @@ public class AtlasPlotter {
             int adID = netCDF.getArrayDesignID();
             if (adID == -1) {
                 log.warn("Looking up ADid from database - this will not be supported in future releases");
-                adID = atlasSearchService.getAtlasDatabaseDAO()
+                adID = getAtlasDatabaseDAO()
                         .getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
             }
 
@@ -746,12 +756,11 @@ public class AtlasPlotter {
     }
 
     public ArrayList<String> getGeneNames(String gids) {
-        AtlasDao dao = atlasSearchService.getAtlasSolrDAO();
 
         ArrayList<String> geneNames = new ArrayList<String>();
         String[] ids = gids.split(",");
         for (String gid : ids) {
-            AtlasDao.AtlasGeneResult gene = dao.getGeneById(gid);
+            AtlasDao.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(gid);
             if (gene.isFound()) {
                 geneNames.add(gene.getGene().getGeneName());
             }

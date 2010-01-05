@@ -1,11 +1,11 @@
 package ae3.restresult;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.AnnotatedElement;
-import java.util.Map;
-import java.util.Iterator;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * REST renderer utility class

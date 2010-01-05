@@ -1,14 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"    pageEncoding="ISO-8859-1"%>
-<%@ page import="java.util.Map" %>
+<%@ page import="ae3.service.AtlasDownloadService" %>
 <%@ page import="ae3.service.Download" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="uk.ac.ebi.gxa.web.AtlasSearchService" %>
+<%@ page import="java.util.Map" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
 <%
-    AtlasSearchService searchService = (AtlasSearchService)application.getAttribute(Atlas.SEARCH_SERVICE.key());
-    Map<Integer, Download> downloads = searchService.getAtlasDownloadService().getDownloads(session.getId());
+    AtlasDownloadService downloadsService = (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
+    Map<Integer, Download> downloads = downloadsService.getDownloads(session.getId());
 	request.setAttribute("downloads", downloads);
 %>
 
@@ -60,7 +60,7 @@
         <table style="position:absolute; top:5px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
             <tr>
                 <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-                    <img border="0" width="55" src="<%= request.getContextPath()%>/images/atlas-logo.png" alt="Gene Expression Atlas"/>
+                    <img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/>
                 </td>
             </tr>
         </table>
@@ -78,7 +78,7 @@
                             <td class="padded"><c:out value="${download.value.query}"></c:out> </td>
                             <td class="padded"><span class="progressBar" id="query${download.key}"><c:out value="${download.value.progress}"></c:out></span></td>
                             <td class="padded">
-                                <span id="nodl${download.key}"><img src="<%= request.getContextPath()%>/images/indicator.gif" alt="please wait for data export to complete..."/></span>
+                                <span id="nodl${download.key}"><img src="${pageContext.request.contextPath}/images/indicator.gif" alt="please wait for data export to complete..."/></span>
                                 <a id="dl${download.key}" style="display:none" href="listviewdownload/${download.value.outputFile.name}">Get file</a></td>
                         </tr>
 

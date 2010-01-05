@@ -2,9 +2,9 @@ package ae3.service.structuredquery;
 
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
-import ae3.model.AtlasGene;
 import ae3.util.AtlasProperties;
 import ae3.util.MappingIterator;
 import ae3.util.Pair;
@@ -12,7 +12,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -39,17 +38,17 @@ public class AtlasStructuredQueryService {
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private SolrServer solrAtlas;
-    private SolrServer solrExpt;
-    private SolrServer solrProp;
+    private SolrServer solrServerAtlas;
+    private SolrServer solrServerExpt;
+    private SolrServer solrServerProp;
 
     private Set<String> allFactors = new TreeSet<String>();
+    
+    private AtlasEfvService efvService;
+    private AtlasEfoService efoService;
 
-    private final ExpFactorValueListHelper efvListHelper;
-    private final GenePropValueListHelper geneListHelper;
-    private final EfoValueListHelper efoListHelper;
+    private AtlasDao atlasSolrDAO;
 
-    private final AtlasDao atlasDao;
     private CoreContainer coreContainer;
 
     private final Set<String> cacheFill = new HashSet<String>();
@@ -58,7 +57,13 @@ public class AtlasStructuredQueryService {
     private Set<String> drilldownGeneProperties;
     private SortedSet<String> allSpecies = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 
+    /**
+     * Hack: prevents OOMs by clearing cache
+     */
     private void controlCache() {
+        if(coreContainer == null)
+            return;
+
         synchronized (cacheFill) {
             if(cacheFill.size() > 500) {
                 SolrCore core = coreContainer.getCore(Constants.CORE_ATLAS);
@@ -77,33 +82,73 @@ public class AtlasStructuredQueryService {
         }
     }
 
+    public SolrServer getSolrServerAtlas() {
+        return solrServerAtlas;
+    }
+
+    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
+        this.solrServerAtlas = solrServerAtlas;
+    }
+
+    public SolrServer getSolrServerExpt() {
+        return solrServerExpt;
+    }
+
+    public void setSolrServerExpt(SolrServer solrServerExpt) {
+        this.solrServerExpt = solrServerExpt;
+    }
+
+    public SolrServer getSolrServerProp() {
+        return solrServerProp;
+    }
+
+    public void setSolrServerProp(SolrServer solrServerProp) {
+        this.solrServerProp = solrServerProp;
+    }
+
+    public CoreContainer getCoreContainer() {
+        return coreContainer;
+    }
+
+    public void setCoreContainer(CoreContainer coreContainer) {
+        this.coreContainer = coreContainer;
+    }
+
+    public AtlasEfvService getEfvService() {
+        return efvService;
+    }
+
+    public void setEfvService(AtlasEfvService efvService) {
+        this.efvService = efvService;
+    }
+
+    public AtlasEfoService getEfoService() {
+        return efoService;
+    }
+
+    public void setEfoService(AtlasEfoService efoService) {
+        this.efoService = efoService;
+    }
+
+    public AtlasDao getAtlasSolrDAO() {
+        return atlasSolrDAO;
+    }
+
+    public void setAtlasSolrDAO(AtlasDao solrAtlasDAO) {
+        this.atlasSolrDAO = solrAtlasDAO;
+    }
+
     /**
      * Constructor. Requires SOLR core container reference to work.
      * @param coreContainer reference to core container with cores "expt" and "atlas"
      */
-    public AtlasStructuredQueryService(CoreContainer coreContainer) {
-        this.coreContainer = coreContainer;
-
-        this.solrAtlas = new EmbeddedSolrServer(coreContainer, Constants.CORE_ATLAS);
-        this.solrExpt = new EmbeddedSolrServer(coreContainer, Constants.CORE_EXPT);
-        this.solrProp = new EmbeddedSolrServer(coreContainer, Constants.CORE_PROPERTIES);
-
-        this.efvListHelper = new ExpFactorValueListHelper(solrAtlas, solrExpt, getExperimentalFactorOptions());
-        this.geneListHelper = new GenePropValueListHelper(solrAtlas);
-        this.efoListHelper = new EfoValueListHelper(solrAtlas);
-
-        this.atlasDao = new AtlasDao(solrAtlas, solrExpt);
-
+    public AtlasStructuredQueryService() {
         this.allGeneProperties = new HashSet<String>();
         this.allGeneProperties.addAll(AtlasProperties.getListProperty("atlas.gene.autocomplete.ids"));
         this.allGeneProperties.addAll(AtlasProperties.getListProperty("atlas.gene.autocomplete.descs"));
 
         this.drilldownGeneProperties = new HashSet<String>(AtlasProperties.getListProperty("atlas.gene.drilldowns"));
         this.nameGeneProperties = new HashSet<String>(AtlasProperties.getListProperty("atlas.gene.autocomplete.names"));
-    }
-
-    public AtlasDao getAtlasDao() {
-        return atlasDao;
     }
 
     private static class SolrQueryBuilder {
@@ -263,8 +308,8 @@ public class AtlasStructuredQueryService {
                 controlCache();
 
                 SolrQuery q = setupSolrQuery(query, qstate);
-                QueryResponse response = solrAtlas.query(q);
-
+                QueryResponse response = solrServerAtlas.query(q);
+                
                 processResultGenes(response, result, qstate, query);
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -289,7 +334,7 @@ public class AtlasStructuredQueryService {
                 }
             } catch (SolrServerException e) {
                 log.error("Error in structured query!", e);
-            }
+            }            
         }
 
         return result;
@@ -304,7 +349,7 @@ public class AtlasStructuredQueryService {
                 .startFrom(start)
                 .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
     }
-
+        
     private Efo getEfo() {
         return Efo.getEfo();
     }
@@ -365,13 +410,13 @@ public class AtlasStructuredQueryService {
         List<String> result = new ArrayList<String>();
         if(query.length() == 0)
             return result;
-
+        
         SolrQuery q = new SolrQuery(query);
         q.addField("*");
         q.setRows(50);
         q.setStart(0);
 
-        QueryResponse qr = solrExpt.query(q);
+        QueryResponse qr = solrServerExpt.query(q);
         for(SolrDocument doc : qr.getResults()) {
             String id = String.valueOf(doc.getFieldValue("id"));
             if(id != null) {
@@ -423,7 +468,7 @@ public class AtlasStructuredQueryService {
                             solrq.appendExpScores("s_", efefvId, c.getExpression());
 
                             notifyCache(efefvId + c.getExpression());
-
+                            
                             if(Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv());
                             } else {
@@ -447,10 +492,10 @@ public class AtlasStructuredQueryService {
                             nonemptyQuery = true;
                         }
                     }
-                    Collection<List<EfoValueListHelper.EfoTermCount>> efoPaths = new ArrayList<List<EfoValueListHelper.EfoTermCount>>();
+                    Collection<List<AtlasEfoService.EfoTermCount>> efoPaths = new ArrayList<List<AtlasEfoService.EfoTermCount>>();
                     Collection<EfvTree.Efv<Boolean>> condEfos = condEfvs.getEfvs(Constants.EFO_FACTOR_NAME);
                     for(EfvTree.Efv<Boolean> efv : condEfos) {
-                        efoPaths.addAll(getEfoListHelper().getTermParentPaths(efv.getEfv()));
+                        efoPaths.addAll(efoService.getTermParentPaths(efv.getEfv()));
                     }
                     conds.add(new ExpFactorResultCondition(c, efoPaths, !nonemptyQuery));
                 } catch (SolrServerException e) {
@@ -517,7 +562,7 @@ public class AtlasStructuredQueryService {
             }
         } else {
             int i = 0;
-            for (String v : getEfvListHelper().listAllValues(factor)) {
+            for (String v : efvService.listAllValues(factor)) {
                 condEfvs.put(factor, v, true);
                 if (++i >= MAX_EFV_COLUMNS) {
                     break;
@@ -552,7 +597,7 @@ public class AtlasStructuredQueryService {
         q.setStart(0);
         q.setFields("*");
 
-        QueryResponse qr = solrProp.query(q);
+        QueryResponse qr = solrServerProp.query(q);
 
         for(SolrDocument doc : qr.getResults())
         {
@@ -763,12 +808,12 @@ public class AtlasStructuredQueryService {
         for(Experiment exp : exps) {
         	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
         		continue;
-            AtlasExperiment aexp = getAtlasDao().getExperimentById(exp.getId());
+            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getId());
             if(aexp != null) {
                 Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getId(),
+                map.get(key).add(new ListResultRowExperiment(exp.getId(), 
                         aexp.getDwExpAccession(),
                         aexp.getDwExpDescription(),
                         exp.getPvalue(), exp.getExpression()));
@@ -936,7 +981,7 @@ public class AtlasStructuredQueryService {
                     for (FacetField.Count ffc : ff.getValues())
                         if(!qstate.getExperiments().contains(ffc.getName()))
                         {
-                            AtlasExperiment exp = getAtlasDao().getExperimentById(ffc.getName());
+                            AtlasExperiment exp = atlasSolrDAO.getExperimentById(ffc.getName());
                             if(exp != null) {
                                 String expName = exp.getDwExpAccession();
                                 if(expName != null)
@@ -995,7 +1040,7 @@ public class AtlasStructuredQueryService {
             q.setFacetMinCount(1);
             q.setFacetSort(true);
             try {
-                QueryResponse qr = solrProp.query(q);
+                QueryResponse qr = solrServerProp.query(q);
                 if (qr.getFacetFields().get(0).getValues() != null) {
                     for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                         allFactors.add(ffc.getName());
@@ -1018,7 +1063,7 @@ public class AtlasStructuredQueryService {
             q.setFacetMinCount(1);
             q.setFacetSort(true);
             try {
-                QueryResponse qr = solrAtlas.query(q);
+                QueryResponse qr = solrServerAtlas.query(q);
                 if (qr.getFacetFields().get(0).getValues() != null) {
                     for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                         allSpecies.add(ffc.getName());
@@ -1030,30 +1075,4 @@ public class AtlasStructuredQueryService {
         }
         return allSpecies;
     }
-
-
-    /**
-     * Returns reference to EFV autocompletion and listing helper
-     * @return IValueListHelper interface of the EFV helper
-     */
-    public ExpFactorValueListHelper getEfvListHelper() {
-        return efvListHelper;
-    }
-
-    /**
-     * Returns reference to gene properties autocompletion and listing helper
-     * @return IValueListHelper interface of the gene properties helper
-     */
-    public GenePropValueListHelper getGeneListHelper() {
-        return geneListHelper;
-    }
-
-    /**
-     * Returns reference to EFO terms autocompletion and listing helper
-     * @return IValueListHelper interface of the gene properties helper
-     */
-    public EfoValueListHelper getEfoListHelper() {
-        return efoListHelper;
-    }
-
 }

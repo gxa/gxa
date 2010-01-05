@@ -1,9 +1,9 @@
 package ae3.util;
 
 import java.io.IOException;
-import java.util.Properties;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Helper wrapper class for properties file

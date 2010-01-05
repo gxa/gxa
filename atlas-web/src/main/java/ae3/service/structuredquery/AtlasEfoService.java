@@ -1,35 +1,38 @@
 package ae3.service.structuredquery;
 
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
-import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
-import ae3.service.structuredquery.Constants;
-
-import java.util.*;
-
-import java.util.ArrayList;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
+
+import java.util.*;
 
 /**
  * EFO value list helper class, implementing autocompletion and value listing for EFO
  * @author pashky
  */
-public class EfoValueListHelper implements AutoCompleter {
+public class AtlasEfoService implements AutoCompleter {
     final private Logger log = LoggerFactory.getLogger(getClass());
-    private SolrServer solrAtlas;
+    private SolrServer solrServerAtlas;
     private final Map<String,Long> counts = new HashMap<String,Long>();
 
     /**
-     * Constructor needs atlas solr server reference to proceed with gene counts
-     * @param solrAtlas atlas solr server reference
+     * Constructor
      */
-    public EfoValueListHelper(SolrServer solrAtlas) {
-        this.solrAtlas = solrAtlas;
+    public AtlasEfoService() {
+    }
+
+    public SolrServer getSolrServerAtlas() {
+        return solrServerAtlas;
+    }
+
+    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
+        this.solrServerAtlas = solrServerAtlas;
     }
 
     /**
@@ -51,7 +54,7 @@ public class EfoValueListHelper implements AutoCompleter {
             q.setFacetSort(true);
             q.addFacetField("efos_ud");
             try {
-                QueryResponse qr = solrAtlas.query(q);
+                QueryResponse qr = solrServerAtlas.query(q);
                 if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
                         && qr.getFacetFields().get(0).getValues() != null) {
                     for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues())

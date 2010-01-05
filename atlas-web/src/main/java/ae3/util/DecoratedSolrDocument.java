@@ -1,13 +1,14 @@
 package ae3.util;
 
-import org.apache.solr.common.SolrDocument;
-import org.apache.commons.lang.*;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrDocument;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collection;
 
 /**
  * @author pashky
