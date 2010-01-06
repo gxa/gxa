@@ -82,9 +82,10 @@ public class AtlasEfvService implements AutoCompleter, IndexUpdateHandler {
             q.setFacetSort(true);
             try {
                 QueryResponse qr = solrServerProp.query(q);
-                for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                    allFactors.add(ffc.getName());
-                }
+                if(qr.getFacetFields().get(0).getValues() != null) 
+                    for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                        allFactors.add(ffc.getName());
+                    }
             } catch(SolrServerException e) {
                 throw new RuntimeException("Can't fetch all factors", e);
             }
