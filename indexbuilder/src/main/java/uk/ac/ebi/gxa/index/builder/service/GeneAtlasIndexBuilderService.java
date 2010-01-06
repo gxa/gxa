@@ -128,8 +128,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             response = getSolrServer().add(solrInputDoc);
 
                             // update loadmonitor table - experiment has completed indexing
-                            getAtlasDAO().writeLoadDetails(
-                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
+//                            getAtlasDAO().writeLoadDetails(
+//                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
 
                             int processedNow = processed.incrementAndGet();
                             if(processedNow % 1000 == 0) {
