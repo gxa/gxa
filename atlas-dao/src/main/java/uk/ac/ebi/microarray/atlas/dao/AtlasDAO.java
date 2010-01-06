@@ -978,30 +978,30 @@ public class AtlasDAO {
           ,status varchar --done, pending
         )
         */
-//        SimpleJdbcCall procedure =
-//                new SimpleJdbcCall(template)
-//                        .withProcedureName("LOAD_PROGRESS")
-//                        .withoutProcedureColumnMetaDataAccess()
-//                        .useInParameterNames("EXPERIMENT_ACCESSION")
-//                        .useInParameterNames("STAGE")
-//                        .useInParameterNames("STATUS")
-//                        .useInParameterNames("LOAD_TYPE")
-//                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
-//                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
-//                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
-//                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
-//
-//        // map parameters...
-//        MapSqlParameterSource params = new MapSqlParameterSource()
-//                .addValue("EXPERIMENT_ACCESSION", accession)
-//                .addValue("STAGE", loadStage.toString().toLowerCase())
-//                .addValue("STATUS", loadStatus.toString().toLowerCase())
-//                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
-//
-//        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
-//                loadStatus + ", " + loadType + ")");
-//        procedure.execute(params);
-//        log.debug("load_progress stored procedure completed");
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("LOAD_PROGRESS")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENT_ACCESSION")
+                        .useInParameterNames("STAGE")
+                        .useInParameterNames("STATUS")
+                        .useInParameterNames("LOAD_TYPE")
+                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("EXPERIMENT_ACCESSION", accession)
+                .addValue("STAGE", loadStage.toString().toLowerCase())
+                .addValue("STATUS", loadStatus.toString().toLowerCase())
+                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
+
+        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
+                loadStatus + ", " + loadType + ")");
+        procedure.execute(params);
+        log.debug("load_progress stored procedure completed");
     }
 
     /**
