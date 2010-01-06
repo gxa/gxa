@@ -207,17 +207,10 @@ public class NetCDFWriter {
         if (netCDF.findDimension("DE") != null && netCDF.findDimension("GN") != null) {
             // index counters
             int deIndex;
-            int geneIndex = 0;
-            int de2gnIndex = 0;
+            int gnIndex = 0;
 
-            // create the array of 2 ints to store each position
-            int[] pair = new int[]{0};
-            ArrayInt mapping = new ArrayInt.D1(2);
-
-//            // create the array
-//            int deSize = netCDF.findDimension("DE").getLength();
-//            int gnSize = netCDF.findDimension("GN").getLength();
-//            ArrayInt de2gn = new ArrayInt.D2(deSize, gnSize);
+            // map of deIndex to gnIndex
+            List<int[]> mappingList = new ArrayList<int[]>();
 
             // iterate over design elements and genes,
             // and work out which spots in the matrix to set to 1
@@ -228,46 +221,26 @@ public class NetCDFWriter {
                         // got a mapping between design element id='designElement' and gene, lookup position in DE
                         deIndex = designElementIndex.get(designElement);
 
-                        // now store position to position mapping
-         //               netCDF.write("DE2GN", );
-
-
-
-//                        try {
-//                            de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 1);
-//                        }
-//                        catch (ArrayIndexOutOfBoundsException e) {
-//                            log.error("Out of bounds at indexes: " +
-//                                    "DE: " + deIndex + " (max " + deSize + "), " +
-//                                    "GN: " + geneIndex + " (max " + gnSize + ")");
-//                            throw e;
-//                        }
+                        // create a one to one map
+                        int[] map = new int[]{deIndex, gnIndex};
+                        mappingList.add(map);
                     }
-//                    else {
-//                        // this is a zero - but only if we haven't done all genes already
-//                        if (geneIndex < netCDF.findDimension("GN").getLength()) {
-//                            try {
-//                                de2gn.setInt(de2gn.getIndex().set(deIndex, geneIndex), 0);
-//                            }
-//                            catch (ArrayIndexOutOfBoundsException e) {
-//                                log.error("Out of bounds at indexes: " +
-//                                        "DE: " + deIndex + " (max " + deSize + "), " +
-//                                        "GN: " + geneIndex + " (max " + gnSize + ")");
-//                                throw e;
-//                            }
-//                        }
-//                    }
 
                     // increment gene index by one
-                    geneIndex++;
+                    gnIndex++;
                 }
 
                 // reset gene index (next row)
-                geneIndex = 0;
+                gnIndex = 0;
             }
 
-            // finally, write
-        //    netCDF.write("DE2GN", de2gn);
+            // now we have the list of pairs, write them
+            ArrayInt de2gn = new ArrayInt.D2(mappingList.size(), 2);
+            for (int i = 0; i < mappingList.size(); i++) {
+                de2gn.setInt(de2gn.getIndex().set(i, 0), mappingList.get(i)[0]);
+                de2gn.setInt(de2gn.getIndex().set(i, 1), mappingList.get(i)[1]);
+            }
+            netCDF.write("DE2GN", de2gn);
         }
         log.debug("Wrote designElement2gene data matrix ok.");
     }

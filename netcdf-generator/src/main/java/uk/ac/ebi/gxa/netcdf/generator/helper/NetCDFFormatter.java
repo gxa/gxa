@@ -272,8 +272,8 @@ public class NetCDFFormatter {
         Dimension mappingsDimension = netCDF.addDimension("DE2GNMapping", 2);
         if (designElementDimension != null && geneDimension != null) {
             // add assay to sample variable
-//            log.debug("DE2GN will be sized " + designElementDimension.getLength() + " x " + geneDimension.getLength());
             netCDF.addVariable("DE2GN", DataType.INT, new Dimension[]{pairsDimension, mappingsDimension});
+            log.debug("DE2GN variable added, unlimited length array of pairs");
         }
         log.debug("Initialized designelement2gene dimensions and variables ok.");
     }
