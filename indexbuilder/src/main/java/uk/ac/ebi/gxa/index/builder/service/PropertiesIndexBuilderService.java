@@ -25,7 +25,7 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
 
     protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         try {
-            getLog().info("Fetching all properties");
+            getLog().debug("Fetching all properties");
             for(Property property : getAtlasDAO().getAllProperties()) {
                 SolrInputDocument solrInputDoc = new SolrInputDocument();
                 solrInputDoc.addField("property_id", property.getPropertyId());
@@ -34,7 +34,7 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
                 solrInputDoc.addField("value", property.getValue());
                 solrInputDoc.addField("pvalue_" + EscapeUtil.encode(property.getName()), property.getValue());
                 solrInputDoc.addField("is_fv", property.isFactorValue());
-                getLog().info("Adding property " + property.getName() + " : " + property.getValue());
+                getLog().debug("Adding property " + property.getName() + " : " + property.getValue());
                 getSolrServer().add(solrInputDoc);
             }
         } catch (IOException e) {

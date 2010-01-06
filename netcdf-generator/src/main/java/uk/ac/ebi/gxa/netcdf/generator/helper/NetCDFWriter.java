@@ -68,7 +68,6 @@ public class NetCDFWriter {
             // write property data
             writePropertyData(
                     netCDF,
-                    dataSlice.getAssays(),
                     dataSlice.getExperimentFactorMappings(),
                     dataSlice.getAssayFactorValueMappings(),
                     dataSlice.getSampleCharacteristicMappings());
@@ -83,7 +82,6 @@ public class NetCDFWriter {
                     netCDF,
                     dataSlice.getDesignElements(),
                     dataSlice.getExpressionAnalysisMappings(),
-                    dataSlice.getAssays(),
                     dataSlice.getAssayFactorValueMappings());
         }
         catch (IOException e) {
@@ -247,7 +245,6 @@ public class NetCDFWriter {
 
     private void writePropertyData(
             NetcdfFileWriteable netCDF,
-            List<Assay> assays,
             Map<String, List<String>> experimentFactorMap,
             Map<Assay, List<String>> assayFactorValueMap,
             Map<String, List<String>> sampleCharacteristicMap)
@@ -303,7 +300,6 @@ public class NetCDFWriter {
             }
 
             // populate uefv, uefvnum matrices
-            int uefvIndex = 0;
             int uefvNumIndex = 0;
 
             // evaluate unique property values
@@ -420,7 +416,6 @@ public class NetCDFWriter {
     private void writeStatsValues(NetcdfFileWriteable netCDF,
                                   Map<Integer, String> designElements,
                                   Map<Integer, List<ExpressionAnalysis>> analyses,
-                                  List<Assay> assays,
                                   Map<Assay, List<String>> assayFactorValueMap)
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("DE") != null &&

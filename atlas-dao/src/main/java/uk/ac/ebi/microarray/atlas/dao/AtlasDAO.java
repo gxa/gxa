@@ -322,13 +322,6 @@ public class AtlasDAO {
     private static final String SPECIES_ALL =
             "SELECT specid, name FROM A2_SPEC";
 
-//    private static final String PROPERTIES_ALL =
-//            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, count(spv.isfactorvalue)+count(apv.isfactorvalue) as isfactorvalue " +
-//                    "FROM a2_property p, a2_propertyvalue pv " +
-//                    "LEFT OUTER JOIN a2_assaypropertyvalue apv on apv.propertyvalueid = pv.propertyvalueid " +
-//                    "LEFT OUTER JOIN a2_samplepropertyvalue spv on spv.propertyvalueid = pv.propertyvalueid " +
-//                    "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
-
     private static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
                     "FROM a2_property p, a2_propertyvalue pv " +
@@ -474,10 +467,10 @@ public class AtlasDAO {
     public Gene getGeneByIdentifier(String identifier) {
         // do the query to fetch gene without design elements
         List results = template.query(GENE_BY_IDENTIFIER,
-                new Object[]{identifier},
-                new GeneMapper());
+                                      new Object[]{identifier},
+                                      new GeneMapper());
 
-        if(results.size() > 0) {
+        if (results.size() > 0) {
             Gene gene = (Gene) results.get(0);
             gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
             return gene;
@@ -565,7 +558,7 @@ public class AtlasDAO {
                        new Object[]{exptAccession},
                        geneDesignElementMapper);
         log.debug("Design elements for genes of " + exptAccession + " acquired");
-        
+
         // and return
         return genes;
     }
@@ -1700,6 +1693,7 @@ public class AtlasDAO {
     }
 
     // todo - AtlasCount and AtlasResult can probably be consolidated to link a collection of genes to atlas results
+
     private class AtlasCountMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             AtlasCount atlasCount = new AtlasCount();

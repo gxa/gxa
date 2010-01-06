@@ -1,31 +1,21 @@
 package uk.ac.ebi.microarray.atlas.loader;
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.slf4j.bridge.SLF4JBridgeHandler;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
 
@@ -36,15 +26,15 @@ import java.util.logging.LogManager;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
-
     static {
-	        try {
-	            LogManager.getLogManager().readConfiguration(LoaderDriver.class.getResourceAsStream("logging.properties"));
-	        } catch(Exception e) {
-
-	        }
-	        SLF4JBridgeHandler.install();
-	    }
+        try {
+            LogManager.getLogManager().readConfiguration(LoaderDriver.class.getResourceAsStream("logging.properties"));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        SLF4JBridgeHandler.install();
+    }
 
     public static void main(String[] args) {
         // load spring config
@@ -58,7 +48,7 @@ public class LoaderDriver {
         // netcdfs
         final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
         // analytics
-        final AnalyticsGenerator analytics = (AnalyticsGenerator)factory.getBean("analyticsGenerator");
+        final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
 
         // run the loader
 //        try {
@@ -110,51 +100,50 @@ public class LoaderDriver {
         }
 
         // run the index builder
-//        final long indexStart = System.currentTimeMillis();
-//        builder.buildIndex(new IndexBuilderListener() {
-//
-//            public void buildSuccess(IndexBuilderEvent event) {
-//                final long indexEnd = System.currentTimeMillis();
-//
-//                String total = new DecimalFormat("#.##").format(
-//                        (indexEnd - indexStart) / 60000);
-//                System.out.println(
-//                        "Index built successfully in " + total + " mins.");
-//
-//                try {
-//                    builder.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            public void buildError(IndexBuilderEvent event) {
-//                System.out.println("Index failed to build");
-//                for (Throwable t : event.getErrors()) {
-//                    t.printStackTrace();
-//                    try {
-//                        builder.shutdown();
-//                    }
-//                    catch (IndexBuilderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+        final long indexStart = System.currentTimeMillis();
+        builder.buildIndex(new IndexBuilderListener() {
+
+            public void buildSuccess(IndexBuilderEvent event) {
+                final long indexEnd = System.currentTimeMillis();
+
+                String total = new DecimalFormat("#.##").format(
+                        (indexEnd - indexStart) / 60000);
+                System.out.println(
+                        "Index built successfully in " + total + " mins.");
+
+                try {
+                    builder.shutdown();
+                }
+                catch (IndexBuilderException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public void buildError(IndexBuilderEvent event) {
+                System.out.println("Index failed to build");
+                for (Throwable t : event.getErrors()) {
+                    t.printStackTrace();
+                    try {
+                        builder.shutdown();
+                    }
+                    catch (IndexBuilderException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
 
         // in case we don't run indexbuilder
-        try {
-            builder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            builder.shutdown();
+//        }
+//        catch (IndexBuilderException e) {
+//            e.printStackTrace();
+//        }
 
         // run the NetCDFGenerator
         final long netStart = System.currentTimeMillis();
-        generator.generateNetCDFsForExperiment(
-                "E-TABM-199",
+        generator.generateNetCDFs(
                 new NetCDFGeneratorListener() {
                     public void buildSuccess(NetCDFGenerationEvent event) {
                         final long netEnd = System.currentTimeMillis();

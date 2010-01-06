@@ -45,6 +45,12 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    static {
+        IndexBuilderServiceRegistry.registerFactory(new PropertiesIndexBuilderService.Factory());
+        IndexBuilderServiceRegistry.registerFactory(new ExperimentAtlasIndexBuilderService.Factory());
+        IndexBuilderServiceRegistry.registerFactory(new GeneAtlasIndexBuilderService.Factory());
+    }
+
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
@@ -72,12 +78,6 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     public void afterPropertiesSet() throws Exception {
         // simply delegates to startup(), this allows automated spring startup
         startup();
-    }
-
-    {
-        IndexBuilderServiceRegistry.registerFactory(new PropertiesIndexBuilderService.Factory());
-        IndexBuilderServiceRegistry.registerFactory(new ExperimentAtlasIndexBuilderService.Factory());
-        IndexBuilderServiceRegistry.registerFactory(new GeneAtlasIndexBuilderService.Factory());
     }
 
     /**
@@ -224,11 +224,6 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         notifyUpdateHandlers();
     }
 
-    private void notifyUpdateHandlers() {
-        for(IndexUpdateHandler handler : updateHandlers)
-            handler.onIndexUpdate(this);
-    }
-
     public void buildIndex(IndexBuilderListener listener) {
         startIndexBuild(listener, false);
         log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
@@ -252,6 +247,11 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     public void unregisterIndexUpdateHandler(IndexUpdateHandler handler) {
         updateHandlers.remove(handler);
+    }
+
+    private void notifyUpdateHandlers() {
+        for(IndexUpdateHandler handler : updateHandlers)
+            handler.onIndexUpdate(this);
     }
 
     private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
