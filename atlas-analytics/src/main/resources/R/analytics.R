@@ -225,40 +225,58 @@ computeAnalytics <-
 function (nc)
 {
   eset = read.atlas.nc(nc)
+  ncd  = open.ncdf(nc, write=TRUE)
   info = otherInfo(experimentData(eset))
   proc = allupdn(eset)
 
-  print("Writing out the results")
-  result <- lapply(varLabels(eset), function(varLabel) {
-    if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) { 
+  uEFV  = get.var.ncdf(ncd, "uEFV")
+  tstat = t(get.var.ncdf(ncd, "TSTAT"))
+  pval  = t(get.var.ncdf(ncd, "PVAL"))
+
+  colnames(tstat) <- uEFV
+  colnames(pval)  <- uEFV
+
+  result <- sapply(varLabels(eset), function(varLabel) {
+    print(paste("Processing",varLabel))
+    if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) {
       fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
       tab <- list()
       tab$A <- proc[[varLabel, exact=TRUE]]$Amean
-                                        #		    tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
+#     tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
       tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
       tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
-      
+
       pv = tab$p.value
       o = !is.na(tab$p.value)
       pv[o] = p.adjust(pv[o], method="fdr")
-      
+
       tab$p.value.adj = pv
       tab$Res <- unclass(proc[[varLabel, exact=TRUE]]$boolupdn)
       tab$F <- proc[[varLabel, exact=TRUE]]$F
       tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
       tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
       tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
+
+      colnames(tab$t) <- colnames(tab$Res)
+      colnames(tab$p.value.adj) <- colnames(tab$Res)
+
+      tstat[,which(colnames(tstat) %in% colnames(tab$t))] <<- tab$t[,colnames(tstat)[which(colnames(tstat) %in% colnames(tab$t))]]
+      pval[,which(colnames(pval) %in% colnames(tab$p.value.adj))] <<- tab$p.value.adj[,colnames(pval)[which(colnames(pval) %in% colnames(tab$p.value.adj))]]
+
       tab <- data.frame(tab, check.names = FALSE)
-   ##   write.table(tab, file = fitfile, quote = FALSE, row.names = FALSE, sep = "\t")
-     ## print(paste("Wrote",fitfile)) 
-     return (tab)
+
+      return (tab)
+    } else {
+      return(NULL)
     }
-    else {
-    	return(NULL)
-    	}
   })
+
+  print("Writing tstat and pval to NetCDF")
+  put.var.ncdf(ncd, "TSTAT", tstat, verbose=TRUE)
+  put.var.ncdf(ncd, "PVAL",  pval,  verbose=TRUE)
   
-  names(result) <- varLabels(eset)
+  close.ncdf(ncd)
+  
   return(result)
 }
 
