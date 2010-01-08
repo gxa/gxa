@@ -163,7 +163,7 @@
     <!-- Spring JDBC template for database queries -->
     <bean name="loaderTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource2"/>
+        <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
@@ -192,10 +192,6 @@
 
     <jee:jndi-lookup id="atlasDataSource2"
                      jndi-name="/jdbc/ATLAS2"
-                     resource-ref="true"/>
-
-    <jee:jndi-lookup id="atlasDataSourceDev"
-                     jndi-name="/jdbc/ATLASDEV"
                      resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasIndex"
