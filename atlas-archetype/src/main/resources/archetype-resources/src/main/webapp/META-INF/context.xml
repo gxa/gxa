@@ -8,9 +8,11 @@
       url="${atlasDatasourceURL}"
       username="${atlasUser}"
       password="${atlasPassword}"
-      maxIdle="2"
-      maxWait="5000"
-      maxActive="50"
+      maxIdle="-1"
+      maxWait="10000"
+      maxActive="100"
+      poolPreparedStatements="true"
+      maxOpenPreparedStatements="-1"
       removeAbandoned="true" />
 
   <Resource
@@ -21,22 +23,11 @@
       url="${atlasDatasourceURL}"
       username="${atlasUser}"
       password="${atlasPassword}"
-      maxIdle="2"
-      maxWait="5000"
-      maxActive="50"
-      removeAbandoned="true" />
-
-  <Resource
-      name="jdbc/ATLASDEV"
-      type="javax.sql.DataSource"
-      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
-      driverClassName="oracle.jdbc.OracleDriver"
-      url="${atlasDatasourceURL}"
-      username="${atlasUser}"
-      password="${atlasPassword}"
-      maxIdle="2"
-      maxWait="5000"
-      maxActive="50"
+      maxIdle="-1"
+      maxWait="10000"
+      maxActive="100"
+      poolPreparedStatements="true"
+      maxOpenPreparedStatements="-1"
       removeAbandoned="true" />
 
   <Resource
