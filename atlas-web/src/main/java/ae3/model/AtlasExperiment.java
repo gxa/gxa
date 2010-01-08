@@ -56,18 +56,18 @@ public class AtlasExperiment implements java.io.Serializable {
 		return factorValues;
 	}
 
-    public Integer getDwExpId()
+    public Integer getId()
     {
         return (Integer)exptSolrDocument.getFieldValue("id");
     }
 
     @RestOut(name="accession")
-    public String getDwExpAccession() {
+    public String getAccession() {
         return (String)exptSolrDocument.getFieldValue("accession");
     }
 
     @RestOut(name="description")
-    public String getDwExpDescription() {
+    public String getDescription() {
         return (String)exptSolrDocument.getFieldValue("description");
     }
 
@@ -105,7 +105,7 @@ public class AtlasExperiment implements java.io.Serializable {
     public ExperimentalData getExperimentalData() {
         if(expData == null) {
             try {
-                expData = NetCDFReader.loadExperiment(getDwExpId());
+                expData = NetCDFReader.loadExperiment(getId());
             } catch (IOException e) {
                 throw new RuntimeException("Failed to read experiment data", e);
             }

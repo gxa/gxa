@@ -112,8 +112,8 @@ public class ExperimentsServlet extends RestServlet {
                 AtlasExperiment aexp = dao.getExperimentById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
-                    jsExp.put("accession", aexp.getDwExpAccession());
-                    jsExp.put("name", aexp.getDwExpDescription());
+                    jsExp.put("accession", aexp.getAccession());
+                    jsExp.put("name", aexp.getDescription());
                     jsExp.put("id", e.getKey());
 
                     boolean wasup = false;

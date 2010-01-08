@@ -257,8 +257,8 @@ public class GxaDasDataSource implements AnnotationDataSource {
             String notes = (new AtlasGeneExperimentDescription(atlasGene, experiment, null).toLongString());
 
             return (new DasFeature(
-                    atlasGene.getGeneIdentifier() + " " + experiment.getDwExpAccession(),
-                    experiment.getDwExpAccession(),
+                    atlasGene.getGeneIdentifier() + " " + experiment.getAccession(),
+                    experiment.getAccession(),
                     "exp",
                     "exp",
                     getSortableCaption("Experiment"),
@@ -271,10 +271,10 @@ public class GxaDasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
                     Collections.singletonMap(
-                            new URL("http://www.ebi.ac.uk/gxa/experiment/" + experiment.getDwExpAccession() + "?gid=" +
+                            new URL("http://www.ebi.ac.uk/gxa/experiment/" + experiment.getAccession() + "?gid=" +
                                     atlasGene.getGeneIdentifier()),
                             "view " + atlasGene.getGeneName() + " expression profile in " +
-                                    experiment.getDwExpAccession()),
+                                    experiment.getAccession()),
                     null,
                     null
             ));

@@ -119,17 +119,17 @@ Gene Expression Atlas - Experiment Index
                 <td style="white-space:nowrap;">
 
                     <% if (AtlasExperiment.DEGStatus.EMPTY == i.getDEGStatus()) { %>
-                    <span title="No differentially expressed genes found for this experiment"><%=i.getDwExpAccession()%>&nbsp;</span>
+                    <span title="No differentially expressed genes found for this experiment"><%=i.getAccession()%>&nbsp;</span>
                     <% }
                     else { %>
-                    <a href="${pageContext.request.contextPath}/experiment/<%= i.getDwExpAccession() %>"
-                       title="Experiment Data For <%= i.getDwExpAccession() %>"
-                       target="_self"><%= i.getDwExpAccession() %>
+                    <a href="${pageContext.request.contextPath}/experiment/<%= i.getAccession() %>"
+                       title="Experiment Data For <%= i.getAccession() %>"
+                       target="_self"><%= i.getAccession() %>
                     </a>&nbsp;
                     <% } %>
                 </td>
                 <td>
-                    <%= i.getDwExpDescription() %>
+                    <%= i.getDescription() %>
                 </td>
                 <td>
                     <nobr><%=i.getExperimentFactors().size() + " EFs"%>

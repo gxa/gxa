@@ -27,6 +27,7 @@ import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.util.*;
 
@@ -48,6 +49,7 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
     private AtlasEfoService efoService;
 
     private AtlasDao atlasSolrDAO;
+    private AtlasDAO atlasDbDAO;
 
     private CoreContainer coreContainer;
 
@@ -136,6 +138,14 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
 
     public void setAtlasSolrDAO(AtlasDao solrAtlasDAO) {
         this.atlasSolrDAO = solrAtlasDAO;
+    }
+
+    public AtlasDAO getAtlasDbDAO() {
+        return atlasDbDAO;
+    }
+
+    public void setAtlasDbDAO(AtlasDAO atlasDbDAO) {
+        this.atlasDbDAO = atlasDbDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -817,8 +827,8 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
                 map.get(key).add(new ListResultRowExperiment(exp.getId(), 
-                        aexp.getDwExpAccession(),
-                        aexp.getDwExpDescription(),
+                        aexp.getAccession(),
+                        aexp.getDescription(),
                         exp.getPvalue(), exp.getExpression()));
             }
         }
@@ -978,7 +988,7 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
                         {
                             AtlasExperiment exp = atlasSolrDAO.getExperimentById(ffc.getName());
                             if(exp != null) {
-                                String expName = exp.getDwExpAccession();
+                                String expName = exp.getAccession();
                                 if(expName != null)
                                 {
                                     int count = (int)ffc.getCount();

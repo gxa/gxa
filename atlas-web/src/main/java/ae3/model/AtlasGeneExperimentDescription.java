@@ -106,13 +106,13 @@ public class AtlasGeneExperimentDescription {
         if(null==atlasExperiment)
             throw new Exception("null atlasExperiment passed to AtlasGeneExperimentDescription");
 
-        if(null==atlasExperiment.getDwExpId())
+        if(null==atlasExperiment.getId())
             throw new Exception("can not get experimentid for geneid="+ atlasGene.getGeneId());
 
-        if(null==atlasGene.getAtlasResultsForExperiment(atlasExperiment.getDwExpId()))
+        if(null==atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId()))
             throw new Exception("getAtlasResultsForExperiment returns null for geneid="+ atlasGene.getGeneId());
 
-        for(Experiment r : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getDwExpId())){
+        for(Experiment r : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
            if(r.getEf().equals(writer.getCurrentEfName())){
                writer.AddEfv(r);
            }
@@ -131,7 +131,7 @@ public class AtlasGeneExperimentDescription {
 
         result += overExpressed ? "over-expressed in" : "under-expressed in";
 
-        result += " " + atlasExperiment.getDwExpAccession() + " \"" + atlasExperiment.getDwExpDescription() + "\"";
+        result += " " + atlasExperiment.getAccession() + " \"" + atlasExperiment.getDescription() + "\"";
 
         /*
         HashMap<String, String> hhm = atlasExperiment.getHighestRankEFs();
@@ -139,7 +139,7 @@ public class AtlasGeneExperimentDescription {
 
         result += " versus ";
 
-        String HighestRankExperimentalFactor = atlasGene.getHighestRankEF(atlasExperiment.getDwExpId()).getFirst();
+        String HighestRankExperimentalFactor = atlasGene.getHighestRankEF(atlasExperiment.getId()).getFirst();
 
 
 
@@ -153,7 +153,7 @@ public class AtlasGeneExperimentDescription {
 
         int iCount = 0;
 
-        for(Experiment la : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getDwExpId())){
+        for(Experiment la : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
             if(la.getEf().equals(HighestRankExperimentalFactor)){
                 if(iCount<=MAX_EXP_FACTOR_VALUES)
                     result += (StringUtils.quoteComma(la.getEfv()) + (la.getExpression().isUp() ? " [up]" : " [dn]") + ", ");
@@ -181,7 +181,7 @@ public class AtlasGeneExperimentDescription {
 
     public String toLongString(){
 
-        String result = atlasExperiment.getDwExpDescription();
+        String result = atlasExperiment.getDescription();
 
         if(!result.endsWith("."))
             result += ".";    

@@ -15,12 +15,12 @@
         AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
         if (exp != null) {
             request.setAttribute("exp", exp);
-            request.setAttribute("eid", exp.getDwExpId());
+            request.setAttribute("eid", exp.getId());
 
             if ((ef == null || "".equals(ef)) && (geneId != null)) {
                 AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
                 if (result.isFound()) {
-                    ef = result.getGene().getHighestRankEF(exp.getDwExpId()).getFirst();
+                    ef = result.getGene().getHighestRankEF(exp.getId()).getFirst();
                     request.setAttribute("topRankEF", ef);
                     geneId = result.getGene()
                             .getGeneId(); //if GeneIdentifer passed in query string, geneId is still geneid
@@ -36,7 +36,7 @@
 %>
 
 <jsp:include page="start_head.jsp"/>
-Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression Atlas
+Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 <jsp:include page="end_head.jsp"/>
 
 <script src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
@@ -112,7 +112,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
     $(document).ready(function()
     {
 
-        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',eAcc:'${exp.dwExpAccession}',gid:'${gid}',query:'top'}, function() {
+        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',eAcc:'${exp.accession}',gid:'${gid}',query:'top'}, function() {
             initPaging();
             addToolTips();
         });
@@ -162,7 +162,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
             var tokens = DEid_ADid.split('_');
             var DEid = tokens[0];
             var ADid = tokens[1];
-            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.dwExpAccession}',query:'sim'}, function() {
+            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.accession}',query:'sim'}, function() {
                 $("#simHeader").hide();
                 addToolTips();
             });
@@ -172,7 +172,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         $("#searchForm").submit(function() {
             var qry = $("#geneInExp_qry").fullVal();
             $("#qryHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Loading...");
-            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.dwExpAccession}',query:'search'}, function() {
+            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.accession}',query:'search'}, function() {
                 $("#qryHeader").hide()
                 addToolTips();
             });
@@ -307,10 +307,10 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
         </table>
 
 
-        <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.dwExpAccession}" target="_blank"
+        <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.accession}" target="_blank"
            title="Experiment information and full data in ArrayExpress Archive" class="geneName"
-           style="vertical-align: baseline">${exp.dwExpAccession}</a>
-        <span class="sectionHeader" style="vertical-align: baseline">${exp.dwExpDescription}</span>
+           style="vertical-align: baseline">${exp.accession}</a>
+        <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
 
         <div id="result_cont" style="margin-top:20px">
 
@@ -319,7 +319,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                     <td style="padding:0px">
                         <div class="header"
                              style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
-                            <div id="${exp.dwExpId}_EFpagination" class="pagination_ie">
+                            <div id="${exp.id}_EFpagination" class="pagination_ie">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <c:choose>
                                         <c:when test="${EF == topRankEF}">
@@ -328,7 +328,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                                         </c:when>
                                         <c:otherwise>
                                             <a id="${EF}"
-                                               onclick="redrawForEF('${exp.dwExpId}','${EF}','<fmt:message key="head.ef.${EF}"/>')"><fmt:message
+                                               onclick="redrawForEF('${exp.id}','${EF}','<fmt:message key="head.ef.${EF}"/>')"><fmt:message
                                                     key="head.ef.${EF}"/></a>
                                         </c:otherwise>
                                     </c:choose>
@@ -359,7 +359,7 @@ Gene Expression Profile in Experiment ${exp.dwExpAccession} - Gene Expression At
                     <td rowspan="2">
                         <div>
                             <c:import url="apilinks.jsp">
-                                <c:param name="apiUrl" value="experiment=${exp.dwExpAccession}"/>
+                                <c:param name="apiUrl" value="experiment=${exp.accession}"/>
                                 <c:param name="callback" value="calcApiLink"/>
                             </c:import>
                         </div>
