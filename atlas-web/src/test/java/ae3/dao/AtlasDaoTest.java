@@ -67,7 +67,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 	{
 		  AtlasExperiment exp = dao.getExperimentById("334420710");
 		  assertNotNull(exp);
-		  assertNotNull(exp.getDwExpAccession());
+		  assertNotNull(exp.getAccession());
 	}
 
 	@Test	
@@ -75,7 +75,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 	{
 		AtlasExperiment exp = dao.getExperimentByAccession("E-MEXP-980");
         assertNotNull(exp);
-        assertEquals("E-MEXP-980", exp.getDwExpAccession());
+        assertEquals("E-MEXP-980", exp.getAccession());
 	}
 
     @Test

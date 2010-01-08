@@ -115,6 +115,7 @@
         <property name="solrServerExpt" ref="solrServerExpt" />
         <property name="solrServerProp" ref="solrServerProp" />
         <property name="atlasSolrDAO" ref="atlasSolrDAO" />
+        <property name="atlasDbDAO" ref="atlasInterfaceDAO" />
         <property name="efoService" ref="atlasEfoService" />
         <property name="efvService" ref="atlasEfvService" />
 

@@ -225,46 +225,49 @@ public class AtlasGene {
 	public Collection<String> getProteins() { return getValues("property_PROTEINNAME"); }
 
     @RestOut(name="goIds", exposeEmpty = false)
-	public Collection<String> getGoIds() { return getValues("gene_goid"); }
+	public Collection<String> getGoIds() { return getValues("property_GO"); }
 
     @RestOut(name="dbxrefs", exposeEmpty = false)
-	public Collection<String> getDbxRefs() { return getValues("gene_dbxref"); }
+	public Collection<String> getDbxRefs() { return getValues("property_DBXREF"); }
 
     @RestOut(name="emblIds", exposeEmpty = false)
-	public Collection<String> getEmblIds() { return getValues("gene_embl"); }
+	public Collection<String> getEmblIds() { return getValues("property_EMBL"); }
 
     @RestOut(name="ensemblFamilyIds", exposeEmpty = false)
-	public Collection<String> getEnsFamilies() { return getValues("gene_ensfamily"); }
+	public Collection<String> getEnsFamilies() { return getValues("property_ENSFAMILY"); }
 
     @RestOut(name="ensemblProteinIds", exposeEmpty = false)
-	public Collection<String> getEnsProteins() { return getValues("gene_ensprotein"); }
+	public Collection<String> getEnsProteins() { return getValues("property_ENSPROTEIN"); }
 
     @RestOut(name="images", exposeEmpty = false)
-	public Collection<String> getImages() { return getValues("gene_image"); }
+	public Collection<String> getImages() { return getValues("property_IMAGE"); }
 
     @RestOut(name="locuslinks", exposeEmpty = false)
-	public Collection<String> getLocuslinks() { return getValues("gene_locuslink"); }
+	public Collection<String> getLocuslinks() { return getValues("property_LOCUSLINK"); }
 
     @RestOut(name="omimiIds", exposeEmpty = false)
-	public Collection<String> getOmimiIds() { return getValues("gene_omimid"); }
+	public Collection<String> getOmimiIds() { return getValues("property_OMIM"); }
 
     @RestOut(name="orfIds", exposeEmpty = false)
-	public Collection<String> getOrfs() { return getValues("gene_orf"); }
+	public Collection<String> getOrfs() { return getValues("property_ORF"); }
 
     @RestOut(name="refseqIds", exposeEmpty = false)
-	public Collection<String> getRefseqIds() { return getValues("gene_refseq"); }
+	public Collection<String> getRefseqIds() { return getValues("property_REFSEQ"); }
 
     @RestOut(name="unigeneIds", exposeEmpty = false)
-	public Collection<String> getUnigeneIds() { return getValues("gene_unigene"); }
+	public Collection<String> getUnigeneIds() { return getValues("property_UNIGENE"); }
 
     @RestOut(name="hmdbIds", exposeEmpty = false)
-	public Collection<String> getHmdbIds() { return getValues("gene_hmdb"); }
+	public Collection<String> getHmdbIds() { return getValues("property_HMDB"); }
 
     @RestOut(name="cas", exposeEmpty = false)
-	public Collection<String> getCass() { return getValues("gene_cas"); }
+	public Collection<String> getCass() { return getValues("property_CAS"); }
 
     @RestOut(name="uniprotMetenzs", exposeEmpty = false)
-	public Collection<String> getChebiIds() { return getValues("gene_uniprotmetenz"); }
+	public Collection<String> getUniprotMetenzIds() { return getValues("property_UNIPROTMETENZ"); }
+
+    @RestOut(name="chebiIds", exposeEmpty = false)
+	public Collection<String> getChebiIds() { return getValues("property_CHEBI"); }
 
     public int getCount_up(String ef, String efv) {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_up"));
@@ -363,8 +366,8 @@ public class AtlasGene {
                                 AtlasExperiment aexp = experimentsMap.get(exp.getId());
                                 if(aexp != null) {
                                     exps.add(new ListResultRowExperiment(exp.getId(), 
-                                            aexp.getDwExpAccession(),
-                                            aexp.getDwExpDescription(),
+                                            aexp.getAccession(),
+                                            aexp.getDescription(),
                                             exp.getPvalue(), exp.getExpression()));
                                 }
                             }

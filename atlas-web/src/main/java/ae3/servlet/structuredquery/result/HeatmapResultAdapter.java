@@ -66,8 +66,8 @@ public class HeatmapResultAdapter {
                         if (aexp == null) {
                             return null;
                         }
-                        return new ListResultRowExperiment(e.getId(), aexp.getDwExpAccession(),
-                                                           aexp.getDwExpDescription(), e.getPvalue(),
+                        return new ListResultRowExperiment(e.getId(), aexp.getAccession(),
+                                                           aexp.getDescription(), e.getPvalue(),
                                                            e.getExpression());
                     }
                 };
