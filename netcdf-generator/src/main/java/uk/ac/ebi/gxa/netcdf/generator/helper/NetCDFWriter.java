@@ -284,7 +284,7 @@ public class NetCDFWriter {
                         efvIndex++;
                     }
                     else {
-                        // fixme:
+                        // fixme: concatenate multiples with commas
                         // this will occur if there are multiple property values assigned
                         // to the same property for single assay - in theory this shouldn't
                         // happen, but it is technically possible.

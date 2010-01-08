@@ -1,22 +1,20 @@
 package uk.ac.ebi.gxa.analytics.generator.service;
 
-import org.kchine.r.RDataFrame;
 import org.kchine.r.RList;
-import org.kchine.r.RNumeric;
-import org.kchine.r.RArray;
 import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.*;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -147,10 +145,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         // first, make sure we load the R code that runs the analytics
                         rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
-                        // fixme: this MUST be on the same filesystem where the workers run
-                        return (RList) rs.getObject(
-                                "computeAnalytics('/ebi/ArrayExpress-files/NetCDFs.ATLAS.OTTO/325701228_170473054.nc')");
-//                        return (RList) rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
+                        // fixme: this MUST be on the same file system where the workers run
+                        return (RList) rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
                     }
                     catch (IOException e) {
                         e.printStackTrace();
@@ -160,80 +156,21 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             };
 
             // now run this compute task
-            RList analytics = getAtlasComputeService().computeTask(computeAnalytics);
+            getAtlasComputeService().computeTask(computeAnalytics);
 
-            // analytics is a list of named frames - getNames[i] should corresponde to getValue[i] ?
-            // loop over every named frame in the list - names are EFs
-            int efIndex = 0;
-            for (String ef : analytics.getNames()) {
-                if (analytics.getValue().length > efIndex && analytics.getValue()[efIndex] != null) {
-                    // this is the analytics data frame for a single EF
-                    RDataFrame analyticsFrame = (RDataFrame) analytics.getValue()[efIndex];
+            // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
+            NetCDFProxy proxy = new NetCDFProxy(netCDF);
 
-                    // iterate over the data row by row
-                    RList efData = analyticsFrame.getData();
+            try {
+                // get unique factor values for the expression value matrix
+                String[] uefvs = proxy.getUniqueFactorValues();
 
-                    // map efData names to the 
+                // uefvs is indexed by 
 
-                    for (int rowIndex = 0; rowIndex < analyticsFrame.getRowNames().length; rowIndex++) {
-                        // next row
-                        StringBuffer sb = new StringBuffer();
-                        sb.append(analyticsFrame.getRowNames()[rowIndex]).append(" [");
-                        for (int dataIndex = 0; dataIndex < efData.getNames().length; dataIndex++) {
-//                            System.out.println("Next datatype: " + efData.getNames()[dataIndex] + " = " + efData.getValue()[dataIndex].getClass().getSimpleName());
-                        }
-                        sb.append("]\n");
-//                        System.out.println("\n" + sb.toString());
-                    }
-                }
-                else {
-                    getLog().warn("Ignoring EF " + ef + ", no analytics data available");
-                }
-
-                efIndex++;
             }
-
-            // write analytics results back to the database
-
-            // experiment design
-//                > pData(eset)
-//             ba_genmodif        ba_genotype
-//325701235 gene_knock_out miRNA-1-2 knockout
-//325701236 gene_knock_out miRNA-1-2 knockout
-//325701237           none          wild_type
-//325701238 gene_knock_out miRNA-1-2 knockout
-//325701239           none          wild_type
-//325701240           none          wild_type
-
-
-            // after analytics, variable length as long as nr of EFs
-//               > names(res)
-//[1] "ba_genmodif" "ba_genotype"
-
-//                for(i = 0 ... ///String ef : analytics.getNames()) {
-//                    RObject[] analyticsFrames = analytics.getValue();
-
-
-            // for each EF get a data frame looking like
-
-//                > head(res[["ba_genotype"]],n=2)
-//                 A        t.1        t.2 p.value.1 p.value.2 p.value.adj.1
-//172585796 8.514054 -0.1442487  0.1442487 0.8884583 0.8884583     0.9996772
-//172611612 6.596359  0.2683077 -0.2683077 0.7944649 0.7944649     0.9996772
-//          p.value.adj.2 Res.miRNA-1-2 knockout Res.wild_type          F
-//172585796     0.9996772                      0             0 0.02080768
-//172611612     0.9996772                      0             0 0.07198903
-//          F.p.value F.p.value.adj  Genes.gn  Genes.de  Genes.ID
-//172585796 0.8884583     0.9996772 169918541 172585796 172585796
-//172611612 0.7944649     0.9996772 169918541 172611612 172611612
-
-
-            // ((RDataFrame) analyticsFrames[0]).getRowNames();
-//                ((RDataFrame) analyticsFrames[0]).getData();
-            //   these are the column headings above - .N corresponds to the EFV numbers in the EF
-            //   Res.XYZ to the EFV names, Res.XYZ contains -1,0,1 up/dn, t.N - tstat, p.value.adj.N - p vals, Genes.gn - gene id,
-            //   genes.de - designelt id, F.p.value.adj - per EF.
-            //              }
+            catch (IOException e) {
+                throw new AnalyticsGeneratorException("Could not access NetCDF at " + netCDF.getAbsolutePath(), e);
+            }
         }
 
         getLog().info("Finalising analytics changes for " + experimentAccession);

@@ -31,9 +31,9 @@ public class DataSlice {
     private Map<Integer, List<Gene>> genesMap;
     private Map<Integer, List<ExpressionAnalysis>> analysesMap;
     // maps of properties
-    Map<String, List<String>> experimentFactorMap;
-    Map<String, List<String>> sampleCharacteristicMap;
-    Map<Assay, List<String>> assayFactorValueMap;
+    private Map<String, List<String>> experimentFactorMap;
+    private Map<String, List<String>> sampleCharacteristicMap;
+    private Map<Assay, List<String>> assayFactorValueMap;
 
 
     public DataSlice(Experiment experiment, ArrayDesign arrayDesign) {

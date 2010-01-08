@@ -403,4 +403,106 @@ public class NetCDFProxy {
             }
         }
     }
+
+    public double[] getPValuesForDesignElement(int designElementIndex) throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable pValVariable = netCDF.findVariable("PVAL");
+        if (pValVariable == null) {
+            return new double[0];
+        }
+        else {
+            int[] pValShape = pValVariable.getShape();
+            int[] origin = {designElementIndex, 0};
+            int[] size = new int[]{1, pValShape[1]};
+            try {
+                return (double[]) pValVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
+                throw new IOException("Failed to read p-value data for design element at " + designElementIndex +
+                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+            }
+        }
+    }
+
+    public double[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable pValVariable = netCDF.findVariable("PVAL");
+
+        if (pValVariable == null) {
+            return new double[0];
+        }
+        else {
+            int[] pValShape = pValVariable.getShape();
+            int[] origin = {0, uniqueFactorValueIndex};
+            int[] size = new int[]{pValShape[0], 1};
+            try {
+                return (double[]) pValVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
+                        e.getMessage());
+                throw new IOException("Failed to read p-value data for unique factor value at " +
+                        uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
+                        "[" + e.getMessage() + "]");
+            }
+        }
+    }
+
+        public double[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable tStatVariable = netCDF.findVariable("TSTAT");
+        if (tStatVariable == null) {
+            return new double[0];
+        }
+        else {
+            int[] tStatShape = tStatVariable.getShape();
+            int[] origin = {designElementIndex, 0};
+            int[] size = new int[]{1, tStatShape[1]};
+            try {
+                return (double[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
+                throw new IOException("Failed to read t-statistic data for design element at " + designElementIndex +
+                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+            }
+        }
+    }
+
+    public double[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable tStatVariable = netCDF.findVariable("TSTAT");
+
+        if (tStatVariable == null) {
+            return new double[0];
+        }
+        else {
+            int[] tStatShape = tStatVariable.getShape();
+            int[] origin = {0, uniqueFactorValueIndex};
+            int[] size = new int[]{tStatShape[0], 1};
+            try {
+                return (double[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+            }
+            catch (InvalidRangeException e) {
+                log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
+                        e.getMessage());
+                throw new IOException("Failed to read t-statistic data for unique factor value at " + 
+                        uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
+                        "[" + e.getMessage() + "]");
+            }
+        }
+    }
 }
