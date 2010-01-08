@@ -40,8 +40,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 22-Sep-2009
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
-
     private static final int NUM_THREADS = 32;
 
     private Map<String, List<String>> ontomap =
@@ -120,13 +118,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
                             // add EFO counts for this gene
-                            addEfoCounts(solrInputDoc, gene.getDesignElementIDs());
-                            getLog().debug("Updated solr document with EFO counts for " +
-                                    gene.getDesignElementIDs().size() + " design elements");
-                            // finally, add the document to the index
-                            getLog().debug("Finalising changes for " + gene.getIdentifier());
-                            response = getSolrServer().add(solrInputDoc);
-
+                            boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getDesignElementIDs());
+                            if(hasAnyAnalytics) {
+                                getLog().debug("Updated solr document with EFO counts for " +
+                                        gene.getDesignElementIDs().size() + " design elements");
+                                // finally, add the document to the index
+                                getLog().debug("Finalising changes for " + gene.getIdentifier());
+                                response = getSolrServer().add(solrInputDoc);
+                            }
+                            
                             // update loadmonitor table - experiment has completed indexing
 //                            getAtlasDAO().writeLoadDetails(
 //                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
@@ -214,7 +214,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return x;
     }
 
-    private void addEfoCounts(SolrInputDocument solrDoc, Set<Integer> designElementIDs) {
+    private boolean addEfoCounts(SolrInputDocument solrDoc, Set<Integer> designElementIDs) {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
         Set<Long> upexp = new HashSet<Long>();
@@ -222,6 +222,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
         Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
 
+        boolean hasAnyAnalytics = false;
         ExperimentsTable expTable = new ExperimentsTable();
         for (int designElementID : designElementIDs) {
             getLog().debug("Fetching expression analytics for design element: " + designElementID);
@@ -230,7 +231,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             if (expressionAnalytics.size() == 0) {
                 getLog().debug("Design element " + designElementID + " has 0 expression analytics, " +
                         "this design element will be excluded");
+            } else {
+                hasAnyAnalytics = true;
             }
+
 
             for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
                 Long experimentId = (long) expressionAnalytic.getExperimentID();
@@ -306,6 +310,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 expTable.add(ef, efv, accs, experimentId, isUp, pval);
             }
         }
+        if(!hasAnyAnalytics)
+            return false;
+
         solrDoc.addField("exp_info", expTable.serialize());
 
         for (String rootId : efo.getRootIds()) {
@@ -316,6 +323,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         storeEfvCounts(solrDoc, efvupdn);
         storeExperimentIds(solrDoc, upexp, dnexp);
         storeEfvs(solrDoc, upefv, dnefv);
+
+        return true;
     }
 
     private void storeEfvs(SolrInputDocument solrDoc,
@@ -442,7 +451,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void loadEfoMapping() {
-        log.info("Fetching ontology mappings...");
+        getLog().info("Fetching ontology mappings...");
 
         // we don't support enything else yet
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
@@ -465,7 +474,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        log.info("Ontology mappings loaded");
+        getLog().info("Ontology mappings loaded");
     }
 
     private short shorten(double d) {
