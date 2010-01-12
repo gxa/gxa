@@ -6,17 +6,12 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
-import uk.ac.ebi.microarray.atlas.dao.LoadType;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -26,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -40,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 22-Sep-2009
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
-    private static final int NUM_THREADS = 32;
+    private static final int NUM_THREADS = 16;
 
     private Map<String, List<String>> ontomap =
             new HashMap<String, List<String>>();
@@ -60,18 +56,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Fetching genes to index");
         // fetch genes
-        List<Gene> genes = pendingOnly
+        final List<Gene> genes = pendingOnly
                 ? getAtlasDAO().getAllPendingGenes()
                 : getAtlasDAO().getAllGenes();
 
         // the list of futures - we need these so we can block until completion
-        List<Future<UpdateResponse>> tasks =
-                new ArrayList<Future<UpdateResponse>>();
+        Deque<Future<Boolean>> tasks =
+                new Deque<Future<Boolean>>();
+
 
         final AtomicInteger processed = new AtomicInteger(0);
         final int total = genes.size();
 
-        final long timeStart = System.currentTimeMillis();
+        final AtomicLong timeStart = new AtomicLong(System.currentTimeMillis());
 
         getLog().info("Found " + total + " genes");
 
@@ -79,11 +76,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             // index all genes in parallel
             for (final Gene gene : genes) {
                 // for each gene, submit a new task to the executor
-                tasks.add(tpool.submit(new Callable<UpdateResponse>() {
+                tasks.append(tpool.submit(new Callable<Boolean>() {
 
-                    public UpdateResponse call() throws IOException, SolrServerException,
+                    public Boolean call() throws IOException, SolrServerException,
                             IndexBuilderException {
-                        UpdateResponse response = null;
                         try {
                             // todo - gene indexing needs to update loadmonitor on an arraydesign level
 //                            getLog().debug("Updating load_monitor table: status = working");
@@ -124,28 +120,30 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                         gene.getDesignElementIDs().size() + " design elements");
                                 // finally, add the document to the index
                                 getLog().debug("Finalising changes for " + gene.getIdentifier());
-                                response = getSolrServer().add(solrInputDoc);
+                                getSolrServer().add(solrInputDoc);
                             }
-                            
+
                             // update loadmonitor table - experiment has completed indexing
 //                            getAtlasDAO().writeLoadDetails(
 //                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
 
                             int processedNow = processed.incrementAndGet();
                             if(processedNow % 1000 == 0) {
-                                long diff = System.currentTimeMillis() - timeStart;
-                                long estimated = (total - processedNow) * diff / (processedNow * 1000) / 60;
+                                final long timeNow = System.currentTimeMillis();
+                                long diff = timeNow - timeStart.getAndSet(timeNow);
+                                long estimated = (total - processedNow) * diff / (1000 * 1000) / 60;
                                 getLog().info("Processed " + processedNow + "/" + total + " genes " +
-                                        (processedNow * 100/total) + "% " + (processedNow*1000/diff) +
+                                        (processedNow * 100/total) + "% " + (1000*1000/diff) +
                                         " genes per sec, estimated " + estimated + " mins.");
                             }
 
-                            return response;
+                            return true;
                         }
                         catch (RuntimeException e) {
-                            getLog().error("Runtime exception occurred: " + e.getMessage());
-                            e.printStackTrace();
-                            throw e;
+                            getLog().error("Runtime exception occurred: " + e.getMessage(), e);
+//                            getLog().info("Re-queueing gene " + gene.getGeneID() + " for indexing");
+//                            genes.append(gene);
+                            return false;
                         }
 //                        finally {
 //                            // todo - gene indexing needs to update loadmonitor on an arraydesign level
@@ -160,8 +158,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 }));
             }
 
+            genes.clear();
+
             // block until completion, and throw any errors
-            for (Future<UpdateResponse> task : tasks) {
+            while (true) {
+                Future<Boolean> task = tasks.poll();
+                if(task == null)
+                    break;
+
                 try {
                     task.get();
                 }
