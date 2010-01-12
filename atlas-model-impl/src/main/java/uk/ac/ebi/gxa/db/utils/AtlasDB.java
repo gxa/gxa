@@ -4,6 +4,7 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
+import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
@@ -13,6 +14,7 @@ import uk.ac.ebi.gxa.model.impl.AtlasDao;
 
 import java.sql.*;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Utils for writing atlas loader API objects (see also {@link uk.ac.ebi.microarray.atlas.model}) to a database.  Should
@@ -357,6 +359,55 @@ public class AtlasDB {
             }
         }
     }
+
+    @Deprecated
+    public static void writeAssayAnalytics(Connection connection, String experimentAccession, List<ExpressionAnalysis> expressionValues)
+            throws SQLException {
+        CallableStatement stmt = null;
+        try {
+            //1  Accession varchar2
+            //2  ExpressionAnalytics ExpressionAnalyticsTable
+
+            stmt = connection.prepareCall("{call AtlasLdr.a2_AnalyticsSet(?,?)}");
+
+            // replacing expression value lookup with mapped values lookup
+            Object[] expressionValuesArray =
+                    new Object[null == expressionValues ? 0
+                            : expressionValues.size()];
+            //placeholders for all properties of ExpressionValue structure
+            Object[] members = new Object[2];
+
+            if (expressionValues != null) {
+                int i = 0;
+                for (ExpressionAnalysis ea : expressionValues) {
+                    members[1] = ea.getDesignElementID(); //DesignElementID     integer
+                    members[2] = ea.getEfName();          //Property            varchar2
+                    members[3] = ea.getEfvName();         //PropertyValue       varchar2
+                    members[4] = ea.getPValAdjusted();    //PVALADJ             float
+                    members[5] = null;                    //FPVAL               float
+                    members[6] = null;                    //FPVALADJ            float
+                    members[7] = ea.getTStatistic();      //TSTAT               float
+
+                    expressionValuesArray[i++] =
+                            toSqlStruct(connection, "EXPRESSIONANALYTICS", members);
+                }
+            }
+
+            stmt.setString(1, experimentAccession);
+            stmt.setArray(2, toSqlArray(connection, "EXPRESSIONANALYTICSTABLE",
+                                        expressionValuesArray));
+
+            // execute statement
+            stmt.execute();
+        }
+        finally {
+            if (stmt != null) {
+                // close statement
+                stmt.close();
+            }
+        }
+    }
+
 
     @Deprecated
     public static void writeSample(Connection connection, Sample value)
