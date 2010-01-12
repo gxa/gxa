@@ -99,13 +99,18 @@
             <version>4.3</version>
             <scope>test</scope>
         </dependency>
-        <!-- logging, uses SLF4J throughout -->
-        <dependency>
+        <!-- logging uses SLF4J throughout -->
+        <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>1.5.6</version>
         </dependency>
-        <dependency>
+        <dependency> <!-- this will allow redirection of org.apache.commons.logging calls via slf4j -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.5.6</version>
+        </dependency>
+        <dependency> <!-- native slf4j api for own application logging -->
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.5.6</version>
@@ -135,6 +140,12 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.3</version>
+        </dependency>
+        <!-- Spring dependency for jdbc and webapp support -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring</artifactId>
+            <version>2.5.5</version>
         </dependency>
     </dependencies>
 

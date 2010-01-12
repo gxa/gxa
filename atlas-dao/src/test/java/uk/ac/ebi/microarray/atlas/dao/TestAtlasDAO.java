@@ -1,10 +1,17 @@
 package uk.ac.ebi.microarray.atlas.dao;
 
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
+import oracle.sql.STRUCT;
+import oracle.sql.StructDescriptor;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 

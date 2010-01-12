@@ -47,7 +47,7 @@ public class TestExperimentAtlasIndexBuilderService
             SolrQuery q = new SolrQuery("*:*");
             q.setRows(10);
             q.setFields("");
-            q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
+            q.addSortField("id", SolrQuery.ORDER.asc);
 
             // do the query to fetch all documents
             QueryResponse queryResponse = getExptSolrServer().query(q);
@@ -191,6 +191,8 @@ public class TestExperimentAtlasIndexBuilderService
                                         for (Object o : values) {
                                             // and check the property value if this property is present
                                             String actual = o.toString();
+
+                                            System.out.println("Property from index: " + actual);
 
                                             // break if matched
                                             if (actual.equals(valueName)) {

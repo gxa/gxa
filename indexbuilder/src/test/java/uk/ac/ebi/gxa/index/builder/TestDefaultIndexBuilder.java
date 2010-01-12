@@ -8,12 +8,15 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.logging.LogManager;
 
 /**
  * A test case fo assessing whether the DefaultIndexBuilder class initializes correctly and can run a build of the index
@@ -36,10 +39,22 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
+        try {
+            LogManager.getLogManager()
+                    .readConfiguration(this.getClass().getClassLoader().getResourceAsStream("logging.properties"));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        SLF4JBridgeHandler.install();
+
         indexLocation =
                 new File("target" + File.separator + "test" + File.separator + "index");
 
+        System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
+
         indexBuilder = new DefaultIndexBuilder();
+        indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
         indexBuilder.setAtlasDAO(getAtlasDAO());
         indexBuilder.setIndexLocation(indexLocation);
     }
@@ -141,7 +156,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
             SolrQuery q = new SolrQuery("*:*");
             q.setRows(10);
             q.setFields("");
-            q.addSortField("dwe_exp_id", SolrQuery.ORDER.asc);
+            q.addSortField("id", SolrQuery.ORDER.asc);
 
 
             QueryResponse queryResponse = exptServer.query(q);

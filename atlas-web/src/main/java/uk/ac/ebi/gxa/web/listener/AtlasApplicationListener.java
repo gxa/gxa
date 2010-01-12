@@ -10,7 +10,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.apache.solr.core.CoreContainer;
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
@@ -52,19 +51,19 @@ import java.util.logging.LogManager;
 public class AtlasApplicationListener implements ServletContextListener, HttpSessionListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    static {
-        try {
-            LogManager.getLogManager().readConfiguration(AtlasApplicationListener.class.getResourceAsStream("logging.properties"));
-        } catch(Exception e) {
-
-        }
-        SLF4JBridgeHandler.install();
-    }
-
     public void contextInitialized(ServletContextEvent sce) {
-
         long start = System.currentTimeMillis();
         log.info("Starting up atlas");
+
+        // use SLF4J to configure logging
+        try {
+            LogManager.getLogManager().readConfiguration(
+                    AtlasApplicationListener.class.getResourceAsStream("logging.properties"));
+        }
+        catch(Exception e) {
+            log.warn("Unable to read logging.properties file - SLF4J bridge may not be correctly configured");
+        }
+        SLF4JBridgeHandler.install();
 
         // get context, driven by config
         ServletContext application = sce.getServletContext();

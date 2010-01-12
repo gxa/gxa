@@ -42,34 +42,6 @@
             <version>4.3</version>
             <scope>test</scope>
         </dependency>
-        <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.5.6</version>
-        </dependency>
-        <dependency> <!-- native slf4j api for own application logging -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.5.6</version>
-        </dependency>
-        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency> <!-- log4j itself (note the runtime scope) -->
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency> <!-- this is for all those frameworks that use commons-logging. log4j will be capturing those -->
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>

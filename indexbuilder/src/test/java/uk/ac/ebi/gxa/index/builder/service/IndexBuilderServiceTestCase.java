@@ -3,11 +3,11 @@ package uk.ac.ebi.gxa.index.builder.service;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.LogManager;
 
 /**
  * Javadocs go here!
@@ -24,8 +24,32 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
+        // sort out logging
+        try {
+            LogManager.getLogManager()
+                    .readConfiguration(this.getClass().getClassLoader().getResourceAsStream("logging.properties"));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        SLF4JBridgeHandler.install();
+
+        // configure registries
+
+        if (IndexBuilderServiceRegistry.getFactoryByName("properties") == null) {
+            IndexBuilderServiceRegistry.registerFactory(new PropertiesIndexBuilderService.Factory());
+        }
+        if (IndexBuilderServiceRegistry.getFactoryByName("experiments") == null) {
+            IndexBuilderServiceRegistry.registerFactory(new ExperimentAtlasIndexBuilderService.Factory());
+        }
+        if (IndexBuilderServiceRegistry.getFactoryByName("genes") == null) {
+            IndexBuilderServiceRegistry.registerFactory(new GeneAtlasIndexBuilderService.Factory());
+        }
+        // locate index
         indexLocation = new File("target" + File.separator + "test" +
                 File.separator + "index");
+
+        System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
 
         // check for the presence of the index
         File solr = new File(indexLocation, "solr.xml");
@@ -81,70 +105,13 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
      */
     private void unpackAtlasIndexTemplate(File indexLocation) throws IOException {
         // configure a list of resources we need from the indexbuilder jar
-        Map<String, File> resourceMap = new HashMap<String, File>();
-        resourceMap.put("solr/solr.xml",
-                        new File(indexLocation,
-                                 "solr.xml"));
-        resourceMap.put("solr/atlas/conf/scripts.conf",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "scripts.conf"));
-        resourceMap.put("solr/atlas/conf/admin-extra.html",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "admin-extra.html"));
-        resourceMap.put("solr/atlas/conf/protwords.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "protwords.txt"));
-        resourceMap.put("solr/atlas/conf/stopwords.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "stopwords.txt"));
-        resourceMap.put("solr/atlas/conf/synonyms.txt",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "synonyms.txt"));
-        resourceMap.put("solr/atlas/conf/schema.xml",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "schema.xml"));
-        resourceMap.put("solr/atlas/conf/solrconfig.xml",
-                        new File(indexLocation,
-                                 "atlas" + File.separator + "conf" +
-                                         File.separator + "solrconfig.xml"));
-        resourceMap.put("solr/expt/conf/scripts.conf",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "scripts.conf"));
-        resourceMap.put("solr/expt/conf/admin-extra.html",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "admin-extra.html"));
-        resourceMap.put("solr/expt/conf/protwords.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "protwords.txt"));
-        resourceMap.put("solr/expt/conf/stopwords.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "stopwords.txt"));
-        resourceMap.put("solr/expt/conf/synonyms.txt",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "synonyms.txt"));
-        resourceMap.put("solr/expt/conf/schema.xml",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "schema.xml"));
-        resourceMap.put("solr/expt/conf/solrconfig.xml",
-                        new File(indexLocation,
-                                 "expt" + File.separator + "conf" +
-                                         File.separator + "solrconfig.xml"));
+        writeResourceToFile("solr/solr.xml", new File(indexLocation, "solr.xml"));
 
-        // write out these resources
-        for (String resourceName : resourceMap.keySet()) {
-            writeResourceToFile(resourceName, resourceMap.get(resourceName));
+        for (String factory : IndexBuilderServiceRegistry.getAvailableFactories()) {
+            for (String fileName : IndexBuilderServiceRegistry.getFactoryByName(factory).getConfigFiles()) {
+                writeResourceToFile("solr/" + fileName,
+                                    new File(indexLocation, fileName.replaceAll("/", File.separator)));
+            }
         }
     }
 

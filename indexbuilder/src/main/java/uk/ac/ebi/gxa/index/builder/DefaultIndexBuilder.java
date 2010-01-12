@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.index.builder;
 
-import org.apache.solr.core.CoreContainer;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -15,7 +15,8 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -38,7 +39,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     private List<String> includeIndices;
 
-    private List<Pair<String,IndexBuilderService>> services;
+    private List<Pair<String, IndexBuilderService>> services;
 
     private List<IndexUpdateHandler> updateHandlers = new ArrayList<IndexUpdateHandler>();
 
@@ -126,11 +127,12 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                 log.debug("Creating index building services for " + StringUtils.join(getIncludeIndexes(), ","));
 
                 services = new ArrayList<Pair<String, IndexBuilderService>>();
-                for(String name : includeIndices)
+                for (String name : includeIndices) {
                     services.add(new Pair<String, IndexBuilderService>(
                             name,
                             IndexBuilderServiceRegistry.getFactoryByName(name).create(atlasDAO, coreContainer)
                     ));
+                }
 
                 // finally, create an executor service for processing calls to build the index
                 service = Executors.newCachedThreadPool();
@@ -239,8 +241,9 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     }
 
     public void registerIndexUpdateHandler(IndexUpdateHandler handler) {
-        if(!updateHandlers.contains(handler))
+        if (!updateHandlers.contains(handler)) {
             updateHandlers.add(handler);
+        }
     }
 
     public void unregisterIndexUpdateHandler(IndexUpdateHandler handler) {
@@ -248,9 +251,9 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     }
 
     private void notifyUpdateHandlers() {
-        log.info("Index updated, notifying webapp to reload caches");
-        for(IndexUpdateHandler handler : updateHandlers)
+        for (IndexUpdateHandler handler : updateHandlers) {
             handler.onIndexUpdate(this);
+        }
     }
 
     private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
@@ -258,7 +261,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
 
-        for(final Pair<String, IndexBuilderService> ibService : services) {
+        for (final Pair<String, IndexBuilderService> ibService : services) {
             indexingTasks.add(service.submit(new Callable<Boolean>() {
                 public Boolean call() throws IndexBuilderException {
                     try {
@@ -322,9 +325,12 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         // configure a list of resources we need from the indexbuilder jar
         writeResourceToFile("solr/solr.xml", new File(indexLocation, "solr.xml"));
 
-        for(String factory : IndexBuilderServiceRegistry.getAvailableFactories())
-            for(String fileName : IndexBuilderServiceRegistry.getFactoryByName(factory).getConfigFiles())
-                writeResourceToFile("solr/" + fileName, new File(indexLocation, fileName.replaceAll("/", File.separator)));
+        for (String factory : IndexBuilderServiceRegistry.getAvailableFactories()) {
+            for (String fileName : IndexBuilderServiceRegistry.getFactoryByName(factory).getConfigFiles()) {
+                writeResourceToFile("solr/" + fileName,
+                                    new File(indexLocation, fileName.replaceAll("/", File.separator)));
+            }
+        }
     }
 
     /**

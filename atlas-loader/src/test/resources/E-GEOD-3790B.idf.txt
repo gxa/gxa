@@ -1,0 +1,48 @@
+Investigation Title	Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment
+Experimental Design	unknown_design_type
+Experimental Design Term Source REF
+Experimental Factor Name
+Experimental Factor Type
+Experimental Factor Term Source REF
+Person Last Name	Hodges
+Person First Name	Lesley Jones Angela
+Person Mid Initials
+Person Email	jonesl1@cf.ac.uk, Angela.Hodges@iop.kcl.ac.uk
+Person Phone
+Person Fax
+Person Address	Psychological Medicine, Cardiff University School of Medicine, Heath Park, Cardiff, CF14 4XN, United Kingdom
+Person Affiliation	Cardiff University School of Medicine
+Person Roles	submitter
+Person Roles Term Source REF	MGED Ontology (MO)
+Quality Control Type
+Quality Control Term Source REF
+Replicate Type
+Replicate Term Source REF
+Normalization Type
+Normalization Term Source REF
+Date of Experiment
+Public Release Date	2008-04-22
+PubMed ID	16467349
+Publication DOI	16467349
+Publication Author List	Angela Hodges, Andrew D Strand, Aaron K Aragaki, Alexandre Kuhn, Thierry Sengstag, Gareth Hughes, Lyn A Elliston, Cathy Hartog, Darlene R Goldstein, Doris Thu, Zane R Hollingsworth, Francois Collin, Beth Synek, Peter A Holmans, Anne B Young, Nancy S Wexler, Mauro Delorenzi, Charles Kooperberg, Sarah J Augood, Richard L M Faull, James M Olson, Lesley Jones, Ruth Luthi-Carter
+Publication Title	Regional and cellular gene expression changes in human Huntington's disease brain.
+Publication Status	journal_article
+Publication Status Term Source REF	MGED Ontology (MO)
+Experiment Description	Post mortem human brain tissue comparison between HD patients and controls from 3 brain regions - cerebellum, frontal cortex [BA4, BA9] and caudate nucleus.  Gene expression analysed using linear models from LIMMA package in Bioconductor suite. Experiment Overall Design: Large sample sizes were used to examine brain tissue gene expression at various stages of HD pathology.  Three brain regions were profiled, compared and analysed for differential gene expression.  The broad aim was to capture early stage gene expression changes in HD brains.
+Protocol Name	P-G3790-2	P-G3790-1	Affymetrix:Protocol:Hybridization-Unknown	P-AFFY-6
+Protocol Type	nucleic_acid_extraction	labeling	hybridization	feature_extraction
+Protocol Description	ISOLATION OF TOTAL RNA USING TRIZOL, FOLLOWED BY RNeasy MINI KIT All equipment and solutions were RNAse-free: All solutions that are were made up in the lab and didnâ??t contain amines or flammables were treated with 0.01% diethylpyrocarbonate (DEPC, Sigma) with stirring overnight and then autoclaved to remove the DEPC (DEPC was diluted to a 10% v/v working stock in absolute ethanol first, as DEPC is immiscible with water). Wherever possible, solutions were purchased as RNAse-free or were molecular biology grade and reserved exclusively for RNA. Consummables direct from the supplier and reserved exclusively for RNA work were used. Equipment and benches were treated with proprietary solutions for decontaminating RNAses from surfaces (e.g. RNAseZAP from Ambion, following the manufacturerâ??s instructions). Materials Matrix Lysing D tubes (catalogue number 007190192) used for tissue homogenisation were purchased from VWR International Ltd, Poole, UK Trizol (catalogue number 15596-018) was from Invitrogen Ltd, Paisley, UK Isopropranol (catalogue number I-9516) was from Sigma-Aldrich Company Ltd, Gillingham RNeasy Mini Kit (catalogue number 74106) was from QIAGEN Ltd, Crawley, UK FastPrep machine for tissue homogenisation (used with Matrix Lysing D tubes) was purchased from Qbiogene-Alexis Ltd, Nottingham, UK). Method Trizol Extraction (essentially following supplied protocol): 1. 50-200mg appropriately dissected human brain was added to a Matrix Lysing D tube and either processed immediately or stored at -70Â&deg;C until use. 1 ml of ice-cold TRIzol was added to the Matrix Lysing D tube. 2. The tubes were secured in the Fast Prep machine and homogenised on speed 4.0 for 30 seconds. 3. The TRIzol and sample were decanted into a 10 ml polypropylene tube. Another 1ml ice-cold TRIzol was added to the Lysing Matrix D tube and pipetted up and down a few times to ensure all of the sample was removed to the 10 ml polypropylene tube. The sample was incubated at room temperature for 5 minutes. l of chloroform was added to the sample and shaken vigourously?4. 400 for 15 seconds and then incubated at room temperature for 5 minutes. 5. The sample was spun at 12,000g for 15 minutes at 4Â&deg;C. 6. The upper aqueous phase was transferred to a fresh 10ml tube. 7. 1ml of isopropanol was added, mixed and left at room temperature for 10 minutes to precipitate. C.?8. The sample was spun at 12,000g for 10 minutes at 4 9. The supernatant was removed and the pellet washed carefully in 2 ml 75% ethanol. The tube was mixed gently to remove the pellet from the tube wall and â??washâ?? any residual isopropanol off the inside of the tube. C.?10. The sample was spun at 7,500g for 5 minutes at 4 11. The supernatant was removed and the pellet washed carefully in 2 ml 75% ethanol. The tube was mixed gently to remove the pellet from the tube wall and â??washâ?? any residual isopropanol off the inside of the tube. C.?12. The sample was spun at 7,500g for 5 minutes at 4 13. The supernatant was removed and the tube spun briefly to collect the residual ethanol at the bottom of the tube. All remaining ethanol was removed and the pellet was dried for 5 minutes in a 45Â&deg;C oven. l DEPC-treated water by?14. The pellet was resuspended in 100 C for 5 minutes and further vortexing.?vortexing, followed by 65 RNeasy Miniprep Extraction (essentially following supplied protocol): l beta-mercaptoethaol) was added to?l RLT buffer (containing 3.5?15. 350 the RNA sample and mixed thoroughly. l ethanol (96-100%) was then added and mixed thoroughly by?16. 250 pipetting. l) was immediately applied to an RNeasy mini column?17. The sample (700 placed in a 2ml collection tube and centrifuged for 1minute at 10,000g. The eluate was re-applied to the same RNeasy mini column and centrifuged for 1minute at 10,000g. The flow-through and collection tube were discarded. 18. The RNeasy column was transferred to a new 2ml collection tube and l Buffer RPE was applied to the RNeasy column. The column was?500 centrifuged for 1 minute at 10,000g. The eluate was discarded. l Buffer RPE was applied to the RNeasy column and?19. Another 500 centrifuged for 1 minute at 10,000g. The flow-through was discarded and the column was centrifuged for another minute at 10,000g. The column was turned 180Â&deg; in the centrifuge and spun for another minute at 10,000g to dry the column. 20. To elute the RNA, the column was transferred to a new 1.5ml l* RNase-free water was applied directly on to the?collection tube. 30 RNeasy silica-gel membrane. After 2 minutes the column and tube were centrifuged for 1 minute at 10,000g. l* RNase-free water was applied directly onto the?21. A further 30 RNeasy silica-gel membrane. After 2 minutes the column and tube were centrifuged for 1 minute at 10,000g. The column was turned in the centrifuge 180Â&deg; and spun for another minute at 10,000g. 22. The RNA concentration was determined using a spectrophotometer. The quality of the extraction was determined by the 260/280nm ratio which was around 1.8 for each sample. 23. An aliquot (<500ng) was analysed on an Agilent nano chip to check RNA integrity. RNA quality was assessed subjectively on a four point category: poor, o.k., good and excellent. This was used to select which samples to proceed to cDNA with. C prior to cDNA synthesis.?24. Total RNA was stored at -70 *The volume to elute the RNA into was determined empirically by the starting tissue weight and the size of the isopropanol pellet in the TRIzol part of the extraction in order to have the final concentration l so that further ethanol precipitation to?g/?in the range 1.1-2 concentrate the RNA was unnecessary in order to do first strand cDNA synthesis using 10Â&#956;g total.	Approximately 10 Â&#956;g of total RNA was processed to produce biotinylated cRNA targets.		
+Protocol Parameters				Lower right corner y coordinate;Upper right corner x coordinate;Upper left corner x coordinate;Lower right corner x coordinate;Lower left corner y coordinate;Outlier high;CEL Algorithm name;Upper left corner y coordinate;Lower left corner x coordinate;Cell margin;Percentile;Upper right corner y coordinate;Outlier low
+Protocol Hardware
+Protocol Software			MicroArraySuite 5.0	MicroArraySuite 5.0
+Protocol Contact
+Protocol Term Source REF	MGED Ontology (MO)	MGED Ontology (MO)	MGED Ontology (MO)
+SDRF File	E-GEOD-3790B.sdrf.txt
+Term Source Name	NCBI Taxonomy	MGED Ontology (MO)	ArrayExpress
+Term Source File	http://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html	http://mged.sourceforge.net/ontologies/MGEDontology.php	http://www.ebi.ac.uk/arrayexpress
+Term Source Version			
+Comment[ArrayExpressReleaseDate]	2008-04-22
+Comment[SecondaryAccession]	GSE3790
+Comment[AEMIAMESCORE]	4
+Comment[ArrayExpressAccession]	E-GEOD-3790B
+Comment[MAGETAB TimeStamp_Version]	12-06-2008 06:49:57 Last Changed Rev: 4784
