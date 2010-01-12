@@ -221,7 +221,6 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     public void buildIndex() {
         buildIndex(null);
-        notifyUpdateHandlers();
     }
 
     public void buildIndex(IndexBuilderListener listener) {
@@ -231,7 +230,6 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
 
     public void updateIndex() {
         updateIndex(null);
-        notifyUpdateHandlers();
     }
 
     public void updateIndex(IndexBuilderListener listener) {
@@ -250,6 +248,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     }
 
     private void notifyUpdateHandlers() {
+        log.info("Index updated, notifying webapp to reload caches");
         for(IndexUpdateHandler handler : updateHandlers)
             handler.onIndexUpdate(this);
     }
@@ -298,6 +297,8 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                     long endTime = System.currentTimeMillis();
                     long runTime = (endTime - startTime) / 1000;
 
+                    notifyUpdateHandlers();
+                    
                     // create our completion event
                     if (success) {
                         listener.buildSuccess(new IndexBuilderEvent(runTime, TimeUnit.SECONDS));
@@ -366,3 +367,4 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         writer.close();
     }
 }
+    
