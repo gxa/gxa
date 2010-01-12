@@ -58,19 +58,19 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetDesignElements() throws IOException {
-        System.out.print("Design Elements: {");
-        for (int de : netCDF.getDesignElements()) {
-            System.out.print(de + ", ");
-        }
-        System.out.println("}");
+//        System.out.print("Design Elements: {");
+//        for (int de : netCDF.getDesignElements()) {
+//            System.out.print(de + ", ");
+//        }
+//        System.out.println("}");
     }
 
     public void testGetGenes() throws IOException {
-        System.out.print("Genes: {");
-        for (int gene : netCDF.getGenes()) {
-            System.out.print(gene + ", ");
-        }
-        System.out.println("}");
+//        System.out.print("Genes: {");
+//        for (int gene : netCDF.getGenes()) {
+//            System.out.print(gene + ", ");
+//        }
+//        System.out.println("}");
     }
 
     public void testGetFactors() throws IOException {
@@ -123,15 +123,15 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExpressionMatrix() throws IOException {
-        System.out.println("Expression Matrix: {");
-        for (double[] row : netCDF.getExpressionMatrix()) {
-            System.out.print("\t");
-            for (double cell : row) {
-                System.out.print(cell + ", ");
-            }
-            System.out.println(";");
-        }
-        System.out.println("}");
+//        System.out.println("Expression Matrix: {");
+//        for (double[] row : netCDF.getExpressionMatrix()) {
+//            System.out.print("\t");
+//            for (double cell : row) {
+//                System.out.print(cell + ", ");
+//            }
+//            System.out.println(";");
+//        }
+//        System.out.println("}");
     }
 
     public void testGetExpressionDataForDesignElement() throws IOException {
@@ -145,12 +145,12 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExpressionDataForAssay() throws IOException {
-        for (int i = 0; i < netCDF.getAssays().length; i++) {
-            System.out.println("Expression Values for assay " + netCDF.getAssays()[i] + " {");
-            for (double cell : netCDF.getExpressionDataForAssay(i)) {
-                System.out.print(cell + ", ");
-            }
-            System.out.println("}");
-        }
+//        for (int i = 0; i < netCDF.getAssays().length; i++) {
+//            System.out.println("Expression Values for assay " + netCDF.getAssays()[i] + " {");
+//            for (double cell : netCDF.getExpressionDataForAssay(i)) {
+//                System.out.print(cell + ", ");
+//            }
+//            System.out.println("}");
+//        }
     }
 }
