@@ -1,20 +1,13 @@
 package uk.ac.ebi.gxa.index.builder;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.index.builder.service.*;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -26,54 +19,34 @@ import java.util.concurrent.*;
  * @author Tony Burdett
  * @date 20-Aug-2009
  */
-public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean {
-    // these are spring managed fields
-    private AtlasDAO atlasDAO;
-    private File indexLocation;
-
-    // these are initialised by this bean, not spring managed
-    private CoreContainer coreContainer;
+public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     private ExecutorService service;
     private boolean running = false;
 
-    private List<String> includeIndices;
+    private List<String> includeIndexes;
 
-    private List<Pair<String, IndexBuilderService>> services;
+    private List<IndexBuilderService> services;
 
     private List<IndexUpdateHandler> updateHandlers = new ArrayList<IndexUpdateHandler>();
 
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    static {
-        IndexBuilderServiceRegistry.registerFactory(new PropertiesIndexBuilderService.Factory());
-        IndexBuilderServiceRegistry.registerFactory(new ExperimentAtlasIndexBuilderService.Factory());
-        IndexBuilderServiceRegistry.registerFactory(new GeneAtlasIndexBuilderService.Factory());
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
-    }
-
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    public void setIndexLocation(File indexLocation) {
-        this.indexLocation = indexLocation;
-    }
-
-    public File getIndexLocation() {
-        return indexLocation;
-    }
-
     public List<String> getIncludeIndexes() {
-        return includeIndices;
+        return includeIndexes;
     }
 
     public void setIncludeIndexes(List<String> includeIndices) {
-        this.includeIndices = includeIndices;
+        this.includeIndexes = includeIndices;
+    }
+
+    public List<IndexBuilderService> getServices() {
+        return services;
+    }
+
+    public void setServices(List<IndexBuilderService> services) {
+        this.services = services;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -82,12 +55,7 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
     }
 
     /**
-     * Starts up any resources required for building an index.  In this case, this method will create a new {@link
-     * AtlasDAO} and a spring {@link JdbcTemplate} in order to interact with the Atlas database.  It will then check for
-     * the existence of an appropriate SOLR index from the {@link #indexLocation} configured.  If the index previously
-     * exists, it will attempt to load it, and if not it will unpack any required configuration elements into this
-     * location ready to run a new index build.  It will the initialise an embedded SOLR server ({@link
-     * org.apache.solr.client.solrj.embedded.EmbeddedSolrServer}). Finally, it will initialise an {@link
+     * Starts up any resources required for building an index. It will initialise an {@link
      * java.util.concurrent.ExecutorService} for running index building tasks in an asynchronous, parallel manner.
      * <p/>
      * Once you have started a default index builder, it will continue to run until you call {@link #shutdown()} on it.
@@ -96,62 +64,11 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
      */
     public void startup() throws IndexBuilderException {
         if (!running) {
-            try {
-                // do some initialization...
+            // finally, create an executor service for processing calls to build the index
+            service = Executors.newCachedThreadPool();
+            log.debug("Initialized " + getClass().getSimpleName() + " OK!");
 
-                // check for the presence of the index
-                File solr = new File(indexLocation, "solr.xml");
-                if (!solr.exists()) {
-                    log.debug("No existing index - unpacking config files to " +
-                            indexLocation.getAbsolutePath());
-                    // no prior index, check the directory is empty?
-                    if (indexLocation.exists() && indexLocation.listFiles().length > 0) {
-                        String message = "Unable to unpack solr configuration files - " +
-                                indexLocation.getAbsolutePath() + " is not empty. " +
-                                "Please choose an empty directory to create the index";
-                        log.error(message);
-                        throw new IndexBuilderException(message);
-                    }
-                    else {
-                        // unpack configuration files
-                        unpackAtlasIndexTemplate(indexLocation);
-                    }
-                }
-
-                // first, create a solr CoreContainer
-                log.debug("Creating new SOLR container...");
-                coreContainer = new CoreContainer();
-                coreContainer.load(indexLocation.getAbsolutePath(), solr);
-
-                // create IndexBuilderServices for genes (atlas) and experiments
-                log.debug("Creating index building services for " + StringUtils.join(getIncludeIndexes(), ","));
-
-                services = new ArrayList<Pair<String, IndexBuilderService>>();
-                for (String name : includeIndices) {
-                    services.add(new Pair<String, IndexBuilderService>(
-                            name,
-                            IndexBuilderServiceRegistry.getFactoryByName(name).create(atlasDAO, coreContainer)
-                    ));
-                }
-
-                // finally, create an executor service for processing calls to build the index
-                service = Executors.newCachedThreadPool();
-                log.debug("Initialized " + getClass().getSimpleName() + " OK!");
-
-                running = true;
-            }
-            catch (IOException e) {
-                // wrap and rethrow as IndexBuilderException
-                throw new IndexBuilderException(e);
-            }
-            catch (SAXException e) {
-                // wrap and rethrow as IndexBuilderException
-                throw new IndexBuilderException(e);
-            }
-            catch (ParserConfigurationException e) {
-                // wrap and rethrow as IndexBuilderException
-                throw new IndexBuilderException(e);
-            }
+            running = true;
         }
         else {
             log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() +
@@ -212,7 +129,6 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
                 throw new IndexBuilderException(e);
             }
             finally {
-                coreContainer.shutdown();
                 running = false;
             }
         }
@@ -261,21 +177,22 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
 
-        for (final Pair<String, IndexBuilderService> ibService : services) {
-            indexingTasks.add(service.submit(new Callable<Boolean>() {
-                public Boolean call() throws IndexBuilderException {
-                    try {
-                        log.info("Starting building of index: " + ibService.getFirst());
-                        ibService.getSecond().buildIndex(pending);
-                        return true;
+        for (final IndexBuilderService service : services) {
+            if(includeIndexes.contains(service.getName())) {
+                indexingTasks.add(this.service.submit(new Callable<Boolean>() {
+                    public Boolean call() throws IndexBuilderException {
+                        try {
+                            log.info("Starting building of index: " + service.getName());
+                            service.buildIndex(pending);
+                            return true;
+                        }
+                        catch (Exception e) {
+                            log.error("Caught unchecked exception: " + e.getMessage(), e);
+                            return false;
+                        }
                     }
-                    catch (Exception e) {
-                        log.error("Caught unchecked exception: " + e.getMessage());
-                        e.printStackTrace();
-                        return false;
-                    }
-                }
-            }));
+                }));
+            }
         }
 
         // this tracks completion, if a listener was supplied
@@ -320,63 +237,5 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         }).start();
     }
 
-    /**
-     * This method bootstraps an empty atlas index when starting an indexbuilder from scratch.  Use this is the index
-     * could not be found, and you should get a ready-to-build index with all required config files
-     *
-     * @param indexLocation the location in which to build the index
-     * @throws IOException if the resources could not be written
-     */
-    private void unpackAtlasIndexTemplate(File indexLocation) throws IOException {
-        // configure a list of resources we need from the indexbuilder jar
-        writeResourceToFile("solr/solr.xml", new File(indexLocation, "solr.xml"));
-
-        for (String factory : IndexBuilderServiceRegistry.getAvailableFactories()) {
-            for (String fileName : IndexBuilderServiceRegistry.getFactoryByName(factory).getConfigFiles()) {
-                writeResourceToFile("solr/" + fileName,
-                                    new File(indexLocation, fileName.replaceAll("/", File.separator)));
-            }
-        }
-    }
-
-    /**
-     * Writes a classpath resource to a file in the specified location.  You should not use this to overwrite files - if
-     * you attempt this, an IOException will be thrown.  Also note that an IOException is thrown if the file you specify
-     * is in a new directory and the parent directories required could not be created.
-     *
-     * @param resourceName the name of the classpath resource to copy
-     * @param file         the file to write the classpath resource to
-     * @throws IOException if the resource could not properly be written out, or if the file already exists
-     */
-    private void writeResourceToFile(String resourceName, File file)
-            throws IOException {
-        // make all parent dirs necessary if they don't exist
-        if (!file.getParentFile().exists()) {
-            if (!file.getParentFile().mkdirs()) {
-                throw new IOException("Unable to make index directory " +
-                        file.getParentFile() + ", do you have permission to write here?");
-            }
-        }
-
-        // check the resource we're attempting to write doesn't exist
-        if (file.exists()) {
-            throw new IOException("The file " + file + " already exists - you " +
-                    "should not attempt to overwrite an existing index.  If you wish " +
-                    "to replace this index, please backup or delete the old one first");
-        }
-
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(
-                        Thread.currentThread().getContextClassLoader().getResourceAsStream(
-                                resourceName)));
-        BufferedWriter writer =
-                new BufferedWriter(new FileWriter(file));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            writer.write(line + "\n");
-        }
-        reader.close();
-        writer.close();
-    }
 }
     

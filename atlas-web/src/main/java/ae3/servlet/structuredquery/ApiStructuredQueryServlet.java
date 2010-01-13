@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  *
@@ -31,6 +33,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService)context.getBean("atlasQueryService");
         AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
+        Efo efo = (Efo)context.getBean("efo");
 
         if (experimentId != null) {
             AtlasExperiment exp = dao.getExperimentByAccession(experimentId);
@@ -92,7 +95,7 @@ public class ApiStructuredQueryServlet extends RestServlet {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, dao);
+                return new HeatmapResultAdapter(atlasResult, dao, efo);
             }
             else {
                 return new ErrorResult("Empty query specified");

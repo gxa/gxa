@@ -22,6 +22,7 @@ import java.util.*;
 public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
     final private Logger log = LoggerFactory.getLogger(getClass());
     private SolrServer solrServerAtlas;
+    private Efo efo;
     private final Map<String,Long> counts = new HashMap<String,Long>();
 
     /**
@@ -36,6 +37,14 @@ public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
+    }
+
+    public Efo getEfo() {
+        return efo;
+    }
+
+    public void setEfo(Efo efo) {
+        this.efo = efo;
     }
 
     /**
@@ -119,21 +128,6 @@ public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
             result.add(term.getTerm());
         }
         return result;
-    }
-
-    /**
-     * Load all counts
-     */
-    public void preloadData() {
-        getCount("");
-    }
-
-    /**
-     * Returns reference to EFO
-     * @return
-     */
-    public Efo getEfo() {
-        return Efo.getEfo();
     }
 
     /**

@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.index.builder;
 
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.util.List;
 
@@ -21,36 +20,7 @@ import java.util.List;
  * @author Tony Burdett
  * @date 20-Aug-2009
  */
-public interface IndexBuilder<T> {
-    /**
-     * Set the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @param atlasDAO the DAO that is used to obtain data to generate NetCDFs from
-     */
-    void setAtlasDAO(AtlasDAO atlasDAO);
-
-    /**
-     * Get the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @return the Atlas 2 compliant datasource to generate NetCDFs from
-     */
-    AtlasDAO getAtlasDAO();
-
-    /**
-     * Set the location for the index.  If there is already a pre-existing index at this location, implementations
-     * should update this index.  If there is no index pre-existing, it should be created.
-     *
-     * @param indexLocation the location of the index
-     */
-    void setIndexLocation(T indexLocation);
-
-    /**
-     * Get the location of the index.  This may not exist, if the index builder has not yet been run.
-     *
-     * @return the location of the index
-     */
-    T getIndexLocation();
-
+public interface IndexBuilder {
     /**
      * Set collection of index names to build
      * @param includeIndexes collection of names
@@ -133,7 +103,15 @@ public interface IndexBuilder<T> {
      */
     void updateIndex(IndexBuilderListener listener);
 
+    /**
+     * Register index update handler. Those handlers will be called once index was built.
+     * @param handler handler to register
+     */
     void registerIndexUpdateHandler(IndexUpdateHandler handler);
 
+    /**
+     * Unregister index update handler. Handlers will not receive update notifications anymore.
+     * @param handler handler to unregister
+     */
     void unregisterIndexUpdateHandler(IndexUpdateHandler handler);
 }

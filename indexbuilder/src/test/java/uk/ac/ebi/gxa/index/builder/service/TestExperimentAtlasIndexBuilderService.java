@@ -25,7 +25,9 @@ public class TestExperimentAtlasIndexBuilderService
         super.setUp();
 
         // create IndexBuilderServices for genes (atlas) and experiments
-        eaibs = new ExperimentAtlasIndexBuilderService(getAtlasDAO(), getExptSolrServer());
+        eaibs = new ExperimentAtlasIndexBuilderService();
+        eaibs.setAtlasDAO(getAtlasDAO());
+        eaibs.setSolrServer(getExptSolrServer());
     }
 
     public void tearDown() throws Exception {

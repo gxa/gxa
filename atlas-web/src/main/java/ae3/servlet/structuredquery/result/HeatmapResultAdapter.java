@@ -19,10 +19,12 @@ import java.util.Iterator;
 public class HeatmapResultAdapter {
     private final AtlasStructuredQueryResult r;
     private final AtlasDao dao;
+    private final Efo efo;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDao dao) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDao dao, Efo efo) {
         this.r = r;
         this.dao = dao;
+        this.efo = efo;
     }
 
     public long getTotalResultGenes() {
@@ -98,24 +100,24 @@ public class HeatmapResultAdapter {
         }
 
         public class EfoExp extends ResultRow.Expression {
-            private EfoTree.EfoItem<Integer> efo;
+            private EfoTree.EfoItem<Integer> efoItem;
 
-            public EfoExp(EfoTree.EfoItem<Integer> efo) {
-                this.efo = efo;                
-                this.counter = row.getCounters().get(efo.getPayload());
+            public EfoExp(EfoTree.EfoItem<Integer> efoItem) {
+                this.efoItem = efoItem;
+                this.counter = row.getCounters().get(efoItem.getPayload());
             }
 
             public String getEfoTerm() {
-                return efo.getTerm();
+                return efoItem.getTerm();
             }
 
             public String getEfoId() {
-                return efo.getId();
+                return efoItem.getId();
             }
 
             Iterator<Experiment> expiter() {
                 return row.getGene().getExperimentsTable()
-                        .findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(efo.getId())).iterator();
+                        .findByEfoSet(efo.getTermAndAllChildrenIds(efoItem.getId())).iterator();
             }
         }
 

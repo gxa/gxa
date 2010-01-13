@@ -1,6 +1,7 @@
 package uk.ac.ebi.ae3.indexbuilder;
 
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.Base64;
 
 import java.io.*;
 import java.util.*;

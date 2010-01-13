@@ -24,6 +24,7 @@ public class ExperimentsServlet extends RestServlet {
 
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
+        Efo efo = (Efo)context.getBean("efo");
 
         String geneIdKey = request.getParameter("gene");
         String factor = request.getParameter("ef");
@@ -37,7 +38,6 @@ public class ExperimentsServlet extends RestServlet {
             jsResult.put("efv", factorValue);
 
             if (isEfo) {
-                Efo efo = Efo.getEfo();
                 EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
@@ -60,7 +60,7 @@ public class ExperimentsServlet extends RestServlet {
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
             for (Experiment exp : isEfo ?
-                    gene.getExperimentsTable().findByEfoSet(Efo.getEfo().getTermAndAllChildrenIds(factorValue)) :
+                    gene.getExperimentsTable().findByEfoSet(efo.getTermAndAllChildrenIds(factorValue)) :
                     gene.getExperimentsTable().findByEfEfv(factor, factorValue)) {
                 Map<String, List<Experiment>> efmap = exmap.get(exp.getId());
                 if (efmap == null) {

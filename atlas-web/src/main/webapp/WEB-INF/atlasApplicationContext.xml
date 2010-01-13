@@ -13,6 +13,39 @@
 
     <!-- Spring config for Atlas -->
 
+    <!-- SOLR index -->
+    <bean id="solrContainerFactory" class="uk.ac.ebi.ae3.indexbuilder.SolrContainerFactory">
+        <property name="atlasIndex" ref="atlasIndex" />
+        <property name="templatePath" value="solr" />
+    </bean>
+
+    <bean name="solrContainer"
+          factory-bean="solrContainerFactory"
+          factory-method="createContainer"
+          destroy-method="shutdown" />
+
+    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="atlas" />
+    </bean>
+
+    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="expt" />
+    </bean>
+
+    <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="properties" />
+    </bean>
+
+    <bean name="efo" class="uk.ac.ebi.ae3.indexbuilder.efo.Efo" destroy-method="close">
+        <property name="indexFile" ref="efoIndex" />
+        <property name="uri" value="resource:META-INF/efo.owl"/>
+        <!-- can be any external of file url too -->
+        <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
+    </bean>
+
     <!-- Loader component -->
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
@@ -23,12 +56,29 @@
     </bean>
 
     <!-- Index Builder component -->
+    <bean name="indexBuilderServiceProperties" class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
+        <property name="atlasDAO" ref="atlasLoaderDAO" />
+        <property name="solrServer" ref="solrServerProp" />
+    </bean>
+
+    <bean name="indexBuilderServiceExperiments" class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasLoaderDAO" />
+        <property name="solrServer" ref="solrServerExpt" />
+    </bean>
+
+    <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasLoaderDAO" />
+        <property name="solrServer" ref="solrServerAtlas" />
+    </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
-        <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
-        <!-- location of SOLR index, local filesystem directory -->
-        <property name="indexLocation" ref="atlasIndex"/>
+        <property name="services">
+            <util:list>
+                <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceGenes"/>
+            </util:list>
+        </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
@@ -61,30 +111,6 @@
 
     <!-- Web interface component -->
 
-    <bean id="solrContainerFactory" class="ae3.dao.SolrContainerFactory">
-        <property name="atlasIndex" ref="atlasIndex" />
-    </bean>
-
-    <bean name="solrContainer"
-          factory-bean="solrContainerFactory"
-          factory-method="createContainer" 
-          destroy-method="shutdown" />
-
-    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="atlas" />
-    </bean>
-
-    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="expt" />
-    </bean>
-
-    <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="properties" />
-    </bean>
-
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasDao">
         <property name="solrServerAtlas" ref="solrServerAtlas" />
         <property name="solrServerExpt" ref="solrServerExpt" />
@@ -100,6 +126,7 @@
 
     <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
         <property name="solrServerAtlas" ref="solrServerAtlas" />
+        <property name="efo" ref="efo" />
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder" />
     </bean>
@@ -118,6 +145,7 @@
         <property name="atlasDbDAO" ref="atlasInterfaceDAO" />
         <property name="efoService" ref="atlasEfoService" />
         <property name="efvService" ref="atlasEfvService" />
+        <property name="efo" ref="efo" />
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder" />
@@ -196,6 +224,10 @@
 
     <jee:jndi-lookup id="atlasIndex"
                      jndi-name="/file/GXAINDEX"
+                     resource-ref="true"/>
+
+    <jee:jndi-lookup id="efoIndex"
+                     jndi-name="/file/GXAEFOINDEX"
                      resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasNetCDFRepo"

@@ -217,9 +217,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.removeAttribute(Atlas.COMPUTE_SERVICE.key());
         application.removeAttribute(Atlas.PLOTTER.key());
 
-        // clean-up efo
-        Efo.getEfo().close();
-
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;
         log.info("Atlas shutdown complete in " + time + " s.");

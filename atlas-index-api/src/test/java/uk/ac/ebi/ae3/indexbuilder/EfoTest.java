@@ -5,12 +5,14 @@ import junit.framework.TestCase;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
+import uk.ac.ebi.gxa.utils.FileUtil;
+import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
@@ -18,16 +20,32 @@ import static org.junit.Assert.*;
  */
 public class EfoTest {
 
-    Efo efo;
+    static Efo efo;
+    static File tempDirectory;
 
-    @Before
-    public void before() {
-        efo = Efo.getEfo();
+    @BeforeClass
+    public static void before() throws URISyntaxException {
+        
+        efo = new Efo();
+        tempDirectory = FileUtil.createTempDirectory("efoindex");
+        efo.setIndexFile(tempDirectory);
+        efo.setUri(new URI("resource:META-INF/efo.owl"));
     }
 
-    @After
-    public void after() {
+    @AfterClass
+    public static void after() {
         efo.close();
+        FileUtil.deleteDirectory(tempDirectory);
+    }
+
+    @Test
+    public void testExternalSource() throws URISyntaxException {
+        Efo efo = new Efo();
+        File tempDirectory = FileUtil.createTempDirectory("efoindex-ext");
+        efo.setIndexFile(tempDirectory);
+        efo.setUri(new URI("http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"));
+        assertTrue(efo.getAllTerms().size() > 0);
+        FileUtil.deleteDirectory(tempDirectory);
     }
 
     @Test
