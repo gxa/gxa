@@ -49,6 +49,8 @@ public class FactorValuesServlet extends RestServlet {
         Map<String, Object> result = new HashMap<String, Object>();
 
         String factor = request.getParameter("factor");
+        if(factor == null)
+            factor = "";
         result.put("factor", factor);
 
         int nlimit = 100;
