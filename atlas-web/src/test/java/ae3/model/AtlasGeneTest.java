@@ -1,7 +1,7 @@
 package ae3.model;
 
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
-import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.ExperimentsTable;
 import ae3.dao.AtlasDao;
 import ae3.util.Pair;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder.efo;
+package uk.ac.ebi.gxa.efo;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -14,8 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.net.URI;
-
-import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**
  * Class representing EFO heirarchy

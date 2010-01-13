@@ -7,9 +7,9 @@ import ae3.service.structuredquery.Constants;
 import ae3.util.CuratedTexts;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
-import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
+import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoTerm;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;

@@ -1,6 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
-
-import junit.framework.TestCase;
+package uk.ac.ebi.gxa.index;
 
 import java.util.Collection;
 import java.util.List;
@@ -9,8 +7,8 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
-import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
+import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import org.junit.*;
 import static org.junit.Assert.*;

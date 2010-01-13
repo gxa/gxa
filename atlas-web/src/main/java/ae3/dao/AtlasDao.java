@@ -10,8 +10,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.index.ExperimentsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;

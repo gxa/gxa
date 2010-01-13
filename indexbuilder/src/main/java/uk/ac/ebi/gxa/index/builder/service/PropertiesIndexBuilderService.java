@@ -1,15 +1,10 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.CoreContainer;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 
 import java.io.IOException;
 

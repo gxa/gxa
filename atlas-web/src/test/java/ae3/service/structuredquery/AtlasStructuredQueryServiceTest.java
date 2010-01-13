@@ -4,7 +4,7 @@ import org.junit.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import ae3.dao.AtlasDao;
 
 /**

@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
+package uk.ac.ebi.gxa.index;
 
 import org.junit.After;
 import org.junit.Before;

@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**

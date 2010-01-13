@@ -3,7 +3,7 @@ package ae3.model;
 import ae3.service.GxaDasDataSource;
 import ae3.util.CuratedTexts;
 import ae3.util.StringUtils;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
+import uk.ac.ebi.gxa.index.Experiment;
 
 import java.util.*;
 

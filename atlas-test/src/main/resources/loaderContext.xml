@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
     <!-- SOLR index -->
-    <bean id="solrContainerFactory" class="uk.ac.ebi.ae3.indexbuilder.SolrContainerFactory">
+    <bean id="solrContainerFactory" class="uk.ac.ebi.gxa.index.SolrContainerFactory">
         <property name="atlasIndex" ref="atlasIndex" />
         <property name="templatePath" value="solr" />
     </bean>
@@ -29,7 +29,7 @@
         <constructor-arg value="properties" />
     </bean>
 
-    <bean name="efo" class="uk.ac.ebi.ae3.indexbuilder.efo.Efo" destroy-method="close">
+    <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="indexFile" ref="efoIndex" />
         <property name="uri" value="resource:META-INF/efo.owl"/>
     </bean>

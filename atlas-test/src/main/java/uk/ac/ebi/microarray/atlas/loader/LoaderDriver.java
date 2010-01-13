@@ -133,7 +133,7 @@ public class LoaderDriver {
             }
         });
 
-        // in case we don't run indexbuilder
+        // in case we don't run index
 //        try {
 //            builder.shutdown();
 //        }
