@@ -310,7 +310,7 @@ public class NetCDFWriter {
                     // concatenate strings with commas if we need more
                     currentEFV = currentEFV.concat(propertyValue);
                     if (tracker++ % repeats != 0) {
-                        currentEFV = currentEFV.concat(",");
+                        currentEFV = currentEFV.concat("||");
                     }
                     else {
                         // got to the end of the current set of repeats - so add data to EF, EFV matrices
@@ -320,7 +320,7 @@ public class NetCDFWriter {
                         efvIndex++;
 
                         // and populate uniqueFactorValues set
-                        uniqueFactorValues.add(propertyName.concat(":").concat(propertyValue));
+                        uniqueFactorValues.add(propertyName.concat("||").concat(propertyValue));
 
                         // reset tracker and currentEFV
                         tracker=0;
@@ -413,7 +413,7 @@ public class NetCDFWriter {
                     tracker++;
                     currentSCV = currentSCV.concat(propertyValue);
                     if (tracker % repeats != 0) {
-                        currentSCV = currentSCV.concat(",");
+                        currentSCV = currentSCV.concat("||");
                     }
                     else {
                         // got to the end of the current set of repeats - so add data to EF, EFV matrices
@@ -492,7 +492,7 @@ public class NetCDFWriter {
             Set<String> uniqueFactorValues = new LinkedHashSet<String>();
             for (String property : experimentFactorMap.keySet()) {
                 for (String propertyValue : experimentFactorMap.get(property)) {
-                    uniqueFactorValues.add(property.concat(":").concat(propertyValue));
+                    uniqueFactorValues.add(property.concat("||").concat(propertyValue));
                 }
             }
 

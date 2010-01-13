@@ -89,6 +89,36 @@
             name="value004"
             />
 
+    <A2_PROPERTYVALUE
+            propertyvalueid="5"
+            propertyid="2"
+            name="value005"
+            />
+
+    <A2_PROPERTYVALUE
+            propertyvalueid="6"
+            propertyid="2"
+            name="value006"
+            />
+
+    <A2_PROPERTYVALUE
+            propertyvalueid="7"
+            propertyid="1"
+            name="value007"
+            />
+
+    <A2_PROPERTYVALUE
+            propertyvalueid="8"
+            propertyid="3"
+            name="value008"
+            />
+
+    <A2_PROPERTYVALUE
+            propertyvalueid="9"
+            propertyid="3"
+            name="value009"
+            />
+
     <A2_GENE
             geneid="1"
             specid="1"
@@ -156,6 +186,48 @@
             isfactorvalue="1"
             />
 
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="4"
+            assayid="1"
+            propertyvalueid="4"
+            isfactorvalue="1"
+            />
+
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="5"
+            assayid="1"
+            propertyvalueid="5"
+            isfactorvalue="1"
+            />
+
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="6"
+            assayid="1"
+            propertyvalueid="6"
+            isfactorvalue="1"
+            />
+
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="7"
+            assayid="1"
+            propertyvalueid="7"
+            isfactorvalue="1"
+            />
+
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="8"
+            assayid="1"
+            propertyvalueid="8"
+            isfactorvalue="1"
+            />
+
+    <A2_ASSAYPROPERTYVALUE
+            assaypropertyvalueid="9"
+            assayid="1"
+            propertyvalueid="9"
+            isfactorvalue="1"
+            />
+
     <A2_SAMPLE
             sampleid="1"
             accession="abc:some/Sample:ABC_DEFG_123a"
@@ -182,6 +254,20 @@
             sampleid="2"
             propertyvalueid="5"
             isfactorvalue="0"
+            />
+
+    <A2_SAMPLEPROPERTYVALUE
+            samplepropertyvalueid="8"
+            sampleid="1"
+            propertyvalueid="8"
+            isfactorvalue="1"
+            />
+
+    <A2_SAMPLEPROPERTYVALUE
+            samplepropertyvalueid="9"
+            sampleid="1"
+            propertyvalueid="9"
+            isfactorvalue="1"
             />
 
     <A2_ASSAYSAMPLE

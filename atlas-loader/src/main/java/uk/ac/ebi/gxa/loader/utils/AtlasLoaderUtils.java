@@ -256,14 +256,17 @@ public class AtlasLoaderUtils {
      * @return the accession that was generated
      */
     public static String getNodeAccession(MAGETABInvestigation investigation, SDRFNode node) {
-        // todo - make decision on accession number format - just use name if not required to be unique?
-        String accession;
-        if (investigation.accession != null) {
-            accession = investigation.accession + "::" + node.getNodeType() + "::" + node.getNodeName();
-        }
-        else {
-            accession = "UNKNOWN::" + node.getNodeType() + "::" + node.getNodeName();
-        }
-        return accession;
+//        // todo - make decision on accession number format - just use name if not required to be unique?
+//        String accession;
+//        if (investigation.accession != null) {
+//            accession = investigation.accession + "::" + node.getNodeType() + "::" + node.getNodeName();
+//        }
+//        else {
+//            accession = "UNKNOWN::" + node.getNodeType() + "::" + node.getNodeName();
+//        }
+//        return accession;
+
+        // no requirement to be unique, so just return node name
+        return node.getNodeName();
     }
 }
