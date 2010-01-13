@@ -209,7 +209,7 @@ public class ExperimentNetCDFGeneratorService
                             netCDF.close();
 
                             getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
-                                    "and " + dataSlice.getArrayDesign().getAccession());
+                                    " and " + dataSlice.getArrayDesign().getAccession());
                             return true;
                         }
                         finally {

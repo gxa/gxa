@@ -23,7 +23,6 @@ public class NetCDFWriter {
     // internal maps - indexes for locations of given assay/design element ids
     Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
     Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
-    Map<String, Integer> uniquePropertyValueIndex = new HashMap<String, Integer>();
 
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -69,7 +68,6 @@ public class NetCDFWriter {
             writePropertyData(
                     netCDF,
                     dataSlice.getExperimentFactorMappings(),
-                    dataSlice.getAssayFactorValueMappings(),
                     dataSlice.getSampleCharacteristicMappings());
 
             // write expression matrix values
@@ -82,7 +80,7 @@ public class NetCDFWriter {
                     netCDF,
                     dataSlice.getDesignElements(),
                     dataSlice.getExpressionAnalysisMappings(),
-                    dataSlice.getAssayFactorValueMappings());
+                    dataSlice.getExperimentFactorMappings());
         }
         catch (IOException e) {
             throw new NetCDFGeneratorException(e);
@@ -246,7 +244,6 @@ public class NetCDFWriter {
     private void writePropertyData(
             NetcdfFileWriteable netCDF,
             Map<String, List<String>> experimentFactorMap,
-            Map<Assay, List<String>> assayFactorValueMap,
             Map<String, List<String>> sampleCharacteristicMap)
             throws IOException, InvalidRangeException {
         // check dimensions for assay properties are available
@@ -268,29 +265,66 @@ public class NetCDFWriter {
             ArrayInt uefvNum = new ArrayInt.D1(
                     netCDF.findDimension("EF").getLength());
 
+            // track total number of assays
+            int assayCount = netCDF.findDimension("AS").getLength();
+
             // populate ef, efv matrices
             int efIndex = 0;
             int efvIndex = 0;
 
+            // build set of uEFVs
+            Set<String> uniqueFactorValues = new LinkedHashSet<String>();
+
+            // loop over factor/factor value mappings
             for (String propertyName : experimentFactorMap.keySet()) {
                 // add property name to EF
                 ef.setString(efIndex, propertyName);
 
+                // check that number of factor values is divisible by the number of assays
+                if (experimentFactorMap.get(propertyName).size() % assayCount != 0) {
+                    throw new InvalidRangeException("Cannot reconcile property values for " + propertyName +
+                            ": expected a multiple of the number of assays (" + assayCount + "), got " +
+                            experimentFactorMap.get(propertyName).size());
+                }
+
+                // may be multiple EFVs per assay - if so, we need to concatenate EFVs with a comma
+                int repeats = experimentFactorMap.get(propertyName).size() / assayCount;
+                int tracker = 0;
+                String currentEFV = "";
+
+                if (repeats > 1) {
+                    // concatenate multiples with commas
+                    // this will occur if there are multiple property values assigned
+                    // to the same property for single assay
+                    String stats = new StringBuffer()
+                            .append("\n\tNumber of Assays: ").append(assayCount)
+                            .append("\n\tNumber of Experiment Factor Values (for ").append(propertyName)
+                            .append("): ").append(experimentFactorMap.get(propertyName).size()).append(".")
+                            .append("\n\t").append(repeats).append(" EFVs at a time will be stored")
+                            .toString();
+                    log.warn("Multiple property values assigned to the same " +
+                            "property (" + propertyName + ") for single assay!" + stats);
+                }
+
                 for (String propertyValue : experimentFactorMap.get(propertyName)) {
-                    if (efvIndex < netCDF.findDimension("AS").getLength()) {
-                        // add property value to EFV, indexed by each ef
-                        efv.setString(efv.getIndex().set(efIndex, efvIndex), propertyValue);
-                        // increment index count on efv axis
-                        efvIndex++;
+                    // concatenate strings with commas if we need more
+                    currentEFV = currentEFV.concat(propertyValue);
+                    if (tracker++ % repeats != 0) {
+                        currentEFV = currentEFV.concat(",");
                     }
                     else {
-                        // fixme: concatenate multiples with commas
-                        // this will occur if there are multiple property values assigned
-                        // to the same property for single assay - in theory this shouldn't
-                        // happen, but it is technically possible.
-                        // In the old software, this results in lost data
-                        log.error("Multiple property values assigned to the same property for single assay!");
-                        break;
+                        // got to the end of the current set of repeats - so add data to EF, EFV matrices
+                        // add property value to EFV, indexed by each ef
+                        efv.setString(efv.getIndex().set(efIndex, efvIndex), currentEFV);
+                        // increment index count on efv axis
+                        efvIndex++;
+
+                        // and populate uniqueFactorValues set
+                        uniqueFactorValues.add(propertyName.concat(":").concat(propertyValue));
+
+                        // reset tracker and currentEFV
+                        tracker=0;
+                        currentEFV = "";
                     }
                 }
 
@@ -300,27 +334,14 @@ public class NetCDFWriter {
             }
 
             // populate uefv, uefvnum matrices
+            int uefvIndex = 0;
             int uefvNumIndex = 0;
 
-            // evaluate unique property values
-            Set<String> uniquePropertyValues = new HashSet<String>();
-            int counter = 0;
-            for (Assay ass : assayFactorValueMap.keySet()) {
-                for (String propertyValue : assayFactorValueMap.get(ass)) {
-                    // add an index location, if we haven't seen this property before
-                    if (!uniquePropertyValues.contains(propertyValue)) {
-                        uniquePropertyValueIndex.put(propertyValue, counter);
-                        counter++;
-                    }
-
-                    // add property value to the set, ensuring uniqueness
-                    uniquePropertyValues.add(propertyValue);
-                }
-            }
-
             // use unique factor values to populate uefv
-            for (String uniqueFactorValue : uniquePropertyValues) {
-                uefv.setString(uniquePropertyValueIndex.get(uniqueFactorValue), uniqueFactorValue);
+            for (String uniqueFactorValue : uniqueFactorValues) {
+                uefv.setString(uefv.getIndex().set(uefvIndex), uniqueFactorValue);
+                // increment uefv up one
+                uefvIndex++;
             }
 
             // use counts to populate uefvNum
@@ -347,30 +368,67 @@ public class NetCDFWriter {
                     netCDF.findDimension("SC").getLength(),
                     netCDF.findDimension("BS").getLength(),
                     netCDF.findDimension("SClen").getLength());
+
+            // track total number of samples
+            int sampleCount = netCDF.findDimension("BS").getLength();
+
+            // used to populate sc/scv variables
             int scIndex = 0;
             int scvIndex = 0;
+
+            // loop over characteristic/characteristic value mappings
             for (String propertyName : sampleCharacteristicMap.keySet()) {
+                // add property name to SC
                 sc.setString(scIndex, propertyName);
 
+                // check that number of factor values is divisible by the number of assays
+                if (sampleCharacteristicMap.get(propertyName).size() % sampleCount != 0) {
+                    throw new InvalidRangeException("Cannot reconcile property values for " + propertyName +
+                            ": expected a multiple of the number of samples (" + sampleCount + "), got " +
+                            sampleCharacteristicMap.get(propertyName).size());
+                }
+
+                // may be multiple SCVs per sample - if so, we need to concatenate SCVs with a comma
+                int repeats = sampleCharacteristicMap.get(propertyName).size() / sampleCount;
+                int tracker = 0;
+                String currentSCV = "";
+
+                if (repeats > 1) {
+                    // concatenate multiples with commas
+                    // this will occur if there are multiple property values assigned
+                    // to the same property for single assay
+                    String stats = new StringBuffer()
+                            .append("\n\tNumber of Samples: ")
+                            .append(netCDF.findDimension("BS").getLength())
+                            .append("\n\tNumber of Sample Characteristic Values (for ").append(propertyName)
+                            .append("): ").append(sampleCharacteristicMap.get(propertyName).size()).append(".")
+                            .append("\n\t").append(repeats).append(" SCVs at a time will be stored")
+                            .toString();
+                    log.warn("Multiple property values assigned to the same " +
+                            "property (" + propertyName + ") for single sample!" + stats);
+                }
+
                 for (String propertyValue : sampleCharacteristicMap.get(propertyName)) {
-                    if (scvIndex < netCDF.findDimension("BS").getLength()) {
-                        // add property value to SCV, indexed by each SC
-                        scv.setString(scv.getIndex().set(scIndex, scvIndex), propertyValue);
-                        // increment index count on scv axis
-                        scvIndex++;
+                    // concatenate strings with commas if we need more
+                    tracker++;
+                    currentSCV = currentSCV.concat(propertyValue);
+                    if (tracker % repeats != 0) {
+                        currentSCV = currentSCV.concat(",");
                     }
                     else {
-                        // fixme:
-                        // this will occur if there are multiple property values assigned
-                        // to the same property for single sample - in theory this shouldn't
-                        // happen, but it is technically possible.
-                        // In the old software, this results in lost data
-                        log.error("Multiple property values assigned to the same " +
-                                "property for single sample!");
-                        break;
+                        // got to the end of the current set of repeats - so add data to EF, EFV matrices
+                        // add property value to EFV, indexed by each ef
+                        scv.setString(scv.getIndex().set(scIndex, scvIndex), currentSCV);
+                        // increment index count on efv axis
+                        scvIndex++;
+
+                        // reset tracker and currentEFV
+                        tracker=0;
+                        currentSCV = "";
                     }
                 }
 
+                // increment ef axis up one, and reset efv axis to zero
                 scIndex++;
                 scvIndex = 0;
             }
@@ -416,7 +474,7 @@ public class NetCDFWriter {
     private void writeStatsValues(NetcdfFileWriteable netCDF,
                                   Map<Integer, String> designElements,
                                   Map<Integer, List<ExpressionAnalysis>> analyses,
-                                  Map<Assay, List<String>> assayFactorValueMap)
+                                  Map<String, List<String>> experimentFactorMap)
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("DE") != null &&
                 netCDF.findDimension("uEFV") != null) {
@@ -431,23 +489,27 @@ public class NetCDFWriter {
             Set<Integer> unmappedDesignElements = new HashSet<Integer>();
             Set<String> unmappedProperties = new HashSet<String>();
 
-            Set<String> uniquePropertyValues = new HashSet<String>();
-            for (Assay ass : assayFactorValueMap.keySet()) {
-                // add all property values to the set, ensuring uniqueness
-                uniquePropertyValues.addAll(assayFactorValueMap.get(ass));
+            Set<String> uniqueFactorValues = new LinkedHashSet<String>();
+            for (String property : experimentFactorMap.keySet()) {
+                for (String propertyValue : experimentFactorMap.get(property)) {
+                    uniqueFactorValues.add(property.concat(":").concat(propertyValue));
+                }
             }
 
-            // loop over design elements doing crafty index lookups
+            // loop over design elements, do positional lookups as we go
+            int uefvIndex;
             for (int designElementID : designElements.keySet()) {
                 if (analyses.get(designElementID) != null) {
                     // not null, so now loop over values of the assayFactorValueMap,
                     // so  we can lookup analysis by design element id and property value
-                    for (String propertyValue : uniquePropertyValues) {
+                    uefvIndex = 0;
+                    for (String uniqueFactorValue : uniqueFactorValues) {
+                        uefvIndex++;
                         boolean foundAnalysis = false;
                         for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
-                            if (analysis.getEfvName().equals(propertyValue)) {
+                            if (analysis.getEfvName().equals(uniqueFactorValue)) {
+                                // locate the position of this design element in the DE matrix
                                 int deIndex = designElementIndex.get(designElementID);
-                                int uefvIndex = uniquePropertyValueIndex.get(propertyValue);
 
                                 // found the right analysis, add - make sure these are ordered the same as uEFV
                                 pval.setDouble(pval.getIndex().set(deIndex, uefvIndex), analysis.getPValAdjusted());
@@ -461,7 +523,7 @@ public class NetCDFWriter {
 
                         // if we couldn't find an appropriate analysis, warn
                         if (!foundAnalysis) {
-                            unmappedProperties.add(designElementID + ":" + propertyValue);
+                            unmappedProperties.add(designElementID + ":" + uniqueFactorValue);
                         }
                     }
                 }
