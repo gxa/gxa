@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A slice of data, organised in the way that the NetCDFs are formatted.  This
- * means a single data slice references a single experiment and array design
- * pair, plus stores the set of assays in this experiment that utilise the given
- * array design.  It also references every sample that is upstream of each assay
- * in this experiment - this will almost always be a one to one mapping.
+ * A slice of data, organised in the way that the NetCDFs are formatted.  This means a single data slice references a
+ * single experiment and array design pair, plus stores the set of assays in this experiment that utilise the given
+ * array design.  It also references every sample that is upstream of each assay in this experiment - this will almost
+ * always be a one to one mapping.
  *
  * @author Tony Burdett
  * @date 30-Sep-2009
@@ -33,7 +32,6 @@ public class DataSlice {
     // maps of properties
     private Map<String, List<String>> experimentFactorMap;
     private Map<String, List<String>> sampleCharacteristicMap;
-    private Map<Assay, List<String>> assayFactorValueMap;
 
 
     public DataSlice(Experiment experiment, ArrayDesign arrayDesign) {
@@ -52,7 +50,8 @@ public class DataSlice {
     public synchronized List<Assay> getAssays() {
         if (assays != null) {
             return assays;
-        } else {
+        }
+        else {
             return new ArrayList<Assay>();
         }
     }
@@ -60,7 +59,8 @@ public class DataSlice {
     public synchronized Map<Integer, String> getDesignElements() {
         if (designElements != null) {
             return designElements;
-        } else {
+        }
+        else {
             return new HashMap<Integer, String>();
         }
     }
@@ -68,7 +68,8 @@ public class DataSlice {
     public synchronized List<Gene> getGenes() {
         if (genes != null) {
             return genes;
-        } else {
+        }
+        else {
             return new ArrayList<Gene>();
         }
     }
@@ -76,7 +77,8 @@ public class DataSlice {
     public synchronized List<ExpressionAnalysis> getExpressionAnalyses() {
         if (analyses != null) {
             return analyses;
-        } else {
+        }
+        else {
             return new ArrayList<ExpressionAnalysis>();
         }
     }
@@ -84,7 +86,8 @@ public class DataSlice {
     public synchronized List<Sample> getSamples() {
         if (samples != null) {
             return samples;
-        } else {
+        }
+        else {
             return new ArrayList<Sample>();
         }
     }
@@ -92,42 +95,42 @@ public class DataSlice {
     public synchronized Map<Integer, Map<Integer, Float>> getExpressionValues() {
         if (expressionValues != null) {
             return expressionValues;
-        } else {
+        }
+        else {
             return new HashMap<Integer, Map<Integer, Float>>();
         }
     }
 
     /**
-     * Returns a list of samples, keyed by the assays they are related to.  The
-     * ordering of the list of samples for each assay reflects the order in which
-     * they were stored: this is guaranteed to be the same ordering as the list of
+     * Returns a list of samples, keyed by the assays they are related to.  The ordering of the list of samples for each
+     * assay reflects the order in which they were stored: this is guaranteed to be the same ordering as the list of
      * samples.
      *
-     * @return a map of lists of samples, indexed by the assay they're related to.
-     *         This will be a one-to-one mapping in most cases.
+     * @return a map of lists of samples, indexed by the assay they're related to. This will be a one-to-one mapping in
+     *         most cases.
      */
     public synchronized Map<Assay, List<Sample>> getSampleMappings() {
         if (samplesMap != null) {
             return samplesMap;
-        } else {
+        }
+        else {
             return new HashMap<Assay, List<Sample>>();
         }
     }
 
     /**
-     * Returns a map of genes, keyed by the design element id they are annotated
-     * for. This is a mapping with one-to-one cardinality - design elements cannot
-     * be annotated with multiple genes, although the same gene can be annotated
-     * against multiple design elements.  Note that some design elements may not
-     * be annotated at all, in which case the gene will be null.
+     * Returns a map of genes, keyed by the design element id they are annotated for. This is a mapping with one-to-one
+     * cardinality - design elements cannot be annotated with multiple genes, although the same gene can be annotated
+     * against multiple design elements.  Note that some design elements may not be annotated at all, in which case the
+     * gene will be null.
      *
-     * @return a map of genes, indexed by the design element id they're related
-     *         to.
+     * @return a map of genes, indexed by the design element id they're related to.
      */
     public synchronized Map<Integer, List<Gene>> getGeneMappings() {
         if (genesMap != null) {
             return genesMap;
-        } else {
+        }
+        else {
             return new HashMap<Integer, List<Gene>>();
         }
     }
@@ -135,21 +138,19 @@ public class DataSlice {
     public synchronized Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysisMappings() {
         if (analysesMap != null) {
             return analysesMap;
-        } else {
+        }
+        else {
             return new HashMap<Integer, List<ExpressionAnalysis>>();
         }
     }
 
     /**
-     * Returns a list of strings representing the Experiment Factor Values
-     * ("EFVs") for this data slice, indexed by the Experiment Factor Name ("EF")
-     * it is declared to be a value for.  Essentially, this reflects the mappings
-     * between unique property names and the set of values for all assay
-     * properties that are declared "isFactorValue() == true" for this data
-     * slice.
+     * Returns a list of strings representing the Experiment Factor Values ("EFVs") for this data slice, indexed by the
+     * Experiment Factor Name ("EF") it is declared to be a value for.  Essentially, this reflects the mappings between
+     * unique property names and the set of values for all assay properties that are declared "isFactorValue() == true"
+     * for this data slice.
      *
-     * @return the mapping between unique EFs and the set of EFVs for this data
-     *         slice
+     * @return the mapping between unique EFs and the set of EFVs for this data slice
      */
     public synchronized Map<String, List<String>> getExperimentFactorMappings() {
         if (experimentFactorMap == null) {
@@ -160,14 +161,11 @@ public class DataSlice {
     }
 
     /**
-     * Returns a list of strings representing the Sample Characteristic Values
-     * ("SCVs") for this data slice, indexed by the Sample Characteristic Name
-     * ("SC") it is declared to be a value for.  Essentially, this reflects the
-     * mappings between unique property names and the set of values for all sample
-     * properties for this data slice.
+     * Returns a list of strings representing the Sample Characteristic Values ("SCVs") for this data slice, indexed by
+     * the Sample Characteristic Name ("SC") it is declared to be a value for.  Essentially, this reflects the mappings
+     * between unique property names and the set of values for all sample properties for this data slice.
      *
-     * @return the mapping between unique SCs and the set of SCVs for this data
-     *         slice
+     * @return the mapping between unique SCs and the set of SCVs for this data slice
      */
     public synchronized Map<String, List<String>> getSampleCharacteristicMappings() {
         if (sampleCharacteristicMap == null) {
@@ -178,30 +176,8 @@ public class DataSlice {
     }
 
     /**
-     * Returns a list of strings representing the Experiment Factor Values
-     * ("EFVs") for this data slice, indexed by the Assay it is declared to be a
-     * EFV for.  This gives a binding between all observed assays and the matched
-     * property values found in this data slice.  Note that the list of property
-     * values is arranged according to the order of the observed properties, and
-     * can contain empty strings when a property has no value.  This means the
-     * ordering of property values consistently reflects the order of the known
-     * properties across all assays.
-     *
-     * @return the mappins between assays with declared factor values, and the
-     *         list of values observed.
-     */
-    public synchronized Map<Assay, List<String>> getAssayFactorValueMappings() {
-        if (assayFactorValueMap == null) {
-            evaluatePropertyMappings();
-        }
-
-        return assayFactorValueMap;
-    }
-
-    /**
-     * Stores a list of assays for this data slice.  This list should be the list
-     * of assays that belong to the experiment/array design pair for this data
-     * slice.
+     * Stores a list of assays for this data slice.  This list should be the list of assays that belong to the
+     * experiment/array design pair for this data slice.
      *
      * @param assays the list of assays to store
      */
@@ -210,22 +186,21 @@ public class DataSlice {
     }
 
     /**
-     * Stores the given sample, indexed by the assay to which it belongs.  If a
-     * list of assays has already been stored, the supplied assay should be found
-     * in this list. A DataSlicingException will be raised if there are no stored
-     * assays, or if you attempt to store a Sample for an unknown assay.  It is
-     * legal to store several Samples for the same assay.
+     * Stores the given sample, indexed by the assay to which it belongs.  If a list of assays has already been stored,
+     * the supplied assay should be found in this list. A DataSlicingException will be raised if there are no stored
+     * assays, or if you attempt to store a Sample for an unknown assay.  It is legal to store several Samples for the
+     * same assay.
      *
      * @param assay  the assay that indexes this sample
      * @param sample the sample to store for the given assay
-     * @throws DataSlicingException if you store a sample for an unknown assay, or
-     *                              if no assays are stored.
+     * @throws DataSlicingException if you store a sample for an unknown assay, or if no assays are stored.
      */
     public synchronized void storeSample(Assay assay, Sample sample)
             throws DataSlicingException {
         if (assays == null) {
             throw new DataSlicingException("Can't store " + sample + ": assay index has not been initialized!");
-        } else {
+        }
+        else {
             // ok to initialize
             if (samplesMap == null) {
                 samplesMap = new HashMap<Assay, List<Sample>>();
@@ -237,7 +212,8 @@ public class DataSlice {
             // now check integrity
             if (!assays.contains(assay)) {
                 throw new DataSlicingException("Can't store " + sample + ": assay " + assay + " absent from index");
-            } else {
+            }
+            else {
                 // add sample to the list (unless it's already added)
                 if (!samples.contains(sample)) {
                     samples.add(sample);
@@ -245,7 +221,8 @@ public class DataSlice {
                 // and add to the map indexed by assayID
                 if (samplesMap.containsKey(assay)) {
                     samplesMap.get(assay).add(sample);
-                } else {
+                }
+                else {
                     List<Sample> samples = new ArrayList<Sample>();
                     samples.add(sample);
                     samplesMap.put(assay, samples);
@@ -255,12 +232,10 @@ public class DataSlice {
     }
 
     /**
-     * Stores a map containing information about design elements for this data
-     * slice.  This map should contain the list of design element ids and the
-     * manufacturers design element accession.
+     * Stores a map containing information about design elements for this data slice.  This map should contain the list
+     * of design element ids and the manufacturers design element accession.
      *
-     * @param designElements the design elements to store, being a map of design
-     *                       element ids to accessions
+     * @param designElements the design elements to store, being a map of design element ids to accessions
      */
     public synchronized void storeDesignElements(
             Map<Integer, String> designElements) {
@@ -268,23 +243,22 @@ public class DataSlice {
     }
 
     /**
-     * Stores the given gene, indexed by the design element to which it belongs.
-     * If a list of design element ids has already been stored, the supplied
-     * design element id should be found in this list. A DataSlicingException will
-     * be raised if there are no stored design elements, or if you attempt to
-     * store a Gene for an unknown design element.  It is not legal to store
-     * several Genes for the same design element: if you attempt this, a
-     * DataSlicingException will be thrown.
+     * Stores the given gene, indexed by the design element to which it belongs. If a list of design element ids has
+     * already been stored, the supplied design element id should be found in this list. A DataSlicingException will be
+     * raised if there are no stored design elements, or if you attempt to store a Gene for an unknown design element.
+     * It is not legal to store several Genes for the same design element: if you attempt this, a DataSlicingException
+     * will be thrown.
      *
      * @param designElementID the design element id for this gene
      * @param gene            the gene to store, indexed by the design element id
-     * @throws DataSlicingException if you store a gene for an unknown design
-     *                              element, or if no design elements are stored.
+     * @throws DataSlicingException if you store a gene for an unknown design element, or if no design elements are
+     *                              stored.
      */
     public synchronized void storeGene(int designElementID, Gene gene) throws DataSlicingException {
         if (designElements == null) {
             throw new DataSlicingException("Can't store " + gene + ": design element index has not been initialized!");
-        } else {
+        }
+        else {
             // ok to initialize
             if (genesMap == null) {
                 genesMap = new HashMap<Integer, List<Gene>>();
@@ -297,7 +271,8 @@ public class DataSlice {
             if (!designElements.keySet().contains(designElementID)) {
                 throw new DataSlicingException(
                         "Can't store " + gene + ": design element " + designElementID + " absent from index");
-            } else {
+            }
+            else {
                 // add gene to the list (unless it's already added)
                 if (!genes.contains(gene)) {
                     genes.add(gene);
@@ -305,7 +280,8 @@ public class DataSlice {
                 // and add to the map indexed by designElementID
                 if (genesMap.containsKey(designElementID)) {
                     genesMap.get(designElementID).add(gene);
-                } else {
+                }
+                else {
                     List<Gene> genes = new ArrayList<Gene>();
                     genes.add(gene);
                     genesMap.put(designElementID, genes);
@@ -315,19 +291,16 @@ public class DataSlice {
     }
 
     /**
-     * Stores an ExpressionAnalysis object, indexed  by the design element id to
-     * which it belongs.  If a list of design element ids has already been stored,
-     * the supplied design element id should be found in this list.  A
-     * DataSlicingException will be raised if there are no stored design elements,
-     * or if you attempt to store an ExpressionAnalysis for an unknown design
-     * element.  It is legal to store several ExpressionAnalyses for the same
+     * Stores an ExpressionAnalysis object, indexed  by the design element id to which it belongs.  If a list of design
+     * element ids has already been stored, the supplied design element id should be found in this list.  A
+     * DataSlicingException will be raised if there are no stored design elements, or if you attempt to store an
+     * ExpressionAnalysis for an unknown design element.  It is legal to store several ExpressionAnalyses for the same
      * design element.
      *
-     * @param designElementID the design element id for this collection of
-     *                        analyses
+     * @param designElementID the design element id for this collection of analyses
      * @param analysis        the list of analyses to store.
-     * @throws DataSlicingException if you store an analysis for an unknown design
-     *                              element, or if no design elements are stored.
+     * @throws DataSlicingException if you store an analysis for an unknown design element, or if no design elements are
+     *                              stored.
      */
     public synchronized void storeExpressionAnalysis(
             int designElementID, ExpressionAnalysis analysis)
@@ -335,7 +308,8 @@ public class DataSlice {
         if (designElements == null) {
             throw new DataSlicingException(
                     "Can't store " + analysis + ": design element index has not been initialized!");
-        } else {
+        }
+        else {
             // we're ok to initialize
             if (analysesMap == null) {
                 analysesMap = new HashMap<Integer, List<ExpressionAnalysis>>();
@@ -348,13 +322,15 @@ public class DataSlice {
             if (!designElements.containsKey(designElementID)) {
                 throw new DataSlicingException(
                         "Can't store " + analysis + ": design element " + designElementID + " absent from index");
-            } else {
+            }
+            else {
                 // add analysis to the list
                 analyses.add(analysis);
                 // and add to the map indexed by design element id
                 if (analysesMap.containsKey(designElementID)) {
                     analysesMap.get(designElementID).add(analysis);
-                } else {
+                }
+                else {
                     List<ExpressionAnalysis> analyses =
                             new ArrayList<ExpressionAnalysis>();
                     analyses.add(analysis);
@@ -365,8 +341,8 @@ public class DataSlice {
     }
 
     /**
-     * Stores all the expression values for a data slcie (i.e. expression values
-     * for a pair of experiment and arraydesign).
+     * Stores all the expression values for a data slcie (i.e. expression values for a pair of experiment and
+     * arraydesign).
      *
      * @param expressionValues the expression values to store
      */
@@ -380,14 +356,9 @@ public class DataSlice {
         experimentFactorMap = new HashMap<String, List<String>>();
         // maps property names to all values for sample properties
         sampleCharacteristicMap = new HashMap<String, List<String>>();
-        // maps assays to the property values observed; duplicates allowed
-        assayFactorValueMap = new HashMap<Assay, List<String>>();
 
         // check all assays
         for (Assay assay : assays) {
-            // list of values for this assay
-            List<String> observedPropertyValues = new ArrayList<String>();
-
             // get all assay properties
             for (Property prop : assay.getProperties()) {
                 // we only care about factor values, not other properties
@@ -396,19 +367,14 @@ public class DataSlice {
                 if (experimentFactorMap.containsKey(prop.getName())) {
                     // if so, add values to the existing list
                     experimentFactorMap.get(prop.getName()).add(prop.getValue());
-                } else {
+                }
+                else {
                     // otherwise, start a new list and add it, keyed by the new name
                     List<String> propertyNames = new ArrayList<String>();
                     propertyNames.add(prop.getValue());
                     experimentFactorMap.put(prop.getName(), propertyNames);
                 }
-
-                // add the value to the observedProperties list
-                observedPropertyValues.add(prop.getValue());
             }
-
-            // now add all property values to the observedValues map
-            assayFactorValueMap.put(assay, observedPropertyValues);
         }
 
         // check all samples
@@ -419,7 +385,8 @@ public class DataSlice {
                 if (sampleCharacteristicMap.containsKey(prop.getName())) {
                     // if so, add values to the existing list
                     sampleCharacteristicMap.get(prop.getName()).add(prop.getValue());
-                } else {
+                }
+                else {
                     // otherwise, start a new list and add it, keyed by the new name
                     List<String> propertyNames = new ArrayList<String>();
                     propertyNames.add(prop.getValue());
@@ -430,8 +397,7 @@ public class DataSlice {
     }
 
     /**
-     * Clears all the data stored in this data slice.  All collections and
-     * populated maps will be reset to null.
+     * Clears all the data stored in this data slice.  All collections and populated maps will be reset to null.
      */
     public synchronized void reset() {
         // reset any lists that are lazily created after storing

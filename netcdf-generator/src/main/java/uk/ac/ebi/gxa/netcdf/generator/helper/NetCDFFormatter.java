@@ -10,7 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +72,6 @@ public class NetCDFFormatter {
         createPropertyVariables(
                 netCDF,
                 dataSlice.getExperimentFactorMappings(),
-                dataSlice.getAssayFactorValueMappings(),
                 dataSlice.getSampleCharacteristicMappings());
 
         // setup expression values matrix -
@@ -289,14 +288,12 @@ public class NetCDFFormatter {
      *
      * @param netCDF                  the NetcdfFileWriteable currently being set up
      * @param experimentFactorMap     the mapping between experiment factors and their values
-     * @param assayFactorValueMap     the mapping between assays and observed factor values
      * @param sampleCharacteristicMap the mapping between sample characteristics and their values
      * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
      *          if dependent matrices "AS" or "BS" have not previously been configured for this NetCDF.
      */
     private void createPropertyVariables(NetcdfFileWriteable netCDF,
                                          Map<String, List<String>> experimentFactorMap,
-                                         Map<Assay, List<String>> assayFactorValueMap,
                                          Map<String, List<String>> sampleCharacteristicMap)
             throws NetCDFGeneratorException {
         if (!sampleInitialized) {
@@ -329,15 +326,20 @@ public class NetCDFFormatter {
                     }
                 }
                 // derive longest text value for EF/EFV
-                int maxLength = maxEFLength > maxEFVLength ? maxEFLength : maxEFVLength;
+//                int maxLength = maxEFLength > maxEFVLength ? maxEFLength : maxEFVLength;
 
                 // next up, EFV length - this is equal to max number of values mapped to one property
-                Dimension efvDimension = netCDF.addDimension("EFlen", maxLength);
+//                Dimension efvDimension = netCDF.addDimension("EFlen", maxLength);
 
-                // last up, unique EFVs - this is the observed unique factor values
-                Set<String> uniqueFactorValues = new HashSet<String>();
-                for (Assay ass : assayFactorValueMap.keySet()) {
-                    uniqueFactorValues.addAll(assayFactorValueMap.get(ass));
+                // next up, EFV length - this is an unlimited dimension, grows to fit the longest observed EFV/uEFV
+                Dimension efvDimension = netCDF.addUnlimitedDimension("EFlen");
+
+                // last up, uEFVs - this is all unique EF:EFV patterns
+                Set<String> uniqueFactorValues = new LinkedHashSet<String>();
+                for (String property : experimentFactorMap.keySet()) {
+                    for (String propertyValue : experimentFactorMap.get(property)) {
+                        uniqueFactorValues.add(property.concat(":").concat(propertyValue));
+                    }
                 }
                 uefvDimension = netCDF.addDimension("uEFV", uniqueFactorValues.size());
 
