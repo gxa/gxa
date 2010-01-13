@@ -3,6 +3,37 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
+    <!-- SOLR index -->
+    <bean id="solrContainerFactory" class="uk.ac.ebi.ae3.indexbuilder.SolrContainerFactory">
+        <property name="atlasIndex" ref="atlasIndex" />
+        <property name="templatePath" value="solr" />
+    </bean>
+
+    <bean name="solrContainer"
+          factory-bean="solrContainerFactory"
+          factory-method="createContainer"
+          destroy-method="shutdown" />
+
+    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="atlas" />
+    </bean>
+
+    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="expt" />
+    </bean>
+
+    <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+        <constructor-arg ref="solrContainer" />
+        <constructor-arg value="properties" />
+    </bean>
+
+    <bean name="efo" class="uk.ac.ebi.ae3.indexbuilder.efo.Efo" destroy-method="close">
+        <property name="indexFile" ref="efoIndex" />
+        <property name="uri" value="resource:META-INF/efo.owl"/>
+    </bean>
+
     <!--<bean id="atlasDataSource"-->
     <!--class="org.springframework.jdbc.datasource.SingleConnectionDataSource">-->
     <!--<property name="driverClassName" value="oracle.jdbc.OracleDriver"/>-->
@@ -48,6 +79,10 @@
         <constructor-arg value="/home/tburdett/atlas/index"/>
     </bean>
 
+    <bean id="efoIndex" class="java.io.File">
+        <constructor-arg value="/home/tburdett/atlas/efoindex"/>
+    </bean>
+
     <bean id="atlasNetCDFs" class="java.io.File">
         <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
     </bean>
@@ -60,17 +95,35 @@
     </bean>
 
     <!-- Requires an Index Builder -->
-    <bean name="indexBuilder"
-          class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
-        <!-- resource beans -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="indexLocation" ref="atlasIndex"/>
+    <bean name="indexBuilderServiceProperties" class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO" />
+        <property name="solrServer" ref="solrServerProp" />
+    </bean>
+
+    <bean name="indexBuilderServiceExperiments" class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO" />
+        <property name="solrServer" ref="solrServerExpt" />
+    </bean>
+
+    <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO" />
+        <property name="solrServer" ref="solrServerAtlas" />
+    </bean>
+
+    <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
+        <property name="services">
+            <util:list>
+                <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceGenes"/>
+            </util:list>
+        </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <value>genes</value>
-                <value>experiments</value>
                 <value>properties</value>
+                <value>experiments</value>
+                <value>genes</value>
             </util:list>
         </property>
     </bean>

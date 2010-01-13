@@ -5,12 +5,11 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 
 import java.io.IOException;
 
@@ -18,10 +17,6 @@ import java.io.IOException;
  * @author pashky
  */
 public class PropertiesIndexBuilderService extends IndexBuilderService {
-
-    public PropertiesIndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
-        super(atlasDAO, solrServer);
-    }
 
     protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         try {
@@ -44,18 +39,9 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         }
     }
-    
-    public static class Factory implements IndexBuilderService.Factory {
-        public IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer) {
-            return new PropertiesIndexBuilderService(atlasDAO, new EmbeddedSolrServer(coreContainer, "properties"));
-        }
 
-        public String getName() {
-            return "properties";
-        }
-
-        public String[] getConfigFiles() {
-            return getBasicConfigFilesForCore("properties");
-        }
+    public String getName() {
+        return "properties";
     }
+
 }

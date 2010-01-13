@@ -3,7 +3,6 @@ package uk.ac.ebi.gxa.index.builder.service;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
 import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
@@ -11,6 +10,7 @@ import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
@@ -42,11 +42,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             new HashMap<String, List<String>>();
     private Efo efo;
 
-    public GeneAtlasIndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
-        super(atlasDAO, solrServer);
+    public Efo getEfo() {
+        return efo;
+    }
 
-        // get an Efo instance that we can use to calculate class hierarchy
-        efo = Efo.getEfo();
+    public void setEfo(Efo efo) {
+        this.efo = efo;
     }
 
     protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
@@ -524,17 +525,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         double pdn = 1;
     }
 
-    public static class Factory implements IndexBuilderService.Factory {
-        public IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer) {
-            return new GeneAtlasIndexBuilderService(atlasDAO, new EmbeddedSolrServer(coreContainer, "atlas"));
-        }
-
-        public String getName() {
-            return "genes";
-        }
-
-        public String[] getConfigFiles() {
-            return getBasicConfigFilesForCore("atlas");
-        }
+    public String getName() {
+        return "genes";
     }
 }

@@ -54,6 +54,8 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
 
     private CoreContainer coreContainer;
 
+    private Efo efo;
+
     private final Set<String> cacheFill = new HashSet<String>();
     private Set<String> allGeneProperties;
     private Set<String> nameGeneProperties;
@@ -153,6 +155,14 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
         indexBuilder.registerIndexUpdateHandler(this);
     }
 
+    public Efo getEfo() {
+        return efo;
+    }
+
+    public void setEfo(Efo efo) {
+        this.efo = efo;
+    }
+    
     /**
      * Constructor. Requires SOLR core container reference to work.
      */
@@ -364,10 +374,6 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
                 .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
     }
         
-    private Efo getEfo() {
-        return Efo.getEfo();
-    }
-
     private EfvTree<Integer> trimColumns(final AtlasStructuredQuery query,
                                          final AtlasStructuredQueryResult result,
                                          Collection<String> expandableEfs)
@@ -802,10 +808,10 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
                             if(childit != null) {
                                 String r = childit.next();
                                 if(!childit.hasNext() && explit.hasNext())
-                                    childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                                    childit = getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
                                 return r;
                             } else {
-                                childit = Efo.getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
+                                childit = getEfo().getTermAndAllChildrenIds(explit.next()).iterator();
                                 return next();
                             }
                         }

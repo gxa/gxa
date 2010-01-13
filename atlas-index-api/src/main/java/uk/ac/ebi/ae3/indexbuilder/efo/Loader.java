@@ -19,6 +19,9 @@ import java.util.*;
 import java.io.Reader;
 import java.io.IOException;
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.net.URISyntaxException;
 
 import net.sourceforge.fluxion.utils.ReasonerSession;
 import net.sourceforge.fluxion.utils.OWLUtils;
@@ -35,13 +38,6 @@ class Loader {
 
     Loader()
     {
-        log.info("Loading ontology");
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        try {
-            ontology = manager.loadOntology(new StreamInputSource(getClass().getClassLoader().getResourceAsStream("META-INF/efo.owl")));
-        } catch(OWLOntologyCreationException e) {
-            throw new RuntimeException("Can't load EF Ontology", e);
-        }
 
     }
 
@@ -84,8 +80,24 @@ class Loader {
     /**
      * Loads ontology into map id -> internal node implementation
      * @param efomap EFO map to load into
+     * @param uri URI to load ontology from
      */
-    void load(Map<String,EfoNode> efomap) {
+    void load(Map<String,EfoNode> efomap, URI uri) {
+        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        try {
+            if(uri.getScheme().equals("resource")) {
+                try {
+                    uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException("Can't get resource URI for " + uri);
+                }
+            }
+            log.info("Loading ontology from " + uri.toString());
+            ontology = manager.loadOntologyFromPhysicalURI(uri);
+        } catch(OWLOntologyCreationException e) {
+            throw new RuntimeException("Can't load EF Ontology", e);
+        }
+
         ReasonerSession session = OWLUtils.getReasonerSession(ontology);
         try {
             this.efomap = efomap;

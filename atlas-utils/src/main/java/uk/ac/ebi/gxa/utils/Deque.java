@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.index.builder.service;
+package uk.ac.ebi.gxa.utils;
 
 import java.util.*;
 

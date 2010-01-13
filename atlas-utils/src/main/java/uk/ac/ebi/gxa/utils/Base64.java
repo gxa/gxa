@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
+package uk.ac.ebi.gxa.utils;
 
 /**
  * <p>Encodes and decodes to and from Base64 notation.</p>

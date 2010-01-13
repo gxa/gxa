@@ -6,7 +6,9 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 
 import java.io.IOException;
 
@@ -27,22 +29,24 @@ import java.io.IOException;
  * @author Tony Burdett (atlas 2 revision)
  */
 public abstract class IndexBuilderService {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private AtlasDAO atlasDAO;
     private SolrServer solrServer;
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    protected IndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
-        this.atlasDAO = atlasDAO;
-        this.solrServer = solrServer;
-    }
-
-    protected AtlasDAO getAtlasDAO() {
+    public AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
-    protected SolrServer getSolrServer() {
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
+
+    public SolrServer getSolrServer() {
         return solrServer;
+    }
+
+    public void setSolrServer(SolrServer solrServer) {
+        this.solrServer = solrServer;
     }
 
     protected Logger getLog() {
@@ -60,7 +64,8 @@ public abstract class IndexBuilderService {
     public void buildIndex(boolean pendingOnly) throws IndexBuilderException {
         try {
             createIndexDocs(pendingOnly);
-            solrServer.commit();
+            getSolrServer().commit();
+            getSolrServer().optimize();
         }
         catch (IOException e) {
             throw new IndexBuilderException(
@@ -87,25 +92,9 @@ public abstract class IndexBuilderService {
      */
     protected abstract void createIndexDocs(boolean pendingOnly) throws IndexBuilderException;
 
-    public interface Factory {
-        IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer);
-        String getName();
-        String[] getConfigFiles(); 
-    }
-    
-    protected static String[] getBasicConfigFilesForCore(String name) {
-        final String [] files = {
-                "solrconfig.xml",
-                "stopwords.txt",
-                "protwords.txt",
-                "synonyms.txt",
-                "schema.xml"
-        };
-        String[] result = new String[files.length];
-        int i = 0;
-        for(String f : files) {
-            result[i++] = name + "/conf/" + f;
-        }
-        return result;
-    }
+    /**
+     * Returns index name, which this service builds
+      * @return text string
+     */
+    public abstract String getName();
 }

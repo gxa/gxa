@@ -55,8 +55,6 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
-        indexBuilder.setAtlasDAO(getAtlasDAO());
-        indexBuilder.setIndexLocation(indexLocation);
     }
 
     public void tearDown() throws Exception {
@@ -105,18 +103,6 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     public void testStartup() {
         try {
             indexBuilder.startup();
-
-            // check that the atlas index template was unpacked
-            File solr_xml = new File(indexLocation, "solr.xml");
-            assertTrue("solr.xml doesn't exist", solr_xml.exists());
-
-            // check atlas and expt directories exist
-            File atlas = new File(indexLocation, "atlas");
-            assertTrue("atlas/ doesn't exist", atlas.exists());
-            assertTrue("atlas/ isn't a directory", atlas.isDirectory());
-            File expt = new File(indexLocation, "expt");
-            assertTrue("expt/ doesn't exist", expt.exists());
-            assertTrue("expt/ isn't a directory", expt.isDirectory());
 
             // now try a repeat startup
             indexBuilder.startup();

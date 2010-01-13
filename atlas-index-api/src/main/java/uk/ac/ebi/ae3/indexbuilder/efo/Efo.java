@@ -7,37 +7,71 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import uk.ac.ebi.gxa.utils.FileUtil;
+import org.apache.lucene.search.*;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.net.URI;
+
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**
  * Class representing EFO heirarchy
  * @author pashky
  */
-public class Efo {
+public class Efo implements InitializingBean {
 
-    private static volatile Efo instance = new Efo();
+    private Map<String,EfoNode> efomap;
+    private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
+    private File indexFile;
+    private IndexSearcher indexSearcher;
+    private IndexReader indexReader;
+    private URI uri;
 
-
-    /**
-     * Returns current EFO instance (this class is singleton)
-     * @return Efo instance
-     */
-    public static Efo getEfo() {
-        return instance;
+    public File getIndexFile() {
+        return indexFile;
     }
 
-    private Map<String,EfoNode> efomap = new HashMap<String,EfoNode>();
-    private File indexFile;
-    
-    private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
+    public void setIndexFile(File indexFile) {
+        this.indexFile = indexFile;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
+    //    public void setIndexFile(String indexFile) {
+//        this.indexFile = new File(indexFile);
+//    }
+
+    public void afterPropertiesSet() throws Exception {
+        load();
+    }
+
+    private Map<String,EfoNode> getMap() {
+        if(efomap == null) {
+            load();
+        }
+        return efomap;
+    }
+
+    public void load() {
+        Loader loader = new Loader();
+        loader.load(efomap = new HashMap<String,EfoNode>(), uri);
+
+        for(EfoNode n : getMap().values()) {
+            if(n.parents.isEmpty())
+                roots.add(n);
+        }
+
+        rebuildIndex();
+    }
 
     /**
      * Helper factory method to make term classes
@@ -59,27 +93,12 @@ public class Efo {
     }
 
     /**
-     * Private constructor loading data from OWl
-     */
-    private Efo() {
-        Loader loader = new Loader();
-        loader.load(efomap);
-
-        for(EfoNode n : efomap.values()) {
-            if(n.parents.isEmpty())
-                roots.add(n);
-        }
-
-        rebuildIndex();
-    }
-
-    /**
      * Fetch term string by id
      * @param id term id
      * @return term string
      */
     public String getTermNameById(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         return node == null ? null : node.term;
     }
 
@@ -89,7 +108,7 @@ public class Efo {
      * @return true if yes
      */
     public boolean hasTerm(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         return node != null;
     }
 
@@ -99,7 +118,7 @@ public class Efo {
      * @return external term representation if found in ontology, null otherwise
      */
     public EfoTerm getTermById(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         return node == null ? null : newTerm(node);
     }
 
@@ -116,7 +135,7 @@ public class Efo {
      * @return collection of IDs, empty if term is not found
      */
     public Collection<String> getTermAndAllChildrenIds(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         List<String> ids = new ArrayList<String>(node == null ? 0 : node.children.size());
         if(node != null) {
             collectChildren(ids, node);
@@ -131,7 +150,7 @@ public class Efo {
      * @return collection of terms, null if term is not found
      */
     public Collection<EfoTerm> getTermChildren(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         if(node == null)
             return null;
 
@@ -147,8 +166,8 @@ public class Efo {
      * @return collection of all terms
      */
     public Collection<EfoTerm> getAllTerms() {
-        List<EfoTerm> result = new ArrayList<EfoTerm>(efomap.size());
-        for(EfoNode n : efomap.values())
+        List<EfoTerm> result = new ArrayList<EfoTerm>(getMap().size());
+        for(EfoNode n : getMap().values())
             result.add(newTerm(n));
         return result;
     }
@@ -158,7 +177,7 @@ public class Efo {
      * @return set of all term IDs
      */
     public Set<String> getAllTermIds() {
-        return new HashSet<String>(efomap.keySet());
+        return new HashSet<String>(getMap().keySet());
     }
 
     /**
@@ -169,7 +188,7 @@ public class Efo {
     public Set<String> searchTermPrefix(String prefix) {
         String lprefix = prefix.toLowerCase();
         Set<String> result = new HashSet<String>();
-        for(EfoNode n : efomap.values())
+        for(EfoNode n : getMap().values())
             if(n.term.toLowerCase().startsWith(lprefix) || n.id.toLowerCase().startsWith(lprefix)) {
                 result.add(n.id);
             }
@@ -178,10 +197,14 @@ public class Efo {
 
     private void rebuildIndex() {
         try {
-            File indexFile = FileUtil.createTempDirectory("efoindex");
-            IndexWriter writer = new IndexWriter(indexFile, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
+            if(!indexFile.exists())
+                if(!indexFile.mkdirs())
+                    throw new RuntimeException("Can't create EFO index directory " + indexFile.getAbsolutePath());
 
-            for(EfoNode n : efomap.values()) {
+            IndexWriter writer = new IndexWriter(indexFile, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
+            writer.deleteDocuments(new MatchAllDocsQuery());
+
+            for(EfoNode n : getMap().values()) {
                 Document doc = new Document();
                 doc.add(new Field("id", n.id, Field.Store.YES,  Field.Index.UN_TOKENIZED));
                 doc.add(new Field("text", n.id, Field.Store.NO, Field.Index.TOKENIZED));
@@ -189,12 +212,10 @@ public class Efo {
                 writer.addDocument(doc);
             }
 
-            writer.optimize();
             writer.commit();
+            writer.optimize();
             writer.close();
 
-            this.indexFile = indexFile;
-            
         } catch(IOException e) {
             throw new RuntimeException("Unable to index documents", e);
         }
@@ -216,20 +237,22 @@ public class Efo {
         boolean tryAgain = false;
         do {
             try {
-                IndexReader ir = IndexReader.open(indexFile);
-                IndexSearcher isearcher = new IndexSearcher(ir);
+                if(indexSearcher == null) {
+                    rebuildIndex();
+                    indexReader = IndexReader.open(indexFile);
+                    indexSearcher = new IndexSearcher(indexReader);
+                }
+
                 QueryParser parser = new QueryParser("text", new LowercaseAnalyzer());
                 Query query = parser.parse(text);
-                TopDocs hits = isearcher.search(query, 10000);
+                TopDocs hits = indexSearcher.search(query, 10000);
 
                 for(ScoreDoc sdoc : hits.scoreDocs) {
-                    Document doc = isearcher.doc(sdoc.doc);
+                    Document doc = indexSearcher.doc(sdoc.doc);
                     String[] ids = doc.getValues("id");
-                    result.add(newTerm(efomap.get(ids[0])));
+                    result.add(newTerm(getMap().get(ids[0])));
                 }
                 
-                isearcher.close();
-                ir.close();
             } catch (CorruptIndexException e) {
                 rebuildIndex();
                 tryAgain = true;
@@ -264,7 +287,7 @@ public class Efo {
      * @return list of lists of Term's
      */
     public List<List<EfoTerm>> getTermParentPaths(String id, boolean stopOnBranchRoot) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         if(node == null)
             return null;
 
@@ -289,7 +312,7 @@ public class Efo {
      * @return set of string IDs
      */
     public Set<String> getTermFirstParents(String id) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         if(node == null)
             return null;
         Set<String> parents = new HashSet<String>();
@@ -305,7 +328,7 @@ public class Efo {
      * @return set of string IDs
      */
     public Set<String> getTermParents(String id, boolean stopOnBranchRoot) {
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         if(node == null)
             return null;
         Set<String> parents = new HashSet<String>();
@@ -385,7 +408,7 @@ public class Efo {
         List<EfoTerm> result = new ArrayList<EfoTerm>();
 
         Stack<EfoNode> path = new Stack<EfoNode>();
-        EfoNode node = efomap.get(id);
+        EfoNode node = getMap().get(id);
         while(true) {
             path.push(node);
             if(node.parents.isEmpty())
@@ -428,7 +451,7 @@ public class Efo {
      */
     public Set<String> getBranchRootIds() {
         Set<String> result = new HashSet<String>();
-        for(EfoNode n : efomap.values())
+        for(EfoNode n : getMap().values())
             if(n.branchRoot)
                 result.add(n.id);
         return result;
@@ -440,11 +463,18 @@ public class Efo {
     }
 
     public void close() {
-        try {
-            if(indexFile != null)
-                FileUtil.deleteDirectory(indexFile);
-        } finally {
-            indexFile = null;
-        }
+        if(indexSearcher != null)
+            try {
+                indexSearcher.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        if(indexReader != null)
+            try {
+                indexReader.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
     }
 }

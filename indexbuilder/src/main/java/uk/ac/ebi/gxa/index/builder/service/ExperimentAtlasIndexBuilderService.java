@@ -12,12 +12,12 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.dao.LoadStage;
 import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
-import java.net.URLEncoder;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -30,10 +30,6 @@ import java.net.URLEncoder;
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 64;
-
-    public ExperimentAtlasIndexBuilderService(AtlasDAO atlasDAO, SolrServer solrServer) {
-        super(atlasDAO, solrServer);
-    }
 
     protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         // do initial setup - build executor service
@@ -188,17 +184,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    public static class Factory implements IndexBuilderService.Factory {
-        public IndexBuilderService create(AtlasDAO atlasDAO, CoreContainer coreContainer) {
-            return new ExperimentAtlasIndexBuilderService(atlasDAO, new EmbeddedSolrServer(coreContainer, "expt"));
-        }
-
-        public String getName() {
-            return "experiments";
-        }
-
-        public String[] getConfigFiles() {
-            return getBasicConfigFilesForCore("expt");
-        }
+    public String getName() {
+        return "experiments";
     }
 }
