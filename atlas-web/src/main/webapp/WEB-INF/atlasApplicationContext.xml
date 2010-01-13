@@ -69,6 +69,7 @@
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasLoaderDAO" />
         <property name="solrServer" ref="solrServerAtlas" />
+        <property name="efo" ref="efo" />
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
