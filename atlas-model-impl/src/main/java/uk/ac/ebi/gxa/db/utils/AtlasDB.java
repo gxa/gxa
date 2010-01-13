@@ -361,14 +361,16 @@ public class AtlasDB {
     }
 
     @Deprecated
-    public static void writeAssayAnalytics(Connection connection, String experimentAccession, List<ExpressionAnalysis> expressionValues)
+    public static void writeAnalytics(Connection connection, String experimentAccession, String property, String propertyValue, Map<Integer, Pvalue> expressionValues)
             throws SQLException {
         CallableStatement stmt = null;
         try {
-            //1  Accession varchar2
-            //2  ExpressionAnalytics ExpressionAnalyticsTable
+            //1 Accession varchar2
+            //2 Property
+            //3 PropertyValue
+            //2 ExpressionAnalytics ExpressionAnalyticsTable
 
-            stmt = connection.prepareCall("{call AtlasLdr.a2_AnalyticsSet(?,?)}");
+            stmt = connection.prepareCall("{call AtlasLdr.a2_AnalyticsSet(?,?,?,?)}");
 
             // replacing expression value lookup with mapped values lookup
             Object[] expressionValuesArray =
@@ -379,14 +381,12 @@ public class AtlasDB {
 
             if (expressionValues != null) {
                 int i = 0;
-                for (ExpressionAnalysis ea : expressionValues) {
-                    members[1] = ea.getDesignElementID(); //DesignElementID     integer
-                    members[2] = ea.getEfName();          //Property            varchar2
-                    members[3] = ea.getEfvName();         //PropertyValue       varchar2
-                    members[4] = ea.getPValAdjusted();    //PVALADJ             float
-                    members[5] = null;                    //FPVAL               float
-                    members[6] = null;                    //FPVALADJ            float
-                    members[7] = ea.getTStatistic();      //TSTAT               float
+                for (Integer ea : expressionValues.keySet()) {
+                    members[1] = ea; //DesignElementID     integer
+                    //members[2] = ea.getEfName();          //Property            varchar2
+                    //members[3] = ea.getEfvName();         //PropertyValue       varchar2
+                    members[2] = expressionValues.get(ea).getPvalue();    //PVALADJ             float
+                    members[3] = expressionValues.get(ea).getTstat();    //TSTAT               float
 
                     expressionValuesArray[i++] =
                             toSqlStruct(connection, "EXPRESSIONANALYTICS", members);
@@ -394,7 +394,9 @@ public class AtlasDB {
             }
 
             stmt.setString(1, experimentAccession);
-            stmt.setArray(2, toSqlArray(connection, "EXPRESSIONANALYTICSTABLE",
+            stmt.setString(2, property);
+            stmt.setString(3, propertyValue);
+            stmt.setArray(4, toSqlArray(connection, "EXPRESSIONANALYTICSTABLE",
                                         expressionValuesArray));
 
             // execute statement
