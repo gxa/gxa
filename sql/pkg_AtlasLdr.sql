@@ -1,3 +1,12 @@
+/*
+drop procedure A2_ARRAYDESIGNSET;
+drop procedure A2_EXPERIMENTSET;
+drop procedure A2_ASSAYSET;
+drop procedure A2_SAMPLESET;
+drop procedure LOAD_PROGRESS;
+*/
+
+
 CREATE OR REPLACE PACKAGE ATLASLDR IS
 
 PROCEDURE A2_ARRAYDESIGNSET(
@@ -6,14 +15,14 @@ PROCEDURE A2_ARRAYDESIGNSET(
   ,Name varchar2
   ,Provider varchar2
   ,DesignElements DesignElementTable 
-) 
+); 
 
 PROCEDURE A2_EXPERIMENTSET(
   TheAccession varchar2
  ,TheDescription varchar2 
  ,ThePerformer varchar2 
  ,TheLab varchar2
-)
+);
 
 PROCEDURE A2_ASSAYSET(
    TheAccession varchar2
@@ -21,7 +30,7 @@ PROCEDURE A2_ASSAYSET(
   ,TheArrayDesignAccession varchar2
   ,TheProperties PropertyTable
   ,TheExpressionValues ExpressionValueTable
-)
+);
 
 PROCEDURE A2_SAMPLESET(
     p_Accession varchar2
@@ -29,7 +38,7 @@ PROCEDURE A2_SAMPLESET(
   , p_Properties PropertyTable
   , p_Species varchar2
   , p_Channel varchar2
-) 
+); 
 
 PROCEDURE A2_AnalyticsSet(
     ExperimentAccession      IN   varchar2  
@@ -43,7 +52,11 @@ PROCEDURE LOAD_PROGRESS(
  ,stage varchar --load, netcdf, similarity, ranking, searchindex
  ,status varchar --done, pending 
  ,load_type VARCHAR2 := 'experiment'
-)
+);
+
+PROCEDURE A2_EXPERIMENTDELETE(
+  Accession varchar2
+);
 
 END;
 /
@@ -199,7 +212,7 @@ begin
   select distinct TheAssayID, pv.PropertyValueID, t.IsFactorValue
   from table(CAST(TheProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
+  join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_AssayPropertyValue pv1 where pv1.AssayID = Theassayid and pv1.PropertyValueID = pv.PropertyValueID);
  
   /*
@@ -314,7 +327,7 @@ begin
   select distinct SampleID, pv.PropertyValueID, t.IsFactorValue
   from table(CAST(p_Properties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
+  join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_SamplePropertyValue pv1 where pv1.SampleID = Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
   
   COMMIT WORK;
@@ -340,7 +353,7 @@ begin
       from a2_Experiment e
       where e.Accession = ExperimentAccession;
       
-      Select p.PropertyValueID into PropertyValueID
+      Select pv.PropertyValueID into PropertyValueID
       from a2_Property p
       join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
       where p.Name = Property
@@ -419,6 +432,41 @@ begin
 commit work;  
   
 end;
+
+PROCEDURE A2_EXPERIMENTDELETE(
+  Accession varchar2
+)
+AS 
+  ExperimentID integer := 0;
+BEGIN
+ 
+ begin
+  Select ExperimentID into ExperimentID 
+  from a2_Experiment where Accession = A2_EXPERIMENTDELETE.Accession;
+ exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      RAISE_APPLICATION_ERROR(-20001, 'experiment not found');
+    when others then 
+      RAISE;
+  end; 
+  
+  Delete from a2_SampleOntology where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_SamplePropertyValue where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_Sample where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+
+  
+  Delete from a2_AssayOntology where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_AssayPropertyValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
+ 
+  Delete from a2_ExpressionAnalytics where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
+  Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
+  
+END;
+
 
 
 END;

@@ -500,4 +500,27 @@ public class AtlasDB {
             }
         }
     }
+
+    public static void deleteExperiment(Connection connection, String accession) throws SQLException {
+            CallableStatement stmt = null;
+            try {
+                //1  Accession varchar2
+                //2  Assays AccessionTable
+                //3  Properties PropertyTable
+                //4  Species varchar2
+                //5  Channel varchar2
+                stmt = connection.prepareCall("{call AtlasLdr.a2_ExperimentDelete(?)}");
+
+                stmt.setString(1, accession);
+                // execute statement
+                stmt.execute();
+            }
+            finally {
+                if (stmt != null) {
+                    // close statement
+                    stmt.close();
+                }
+            }
+        }
+
 }
