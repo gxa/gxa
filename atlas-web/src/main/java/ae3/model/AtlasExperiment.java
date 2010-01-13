@@ -31,13 +31,13 @@ public class AtlasExperiment implements java.io.Serializable {
             if(field.startsWith("a_property_")) {
                 String property = field.substring("a_property_".length());
                 List<String> values = new ArrayList<String>();
-                values.addAll((Collection)exptSolrDocument.getFieldValue(field));
+                values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 experimentFactors.add(property);
                 factorValues.put(property, values);
             } else if(field.startsWith("s_property_")) {
                 String property = field.substring("s_property_".length());
                 List<String> values = new ArrayList<String>();
-                values.addAll((Collection)exptSolrDocument.getFieldValue(field));
+                values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 sampleCharacteristics.add(property);
                 sampleCharacterisitcValues.put(property, values);
             }
