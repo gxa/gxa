@@ -6,8 +6,8 @@ import ae3.util.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.ExperimentsTable;
+import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.index.ExperimentsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 

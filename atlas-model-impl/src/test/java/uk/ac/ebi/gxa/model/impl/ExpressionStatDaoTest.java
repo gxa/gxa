@@ -7,7 +7,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.model.*;
 
 import java.util.Collections;

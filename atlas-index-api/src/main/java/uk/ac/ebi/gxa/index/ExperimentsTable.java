@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
+package uk.ac.ebi.gxa.index;
 
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Base64;

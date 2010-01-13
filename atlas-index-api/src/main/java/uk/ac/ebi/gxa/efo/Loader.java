@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder.efo;
+package uk.ac.ebi.gxa.efo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,21 +6,9 @@ import org.semanticweb.owl.model.*;
 import org.semanticweb.owl.inference.OWLReasoner;
 import org.semanticweb.owl.inference.OWLReasonerException;
 import org.semanticweb.owl.apibinding.OWLManager;
-import org.semanticweb.owl.io.StreamInputSource;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LetterTokenizer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 
 import java.util.*;
-import java.io.Reader;
-import java.io.IOException;
-import java.io.File;
 import java.net.URI;
-import java.net.URL;
 import java.net.URISyntaxException;
 
 import net.sourceforge.fluxion.utils.ReasonerSession;

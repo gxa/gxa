@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.gxa.efo.Efo;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters

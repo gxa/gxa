@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 
 import java.util.ArrayList;
 import java.util.List;

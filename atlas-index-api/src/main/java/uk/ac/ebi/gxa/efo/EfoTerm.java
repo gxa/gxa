@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder.efo;
+package uk.ac.ebi.gxa.efo;
 
 /**
      * External view for node class

@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
+package uk.ac.ebi.gxa.index;
 
 import org.apache.solr.core.CoreContainer;
 import org.xml.sax.SAXException;

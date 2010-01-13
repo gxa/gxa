@@ -1,4 +1,4 @@
-package uk.ac.ebi.ae3.indexbuilder;
+package uk.ac.ebi.gxa.index;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;

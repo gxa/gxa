@@ -8,8 +8,8 @@ import ae3.service.structuredquery.*;
 import ae3.util.FilterIterator;
 import ae3.util.JoinIterator;
 import ae3.util.MappingIterator;
-import uk.ac.ebi.ae3.indexbuilder.Experiment;
-import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
+import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.efo.Efo;
 
 import java.util.Iterator;
 

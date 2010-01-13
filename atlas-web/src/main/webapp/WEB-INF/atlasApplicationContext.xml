@@ -14,7 +14,7 @@
     <!-- Spring config for Atlas -->
 
     <!-- SOLR index -->
-    <bean id="solrContainerFactory" class="uk.ac.ebi.ae3.indexbuilder.SolrContainerFactory">
+    <bean id="solrContainerFactory" class="uk.ac.ebi.gxa.index.SolrContainerFactory">
         <property name="atlasIndex" ref="atlasIndex" />
         <property name="templatePath" value="solr" />
     </bean>
@@ -39,7 +39,7 @@
         <constructor-arg value="properties" />
     </bean>
 
-    <bean name="efo" class="uk.ac.ebi.ae3.indexbuilder.efo.Efo" destroy-method="close">
+    <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="indexFile" ref="efoIndex" />
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- can be any external of file url too -->

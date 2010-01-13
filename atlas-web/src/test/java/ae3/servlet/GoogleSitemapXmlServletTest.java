@@ -1,21 +1,14 @@
 package ae3.servlet;
 
 import org.junit.*;
-import org.apache.solr.core.CoreContainer;
-import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-import ae3.util.AtlasProperties;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
-import java.io.IOException;
 import java.io.FilenameFilter;
 
 import static org.junit.Assert.*;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 
 /**
  * @author ostolop

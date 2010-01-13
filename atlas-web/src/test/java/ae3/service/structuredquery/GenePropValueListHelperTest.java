@@ -5,7 +5,7 @@ import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import uk.ac.ebi.ae3.indexbuilder.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 
 import java.util.Iterator;
 
