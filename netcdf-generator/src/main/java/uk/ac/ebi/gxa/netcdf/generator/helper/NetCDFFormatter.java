@@ -319,15 +319,18 @@ public class NetCDFFormatter {
                 }
                 int maxEFVLength = 0;
                 for (List<String> propertyValues : experimentFactorMap.values()) {
+                    // get the length of all concatenated property names
+                    int listLength = 0;
                     for (String propertyValue : propertyValues) {
-                        if (propertyValue.length() > maxEFVLength) {
-                            maxEFVLength = propertyValue.length();
-                        }
+                        listLength += (propertyValue.length() + 2);
+                    }
+                    if (listLength > maxEFVLength) {
+                        maxEFVLength = listLength;
                     }
                 }
 
                 // derive longest text value for EF/EFV
-                int maxLength = maxEFLength + maxEFVLength + 1;
+                int maxLength = maxEFLength > maxEFVLength ? maxEFLength : maxEFVLength;
 
                 // next up, EFV length - this is equal to max number of values mapped to one property
                 Dimension efvDimension = netCDF.addDimension("EFlen", maxLength);
@@ -366,10 +369,13 @@ public class NetCDFFormatter {
                 }
                 int maxSCVLength = 0;
                 for (List<String> propertyValues : sampleCharacteristicMap.values()) {
+                    // get the length of all concatenated property names
+                    int listLength = 0;
                     for (String propertyValue : propertyValues) {
-                        if (propertyValue.length() > maxSCVLength) {
-                            maxSCVLength = propertyValue.length();
-                        }
+                        listLength += (propertyValue.length() + 2);
+                    }
+                    if (listLength > maxSCVLength) {
+                        maxSCVLength = listLength;
                     }
                 }
                 // derive longest text value for SC/SCV

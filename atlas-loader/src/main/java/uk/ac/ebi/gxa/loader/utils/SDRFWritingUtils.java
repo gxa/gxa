@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.loader.utils;
 
+import org.mged.magetab.error.ErrorItem;
+import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
@@ -45,6 +47,16 @@ public class SDRFWritingUtils {
                 sourceNode.characteristics) {
 
             // create Property for this attribute
+            if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
+                // generate error item and throw exception
+                String message = "Characteristics and their values must NOT contain '||' - " +
+                        "this is a special reserved character used as a delimiter in the database";
+
+                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
+
+                throw new ObjectConversionException(error, true);
+            }
             Property p = new Property();
             p.setAccession(AtlasLoaderUtils.getNodeAccession(
                     investigation, characteristicsAttribute));
@@ -53,8 +65,6 @@ public class SDRFWritingUtils {
             p.setFactorValue(false);
 
             sample.addProperty(p);
-
-            // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
         }
     }
 
@@ -78,6 +88,17 @@ public class SDRFWritingUtils {
         for (FactorValueAttribute factorValueAttribute :
                 assayNode.factorValues) {
             // create Property for this attribute
+            if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
+                // generate error item and throw exception
+                String message = "Factors and their values must NOT contain '||' - " +
+                        "this is a special reserved character used as a delimiter in the database";
+
+                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
+
+                throw new ObjectConversionException(error, true);
+            }
+
             Property p = new Property();
             p.setAccession(AtlasLoaderUtils.getNodeAccession(
                     investigation, factorValueAttribute));

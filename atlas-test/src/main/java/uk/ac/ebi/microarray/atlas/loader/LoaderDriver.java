@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.loader;
 
+import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -7,8 +8,6 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
@@ -26,17 +25,17 @@ import java.util.logging.LogManager;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
-    static {
+    public static void main(String[] args) {
+        // configure logging
         try {
-            LogManager.getLogManager().readConfiguration(LoaderDriver.class.getResourceAsStream("logging.properties"));
+            LogManager.getLogManager()
+                    .readConfiguration(LoaderDriver.class.getClassLoader().getResourceAsStream("logging.properties"));
         }
         catch (Exception e) {
             e.printStackTrace();
         }
         SLF4JBridgeHandler.install();
-    }
 
-    public static void main(String[] args) {
         // load spring config
         BeanFactory factory =
                 new ClassPathXmlApplicationContext("loaderContext.xml");
@@ -49,6 +48,8 @@ public class LoaderDriver {
         final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
+        // solrIndex
+        final CoreContainer solrContainer = (CoreContainer)factory.getBean("solrContainer");
 
         // run the loader
 //        try {
@@ -100,50 +101,54 @@ public class LoaderDriver {
         }
 
         // run the index builder
-        final long indexStart = System.currentTimeMillis();
-        builder.buildIndex(new IndexBuilderListener() {
-
-            public void buildSuccess(IndexBuilderEvent event) {
-                final long indexEnd = System.currentTimeMillis();
-
-                String total = new DecimalFormat("#.##").format(
-                        (indexEnd - indexStart) / 60000);
-                System.out.println(
-                        "Index built successfully in " + total + " mins.");
-
-                try {
-                    builder.shutdown();
-                }
-                catch (IndexBuilderException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            public void buildError(IndexBuilderEvent event) {
-                System.out.println("Index failed to build");
-                for (Throwable t : event.getErrors()) {
-                    t.printStackTrace();
-                    try {
-                        builder.shutdown();
-                    }
-                    catch (IndexBuilderException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+//        final long indexStart = System.currentTimeMillis();
+//        builder.buildIndex(new IndexBuilderListener() {
+//
+//            public void buildSuccess(IndexBuilderEvent event) {
+//                final long indexEnd = System.currentTimeMillis();
+//
+//                String total = new DecimalFormat("#.##").format(
+//                        (indexEnd - indexStart) / 60000);
+//                System.out.println(
+//                        "Index built successfully in " + total + " mins.");
+//
+//                try {
+//                    builder.shutdown();
+//                    solrContainer.shutdown();
+//                }
+//                catch (IndexBuilderException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            public void buildError(IndexBuilderEvent event) {
+//                System.out.println("Index failed to build");
+//                for (Throwable t : event.getErrors()) {
+//                    t.printStackTrace();
+//                    try {
+//                        builder.shutdown();
+//                        solrContainer.shutdown();        
+//                    }
+//                    catch (IndexBuilderException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
 
         // in case we don't run index
-//        try {
-//            builder.shutdown();
-//        }
-//        catch (IndexBuilderException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            builder.shutdown();
+            solrContainer.shutdown();
+        }
+        catch (IndexBuilderException e) {
+            e.printStackTrace();
+        }
 
         // run the NetCDFGenerator
         final long netStart = System.currentTimeMillis();
-        generator.generateNetCDFs(
+        generator.generateNetCDFsForExperiment(
+                "E-TABM-199",
                 new NetCDFGeneratorListener() {
                     public void buildSuccess(NetCDFGenerationEvent event) {
                         final long netEnd = System.currentTimeMillis();
