@@ -2,7 +2,7 @@
 --  DDL for Package ATLASAPI
 --------------------------------------------------------
 
-  CREATE OR REPLACE PACKAGE "ATLAS2"."ATLASAPI" IS
+CREATE OR REPLACE PACKAGE "ATLASAPI" IS
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -109,7 +109,7 @@ PROCEDURE A2_GENEPROPERTYGET(
   
 END AtlasAPI;
 /
-  CREATE OR REPLACE PACKAGE BODY "ATLAS2"."ATLASAPI" AS
+  CREATE OR REPLACE PACKAGE BODY "ATLASAPI" AS
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -143,8 +143,8 @@ begin
   
   select INTRECORD(AssayID) BULK COLLECT INTO result
   from a2_Assay a
-  where a.assayid = COALESCE(assayQuery.accessionQuery.ID,a.AssayID)
-  and a.accession = COALESCE(assayQuery.accessionQuery.Accession,a.accession)
+  where a.assayid = COALESCE(assayQuery."AccessionQuery".ID,a.AssayID)
+  and a.accession = COALESCE(assayQuery."AccessionQuery".Accession,a.accession)
   and exists (select 1 from a2_assaypropertyvalue apv 
               join TABLE(CAST(assayQuery.properties as TBLINT)) t on t.ID = apv.PropertyValueID
               where apv.AssayID = a.AssayID );
@@ -166,8 +166,8 @@ begin
   
   select INTRECORD(ExperimentID) BULK COLLECT INTO result
   from a2_Experiment a
-  where a.experimentid = COALESCE(ExperimentQuery.accessionQuery.ID,a.ExperimentID)
-  and a.accession = COALESCE(ExperimentQuery.accessionQuery.Accession,a.accession);
+  where a.experimentid = COALESCE(ExperimentQuery."AccessionQuery".ID,a.ExperimentID)
+  and a.accession = COALESCE(ExperimentQuery."AccessionQuery".Accession,a.accession);
   /*and exists (select 1 from vwexperimentfactors ef 
               join TABLE(CAST(ExperimentQuery.properties as TBLINT)) t on t.ID = ef.PropertyValueID
               where ef.ExperimentID = a.ExperimentID );*/
@@ -191,8 +191,8 @@ begin
   
   select INTRECORD(GeneID) BULK COLLECT INTO result
   from a2_Gene a
-  where a.geneid = COALESCE(geneQuery.accessionQuery.ID,a.GeneID)
-  and a.Identifier = COALESCE(geneQuery.accessionQuery.Accession,a.Identifier);
+  where a.geneid = COALESCE(geneQuery."AccessionQuery".ID,a.GeneID)
+  and a.Identifier = COALESCE(geneQuery."AccessionQuery".Accession,a.Identifier);
  
   DBMS_OUTPUT.PUT_LINE('filter 1:' || result.count);
  
@@ -330,8 +330,8 @@ begin
   
   select INTRECORD(SampleID) BULK COLLECT INTO result
   from a2_Sample a
-  where a.sampleid = COALESCE(sampleQuery.accessionQuery.ID,a.SampleID)
-  and a.accession = COALESCE(sampleQuery.accessionQuery.Accession,a.accession);
+  where a.sampleid = COALESCE(sampleQuery."AccessionQuery".ID,a.SampleID)
+  and a.accession = COALESCE(sampleQuery."AccessionQuery".Accession,a.accession);
   
   DBMS_OUTPUT.PUT_LINE('filter 0:' || result.count);
   

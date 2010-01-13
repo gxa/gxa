@@ -973,7 +973,7 @@ public class AtlasDAO {
         */
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
-                        .withProcedureName("LOAD_PROGRESS")
+                        .withProcedureName("ATLASLDR.LOAD_PROGRESS")
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("EXPERIMENT_ACCESSION")
                         .useInParameterNames("STAGE")
@@ -1015,7 +1015,7 @@ public class AtlasDAO {
         */
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
-                        .withProcedureName("A2_EXPERIMENTSET")
+                        .withProcedureName("ATLASLDR.A2_EXPERIMENTSET")
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("THEACCESSION")
                         .useInParameterNames("THEDESCRIPTION")
@@ -1054,7 +1054,7 @@ public class AtlasDAO {
         */
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
-                        .withProcedureName("A2_ASSAYSET")
+                        .withProcedureName("ATLASLDR.A2_ASSAYSET")
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("THEACCESSION")
                         .useInParameterNames("THEEXPERIMENTACCESSION")
@@ -1114,7 +1114,7 @@ public class AtlasDAO {
         */
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
-                        .withProcedureName("A2_SAMPLESET")
+                        .withProcedureName("ATLASLDR.A2_SAMPLESET")
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("P_ACCESSION")
                         .useInParameterNames("P_ASSAYS")

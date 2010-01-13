@@ -1,9 +1,62 @@
+CREATE OR REPLACE PACKAGE ATLASLDR IS
+
+PROCEDURE A2_ARRAYDESIGNSET(
+   Accession varchar2
+  ,Type varchar2
+  ,Name varchar2
+  ,Provider varchar2
+  ,DesignElements DesignElementTable 
+) 
+
+PROCEDURE A2_EXPERIMENTSET(
+  TheAccession varchar2
+ ,TheDescription varchar2 
+ ,ThePerformer varchar2 
+ ,TheLab varchar2
+)
+
+PROCEDURE A2_ASSAYSET(
+   TheAccession varchar2
+  ,TheExperimentAccession  varchar2
+  ,TheArrayDesignAccession varchar2
+  ,TheProperties PropertyTable
+  ,TheExpressionValues ExpressionValueTable
+)
+
+PROCEDURE A2_SAMPLESET(
+    p_Accession varchar2
+  , p_Assays AccessionTable
+  , p_Properties PropertyTable
+  , p_Species varchar2
+  , p_Channel varchar2
+) 
+
+PROCEDURE A2_AnalyticsSet(
+    ExperimentAccession      IN   varchar2  
+   ,Property                 IN   varchar2
+   ,PropertyValue            IN   varchar2
+   ,ExpressionAnalytics ExpressionAnalyticsTable
+);
+
+PROCEDURE LOAD_PROGRESS(
+ experiment_accession varchar
+ ,stage varchar --load, netcdf, similarity, ranking, searchindex
+ ,status varchar --done, pending 
+ ,load_type VARCHAR2 := 'experiment'
+)
+
+END;
+/
+
+/*******************************************************************************
+BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY
+*******************************************************************************/
+CREATE OR REPLACE PACKAGE BODY ATLASLDR AS
+
 --------------------------------------------------------
 --  DDL for Procedure A2_ARRAYDESIGNSET
 --------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_ARRAYDESIGNSET" (
+PROCEDURE A2_ARRAYDESIGNSET (
    Accession varchar2
   ,Type varchar2
   ,Name varchar2
@@ -51,13 +104,11 @@ begin
  
  commit;
 end;
-/
+
 --------------------------------------------------------
 --  DDL for Procedure A2_ASSAYSET
 --------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_ASSAYSET" (
+PROCEDURE A2_ASSAYSET (
    TheAccession varchar2
   ,TheExperimentAccession  varchar2
   ,TheArrayDesignAccession varchar2
@@ -170,13 +221,11 @@ begin
   COMMIT WORK;
 
 end;
-/
+
 --------------------------------------------------------
 --  DDL for Procedure A2_EXPERIMENTSET
 --------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_EXPERIMENTSET" (
+PROCEDURE A2_EXPERIMENTSET (
   TheAccession varchar2
  ,TheDescription varchar2 
  ,ThePerformer varchar2 
@@ -205,97 +254,11 @@ begin
   commit;
   
 end;
-/
---------------------------------------------------------
---  DDL for Procedure A2_EXPRESSIONGET
---------------------------------------------------------
-/*
-set define off;
 
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_EXPRESSIONGET" (GeneIds varchar2,EfvIds tblVarchar, io IN OUT sys_refcursor) 
---return sys_refcursor
-as
-a1 sys_refcursor;
---efv table( EvfID integer); --tblInteger;
-begin
-  
-      
-  open a1 for 
-  select g.GeneID GeneID
-       , g.Identifier GeneIdentifier
-       , g.Name GeneName
-       , f.name ExperimentalFactor
-       , fv.name ExperimentalFactorValue
-       , fv.ExperimentFactorValueID ExperimentFactorValueID
-       , SUM(CASE WHEN TSTAT > 0 THEN 1 ELSE 0 END)  Up
-       , SUM(CASE WHEN TSTAT < 0 THEN 1 ELSE 0 END)  Dn
-       , f.name || '|' || fv.name EfvStringID
-  from a2_expressionanalytics e
-  join a2_gene g on g.GeneID = e.GeneID
-  join a2_experimentfactorvalue fv on fv.experimentfactorvalueid = e.experimentfactorvalueid
-  join a2_experimentfactor f on f.experimentfactorid = fv.experimentfactorid
-  join (
-    select a.column_value val
-    from the ( select cast( list_to_table(GeneIds) as tblInteger )
-                             from dual ) a                     
-                             where a.column_value is not null  
-       ) g_i on g_i.val = e.geneid
-  join (
-   select e.ExperimentFactorValueID EfvID
-    from a2_experimentfactorvalue e
-    join a2_experimentfactor f on f.experimentfactorid = e.experimentfactorid
-    join (select a.column_value val
-        from the ( select EfvIds from dual ) a                     
-                             where a.column_value is not null  ) a on a.val = f.Name || '|' || e.Name
-
-  ) efv on efv.EfvID = e.experimentfactorvalueid
-  group by g.GeneID
-       , g.Identifier
-       , g.Name 
-       , f.name 
-       , fv.name
-       , fv.ExperimentFactorValueID
-  order by GeneName, fv.ExperimentFactorValueID;
-       
-   io:=a1;    
-   
-   -- return io;
-end;
-*/
---------------------------------------------------------
---  DDL for Procedure A2_ORGANISMPARTGET
---------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_ORGANISMPARTGET" (
-  GeneID int  := 0, io IN OUT sys_refcursor) 
- as
-  a1 sys_refcursor;
- 
- begin
- 
-  open a1 for
-  select PropertyValueID
-         ,Name
-         ,null "X"
-         ,null "Y"
-         ,0 "UP"
-         ,0 "DN"
-   from a2_propertyvalue 
-   where propertyid = 28
-   and rownum < 10;
-   
-   io := a1;
-   
-  -- return a1;
- end;
- /
 --------------------------------------------------------
 --  DDL for Procedure A2_SAMPLESET
 --------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."A2_SAMPLESET" (
+PROCEDURE A2_SAMPLESET (
     p_Accession varchar2
   , p_Assays AccessionTable
   , p_Properties PropertyTable
@@ -356,13 +319,53 @@ begin
   
   COMMIT WORK;
 end;
-/
+
+
+--------------------------------------------------------
+--  DDL for Procedure A2_AnalyticsSet
+--------------------------------------------------------
+PROCEDURE A2_AnalyticsSet(
+    ExperimentAccession      IN   varchar2  
+   ,Property                 IN   varchar2
+   ,PropertyValue            IN   varchar2
+   ,ExpressionAnalytics ExpressionAnalyticsTable
+ )
+ as
+  ExperimentID int := 0;
+  PropertyValueID int := 0;
+begin
+
+  begin
+      Select e.ExperimentID into ExperimentID 
+      from a2_Experiment e
+      where e.Accession = ExperimentAccession;
+      
+      Select p.PropertyValueID into PropertyValueID
+      from a2_Property p
+      join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
+      where p.Name = Property
+      and pv.Name = PropertyValue;
+      
+  exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
+    when others then 
+      RAISE;
+  end;
+
+  dbms_output.put_line('insert expression value');
+  Insert into a2_ExpressionAnalytics(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
+  select t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
+  from table(CAST(ExpressionAnalytics as ExpressionAnalyticsTable)) t;
+
+  COMMIT WORK;
+END;
+
 --------------------------------------------------------
 --  DDL for Procedure LOAD_PROGRESS
 --------------------------------------------------------
-set define off;
-
-  CREATE OR REPLACE PROCEDURE "ATLAS2"."LOAD_PROGRESS" (
+PROCEDURE LOAD_PROGRESS (
  experiment_accession varchar
  ,stage varchar --load, netcdf, similarity, ranking, searchindex
  ,status varchar --done, pending 
@@ -416,4 +419,7 @@ begin
 commit work;  
   
 end;
+
+
+END;
 /
