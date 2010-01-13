@@ -14,7 +14,6 @@ import uk.ac.ebi.gxa.model.impl.AtlasDao;
 
 import java.sql.*;
 import java.util.Map;
-import java.util.List;
 
 /**
  * Utils for writing atlas loader API objects (see also {@link uk.ac.ebi.microarray.atlas.model}) to a database.  Should
@@ -361,7 +360,7 @@ public class AtlasDB {
     }
 
     @Deprecated
-    public static void writeAnalytics(Connection connection, String experimentAccession, String property, String propertyValue, Map<Integer, Pvalue> expressionValues)
+    public static void writeAnalytics(Connection connection, String experimentAccession, String property, String propertyValue, Map<Integer, ExpressionAnalyticsStatistic> expressionValues)
             throws SQLException {
         CallableStatement stmt = null;
         try {
