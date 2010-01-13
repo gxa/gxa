@@ -184,7 +184,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
         finally {
             // shutdown the service
-            getLog().debug("Gene index building tasks finished, cleaning up resources and exiting");
+            getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
     }

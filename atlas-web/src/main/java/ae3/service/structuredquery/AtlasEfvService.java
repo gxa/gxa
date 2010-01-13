@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
 
@@ -205,7 +206,7 @@ public class AtlasEfvService implements AutoCompleter, IndexUpdateHandler {
         indexBuilder.registerIndexUpdateHandler(this);
     }
 
-    public void onIndexUpdate(IndexBuilder builder) {
+    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
         allFactors.clear();
         prefixTrees.clear();
     }

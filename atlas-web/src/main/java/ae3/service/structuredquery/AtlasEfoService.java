@@ -11,6 +11,7 @@ import uk.ac.ebi.ae3.indexbuilder.efo.Efo;
 import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
 
@@ -315,7 +316,7 @@ public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
         indexBuilder.registerIndexUpdateHandler(this);
     }
 
-    public void onIndexUpdate(IndexBuilder builder) {
+    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
         counts.clear();
     }
 }

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
 
@@ -248,7 +249,7 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexUpdateHandl
         indexBuilder.registerIndexUpdateHandler(this);
     }
 
-    public void onIndexUpdate(IndexBuilder builder) {
+    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
         prefixTrees.clear();
     }
 

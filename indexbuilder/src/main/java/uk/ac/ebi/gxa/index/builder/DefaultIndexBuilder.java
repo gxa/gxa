@@ -250,9 +250,9 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         updateHandlers.remove(handler);
     }
 
-    private void notifyUpdateHandlers() {
+    private void notifyUpdateHandlers(IndexBuilderEvent event) {
         for (IndexUpdateHandler handler : updateHandlers) {
-            handler.onIndexUpdate(this);
+            handler.onIndexUpdate(this, event);
         }
     }
 
@@ -279,39 +279,45 @@ public class DefaultIndexBuilder implements IndexBuilder<File>, InitializingBean
         }
 
         // this tracks completion, if a listener was supplied
-        if (listener != null) {
-            new Thread(new Runnable() {
-                public void run() {
-                    boolean success = true;
-                    List<Throwable> observedErrors = new ArrayList<Throwable>();
+        new Thread(new Runnable() {
+            public void run() {
 
-                    // wait for expt and gene indexes to build
-                    for (Future<Boolean> indexingTask : indexingTasks) {
-                        try {
-                            success = success && indexingTask.get();
-                        }
-                        catch (Exception e) {
-                            observedErrors.add(e);
-                            success = false;
-                        }
+                boolean success = true;
+                List<Throwable> observedErrors = new ArrayList<Throwable>();
+
+                // wait for expt and gene indexes to build
+                for (Future<Boolean> indexingTask : indexingTasks) {
+                    try {
+                        success = success && indexingTask.get();
                     }
-
-                    // now we've finished - get the end time, calculate runtime and fire the event
-                    long endTime = System.currentTimeMillis();
-                    long runTime = (endTime - startTime) / 1000;
-
-                    notifyUpdateHandlers();
-                    
-                    // create our completion event
-                    if (success) {
-                        listener.buildSuccess(new IndexBuilderEvent(runTime, TimeUnit.SECONDS));
-                    }
-                    else {
-                        listener.buildError(new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors));
+                    catch (Exception e) {
+                        observedErrors.add(e);
+                        success = false;
                     }
                 }
-            }).start();
-        }
+
+                // now we've finished - get the end time, calculate runtime and fire the event
+                long endTime = System.currentTimeMillis();
+                long runTime = (endTime - startTime) / 1000;
+
+                final IndexBuilderEvent builderEvent = success ?
+                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS)
+                        :
+                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors);
+
+                notifyUpdateHandlers(builderEvent);
+
+                // create our completion event
+                if (listener != null) {
+                    if (success) {
+                        listener.buildSuccess(builderEvent);
+                    }
+                    else {
+                        listener.buildError(builderEvent);
+                    }
+                }
+            }
+        }).start();
     }
 
     /**

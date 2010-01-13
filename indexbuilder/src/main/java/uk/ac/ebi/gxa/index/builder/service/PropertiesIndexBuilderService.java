@@ -37,7 +37,7 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
                 getLog().debug("Adding property " + property.getName() + " : " + property.getValue());
                 getSolrServer().add(solrInputDoc);
             }
-            getLog().info("Fetching all properties - done");
+            getLog().info("Properties index builder finished");
         } catch (IOException e) {
             throw new IndexBuilderException(e);
         } catch (SolrServerException e) {

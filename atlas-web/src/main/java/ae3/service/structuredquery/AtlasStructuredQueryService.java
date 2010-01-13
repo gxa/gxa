@@ -27,6 +27,7 @@ import uk.ac.ebi.ae3.indexbuilder.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
 
 import java.util.*;
@@ -1054,7 +1055,7 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
         return allSpecies;
     }
 
-    public void onIndexUpdate(IndexBuilder builder) {
+    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
         allSpecies.clear();
     }
 }
