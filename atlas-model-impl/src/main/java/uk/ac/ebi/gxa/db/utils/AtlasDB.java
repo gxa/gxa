@@ -257,7 +257,7 @@ public class AtlasDB {
             //2  TheDescription varchar2
             //3  ThePerformer varchar2
             //4  TheLab varchar2
-            stmt = connection.prepareCall("{call a2_ExperimentSet(?,?,?,?)}");
+            stmt = connection.prepareCall("{call AtlasLdr.a2_ExperimentSet(?,?,?,?)}");
 
             stmt.setString(1, value.getAccession());
             stmt.setString(2, value.getDescription());
@@ -285,7 +285,7 @@ public class AtlasDB {
             //3  ArrayDesignAccession varchar2
             //4  Properties PropertyTable
             //5  ExpressionValues ExpressionValueTable
-            stmt = connection.prepareCall("{call a2_AssaySet(?,?,?,?,?)}");
+            stmt = connection.prepareCall("{call AtlasLdr.a2_AssaySet(?,?,?,?,?)}");
 
 //      Object[] expressionValues =
 //          new Object[null == value.getExpressionValues() ? 0
@@ -420,7 +420,7 @@ public class AtlasDB {
             //3  Properties PropertyTable
             //4  Species varchar2
             //5  Channel varchar2
-            stmt = connection.prepareCall("{call a2_SampleSet(?,?,?,?,?)}");
+            stmt = connection.prepareCall("{call AtlasLdr.a2_SampleSet(?,?,?,?,?)}");
 
             Object[] properties =
                     new Object[null == value.getProperties() ? 0
