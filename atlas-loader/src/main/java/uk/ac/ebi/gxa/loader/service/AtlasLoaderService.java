@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 /**
  * An abstract Atlas loader service, containing basic setup that is required across all loader implementations.  This

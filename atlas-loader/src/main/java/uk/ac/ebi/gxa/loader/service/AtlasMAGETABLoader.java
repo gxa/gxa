@@ -27,9 +27,9 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;

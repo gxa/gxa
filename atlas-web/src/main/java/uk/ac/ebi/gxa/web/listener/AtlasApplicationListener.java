@@ -13,16 +13,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
 import javax.servlet.ServletContext;

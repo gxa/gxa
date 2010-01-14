@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.netcdf.generator;
 import org.dbunit.dataset.ITable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 
 import java.io.File;
 

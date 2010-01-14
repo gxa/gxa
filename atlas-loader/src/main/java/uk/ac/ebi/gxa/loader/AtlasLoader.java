@@ -1,11 +1,11 @@
 package uk.ac.ebi.gxa.loader;
 
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 /**
  * Interface for loading experiments and array designs into the Atlas.  Loaders require access to an {@link
- * uk.ac.ebi.microarray.atlas.dao.AtlasDAO} in order to read and write to the database.  They can also be configured
+ * uk.ac.ebi.gxa.dao.AtlasDAO} in order to read and write to the database.  They can also be configured
  * with a repository storing experiments to automate the loading process.  Implementations would then be free to
  * periodically poll this repository, looking for experiments that were not present int he database, and load them
  * automatically.
@@ -22,7 +22,7 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
  */
 public interface AtlasLoader<R, L> {
     /**
-     * Set the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to read and write to the database
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database
      * during data loading.
      *
      * @param atlasDAO the DAO that is used to obtain access to the database
@@ -30,7 +30,7 @@ public interface AtlasLoader<R, L> {
     void setAtlasDAO(AtlasDAO atlasDAO);
 
     /**
-     * Set the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to read and write to the database
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database
      * during data loading.
      *
      * @return the DAO that is used to obtain access to the database

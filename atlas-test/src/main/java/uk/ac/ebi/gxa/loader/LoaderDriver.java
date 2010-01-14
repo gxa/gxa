@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.loader;
+package uk.ac.ebi.gxa.loader;
 
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -53,7 +53,7 @@ public class LoaderDriver {
 
         // run the loader
 //        try {
-//            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-GEOD-11990/E-GEOD-11990.idf.txt").toURL();
+//            final URL url = URI.create("file:////home/tburdett/Documents/MAGE-TAB/E-TABM-18/E-TABM-18.idf.txt").toURL();
 //            final long indexStart = System.currentTimeMillis();
 //            loader.loadExperiment(url, new AtlasLoaderListener() {
 //
@@ -148,7 +148,7 @@ public class LoaderDriver {
         // run the NetCDFGenerator
         final long netStart = System.currentTimeMillis();
         generator.generateNetCDFsForExperiment(
-                "E-TABM-199",
+                "E-TABM-18",
                 new NetCDFGeneratorListener() {
                     public void buildSuccess(NetCDFGenerationEvent event) {
                         final long netEnd = System.currentTimeMillis();
@@ -180,7 +180,7 @@ public class LoaderDriver {
                     }
                 });
 
-//        // in case we don't run netCDF generator
+        // in case we don't run netCDF generator
 //        try {
 //            generator.shutdown();
 //        }

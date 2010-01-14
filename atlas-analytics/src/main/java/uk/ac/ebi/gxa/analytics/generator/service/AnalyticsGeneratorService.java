@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,7 +13,7 @@ import java.util.Properties;
  * An abstract AnalyticsGeneratorService, that provides convenience methods for getting and setting parameters required
  * across all AnalyticsGenerator implementations.  This class is typed by the type of the repository backing this
  * AnalyticsGeneratorService - this may be a file, a datasource, an FTP directory, or something else. Implementing
- * classes have access to this repository and an {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that provides
+ * classes have access to this repository and an {@link uk.ac.ebi.gxa.dao.AtlasDAO} that provides
  * interaction with the Atlas database (following an Atlas 2 schema).
  * <p/>
  * All implementing classes should provide the method {@link #createAnalytics()} which contains the logic for
@@ -95,7 +95,7 @@ public abstract class AnalyticsGeneratorService<T> {
         try {
             Properties properties = new Properties();
             InputStream in = getClass().getClassLoader()
-                    .getResourceAsStream("META-INF/maven/uk.ac.ebi.microarray.atlas/atlas-analytics/pom.properties");
+                    .getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa.atlas/atlas-analytics/pom.properties");
             properties.load(in);
 
             version = version + properties.getProperty("version");

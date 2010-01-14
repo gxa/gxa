@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
- * Model of microarray, like "Affymetrix Custom Array - Novartis Human [gnGNF1Ba]".
+ * Model of gxa, like "Affymetrix Custom Array - Novartis Human [gnGNF1Ba]".
  */
 public interface ArrayDesign extends Serializable, Accessible {
 
@@ -16,7 +16,7 @@ public interface ArrayDesign extends Serializable, Accessible {
     public String getName();
 
     /**
-     * Type of microarray: "aminosilane","glass","in_situ_oligo_features","insitu experiment","non-adsorptive","proteomics","spotted_ds_DNA_features", etc.
+     * Type of gxa: "aminosilane","glass","in_situ_oligo_features","insitu experiment","non-adsorptive","proteomics","spotted_ds_DNA_features", etc.
      * @return String
      */
     public String getType();
@@ -49,7 +49,7 @@ public interface ArrayDesign extends Serializable, Accessible {
     }
 
     /**
-     * design elements (microarray spots) in array design 
+     * design elements (gxa spots) in array design
      * @return collection of design elements
      */
     public Collection<DesignElement> getDesignElements();

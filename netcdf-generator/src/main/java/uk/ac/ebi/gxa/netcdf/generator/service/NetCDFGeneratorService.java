@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.netcdf.generator.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -12,7 +12,7 @@ import java.util.Properties;
  * An abstract NetCDFGeneratorService, that provides convenience methods for getting and setting parameters required
  * across all NetCDFGenerator implementations.  This class is typed by the type of the repository backing this
  * NetCDFGeneratorService - this may be a file, a datasource, an FTP directory, or something else. Implementing classes
- * have access to this repository and an {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that provides interaction with
+ * have access to this repository and an {@link uk.ac.ebi.gxa.dao.AtlasDAO} that provides interaction with
  * the Atlas database (following an Atlas 2 schema).
  * <p/>
  * All implementing classes should implement the method {@link #createNetCDFDocs()} which contains the logic for

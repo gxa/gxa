@@ -6,9 +6,9 @@ import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlice;
 import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlicer;
 import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFFormatter;
 import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFWriter;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 

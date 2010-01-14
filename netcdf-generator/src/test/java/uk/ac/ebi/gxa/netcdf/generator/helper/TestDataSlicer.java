@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.netcdf.generator.helper;
 
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;

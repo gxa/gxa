@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.netcdf.generator.helper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
  * An implementation of Callable that performs data slciing tasks common in the
  * constructiuon of NetCDF files.  THis abstract class contains methods to set
  * the required resources (namely, an {@link ExecutorService} and and {@link
- * uk.ac.ebi.microarray.atlas.dao.AtlasDAO} as well as the prefetched data,
+ * uk.ac.ebi.gxa.dao.AtlasDAO} as well as the prefetched data,
  * genes and analytics.  As implementations may wish to update the collections
  * of genes and expression analytics that are not mapped to any design elements,
  * these fields are available

@@ -28,7 +28,7 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandl
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
