@@ -1532,11 +1532,13 @@ public class AtlasDAO {
                     StructDescriptor structDescriptor =
                             StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
                     int i=0;
-                    Object[] expressionAnalyticsValues = new Object[2];
+                    Object[] expressionAnalyticsValues = new Object[3];
                     for (int designElement : pValues.keySet()) {
                         // array representing the values to go in the STRUCT
-                        expressionAnalyticsValues[0] = pValues.get(designElement);
-                        expressionAnalyticsValues[1] = tStatistics.get(designElement);
+                        // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
+                        expressionAnalyticsValues[0] = designElement;
+                        expressionAnalyticsValues[1] = pValues.get(designElement);
+                        expressionAnalyticsValues[2] = tStatistics.get(designElement);
 
                         expressionAnalytics[i++] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
                     }

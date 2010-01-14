@@ -42,7 +42,7 @@ public class AtlasComputeService implements Compute {
      * @param <T>  type that the task returns on completion
      * @return T
      */
-    public <T> T computeTask(ComputeTask<T> task) {
+    public <T> T computeTask(ComputeTask<T> task) throws ComputeException {
         RServices rService = null;
         try {
             log.debug("Acquiring RServices");
@@ -53,8 +53,7 @@ public class AtlasComputeService implements Compute {
         }
         catch (Exception e) {
             log.error("Problem computing task! ({})", e.getMessage());
-            e.printStackTrace();
-            return null;
+            throw new ComputeException(e);
         }
         finally {
             if (rService != null) {

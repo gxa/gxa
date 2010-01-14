@@ -1,8 +1,6 @@
 package uk.ac.ebi.gxa.compute;
 
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import org.kchine.r.RNumeric;
@@ -10,9 +8,13 @@ import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 
 import java.rmi.RemoteException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 public class AtlasComputeServiceTest {
@@ -47,8 +49,14 @@ public class AtlasComputeServiceTest {
             }
         };
 
-        RNumeric i = svc.computeTask(task);
-        System.out.println("1 + 3 = " + i.getValue()[0]);
-        assertEquals(i.getValue()[0], 4);
+        try {
+            RNumeric i = svc.computeTask(task);
+            System.out.println("1 + 3 = " + i.getValue()[0]);
+            assertEquals(i.getValue()[0], 4);
+        }
+        catch (ComputeException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 }

@@ -27,6 +27,8 @@ public class TestAtlasRFactoryBuilder extends TestCase {
                     fail("Unable to validate R remote environment");
                 }
             }
+
+            rFactory.releaseResources();
         }
         catch (InstantiationException e) {
             e.printStackTrace();
@@ -51,6 +53,8 @@ public class TestAtlasRFactoryBuilder extends TestCase {
                     fail("Unable to validate R remote environment");
                 }
             }
+
+            rFactory.releaseResources();
         }
         catch (InstantiationException e) {
             e.printStackTrace();
@@ -75,6 +79,8 @@ public class TestAtlasRFactoryBuilder extends TestCase {
                     fail("Unable to validate R remote environment");
                 }
             }
+
+            rFactory.releaseResources();
         }
         catch (InstantiationException e) {
             e.printStackTrace();

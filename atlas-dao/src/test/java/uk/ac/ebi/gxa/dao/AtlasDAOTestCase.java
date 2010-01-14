@@ -290,17 +290,17 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         // add real stored procedures
         runStatement(conn,
                      "CREATE ALIAS A2_EXPERIMENTSET FOR " +
-                             "\"uk.ac.ebi.microarray.atlas.dao.procedures.ExperimentSetter.call\"");
+                             "\"uk.ac.ebi.gxa.dao.procedures.ExperimentSetter.call\"");
         runStatement(conn,
                      "CREATE ALIAS A2_ASSAYSET FOR " +
-                             "\"uk.ac.ebi.microarray.atlas.dao.procedures.AssaySetter.call\"");
+                             "\"uk.ac.ebi.gxa.dao.procedures.AssaySetter.call\"");
         runStatement(conn,
                      "CREATE ALIAS A2_SAMPLESET FOR " +
-                             "\"uk.ac.ebi.microarray.atlas.dao.procedures.SampleSetter.call\"");
+                             "\"uk.ac.ebi.gxa.dao.procedures.SampleSetter.call\"");
 
         runStatement(conn,
                      "CREATE ALIAS load_progress FOR " +
-                             "\"uk.ac.ebi.microarray.atlas.dao.procedures.LoadProgress.call\"");
+                             "\"uk.ac.ebi.gxa.dao.procedures.LoadProgress.call\"");
 
         System.out.println("...done!");
         conn.close();
