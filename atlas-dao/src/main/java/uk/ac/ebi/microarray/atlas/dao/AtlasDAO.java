@@ -1039,7 +1039,7 @@ public class AtlasDAO {
     public void writeExperiment(final Experiment experiment) {
         // execute this procedure...
         /*
-        create or replace PROCEDURE "A2_EXPERIMENTSET" (
+        PROCEDURE "A2_EXPERIMENTSET" (
           TheAccession varchar2
           ,TheDescription varchar2
           ,ThePerformer varchar2
@@ -1077,7 +1077,7 @@ public class AtlasDAO {
     public void writeAssay(final Assay assay) {
         // execute this procedure...
         /*
-        create or replace PROCEDURE "A2_ASSAYSET" (
+        PROCEDURE "A2_ASSAYSET" (
            TheAccession varchar2
           ,TheExperimentAccession  varchar2
           ,TheArrayDesignAccession varchar2
@@ -1137,7 +1137,7 @@ public class AtlasDAO {
     public void writeSample(final Sample sample) {
         // execute this procedure...
         /*
-        create or replace PROCEDURE "A2_SAMPLESET" (
+        PROCEDURE "A2_SAMPLESET" (
             p_Accession varchar2
           , p_Assays AccessionTable
           , p_Properties PropertyTable
@@ -1180,6 +1180,92 @@ public class AtlasDAO {
                 .addValue("P_CHANNEL", sample.getChannel());
 
         // and execute
+        procedure.execute(params);
+    }
+
+    /**
+     * Writes expression analytics data back to the database, after post-processing by an external analytics process.
+     * Expression analytics consist of p-values and t-statistics for each design element, annotated with a property and
+     * property value.  As such, for each annotated design element there should be unique analytics data for each
+     * annotation.
+     *
+     * @param experimentAccession the accession of the experiment these analytics values belong to
+     * @param property            the name of the property for this set of analytics
+     * @param propertyValue       the property value for this set of analytics
+     * @param pValues             a map linking each design element to a pValue (a double) in the context of this
+     *                            property/property value pair
+     * @param tStatistics         a map linking each design element to a tStatistic (a double) in the context of this
+     *                            property/property value pair
+     */
+    public void writeExpressionAnalytics(String experimentAccession,
+                                         String property,
+                                         String propertyValue,
+                                         Map<Integer, Double> pValues,
+                                         Map<Integer, Double> tStatistics) {
+        // execute this procedure...
+        /*
+        PROCEDURE A2_AnalyticsSet(
+          ExperimentAccession      IN   varchar2
+          ,Property                 IN   varchar2
+          ,PropertyValue            IN   varchar2
+          ,ExpressionAnalytics ExpressionAnalyticsTable
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .useInParameterNames("PROPERTY")
+                        .useInParameterNames("PROPERTYVALUE")
+                        .useInParameterNames("EXPRESSIONANALYTICS")
+                        .declareParameters(
+                                new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("PROPERTY", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("PROPERTYVALUE", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("EXPRESSIONANALYTICS", OracleTypes.ARRAY, "EXPRESSIONANALYTICSTABLE"));
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession)
+                .addValue("PROPERTY", property)
+                .addValue("PROPERTYVALUE", propertyValue)
+                .addValue("EXPRESSIONANALYTICS", convertExpressionAnalyticsToOracleArray(pValues, tStatistics));
+
+        procedure.execute(params);
+    }
+
+    /*
+    DAO delete methods
+     */
+
+    /**
+     * Deletes the experiment with the given accession from the database.  If this experiment is not present, this does
+     * nothing.
+     *
+     * @param experimentAccession the accession of the experiment to remove
+     */
+    public void deleteExperiment(final String experimentAccession) {
+        // execute this procedure...
+        /*
+        PROCEDURE A2_EXPERIMENTDELETE(
+          Accession varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_EXPERIMENTDELETE")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("ACCESSION")
+                        .declareParameters(new SqlParameter("THEACCESSION", Types.VARCHAR));
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("THEACCESSION", experimentAccession);
+
         procedure.execute(params);
     }
 
@@ -1424,6 +1510,43 @@ public class AtlasDAO {
                 return new ARRAY(arrayDescriptor, connection, accessions);
             }
         };
+    }
+
+    private SqlTypeValue convertExpressionAnalyticsToOracleArray(final Map<Integer, Double> pValues,
+                                                                 final Map<Integer, Double> tStatistics) {
+        if (pValues.size() != tStatistics.size()) {
+            throw new RuntimeException(
+                    "Cannot store analytics - inconsistent design element counts for pValues and tStatistics");
+        }
+        else {
+            final int deCount = pValues.size();
+            return new AbstractSqlTypeValue() {
+                protected Object createTypeValue(Connection connection, int sqlType, String typeName)
+                        throws SQLException {
+                    // this should be creating an oracle ARRAY of 'expressionAnalytics'
+                    // the array of STRUCTS representing each property
+                    Object[] expressionAnalytics = new Object[deCount];
+
+                    // convert each expression analytic pair into an oracle STRUCT
+                    // descriptor for EXPRESSIONANALYTICS type
+                    StructDescriptor structDescriptor =
+                            StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
+                    int i=0;
+                    Object[] expressionAnalyticsValues = new Object[2];
+                    for (int designElement : pValues.keySet()) {
+                        // array representing the values to go in the STRUCT
+                        expressionAnalyticsValues[0] = pValues.get(designElement);
+                        expressionAnalyticsValues[1] = tStatistics.get(designElement);
+
+                        expressionAnalytics[i++] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
+                    }
+
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, expressionAnalytics);
+                }
+            };
+        }
     }
 
     private class LoadDetailsMapper implements RowMapper {

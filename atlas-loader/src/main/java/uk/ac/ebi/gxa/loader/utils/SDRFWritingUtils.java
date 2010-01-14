@@ -65,6 +65,8 @@ public class SDRFWritingUtils {
             p.setFactorValue(false);
 
             sample.addProperty(p);
+
+            // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
         }
     }
 
