@@ -67,19 +67,19 @@ read.atlas.nc <-
     exptid = ncinfo[1]
     arraydesignid = ncinfo[2]
 
-
     efscv <- efv
-    for(sc in colnames(scv)) {
-      scvj <- as.factor(unlist(lapply(rownames(efv), function(ef)
-                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[ef,])],sc]), 
-                                            ## colnames(b2a)[as.logical(b2a[ef,])], 
-                                            sep=":", collapse="|"))))
-      
-      ef <- sub("bs_","ba_",sc)
-      if( !identical(efscv[[ef]], scvj)) {        
-        efscv[[sc]] <- scvj
-      }
-    }
+#   MK: remove this for now, to prevent analytics running on SC's
+#    for(sc in colnames(scv)) {
+#      scvj <- as.factor(unlist(lapply(rownames(efv), function(ef)
+#                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[ef,])],sc]), 
+#                                            ## colnames(b2a)[as.logical(b2a[ef,])], 
+#                                            sep=":", collapse="|"))))
+#      
+#      ef <- sub("bs_","ba_",sc)
+#      if( !identical(efscv[[ef]], scvj)) {        
+#        efscv[[sc]] <- scvj
+#      }
+#    }
     
     fDataFrame = data.frame(gn=gn,de=de)
     fData = new("AnnotatedDataFrame", data=fDataFrame)
