@@ -19,7 +19,7 @@ function initPaging(){
 	function pageselectCallback(page_id, jq){
 		var fromPage = (page_id * ${result.rowsPerPage});
 		//$('#topGenes').html("<img src='images/indicator.gif' />");
-		$('#topGenes').load("expGenes",{eid:'${eid}',eAcc:'${eAcc}',gid:'${gid}',query:'top',from:fromPage}, function(){
+		$('#topGenes').load("expGenes",{eid:'${eid}',egid:'${gid}',query:'top',from:fromPage}, function(){
 			 $("#grid").tablesorter({headers: { 0: { sorter: false}}});
 			//$('#topGenes').fadeIn("slow");
 		});
@@ -75,7 +75,7 @@ function initPaging(){
 				
 				<td style="border-bottom: 1px solid #CDCDCD">${row.fv}</td>
 				<c:forEach var="e" items="${row.exp_list}">
-					<c:if test="${e.experimentAccession == eAcc}">
+					<c:if test="${e.experimentId == eid}">
 						<c:choose>
 							<c:when test="${e.updn == 'UP'}">
 								<td
