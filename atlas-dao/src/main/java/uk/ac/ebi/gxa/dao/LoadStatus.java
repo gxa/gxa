@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.dao;
+package uk.ac.ebi.gxa.dao;
 
 /**
  * An enumeration of possible states a process can occupy, indicating whether a task is pending, working, done, or

@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.dao;
+package uk.ac.ebi.gxa.dao;
 
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
