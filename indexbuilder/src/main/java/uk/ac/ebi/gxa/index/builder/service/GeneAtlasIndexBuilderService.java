@@ -258,7 +258,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                     efvupdn.put(efvid, new UpDn());
                 }
                 if (isUp) {
-                    efvupdn.get(efvid).cup += 1;
+                    efvupdn.get(efvid).eup.add(experimentId);
                     efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
                     if (!upefv.containsKey(ef)) {
                         upefv.put(ef, new HashSet<String>());
@@ -266,7 +266,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                     upefv.get(ef).add(efv);
                 }
                 else {
-                    efvupdn.get(efvid).cdn += 1;
+                    efvupdn.get(efvid).edn.add(experimentId);
                     efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
                     if (!dnefv.containsKey(ef)) {
                         dnefv.put(ef, new HashSet<String>());
@@ -427,8 +427,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             String efvid = e.getKey();
             UpDn ud = e.getValue();
 
-            int cup = ud.cup;
-            int cdn = ud.cdn;
+            int cup = ud.eup.size();
+            int cdn = ud.edn.size();
             double pvup = ud.pup;
             double pvdn = ud.pdn;
 
@@ -515,8 +515,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private class UpDn {
-        int cup = 0;
-        int cdn = 0;
+        Set<Long> eup = new HashSet<Long>();
+        Set<Long> edn = new HashSet<Long>();
         double pup = 1;
         double pdn = 1;
     }

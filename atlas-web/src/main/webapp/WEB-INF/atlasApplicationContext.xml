@@ -85,8 +85,8 @@
         <property name="includeIndexes">
             <util:list>
                 <value>properties</value>
-                <!--<value>experiments</value>-->
-                <!--<value>genes</value>-->
+                <value>experiments</value>
+                <value>genes</value>
             </util:list>
         </property>
     </bean>
