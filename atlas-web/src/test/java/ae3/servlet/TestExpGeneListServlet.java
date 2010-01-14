@@ -9,6 +9,7 @@ import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 
 import java.rmi.RemoteException;
@@ -48,13 +49,20 @@ public class TestExpGeneListServlet extends TestCase {
         // do a similarity over E-AFMX-5 for an arbitrary design element/array design
         final SimilarityResultSet simRS = new SimilarityResultSet("226010852", "153094131", "153069949");
 
-        RDataFrame sim = svc.computeTask(new ComputeTask<RDataFrame>() {
-            public RDataFrame compute(RServices R) throws RemoteException {
-                R.sourceFromResource("sim.R");
-                String callSim = "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
-                return (RDataFrame) R.getObject(callSim);
-            }
-        });
+        RDataFrame sim = null;
+        try {
+            sim = svc.computeTask(new ComputeTask<RDataFrame>() {
+                public RDataFrame compute(RServices R) throws RemoteException {
+                    R.sourceFromResource("sim.R");
+                    String callSim = "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
+                    return (RDataFrame) R.getObject(callSim);
+                }
+            });
+        }
+        catch (ComputeException e) {
+            fail();
+            e.printStackTrace();
+        }
 
         if (null != sim) {
             simRS.loadResult(sim);
