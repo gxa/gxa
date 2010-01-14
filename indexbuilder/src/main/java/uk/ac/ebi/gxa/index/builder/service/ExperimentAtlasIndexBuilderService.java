@@ -5,8 +5,8 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;

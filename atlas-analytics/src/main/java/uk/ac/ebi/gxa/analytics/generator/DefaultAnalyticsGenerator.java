@@ -8,7 +8,7 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.File;
 import java.util.ArrayList;

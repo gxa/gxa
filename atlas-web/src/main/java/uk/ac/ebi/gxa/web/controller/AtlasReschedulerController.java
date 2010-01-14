@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.dao.LoadStage;
-import uk.ac.ebi.microarray.atlas.dao.LoadStatus;
-import uk.ac.ebi.microarray.atlas.dao.LoadType;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.dao.LoadType;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

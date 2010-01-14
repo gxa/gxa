@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.net.URL;
 import java.util.ArrayList;

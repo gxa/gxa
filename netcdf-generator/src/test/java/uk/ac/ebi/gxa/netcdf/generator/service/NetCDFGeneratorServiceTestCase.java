@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.netcdf.generator.service;
 
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.netcdf.generator.service.NetCDFGeneratorService;
 
 import java.io.File;

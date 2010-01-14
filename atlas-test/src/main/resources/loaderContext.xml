@@ -71,7 +71,7 @@
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
+    <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="template"/>
     </bean>
 

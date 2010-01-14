@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.analytics.generator;
 
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 /**
  * Interface for modifying NetCDFs to include statistical analytics data required by the Atlas interface.
@@ -16,14 +16,14 @@ import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
  */
 public interface AnalyticsGenerator<T> {
     /**
-     * Set the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
      *
      * @param atlasDAO the DAO that is used to obtain data to generate NetCDFs from
      */
     void setAtlasDAO(AtlasDAO atlasDAO);
 
     /**
-     * Get the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
+     * Get the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
      *
      * @return the Atlas 2 compliant datasource to generate NetCDFs from
      */

@@ -4,7 +4,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 
 import java.io.*;

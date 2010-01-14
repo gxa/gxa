@@ -5,7 +5,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.IOException;
 
@@ -14,7 +14,7 @@ import java.io.IOException;
  * all SOLR index building implementations.  This class contains a single method, {@link #buildIndex(boolean)} that
  * clients should use to construct the different types of index in a consistent manner.  Implementing classes have
  * access to an {@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the index, and an {@link
- * uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that provides interaction with the Atlas database (following an Atlas 2
+ * uk.ac.ebi.gxa.dao.AtlasDAO} that provides interaction with the Atlas database (following an Atlas 2
  * schema).
  * <p/>
  * All implementing classes should implement the method {@link #createIndexDocs(boolean)} which contains the logic for

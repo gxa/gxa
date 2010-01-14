@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.netcdf.generator;
 
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 /**
@@ -14,14 +14,14 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
  */
 public interface NetCDFGenerator<T> {
     /**
-     * Set the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
      *
      * @param atlasDAO the DAO that is used to obtain data to generate NetCDFs from
      */
     void setAtlasDAO(AtlasDAO atlasDAO);
 
     /**
-     * Get the {@link uk.ac.ebi.microarray.atlas.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
+     * Get the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
      *
      * @return the DAO that is used to obtain data to generate NetCDFs from
      */

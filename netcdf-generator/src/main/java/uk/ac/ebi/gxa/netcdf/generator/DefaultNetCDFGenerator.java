@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.service.ExperimentNetCDFGeneratorService;
 import uk.ac.ebi.gxa.netcdf.generator.service.NetCDFGeneratorService;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.File;
 import java.util.ArrayList;

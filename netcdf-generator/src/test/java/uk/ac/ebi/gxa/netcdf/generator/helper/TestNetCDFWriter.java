@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.netcdf.generator.helper;
 
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
-import uk.ac.ebi.microarray.atlas.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlice;
 import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFWriter;

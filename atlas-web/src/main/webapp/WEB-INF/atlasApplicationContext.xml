@@ -260,7 +260,7 @@
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasInterfaceDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
+    <bean name="atlasInterfaceDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="interfaceTemplate"/>
     </bean>
 
@@ -274,7 +274,7 @@
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasLoaderDAO" class="uk.ac.ebi.microarray.atlas.dao.AtlasDAO">
+    <bean name="atlasLoaderDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="loaderTemplate"/>
     </bean>
 
