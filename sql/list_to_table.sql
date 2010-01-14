@@ -2,7 +2,7 @@
 --  DDL for Function LIST_TO_TABLE
 --------------------------------------------------------
 
-  CREATE OR REPLACE FUNCTION "ATLAS2"."LIST_TO_TABLE" (
+  CREATE OR REPLACE FUNCTION "LIST_TO_TABLE" (
              p_LIST                 IN VARCHAR2,
              p_DELIMITER            IN VARCHAR2 DEFAULT ','
       ) 

@@ -465,6 +465,8 @@ BEGIN
   Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
   
+  commit;
+  
 END;
 
 
