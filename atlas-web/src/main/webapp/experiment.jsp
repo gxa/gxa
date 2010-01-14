@@ -112,7 +112,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
     $(document).ready(function()
     {
 
-        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',eAcc:'${exp.accession}',gid:'${gid}',query:'top'}, function() {
+        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',gid:'${gid}',query:'top'}, function() {
             initPaging();
             addToolTips();
         });
@@ -162,7 +162,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
             var tokens = DEid_ADid.split('_');
             var DEid = tokens[0];
             var ADid = tokens[1];
-            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, eAcc:'${exp.accession}',query:'sim'}, function() {
+            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, query:'sim'}, function() {
                 $("#simHeader").hide();
                 addToolTips();
             });
@@ -172,7 +172,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
         $("#searchForm").submit(function() {
             var qry = $("#geneInExp_qry").fullVal();
             $("#qryHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Loading...");
-            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, eAcc:'${exp.accession}',query:'search'}, function() {
+            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, query:'search'}, function() {
                 $("#qryHeader").hide()
                 addToolTips();
             });

@@ -47,7 +47,6 @@ public class ExpGeneListServlet implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String eAcc = request.getParameter("eAcc");
         String eid = request.getParameter("eid");
         String qryType = request.getParameter("query");
         String geneId = request.getParameter("gid");
@@ -82,7 +81,7 @@ public class ExpGeneListServlet implements HttpRequestHandler {
                 if (null != sim) {
                     simRS.loadResult(sim);
                     ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
-                    result = queryService.findGenesForExperiment(simGeneIds, eAcc, start, NUM_GENES);
+                    result = queryService.findGenesForExperiment(simGeneIds, eid, start, NUM_GENES);
                     request.setAttribute("genes", result.getListResults());
                     request.setAttribute("simRS", simRS);
                 }
@@ -94,7 +93,7 @@ public class ExpGeneListServlet implements HttpRequestHandler {
 
         } else if (qryType.equals("top")) {
 
-            result = queryService.findGenesForExperiment("", eAcc, start, NUM_GENES);
+            result = queryService.findGenesForExperiment("", eid, start, NUM_GENES);
 
             Collection<ListResultRow> a = result.getListResults();
 
@@ -102,11 +101,10 @@ public class ExpGeneListServlet implements HttpRequestHandler {
 
         } else if (qryType.equals("search")) {
             String geneQuery = request.getParameter("gene");
-            result = queryService.findGenesForExperiment(geneQuery != null ? geneQuery : "", eAcc, start, NUM_GENES);
+            result = queryService.findGenesForExperiment(geneQuery != null ? geneQuery : "", eid, start, NUM_GENES);
             request.setAttribute("genes", result.getListResults());
         }
         request.setAttribute("result", result);
-        request.setAttribute("eAcc", eAcc);
         request.setAttribute("eid", eid);
         request.setAttribute("gid", geneId);
 
