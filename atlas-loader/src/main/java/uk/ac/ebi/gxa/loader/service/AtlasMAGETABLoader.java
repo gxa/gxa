@@ -298,9 +298,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 return pending || priorFailure;
             }
             else {
-                // not suppressing reloads, so just continue regardless
+                // not suppressing reloads, so continue
                 getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
+
+                // remove old experiment
+                getLog().info("Deleting existing version of experiment " + accession);
+                getAtlasDAO().deleteExperiment(accession);
+
                 return true;
             }
         }

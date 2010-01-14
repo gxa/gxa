@@ -14,7 +14,9 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -165,7 +167,30 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 // get unique factor values for the expression value matrix
                 String[] uefvs = proxy.getUniqueFactorValues();
 
-                // uefvs is indexed by 
+                // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
+                int uefvIndex = 0;
+                for (String uefv : uefvs) {
+                    String[] values = uefv.split("||");
+                    String ef = values[0];
+                    String efv = values[1];
+
+                    int[] designElements = proxy.getDesignElements();
+                    double[] pValuesArray = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                    double[] tStatsArray = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+
+                    Map<Integer, Double> pValues = new HashMap<Integer, Double>();
+                    Map<Integer, Double> tStatistics = new HashMap<Integer, Double>();
+                    for (int i=0; i<designElements.length; i++) {
+                        pValues.put(designElements[i], pValuesArray[i]);
+                        tStatistics.put(designElements[i], tStatsArray[i]);
+                    }
+
+                    // write values
+                    getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, pValues, tStatistics);
+
+                    // increment uefvIndex
+                    uefvIndex++;
+                }
 
             }
             catch (IOException e) {
