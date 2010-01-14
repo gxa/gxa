@@ -7,5 +7,5 @@ package uk.ac.ebi.gxa.analytics.compute;
  * @date Jun 19, 2009
  */
 public interface Compute {
-    <T> T computeTask(ComputeTask<T> task);
+    <T> T computeTask(ComputeTask<T> task) throws ComputeException;
 }

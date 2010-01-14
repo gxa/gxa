@@ -240,8 +240,14 @@ public class NetCDFProxy {
         }
         else {
             ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
+
             // convert to a string array and return
-            return (String[]) uefv.make1DStringArray().get1DJavaArray(String.class);
+            Object[] uefvArray = (Object[]) uefv.make1DStringArray().get1DJavaArray(String.class);
+            String[] result = new String[uefvArray.length];
+            for (int i = 0; i < uefvArray.length; i++) {
+                result[i] = (String) uefvArray[i];
+            }
+            return result;
         }
     }
 

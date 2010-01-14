@@ -6,14 +6,12 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
@@ -49,7 +47,7 @@ public class LoaderDriver {
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
         // solrIndex
-        final CoreContainer solrContainer = (CoreContainer)factory.getBean("solrContainer");
+        final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
 
         // run the loader
 //        try {
@@ -146,90 +144,90 @@ public class LoaderDriver {
         }
 
         // run the NetCDFGenerator
-        final long netStart = System.currentTimeMillis();
-        generator.generateNetCDFsForExperiment(
-                "E-TABM-18",
-                new NetCDFGeneratorListener() {
-                    public void buildSuccess(NetCDFGenerationEvent event) {
-                        final long netEnd = System.currentTimeMillis();
-
-                        String total = new DecimalFormat("#.##").format(
-                                (netEnd - netStart) / 60000);
-                        System.out.println(
-                                "NetCDFs generated successfully in " + total + " mins.");
-
-                        try {
-                            generator.shutdown();
-                        }
-                        catch (NetCDFGeneratorException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    public void buildError(NetCDFGenerationEvent event) {
-                        System.out.println("NetCDF Generation failed!");
-                        for (Throwable t : event.getErrors()) {
-                            t.printStackTrace();
-                            try {
-                                generator.shutdown();
-                            }
-                            catch (NetCDFGeneratorException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
-
-        // in case we don't run netCDF generator
-//        try {
-//            generator.shutdown();
-//        }
-//        catch (NetCDFGeneratorException e) {
-//            e.printStackTrace();
-//        }
-
-//        // run the analytics
 //        final long netStart = System.currentTimeMillis();
-//        analytics.generateAnalyticsForExperiment(
+//        generator.generateNetCDFsForExperiment(
 //                "E-TABM-199",
-//                new AnalyticsGeneratorListener() {
-//                    public void buildSuccess(AnalyticsGenerationEvent event) {
+//                new NetCDFGeneratorListener() {
+//                    public void buildSuccess(NetCDFGenerationEvent event) {
 //                        final long netEnd = System.currentTimeMillis();
 //
 //                        String total = new DecimalFormat("#.##").format(
 //                                (netEnd - netStart) / 60000);
 //                        System.out.println(
-//                                "Analytics generated successfully in " + total + " mins.");
+//                                "NetCDFs generated successfully in " + total + " mins.");
 //
 //                        try {
-//                            analytics.shutdown();
+//                            generator.shutdown();
 //                        }
-//                        catch (AnalyticsGeneratorException e) {
+//                        catch (NetCDFGeneratorException e) {
 //                            e.printStackTrace();
 //                        }
 //                    }
 //
-//                    public void buildError(AnalyticsGenerationEvent event) {
-//                        System.out.println("Analytics Generation failed!");
+//                    public void buildError(NetCDFGenerationEvent event) {
+//                        System.out.println("NetCDF Generation failed!");
 //                        for (Throwable t : event.getErrors()) {
 //                            t.printStackTrace();
 //                            try {
-//                                analytics.shutdown();
+//                                generator.shutdown();
 //                            }
-//                            catch (AnalyticsGeneratorException e) {
+//                            catch (NetCDFGeneratorException e) {
 //                                e.printStackTrace();
 //                            }
 //                        }
 //                    }
 //                });
 
-        // in case we don't run analytics
+        // in case we don't run netCDF generator
         try {
-            analytics.shutdown();
+            generator.shutdown();
         }
-        catch (AnalyticsGeneratorException e) {
+        catch (NetCDFGeneratorException e) {
             e.printStackTrace();
         }
+
+        // run the analytics
+        final long netStart = System.currentTimeMillis();
+        analytics.generateAnalyticsForExperiment(
+                "E-TABM-199",
+                new AnalyticsGeneratorListener() {
+                    public void buildSuccess(AnalyticsGenerationEvent event) {
+                        final long netEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (netEnd - netStart) / 60000);
+                        System.out.println(
+                                "Analytics generated successfully in " + total + " mins.");
+
+                        try {
+                            analytics.shutdown();
+                        }
+                        catch (AnalyticsGeneratorException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void buildError(AnalyticsGenerationEvent event) {
+                        System.out.println("Analytics Generation failed!");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                            try {
+                                analytics.shutdown();
+                            }
+                            catch (AnalyticsGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+
+        // in case we don't run analytics
+//        try {
+//            analytics.shutdown();
+//        }
+//        catch (AnalyticsGeneratorException e) {
+//            e.printStackTrace();
+//        }
 
 //        // do a load_monitor update
 //        final AtlasDAO atlasDAO =

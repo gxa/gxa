@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 import org.kchine.r.RList;
 import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -158,7 +159,12 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             };
 
             // now run this compute task
-            getAtlasComputeService().computeTask(computeAnalytics);
+            try {
+                getAtlasComputeService().computeTask(computeAnalytics);
+            }
+            catch (ComputeException e) {
+                throw new AnalyticsGeneratorException("Compute task failed", e);
+            }
 
             // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
             NetCDFProxy proxy = new NetCDFProxy(netCDF);
@@ -170,7 +176,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
                 int uefvIndex = 0;
                 for (String uefv : uefvs) {
-                    String[] values = uefv.split("||");
+                    String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                     String ef = values[0];
                     String efv = values[1];
 
