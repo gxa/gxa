@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.dao;
+package uk.ac.ebi.gxa.dao;
 
 /**
  * An enumeration of possible stages that a process can occupy, indicating whether the current task is loading, creating

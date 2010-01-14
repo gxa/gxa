@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.dao;
+package uk.ac.ebi.gxa.dao;
 
 /**
  * An enumeration of the possible types a load process can have.  This indicates whether a load process pertains to an
