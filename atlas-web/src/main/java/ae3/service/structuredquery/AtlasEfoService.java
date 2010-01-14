@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
@@ -19,7 +19,7 @@ import java.util.*;
  * EFO value list helper class, implementing autocompletion and value listing for EFO
  * @author pashky
  */
-public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
+public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler {
     final private Logger log = LoggerFactory.getLogger(getClass());
     private SolrServer solrServerAtlas;
     private Efo efo;
@@ -307,10 +307,14 @@ public class AtlasEfoService implements AutoCompleter, IndexUpdateHandler {
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
-        indexBuilder.registerIndexUpdateHandler(this);
+        indexBuilder.registerIndexBuildEventHandler(this);
     }
 
-    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         counts.clear();
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+
     }
 }

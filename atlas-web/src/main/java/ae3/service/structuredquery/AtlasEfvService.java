@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import ae3.util.AtlasProperties;
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasEfvService implements AutoCompleter, IndexUpdateHandler {
+public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
@@ -203,12 +203,16 @@ public class AtlasEfvService implements AutoCompleter, IndexUpdateHandler {
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
-        indexBuilder.registerIndexUpdateHandler(this);
+        indexBuilder.registerIndexBuildEventHandler(this);
     }
 
-    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         allFactors.clear();
         prefixTrees.clear();
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+        
     }
 
 }

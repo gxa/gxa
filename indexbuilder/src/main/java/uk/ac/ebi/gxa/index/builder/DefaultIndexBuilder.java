@@ -28,7 +28,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     private List<IndexBuilderService> services;
 
-    private List<IndexUpdateHandler> updateHandlers = new ArrayList<IndexUpdateHandler>();
+    private List<IndexBuilderEventHandler> eventHandlers = new ArrayList<IndexBuilderEventHandler>();
 
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -156,26 +156,41 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                 "Updating for " + StringUtils.join(getIncludeIndexes(), ","));
     }
 
-    public void registerIndexUpdateHandler(IndexUpdateHandler handler) {
-        if (!updateHandlers.contains(handler)) {
-            updateHandlers.add(handler);
+    public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+        if (!eventHandlers.contains(handler)) {
+            eventHandlers.add(handler);
         }
     }
 
-    public void unregisterIndexUpdateHandler(IndexUpdateHandler handler) {
-        updateHandlers.remove(handler);
+    public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+        eventHandlers.remove(handler);
     }
 
-    private void notifyUpdateHandlers(IndexBuilderEvent event) {
-        for (IndexUpdateHandler handler : updateHandlers) {
-            handler.onIndexUpdate(this, event);
+    private void notifyBuildFinishHandlers(IndexBuilderEvent event) {
+        log.info("Index updated, notifying listeners");
+        for (IndexBuilderEventHandler handler : eventHandlers) {
+            handler.onIndexBuildFinish(this, event);
+        }
+    }
+
+    private void notifyBuildStartHandlers() {
+        log.info("Index build started, notifying listeners");
+        for (IndexBuilderEventHandler handler : eventHandlers) {
+            handler.onIndexBuildStart(this);
         }
     }
 
     private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
+        if(includeIndexes.isEmpty()) {
+            log.info("Nothing to build");
+            return;
+        }
+
         final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
+
+        notifyBuildStartHandlers();
 
         for (final IndexBuilderService service : services) {
             if(includeIndexes.contains(service.getName())) {
@@ -222,7 +237,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                         :
                         new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors);
 
-                notifyUpdateHandlers(builderEvent);
+                notifyBuildFinishHandlers(builderEvent);
 
                 // create our completion event
                 if (listener != null) {

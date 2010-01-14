@@ -6,6 +6,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
  * Interface for index update call-backs
  * @author pashky
  */
-public interface IndexUpdateHandler {
-    void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event);
+public interface IndexBuilderEventHandler {
+    void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event);
+    void onIndexBuildStart(IndexBuilder builder);
 }

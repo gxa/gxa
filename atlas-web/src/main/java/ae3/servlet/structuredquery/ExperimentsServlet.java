@@ -7,9 +7,9 @@ import ae3.service.structuredquery.Constants;
 import ae3.util.CuratedTexts;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.gxa.index.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.index.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -19,12 +19,27 @@ import java.util.*;
  */
 public class ExperimentsServlet extends RestServlet {
 
+    private AtlasDao dao;
+    private Efo efo;
+
+    public AtlasDao getDao() {
+        return dao;
+    }
+
+    public void setDao(AtlasDao dao) {
+        this.dao = dao;
+    }
+
+    public Efo getEfo() {
+        return efo;
+    }
+
+    public void setEfo(Efo efo) {
+        this.efo = efo;
+    }
+
     public Object process(HttpServletRequest request) {
         Map<String, Object> jsResult = new HashMap<String, Object>();
-
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
-        Efo efo = (Efo)context.getBean("efo");
 
         String geneIdKey = request.getParameter("gene");
         String factor = request.getParameter("ef");

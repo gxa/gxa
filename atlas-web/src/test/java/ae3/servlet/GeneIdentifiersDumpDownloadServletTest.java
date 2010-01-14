@@ -18,20 +18,18 @@ public class GeneIdentifiersDumpDownloadServletTest extends AbstractOnceIndexTes
 
     @Test
     public void testDumpGeneIdentifiers() {
-        String testDumpFile = System.getProperty("java.io.tmpdir") + File.separator + "gene_identifiers.txt";
+        File testDumpFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "gene_identifiers.txt");
 
         GeneIdentifiersDumpDownloadServlet svt = new GeneIdentifiersDumpDownloadServlet();
 
         svt.setCoreContainer(getContainer());
-        svt.setBasePath(System.getProperty("java.io.tmpdir"));
-        svt.setDumpGeneIdsFilename("gene_identifiers.txt");
+        svt.setDumpGeneIdsFile(testDumpFile);
 
         svt.dumpGeneIdentifiers();
 
-        File dumpFile = new File(testDumpFile);
-        assertTrue(dumpFile.exists());
+        assertTrue(testDumpFile.exists());
 
-        if(!dumpFile.delete()) {
+        if(!testDumpFile.delete()) {
             log.error("Failed to delete temporary file");
         }
     }

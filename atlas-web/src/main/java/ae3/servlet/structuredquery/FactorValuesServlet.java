@@ -3,6 +3,7 @@ package ae3.servlet.structuredquery;
 import ae3.restresult.RestOut;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.AutoCompleter;
+import ae3.dao.AtlasDao;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import uk.ac.ebi.gxa.efo.Efo;
 
 /**
  * @author pashky
@@ -25,26 +28,23 @@ public class FactorValuesServlet extends RestServlet {
     public static class ACMap extends HashMap<String, List<AutoCompleteItem>> {
     }
 
+    private Map<String,List<AutoCompleter>> autoCompleters;
+
+    public Map<String, List<AutoCompleter>> getAutoCompleters() {
+        return autoCompleters;
+    }
+
+    public void setAutoCompleters(Map<String, List<AutoCompleter>> autoCompleters) {
+        this.autoCompleters = autoCompleters;
+    }
+
     public Object process(HttpServletRequest request) {
-
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-
-        List<AutoCompleter> listers = new ArrayList<AutoCompleter>();
+        List<AutoCompleter> listers = null;
 
         String type = request.getParameter("type");
-        if ("gene".equals(type)) {
-            listers.add((AutoCompleter)context.getBean("atlasGenePropertyService"));
-        }
-        else if ("efv".equals(type)) {
-            listers.add((AutoCompleter)context.getBean("atlasEfvService"));
-        }
-        else if ("efo".equals(type)) {
-            listers.add((AutoCompleter)context.getBean("atlasEfoService"));
-        }
-        else if ("efoefv".equals(type)) {
-            listers.add((AutoCompleter)context.getBean("atlasEfoService"));
-            listers.add((AutoCompleter)context.getBean("atlasEfvService"));
-        }
+        if(type != null)
+             listers = autoCompleters.get(type);
+
 
         Map<String, Object> result = new HashMap<String, Object>();
 
@@ -86,16 +86,17 @@ public class FactorValuesServlet extends RestServlet {
             }
 
             List<AutoCompleteItem> resultList = new ACList();
-            for (AutoCompleter lister : listers) {
-                if (resultList.size() < nlimit) {
-                    resultList.addAll(lister.autoCompleteValues(
-                            factor,
-                            q,
-                            nlimit - resultList.size(),
-                            filters
-                    ));
+            if(listers != null)
+                for (AutoCompleter lister : listers) {
+                    if (resultList.size() < nlimit) {
+                        resultList.addAll(lister.autoCompleteValues(
+                                factor,
+                                q,
+                                nlimit - resultList.size(),
+                                filters
+                        ));
+                    }
                 }
-            }
             values.put(q != null ? q : "", resultList);
         }
 

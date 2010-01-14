@@ -4,66 +4,66 @@ import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
 import ae3.service.XML4dbDumps;
 import ae3.util.AtlasProperties;
+import ae3.util.FileDownloadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
-public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
+public class GeneEbeyeDumpDownloadServlet implements HttpRequestHandler, IndexBuilderEventHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private String dumpGeneIdsFilename;
+    private File dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + AtlasProperties.getProperty("atlas.dump.ebeye.filename"));
+    private AtlasDao dao;
 
-
-    public String getDumpGeneIdsFilename() {
-        return dumpGeneIdsFilename;
+    public File getDumpGeneIdsFile() {
+        return dumpGeneIdsFile;
     }
 
-    public void setDumpGeneIdsFilename(String dumpGeneIdsFilename) {
-        this.dumpGeneIdsFilename = dumpGeneIdsFilename;
+    public void setDumpGeneIdsFile(File dumpGeneIdsFile) {
+        this.dumpGeneIdsFile = dumpGeneIdsFile;
     }
 
-    @Override
-    public void init() throws ServletException {
-        setBasePath(System.getProperty("java.io.tmpdir"));
-        setDumpGeneIdsFilename(AtlasProperties.getProperty("atlas.dump.ebeye.filename"));
-
-        new Thread() {
-            public void run() {
-                dumpGeneIdentifiers();
-            }
-        }.start();
+    public AtlasDao getDao() {
+        return dao;
     }
 
+    public void setDao(AtlasDao dao) {
+        this.dao = dao;
+    }
 
-    @Override
-    /**
-     * Returns filename where the gene identifiers are dumped to. If the file doesn't exist for some reason,
-     * generates the dump.
-     *
-     */
-    protected String getRequestedFilename(HttpServletRequest request) {
-        String dumpGeneIdsAbsoluteFilename = getBasePath() + File.separator + getDumpGeneIdsFilename();
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexBuildEventHandler(this);
+    }
 
-        File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
-
-        if (!dumpGeneIdsFile.exists()) {
+    public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
+        log.info("Gene ebeye dump download request");
+        if(!dumpGeneIdsFile.exists())
             dumpGeneIdentifiers();
-        }
+        FileDownloadServer.processRequest(dumpGeneIdsFile, "text/xml", httpServletRequest, httpServletResponse);
+    }
 
-        log.info("Gene identifiers dump download request");
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        dumpGeneIdsFile.delete();
+        dumpGeneIdentifiers();
+    }
 
-        return getDumpGeneIdsFilename();
+    public void onIndexBuildStart(IndexBuilder builder) {
+
     }
 
     /**
@@ -71,8 +71,6 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
      */
     public void dumpGeneIdentifiers() {
         try {
-            WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-            AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
             List<AtlasGene> genes = dao.getGenes();
 
             XML4dbDumps.Document d1 = new XML4dbDumps.Document();
@@ -116,18 +114,17 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
                 e1.getAdditionalFields().add(f2);
             }
 
-            String dumpGeneIdsAbsoluteFilename = getBasePath() + File.separator + getDumpGeneIdsFilename();
             //File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
             //RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
             //IndexReader r = searcher.get().getReader();
 
-            log.info("Writing gene ids file from index to " + dumpGeneIdsFilename);
+            log.info("Writing ebeye file from index to " + dumpGeneIdsFile);
 
             //BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
             //List<String> geneids = Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
             //ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 
-            FileOutputStream ostream = new FileOutputStream(dumpGeneIdsAbsoluteFilename);
+            FileOutputStream ostream = new FileOutputStream(dumpGeneIdsFile);
 
             try {
                 ostream.write(XML4dbDumps.Serialize(d1).getBytes());
@@ -137,6 +134,7 @@ public class GeneEbeyeDumpDownloadServlet extends FileDownloadServlet {
             }
             finally {
                 ostream.close();
+                log.info("Writing ebeye file from index to " + dumpGeneIdsFile + " - done");
             }
 
         }

@@ -164,83 +164,68 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Factor Values completion helper</display-name>
-        <servlet-name>fval</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.FactorValuesServlet
-        </servlet-class>
-        <load-on-startup>0</load-on-startup>
+        <display-name>Auto completion helper</display-name>
+        <servlet-name>autocompleterServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>fval</servlet-name>
+        <servlet-name>autocompleterServlet</servlet-name>
         <url-pattern>/fval</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>EFO ajax helper</display-name>
-        <servlet-name>efo</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.EfoServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
+        <servlet-name>efoServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>efo</servlet-name>
+        <servlet-name>efoServlet</servlet-name>
         <url-pattern>/efo</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Gene Identifiers Dump</display-name>
-        <servlet-name>GeneIdentifiersDump</servlet-name>
-        <servlet-class>ae3.servlet.GeneIdentifiersDumpDownloadServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>geneIdsDownloadServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>GeneIdentifiersDump</servlet-name>
+        <servlet-name>geneIdsDownloadServlet</servlet-name>
         <url-pattern>/download/gene_identifiers.txt</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Gene Ebeye Dump</display-name>
-        <servlet-name>GeneEbeyeDump</servlet-name>
-        <servlet-class>ae3.servlet.GeneEbeyeDumpDownloadServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>ebeyeDownloadServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>GeneEbeyeDump</servlet-name>
+        <servlet-name>ebeyeDownloadServlet</servlet-name>
         <url-pattern>/download/ebeye_export.xml</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Google Sitemap</display-name>
-        <servlet-name>GoogleSitemap</servlet-name>
-        <servlet-class>ae3.servlet.GoogleSitemapXmlServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>sitemapDownloadServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>GoogleSitemap</servlet-name>
+        <servlet-name>sitemapDownloadServlet</servlet-name>
         <url-pattern>/sitemap/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
-        <display-name>GeneListCacheServlet</display-name>
-        <servlet-name>GeneListCacheServlet</servlet-name>
-        <servlet-class>ae3.servlet.GeneListCacheServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet>
         <display-name>List view download servlet</display-name>
-        <servlet-name>ListviewDownloadServlet</servlet-name>
-        <servlet-class>ae3.servlet.ListviewDownloadServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
+        <servlet-name>listviewDownloadServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>ListviewDownloadServlet</servlet-name>
+        <servlet-name>listviewDownloadServlet</servlet-name>
         <url-pattern>/listviewdownload/*</url-pattern>
     </servlet-mapping>
 
@@ -269,65 +254,47 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Search JSP Servlet</display-name>
-        <servlet-name>qr</servlet-name>
-        <jsp-file>/search.jsp</jsp-file>
-        <load-on-startup>1</load-on-startup>
+        <display-name>Search Servlet</display-name>
+        <servlet-name>queryServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>qr</servlet-name>
-        <url-pattern>/qr</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>Search JSP Servlet</display-name>
-        <servlet-name>qrs</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.StructuredQueryServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>qrs</servlet-name>
+        <servlet-name>queryServlet</servlet-name>
         <url-pattern>/qrs</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>API Search JSP Servlet</display-name>
-        <servlet-name>apiqrs</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.ApiStructuredQueryServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>apiQueryServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>apiqrs</servlet-name>
+        <servlet-name>apiQueryServlet</servlet-name>
         <url-pattern>/api</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Experiments servlet</display-name>
-        <servlet-name>experiments</servlet-name>
-        <servlet-class>ae3.servlet.structuredquery.ExperimentsServlet
-        </servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>experimentsServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>experiments</servlet-name>
+        <servlet-name>experimentsServlet</servlet-name>
         <url-pattern>/experiments</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>ExperimentGeneList servlet</display-name>
-        <servlet-name>expGenes</servlet-name>
-        <servlet-class>ae3.servlet.ExpGeneListServlet</servlet-class>
+        <servlet-name>expGeneListServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>expGenes</servlet-name>
+        <servlet-name>expGeneListServlet</servlet-name>
         <url-pattern>/expGenes</url-pattern>
     </servlet-mapping>
 
@@ -352,11 +319,6 @@
         <exception-type>java.lang.Exception</exception-type>
         <location>/error.jsp</location>
     </error-page>
-
-    <mime-mapping>
-        <extension>wsdl</extension>
-        <mime-type>text/xml</mime-type>
-    </mime-mapping>
 
     <login-config>
         <auth-method>BASIC</auth-method>

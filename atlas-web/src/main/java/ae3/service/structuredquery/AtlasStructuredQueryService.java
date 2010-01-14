@@ -25,7 +25,7 @@ import uk.ac.ebi.gxa.index.ExperimentsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.index.builder.IndexUpdateHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.microarray.atlas.dao.AtlasDAO;
@@ -36,7 +36,7 @@ import java.util.*;
  * Structured query support class
  * @author pashky
  */
-public class AtlasStructuredQueryService implements IndexUpdateHandler {
+public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
 
     private static final int MAX_EFV_COLUMNS = 120;
 
@@ -152,7 +152,7 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
-        indexBuilder.registerIndexUpdateHandler(this);
+        indexBuilder.registerIndexBuildEventHandler(this);
     }
 
     public Efo getEfo() {
@@ -1061,7 +1061,11 @@ public class AtlasStructuredQueryService implements IndexUpdateHandler {
         return allSpecies;
     }
 
-    public void onIndexUpdate(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         allSpecies.clear();
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+        
     }
 }
