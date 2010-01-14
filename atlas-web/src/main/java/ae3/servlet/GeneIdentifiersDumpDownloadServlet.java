@@ -1,6 +1,8 @@
 package ae3.servlet;
 
 import ae3.util.AtlasProperties;
+import ae3.util.FileDownloadServer;
+import ae3.dao.AtlasDao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
@@ -13,9 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,23 +27,19 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
-public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
+public class GeneIdentifiersDumpDownloadServlet implements HttpRequestHandler, IndexBuilderEventHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private String dumpGeneIdsFilename;
+    private File dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + AtlasProperties.getProperty("atlas.dump.geneidentifiers.filename"));
     private CoreContainer coreContainer;
-
-
-    public String getDumpGeneIdsFilename() {
-        return dumpGeneIdsFilename;
-    }
-
-    public void setDumpGeneIdsFilename(String dumpGeneIdsFilename) {
-        this.dumpGeneIdsFilename = dumpGeneIdsFilename;
-    }
+    private static final String PROPERTY = "property_f_";
 
     public CoreContainer getCoreContainer() {
         return coreContainer;
@@ -49,58 +49,46 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
         this.coreContainer = coreContainer;
     }
 
-    @Override
-    public void init() throws ServletException {
-        setBasePath(System.getProperty("java.io.tmpdir"));
-        setDumpGeneIdsFilename(AtlasProperties.getProperty("atlas.dump.geneidentifiers.filename"));
-
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        setCoreContainer((CoreContainer)context.getBean("solrContainer"));
-
-
-        new Thread() {
-            public void run() {
-                dumpGeneIdentifiers();
-            }
-        }.start();
+    public File getDumpGeneIdsFile() {
+        return dumpGeneIdsFile;
     }
 
+    public void setDumpGeneIdsFile(File dumpGeneIdsFile) {
+        this.dumpGeneIdsFile = dumpGeneIdsFile;
+    }
 
-    @Override
-    /**
-     * Returns filename where the gene identifiers are dumped to. If the file doesn't exist for some reason,
-     * generates the dump.
-     *
-     */
-    protected String getRequestedFilename(HttpServletRequest request) {
-        String dumpGeneIdsAbsoluteFilename = getBasePath() + File.separator + getDumpGeneIdsFilename();
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexBuildEventHandler(this);
+    }
 
-        File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
-
-        if (!dumpGeneIdsFile.exists()) {
-            dumpGeneIdentifiers();
-        }
-
+    public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene identifiers dump download request");
+        if(!dumpGeneIdsFile.exists())
+            dumpGeneIdentifiers();
+        FileDownloadServer.processRequest(dumpGeneIdsFile, "text/plain", httpServletRequest, httpServletResponse);
+    }
 
-        return getDumpGeneIdsFilename();
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        dumpGeneIdsFile.delete();
+        dumpGeneIdentifiers();
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+
     }
 
     /**
      * Generates a special file containing all gene identifiers, for external users to use for linking.
      */
-    public void dumpGeneIdentifiers() {
+    void dumpGeneIdentifiers() {
         SolrCore core = null;
         try {
             core = getCoreContainer().getCore("atlas");
 
-            String dumpGeneIdsAbsoluteFilename = getBasePath() + File.separator + getDumpGeneIdsFilename();
-            File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
-
             RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
             IndexReader r = searcher.get().getReader();
 
-            log.info("Writing gene ids file from index to " + dumpGeneIdsFilename);
+            log.info("Writing gene ids file from index to " + dumpGeneIdsFile);
 
             BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
 
@@ -113,14 +101,16 @@ public class GeneIdentifiersDumpDownloadServlet extends FileDownloadServlet {
                 Term t = terms.term();
                 String f = t.field();
 
-                if (geneids.contains(f)) {
-                    out.write(t.field() + "\t" + t.text());
+                if (f.startsWith(PROPERTY) && geneids.contains(f.substring(PROPERTY.length()))) {
+                    out.write(f.substring(PROPERTY.length()) + "\t" + t.text());
                     out.newLine();
                 }
             }
 
             searcher.decref();
             out.close();
+
+            log.info("Writing gene ids file from index to " + dumpGeneIdsFile + " - done");
         }
         catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);

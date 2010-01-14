@@ -72,7 +72,8 @@
         <property name="efo" ref="efo" />
     </bean>
 
-    <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
+    <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
+          destroy-method="shutdown">
         <property name="services">
             <util:list>
                 <ref bean="indexBuilderServiceProperties"/>
@@ -84,15 +85,16 @@
         <property name="includeIndexes">
             <util:list>
                 <value>properties</value>
-                <value>experiments</value>
-                <value>genes</value>
+                <!--<value>experiments</value>-->
+                <!--<value>genes</value>-->
             </util:list>
         </property>
     </bean>
 
     <!-- NetCDF Generator component -->
 
-    <bean name="netCDFGenerator" class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
+    <bean name="netCDFGenerator" class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator"
+          destroy-method="shutdown">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
@@ -171,6 +173,81 @@
         <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+    </bean>
+
+    <!-- Gene list cache -->
+    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService">
+        <property name="genePropertyService" ref="atlasGenePropertyService"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <!-- Servlets (actually, HttpRequestHandlers) -->
+    
+    <bean name="queryServlet" class="ae3.servlet.structuredquery.StructuredQueryServlet">
+        <property name="queryService" ref="atlasQueryService"/>
+        <property name="downloadService" ref="atlasDownloadService"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <bean name="autocompleterServlet" class="ae3.servlet.structuredquery.FactorValuesServlet">
+        <property name="autoCompleters">
+            <util:map>
+                <entry key="gene">
+                    <util:list><ref bean="atlasGenePropertyService"/></util:list>
+                </entry>
+                <entry key="efv">
+                    <util:list><ref bean="atlasEfvService"/></util:list>
+                </entry>
+                <entry key="efo">
+                    <util:list><ref bean="atlasEfoService"/></util:list>
+                </entry>
+                <entry key="efoefv">
+                    <util:list>
+                        <ref bean="atlasEfoService"/>
+                        <ref bean="atlasEfvService"/>
+                    </util:list>
+                </entry>
+            </util:map>
+        </property>
+    </bean>
+
+    <bean name="efoServlet" class="ae3.servlet.structuredquery.EfoServlet">
+        <property name="efoService" ref="atlasEfoService"/>
+    </bean>
+
+    <bean name="apiQueryServlet" class="ae3.servlet.structuredquery.ApiStructuredQueryServlet">
+        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="efo" ref="efo"/>
+        <property name="queryService" ref="atlasQueryService"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <bean name="experimentsServlet" class="ae3.servlet.structuredquery.ExperimentsServlet">
+        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="efo" ref="efo"/>
+    </bean>
+
+    <bean name="expGeneListServlet" class="ae3.servlet.ExpGeneListServlet">
+        <property name="queryService" ref="atlasQueryService"/>
+        <property name="computeService" ref="atlasComputeService"/>
+    </bean>
+
+    <bean name="geneIdsDownloadServlet" class="ae3.servlet.GeneIdentifiersDumpDownloadServlet">
+        <property name="coreContainer" ref="solrContainer"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <bean name="ebeyeDownloadServlet" class="ae3.servlet.GeneEbeyeDumpDownloadServlet">
+        <property name="dao" ref="atlasSolrDAO" />
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <bean name="sitemapDownloadServlet" class="ae3.servlet.GoogleSitemapXmlServlet">
+        <property name="coreContainer" ref="solrContainer"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+    </bean>
+
+    <bean name="listviewDownloadServlet" class="ae3.servlet.ListviewDownloadServlet">
     </bean>
 
     <!-- Required spring driven data access configuration for web interface -->

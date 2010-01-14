@@ -39,13 +39,13 @@ public class GoogleSitemapXmlServletTest extends AbstractOnceIndexTest {
         GoogleSitemapXmlServlet svt = new GoogleSitemapXmlServlet();
         svt.setCoreContainer(getContainer());
 
-        svt.setBasePath(System.getProperty("java.io.tmpdir"));
+        File sitemapIndexFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "geneSitemapIndex.xml");
+        svt.setSitemapIndexFile(sitemapIndexFile);
         svt.writeGeneSitemap();
 
-        File geneSitemapIndex = new File(svt.getBasePath() + File.separator + "geneSitemapIndex.xml");
-        assertTrue(geneSitemapIndex.exists());
+        assertTrue(sitemapIndexFile.exists());
 
-        File geneSitemap0 = new File(svt.getBasePath() + File.separator + "geneSitemap0.xml.gz");
+        File geneSitemap0 = new File(sitemapIndexFile.getParentFile(), "geneSitemap0.xml.gz");
         assertTrue(geneSitemap0.exists());
     }
 }

@@ -104,14 +104,14 @@ public interface IndexBuilder {
     void updateIndex(IndexBuilderListener listener);
 
     /**
-     * Register index update handler. Those handlers will be called once index was built.
+     * Register index update handler. Those handlers will be called when index build starts and finishes.
      * @param handler handler to register
      */
-    void registerIndexUpdateHandler(IndexUpdateHandler handler);
+    void registerIndexBuildEventHandler(IndexBuilderEventHandler handler);
 
     /**
-     * Unregister index update handler. Handlers will not receive update notifications anymore.
+     * Unregister index update handler. Handlers will not receive notifications anymore.
      * @param handler handler to unregister
      */
-    void unregisterIndexUpdateHandler(IndexUpdateHandler handler);
+    void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler);
 }

@@ -3,35 +3,62 @@ package ae3.servlet.structuredquery;
 import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+
 /**
  * @author pashky
  */
-public class StructuredQueryServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-            throws ServletException, IOException {
-        doIt(httpServletRequest, httpServletResponse);
+public class StructuredQueryServlet implements HttpRequestHandler, IndexBuilderEventHandler {
+
+    private AtlasStructuredQueryService queryService;
+    private AtlasDownloadService downloadService;
+    private boolean disableQueries = false;
+
+    public AtlasStructuredQueryService getQueryService() {
+        return queryService;
     }
 
-    protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-            throws ServletException, IOException {
-        doIt(httpServletRequest, httpServletResponse);
+    public void setQueryService(AtlasStructuredQueryService queryService) {
+        this.queryService = queryService;
     }
 
-    private void doIt(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public AtlasDownloadService getDownloadService() {
+        return downloadService;
+    }
+
+    public void setDownloadService(AtlasDownloadService downloadService) {
+        this.downloadService = downloadService;
+    }
+
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        disableQueries = false;
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+        disableQueries = true;
+    }
+
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if(disableQueries) {
+            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            request.setAttribute("errorMessage", "Index building is in progress, please wait");
+            request.getRequestDispatcher("/error.jsp").forward(request,response);
+        }
+
         long startTime = HtmlHelper.currentTime();
-
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService)context.getBean("atlasQueryService");
-        AtlasDownloadService downloadService = (AtlasDownloadService)context.getBean("atlasDownloadService");
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
 

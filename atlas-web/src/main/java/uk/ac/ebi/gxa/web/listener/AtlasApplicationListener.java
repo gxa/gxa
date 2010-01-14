@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.web.listener;
 
 import ae3.dao.AtlasDao;
 import ae3.service.AtlasDownloadService;
+import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
@@ -71,24 +72,17 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // fetch services from the context
         AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasInterfaceDAO");
-        AtlasLoader atlasLoader = (AtlasLoader) context.getBean("atlasLoader");
-        IndexBuilder indexBuilder = (IndexBuilder) context.getBean("indexBuilder");
-        NetCDFGenerator netCDFGenerator = (NetCDFGenerator) context.getBean("netCDFGenerator");
-        AnalyticsGenerator analyticsGenerator = (AnalyticsGenerator) context.getBean("analyticsGenerator");
         AtlasDownloadService downloadService = (AtlasDownloadService) context.getBean("atlasDownloadService");
         AtlasComputeService computeService = (AtlasComputeService) context.getBean("atlasComputeService");
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
         AtlasDao atlasSolrDAO = (AtlasDao) context.getBean("atlasSolrDAO");
+        GeneListCacheService geneCacheService = (GeneListCacheService) context.getBean("geneListCacheService");
 
         // store in session
         application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
-        application.setAttribute(Atlas.ATLAS_MAGETAB_LOADER.key(), atlasLoader);
-        application.setAttribute(Atlas.INDEX_BUILDER.key(), indexBuilder);
-        application.setAttribute(Atlas.NETCDF_GENERATOR.key(), netCDFGenerator);
-        application.setAttribute(Atlas.ANALYTICS_GENERATOR.key(), analyticsGenerator);
         application.setAttribute(Atlas.DOWNLOAD_SERVICE.key(), downloadService);
-        application.setAttribute(Atlas.COMPUTE_SERVICE.key(), computeService);
         application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), atlasSolrDAO);
+        application.setAttribute(Atlas.GENES_CACHE.key(), geneCacheService);
 
         String dataRelease = AtlasProperties.getProperty("atlas.data.release");
         AtlasStatistics statistics = atlasDAO.getAtlasStatisticsByDataRelease(dataRelease);
@@ -180,41 +174,10 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // shutdown and remove services from session
         application.removeAttribute(Atlas.ATLAS_SOLR_DAO.key());
         application.removeAttribute(Atlas.ATLAS_DAO.key());
-        application.removeAttribute(Atlas.ATLAS_MAGETAB_LOADER.key());
-
-        IndexBuilder indexBuilder =
-                (IndexBuilder) application.getAttribute(Atlas.INDEX_BUILDER.key());
-        try {
-            indexBuilder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            log.error("Shutting down indexBuilder failed - atlas may not cleanly terminate");
-        }
-        application.removeAttribute(Atlas.INDEX_BUILDER.key());
-
-        NetCDFGenerator netCDFGenerator =
-                (NetCDFGenerator) application.getAttribute(Atlas.NETCDF_GENERATOR.key());
-        try {
-            netCDFGenerator.shutdown();
-        }
-        catch (NetCDFGeneratorException e) {
-            log.error("Shutting down netCDFGenerator failed - atlas may not cleanly terminate");
-        }
-        application.removeAttribute(Atlas.NETCDF_GENERATOR.key());
-
-        AnalyticsGenerator analyticsGenerator =
-                (AnalyticsGenerator) application.getAttribute(Atlas.ANALYTICS_GENERATOR.key());
-        try {
-            analyticsGenerator.shutdown();
-        }
-        catch (AnalyticsGeneratorException e) {
-            log.error("Shutting down analyticsGenerator failed - atlas may not cleanly terminate");
-        }
-        application.removeAttribute(Atlas.ANALYTICS_GENERATOR.key());
 
         application.removeAttribute(Atlas.DOWNLOAD_SERVICE.key());
-        application.removeAttribute(Atlas.COMPUTE_SERVICE.key());
         application.removeAttribute(Atlas.PLOTTER.key());
+        application.removeAttribute(Atlas.GENES_CACHE.key());
 
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;

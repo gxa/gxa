@@ -8,32 +8,69 @@ import ae3.servlet.structuredquery.result.ErrorResult;
 import ae3.servlet.structuredquery.result.ExperimentRestProfile;
 import ae3.servlet.structuredquery.result.ExperimentResultAdapter;
 import ae3.servlet.structuredquery.result.HeatmapResultAdapter;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import uk.ac.ebi.gxa.efo.Efo;
-
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  *
  * @author pashky
  */
-public class ApiStructuredQueryServlet extends RestServlet {
+public class ApiStructuredQueryServlet extends RestServlet implements IndexBuilderEventHandler {
+    private AtlasStructuredQueryService queryService;
+    private AtlasDao dao;
+    private Efo efo;
+    boolean disableQueries = false;
+
+    public AtlasStructuredQueryService getQueryService() {
+        return queryService;
+    }
+
+    public void setQueryService(AtlasStructuredQueryService queryService) {
+        this.queryService = queryService;
+    }
+
+    public AtlasDao getDao() {
+        return dao;
+    }
+
+    public void setDao(AtlasDao dao) {
+        this.dao = dao;
+    }
+
+    public Efo getEfo() {
+        return efo;
+    }
+
+    public void setEfo(Efo efo) {
+        this.efo = efo;
+    }
+
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        disableQueries = false;
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+        disableQueries = true;
+    }
+
+    public void setIndexBuilder(IndexBuilder builder) {
+        builder.registerIndexBuildEventHandler(this);
+    }
 
     @Override
     public Object process(HttpServletRequest request) {
-        final String experimentId = request.getParameter("experiment");
+        if(disableQueries)
+            return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        // fetch search service from the session context
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService)context.getBean("atlasQueryService");
-        AtlasDao dao = (AtlasDao)context.getBean("atlasSolrDAO");
-        Efo efo = (Efo)context.getBean("efo");
+        final String experimentId = request.getParameter("experiment");
 
         if (experimentId != null) {
             AtlasExperiment exp = dao.getExperimentByAccession(experimentId);

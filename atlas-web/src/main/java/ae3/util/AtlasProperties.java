@@ -44,6 +44,14 @@ public class AtlasProperties {
         }
     }
 
+    public static boolean getBoolProperty(String key) {
+        try {
+            return Boolean.valueOf(props.getProperty(key));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static boolean hasProperty(String key) {
         return props.containsKey(key)
                 && !"".equals(props.getProperty(key))

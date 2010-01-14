@@ -1,20 +1,17 @@
-package ae3.servlet;
+package ae3.service;
 
 import ae3.service.structuredquery.AtlasGenePropertyService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
+import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-import uk.ac.ebi.gxa.web.Atlas;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -26,77 +23,105 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
-/**
- * Created by IntelliJ IDEA. User: Andrey Date: Jul 21, 2009 Time: 3:35:16 PM To change this template use File |
- * Settings | File Templates.
- */
-public class GeneListCacheServlet extends HttpServlet {
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+
+public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler {
     public static final int PAGE_SIZE = 1000;
 
     public static boolean done = false;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private AtlasGenePropertyService service;
+    private AtlasGenePropertyService genePropertyService;
+    private boolean autoGenerate = AtlasProperties.getBoolProperty("atlas.gene.list.cache.autogenerate");
 
-    public void init() throws ServletException {
+    public AtlasGenePropertyService getGenePropertyService() {
+        return genePropertyService;
+    }
 
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        service = (AtlasGenePropertyService)context.getBean("atlasGenePropertyService");
+    public void setGenePropertyService(AtlasGenePropertyService genePropertyService) {
+        this.genePropertyService = genePropertyService;
+    }
 
-        new Thread() {
-            public void run() {
+    public boolean isAutoGenerate() {
+        return autoGenerate;
+    }
 
-                BufferedOutputStream bfind = null;
+    public void setAutoGenerate(boolean autoGenerate) {
+        this.autoGenerate = autoGenerate;
+    }
 
-                try {
+    public void setIndexBuilder(IndexBuilder builder) {
+        builder.registerIndexBuildEventHandler(this);
+    }
 
-                    bfind = new BufferedOutputStream(new FileOutputStream(getFileName()));
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        afterPropertiesSet();
+    }
 
-                    String letters = "0abcdefghigklmnopqrstuvwxyz";
+    public void onIndexBuildStart(IndexBuilder builder) {
 
-                    bfind.write("<r>".getBytes());
+    }
 
-                    for (int i = 0; i != letters.length(); i++) {
-                        String prefix = String.valueOf(letters.charAt(i));
-
-                        Collection<AutoCompleteItem> Genes = queryIndex(prefix, PAGE_SIZE);
-
-                        if (prefix.equals("0")) {
-                            prefix = "num";
-                        }
-
-                        for (AutoCompleteItem j : Genes) {
-                            String geneName = j.getValue();
-
-                            bfind.write(String.format("<%1$s id=\"%3$s\">%2$s</%1$s>\n", prefix, geneName,
-                                                      j.getId()).getBytes());
-                        }
-                    }
-
-                    bfind.write("</r>".getBytes());
+    public void afterPropertiesSet() {
+        if(autoGenerate)
+            new Thread() {
+                @Override
+                public void run() {
+                    generate();
                 }
-                catch (Exception ex) {
-                    log.error("Could not create gene names cache" +
-                            (ex.getMessage() != null ? " (" + ex.getMessage() + ")" : ""));
-                    ex.printStackTrace();
+            }.start();
+    }
+
+    public void generate() {
+
+        BufferedOutputStream bfind = null;
+
+        try {
+            log.info("Gene list cache generation started");
+
+            bfind = new BufferedOutputStream(new FileOutputStream(getFileName()));
+
+            String letters = "0abcdefghigklmnopqrstuvwxyz";
+
+            bfind.write("<r>".getBytes());
+
+            for (int i = 0; i != letters.length(); i++) {
+                String prefix = String.valueOf(letters.charAt(i));
+
+                Collection<AutoCompleteItem> Genes = queryIndex(prefix, PAGE_SIZE);
+
+                if (prefix.equals("0")) {
+                    prefix = "num";
                 }
-                finally {
-                    if (null != bfind) {
-                        try {
-                            bfind.close();
-                            done = true;
-                        }
-                        catch (Exception Ex) {
-                            //no op
-                        }
-                    }
+
+                for (AutoCompleteItem j : Genes) {
+                    String geneName = j.getValue();
+
+                    bfind.write(String.format("<%1$s id=\"%3$s\">%2$s</%1$s>\n", prefix, geneName,
+                            j.getId()).getBytes());
                 }
             }
-        };//.start();
 
-        // add a reference to this servlet to the context
-        getServletContext().setAttribute(Atlas.GENES_CACHE.key(), this);
+            bfind.write("</r>".getBytes());
+        }
+        catch (Exception ex) {
+            log.error("Could not create gene names cache", ex);
+        }
+        finally {
+            if (null != bfind) {
+                try {
+                    bfind.close();
+                    done = true;
+                }
+                catch (Exception Ex) {
+                    //no op
+                }
+            }
+            log.info("Gene list cache generation finished");
+        }
     }
 
     private static String getFileName() {
@@ -147,13 +172,13 @@ public class GeneListCacheServlet extends HttpServlet {
     private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) throws Exception {
 
 
-        Collection<AutoCompleteItem> Genes = service
+        Collection<AutoCompleteItem> Genes = genePropertyService
                 .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount, null);
 
         //AZ:2008-07-07 "0" means all numbers
         if (prefix.equals("0")) {
             for (int i = 1; i != 10; i++) {
-                Genes.addAll(service.autoCompleteValues(Constants.GENE_PROPERTY_NAME,
+                Genes.addAll(genePropertyService.autoCompleteValues(Constants.GENE_PROPERTY_NAME,
                                                                                   String.valueOf(i), recordCount,
                                                                                   null));
             }

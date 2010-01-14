@@ -6,6 +6,7 @@ import ae3.restresult.XmlRestResultRenderer;
 import ae3.servlet.structuredquery.result.ErrorResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,16 +21,8 @@ import java.io.StringWriter;
  * GET/POST unification, exception handling etc.
  * @author pashky
  */
-public abstract class RestServlet extends HttpServlet {
+public abstract class RestServlet implements HttpRequestHandler {
     protected Logger log = LoggerFactory.getLogger(getClass());
-
-    protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        doRest(httpServletRequest, httpServletResponse);
-    }
-
-    protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        doRest(httpServletRequest, httpServletResponse);
-    }
 
     private static enum Format {
         JSON, XML;
@@ -52,7 +45,7 @@ public abstract class RestServlet extends HttpServlet {
         this.profile = profile;
     }
 
-    private void doRest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         boolean indent = request.getParameter("indent") != null;
         Format format = Format.parse(request.getParameter("format"));
         try {

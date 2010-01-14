@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
-<%@ page import="ae3.servlet.GeneListCacheServlet" %>
+<%@ page import="ae3.service.GeneListCacheService" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.Collection" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
@@ -15,7 +15,7 @@
     if(null == prefix)
                prefix = "a";
 
-    int recordCount = GeneListCacheServlet.PAGE_SIZE;
+    int recordCount = GeneListCacheService.PAGE_SIZE;
 
     //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
     if(null != rec)
@@ -23,7 +23,7 @@
         recordCount = 100000;
     }
 
-    GeneListCacheServlet geneListServlet = (GeneListCacheServlet)application.getAttribute(Atlas.GENES_CACHE.key());
+    GeneListCacheService geneListServlet = (GeneListCacheService)application.getAttribute(Atlas.GENES_CACHE.key());
     Collection<AutoCompleteItem> genes = null;
     try {
         genes = geneListServlet.getGenes(prefix, recordCount);
@@ -161,9 +161,9 @@ Gene Expression Atlas - Gene Index
         if(null == prefix)
                prefix = "a";
         
-        String NextURL = "index.htm?start="+prefix+"&rec="+Integer.toString(GeneListCacheServlet.PAGE_SIZE) ;
+        String NextURL = "index.htm?start="+prefix+"&rec="+Integer.toString(GeneListCacheService.PAGE_SIZE) ;
 
-        boolean more = (genes.size() > (GeneListCacheServlet.PAGE_SIZE -1)) & (rec ==null);
+        boolean more = (genes.size() > (GeneListCacheService.PAGE_SIZE -1)) & (rec ==null);
 
         //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.          
         more = true;
