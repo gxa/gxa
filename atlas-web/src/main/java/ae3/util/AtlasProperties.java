@@ -22,6 +22,10 @@ public class AtlasProperties {
         }
     }
 
+    public static void setProperty(String key, String newValue) {
+        props.setProperty(key, newValue);
+    }
+
     public static String getProperty(String key) {
         return props.getProperty(key) != null ? props.getProperty(key) : "";
     }

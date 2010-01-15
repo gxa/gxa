@@ -413,23 +413,42 @@ The XML output has similar structure and is meant to be processed with either XS
 
 === Experiments query ===
 
-To search for experiments use ''experiment=<ExperimentAccession>'' argument and several ''gene=<GeneIdentifier>'' arguments to get expression values of specified genes in the experiment.
-Otherwise only general information about experiment will be returned.
+To search for experiments one can use a set of conditions similar to genes structured query. All conditions are joined with ''AND''
+operator.
+
+* ''experiment=<keyword1 keyword2 ...>'' conditions matches experiments, containing one of space separated keywords in accession, type or description
+* ''experimentHasFactor=<factor1 factor2 ...>'' condition matches experiments which have one of space separated factors as experimental factor
+* ''experimentHas<Factor>=<value1 value2 ...>'' condition matches experiments which have one of space separated values as experimental factor's ''<Factor>'' value for any of the assays
+* ''experimentHasAnyFactor=<value1 value2 ...>'' condition matches experiments which have one of space separated values as any experimental factor's value for any of the assays
+
+The query may be accompanied with one or many ''gene=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
+<GeneIdentifier> can be magic value ''topN'', where N is the number of top N highly expressed genes in each experiment.
+
+Similar to gene query, there are two parameters to control result output:
+
+* ''start'' specifies starting number of experiments in results, default value is 0.
+* ''rows'' limits number of experiments to output (starting from ''start''), default value is 10.
 
 Examples:
 <pre>
-http://<ATLAS>/api?experiment=E-AFMX-1&format=xml
+http://<ATLAS>/api?experiment=E-AFMX-1&gene=top5
+http://<ATLAS>/api?experiment=cell
+http://<ATLAS>/api?experimentHasOrganismpart=lung
+http://<ATLAS>/api?experimentHasDiseasestate=normal&experiment=cancer&start=10&rows=10
+http://<ATLAS>/api?experimentHasFactor=celltype&experiment=cycle&gene=top10
 http://<ATLAS>/api?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
 </pre>
 
-Output is the full experiment information. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).
+Output is the list of experiments' details. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).
 ''assayIds'' array contains a series of assay IDs in the same order in which expression values will be in the corresponding ''designElement'' arrays.
 
 ''geneExpressionStatistics'' section contains Atlas expression analytics results for design elements where it is available.
 
+
 <source lang="xml">
 <?xml version="1.0" encoding="utf-8"?>
 <atlasResponse>
+  <experiment>
     <geneExpressions>
         <arrayDesign accession="A-AFFY-33">
             <assayIds>0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ... </assayIds>
@@ -561,6 +580,8 @@ Output is the full experiment information. The ''geneExpressions'' section conta
             <genes/>
         </arrayDesign>
     </geneExpressionStatistics>
+  </experiment>
+  ...
 </atlasResponse>
 
 </source>

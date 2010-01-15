@@ -4,6 +4,7 @@ import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -179,15 +180,6 @@ public class AtlasStructuredQueryParser {
         return request;
     }
 
-    static private int num(String s, int def, int min, int max) {
-        try {
-            int r = Integer.valueOf(s);
-            return Math.min(Math.max(r, min), max);
-        } catch (Exception e) {
-            return def;
-        }
-    }
-
     static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties, Collection<String> factors) {
         AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
         qb.viewAs(ViewType.LIST);
@@ -221,9 +213,9 @@ public class AtlasStructuredQueryParser {
                     for(String s : EscapeUtil.parseQuotedList(v))
                         qb.andSpecies(s);
                 } else if(name.equalsIgnoreCase("rows")) {
-                    qb.rowsPerPage(num(v, 10, 1, 200));
+                    qb.rowsPerPage(parseNumber(v, 10, 1, 200));
                 } else if(name.equalsIgnoreCase("start")) {
-                    qb.startFrom(num(v, 0, 0, Integer.MAX_VALUE));
+                    qb.startFrom(parseNumber(v, 0, 0, Integer.MAX_VALUE));
                 } else if(name.equalsIgnoreCase("viewAs")) {
                     try {
                         qb.viewAs(ViewType.valueOf(v.toUpperCase()));

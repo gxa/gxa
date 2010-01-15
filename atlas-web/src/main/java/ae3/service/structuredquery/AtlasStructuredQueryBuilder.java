@@ -1,6 +1,6 @@
 package ae3.service.structuredquery;
 
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,21 +32,6 @@ public class AtlasStructuredQueryBuilder {
 
     public AtlasStructuredQueryBuilder andNotGene(String property, Object values) {
         return andGene(property, false, values);
-    }
-
-    private List<String> optionalParseList(Object values) {
-        final List<String> vlist;
-        if (values instanceof String) {
-            vlist = EscapeUtil.parseQuotedList((String) values);
-        }
-        else if (values instanceof List) {
-            vlist = (List<String>) values;
-        }
-        else {
-            throw new ClassCastException(
-                    "Unknown type of parameter - should be either String or List<String>, got " + values.getClass());
-        }
-        return vlist;
     }
 
     public AtlasStructuredQueryBuilder andGene(String property, boolean has, Object values) {

@@ -220,6 +220,7 @@
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="netCDFPath" ref="atlasNetCDFRepo"/>
     </bean>
 
     <bean name="experimentsServlet" class="ae3.servlet.structuredquery.ExperimentsServlet">
@@ -248,6 +249,23 @@
     </bean>
 
     <bean name="listviewDownloadServlet" class="ae3.servlet.ListviewDownloadServlet">
+    </bean>
+
+    <!-- JMX -->
+    <bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+        <property name="beans">
+            <util:map>
+                <entry key="GXAtlas:name=AtlasManager" value-ref="atlasManager"/>
+            </util:map>
+        </property>
+    </bean>
+
+    <bean id="atlasManager" class="uk.ac.ebi.gxa.jmx.AtlasManager">
+        <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="netCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="efo" ref="efo"/>
     </bean>
 
     <!-- Required spring driven data access configuration for web interface -->

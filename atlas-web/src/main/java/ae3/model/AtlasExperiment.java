@@ -22,8 +22,6 @@ public class AtlasExperiment implements java.io.Serializable {
     public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
-    private ExperimentalData expData;
-
     public AtlasExperiment(SolrDocument exptdoc) {
         exptSolrDocument = exptdoc;
 
@@ -97,20 +95,4 @@ public class AtlasExperiment implements java.io.Serializable {
         return this.exptDEGStatus;
     }
 
-    /**
-     * Attempts to load and return experimental data from NetCDF file using default Atlas location
-     * @return experimental data or null if failed to find data
-     * @throws RuntimeException if i/o error occurs
-     */
-    public ExperimentalData getExperimentalData() {
-        if(expData == null) {
-            try {
-                expData = NetCDFReader.loadExperiment(getId());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read experiment data", e);
-            }
-        }
-        return expData;
-    }
-    
 }
