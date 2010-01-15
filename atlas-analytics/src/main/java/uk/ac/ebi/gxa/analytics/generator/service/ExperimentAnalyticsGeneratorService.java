@@ -142,6 +142,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         });
 
         for (final File netCDF : netCDFs) {
+            getLog().info("Generating analytics from NetCDF file " + netCDF.getAbsolutePath());
             ComputeTask<RList> computeAnalytics = new ComputeTask<RList>() {
                 public RList compute(RServices rs) throws RemoteException {
                     try {
