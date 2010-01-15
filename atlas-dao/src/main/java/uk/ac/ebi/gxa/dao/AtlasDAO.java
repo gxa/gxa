@@ -226,13 +226,16 @@ public class AtlasDAO {
                     "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
                     "WHERE a.experimentid=?";
     private static final String EXPRESSIONANALYTICS_BY_GENEID =
-            "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
-                    "a.tstat, a.pvaladj, " +
-                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
+            "SELECT ef, efv, experimentid, null, tstat, min(pvaladj), efid, efvid FROM " +
+                    "(SELECT ef.name AS ef, efv.name AS efv, a.experimentid AS experimentid, " +
+                    "first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid ORDER BY a.pvaladj ASC) AS tstat, " +
+                    "(a.pvaladj ) AS pvaladj," +
+                    "ef.propertyid AS efid, efv.propertyvalueid as efvid " +
                     "FROM a2_expressionanalytics a " +
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "WHERE a.geneid=?";
+                    "JOIN a2_designelement de ON de.designelementid=a.designelementid " +
+                    "WHERE de.geneid=?) GROUP BY  ef, efv, experimentid, tstat, efid, efvid";
     private static final String EXPRESSIONANALYTICS_BY_GENEID_EF_EFV =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +
@@ -481,6 +484,16 @@ public class AtlasDAO {
         return genes;
     }
 
+    /**
+     * Same as getAllGenes(), but doesn't do design elements. Sometime we just don't need them.
+     * @return list of all genes
+     */
+    public List<Gene> getAllGenesFast() {
+        // do the query to fetch genes without design elements
+        return (List<Gene>) template.query(GENES_SELECT,
+                new GeneMapper());
+    }
+
     public Gene getGeneByIdentifier(String identifier) {
         // do the query to fetch gene without design elements
         List results = template.query(GENE_BY_IDENTIFIER,
@@ -532,6 +545,17 @@ public class AtlasDAO {
                        geneDesignElementMapper);
         // and return
         return genes;
+    }
+
+    /**
+     * Fetches all genes in the database that are pending indexing. No properties or design elements,
+     * when you dont' need that.
+     * @return the list of all genes in the database that are pending indexing
+     */
+    public List<Gene> getAllPendingGenesFast() {
+        // do the query to fetch genes without design elements
+        return (List<Gene>) template.query(GENES_PENDING_SELECT,
+                                      new GeneMapper());
     }
 
     /**
