@@ -1,7 +1,7 @@
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="uk.ac.ebi.microarray.atlas.dao.AtlasDAO" %>
 <%@ page import="uk.ac.ebi.microarray.atlas.model.LoadDetails" %>
 <%@ page import="java.util.List" %>
+<%@ page import="uk.ac.ebi.gxa.dao.AtlasDAO" %>
 <%--
   Admin page for the atlas.  Use this page to load new experiments or to build indexes or netcdfs, or to perform
   analyses, of experiments in the database.
