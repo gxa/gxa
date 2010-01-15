@@ -233,7 +233,7 @@ public class AtlasStructuredQuery {
 
         if(sb.length() > 0)
             sb.append("&");
-        sb.append("rows=").append(rowsPerPage).append("&startingFrom=").append(start);
+        sb.append("rows=").append(rowsPerPage).append("&start=").append(start);
         return sb.toString();
     }
 
