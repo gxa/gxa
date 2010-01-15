@@ -17,14 +17,15 @@
             request.setAttribute("exp", exp);
             request.setAttribute("eid", exp.getId());
 
-            if ((ef == null || "".equals(ef)) && (geneId != null)) {
+            if(geneId != null) {
                 AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
                 if (result.isFound()) {
-                    ef = result.getGene().getHighestRankEF(exp.getId()).getFirst();
-                    request.setAttribute("topRankEF", ef);
-                    geneId = result.getGene()
-                            .getGeneId(); //if GeneIdentifer passed in query string, geneId is still geneid
+                    geneId = result.getGene().getGeneId(); //if GeneIdentifer passed in query string, geneId is still geneid
                     request.setAttribute("gene_identifier", result.getGene().getGeneIdentifier());
+                    if (ef == null || "".equals(ef)) {
+                        ef = result.getGene().getHighestRankEF(exp.getId()).getFirst();
+                        request.setAttribute("topRankEF", ef);
+                    }
                 }
             }
         }
@@ -32,7 +33,6 @@
 
     request.setAttribute("gid", geneId);
     request.setAttribute("ef", ef);
-    request.setAttribute("eAcc", expAcc);
 %>
 
 <jsp:include page="start_head.jsp"/>
@@ -41,31 +41,23 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 
 <script src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 
-
-<!--[if IE]><script language="javascript" type="text/javascript" src="<%=request
-        .getContextPath()%>/scripts/excanvas.min.js"></script><![endif]-->
-
+<jsp:include page="query-includes.jsp"/>
+<!--[if IE]><script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
 <script language="javascript"
         type="text/javascript"
         src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.token.autocomplete.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tooltip.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 
-
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
         display: none;
@@ -133,9 +125,9 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
         });
 
         //AZ:2009-06-26:only plot if gid is not supplyed
-        if (window.location.href.indexOf('gid=') > 0) {
-            plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', true, geneIndeces.toString());
-        }
+    <c:if test="${!empty gid}">
+        plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', true, geneIndeces.toString());
+    </c:if>
 
         $("button").click(function() {
 
@@ -180,7 +172,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
         });
 
         $(".sample_attr_title").click(function() {
-            var savals = $(this).next().clone();
+            var savals = $(this).parent().next().clone();
             $("#display_attr_values").empty().append(savals);
             savals.show();
 
@@ -188,6 +180,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                 $(this).css('font-weight', 'normal')
             });
             $(this).css('font-weight', 'bold');
+            return false;
         });
 
     });
@@ -210,23 +203,21 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 
     //function called on each added gene, and draw plot for first 5 of them
     function addGeneToPlotIfEmpty(gid, gname, eid, ef, gene_identififer) {
+        <c:if test="${empty gid}">
+        if (geneCounter > 4)
+            return;
 
-        if (window.location.href.indexOf("gid=") <= 0) {
-            if (geneCounter > 4)
-                return;
+        geneCounter++;
+        genesToPlot.push(gid);
+        genesToPlot[gname] = gid;
+        geneIndeces.push(geneCounter);
+        geneIdentifiers.push(gene_identififer);
 
-            geneCounter++;
-            genesToPlot.push(gid);
-            genesToPlot[gname] = gid;
-            geneIndeces.push(geneCounter);
-            geneIdentifiers.push(gene_identififer);
-
-            if (geneCounter == 5) {
-                plotBigPlot(genesToPlot.toString(), eid, ef, true, geneIndeces.toString());
-                currentEF = ef;
-            }
+        if (geneCounter == 5) {
+            plotBigPlot(genesToPlot.toString(), eid, ef, true, geneIndeces.toString());
+            currentEF = ef;
         }
-
+        </c:if>
     }
 
     function redrawForEF(eid, ef, efTxt) {
@@ -434,8 +425,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                     <ul style="margin: 0px; padding: 5px">
                                         <c:forEach var="char" items="${exp.sampleCharacteristics}">
                                             <li style="list-style-type: none; padding-left: 0px"
-                                                id="${char}_title"
-                                                class="sample_attr_title"><a href="#">
+                                                id="${char}_title"><a class="sample_attr_title" href="#">
                                                 <fmt:message key="head.ef.${char}"/>
                                                 <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
                                             </li>
@@ -453,8 +443,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                         <c:forEach var="EF" items="${exp.experimentFactors}">
                                             <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
                                                 <li style="list-style-type: none; padding-left: 0px"
-                                                    id="${EF}_title"
-                                                    class="sample_attr_title"><a href="#">
+                                                    id="${EF}_title"><a class="sample_attr_title" href="#">
                                                     <fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a>
                                                 </li>
                                                 <div id="${EF}_values" class="sample_attr_values">

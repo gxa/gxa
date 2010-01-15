@@ -57,13 +57,31 @@
         <to>/ExperimentNavigator.jsp</to>
     </rule>
 
+    <rule>
+        <note>
+            experiment page accessible by /experiment/[ExperimentIdentifier]/[geneId]/[ef]
+            rewritten with experiment?eid=E-GEOD-5258&amp;gid=...&amp;ef=
+        </note>
+        <from>/experiment/([a-zA-Z0-9-]+)/([^/]+)/([^/]+)$</from>
+        <to>/experiment?eid=$1&amp;gid=$2&amp;ef=$3</to>
+    </rule>
+
+
+    <rule>
+        <note>
+            experiment page accessible by /experiment/[ExperimentIdentifier]/[geneId]
+            rewritten with experiment?eid=E-GEOD-5258&amp;gid=...
+        </note>
+        <from>/experiment/([a-zA-Z0-9-]+)/(.*)$</from>
+        <to>/experiment?eid=$1&amp;gid=$2</to>
+    </rule>
 
     <rule>
         <note>
             experiment page accessible by /experiment/[ExperimentIdentifier]
             rewritten with experiment?eid=E-GEOD-5258
         </note>
-        <from>/experiment/([a-zA-Z0-9]+)</from>
+        <from>/experiment/([a-zA-Z0-9-]+)</from>
         <to>/experiment?eid=$1</to>
     </rule>
 

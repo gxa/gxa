@@ -621,7 +621,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     </td>
                     <td class="expthumb">
                         <div class="outer">
-                                <a title="Show expression profile" href="experiment/${exp.experimentAccession}?gid=${row.gene.geneIdentifier}&ef=${row.ef}">
+                                <a title="Show expression profile" href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
                                     <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
                                         <img alt="Waiting..." src="images/indicator.gif" style="position:relative;top:10px"/>
                                     </div>

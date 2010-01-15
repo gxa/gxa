@@ -149,7 +149,7 @@ if (geneId != null) {
 					<!-- div style="position:relative"-->
 					<tr align="left">
 						<td align="center">
-							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.accession}?gid=${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.id}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
+							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.id}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
 							<div id="${exp.id}_${atlasGene.geneId}_plot_thm" > </div>
 						</td>
 					</tr>
@@ -178,7 +178,7 @@ if (geneId != null) {
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.accession}?gid=${atlasGene.geneIdentifier}">expression profile</a>
+			Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
 			<br/><br/>
