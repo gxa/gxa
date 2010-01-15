@@ -271,7 +271,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
                     Collections.singletonMap(
-                            new URL("http://www.ebi.ac.uk/gxa/experiment/" + experiment.getAccession() + "?gid=" +
+                            new URL("http://www.ebi.ac.uk/gxa/experiment/" + experiment.getAccession() + "/" +
                                     atlasGene.getGeneIdentifier()),
                             "view " + atlasGene.getGeneName() + " expression profile in " +
                                     experiment.getAccession()),
