@@ -55,7 +55,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         // fetch genes
         final List<Gene> genes = pendingOnly
                 ? getAtlasDAO().getAllPendingGenes()
-                : getAtlasDAO().getAllGenes();
+                : getAtlasDAO().getAllGenesFast();
 
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks =
@@ -111,10 +111,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
                             // add EFO counts for this gene
-                            boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getDesignElementIDs());
+                            boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getGeneID());
                             if(hasAnyAnalytics) {
-                                getLog().debug("Updated solr document with EFO counts for " +
-                                        gene.getDesignElementIDs().size() + " design elements");
                                 // finally, add the document to the index
                                 getLog().debug("Finalising changes for " + gene.getIdentifier());
                                 getSolrServer().add(solrInputDoc);
@@ -215,7 +213,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return x;
     }
 
-    private boolean addEfoCounts(SolrInputDocument solrDoc, Set<Integer> designElementIDs) {
+    private boolean addEfoCounts(SolrInputDocument solrDoc, int geneId) {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
         Set<Long> upexp = new HashSet<Long>();
@@ -223,96 +221,89 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
         Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
 
-        boolean hasAnyAnalytics = false;
         ExperimentsTable expTable = new ExperimentsTable();
-        for (int designElementID : designElementIDs) {
-            getLog().debug("Fetching expression analytics for design element: " + designElementID);
-            List<ExpressionAnalysis> expressionAnalytics =
-                    getAtlasDAO().getExpressionAnalyticsByDesignElementID(designElementID);
-            if (expressionAnalytics.size() == 0) {
-                getLog().debug("Design element " + designElementID + " has 0 expression analytics, " +
-                        "this design element will be excluded");
-            } else {
-                hasAnyAnalytics = true;
-            }
-
-
-            for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
-                Long experimentId = (long) expressionAnalytic.getExperimentID();
-                if (experimentId == 0) {
-                    getLog().debug("Design element " + designElementID + " references an experiment where " +
-                            "experimentid=0, this design element will be excluded");
-                    continue;
-                }
-
-                boolean isUp = expressionAnalytic.getTStatistic() > 0;
-                double pval = expressionAnalytic.getPValAdjusted();
-                final String ef = expressionAnalytic.getEfName();
-                final String efv = expressionAnalytic.getEfvName();
-
-                List<String> accessions =
-                        ontomap.get(experimentId + "_" + ef + "_" + efv);
-
-                String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
-                if (!efvupdn.containsKey(efvid)) {
-                    efvupdn.put(efvid, new UpDn());
-                }
-                if (isUp) {
-                    efvupdn.get(efvid).eup.add(experimentId);
-                    efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
-                    if (!upefv.containsKey(ef)) {
-                        upefv.put(ef, new HashSet<String>());
-                    }
-                    upefv.get(ef).add(efv);
-                }
-                else {
-                    efvupdn.get(efvid).edn.add(experimentId);
-                    efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
-                    if (!dnefv.containsKey(ef)) {
-                        dnefv.put(ef, new HashSet<String>());
-                    }
-                    dnefv.get(ef).add(efv);
-                }
-
-                if (accessions != null) {
-                    for (String acc : accessions) {
-                        String accId = EscapeUtil.encode(acc);
-
-                        if (!efoupdn.containsKey(accId)) {
-                            efoupdn.put(accId, new UpDnSet());
-                        }
-                        if (isUp) {
-                            efoupdn.get(accId).up.add(experimentId);
-                            efoupdn.get(accId).minpvalUp =
-                                    Math.min(efoupdn.get(accId).minpvalUp, pval);
-                        }
-                        else {
-                            efoupdn.get(accId).dn.add(experimentId);
-                            efoupdn.get(accId).minpvalDn =
-                                    Math.min(efoupdn.get(accId).minpvalDn, pval);
-                        }
-                    }
-                }
-
-                if (isUp) {
-                    upexp.add(experimentId);
-                }
-                else {
-                    dnexp.add(experimentId);
-                }
-
-                String[] accs;
-                if (accessions != null) {
-                    accs = accessions.toArray(new String[accessions.size()]);
-                }
-                else {
-                    accs = new String[0];
-                }
-                expTable.add(ef, efv, accs, experimentId, isUp, pval);
-            }
-        }
-        if(!hasAnyAnalytics)
+        getLog().debug("Fetching expression analytics for gene: " + geneId);
+        List<ExpressionAnalysis> expressionAnalytics =
+                getAtlasDAO().getExpressionAnalyticsByGeneID(geneId);
+        if (expressionAnalytics.size() == 0) {
+            getLog().debug("Gene " + geneId + " has 0 expression analytics, " +
+                    "this design element will be excluded");
             return false;
+        }
+
+        for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
+            Long experimentId = (long) expressionAnalytic.getExperimentID();
+            if (experimentId == 0) {
+                getLog().debug("Gene " + geneId + " references an experiment where " +
+                        "experimentid=0, this design element will be excluded");
+                continue;
+            }
+
+            boolean isUp = expressionAnalytic.getTStatistic() > 0;
+            double pval = expressionAnalytic.getPValAdjusted();
+            final String ef = expressionAnalytic.getEfName();
+            final String efv = expressionAnalytic.getEfvName();
+
+            List<String> accessions =
+                    ontomap.get(experimentId + "_" + ef + "_" + efv);
+
+            String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
+            if (!efvupdn.containsKey(efvid)) {
+                efvupdn.put(efvid, new UpDn());
+            }
+            if (isUp) {
+                efvupdn.get(efvid).cup ++;
+                efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
+                if (!upefv.containsKey(ef)) {
+                    upefv.put(ef, new HashSet<String>());
+                }
+                upefv.get(ef).add(efv);
+            }
+            else {
+                efvupdn.get(efvid).cdn ++;
+                efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
+                if (!dnefv.containsKey(ef)) {
+                    dnefv.put(ef, new HashSet<String>());
+                }
+                dnefv.get(ef).add(efv);
+            }
+
+            if (accessions != null) {
+                for (String acc : accessions) {
+                    String accId = EscapeUtil.encode(acc);
+
+                    if (!efoupdn.containsKey(accId)) {
+                        efoupdn.put(accId, new UpDnSet());
+                    }
+                    if (isUp) {
+                        efoupdn.get(accId).up.add(experimentId);
+                        efoupdn.get(accId).minpvalUp =
+                                Math.min(efoupdn.get(accId).minpvalUp, pval);
+                    }
+                    else {
+                        efoupdn.get(accId).dn.add(experimentId);
+                        efoupdn.get(accId).minpvalDn =
+                                Math.min(efoupdn.get(accId).minpvalDn, pval);
+                    }
+                }
+            }
+
+            if (isUp) {
+                upexp.add(experimentId);
+            }
+            else {
+                dnexp.add(experimentId);
+            }
+
+            String[] accs;
+            if (accessions != null) {
+                accs = accessions.toArray(new String[accessions.size()]);
+            }
+            else {
+                accs = new String[0];
+            }
+            expTable.add(ef, efv, accs, experimentId, isUp, pval);
+        }
 
         solrDoc.addField("exp_info", expTable.serialize());
 
@@ -427,8 +418,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             String efvid = e.getKey();
             UpDn ud = e.getValue();
 
-            int cup = ud.eup.size();
-            int cdn = ud.edn.size();
+            int cup = ud.cup;
+            int cdn = ud.cdn;
             double pvup = ud.pup;
             double pvdn = ud.pdn;
 
@@ -515,8 +506,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private class UpDn {
-        Set<Long> eup = new HashSet<Long>();
-        Set<Long> edn = new HashSet<Long>();
+        int cup = 0;
+        int cdn = 0;
         double pup = 1;
         double pdn = 1;
     }
