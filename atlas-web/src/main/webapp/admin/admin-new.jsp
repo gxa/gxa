@@ -42,7 +42,7 @@
 
 <h1>Atlas Admin Page</h1>
 
-<div id="load">
+<div id="loader">
     <h2>Load New Experiment</h2>
 
     <div id="load_submission">
@@ -77,48 +77,72 @@
     </div>
 </div>
 
-<div id="indexbuilder">
-    <h2>SOLR Index Scheduler</h2>
+<div id="scheduler">
+    <h2>Task Scheduler</h2>
 
-    <table>
-        <tr>
-            <td>
-                <form id="build.index"
-                      name="build.index"
-                      action="doindex.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-                    <input type="hidden" id="pending" name="pending"/>
-                    <input type="button" value="index pending objects" onclick="buildIndex(true, this.form);"/>
-                    <input type="button" value="rebuild entire index" onclick="buildIndex(false, this.form);"/>
-                </form>
-            </td>
-        </tr>
-    </table>
+    <div id="netcdfgenerator">
+        <h2>NetCDF Repository Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="build.netcdfs"
+                          name="build.netcdfs"
+                          action="donetcdf.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="type" value="experiment"/>
+                        <input type="hidden" name="accession" value="ALL"/>
+                        <input type="button" value="regenerate all NetCDFs" onclick="this.form.submit();"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="analyticsgenerator">
+        <h2>Analytics Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="calculate.analytics"
+                          name="calculate.analytics"
+                          action="doanalytics.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="type" value="experiment"/>
+                        <input type="hidden" name="accession" value="ALL"/>
+                        <input type="button" value="recompute all analytics" onclick="this.form.submit();"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="indexbuilder">
+        <h2>SOLR Index Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="build.index"
+                          name="build.index"
+                          action="doindex.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" id="pending" name="pending"/>
+                        <input type="button" value="index pending objects" onclick="buildIndex(true, this.form);"/>
+                        <input type="button" value="rebuild entire index" onclick="buildIndex(false, this.form);"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 
-<div id="netcdfgenerator">
-    <h2>NetCDF Repository Scheduler</h2>
-
-    <table>
-        <tr>
-            <td>
-                <form id="build.netcdfs"
-                      name="build.netcdfs"
-                      action="donetcdf.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-                    <input type="hidden" name="type" value="experiment"/>
-                    <input type="hidden" name="accession" value="ALL"/>
-                    <input type="button" value="regenerate all NetCDFs" onclick="this.form.submit();"/>
-                </form>
-            </td>
-        </tr>
-    </table>
-</div>
-
-<div id="recompute">
-    <h2>Existing Experiments</h2>
+<div id="recomputer">
+    <h2>Experiment Recompute Tasks</h2>
 
     <div id="experiments">
         <table>
@@ -190,7 +214,7 @@
                 <% }
                     if ((pageNumber + 2) * 25 < experiments.size()) {
                 %>
-                <td>&nbsp;<%=pageNumber = 2%>&nbsp;</td>
+                <td>&nbsp;<%=pageNumber + 2%>&nbsp;</td>
                 <% }
                     if ((pageNumber + 3) * 25 < experiments.size()) {
                 %>

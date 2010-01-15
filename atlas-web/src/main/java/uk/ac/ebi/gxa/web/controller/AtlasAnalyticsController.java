@@ -48,8 +48,14 @@ public class AtlasAnalyticsController extends AbstractController {
 
         String type = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "type");
         if (type.equals("experiment")) {
-            // and generate analytics
-            analyticsGenerator.generateAnalyticsForExperiment(accession);
+            if (accession.equals("ALL")) {
+                // generate netCDFs for all experiments
+                analyticsGenerator.generateAnalytics();
+            }
+            else {
+                // generate netCDFs for this experiment
+                analyticsGenerator.generateAnalyticsForExperiment(accession);
+            }
 
             return new ModelAndView(getSuccessView());
         }
