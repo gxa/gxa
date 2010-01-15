@@ -224,60 +224,66 @@ process.atlas.nc<-
 computeAnalytics <-
 function (nc)
 {
-  eset = read.atlas.nc(nc)
-  ncd  = open.ncdf(nc, write=TRUE)
-  info = otherInfo(experimentData(eset))
-  proc = allupdn(eset)
+  e <- try({
+    eset = read.atlas.nc(nc)
+    ncd  = open.ncdf(nc, write=TRUE)
+    info = otherInfo(experimentData(eset))
+    proc = allupdn(eset)
 
-  uEFV  = get.var.ncdf(ncd, "uEFV")
-  tstat = t(get.var.ncdf(ncd, "TSTAT"))
-  pval  = t(get.var.ncdf(ncd, "PVAL"))
+    uEFV  = get.var.ncdf(ncd, "uEFV")
+    tstat = t(get.var.ncdf(ncd, "TSTAT"))
+    pval  = t(get.var.ncdf(ncd, "PVAL"))
 
-  colnames(tstat) <- uEFV
-  colnames(pval)  <- uEFV
+    colnames(tstat) <- uEFV
+    colnames(pval)  <- uEFV
 
-  result <- sapply(varLabels(eset), function(varLabel) {
-    print(paste("Processing",varLabel))
-    if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) {
-      fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
-      tab <- list()
-      tab$A <- proc[[varLabel, exact=TRUE]]$Amean
-#     tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
-      tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
-      tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
+    result <- sapply(varLabels(eset), function(varLabel) {
+      print(paste("Processing",varLabel))
+      if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) {
+        fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
+        tab <- list()
+        tab$A <- proc[[varLabel, exact=TRUE]]$Amean
+#       tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
+        tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
+        tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
 
-      pv = tab$p.value
-      o = !is.na(tab$p.value)
-      pv[o] = p.adjust(pv[o], method="fdr")
+        pv = tab$p.value
+        o = !is.na(tab$p.value)
+        pv[o] = p.adjust(pv[o], method="fdr")
 
-      tab$p.value.adj = pv
-      tab$Res <- unclass(proc[[varLabel, exact=TRUE]]$boolupdn)
-      tab$F <- proc[[varLabel, exact=TRUE]]$F
-      tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
-      tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
-      tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
+        tab$p.value.adj = pv
+        tab$Res <- unclass(proc[[varLabel, exact=TRUE]]$boolupdn)
+        tab$F <- proc[[varLabel, exact=TRUE]]$F
+        tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
+        tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
+        tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
 
-      colnames(tab$t) <- colnames(tab$Res)
-      colnames(tab$p.value.adj) <- colnames(tab$Res)
+        colnames(tab$Res) <- paste(varLabel,colnames(tab$Res),sep="||")
 
-      tstat[,which(colnames(tstat) %in% colnames(tab$t))] <<- tab$t[,colnames(tstat)[which(colnames(tstat) %in% colnames(tab$t))]]
-      pval[,which(colnames(pval) %in% colnames(tab$p.value.adj))] <<- tab$p.value.adj[,colnames(pval)[which(colnames(pval) %in% colnames(tab$p.value.adj))]]
+        colnames(tab$t) <- colnames(tab$Res)
+        colnames(tab$p.value.adj) <- colnames(tab$Res)
 
-      tab <- data.frame(tab, check.names = FALSE)
+        tstat[,which(colnames(tstat) %in% colnames(tab$t))] <<- tab$t[,colnames(tstat)[which(colnames(tstat) %in% colnames(tab$t))]]
+        pval[,which(colnames(pval) %in% colnames(tab$p.value.adj))] <<- tab$p.value.adj[,colnames(pval)[which(colnames(pval) %in% colnames(tab$p.value.adj))]]
 
-      return (tab)
-    } else {
-      return(NULL)
-    }
+#        tab <- data.frame(tab, check.names = FALSE)
+
+        return("ОК")
+      } else {
+        return("NOK")
+      }
+    })
+
+    print("Writing tstat and pval to NetCDF")
+    put.var.ncdf(ncd, "TSTAT", tstat)
+    put.var.ncdf(ncd, "PVAL",  pval)
+  
+    close.ncdf(ncd)
+  
+    return(result)
   })
 
-  print("Writing tstat and pval to NetCDF")
-  put.var.ncdf(ncd, "TSTAT", tstat, verbose=TRUE)
-  put.var.ncdf(ncd, "PVAL",  pval,  verbose=TRUE)
-  
-  close.ncdf(ncd)
-  
-  return(result)
+  return(e)
 }
 
 ### Compute a design matrix for making all possible pairwise comparisons (one-way ANOVA F).
