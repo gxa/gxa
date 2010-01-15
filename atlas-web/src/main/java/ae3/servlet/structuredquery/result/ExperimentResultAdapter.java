@@ -12,15 +12,19 @@ import org.apache.commons.lang.StringUtils;
 import java.util.*;
 
 /**
+ * Atlas Experiment result adapter for REST serialization
  * @author pashky
  */
+@RestOut(xmlItemName = "experiment")
 public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
+    private final ExperimentalData expData;
     private final Collection<AtlasGene> genes;
 
-    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes) {
+    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes, ExperimentalData expData) {
         this.experiment = experiment;
         this.genes = genes;
+        this.expData = expData;
     }
 
     @RestOut(name="experimentInfo")
@@ -28,9 +32,9 @@ public class ExperimentResultAdapter {
         return experiment;
     }
 
-    @RestOut(name="experimentDesign")
+    @RestOut(name="experimentDesign", forProfile = ExperimentFullRestProfile.class)
     public ExperimentalData getExperimentalData() {
-        return experiment.getExperimentalData();
+        return expData;
     }
 
 
@@ -135,21 +139,21 @@ public class ExperimentResultAdapter {
 
     }
 
-    @RestOut(name="geneExpressionStatistics", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false)
+    @RestOut(name="geneExpressionStatistics", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if(!genes.isEmpty())
-            for(ArrayDesign ad : experiment.getExperimentalData().getArrayDesigns()) {
+            for(ArrayDesign ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignStats(ad));
             }
         return adExpMap;
     }
 
-    @RestOut(name="geneExpressions", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false)
+    @RestOut(name="geneExpressions", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignExpression> getExpression() {
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
         if(!genes.isEmpty())
-            for(ArrayDesign ad : experiment.getExperimentalData().getArrayDesigns()) {
+            for(ArrayDesign ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(ad));
             }
         return adExpMap;

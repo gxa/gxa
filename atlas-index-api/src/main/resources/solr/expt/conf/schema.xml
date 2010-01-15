@@ -269,7 +269,11 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <dynamicField name="s_property_*" type="text" indexed="true" stored="true" multiValued="true"/>
         <dynamicField name="s_property_f_*" type="string" indexed="true" stored="false" multiValued="true"/>
 
-        <dynamicField name="c_*" type="short" indexed="true" stored="true" multiValued="false"/>
+        <field name="a_allvalues" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="a_allvalues_f" type="string" indexed="true" stored="false" multiValued="true" />
+
+        <field name="s_allvalues" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="s_allvalues_f" type="string" indexed="true" stored="false" multiValued="true" />
 
         <field name="alltext" type="text" indexed="true" stored="false" multiValued="true"/>
 
@@ -288,6 +292,13 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
     <copyField source="description" dest="alltext"/>
     <copyField source="a_property_*" dest="alltext"/>
     <copyField source="s_property_*" dest="alltext"/>
+
+    <copyField source="a_property_*" dest="a_allvalues"/>
+    <copyField source="s_property_*" dest="s_allvalues"/>
+
+    <copyField source="s_allvalues" dest="s_allvalues_f"/>
+    <copyField source="a_allvalues" dest="a_allvalues_f"/>
+
     <copyField source="a_property_*" dest="a_property_f_*"/>
     <copyField source="s_property_*" dest="s_property_f_*"/>
 

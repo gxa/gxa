@@ -1,22 +1,27 @@
 package ae3.servlet.structuredquery;
 
 import ae3.dao.AtlasDao;
+import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.model.ExperimentalData;
 import ae3.service.structuredquery.*;
-import ae3.servlet.structuredquery.result.ErrorResult;
-import ae3.servlet.structuredquery.result.ExperimentRestProfile;
-import ae3.servlet.structuredquery.result.ExperimentResultAdapter;
-import ae3.servlet.structuredquery.result.HeatmapResultAdapter;
+import ae3.service.experiment.AtlasExperimentQuery;
+import ae3.service.experiment.AtlasExperimentQueryParser;
+import ae3.servlet.structuredquery.result.*;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Iterator;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -27,6 +32,7 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
     private AtlasStructuredQueryService queryService;
     private AtlasDao dao;
     private Efo efo;
+    private String netCDFPath;
     boolean disableQueries = false;
 
     public AtlasStructuredQueryService getQueryService() {
@@ -65,66 +71,63 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
         builder.registerIndexBuildEventHandler(this);
     }
 
+    public void setNetCDFPath(File netCDFPath) {
+        this.netCDFPath = netCDFPath.getAbsolutePath();
+    }
+
     @Override
     public Object process(HttpServletRequest request) {
         if(disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        final String experimentId = request.getParameter("experiment");
 
-        if (experimentId != null) {
-            AtlasExperiment exp = dao.getExperimentByAccession(experimentId);
-            if (exp == null) {
-                exp = dao.getExperimentById(experimentId);
-            }
-            if (exp == null) {
-                Collection<AtlasExperiment> exps = dao.getExperimentsByQuery(experimentId, 0, 5000);
-                if (exps.isEmpty()) {
-                    return new ErrorResult("No such experiment found for: " + experimentId);
-                }
-                else {
-                    return exps;
-                }
-            }
-            else {
-                List<AtlasGene> genes = new ArrayList<AtlasGene>();
-                final String[] geneIds = request.getParameterValues("gene");
-                if (geneIds != null) {
-                    if (geneIds.length == 1 && geneIds[0].startsWith("top")) {
-                        int nTop;
-                        try {
-                            nTop = Integer.valueOf(geneIds[0].substring(3));
-                            if (nTop > 100) {
-                                nTop = 100;
-                            }
-                        }
-                        catch (NumberFormatException e) {
-                            // if geneIds gives NaN
-                            log.warn("Couldn't evaluate integer value of '" + geneIds[0].substring(3) +
-                                    "' limiting to 10 values");
+        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
+        if(!query.isEmpty()) {
+            List<AtlasExperiment> experiments = dao.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+            if(experiments.isEmpty())
+                return new ErrorResult("No such experiments found for: " + query);
+
+            final List<AtlasGene> genes = new ArrayList<AtlasGene>();
+            int nTop = 0;
+            final String[] geneIds = request.getParameterValues("gene");
+            if(geneIds != null) {
+                if(geneIds.length == 1 && geneIds[0].startsWith("top")) {
+                    try {
+                        nTop = Integer.valueOf(geneIds[0].substring(3));
+                        if(nTop > 100)
                             nTop = 10;
-                        }
-
-                        for (StructuredResultRow r : queryService.findGenesForExperiment(
-                                "", experimentId, 0, nTop).getResults()) {
-                            genes.add(r.getGene());
-                        }
-                    }
-                    else {
-                        for (String geneId : geneIds) {
-                            AtlasDao.AtlasGeneResult agr = dao.getGeneByIdentifier(geneId);
-                            if (agr.isFound() && !genes.contains(agr.getGene())) {
-                                genes.add(agr.getGene());
-                            }
-                        }
+                    } catch(Exception e) {/**/}
+                } else {
+                    for(String geneId : geneIds) {
+                        AtlasDao.AtlasGeneResult agr = dao.getGeneByIdentifier(geneId);
+                        if(agr.isFound() && !genes.contains(agr.getGene()))
+                            genes.add(agr.getGene());
                     }
                 }
-                setRestProfile(ExperimentRestProfile.class);
-                return new ExperimentResultAdapter(exp, genes);
             }
-        }
-        else {
 
+            final int ntop = nTop;
+            Iterator<ExperimentResultAdapter> results = new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.iterator()) {
+                public ExperimentResultAdapter map(AtlasExperiment experiment) {
+                    if(ntop > 0) {
+                        genes.clear();
+                        for(StructuredResultRow r : queryService.findGenesForExperiment("", experiment.getAccession(), 0, ntop).getResults())
+                            genes.add(r.getGene());
+                    }
+                    ExperimentalData expData = null;
+                    try {
+                         expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
+                    } catch(IOException e) {
+                        throw new RuntimeException("Failed to read experimental data");
+                    }
+                    return new ExperimentResultAdapter(experiment, genes, expData);
+                }
+            };
+
+            setRestProfile(request.getParameter("basicOnly") != null ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
+
+            return results;
+        } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
 

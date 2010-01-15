@@ -5,6 +5,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -12,6 +13,8 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.*;
 
 /**
@@ -24,7 +27,7 @@ import java.util.concurrent.*;
  * @date 22-Sep-2009
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
-    private static final int NUM_THREADS = 64;
+    private static final int NUM_THREADS = 32;
 
     protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
         // do initial setup - build executor service
@@ -36,13 +39,13 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 : getAtlasDAO().getAllExperiments();
 
         // the list of futures - we need these so we can block until completion
-        List<Future<UpdateResponse>> tasks = new ArrayList<Future<UpdateResponse>>();
+        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
 
         try {
             for (final Experiment experiment : experiments) {
-                tasks.add(tpool.submit(new Callable<UpdateResponse>() {
-                    public UpdateResponse call() throws IOException, SolrServerException {
-                        UpdateResponse response = null;
+                tasks.append(tpool.submit(new Callable<Boolean>() {
+                    public Boolean call() throws IOException, SolrServerException {
+                        Boolean result = false;
                         try {
                             // update loadmonitor - experiment is indexing
                             getAtlasDAO().writeLoadDetails(
@@ -66,6 +69,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                         experiment.getAccession());
                             }
 
+                            Set<String> assayProps = new HashSet<String>();
+
                             for (Assay assay : assays) {
                                 // get assay properties and values
                                 getLog().debug("Getting properties for assay " + assay.getAssayID());
@@ -81,8 +86,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                     getLog().trace("Updating index, assay property " + p + " = " + pv);
                                     solrInputDoc.addField("a_property_" + p, pv);
                                     getLog().trace("Wrote " + p + " = " + pv);
+                                    assayProps.add(p);
                                 }
                             }
+
+                            solrInputDoc.addField("a_properties", assayProps);
 
                             // now get samples
                             List<Sample> samples =
@@ -91,6 +99,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                 getLog().warn("No samples present for experiment " + experiment.getAccession());
                             }
 
+                            Set<String> sampleProps = new HashSet<String>();
                             for (Sample sample : samples) {
                                 // get assay properties and values
                                 getLog().debug("Getting properties for sample " + sample.getSampleID());
@@ -107,55 +116,44 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                     getLog().trace("Updating index, sample property " + p + " = " + pv);
                                     solrInputDoc.addField("s_property_" + p, pv);
                                     getLog().trace("Wrote " + p + " = " + pv);
+                                    sampleProps.add(p);
                                 }
                             }
 
-                            // now, fetch atlas counts for this experiment
-                            getLog().debug("Evaluating atlas counts for " + experiment.getAccession());
-                            List<AtlasCount> atlasCounts = getAtlasDAO().getAtlasCountsByExperimentID(
-                                    experiment.getExperimentID());
-                            getLog().debug(experiment.getAccession() + " has " + atlasCounts.size() +
-                                    " atlas count objects");
-                            for (AtlasCount count : atlasCounts) {
-                                // efvid is concatenation of ef and efv
-                                String efvid = EscapeUtil.encode(count.getProperty(), count.getPropertyValue());
-                                // field name is efvid_up / efvid_dn depending on expression
-                                String fieldname = "c_" + efvid + "_" + (count.getUpOrDown().equals("-1") ? "dn" : "up");
-
-                                // add a field:
-                                // key is the fieldname, value is the total count
-                                getLog().debug("Updating index with atlas count data... key: " + fieldname + "; " +
-                                        "value: " + count.getGeneCount());
-                                solrInputDoc.addField(fieldname, count.getGeneCount());
-                            }
+                            solrInputDoc.addField("s_properties", sampleProps);
 
                             // finally, add the document to the index
                             getLog().info("Finalising changes for " + experiment.getAccession());
-                            response = getSolrServer().add(solrInputDoc);
+                            getSolrServer().add(solrInputDoc);
 
                             // update loadmonitor table - experiment has completed indexing
                             getAtlasDAO().writeLoadDetails(
                                     experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
 
-                            return response;
+                            result = true;
+
+                            return result;
                         }
                         finally {
                             // if the response was set, everything completed as expected, but if it's null we got
                             // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-                            if (response == null) {
+                            if (!result) {
                                 getAtlasDAO().writeLoadDetails(
                                         experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
                             }
-
-                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
-                            System.gc();
                         }
                     }
                 }));
             }
 
+            experiments.clear();
+
             // block until completion, and throw any errors
-            for (Future<UpdateResponse> task : tasks) {
+            while (true) {
+                Future<Boolean> task = tasks.poll();
+                if(task == null)
+                    break;
+
                 try {
                     task.get();
                 }

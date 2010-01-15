@@ -69,7 +69,7 @@ public class EscapeUtil {
     }
 
     /**
-     * Opposite to {@link EscapeUtil.joinQuotedValues(Iterable)}
+     * Opposite to joinQuotedValues(Iterable)
      * @param value string value
      * @return list of parsed strings
      */
@@ -168,5 +168,27 @@ public class EscapeUtil {
     public static double nullzero(Float d)
     {
         return d == null ? 0.0 : d;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> optionalParseList(Object values) {
+
+        final List<String> vlist;
+        if(values instanceof String)
+            vlist = EscapeUtil.parseQuotedList((String)values);
+        else if(values instanceof List) {
+            vlist = (List<String>)values;
+        } else
+            throw new ClassCastException("Unknown type of parameter - should be either String or List<String>, got " + values.getClass());
+        return vlist;
+    }
+
+    public static int parseNumber(String s, int def, int min, int max) {
+        try {
+            int r = Integer.valueOf(s);
+            return Math.min(Math.max(r, min), max);
+        } catch (Exception e) {
+            return def;
+        }
     }
 }
