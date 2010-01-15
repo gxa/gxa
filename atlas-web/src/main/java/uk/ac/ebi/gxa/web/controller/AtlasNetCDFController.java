@@ -43,13 +43,19 @@ public class AtlasNetCDFController extends AbstractController {
     protected ModelAndView handleRequestInternal(HttpServletRequest httpServletRequest,
                                                  HttpServletResponse httpServletResponse) throws Exception {
         // parse accession parameter
-        String accession = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "accession");
+        String accession = ServletRequestUtils.getStringParameter(httpServletRequest, "accession");
         log.info("Request to generate NetCDFs for " + accession);
 
         String type = ServletRequestUtils.getRequiredStringParameter(httpServletRequest, "type");
         if (type.equals("experiment")) {
-            // and generate netCDFs
-            netCDFGenerator.generateNetCDFsForExperiment(accession);
+            if (accession.equals("ALL")) {
+                // generate netCDFs for all experiments
+                netCDFGenerator.generateNetCDFs();
+            }
+            else {
+                // generate netCDFs for this experiment
+                netCDFGenerator.generateNetCDFsForExperiment(accession);
+            }
 
             return new ModelAndView(getSuccessView());
         }
