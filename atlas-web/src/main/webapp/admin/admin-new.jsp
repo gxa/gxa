@@ -191,7 +191,7 @@
                     if ((pageNumber + 2) * 25 < experiments.size()) {
                 %>
                 <td>&nbsp;<%=pageNumber = 2%>&nbsp;</td>
-                <% {
+                <% }
                     if ((pageNumber + 3) * 25 < experiments.size()) {
                 %>
                 <td>&nbsp;...&nbsp;</td>

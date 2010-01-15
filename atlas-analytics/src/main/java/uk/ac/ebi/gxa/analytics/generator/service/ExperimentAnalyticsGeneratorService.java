@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.analytics.generator.service;
 
+import org.kchine.r.RChar;
 import org.kchine.r.RList;
 import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
@@ -143,14 +144,17 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
         for (final File netCDF : netCDFs) {
             getLog().info("Generating analytics from NetCDF file " + netCDF.getAbsolutePath());
-            ComputeTask<RList> computeAnalytics = new ComputeTask<RList>() {
-                public RList compute(RServices rs) throws RemoteException {
+            ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
+                public Void compute(RServices rs) throws RemoteException {
                     try {
                         // first, make sure we load the R code that runs the analytics
                         rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
-                        // fixme: this MUST be on the same file system where the workers run
-                        return (RList) rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
+                        // note - the netCDF file MUST be on the same file system where the workers run
+                        rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
+
+                        // todo - handle the returned results - RChar, array of codes?
+                        return null;
                     }
                     catch (IOException e) {
                         e.printStackTrace();
@@ -161,6 +165,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
             // now run this compute task
             try {
+                // todo: capture the result here
                 getAtlasComputeService().computeTask(computeAnalytics);
             }
             catch (ComputeException e) {
