@@ -6,7 +6,6 @@ function handleKeyPress(e, form) {
         form.submit();
     }
 }
-;
 
 /**
  * Build the index for experiments and/or genes, depending on how the IndexBuilder service is configured in the backend.
@@ -18,7 +17,6 @@ function buildIndex(pendingOnly, form) {
     form.pending.value = pendingOnly;
     form.submit();
 }
-;
 
 function checkLoadDetails(accession, objectType) {
     // first create the row to make sure we've got the correct dom structure, and show it's updating
@@ -28,7 +26,43 @@ function checkLoadDetails(accession, objectType) {
     progressupdater =
     Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'ajaxType':'periodical', 'doOnSuccess':updateLoadDetails});
 }
-;
+
+function changePage(newPage) {
+  var target;
+  var url;
+
+  target = document.getElementById("compute.table");
+  if (target == null) {
+    target = parent.document.getElementById("compute.table");
+  }
+
+  url = "computer.jsp";
+
+  ajax(url, target);
+}
+
+// sends a get ajax request for the contents of the target element
+function ajax(url, target) {
+  var req;
+  if (window.XMLHttpRequest) {
+    req = new XMLHttpRequest();
+    req.open("GET", url);
+    req.onreadystatechange = function() {
+      ajaxDone(req, url, target);
+    };
+    req.send(null);
+  }
+  else if (window.ActiveXObject) {
+    req = new ActiveXObject();
+    if (req) {
+      req.open("GET", url);
+      req.onreadystatechange = function() {
+        ajaxDone(req, url, target);
+      };
+      req.send(null);
+    }
+  }
+}
 
 var updateLoadDetails = function(json) {
     // this is the doOnSuccess method for AJAX responses for LoadDetails
