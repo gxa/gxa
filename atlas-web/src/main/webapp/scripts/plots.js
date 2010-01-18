@@ -665,7 +665,7 @@ function drawPlot(jsonObj, plot_id){
 			var DE = DEs[i];
 			var GNid = GNs[i];
 			var key = DE+"_"+AD;
-			$("#simSelect").addOption(key, gnName);
+            $("#simSelect").append($('<option/>').val(key).text(gnName));
 		}
 		$("#simSelect").selectOptions("select gene", true);
 	}
