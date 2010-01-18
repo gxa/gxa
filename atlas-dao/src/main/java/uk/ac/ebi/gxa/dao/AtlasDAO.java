@@ -8,6 +8,7 @@ import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -349,6 +350,15 @@ public class AtlasDAO {
 
     private static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
+
+    private static final String BEST_DESIGNELEMENTID_FOR_GENE =
+            "SELECT topde FROM (SELECT topde FROM (SELECT first_value(de.designelementid) OVER (PARTITION BY a.propertyvalueid ORDER BY a.pvaladj ASC) as topde, a.propertyvalueid pvid " +
+                    "FROM a2_expressionanalytics a, a2_propertyvalue pv, a2_property p, a2_designelement de " +
+                    "WHERE pv.propertyid = p.propertyid AND pv.propertyvalueid = a.propertyvalueid " +
+                    "      AND a.designelementid = de.designelementid " +
+                    "      AND p.name = ? " +
+                    "      AND a.experimentid = ? " +
+                    "      AND de.geneid = ?) GROUP BY topde ORDER BY COUNT(distinct pvid) DESC) WHERE rownum < 2";
 
     private JdbcTemplate template;
     private int maxQueryParams = 500;
@@ -1004,6 +1014,15 @@ public class AtlasDAO {
         stats.setPropertyValueCount(getPropertyValueCount());
 
         return stats;
+    }
+
+    public Integer getBestDesignElementForExpressionProfile(int geneId, int experimentId, String ef) {
+        try {
+            return template.queryForInt(BEST_DESIGNELEMENTID_FOR_GENE, new Object[] { ef, experimentId, geneId });
+        } catch(EmptyResultDataAccessException e) {
+            // no statistically best element found
+            return null;
+        }
     }
 
     /*
