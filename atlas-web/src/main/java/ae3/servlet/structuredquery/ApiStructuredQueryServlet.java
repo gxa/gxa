@@ -137,7 +137,7 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
                             } catch(IOException e) {
                                 throw new RuntimeException("Failed to read experimental data");
                             }
-                            return new ExperimentResultAdapter(experiment, genes, expData);
+                            return new ExperimentResultAdapter(experiment, genes, expData, dao);
                         }
                     };
                 }
