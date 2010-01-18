@@ -52,7 +52,6 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>
             WEB-INF/atlasApplicationContext.xml
-            WEB-INF/fluxion/ajax.xml
         </param-value>
     </context-param>
     <!-- localization -->
