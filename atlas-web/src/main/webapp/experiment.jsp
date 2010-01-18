@@ -28,6 +28,10 @@
                     }
                 }
             }
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            request.setAttribute("errorMessage", "There are no records for experiment " + String.valueOf(expAcc));
+            request.getRequestDispatcher("/error.jsp").forward(request,response);
         }
     }
 
