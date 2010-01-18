@@ -169,6 +169,42 @@ http://<ATLAS>/api?downInOrgansimpart=kidney&upInSex=male
 http://<ATLAS>/api?geneIs=p53&downInOrgansimpart=kidney&upInSex=male
 </pre>
 
+=== Organisms ===
+
+User can limit output genes to specified organisms using one or more ''species'' parameters. Examples:
+<pre>
+http://<ATLAS>/api?upIn=liver&species=Mus+Musculus
+http://<ATLAS>/api?upIn=liver&species=Mus+Musculus&species=Homo+Sapiens
+</pre>
+
+As of now supported organisms are following:
+* Arabidopsis thaliana
+* Bacillus subtilis
+* Caenorhabditis elegans
+* Danio rerio
+* Drosophila melanogaster
+* Homo sapiens
+* Mus musculus
+* Rattus norvegicus
+* Saccharomyces cerevisiae
+* Schizosaccharomyces pombe
+
+=== Limiting number of result genes ===
+
+There are two parameters to control result output:
+
+* ''start'' specifies starting number of gene in results, default value is 0.
+* ''rows'' limits number of genes to output (starting from ''start''), default value is 200.
+
+Using these two parameters it is possible to get gene results in "pages". To calculate exact amount of pages, one could
+use ''results.totalResults'' value from the output (see below), which is total amount of genes found by the
+query.
+
+Examples:
+<pre>
+http://<ATLAS>/api?upIn=liver&start=200&rows=200
+</pre>
+
 === Output ===
 
 The query output structure is self-explanatory, and it can be tested using a plain web browser just pointing it to an API URL and adding an ''&indent'' argument.
@@ -287,8 +323,8 @@ Here is an example of the result set rendered by the gene query ''http://<ATLAS>
             ]
         }
     ],
-    "totalResultGenes" : 1,
-    "numberOfResultGenes" : 1,
+    "totalResults" : 1,
+    "numberOfResults" : 1,
     "startingFrom" : 0
 }
 </source>
@@ -405,8 +441,8 @@ The XML output has similar structure and is meant to be processed with either XS
             </expressions>
         </result>
     </results>
-    <totalResultGenes>1</totalResultGenes>
-    <numberOfResultGenes>1</numberOfResultGenes>
+    <totalResults>1</totalResults>
+    <numberOfResults>1</numberOfResults>
     <startingFrom>0</startingFrom>
 </atlasResponse>
 </source>
@@ -421,6 +457,8 @@ operator.
 * ''experimentHas<Factor>=<value1 value2 ...>'' condition matches experiments which have one of space separated values as experimental factor's ''<Factor>'' value for any of the assays
 * ''experimentHasAnyFactor=<value1 value2 ...>'' condition matches experiments which have one of space separated values as any experimental factor's value for any of the assays
 
+A special keyword value ''experiment=listAll'' can be used to list all available experiments.
+
 The query may be accompanied with one or many ''gene=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
 <GeneIdentifier> can be magic value ''topN'', where N is the number of top N highly expressed genes in each experiment.
 
@@ -428,6 +466,13 @@ Similar to gene query, there are two parameters to control result output:
 
 * ''start'' specifies starting number of experiments in results, default value is 0.
 * ''rows'' limits number of experiments to output (starting from ''start''), default value is 10.
+
+* ''experimentInfoOnly'' limits amount of output to just experimentInfo section (see below in output example), this is useful if you need to
+just a list of experiment accessions and titles for particular query.
+
+Using these two parameters it is possible to get experiment results in "pages". To calculate exact amount of pages, one could
+use ''results.totalResults'' value from the output, which is total amount of experiments found by the
+query.
 
 Examples:
 <pre>
@@ -437,6 +482,7 @@ http://<ATLAS>/api?experimentHasOrganismpart=lung
 http://<ATLAS>/api?experimentHasDiseasestate=normal&experiment=cancer&start=10&rows=10
 http://<ATLAS>/api?experimentHasFactor=celltype&experiment=cycle&gene=top10
 http://<ATLAS>/api?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
+http://<ATLAS>/api?experiment=listAll&experimentInfoOnly
 </pre>
 
 Output is the list of experiments' details. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).
@@ -448,7 +494,8 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
 <source lang="xml">
 <?xml version="1.0" encoding="utf-8"?>
 <atlasResponse>
-  <experiment>
+ <results>
+  <result>
     <geneExpressions>
         <arrayDesign accession="A-AFFY-33">
             <assayIds>0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ... </assayIds>
@@ -470,6 +517,9 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
             <type>organism_part_comparison_design</type>
         </types>
     </experimentInfo>
+    <experimentOrganisms>
+        <organism>Homo sapiens</organism>
+    </experimentOrganisms>
     <experimentDesign>
         <experimentalFactors>
             <experimentalFactor>diseasestate</experimentalFactor>
@@ -580,44 +630,15 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
             <genes/>
         </arrayDesign>
     </geneExpressionStatistics>
-  </experiment>
+  </result>
   ...
+ </results>
+ <totalResults>20</totalResults>
+ <numberOfResults>10</numberOfResults>
+ <startingFrom>0</startingFrom>
 </atlasResponse>
 
 </source>
-
-Instead of querying by experiment accession it is possible also to use a full-text search for experiment description and title fields. 
-Gene arguments are ignored in this case and only basic info (''experimentInfo'' section of the full experiment result) is returned,
-one should then make several separate calls with appropriate accessions and gene identifiers to get full information.
-
-Example:
-<pre>
-http://<ATLAS>/api?experiment=cancer
-</pre>
-
-Output is an array of experiment objects with only basic information:
-<source lang="javascript">
-[
-    {
-        "accession" : "E-GEOD-2034",
-        "description" : "Breast cancer relapse free survival",
-        "types" : [
-            "disease_state_design",
-            "co-expression_design"
-        ]
-    },
-    {
-        "accession" : "E-GEOD-2379",
-        "description" : "Transcription profiling of human hypopharyngeal cancer samples",
-        "types" : [
-            "disease_state_design",
-            "co-expression_design"
-        ]
-    },
-    ...
-]
-</source>
-
 
 === Error output ===
 

@@ -165,7 +165,12 @@ class Util {
                                 } else if((methods[i].getName().startsWith("get") || methods[i].getName().startsWith("is"))
                                                 && !methods[i].getName().equals("getClass")) {
                                     try {
-                                        value = methods[i].invoke(o, (Object[])null);
+                                        try {
+                                            value = methods[i].invoke(o, (Object[])null);
+                                        } catch(IllegalAccessException e) {
+                                            methods[i].setAccessible(true);
+                                            value = methods[i].invoke(o, (Object[])null);
+                                        }
                                         if(value != null) {
                                             restOut = null;
                                             return;
