@@ -8,12 +8,7 @@
 <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help
 <jsp:include page="end_head.jsp"></jsp:include>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
-<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-impromptu.1.5.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
-
+<jsp:include page="query-includes.jsp" />
 
 <style type="text/css">
     /* TODO: display contents appropriately */
@@ -45,13 +40,16 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        var name = '.toc';
+        var toc = $('.toc');
         $('.toc ~ hr').hide();
 
-        var menuYloc = 0;
+        var parentY = toc.offset().top;
         $(window).scroll(function () {
-            var offset = menuYloc+$(document).scrollTop()+"px";
-            $(name).animate({top:offset},{duration:500,queue:false});
+            var scrolltop = $(window).scrollTop();
+            var offset = scrolltop - parentY + 10;
+            if(offset <0)
+                offset =  0;
+            toc.animate({top:offset+"px"},{duration:500,queue:false});
         });
     });
 </script>
