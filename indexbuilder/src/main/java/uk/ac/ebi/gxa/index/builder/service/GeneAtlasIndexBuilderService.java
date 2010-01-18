@@ -73,7 +73,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             // index all genes in parallel
             for (final Gene gene : genes) {
                 // for each gene, submit a new task to the executor
-                tasks.append(tpool.submit(new Callable<Boolean>() {
+                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws IOException, SolrServerException,
                             IndexBuilderException {
@@ -137,7 +137,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         catch (RuntimeException e) {
                             getLog().error("Runtime exception occurred: " + e.getMessage(), e);
 //                            getLog().info("Re-queueing gene " + gene.getGeneID() + " for indexing");
-//                            genes.append(gene);
+//                            genes.offerLast(gene);
                             return false;
                         }
 //                        finally {

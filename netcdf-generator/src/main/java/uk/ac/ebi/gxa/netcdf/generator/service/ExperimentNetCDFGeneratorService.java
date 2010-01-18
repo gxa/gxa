@@ -1,14 +1,15 @@
 package uk.ac.ebi.gxa.netcdf.generator.service;
 
 import ucar.nc2.NetcdfFileWriteable;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlice;
 import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlicer;
 import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFFormatter;
 import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFWriter;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.LoadStage;
-import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.*;
  */
 public class ExperimentNetCDFGeneratorService
         extends NetCDFGeneratorService<File> {
-    private static final int NUM_THREADS = 64;
+    private static final int NUM_THREADS = 16;
 
     public ExperimentNetCDFGeneratorService(AtlasDAO atlasDAO,
                                             File repositoryLocation) {
@@ -43,13 +44,13 @@ public class ExperimentNetCDFGeneratorService
                 : getAtlasDAO().getAllExperiments();
 
         // the list of futures - we need these so we can block until completion
-        List<Future<Boolean>> tasks = new ArrayList<Future<Boolean>>();
+        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>();
 
         try {
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
                 // run each experiment in parallel
-                tasks.add(tpool.submit(new Callable<Boolean>() {
+                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
                         boolean success = false;
@@ -112,22 +113,28 @@ public class ExperimentNetCDFGeneratorService
             }
 
             // block until completion, and throw any errors
-            for (Future<Boolean> task : tasks) {
-                try {
-                    task.get();
-                }
-                catch (ExecutionException e) {
-                    if (e.getCause() instanceof NetCDFGeneratorException) {
-                        throw (NetCDFGeneratorException) e.getCause();
+            while (true) {
+                Future<Boolean> task = tasks.poll();
+                if (task != null) {
+                    try {
+                        task.get();
                     }
-                    else {
+                    catch (ExecutionException e) {
+                        if (e.getCause() instanceof NetCDFGeneratorException) {
+                            throw (NetCDFGeneratorException) e.getCause();
+                        }
+                        else {
+                            throw new NetCDFGeneratorException(
+                                    "An error occurred updating NetCDFs", e);
+                        }
+                    }
+                    catch (InterruptedException e) {
                         throw new NetCDFGeneratorException(
                                 "An error occurred updating NetCDFs", e);
                     }
                 }
-                catch (InterruptedException e) {
-                    throw new NetCDFGeneratorException(
-                            "An error occurred updating NetCDFs", e);
+                else {
+                    break;
                 }
             }
         }

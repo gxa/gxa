@@ -53,8 +53,8 @@ public class AtlasReschedulerController extends AbstractController {
         log.info("Request to schedule " + type + ": " + accession + " for re-indexing.");
 
         if (type.equals("experiment") || type.equals("gene")) {
-            atlasDAO.writeLoadDetails(accession, LoadStage.SEARCHINDEX, LoadStatus.PENDING,
-                                      (type.equals("experiment") ? LoadType.EXPERIMENT : LoadType.GENE));
+            getAtlasDAO().writeLoadDetails(accession, LoadStage.SEARCHINDEX, LoadStatus.PENDING,
+                                           (type.equals("experiment") ? LoadType.EXPERIMENT : LoadType.GENE));
             return new ModelAndView(getSuccessView());
         }
         else {

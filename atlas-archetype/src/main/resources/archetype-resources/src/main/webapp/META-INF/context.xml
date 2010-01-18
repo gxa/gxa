@@ -8,12 +8,11 @@
       url="${atlasDatasourceURL}"
       username="${atlasUser}"
       password="${atlasPassword}"
-      maxIdle="-1"
-      maxWait="10000"
+      initialSize="32"
+      maxIdle="32"
       maxActive="100"
-      poolPreparedStatements="true"
-      maxOpenPreparedStatements="-1"
-      removeAbandoned="true" />
+      maxWait="-1"
+      />
 
   <Resource
       name="jdbc/ATLAS2"
@@ -23,12 +22,11 @@
       url="${atlasDatasourceURL}"
       username="${atlasUser}"
       password="${atlasPassword}"
-      maxIdle="-1"
-      maxWait="10000"
+      initialSize="32"
+      maxIdle="32"
       maxActive="100"
-      poolPreparedStatements="true"
-      maxOpenPreparedStatements="-1"
-      removeAbandoned="true" />
+      maxWait="-1"
+      />
 
   <Resource
       name="file/GXAINDEX"
@@ -43,7 +41,7 @@
       factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
       path="${atlasIndexLocation}/efoindex"
       />
-    
+
   <Resource
       name="file/GXANETCDFS"
       type="java.util.File"
