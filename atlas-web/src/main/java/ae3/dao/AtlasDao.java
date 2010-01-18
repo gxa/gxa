@@ -2,10 +2,14 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.util.FilterIterator;
+import ae3.util.StringUtils;
+import ae3.util.EmptyIterator;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
@@ -318,4 +322,32 @@ public class AtlasDao {
         return atlasExps;
     }
 
+    public Iterable<String> getExperimentSpecies(long experimentId) {
+        SolrQuery q = new SolrQuery("exp_ud_ids:" + experimentId);
+        q.setRows(0);
+        q.setFacet(true);
+        q.setFacetSort(true);
+        q.setFacetMinCount(1);
+        q.addFacetField("species");
+        try {
+            QueryResponse qr = solrServerAtlas.query(q);
+            if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null && qr.getFacetFields().get(0).getValues() != null) {
+                final Iterator<FacetField.Count> iterator = qr.getFacetFields().get(0).getValues().iterator();
+                return new Iterable<String>() {
+                    public Iterator<String> iterator() {
+                        return new FilterIterator<FacetField.Count, String>(iterator) {
+                            public String map(FacetField.Count c) {
+                                if(c.getName() != null)
+                                    return StringUtils.upcaseFirst(c.getName());
+                                return null;
+                            }
+                        };
+                    }
+                };
+            }
+            return EmptyIterator.emptyIterable();
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying for experiment", e);
+        }
+    }
 }

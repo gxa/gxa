@@ -7,9 +7,11 @@ import ae3.restresult.RestOuts;
 import ae3.restresult.XmlRestResultRenderer;
 import ae3.service.structuredquery.EfvTree;
 import ae3.util.MappingIterator;
-import org.apache.commons.lang.StringUtils;
+import ae3.dao.AtlasDao;
 
 import java.util.*;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Atlas Experiment result adapter for REST serialization
@@ -20,10 +22,12 @@ public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Collection<AtlasGene> genes;
+    private final AtlasDao dao;
 
-    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes, ExperimentalData expData) {
+    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes, ExperimentalData expData, AtlasDao dao) {
         this.experiment = experiment;
         this.genes = genes;
+        this.dao = dao;
         this.expData = expData;
     }
 
@@ -37,7 +41,10 @@ public class ExperimentResultAdapter {
         return expData;
     }
 
-
+    @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
+    public Iterable<String> getExperimentSpecies() {
+        return dao.getExperimentSpecies(experiment.getId());
+    }
 
     public class ArrayDesignExpression {
         private final ArrayDesign arrayDesign;

@@ -37,4 +37,11 @@ public class StringUtils {
         else
             return value;
     }
+
+    public static String upcaseFirst(String string) {
+        if(string.length() > 1)
+            return string.substring(0, 1).toUpperCase() + string.substring(1, string.length()).toLowerCase();
+        else
+            return string.toUpperCase();
+    }
 }

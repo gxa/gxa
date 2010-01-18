@@ -27,7 +27,7 @@ public class AtlasGene {
         Collection fval = geneSolrDocument.getFieldValues("species");
         if(fval != null && fval.size() > 0) {
             String species = (String)fval.iterator().next();
-            return species.substring(0, 1).toUpperCase() + species.substring(1, species.length()).toLowerCase();
+            return ae3.util.StringUtils.upcaseFirst(species);
         }
         return "";
     }
