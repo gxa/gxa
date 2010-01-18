@@ -1,11 +1,13 @@
 package ae3.restresult;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
+import ae3.util.FilterIterator;
+
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Iterator;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.Collection;
 
 /**
  * REST renderer utility class
@@ -86,18 +88,12 @@ class Util {
         if(o instanceof Map)
             return new Iterable<Prop>() {
                 public Iterator<Prop> iterator() {
-                    return new Iterator<Prop>() {
-                        Iterator i = ((Map)o).entrySet().iterator();
-                        public boolean hasNext() {
-                            return i.hasNext();
+                    @SuppressWarnings("unchecked")
+                    Iterator<Map.Entry> fromiter = ((Map) o).entrySet().iterator();
+                    return new FilterIterator<Map.Entry,Prop>(fromiter) {
+                        public Prop map(Map.Entry e) {
+                            return e.getValue() != null ? new Prop(e.getKey().toString(), e.getValue(), null) : null;
                         }
-
-                        public Prop next() {
-                            Map.Entry e = (Map.Entry)i.next();
-                            return new Prop(e.getKey().toString(), e.getValue(), null);
-                        }
-
-                        public void remove() { }
                     };
                 }
             };
