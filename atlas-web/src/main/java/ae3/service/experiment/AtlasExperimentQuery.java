@@ -15,13 +15,22 @@ public class AtlasExperimentQuery {
     private final StringBuilder sb = new StringBuilder();
     private int rows = 10;
     private int start = 0;
+    private boolean all = false;
 
     public void and() {
         if(!isEmpty())
             sb.append(" AND ");
     }
 
+    public AtlasExperimentQuery listAll() {
+        sb.replace(0, sb.length(), "id:[* TO *]");
+        all = true;
+        return this;
+    }
+
     public AtlasExperimentQuery andText(Object text) {
+        if(all)
+            return this;
         and();
         List<String> texts = optionalParseList(text);
         if(!texts.isEmpty()) {
@@ -35,6 +44,8 @@ public class AtlasExperimentQuery {
     }
 
     public AtlasExperimentQuery andHasFactor(Object factor) {
+        if(all)
+            return this;
         and();
         List<String> factors = optionalParseList(factor);
         if(!factors.isEmpty())
@@ -43,6 +54,8 @@ public class AtlasExperimentQuery {
     }
 
     public AtlasExperimentQuery andHasFactorValue(String factor, Object value) {
+        if(all)
+            return this;
         and();
         List<String> values = optionalParseList(value);
         if(!values.isEmpty()) {

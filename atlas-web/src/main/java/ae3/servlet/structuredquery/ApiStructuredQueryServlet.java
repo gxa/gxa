@@ -81,6 +81,7 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
 
         AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
         if(!query.isEmpty()) {
+            log.info("Experiment query: " + query.toSolrQuery());
             final AtlasDao.AtlasExperimentsResult experiments = dao.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
             if(experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
@@ -106,7 +107,7 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
 
             final int nTopFinal = nTop;
 
-            setRestProfile(request.getParameter("basicOnly") != null ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
+            setRestProfile(request.getParameter("experimentInfoOnly") != null ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
             return new AtlasApiSearchResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
