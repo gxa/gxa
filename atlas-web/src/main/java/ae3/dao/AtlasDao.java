@@ -94,7 +94,35 @@ public class AtlasDao {
         }
     }
 
-    public List<AtlasExperiment> getExperimentsByQuery(String query, int start, int rows) {
+    public static class AtlasExperimentsResult {
+        private List<AtlasExperiment> experiments;
+        private int totalResults;
+        private int startingFrom;
+
+        private AtlasExperimentsResult(List<AtlasExperiment> experiments, int totalResults, int startingFrom) {
+            this.experiments = experiments;
+            this.totalResults = totalResults;
+            this.startingFrom = startingFrom;
+        }
+
+        public List<AtlasExperiment> getExperiments() {
+            return experiments;
+        }
+
+        public int getTotalResults() {
+            return totalResults;
+        }
+
+        public int getStartingFrom() {
+            return startingFrom;
+        }
+
+        public int getNumberOfResults() {
+            return experiments.size();
+        }
+    }
+
+    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
         SolrQuery q = new SolrQuery(query);
         q.setRows(rows);
         q.setStart(start);
@@ -105,19 +133,15 @@ public class AtlasDao {
             SolrDocumentList documentList = queryResponse.getResults();
             List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
-            if (documentList != null) {
-                for (SolrDocument exptDoc : documentList) {
+            if (documentList != null)
+                for(SolrDocument exptDoc : documentList)
                     result.add(new AtlasExperiment(exptDoc));
-                }
-            }
 
-            return result;
-        }
-        catch (SolrServerException e) {
+            return new AtlasExperimentsResult(result, documentList == null ? 0 : (int)documentList.getNumFound(), start);
+        } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiments", e);
         }
     }
-
 
     public List<AtlasExperiment> getExperiments() {
         List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();

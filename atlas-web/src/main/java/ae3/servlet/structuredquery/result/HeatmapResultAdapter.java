@@ -8,6 +8,7 @@ import ae3.service.structuredquery.*;
 import ae3.util.FilterIterator;
 import ae3.util.JoinIterator;
 import ae3.util.MappingIterator;
+import ae3.restresult.RestOut;
 import uk.ac.ebi.gxa.index.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 
@@ -16,7 +17,7 @@ import java.util.Iterator;
 /**
  * @author pashky
  */
-public class HeatmapResultAdapter {
+public class HeatmapResultAdapter implements AtlasApiSearchResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
     private final AtlasDao dao;
     private final Efo efo;
@@ -27,11 +28,11 @@ public class HeatmapResultAdapter {
         this.efo = efo;
     }
 
-    public long getTotalResultGenes() {
+    public long getTotalResults() {
         return r.getTotal();
     }
 
-    public long getNumberOfResultGenes() {
+    public long getNumberOfResults() {
         return r.getSize();
     }
 
@@ -39,6 +40,7 @@ public class HeatmapResultAdapter {
         return r.getStart();
     }
 
+    @RestOut(xmlItemName = "result")
     public class ResultRow {
         private final StructuredResultRow row;
 

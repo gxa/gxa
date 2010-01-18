@@ -15,7 +15,7 @@ import java.util.*;
  * Atlas Experiment result adapter for REST serialization
  * @author pashky
  */
-@RestOut(xmlItemName = "experiment")
+@RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
