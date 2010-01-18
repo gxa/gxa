@@ -13,6 +13,13 @@
                 alert(data.error);
                 return;
             }
+
+            if(data.numberOfResults < 1) {
+                alert("experiment not found");
+                return;
+            }
+
+            data = data.results[0];
             
             document.getElementById("accession").innerText = data.experimentInfo.accession;
             document.getElementById("desc").innerText = data.experimentInfo.description;
