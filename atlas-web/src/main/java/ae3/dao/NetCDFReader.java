@@ -79,7 +79,7 @@ public class NetCDFReader {
         final String arrayDesignAccession = ncfile.findGlobalAttributeIgnoreCase("ADaccession").getStringValue();
         final ArrayDesign arrayDesign = new ArrayDesign(arrayDesignAccession);
 
-        final int numSamples = varSCV.getDimension(1).getLength();
+        final int numSamples = varBS.getDimension(0).getLength();
         final int numAssays = varEFV.getDimension(1).getLength();
 
         final Map<String,List<String>> efvs = new HashMap<String,List<String>>();
@@ -98,15 +98,17 @@ public class NetCDFReader {
         }
 
         final Map<String,List<String>> scvs = new HashMap<String,List<String>>();
+        if(varSCV != null && varSC != null) {
 
-        ArrayChar.StringIterator scvi = ((ArrayChar)varSCV.read()).getStringIterator();
-        for(ArrayChar.StringIterator i = ((ArrayChar)varSC.read()).getStringIterator(); i.hasNext(); ) {
-            String sc = i.next().substring("bs_".length());
-            List<String> scvList = new ArrayList<String>(numSamples);
-            scvs.put(sc, scvList);
-            for(int j = 0; j < numSamples; ++j) {
-                scvi.hasNext();
-                scvList.add(scvi.next());
+            ArrayChar.StringIterator scvi = ((ArrayChar)varSCV.read()).getStringIterator();
+            for(ArrayChar.StringIterator i = ((ArrayChar)varSC.read()).getStringIterator(); i.hasNext(); ) {
+                String sc = i.next().substring("bs_".length());
+                List<String> scvList = new ArrayList<String>(numSamples);
+                scvs.put(sc, scvList);
+                for(int j = 0; j < numSamples; ++j) {
+                    scvi.hasNext();
+                    scvList.add(scvi.next());
+                }
             }
         }
 
