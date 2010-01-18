@@ -62,7 +62,6 @@ public class AtlasPlotter {
                                            final String plotType,
                                            final String gplotIds) {
         String efToPlot;
-        String[] geneIDs = geneIdKey.split(",");
 
         AtlasGene atlasGene = getAtlasSolrDAO().getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
 
@@ -80,9 +79,6 @@ public class AtlasPlotter {
 
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentID, efToPlot});
 
-        // lookup gene names, again using SOLR index
-        ArrayList<String> geneNames = getGeneNames(geneIdKey);
-
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
 
@@ -99,31 +95,75 @@ public class AtlasPlotter {
 
         // iterate over our proxies to find the one that contains the genes we're after
         try {
+            List<String> geneNames = new ArrayList<String>();
+            List<Integer> deIds = new ArrayList<Integer>();
+            List<Integer> geneIds = new ArrayList<Integer>();
+            List<Integer> deIndices = new ArrayList<Integer>();
+
+            // lookup gene names, again using SOLR index
+            for(String geneIdStr : geneIdKey.split(",")) {
+                AtlasDao.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(geneIdStr);
+                if (gene.isFound()) {
+                    Integer geneId = Integer.valueOf(gene.getGene().getGeneId());
+                    geneIds.add(geneId);
+                    geneNames.add(gene.getGene().getGeneName());
+                    deIndices.add(null);
+                    deIds.add(null);
+                }
+            }
+
             // this is the NetCDF containing the gene we care about
             NetCDFProxy proxy = null;
             // this is a list of the indices marking the positions of design elements that correspond to the gene we're after
-            List<Integer> geneIndices = new ArrayList<Integer>();
             for (NetCDFProxy next : proxies) {
-                boolean found = false;
-                int geneIndex = 0;
-                // loop over all genes in this NetCDFProxy
-                for (int netcdfGene : next.getGenes()) {
-                    // loop over all the genes we're looking for (i.e. geneIdKey in request, split up)
-                    for (String geneIDStr : geneIDs) {
-                        // found a gene we want in this netcdf?
-                        if (netcdfGene == Integer.parseInt(geneIDStr)) {
+                // loop over all de/genes in this NetCDFProxy
+                int[] designElements = next.getDesignElements();
+                int[] genes = next.getGenes();
+                for (int deIndex = 0; deIndex < designElements.length; ++deIndex) {
+                    int i = 0;
+                    for(Integer geneId : geneIds) {
+                        if(geneId != null && geneId == genes[deIndex]) {
                             proxy = next;
-                            found = true;
-                            // add the index of the gene to our list of indices
-                            geneIndices.add(geneIndex);
+                            if(deIndices.get(i) != null) {
+                                // okay, we got at least two DEs for the same gene. it's time to use analytics to choose one
+                                Integer deId = atlasDatabaseDAO.getBestDesignElementForExpressionProfile(geneId, Integer.valueOf(experimentID), efToPlot.substring(3));
+                                if(deId != null) {
+                                    // this (second) one is the best
+                                    if(designElements[deIndex] == deId)
+                                        deIndices.set(i, deIndex);
+                                    // not previous and not this one is the best, so put it into search queue
+                                    else if(designElements[deIndices.get(i)] != deId)
+                                        deIds.set(i, deId);
+                                    // otherwise the first one was the best, it's already there
+                                }
+                                geneIds.set(i, null); // anyway turn off next searches for this gene
+                            } else {
+                                deIndices.set(i, deIndex);
+                            }
+                        } else if(deIds.get(i) != null) {
+                            if(designElements[deIndex] == deIds.get(i)) {
+                                deIndices.set(i, deIndex);
+                                deIds.set(i, deIndex);
+                            }
                         }
+                        ++i;
                     }
-                    geneIndex++;
                 }
 
-                if (found) {
-                    // fixme: breaking assumes that all genes are in the same NetCDF
+                if(proxy != null) {
+                    // we have found one array design with some genes, bail out as we can't handle multiple designs
                     break;
+                }
+            }
+
+            // now leave only those DEs which were found in (last) netcdf
+            Iterator<String> geneNamesIter = geneNames.iterator();
+            Iterator<Integer> deIndicesIter = deIndices.iterator();
+            while(deIndicesIter.hasNext()) {
+                geneNamesIter.next();
+                if(deIndicesIter.next() == null) {
+                    geneNamesIter.remove();
+                    deIndicesIter.remove();
                 }
             }
 
@@ -131,10 +171,10 @@ public class AtlasPlotter {
             if (proxy != null) {
                 // and build up the plot, based on plotType parameter
                 if (plotType.equals("thumb")) {
-                    return createThumbnailJSON(proxy, efToPlot, efv, geneIndices);
+                    return createThumbnailJSON(proxy, efToPlot, efv, deIndices);
                 }
                 else if (plotType.equals("big") || plotType.equals("large")) {
-                    return createBigPlotJSON(proxy, efToPlot, geneNames, gplotIds, geneIndices);
+                    return createBigPlotJSON(proxy, efToPlot, geneNames, gplotIds, deIndices);
                 }
                 else {
                     ArrayList<String> topFVs = new ArrayList<String>();
@@ -146,7 +186,7 @@ public class AtlasPlotter {
                             topFVs.add(at.getEfv().toLowerCase());
                         }
                     }
-                    return createJSON(proxy, efToPlot, topFVs, geneIndices);
+                    return createJSON(proxy, efToPlot, topFVs, deIndices);
                 }
 
             }
@@ -163,23 +203,9 @@ public class AtlasPlotter {
 
     public JSONObject createJSON(NetCDFProxy netCDF, String ef, List<String> topFVs, List<Integer> geneIndices)
             throws IOException {
-        StringBuffer sb = new StringBuffer();
-        sb.append("{");
-        for (String topFV : topFVs) {
-            sb.append(topFV).append(",");
-        }
-        sb.append("}");
-        String topFVStr = sb.toString();
 
-        sb = new StringBuffer();
-        sb.append("{");
-        for (int geneIndex : geneIndices) {
-            sb.append(geneIndex).append(",");
-        }
-        sb.append("}");
-        String geneIndexStr = sb.toString();
-
-        log.debug("Creating plot... EF: {}, Top FVs: {}, Gene indices: {}", new Object[]{ef, topFVStr, geneIndexStr});
+        log.debug("Creating plot... EF: {}, Top FVs: [{}], DE indices: [{}]",
+                new Object[]{ef, StringUtils.join(topFVs, ","), StringUtils.join(geneIndices, ",")});
 
         // the data for our plot
         JSONObject plotData = new JSONObject();
@@ -419,24 +445,9 @@ public class AtlasPlotter {
                                         List<String> geneNames,
                                         String gplotIds,
                                         List<Integer> geneIndices) throws IOException {
-        StringBuffer sb = new StringBuffer();
-        sb.append("{");
-        for (String geneName : geneNames) {
-            sb.append(geneName).append(",");
-        }
-        sb.append("}");
-        String topFVStr = sb.toString();
 
-        sb = new StringBuffer();
-        sb.append("{");
-        for (int geneIndex : geneIndices) {
-            sb.append(geneIndex).append(",");
-        }
-        sb.append("}");
-        String geneIndexStr = sb.toString();
-
-        log.debug("Creating big plot... EF: {}, Gene Names: {}, Gene plot ids: {}, Gene indices: {}",
-                  new Object[]{ef, topFVStr, gplotIds, geneIndexStr});
+        log.debug("Creating big plot... EF: {}, Gene Names: [{}], Gene plot ids: {}, DE indices: [{}]",
+                  new Object[]{ef, StringUtils.join(geneNames, " "), gplotIds, StringUtils.join(geneIndices, ",")});
 
         // the data for our plot
         JSONObject plotData = new JSONObject();
