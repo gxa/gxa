@@ -1,17 +1,14 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -43,7 +40,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         try {
             for (final Experiment experiment : experiments) {
-                tasks.append(tpool.submit(new Callable<Boolean>() {
+                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
                     public Boolean call() throws IOException, SolrServerException {
                         Boolean result = false;
                         try {

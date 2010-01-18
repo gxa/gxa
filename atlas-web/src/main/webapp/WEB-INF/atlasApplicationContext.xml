@@ -287,7 +287,7 @@
     <!-- Spring JDBC template for database queries -->
     <bean name="loaderTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="dataSource" ref="atlasDataSource2"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 

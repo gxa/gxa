@@ -5,58 +5,45 @@
 
     <!-- SOLR index -->
     <bean id="solrContainerFactory" class="uk.ac.ebi.gxa.index.SolrContainerFactory">
-        <property name="atlasIndex" ref="atlasIndex" />
-        <property name="templatePath" value="solr" />
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="templatePath" value="solr"/>
     </bean>
 
     <bean name="solrContainer"
           factory-bean="solrContainerFactory"
           factory-method="createContainer"
-          destroy-method="shutdown" />
+          destroy-method="shutdown"/>
 
     <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="atlas" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="atlas"/>
     </bean>
 
     <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="expt" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="expt"/>
     </bean>
 
     <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="properties" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="properties"/>
     </bean>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
-        <property name="indexFile" ref="efoIndex" />
+        <property name="indexFile" ref="efoIndex"/>
         <property name="uri" value="resource:META-INF/efo.owl"/>
     </bean>
 
-    <!--<bean id="atlasDataSource"-->
-    <!--class="org.springframework.jdbc.datasource.SingleConnectionDataSource">-->
-    <!--<property name="driverClassName" value="oracle.jdbc.OracleDriver"/>-->
-    <!--<property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>-->
-    <!--<property name="username" value="atlas2"/>-->
-    <!--<property name="password" value="atlas2"/>-->
-    <!--<property name="autoCommit" value="false"/>-->
-    <!--</bean>-->
-
-    <bean id="atlasDataSource"
-          class="org.apache.commons.dbcp.BasicDataSource"
-          destroy-method="close">
+    <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
         <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>
         <property name="username" value="atlas2"/>
         <property name="password" value="atlas2"/>
         <property name="defaultAutoCommit" value="false"/>
-        <property name="maxActive" value="50"/>
-        <property name="removeAbandoned" value="true"/>
-        <property name="poolPreparedStatements" value="true" />
-        <property name="initialSize" value="32" />
-        <property name="maxOpenPreparedStatements" value="-1"/>
-        <property name="maxIdle" value="-1"/>
+        <property name="initialSize" value="32"/>
+        <property name="maxIdle" value="32" />
+        <property name="maxActive" value="100"/>
+        <property name="maxWait" value="-1" />
     </bean>
 
     <!-- etxract native jdbc connection for working with oracle connections -->
@@ -95,19 +82,21 @@
     </bean>
 
     <!-- Requires an Index Builder -->
-    <bean name="indexBuilderServiceProperties" class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <property name="atlasDAO" ref="atlasDAO" />
-        <property name="solrServer" ref="solrServerProp" />
+    <bean name="indexBuilderServiceProperties"
+          class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="solrServer" ref="solrServerProp"/>
     </bean>
 
-    <bean name="indexBuilderServiceExperiments" class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasDAO" />
-        <property name="solrServer" ref="solrServerExpt" />
+    <bean name="indexBuilderServiceExperiments"
+          class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasDAO" />
-        <property name="solrServer" ref="solrServerAtlas" />
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="solrServer" ref="solrServerAtlas"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">

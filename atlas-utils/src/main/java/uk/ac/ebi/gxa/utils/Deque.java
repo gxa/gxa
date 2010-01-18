@@ -3,7 +3,9 @@ package uk.ac.ebi.gxa.utils;
 import java.util.*;
 
 /**
- * A very simple and loosy queue implementation based on linked list of arrays (deque)
+ * A very simple and loose queue implementation based on linked list of arrays (deque).  This is basically equivalent to
+ * a Deque implementation in Java 6, but means our code retains backwards compatibility with Java 5.
+ *
  * @author pashky
  */
 public class Deque<T> {
@@ -22,20 +24,20 @@ public class Deque<T> {
 
     public Deque(final Collection<T> source) {
         for(T e : source)
-            append(e);
+            offerLast(e);
     }
 
     public Deque(int blockSize, final Collection<T> source) {
         this(blockSize);
         for(T e : source)
-            append(e);
+            offerLast(e);
     }
 
     private List<T> makeBlock() {
         return new ArrayList<T>(blockSize);
     }
 
-    public void append(T e) {
+    public void offerLast(T e) {
         List<T> block = null;
         if(!storage.isEmpty())
             block = storage.getLast();
