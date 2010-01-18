@@ -28,40 +28,7 @@ function checkLoadDetails(accession, objectType) {
 }
 
 function changePage(newPage) {
-  var target;
-  var url;
-
-  target = document.getElementById("compute.table");
-  if (target == null) {
-    target = parent.document.getElementById("compute.table");
-  }
-
-  url = "computer.jsp";
-
-  ajax(url, target);
-}
-
-// sends a get ajax request for the contents of the target element
-function ajax(url, target) {
-  var req;
-  if (window.XMLHttpRequest) {
-    req = new XMLHttpRequest();
-    req.open("GET", url);
-    req.onreadystatechange = function() {
-      ajaxDone(req, url, target);
-    };
-    req.send(null);
-  }
-  else if (window.ActiveXObject) {
-    req = new ActiveXObject();
-    if (req) {
-      req.open("GET", url);
-      req.onreadystatechange = function() {
-        ajaxDone(req, url, target);
-      };
-      req.send(null);
-    }
-  }
+    // todo: redraw the table that shows experiments with the new page number
 }
 
 var updateLoadDetails = function(json) {

@@ -71,17 +71,17 @@ date: 16-Jan-2009
                     json.put(expt.getAccession());
             %>
             <tr id="experiment_<%=expt.getAccession()%>">
-                <td id="experiment_<%=expt.getAccession()%>_accession"><%=expt.getAccession()%>
-                </td>
-                <td id="experiment_<%=expt.getAccession()%>_netcdf" align="left">
-                    <img src="../images/ajax-loader.gif" alt="?"/>
-                </td>
-                <td id="experiment_<%=expt.getAccession()%>_analytics" align="left">
-                    <img src="../images/ajax-loader.gif" alt="?"/>
-                </td>
-                <td id="experiment_<%=expt.getAccession()%>_index" align="left">
-                    <img src="../images/ajax-loader.gif" alt="?"/>
-                </td>
+                <%--<td id="experiment_<%=expt.getAccession()%>_accession"><%=expt.getAccession()%>--%>
+                <%--</td>--%>
+                <%--<td id="experiment_<%=expt.getAccession()%>_netcdf" align="left">--%>
+                    <%--<img src="../images/ajax-loader.gif" alt="?"/>--%>
+                <%--</td>--%>
+                <%--<td id="experiment_<%=expt.getAccession()%>_analytics" align="left">--%>
+                    <%--<img src="../images/ajax-loader.gif" alt="?"/>--%>
+                <%--</td>--%>
+                <%--<td id="experiment_<%=expt.getAccession()%>_index" align="left">--%>
+                    <%--<img src="../images/ajax-loader.gif" alt="?"/>--%>
+                <%--</td>--%>
             </tr>
             <%
                 }
@@ -89,86 +89,88 @@ date: 16-Jan-2009
         </table>
     </div>
 
-    <div id="page.switcher">
-        <table>
-            <tr>
-                <%
-                    if (pageNumber - 3 > 0) {
-                %>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), 1)%>changePage(1);">
-                        &nbsp;|&lt;&nbsp;
-                    </a>
-                </td>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-1)%>changePage(<%=pageNumber-1%>);">
-                        &nbsp;&lt;&nbsp;
-                    </a>
-                </td>
-                <td>
-                    &nbsp;...&nbsp;
-                </td>
+    <%--<div id="page.switcher">--%>
+        <%--<table>--%>
+            <%--<tr>--%>
+                <%--<%--%>
+                    <%--if ((pageNumber - 3) > 0) {--%>
+                <%--%>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), 1)%>changePage(1);">--%>
+                        <%--&nbsp;|&lt;&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-1)%>changePage(<%=pageNumber-1%>);">--%>
+                        <%--&nbsp;&lt;&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<td>--%>
+                    <%--&nbsp;...&nbsp;--%>
+                <%--</td>--%>
 
-                <% }
-                    if (pageNumber - 2 > 0) {
-                %>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-2)%>changePage(<%=pageNumber-2%>);">
-                        &nbsp;<%=pageNumber - 2%>&nbsp;
-                    </a>
-                </td>
-                <% }
-                    if (pageNumber - 1 > 0) {
-                %>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-1)%>changePage(<%=pageNumber-1%>);">
-                        &nbsp;<%=pageNumber - 1%>&nbsp;
-                    </a>
-                </td>
-                <% } %>
-                <td>&nbsp;<%=pageNumber%>&nbsp;</td>
-                <%
-                    if ((pageNumber + 1) < numOfPages) {
-                %>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+1)%>changePage(<%=pageNumber+1%>);">
-                        &nbsp;<%=pageNumber + 1%>&nbsp;
-                    </a>
-                </td>
-                <% }
-                    if ((pageNumber + 2) < numOfPages) {
-                %>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+2)%>changePage(<%=pageNumber+2%>);">
-                        &nbsp;<%=pageNumber + 2%>&nbsp;
-                    </a>
-                </td>
-                <% }
-                    if ((pageNumber + 3) < numOfPages) {
-                %>
-                <td>&nbsp;...&nbsp;</td>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+1)%>changePage(<%=pageNumber+1%>);">
-                        &nbsp;&gt;&nbsp;
-                    </a>
-                </td>
-                <td>
-                    <a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), numOfPages)%>changePage(<%=pageNumber-3%>);">
-                        &nbsp;&nbsp;&gt;|&nbsp;&nbsp;
-                    </a>
-                </td>
-                <% } %>
-            </tr>
-        </table>
-        <script type="text/javascript">
-            window.onload = function() {
-                var exptArray = eval(<%=json.toString()%>);
-                for (var i = 0; i < 10; i++) {
-                    checkLoadDetails(exptArray[i], "experiment");
-                }
-            };
-        </script>
-    </div>
+                <%--<% }--%>
+                    <%--if ((pageNumber - 2) > 0) {--%>
+                <%--%>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-2)%>changePage(<%=pageNumber-2%>);">--%>
+                        <%--&nbsp;<%=pageNumber - 2%>&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<% }--%>
+                    <%--if ((pageNumber - 1) > 0) {--%>
+                <%--%>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber-1)%>changePage(<%=pageNumber-1%>);">--%>
+                        <%--&nbsp;<%=pageNumber - 1%>&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<% } %>--%>
+                <%--<td>&nbsp;<%=pageNumber%>&nbsp;</td>--%>
+                <%--<%--%>
+                    <%--if ((pageNumber + 1) < numOfPages) {--%>
+                <%--%>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+1)%>changePage(<%=pageNumber+1%>);">--%>
+                        <%--&nbsp;<%=pageNumber + 1%>&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<% }--%>
+                    <%--if ((pageNumber + 2) < numOfPages) {--%>
+                <%--%>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+2)%>changePage(<%=pageNumber+2%>);">--%>
+                        <%--&nbsp;<%=pageNumber + 2%>&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<% }--%>
+                    <%--if ((pageNumber + 3) < numOfPages) {--%>
+                <%--%>--%>
+                <%--<td>&nbsp;...&nbsp;</td>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber+1)%>changePage(<%=pageNumber+1%>);">--%>
+                        <%--&nbsp;&gt;&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<td>--%>
+                    <%--<a onclick="<%=session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), numOfPages)%>changePage(<%=pageNumber-3%>);">--%>
+                        <%--&nbsp;&nbsp;&gt;|&nbsp;&nbsp;--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<% } %>--%>
+            <%--</tr>--%>
+        <%--</table>--%>
+    <%--</div>--%>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            var exptArray = eval(<%=json.toString()%>);
+            for (var i = 0; i < exptArray.length; i++) {
+                alert("Checking load details for " + exptArray[i]);
+                checkLoadDetails(exptArray[i], "experiment");
+            }
+        };
+    </script>
 </div>
 
 </body>

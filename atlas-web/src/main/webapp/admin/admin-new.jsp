@@ -8,6 +8,8 @@ operations happen.
 author: Tony Burdett
 date: 13-Nov-2009
 -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
     <script src="admin.js" type="text/javascript" language="JavaScript"></script>
@@ -119,7 +121,8 @@ date: 13-Nov-2009
 </div>
 
 <div id="compute.table">
-    <object id="computer" data="compute.jsp"></object>
+    <%@ include file="computer.jsp" %>
+    <%--<jsp:include page="computer.jsp" />--%>
 </div>
 
 </body>
