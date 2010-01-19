@@ -17,7 +17,6 @@ public class TestGeneAtlasIndexBuilderService
         super.setUp();
 
         Efo efo = new Efo();
-        efo.setIndexFile(FileUtil.createTempDirectory("efoindex"));
 
         gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setEfo(efo);
