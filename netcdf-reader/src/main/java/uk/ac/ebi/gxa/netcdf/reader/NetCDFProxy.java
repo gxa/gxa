@@ -79,7 +79,10 @@ public class NetCDFProxy {
         }
 
         if (netCDF.findGlobalAttribute("ADid") != null) {
-            return Integer.parseInt(netCDF.findGlobalAttribute("ADid").getStringValue());
+            Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
+            if(value != null)
+                return value.intValue();
+            return -1;
         }
 
         return -1;

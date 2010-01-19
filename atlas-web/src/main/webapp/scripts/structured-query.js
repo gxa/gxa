@@ -468,7 +468,7 @@ if(!atlas)
                                     data: {
                                         gid: gene,
                                         eid: resp.experiments[iexp].id,
-                                        ef: 'ba_' + resp.experiments[iexp].efs[ief].ef,
+                                        ef: resp.experiments[iexp].efs[ief].ef,
                                         plot: 'bar' 
                                     },
                                     dataType: "json",
