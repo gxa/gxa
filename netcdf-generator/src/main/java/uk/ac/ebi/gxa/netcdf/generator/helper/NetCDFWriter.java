@@ -21,8 +21,8 @@ import java.util.*;
  */
 public class NetCDFWriter {
     // internal maps - indexes for locations of given assay/design element ids
-    Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
-    Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
+    private Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
+    private Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
 
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());

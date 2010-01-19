@@ -6,4 +6,8 @@
     <bean id="loadDetailsExporter" class="uk.ac.ebi.gxa.web.export.LoadDetailsExporter">
         <property name="atlasDAO" ref="atlasLoaderDAO"/>
     </bean>
+
+    <bean id="experimentAccessionsExporter" class="uk.ac.ebi.gxa.web.export.ExperimentAccessionsExporter">
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+    </bean>
 </beans>

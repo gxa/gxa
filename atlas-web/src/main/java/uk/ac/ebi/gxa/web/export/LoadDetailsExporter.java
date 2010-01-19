@@ -1,8 +1,7 @@
 package uk.ac.ebi.gxa.web.export;
 
+import net.sf.json.JSONObject;
 import net.sourceforge.fluxion.ajax.Ajaxified;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
@@ -38,39 +37,43 @@ public class LoadDetailsExporter {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
 
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    /**
+     * Exports a JSONObject containing the load details for the experiment accession specified in the JSONObject 'input'
+     * parameter.  The input JSONObject should contain, as a minimum, an "accession" parameter.  Any other information
+     * will be ignored.
+     *
+     * @param session the HTTP session this request was formulated in
+     * @param input   the JSONObject representing the request
+     * @return a JSON object that is the formulated response representing load details for the requested accession.
+     */
     public JSONObject getLoadDetails(HttpSession session, JSONObject input) {
-        try {
-            log.info("Getting load details for " + input.toString());
+        log.debug("Getting load details for " + input.toString());
 
-            // extract accession param
-            String accession = input.getString("accession");
+        // extract accession param
+        String accession = input.getString("accession");
 
-            // fetch the load details object from the dao
-            LoadDetails details = getAtlasDAO().getLoadDetailsByAccession(accession);
+        // fetch the load details object from the dao
+        LoadDetails details = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
 
-            // translate LoadDetails into a JSONObject
-            JSONObject json = new JSONObject();
-            json.put("accession", details.getAccession());
-            json.put("failedLoad", details.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString()));
-            json.put("netcdf", details.getNetCDF().toLowerCase());
-            json.put("analytics", details.getNetCDF().toLowerCase());
-            json.put("index", details.getSearchIndex().toLowerCase());
-            json.put("loadType", details.getLoadType().toLowerCase());
+        // translate LoadDetails into a JSONObject
+        JSONObject json = new JSONObject();
+        json.put("accession", details.getAccession());
+        json.put("failedLoad", details.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString()));
+        json.put("netcdf", details.getNetCDF().toLowerCase());
+        json.put("analytics", details.getNetCDF().toLowerCase());
+        json.put("index", details.getSearchIndex().toLowerCase());
+        json.put("loadType", details.getLoadType().toLowerCase());
 
-            return json;
-        }
-        catch (JSONException e) {
-            String message = "Failed to extract accession number parameter from input JSONObject " + input.toString() + ", [" + e.getMessage() + "]";
-            log.error(message);
-            return new JSONObject();
-        }
+        log.debug("Response looks like: " + json.toString());
+
+        return json;
     }
 }

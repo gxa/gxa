@@ -33,10 +33,15 @@ public class AtlasDAO {
     // load monitor
     private static final String LOAD_MONITOR_SELECT =
             "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor";
+                    "FROM load_monitor " +
+                    "WHERE load_type='experiment'";
     private static final String LOAD_MONITOR_BY_ACC_SELECT =
             LOAD_MONITOR_SELECT + " " +
-                    "WHERE accession=?";
+                    "AND accession=?";
+    private static final String LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
+            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
+                    "FROM (SELECT * FROM load_monitor WHERE load_type='experiment' ORDER BY accession) " +
+                    "WHERE ROWNUM > ? AND ROWNUM <= ?";
 
     // experiment queries
     private static final String EXPERIMENTS_COUNT =
@@ -408,17 +413,30 @@ public class AtlasDAO {
    DAO read methods
     */
 
-    public List<LoadDetails> getLoadDetails() {
+    public List<LoadDetails> getLoadDetailsForExperiments() {
         List results = template.query(LOAD_MONITOR_SELECT,
                                       new LoadDetailsMapper());
         return (List<LoadDetails>) results;
     }
 
-    public LoadDetails getLoadDetailsByAccession(String accession) {
+    public LoadDetails getLoadDetailsForExperimentsByAccession(String accession) {
         List results = template.query(LOAD_MONITOR_BY_ACC_SELECT,
                                       new Object[]{accession},
                                       new LoadDetailsMapper());
         return results.size() > 0 ? (LoadDetails) results.get(0) : null;
+    }
+
+    public List<LoadDetails> getLoadDetailsForExperimentsByPage(int pageNumber, int experimentsPerPage) {
+        int offset = (pageNumber - 1) * experimentsPerPage;
+        int rowcount = pageNumber * experimentsPerPage;
+
+        log.debug("Query is {}, from " + offset + " to " + rowcount, LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS);
+
+        List results = template.query(LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS,
+                                      new Object[]{offset, rowcount},
+                                      new LoadDetailsMapper());
+
+        return (List<LoadDetails>) results;
     }
 
 
@@ -500,12 +518,13 @@ public class AtlasDAO {
 
     /**
      * Same as getAllGenes(), but doesn't do design elements. Sometime we just don't need them.
+     *
      * @return list of all genes
      */
     public List<Gene> getAllGenesFast() {
         // do the query to fetch genes without design elements
         return (List<Gene>) template.query(GENES_SELECT,
-                new GeneMapper());
+                                           new GeneMapper());
     }
 
     public Gene getGeneByIdentifier(String identifier) {
@@ -562,14 +581,15 @@ public class AtlasDAO {
     }
 
     /**
-     * Fetches all genes in the database that are pending indexing. No properties or design elements,
-     * when you dont' need that.
+     * Fetches all genes in the database that are pending indexing. No properties or design elements, when you dont'
+     * need that.
+     *
      * @return the list of all genes in the database that are pending indexing
      */
     public List<Gene> getAllPendingGenesFast() {
         // do the query to fetch genes without design elements
         return (List<Gene>) template.query(GENES_PENDING_SELECT,
-                                      new GeneMapper());
+                                           new GeneMapper());
     }
 
     /**
@@ -1022,8 +1042,9 @@ public class AtlasDAO {
 
     public Integer getBestDesignElementForExpressionProfile(int geneId, int experimentId, String ef) {
         try {
-            return template.queryForInt(BEST_DESIGNELEMENTID_FOR_GENE, new Object[] { ef, experimentId, geneId });
-        } catch(EmptyResultDataAccessException e) {
+            return template.queryForInt(BEST_DESIGNELEMENTID_FOR_GENE, new Object[]{ef, experimentId, geneId});
+        }
+        catch (EmptyResultDataAccessException e) {
             // no statistically best element found
             return null;
         }
@@ -1578,7 +1599,7 @@ public class AtlasDAO {
                     // descriptor for EXPRESSIONANALYTICS type
                     StructDescriptor structDescriptor =
                             StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
-                    int i=0;
+                    int i = 0;
                     Object[] expressionAnalyticsValues = new Object[3];
                     for (int designElement : pValues.keySet()) {
                         // array representing the values to go in the STRUCT
