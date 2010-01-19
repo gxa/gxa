@@ -1,15 +1,39 @@
 <!--
-Admin page for the atlas.  Use this page to load new experiments or to calculate indexes, netcdfs, or analytics of
+Admin page for the atlas. Use this page to load new experiments or to calculate indexes, netcdfs, or analytics of
 experiments in the database.
 
-This page is html, but dynamically loads the computer.jsp page via an object.  The computer.jsp is where per-experiment
-operations happen.
+This page is jsp, as it stores in a session variable the current pageNumber, the number of experiments per page, and the
+total number of experiments. These are then used to populate divs on the page with dynamic elements, which can further
+be reloaded by scripts that poll for progress of loading jobs via AJAX.
 
 author: Tony Burdett
 date: 13-Nov-2009
 -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+<%@ page import="uk.ac.ebi.gxa.dao.AtlasDAO" %>
+<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
+<%@ page import="uk.ac.ebi.microarray.atlas.model.LoadDetails" %>
+<%@ page import="java.util.List" %>
+
+<%
+    // fetch load/index services
+    AtlasDAO atlasDAO = (AtlasDAO) application.getAttribute(Atlas.ATLAS_DAO.key());
+
+    // page number session variable
+    int pageNumber = session.getAttribute(Atlas.ADMIN_PAGE_NUMBER.key()) == null
+            ? 1
+            : (Integer) session.getAttribute(Atlas.ADMIN_PAGE_NUMBER.key());
+
+    // experimentPerPage session variable
+    int experimentsPerPage = session.getAttribute(Atlas.ADMIN_EXPERIMENTS_PER_PAGE.key()) == null
+            ? 25
+            : (Integer) session.getAttribute(Atlas.ADMIN_EXPERIMENTS_PER_PAGE.key());
+
+    List<LoadDetails> exptDetails = atlasDAO.getLoadDetailsForExperiments();
+
+    // number of experiments
+    int maxExperiments = exptDetails.size();
+%>
+
 <html>
 <head>
     <script src="admin.js" type="text/javascript" language="JavaScript"></script>
@@ -17,7 +41,7 @@ date: 13-Nov-2009
     <script src="fluxion-ajax.js" type="text/javascript" language="JavaScript"></script>
     <title>Atlas Administration - Load or recompute data in the Atlas</title>
 </head>
-<body>
+<body onload="updateComputeTable(<%=pageNumber%>, <%=experimentsPerPage%>, <%=maxExperiments%>);">
 
 <h1>Atlas Admin Page</h1>
 
@@ -120,9 +144,12 @@ date: 13-Nov-2009
     </div>
 </div>
 
+<!-- loaded by javascript, shows details for experiments one at a time -->
 <div id="compute.table">
-    <%@ include file="computer.jsp" %>
-    <%--<jsp:include page="computer.jsp" />--%>
+</div>
+
+<!-- loaded by javascript, enables switching of pages to scroll through experiments -->
+<div id="page.switcher">
 </div>
 
 </body>
