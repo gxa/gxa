@@ -19,31 +19,24 @@ import static org.junit.Assert.*;
 public class EfoTest {
 
     static Efo efo;
-    static File tempDirectory;
 
     @BeforeClass
     public static void before() throws URISyntaxException {
         
         efo = new Efo();
-        tempDirectory = FileUtil.createTempDirectory("efoindex");
-        efo.setIndexFile(tempDirectory);
         efo.setUri(new URI("resource:META-INF/efo.owl"));
     }
 
     @AfterClass
     public static void after() {
         efo.close();
-        FileUtil.deleteDirectory(tempDirectory);
     }
 
     @Test
     public void testExternalSource() throws URISyntaxException {
         Efo efo = new Efo();
-        File tempDirectory = FileUtil.createTempDirectory("efoindex-ext");
-        efo.setIndexFile(tempDirectory);
         efo.setUri(new URI("http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"));
         assertTrue(efo.getAllTerms().size() > 0);
-        FileUtil.deleteDirectory(tempDirectory);
     }
 
     @Test

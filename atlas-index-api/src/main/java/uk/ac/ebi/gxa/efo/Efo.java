@@ -8,12 +8,13 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.*;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.net.URI;
+import java.util.*;
 
 /**
  * Class representing EFO heirarchy
@@ -23,18 +24,10 @@ public class Efo implements InitializingBean {
 
     private Map<String,EfoNode> efomap;
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
-    private File indexFile;
+    private Directory indexDirectory = new RAMDirectory();
     private IndexSearcher indexSearcher;
     private IndexReader indexReader;
     private URI uri;
-
-    public File getIndexFile() {
-        return indexFile;
-    }
-
-    public void setIndexFile(File indexFile) {
-        this.indexFile = indexFile;
-    }
 
     public URI getUri() {
         return uri;
@@ -195,11 +188,7 @@ public class Efo implements InitializingBean {
 
     private void rebuildIndex() {
         try {
-            if(!indexFile.exists())
-                if(!indexFile.mkdirs())
-                    throw new RuntimeException("Can't create EFO index directory " + indexFile.getAbsolutePath());
-
-            IndexWriter writer = new IndexWriter(indexFile, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
+            IndexWriter writer = new IndexWriter(indexDirectory, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
             writer.deleteDocuments(new MatchAllDocsQuery());
 
             for(EfoNode n : getMap().values()) {
@@ -226,10 +215,6 @@ public class Efo implements InitializingBean {
      * @return collection of terms
      */
     public Collection<EfoTerm> searchTerm(String text) {
-        if(indexFile == null) {
-            rebuildIndex();
-        }
-
         List<EfoTerm> result = new ArrayList<EfoTerm>();
 
         boolean tryAgain = false;
@@ -237,7 +222,7 @@ public class Efo implements InitializingBean {
             try {
                 if(indexSearcher == null) {
                     rebuildIndex();
-                    indexReader = IndexReader.open(indexFile);
+                    indexReader = IndexReader.open(indexDirectory);
                     indexSearcher = new IndexSearcher(indexReader);
                 }
 

@@ -36,13 +36,6 @@
       />
 
   <Resource
-      name="file/GXAEFOINDEX"
-      type="java.util.File"
-      factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-      path="${atlasIndexLocation}/efoindex"
-      />
-
-  <Resource
       name="file/GXANETCDFS"
       type="java.util.File"
       factory="uk.ac.ebi.gxa.naming.factory.FileFactory"

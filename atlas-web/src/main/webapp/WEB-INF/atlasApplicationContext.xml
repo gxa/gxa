@@ -40,7 +40,6 @@
     </bean>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
-        <property name="indexFile" ref="efoIndex" />
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- can be any external of file url too -->
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
@@ -320,10 +319,6 @@
 
     <jee:jndi-lookup id="atlasIndex"
                      jndi-name="/file/GXAINDEX"
-                     resource-ref="true"/>
-
-    <jee:jndi-lookup id="efoIndex"
-                     jndi-name="/file/GXAEFOINDEX"
                      resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasNetCDFRepo"
