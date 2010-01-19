@@ -47,6 +47,10 @@ PROCEDURE A2_AnalyticsSet(
    ,ExpressionAnalytics ExpressionAnalyticsTable
 );
 
+PROCEDURE A2_AnalyticsDelete(
+    ExperimentAccession      IN   varchar2  
+);
+
 PROCEDURE LOAD_PROGRESS(
  experiment_accession varchar
  ,stage varchar --load, netcdf, similarity, ranking, searchindex
@@ -328,7 +332,7 @@ begin
   from table(CAST(p_Properties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
-  where not exists(select 1 from a2_SamplePropertyValue pv1 where pv1.SampleID = Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
+  where not exists(select 1 from a2_SamplePropertyValue pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
   
   COMMIT WORK;
 end;
@@ -374,6 +378,37 @@ begin
 
   COMMIT WORK;
 END;
+
+--------------------------------------------------------
+--  DDL for Procedure A2_AnalyticsDelete
+--------------------------------------------------------
+PROCEDURE A2_AnalyticsDelete(
+    ExperimentAccession      IN   varchar2  
+ )
+ as
+  ExperimentID int := 0;
+begin
+
+  begin
+      Select e.ExperimentID into ExperimentID 
+      from a2_Experiment e
+      where e.Accession = ExperimentAccession;
+      
+  exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
+    when others then 
+      RAISE;
+  end;
+
+  dbms_output.put_line('delete expression value');
+  delete from a2_ExpressionAnalytics
+  where ExperimentID = A2_AnalyticsDelete.ExperimentID;
+
+  COMMIT WORK;
+END;
+
 
 --------------------------------------------------------
 --  DDL for Procedure LOAD_PROGRESS
