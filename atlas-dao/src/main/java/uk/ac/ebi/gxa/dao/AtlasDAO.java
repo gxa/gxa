@@ -352,13 +352,17 @@ public class AtlasDAO {
             "SELECT name FROM A2_GENEPROPERTY";
 
     private static final String BEST_DESIGNELEMENTID_FOR_GENE =
-            "SELECT topde FROM (SELECT topde FROM (SELECT first_value(de.designelementid) OVER (PARTITION BY a.propertyvalueid ORDER BY a.pvaladj ASC) as topde, a.propertyvalueid pvid " +
-                    "FROM a2_expressionanalytics a, a2_propertyvalue pv, a2_property p, a2_designelement de " +
-                    "WHERE pv.propertyid = p.propertyid AND pv.propertyvalueid = a.propertyvalueid " +
-                    "      AND a.designelementid = de.designelementid " +
-                    "      AND p.name = ? " +
-                    "      AND a.experimentid = ? " +
-                    "      AND de.geneid = ?) GROUP BY topde ORDER BY COUNT(distinct pvid) DESC) WHERE rownum < 2";
+            "SELECT topde FROM (SELECT de.designelementid as topde," +
+                    "          MIN(a.pvaladj) KEEP(DENSE_RANK FIRST ORDER BY a.pvaladj ASC)" +
+                    "     OVER (PARTITION BY a.propertyvalueid) as minp" +
+                    " FROM a2_expressionanalytics a, a2_propertyvalue pv, a2_property p, a2_designelement de" +
+                    " WHERE pv.propertyid = p.propertyid" +
+                    "   AND pv.propertyvalueid = a.propertyvalueid" +
+                    "   AND a.designelementid = de.designelementid" +
+                    "   AND p.name = ?" +
+                    "   AND a.experimentid = ?" +
+                    "   AND de.geneid = ?" +
+                    "   and rownum=1)";
 
     private JdbcTemplate template;
     private int maxQueryParams = 500;
