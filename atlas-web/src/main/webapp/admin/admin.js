@@ -174,7 +174,6 @@ function checkLoadDetails(accession, objectType) {
     createUpdatingRow(accession, objectType);
 
     // now trigger the update to write back the correct details
-    progressupdater =
     Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'doOnSuccess':updateLoadDetails});
 }
 
@@ -185,6 +184,10 @@ var updateLoadDetails = function(json) {
 
     // this is the doOnSuccess method for AJAX responses for LoadDetails
     if (json.failedLoad == "true") {
+        netcdfFinished = true;
+        analyticsFinished = true;
+        indexFinished = true;
+
         // load failed, write appropriate element
         writeFailedLoadRow(json.accession, json.loadType);
     }
@@ -253,10 +256,6 @@ var updateLoadDetails = function(json) {
             }
         }
     }
-
-    if (netcdfFinished && analyticsFinished && indexFinished) {
-        progressupdater.stop();
-    }
 };
 
 var createUpdatingRow = function(accession, objectType) {
@@ -310,7 +309,7 @@ var writeDoneElement = function(accession, objectType, elementType) {
     "action=\"" + formAction + "\"" +
     "method=\"post\"" +
     "enctype=\"application/x-www-form-urlencoded\">" +
-    "<input type=\"hidden\" name=\"type\" value=\"<%=details.getLoadType()%>\"/>" +
+    "<input type=\"hidden\" name=\"type\" value=\"" + objectType + "\"/>" +
     "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
     "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
     "</form>";
