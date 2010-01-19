@@ -197,7 +197,7 @@ public class NetCDFProxy {
         boolean efFound = false;
         for (String ef : efs) {
             // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
-            if (ef.matches("(ba_)?" + factor)) {
+            if (factor.matches("(ba_)?" + ef)) {
                 efFound = true;
                 break;
             }
@@ -288,7 +288,7 @@ public class NetCDFProxy {
         boolean scFound = false;
         for (String sc : scs) {
             // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
-            if (sc.matches("(bs_)?" + characteristic)) {
+            if (characteristic.matches("(bs_)?" + sc)) {
                 scFound = true;
                 break;
             }

@@ -1,20 +1,39 @@
+<!--
+Admin page for the atlas. Use this page to load new experiments or to calculate indexes, netcdfs, or analytics of
+experiments in the database.
+
+This page is jsp, as it stores in a session variable the current pageNumber, the number of experiments per page, and the
+total number of experiments. These are then used to populate divs on the page with dynamic elements, which can further
+be reloaded by scripts that poll for progress of loading jobs via AJAX.
+
+author: Tony Burdett
+date: 13-Nov-2009
+-->
+<%@ page import="uk.ac.ebi.gxa.dao.AtlasDAO" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="uk.ac.ebi.microarray.atlas.model.LoadDetails" %>
 <%@ page import="java.util.List" %>
-<%@ page import="uk.ac.ebi.gxa.dao.AtlasDAO" %>
-<%--
-  Admin page for the atlas.  Use this page to load new experiments or to build indexes or netcdfs, or to perform
-  analyses, of experiments in the database.
-
-  author: Tony Burdett
-  date: 13-Nov-2009
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     // fetch load/index services
     AtlasDAO atlasDAO = (AtlasDAO) application.getAttribute(Atlas.ATLAS_DAO.key());
+
+    // page number session variable
+    int pageNumber = session.getAttribute(Atlas.ADMIN_PAGE_NUMBER.key()) == null
+            ? 1
+            : (Integer) session.getAttribute(Atlas.ADMIN_PAGE_NUMBER.key());
+
+    // experimentPerPage session variable
+    int experimentsPerPage = session.getAttribute(Atlas.ADMIN_EXPERIMENTS_PER_PAGE.key()) == null
+            ? 25
+            : (Integer) session.getAttribute(Atlas.ADMIN_EXPERIMENTS_PER_PAGE.key());
+
+    List<LoadDetails> exptDetails = atlasDAO.getLoadDetailsForExperiments();
+
+    // number of experiments
+    int maxExperiments = exptDetails.size();
 %>
+
 <html>
 <head>
     <script src="admin.js" type="text/javascript" language="JavaScript"></script>
@@ -22,11 +41,11 @@
     <script src="fluxion-ajax.js" type="text/javascript" language="JavaScript"></script>
     <title>Atlas Administration - Load or recompute data in the Atlas</title>
 </head>
-<body>
+<body onload="updateComputeTable(<%=pageNumber%>, <%=experimentsPerPage%>, <%=maxExperiments%>);">
 
 <h1>Atlas Admin Page</h1>
 
-<div id="load">
+<div id="loader">
     <h2>Load New Experiment</h2>
 
     <div id="load_submission">
@@ -61,238 +80,77 @@
     </div>
 </div>
 
-<div id="indexbuilder">
-    <h2>SOLR Index Scheduler</h2>
+<div id="scheduler">
+    <h2>Task Scheduler</h2>
 
-    <table>
-        <tr>
-            <td>
-                <form id="build.index"
-                      name="build.index"
-                      action="doindex.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-                    <input type="hidden" id="pending" name="pending"/>
-                    <input type="button" value="index pending objects" onclick="buildIndex(true, this.form);"/>
-                    <input type="button" value="rebuild entire index" onclick="buildIndex(false, this.form);"/>
-                </form>
-            </td>
-        </tr>
-    </table>
+    <div id="netcdfgenerator">
+        <h2>NetCDF Repository Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="build.netcdfs"
+                          name="build.netcdfs"
+                          action="donetcdf.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="type" value="experiment"/>
+                        <input type="hidden" name="accession" value="ALL"/>
+                        <input type="button" value="regenerate all NetCDFs" onclick="this.form.submit();"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="analyticsgenerator">
+        <h2>Analytics Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="calculate.analytics"
+                          name="calculate.analytics"
+                          action="doanalytics.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="type" value="experiment"/>
+                        <input type="hidden" name="accession" value="ALL"/>
+                        <input type="button" value="recompute all analytics" onclick="this.form.submit();"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="indexbuilder">
+        <h2>SOLR Index Scheduler</h2>
+
+        <table>
+            <tr>
+                <td>
+                    <form id="build.index"
+                          name="build.index"
+                          action="doindex.web"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" id="pending" name="pending"/>
+                        <input type="button" value="index pending objects" onclick="buildIndex(true, this.form);"/>
+                        <input type="button" value="rebuild entire index" onclick="buildIndex(false, this.form);"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 
-<div id="recompute">
-<h2>Existing Experiments</h2>
-
-<div id="experiments">
-    <%
-        // use DAO to fetch load monitor table
-        List<LoadDetails> loadDetails = atlasDAO.getLoadDetails();
-    %>
-    <table>
-        <tr>
-            <!-- headers -->
-            <td>Experiment Accession</td>
-            <td colspan="2">In Index</td>
-            <td colspan="2">Has NetCDF</td>
-            <td colspan="2">Has Analytics</td>
-        </tr>
-        <%
-            for (LoadDetails details : loadDetails) {
-                // only do experiments here
-                if (details.getLoadType().equals("experiment")) {
-                    // bind useful values
-                    String accession = details.getAccession();
-                    boolean indexed = details.getSearchIndex().equals("done");
-                    boolean netCDFed = details.getNetCDF().equals("done");
-                    boolean analyticsed = details.getRanking().equals("done");
-        %>
-        <tr>
-            <td><%=accession%>
-            </td>
-            <%
-                if (indexed) {
-            %>
-            <td>
-                <img src="../images/green-tick.png" alt="done" align="left">
-            </td>
-            <td>
-                <!-- form to recompute index -->
-                <form id="reschedule.index"
-                      name="reschedule.index"
-                      action="doreschedule.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="schedule for reindexing" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-            }
-            else {
-            %>
-            <td>
-                <img src="../images/red-cross.png" alt="pending" align="left">
-            </td>
-            <td>
-                Pending indexing
-            </td>
-            <%
-                }
-
-                if (netCDFed) {
-            %>
-            <td>
-                <img src="../images/green-tick.png" alt="done" align="left">
-            </td>
-            <td>
-                <!-- form to regenerate NetCDF -->
-                <form id="recompute.netcdf"
-                      name="recompute.netcdf"
-                      action="donetcdf.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="Regenerate NetCDF" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-            }
-            else {
-            %>
-            <td>
-                <img src="../images/red-cross.png" alt="pending" align="left">
-            </td>
-            <!-- form to generate NetCDF -->
-            <td>
-                <form id="compute.netcdf"
-                      name="compute.netcdf"
-                      action="donetcdf.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="Generate NetCDF" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-                }
-
-                if (analyticsed) {
-            %>
-            <td>
-                <img src="../images/green-tick.png" alt="done" align="left">
-            </td>
-            <td>
-                <!-- form to recalculate analytics -->
-                <form id="recompute.analytics"
-                      name="recompute.analytics"
-                      action="doanalytics.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="Regenerate Analytics" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-            }
-            else {
-            %>
-            <td>
-                <img src="../images/red-cross.png" alt="pending" align="left">
-            </td>
-            <!-- form to calculate analytics -->
-            <td>
-                <form id="compute.analytics"
-                      name="compute.analytics"
-                      action="doanalytics.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="Generate Analytics" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-                }
-            %>
-        </tr>
-        <%
-                }
-            }
-        %>
-    </table>
+<!-- loaded by javascript, shows details for experiments one at a time -->
+<div id="compute.table">
 </div>
 
-<h2>Existing Genes</h2>
-
-<div id="genes">
-    <%
-        // use DAO to fetch load monitor table
-        List<LoadDetails> geneLoadDetails = atlasDAO.getLoadDetails();
-    %>
-    <table>
-        <tr>
-            <!-- headers -->
-            <td>Gene Accession</td>
-            <td>In Index</td>
-        </tr>
-        <%
-            for (LoadDetails details : geneLoadDetails) {
-                // only do genes here
-                if (details.getLoadType().equals("genes")) {
-                    // bind useful values
-                    String accession = details.getAccession();
-                    boolean indexed = details.getSearchIndex().equals("done");
-        %>
-        <tr>
-            <td><%=accession%>
-            </td>
-            <%
-                if (indexed) {
-            %>
-            <td>
-                <img src="../images/green-tick.png" alt="done" align="left">
-            </td>
-            <td>
-                <!-- form to recompute index -->
-                <form id="reschedule.gene.index"
-                      name="reschedule.gene.index"
-                      action="doreschedule.web"
-                      method="post"
-                      enctype="application/x-www-form-urlencoded">
-
-                    <input type="hidden" name="type" value="<%=details.getLoadType()%>"/>
-                    <input type="hidden" name="accession" value="<%=accession%>"/>
-                    <input type="button" value="schedule for reindexing" onclick="this.form.submit();"/>
-                </form>
-            </td>
-            <%
-            }
-            else {
-            %>
-            <td>
-                <img src="../images/red-cross.png" alt="pending" align="left">
-            </td>
-        </tr>
-        <%
-                    }
-                }
-            }
-        %>
-    </table>
+<!-- loaded by javascript, enables switching of pages to scroll through experiments -->
+<div id="page.switcher">
 </div>
-
-</div>
-
 
 </body>
 </html>

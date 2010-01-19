@@ -400,21 +400,21 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetLoadDetails() {
-        reportBenchmarks("getLoadDetails()",
+        reportBenchmarks("getLoadDetailsForExperiments()",
                          LOAD_MONITOR_SELECT,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
-                                 atlasDAO.getLoadDetails();
+                                 atlasDAO.getLoadDetailsForExperiments();
                              }
                          }));
     }
 
     public void benchmarkGetLoadDetailsByAccession() {
         final String accession = this.extractParameter("load.details.accession");
-        reportBenchmarks("getLoadDetailsByAccession()", LOAD_MONITOR_BY_ACC_SELECT,
+        reportBenchmarks("getLoadDetailsForExperimentsByAccession()", LOAD_MONITOR_BY_ACC_SELECT,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
-                                 atlasDAO.getLoadDetailsByAccession(accession);
+                                 atlasDAO.getLoadDetailsForExperimentsByAccession(accession);
                              }
                          }));
     }

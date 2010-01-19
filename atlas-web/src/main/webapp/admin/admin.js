@@ -18,36 +18,185 @@ function buildIndex(pendingOnly, form) {
     form.submit();
 }
 
+function updateComputeTable(pageNumber, experimentsPerPage, maxExperiments) {
+    Fluxion.doAjax('experimentAccessionsExporter', 'getExperimentAccessions', {'pageNumber':pageNumber, 'experimentsPerPage':experimentsPerPage}, {'doOnSuccess':renderComputeTable});
+
+    renderPageSwitcher(pageNumber, experimentsPerPage, maxExperiments);
+}
+
+var renderComputeTable = function(json) {
+    var content =
+            "<h2>Experiment Recompute Tasks</h2>" +
+            "<div id=\"experiments\">" +
+            "<table width=\"100%\">" +
+            "<tr id=\"headers\">" +
+            "<td width=\"20%\">Experiment Accession</td>" +
+            "<td>Has NetCDF</td>" +
+            "<td>Has Analytics</td>" +
+            "<td>In Index</td>" +
+            "</tr>";
+
+    var exptArray = eval(json.accessions);
+    for (var i = 0; i < exptArray.length; i++) {
+        // render content
+        if (i % 2 == 0) {
+            content = content +
+                      "<tr bgcolor=\"#EEF5F5\" id=\"experiment_" + exptArray[i] + "\">";
+        }
+        else {
+            content = content +
+                      "<tr bgcolor=\"white\" id=\"experiment_" + exptArray[i] + "\">";
+        }
+        content = content +
+                  "<td id=\"experiment_" + exptArray[i] + "_accession\">" + exptArray[i] + "" +
+                  "</td>" +
+                  "<td id=\"experiment_" + exptArray[i] + "_netcdf\" align=\"left\">" +
+                  "<img src=\"../images/ajax-loader.gif\" alt=\"?\"/>" +
+                  "</td>" +
+                  "<td id=\"experiment_" + exptArray[i] + "_analytics\" align=\"left\">" +
+                  "<img src=\"../images/ajax-loader.gif\" alt=\"?\"/>" +
+                  "</td>" +
+                  "<td id=\"experiment_" + exptArray[i] + "_index\" align=\"left\">" +
+                  "<img src=\"../images/ajax-loader.gif\" alt=\"?\"/>" +
+                  "</td>" +
+                  "</tr>";
+    }
+
+    // render content
+    content = content + "</table>" + "</div>";
+    $('compute.table').innerHTML = content;
+
+    // finally, trigger load details checking to try and update each table element
+    for (var j = 0; j < exptArray.length; j++) {
+        checkLoadDetails(exptArray[j], 'experiment');
+    }
+};
+
+var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments) {
+    var content = "<table><tr>";
+    if ((Number(pageNumber) - 3) > 0) {
+        content = content +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('1','" + Number(experimentsPerPage) + "','" +
+                  Number(maxExperiments) +
+                  "');\">" +
+                  "&nbsp;|&lt;&nbsp;" +
+                  "</a>" +
+                  "</td>" +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) - 1) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;&lt;&nbsp;" +
+                  "</a>" +
+                  "</td>" +
+                  "<td>" +
+                  "&nbsp;...&nbsp;" +
+                  "</td>";
+    }
+
+    if ((Number(pageNumber) - 2) > 0) {
+        content = content +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) - 2) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;" + (Number(pageNumber) - 2) + "&nbsp;" +
+                  "</a>" +
+                  "</td>";
+    }
+
+    if ((Number(pageNumber) - 1) > 0) {
+        content = content +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) - 1) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;" + (Number(pageNumber) - 1) + "&nbsp;" +
+                  "</a>" +
+                  "</td>";
+    }
+
+    content = content + "<td><b>&nbsp;" + Number(pageNumber) + "&nbsp;</b></td>";
+
+    if ((Number(pageNumber) + 1) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+        content = content +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) + 1) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;" + (Number(pageNumber) + 1) + "&nbsp;" +
+                  "</a>" +
+                  "</td>";
+    }
+
+    if ((Number(pageNumber) + 2) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+        content = content +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) + 2) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;" + (Number(pageNumber) + 2) + "&nbsp;" +
+                  "</a>" +
+                  "</td>";
+    }
+
+    if ((Number(pageNumber) + 3) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+        content = content +
+                  "<td>" +
+                  "&nbsp;...&nbsp;" +
+                  "</td>" +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) + 1) + "','" +
+                  Number(experimentsPerPage) +
+                  "','" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;&gt;&nbsp;" +
+                  "</a>" +
+                  "</td>" +
+                  "<td>" +
+                  "<a href=\"#\" onclick=\"updateComputeTable('" +
+                  (Number(maxExperiments) / Number(experimentsPerPage)) + "','" +
+                  Number(experimentsPerPage) + "', '" + Number(maxExperiments) + "');\">" +
+                  "&nbsp;&gt;|&nbsp;" +
+                  "</a>" +
+                  "</td>";
+    }
+
+    // update the page.switcher div
+    content = content + "</tr></table>";
+    $('page.switcher').innerHTML = content;
+}
+
+var progressupdater;
+
 function checkLoadDetails(accession, objectType) {
     // first create the row to make sure we've got the correct dom structure, and show it's updating
     createUpdatingRow(accession, objectType);
 
     // now trigger the update to write back the correct details
     progressupdater =
-    Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'ajaxType':'periodical', 'doOnSuccess':updateLoadDetails});
-}
-
-function changePage(newPage) {
-    // todo: redraw the table that shows experiments with the new page number
+    Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'doOnSuccess':updateLoadDetails});
 }
 
 var updateLoadDetails = function(json) {
-    // this is the doOnSuccess method for AJAX responses for LoadDetails
-    var done = false;
+    var netcdfFinished = false;
+    var analyticsFinished = false;
+    var indexFinished = false;
 
-    alert("Updating load details for " + json.accession);
-    if (json.failedLoad = "true") {
+    // this is the doOnSuccess method for AJAX responses for LoadDetails
+    if (json.failedLoad == "true") {
         // load failed, write appropriate element
-        done = true;
         writeFailedLoadRow(json.accession, json.loadType);
     }
     else {
         // check netcdf, analytics, index to see if any are still working
         var netcdf = json.netcdf;
         if (netcdf == "working") {
+            netcdfFinished = false;
             writeWorkingElement(json.accession, json.loadType, "netcdf");
         }
         else {
+            netcdfFinished = true;
             if (netcdf == "pending") {
                 writePendingElement(json.accession, json.loadType, "netcdf");
             }
@@ -64,9 +213,11 @@ var updateLoadDetails = function(json) {
 
         var analytics = json.analytics;
         if (analytics == "working") {
+            analyticsFinished = false;
             writeWorkingElement(json.accession, json.loadType, "analytics");
         }
         else {
+            analyticsFinished = true;
             if (analytics == "pending") {
                 writePendingElement(json.accession, json.loadType, "analytics");
             }
@@ -83,9 +234,11 @@ var updateLoadDetails = function(json) {
 
         var index = json.index;
         if (index == "working") {
+            indexFinished = false;
             writeWorkingElement(json.accession, json.loadType, "index");
         }
         else {
+            indexFinished = true;
             if (index == "pending") {
                 writePendingElement(json.accession, json.loadType, "index");
             }
@@ -101,7 +254,7 @@ var updateLoadDetails = function(json) {
         }
     }
 
-    if (done) {
+    if (netcdfFinished && analyticsFinished && indexFinished) {
         progressupdater.stop();
     }
 };

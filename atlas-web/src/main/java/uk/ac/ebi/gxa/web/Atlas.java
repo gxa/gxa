@@ -11,9 +11,10 @@ public enum Atlas {
     DOWNLOAD_SERVICE("atlas.download.service"),
     PLOTTER("atlas.plotter"),
     GENES_CACHE("atlas.genelist.cache.service"),
-    ATLAS_SOLR_DAO("atlas.solr.dao"),       
+    ATLAS_SOLR_DAO("atlas.solr.dao"),
     ATLAS_DAO("atlas.dao"),
-    ADMIN_PAGE_NUMBER("atlas.page.number");
+    ADMIN_PAGE_NUMBER("atlas.admin.page.number"),
+    ADMIN_EXPERIMENTS_PER_PAGE("atlas.admin.expts.per.page");
 
     private String key;
 
