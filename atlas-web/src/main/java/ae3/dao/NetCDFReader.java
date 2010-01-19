@@ -88,7 +88,8 @@ public class NetCDFReader {
 
         ArrayChar.StringIterator efvi = ((ArrayChar)varEFV.read()).getStringIterator();
         for(ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext(); ) {
-            String ef = i.next().substring("ba_".length());
+            String efStr = i.next();
+            String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
             List<String> efvList = new ArrayList<String>(numAssays);
             efvs.put(ef, efvList);
             for(int j = 0; j < numAssays; ++j) {
@@ -177,7 +178,8 @@ public class NetCDFReader {
                     ArrayChar.StringIterator efvi = ((ArrayChar)varUEFV.read()).getStringIterator();
                     IndexIterator efvNumi = varUEFVNUM.read().getIndexIteratorFast();
                     for(ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext(); ) {
-                        String ef = efi.next().substring("ba_".length());
+                        String efStr = efi.next();
+                        String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
                         int efvNum = efvNumi.getIntNext();
                         for(; efvNum > 0 && efvi.hasNext(); --efvNum) {
                             String efv = efvi.next();

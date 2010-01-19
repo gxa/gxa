@@ -371,7 +371,7 @@ function drawPlot(jsonObj, plot_id){
 
         var data = row.id.split("_");
         var gid = data[0];
-        var ef = "ba_" + data[1];
+        var ef = data[1];
         var i = data[2];
         $(".thumb"+i).not(".done").each(function(){
 
@@ -452,7 +452,7 @@ function drawPlot(jsonObj, plot_id){
     	if(ef=="")
     		ef="default";
     	else
-    		ef="ba_"+ef;
+    		ef=ef;
 
 
 
@@ -708,7 +708,7 @@ function drawPlot(jsonObj, plot_id){
     		var ef = $(this).attr("id");
     		var ef_txt = $(this).html();
     		ef = jQuery.trim(ef);
-    		if("ba_"+ef == currentEF){
+    		if(ef == currentEF){
     			panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
     		}
     		else{
