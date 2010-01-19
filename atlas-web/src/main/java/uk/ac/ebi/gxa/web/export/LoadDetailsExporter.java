@@ -68,7 +68,7 @@ public class LoadDetailsExporter {
         json.put("accession", details.getAccession());
         json.put("failedLoad", details.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString()));
         json.put("netcdf", details.getNetCDF().toLowerCase());
-        json.put("analytics", details.getNetCDF().toLowerCase());
+        json.put("analytics", details.getRanking().toLowerCase());
         json.put("index", details.getSearchIndex().toLowerCase());
         json.put("loadType", details.getLoadType().toLowerCase());
 

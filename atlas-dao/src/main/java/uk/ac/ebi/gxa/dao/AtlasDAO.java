@@ -39,10 +39,13 @@ public class AtlasDAO {
             LOAD_MONITOR_SELECT + " " +
                     "AND accession=?";
     private static final String LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM (SELECT * FROM load_monitor WHERE load_type='experiment' ORDER BY accession) " +
-                    "WHERE ROWNUM > ? AND ROWNUM <= ?";
-
+            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
+                    "SELECT ROWNUM r, accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
+                    "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
+                    "FROM load_monitor " +
+                    "WHERE load_type='experiment' " +
+                    "ORDER BY accession)) " +
+                    "WHERE r BETWEEN ? AND ?";
     // experiment queries
     private static final String EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment";
