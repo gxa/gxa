@@ -2,7 +2,8 @@
 --  DDL for Package ATLASAPI
 --------------------------------------------------------
 
-CREATE OR REPLACE PACKAGE "ATLASAPI" IS
+create or replace
+PACKAGE "ATLASAPI" IS
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -18,9 +19,17 @@ TYPE CurSample           IS REF CURSOR RETURN vwSample%ROWTYPE;
 TYPE CurSampleProperty   IS REF CURSOR RETURN vwSampleProperty%ROWTYPE;
 TYPE CurSampleAssay      IS REF CURSOR RETURN vwSampleAssay%ROWTYPE;  
 TYPE CurArrayDesign      IS REF CURSOR RETURN vwArrayDesign%ROWTYPE;  
-TYPE CurArrayDesignElement  IS REF CURSOR RETURN vwArrayDesignElement%ROWTYPE;  
-TYPE CurPropertyValue  IS REF CURSOR RETURN vwPropertyValue%ROWTYPE;  
-TYPE CurGenePropertyValue  IS REF CURSOR RETURN vwGenePropertyValue%ROWTYPE;  
+TYPE CurArrayDesignElement    IS REF CURSOR RETURN vwArrayDesignElement%ROWTYPE;  
+TYPE CurPropertyValue         IS REF CURSOR RETURN vwPropertyValue%ROWTYPE;  
+TYPE CurGenePropertyValue     IS REF CURSOR RETURN vwGenePropertyValue%ROWTYPE;
+
+TYPE ExpressionValueAssayRec IS RECORD(AssayID int);
+TYPE ExpressionValueDERec IS RECORD(DesignElementID int);
+TYPE ExpressionValueRec IS RECORD(AssayID int, DesignElementID int, value float);
+
+TYPE CurExpressionValueAssay  IS REF CURSOR RETURN ExpressionValueAssayRec;
+TYPE CurExpressionValueDE     IS REF CURSOR RETURN ExpressionValueDERec; 
+TYPE CurExpressionValues      IS REF CURSOR RETURN ExpressionValueRec;      
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -106,6 +115,13 @@ PROCEDURE A2_GENEPROPERTYGET(
    ,properties          OUT   AtlasAPI.CurGenePropertyValue
 );
 
+PROCEDURE A2_EXPRESSIONVALUEGET(
+    experimentID    IN int
+    ,arrayDesignID  IN int
+    ,assays           OUT AtlasAPI.CurExpressionValueAssay
+    ,designElements   OUT AtlasAPI.CurExpressionValueDE
+    ,expressionValues OUT AtlasAPI.CurExpressionValues
+);
   
 END AtlasAPI;
 /
@@ -652,5 +668,39 @@ begin
   
 end;
 
+/*******************************************************************************/
+/*******************************************************************************/
+PROCEDURE A2_EXPRESSIONVALUEGET(
+    experimentID    IN int
+    ,arrayDesignID  IN int
+    ,assays           OUT AtlasAPI.CurExpressionValueAssay
+    ,designElements   OUT AtlasAPI.CurExpressionValueDE
+    ,expressionValues OUT AtlasAPI.CurExpressionValues
+)
+as
+begin
+  
+  open assays for 
+  select AssayID 
+  from a2_Assay 
+  where ExperimentID = A2_EXPRESSIONVALUEGET.ExperimentID
+  and ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
+  order by Accession;
+
+  open designElements for
+  select DesignElementID
+  from a2_DesignElement 
+  where ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
+  order by Accession;
+  
+  open expressionValues for 
+  select ev.AssayID, ev.DesignElementID, Value
+  from a2_ExpressionValue ev
+  join a2_Assay a on a.AssayID = ev.AssayID
+  join a2_DesignElement de on de.DesignElementID = ev.DesignElementID
+  order by de.Accession, a.Accession;
+  
+end;
+  
 
 END AtlasAPI;
