@@ -1972,4 +1972,28 @@ public class AtlasDAO {
             return property;
         }
     }
+
+    //AZ:to be moved to model
+    public static class ExpressionValueMatrix{
+        public static class ExpressionValue{
+            //can I just leave it here without get/set methods?
+            public int assayID;
+            public int designElementID;
+            public double value;
+        }
+        public static class DesignElement{
+            public int designElementID;
+            public int geneID;
+        }
+        public List<ExpressionValue> expressionValues;
+        public List<DesignElement> designElements;
+        public List<Integer> assays;
+    }
+
+    public ExpressionValueMatrix getExpressionValueMatrix(int ExperimentID, int ArrayDesignID){
+        ExpressionValueMatrix result = new ExpressionValueMatrix();
+
+        return result;
+    }
+
 }

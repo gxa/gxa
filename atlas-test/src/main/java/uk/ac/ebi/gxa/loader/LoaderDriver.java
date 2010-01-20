@@ -12,9 +12,17 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
+import java.util.List;
+import java.util.ArrayList;
+import java.net.URL;
+import java.net.URI;
+import java.net.MalformedURLException;
 
 /**
  * Javadocs go here!
@@ -23,6 +31,24 @@ import java.util.logging.LogManager;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
+
+    //just to test EV stored procedure
+    public static void LoadExpressionValues(){
+
+        int experimentID = 1241;
+        int arrayDesignID = 130297520;
+
+        List<Integer> assays = new ArrayList<Integer>();
+        List<Integer> designElements = new ArrayList<Integer>();
+
+        AtlasDAO.ExpressionValueMatrix r = (new AtlasDAO()).getExpressionValueMatrix(experimentID,arrayDesignID);
+
+        //r.assays;
+        //r.designElements();
+        //r.expressionValues();
+    }
+
+
     public static void main(String[] args) {
         // configure logging
         try {
@@ -50,45 +76,45 @@ public class LoaderDriver {
         final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
 
         // run the loader
-//        try {
-//            final URL url = URI.create("file:////home/tburdett/Documents/MAGE-TAB/E-TABM-18/E-TABM-18.idf.txt").toURL();
-//            final long indexStart = System.currentTimeMillis();
-//            loader.loadExperiment(url, new AtlasLoaderListener() {
-//
-//                public void loadSuccess(AtlasLoaderEvent event) {
-//                    final long indexEnd = System.currentTimeMillis();
-//
-//                    String total = new DecimalFormat("#.##").format(
-//                            (indexEnd - indexStart) / 60000);
-//                    System.out.println(
-//                            "Load completed successfully in " + total + " mins.");
-//
-//                    try {
-//                        loader.shutdown();
-//                    }
-//                    catch (AtlasLoaderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                public void loadError(AtlasLoaderEvent event) {
-//                    System.out.println("Load failed");
-//                    for (Throwable t : event.getErrors()) {
-//                        t.printStackTrace();
-//                        try {
-//                            loader.shutdown();
-//                        }
-//                        catch (AtlasLoaderException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//        catch (MalformedURLException e) {
-//            e.printStackTrace();
-//            System.out.println("Load failed - inaccessible URL");
-//        }
+        try {
+            final URL url = URI.create("file:////Work/MAGE-TAB/E-TABM-18/E-TABM-18.idf.txt").toURL();
+            final long indexStart = System.currentTimeMillis();
+            loader.loadExperiment(url, new AtlasLoaderListener() {
+
+                public void loadSuccess(AtlasLoaderEvent event) {
+                    final long indexEnd = System.currentTimeMillis();
+
+                    String total = new DecimalFormat("#.##").format(
+                            (indexEnd - indexStart) / 60000);
+                    System.out.println(
+                            "Load completed successfully in " + total + " mins.");
+
+                    try {
+                        loader.shutdown();
+                    }
+                    catch (AtlasLoaderException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void loadError(AtlasLoaderEvent event) {
+                    System.out.println("Load failed");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                        try {
+                            loader.shutdown();
+                        }
+                        catch (AtlasLoaderException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("Load failed - inaccessible URL");
+        }
 
         // in case we don't run loader
         try {
