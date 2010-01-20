@@ -30,7 +30,6 @@
     </bean>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
-        <property name="indexFile" ref="efoIndex"/>
         <property name="uri" value="resource:META-INF/efo.owl"/>
     </bean>
 
@@ -71,7 +70,7 @@
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
+        <constructor-arg value="/ebi/ArrayExpress-files/NetCDFs.INTEGRATION.TEST"/>
     </bean>
 
     <!-- Requires a loader -->

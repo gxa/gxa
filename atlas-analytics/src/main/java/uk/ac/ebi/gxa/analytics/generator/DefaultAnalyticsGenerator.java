@@ -94,6 +94,9 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
         if (running) {
             log.debug("Shutting down " + getClass().getSimpleName() + "...");
 
+            // shutdown the compute service
+            getAtlasComputeService().shutdown();
+
             // shutdown this service
             service.shutdown();
             try {
@@ -168,16 +171,14 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws AnalyticsGeneratorException {
                 try {
-                    log.info("Starting analytics generations");
-
                     if (experimentAccession == null) {
+                        log.info("Starting analytics generations for all experiments");
                         analyticsService.generateAnalytics();
+                        log.info("Finished analytics generations for all experiments");
                     }
                     else {
                         analyticsService.generateAnalyticsForExperiment(experimentAccession);
                     }
-
-                    log.debug("Finished analytics generations");
 
                     return true;
                 }
