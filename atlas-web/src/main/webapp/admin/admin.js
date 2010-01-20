@@ -167,27 +167,17 @@ var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments
     $('page.switcher').innerHTML = content;
 }
 
-var progressupdater;
-
 function checkLoadDetails(accession, objectType) {
     // first create the row to make sure we've got the correct dom structure, and show it's updating
     createUpdatingRow(accession, objectType);
 
     // now trigger the update to write back the correct details
-    Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'doOnSuccess':updateLoadDetails});
+    Fluxion.doAjax('loadDetailsExporter', 'getLoadDetails', {'accession':accession}, {'ajaxType':"periodical", 'doOnSuccess':updateLoadDetails});
 }
 
 var updateLoadDetails = function(json) {
-    var netcdfFinished = false;
-    var analyticsFinished = false;
-    var indexFinished = false;
-
     // this is the doOnSuccess method for AJAX responses for LoadDetails
     if (json.failedLoad == "true") {
-        netcdfFinished = true;
-        analyticsFinished = true;
-        indexFinished = true;
-
         // load failed, write appropriate element
         writeFailedLoadRow(json.accession, json.loadType);
     }
@@ -195,7 +185,6 @@ var updateLoadDetails = function(json) {
         // check netcdf, analytics, index to see if any are still working
         var netcdf = json.netcdf;
         if (netcdf == "working") {
-            netcdfFinished = false;
             writeWorkingElement(json.accession, json.loadType, "netcdf");
         }
         else {
@@ -216,7 +205,6 @@ var updateLoadDetails = function(json) {
 
         var analytics = json.analytics;
         if (analytics == "working") {
-            analyticsFinished = false;
             writeWorkingElement(json.accession, json.loadType, "analytics");
         }
         else {
@@ -237,11 +225,9 @@ var updateLoadDetails = function(json) {
 
         var index = json.index;
         if (index == "working") {
-            indexFinished = false;
             writeWorkingElement(json.accession, json.loadType, "index");
         }
         else {
-            indexFinished = true;
             if (index == "pending") {
                 writePendingElement(json.accession, json.loadType, "index");
             }

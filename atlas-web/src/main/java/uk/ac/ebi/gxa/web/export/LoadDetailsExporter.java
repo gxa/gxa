@@ -72,6 +72,13 @@ public class LoadDetailsExporter {
         json.put("index", details.getSearchIndex().toLowerCase());
         json.put("loadType", details.getLoadType().toLowerCase());
 
+        // check if any tasks are still working
+        boolean working = details.getStatus().toLowerCase().equals("working")
+                || details.getNetCDF().toLowerCase().equals("working")
+                || details.getRanking().toLowerCase().equals("working")
+                || details.getSearchIndex().toLowerCase().equals("working");
+        json.put("stopUpdater", !working);
+
         log.debug("Response looks like: " + json.toString());
 
         return json;

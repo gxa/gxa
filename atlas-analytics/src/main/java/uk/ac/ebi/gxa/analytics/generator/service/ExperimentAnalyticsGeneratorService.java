@@ -1,20 +1,23 @@
 package uk.ac.ebi.gxa.analytics.generator.service;
 
-import org.kchine.r.RChar;
-import org.kchine.r.RList;
+import org.kchine.r.server.RConsoleAction;
+import org.kchine.r.server.RConsoleActionListener;
 import org.kchine.r.server.RServices;
+import org.kchine.rpf.RemoteLogListener;
+import org.slf4j.Logger;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.*;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,29 +59,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 tasks.add(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
-                        boolean success = false;
-                        try {
-                            // update loadmonitor - experiment is indexing
-                            getAtlasDAO().writeLoadDetails(
-                                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.WORKING);
-
-                            createAnalyticsForExperiment(experiment.getAccession());
-                            success = true;
-
-                            // update loadmonitor - experiment is indexing
-                            getAtlasDAO().writeLoadDetails(
-                                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.DONE);
-
-                            return success;
-                        }
-                        finally {
-                            // if success if true, everything completed as expected, but if it's false we got
-                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-                            if (!success) {
-                                getAtlasDAO().writeLoadDetails(
-                                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
-                            }
-                        }
+                        createAnalyticsForExperiment(experiment.getAccession());
+                        return true;
                     }
                 }));
             }
@@ -133,84 +115,121 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
-        // work out where the NetCDF(s) are located
-        final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-        File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
+        boolean success = false;
+        try {
+            // update loadmonitor - experiment is indexing
+            getAtlasDAO().writeLoadDetails(
+                    experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
-            public boolean accept(File file, String name) {
-                return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        });
 
-        for (final File netCDF : netCDFs) {
-            getLog().info("Generating analytics from NetCDF file " + netCDF.getAbsolutePath());
-            ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
-                public Void compute(RServices rs) throws RemoteException {
-                    try {
-                        // first, make sure we load the R code that runs the analytics
-                        rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+            // work out where the NetCDF(s) are located
+            final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
+            File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
 
-                        // note - the netCDF file MUST be on the same file system where the workers run
-                        rs.getObject("computeAnalytics('" + netCDF.getAbsolutePath() + "')");
-
-                        // todo - handle the returned results - RChar, array of codes?
-                        return null;
-                    }
-                    catch (IOException e) {
-                        e.printStackTrace();
-                        throw new RemoteException("Unable to load R source from R/analytics.R");
-                    }
+                public boolean accept(File file, String name) {
+                    return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
                 }
-            };
+            });
 
-            // now run this compute task
-            try {
-                // todo: capture the result here
-                getAtlasComputeService().computeTask(computeAnalytics);
-            }
-            catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Compute task failed", e);
+            if (netCDFs.length == 0) {
+                throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
 
-            // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
-            NetCDFProxy proxy = new NetCDFProxy(netCDF);
+            for (final File netCDF : netCDFs) {
+                getLog().debug("Generating analytics from NetCDF file " + netCDF.getAbsolutePath() + " " +
+                        "(Experiment " + experimentAccession + ")");
+                ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
+                    public Void compute(RServices rs) throws RemoteException {
+                        try {
+                            // add output listener
+//                            rs.addRConsoleActionListener(new MyRConsoleActionListener());
+//                            rs.addOutListener(new MyRemoteLogListener(getLog()));
+//                            rs.addErrListener(new MyRemoteLogListener(getLog()));
 
-            try {
-                // get unique factor values for the expression value matrix
-                String[] uefvs = proxy.getUniqueFactorValues();
+                            // first, make sure we load the R code that runs the analytics
+                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
-                // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
-                int uefvIndex = 0;
-                for (String uefv : uefvs) {
-                    String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
-                    String ef = values[0];
-                    String efv = values[1];
+                            // note - the netCDF file MUST be on the same file system where the workers run
+                            rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
 
-                    int[] designElements = proxy.getDesignElements();
-                    double[] pValuesArray = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                    double[] tStatsArray = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
-
-                    Map<Integer, Double> pValues = new HashMap<Integer, Double>();
-                    Map<Integer, Double> tStatistics = new HashMap<Integer, Double>();
-                    for (int i=0; i<designElements.length; i++) {
-                        pValues.put(designElements[i], pValuesArray[i]);
-                        tStatistics.put(designElements[i], tStatsArray[i]);
+                            // todo - handle the returned results - RChar, array of codes?
+                            return null;
+                        }
+                        catch (IOException e) {
+                            e.printStackTrace();
+                            throw new RemoteException("Unable to load R source from R/analytics.R");
+                        }
                     }
+                };
 
-                    // write values
-                    getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, pValues, tStatistics);
-
-                    // increment uefvIndex
-                    uefvIndex++;
+                // now run this compute task
+                try {
+                    getAtlasComputeService().computeTask(computeAnalytics);
+                }
+                catch (ComputeException e) {
+                    throw new AnalyticsGeneratorException("Compute task failed for " + experimentAccession, e);
                 }
 
+                getLog().debug("Analytics complete for " + experimentAccession + ".  File " + netCDF.getAbsolutePath() +
+                        " has been updated.");
+
+                // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
+                NetCDFProxy proxy = new NetCDFProxy(netCDF);
+
+                try {
+                    // get unique factor values for the expression value matrix
+                    String[] uefvs = proxy.getUniqueFactorValues();
+
+                    // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
+                    getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
+                    int uefvIndex = 0;
+                    for (String uefv : uefvs) {
+                        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+                        String ef = values[0];
+                        String efv = values[1];
+
+                        int[] designElements = proxy.getDesignElements();
+                        double[] pValuesArray = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                        double[] tStatsArray = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+
+                        Map<Integer, Double> pValues = new HashMap<Integer, Double>();
+                        Map<Integer, Double> tStatistics = new HashMap<Integer, Double>();
+                        for (int i = 0; i < designElements.length; i++) {
+                            pValues.put(designElements[i], pValuesArray[i]);
+                            tStatistics.put(designElements[i], tStatsArray[i]);
+                        }
+
+                        // write values
+                        getLog().debug(
+                                "Writing analytics for " + experimentAccession + "; EF: " + ef + " and EFV: " + efv);
+                        getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, pValues, tStatistics);
+
+                        // increment uefvIndex
+                        uefvIndex++;
+                    }
+
+                }
+                catch (IOException e) {
+                    getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath());
+                    throw new AnalyticsGeneratorException("Could not access NetCDF at " + netCDF.getAbsolutePath(), e);
+                }
             }
-            catch (IOException e) {
-                throw new AnalyticsGeneratorException("Could not access NetCDF at " + netCDF.getAbsolutePath(), e);
+
+            success = true;
+        }
+        finally {
+            getLog().info("Finalising analytics changes for " + experimentAccession);
+
+            // update loadmonitor - experiment has completed analytics
+            if (success) {
+                getAtlasDAO().writeLoadDetails(
+                        experimentAccession, LoadStage.RANKING, LoadStatus.DONE);
+            }
+            else {
+                getAtlasDAO().writeLoadDetails(
+                        experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
             }
         }
-
-        getLog().info("Finalising analytics changes for " + experimentAccession);
     }
 
     private String getRCodeFromResource(String resourcePath) throws IOException {
@@ -228,4 +247,45 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
         return sb.toString();
     }
+
+//    public static class MyRConsoleActionListener extends UnicastRemoteObject
+//            implements RConsoleActionListener, java.io.Serializable {
+//        public MyRConsoleActionListener() throws RemoteException {
+//            super();
+//        }
+//
+//        public void rConsoleActionPerformed(RConsoleAction consoleAction) throws RemoteException {
+//            System.out.println("console " + consoleAction.getAttributes().get("log"));
+//        }
+//    }
+//
+//    public static class MyRemoteLogListener extends UnicastRemoteObject
+//            implements RemoteLogListener, java.io.Serializable {
+//
+//        private Logger log;
+//
+//        public MyRemoteLogListener(Logger log) throws RemoteException {
+//            super();
+//            this.log = log;
+//        }
+//
+//        private void printOut(String text) {
+//            log.debug(text);
+//        }
+//
+//        public void write(final byte[] b) throws RemoteException {
+//            log.debug(new String(b));
+//        }
+//
+//        public void write(final byte[] b, final int off, final int len) throws RemoteException {
+//            log.debug(new String(b, off, len));
+//        }
+//
+//        public void write(final int b) throws RemoteException {
+//            log.debug(new String(new byte[]{(byte) b, (byte) (b >> 8)}));
+//        }
+//
+//        public void flush() throws RemoteException {
+//        }
+//    }
 }
