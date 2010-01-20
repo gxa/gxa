@@ -1,4 +1,4 @@
-package ae3.util;
+package uk.ac.ebi.gxa.utils;
 
 /**
  * Created by IntelliJ IDEA.
@@ -7,7 +7,7 @@ package ae3.util;
  * Time: 10:38:27 AM
  * To change this template use File | Settings | File Templates.
  */
-public class StringUtils {
+public class StringUtil {
     public static String quoteComma(String value){
         if(value.contains(","))
             return "\"" + value + "\"";
@@ -31,7 +31,7 @@ public class StringUtils {
         return value;
     }
 
-    public static String ReplaceLast(String value, String OldValue, String NewValue){
+    public static String replaceLast(String value, String OldValue, String NewValue){
         if(value.endsWith(OldValue))
             return value.substring(0,value.lastIndexOf(OldValue)) + NewValue;
         else

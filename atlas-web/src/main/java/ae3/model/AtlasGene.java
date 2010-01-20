@@ -2,13 +2,14 @@ package ae3.model;
 
 import ae3.dao.AtlasDao;
 import ae3.restresult.RestOut;
-import ae3.util.Pair;
+import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.index.Experiment;
 import uk.ac.ebi.gxa.index.ExperimentsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 import java.util.*;
@@ -27,7 +28,7 @@ public class AtlasGene {
         Collection fval = geneSolrDocument.getFieldValues("species");
         if(fval != null && fval.size() > 0) {
             String species = (String)fval.iterator().next();
-            return ae3.util.StringUtils.upcaseFirst(species);
+            return StringUtil.upcaseFirst(species);
         }
         return "";
     }

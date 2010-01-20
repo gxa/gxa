@@ -717,11 +717,11 @@ public class AtlasPlotter {
         }
 
         Arrays.sort(fso,
-                    new Comparator() {
+                    new Comparator<Integer>() {
 
-                        public int compare(Object o1, Object o2) {
-                            String s1 = fvs[((Integer) o1)];
-                            String s2 = fvs[((Integer) o2)];
+                        public int compare(Integer o1, Integer o2) {
+                            String s1 = fvs[o1];
+                            String s2 = fvs[o2];
 
                             // want to make sure that empty strings are pushed to the back
                             if (s1.equals("") && s2.equals("")) {

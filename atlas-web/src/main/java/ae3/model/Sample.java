@@ -2,7 +2,7 @@ package ae3.model;
 
 import ae3.restresult.RestOut;
 import ae3.restresult.XmlRestResultRenderer;
-import ae3.util.MappingIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.util.HashSet;
 import java.util.Iterator;

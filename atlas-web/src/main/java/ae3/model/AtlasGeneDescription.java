@@ -2,7 +2,7 @@ package ae3.model;
 
 import ae3.service.GxaDasDataSource;
 import ae3.util.CuratedTexts;
-import ae3.util.StringUtils;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.index.Experiment;
 
 import java.util.*;
@@ -35,7 +35,7 @@ public class AtlasGeneDescription {
             public int up;
             public int dn;
             public String toText(){
-                return "" + StringUtils.quoteComma(name) + " [" + up + " up/" + dn +" dn]";
+                return "" + StringUtil.quoteComma(name) + " [" + up + " up/" + dn +" dn]";
             }
         }
         List<Efv> efv = new ArrayList<Efv>();
@@ -64,7 +64,7 @@ public class AtlasGeneDescription {
             return result;
         }
         public String toShortText(){
-            return "" + efv.size()+" "+ StringUtils.pluralize(StringUtils.decapitalise(CuratedTexts.get("head.ef." + this.Name)));
+            return "" + efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + this.Name)));
         }
     }
 
@@ -197,7 +197,7 @@ public class AtlasGeneDescription {
         text = writer.toText();
 
         //sometimes ", ...;"  appears at the end of the description
-        text = StringUtils.ReplaceLast(text,"...;","...");
+        text = StringUtil.replaceLast(text,"...;","...");
 
         //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
         text = gene.getGeneName() + " is differentially expressed in " + writer.getTotalExperiments() + " experiments [" + writer.getTotalUp()+" up/" +writer.getTotalDn() + " dn]: " + text;

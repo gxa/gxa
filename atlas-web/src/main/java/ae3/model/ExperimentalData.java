@@ -2,7 +2,7 @@ package ae3.model;
 
 import ae3.restresult.RestOut;
 import ae3.service.structuredquery.EfvTree;
-import ae3.util.FilterIterator;
+import uk.ac.ebi.gxa.utils.FilterIterator;
 
 import java.util.*;
 

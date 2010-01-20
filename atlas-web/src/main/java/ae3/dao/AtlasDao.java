@@ -2,9 +2,9 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.util.FilterIterator;
-import ae3.util.StringUtils;
-import ae3.util.EmptyIterator;
+import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.utils.EmptyIterator;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -338,7 +338,7 @@ public class AtlasDao {
                         return new FilterIterator<FacetField.Count, String>(iterator) {
                             public String map(FacetField.Count c) {
                                 if(c.getName() != null)
-                                    return StringUtils.upcaseFirst(c.getName());
+                                    return StringUtil.upcaseFirst(c.getName());
                                 return null;
                             }
                         };
