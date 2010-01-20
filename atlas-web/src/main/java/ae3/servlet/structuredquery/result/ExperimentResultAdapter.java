@@ -6,7 +6,7 @@ import ae3.restresult.RestOut;
 import ae3.restresult.RestOuts;
 import ae3.restresult.XmlRestResultRenderer;
 import ae3.service.structuredquery.EfvTree;
-import ae3.util.MappingIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 import ae3.dao.AtlasDao;
 
 import java.util.*;

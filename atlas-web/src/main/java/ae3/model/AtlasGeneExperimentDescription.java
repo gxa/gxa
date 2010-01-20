@@ -1,7 +1,7 @@
 package ae3.model;
 
 import ae3.util.CuratedTexts;
-import ae3.util.StringUtils;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.index.Experiment;
 
 import java.util.ArrayList;
@@ -66,9 +66,9 @@ public class AtlasGeneExperimentDescription {
                 String result = "";
 
                 if(efv.size()<2)
-                 result+= StringUtils.decapitalise(CuratedTexts.get("head.ef." + Name));
+                 result+= StringUtil.decapitalise(CuratedTexts.get("head.ef." + Name));
                 else
-                 result+= StringUtils.pluralize(StringUtils.decapitalise(CuratedTexts.get("head.ef." + Name)));
+                 result+= StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + Name)));
 
                 boolean first = true;
 
@@ -81,7 +81,7 @@ public class AtlasGeneExperimentDescription {
                     if(!result.endsWith(" "))
                         result += " ";
 
-                    result+=StringUtils.quoteComma(v.Name);
+                    result+= StringUtil.quoteComma(v.Name);
                     result+=" ";
                     result+=v.Up ? "[up]" : "[dn]" ;
                     //result+=" ";
@@ -156,21 +156,21 @@ public class AtlasGeneExperimentDescription {
         for(Experiment la : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
             if(la.getEf().equals(HighestRankExperimentalFactor)){
                 if(iCount<=MAX_EXP_FACTOR_VALUES)
-                    result += (StringUtils.quoteComma(la.getEfv()) + (la.getExpression().isUp() ? " [up]" : " [dn]") + ", ");
+                    result += (StringUtil.quoteComma(la.getEfv()) + (la.getExpression().isUp() ? " [up]" : " [dn]") + ", ");
 
                 iCount++;
             }
         }
 
-        result = StringUtils.ReplaceLast(result,", ", "");
+        result = StringUtil.replaceLast(result,", ", "");
 
         if(iCount>MAX_EXP_FACTOR_VALUES)
             result += " and "+ (iCount-MAX_EXP_FACTOR_VALUES) + " other ";
 
         if(iCount==1)
-            result += " " + StringUtils.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor));
+            result += " " + StringUtil.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor));
         else
-            result += " " + StringUtils.pluralize(StringUtils.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor)));
+            result += " " + StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor)));
 
         return result;
     }
@@ -192,7 +192,7 @@ public class AtlasGeneExperimentDescription {
             if(!result.endsWith(": "))
                 result += ", ";
 
-            result += StringUtils.decapitalise(CuratedTexts.get("head.ef." + f.Name));
+            result += StringUtil.decapitalise(CuratedTexts.get("head.ef." + f.Name));
         }
 
         result += ". ";
@@ -203,8 +203,8 @@ public class AtlasGeneExperimentDescription {
             result+= f.LongText();
         }
 
-        result = StringUtils.ReplaceLast(result,", ",".");
-        result = StringUtils.ReplaceLast(result,"; ",".");
+        result = StringUtil.replaceLast(result,", ",".");
+        result = StringUtil.replaceLast(result,"; ",".");
 
         return result;
     }

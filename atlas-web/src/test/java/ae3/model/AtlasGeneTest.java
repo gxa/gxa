@@ -3,7 +3,7 @@ package ae3.model;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.ExperimentsTable;
 import ae3.dao.AtlasDao;
-import ae3.util.Pair;
+import uk.ac.ebi.gxa.utils.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;

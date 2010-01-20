@@ -1,4 +1,4 @@
-package ae3.util;
+package uk.ac.ebi.gxa.utils;
 
 import java.util.Iterator;
 

@@ -1,6 +1,6 @@
 package ae3.restresult;
 
-import ae3.util.FilterIterator;
+import uk.ac.ebi.gxa.utils.FilterIterator;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;

@@ -268,7 +268,7 @@ public class DataSlice {
             }
 
             // now check integrity
-            if (!designElements.keySet().contains(designElementID)) {
+            if (!designElements.containsKey(designElementID)) {
                 throw new DataSlicingException(
                         "Can't store " + gene + ": design element " + designElementID + " absent from index");
             }
