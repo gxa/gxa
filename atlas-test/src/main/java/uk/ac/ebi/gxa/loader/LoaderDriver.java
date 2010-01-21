@@ -54,6 +54,8 @@ public class LoaderDriver {
     public static void main(String[] args) {
 
         LoadExpressionValues();
+        if(1==1)
+            return;
 
         // configure logging
         try {

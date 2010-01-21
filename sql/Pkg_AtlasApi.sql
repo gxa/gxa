@@ -24,7 +24,7 @@ TYPE CurPropertyValue         IS REF CURSOR RETURN vwPropertyValue%ROWTYPE;
 TYPE CurGenePropertyValue     IS REF CURSOR RETURN vwGenePropertyValue%ROWTYPE;
 
 TYPE ExpressionValueAssayRec IS RECORD(AssayID int);
-TYPE ExpressionValueDERec IS RECORD(DesignElementID int);
+TYPE ExpressionValueDERec IS RECORD(DesignElementID int, GeneID int);
 TYPE ExpressionValueRec IS RECORD(AssayID int, DesignElementID int, value float);
 
 TYPE CurExpressionValueAssay  IS REF CURSOR RETURN ExpressionValueAssayRec;
@@ -688,7 +688,7 @@ begin
   order by Accession;
 
   open designElements for
-  select DesignElementID
+  select DesignElementID, GeneID
   from a2_DesignElement 
   where ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
   order by Accession;
@@ -698,6 +698,8 @@ begin
   from a2_ExpressionValue ev
   join a2_Assay a on a.AssayID = ev.AssayID
   join a2_DesignElement de on de.DesignElementID = ev.DesignElementID
+  where a.ExperimentID = A2_EXPRESSIONVALUEGET.ExperimentID
+  and a.ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
   order by de.Accession, a.Accession;
   
 end;
