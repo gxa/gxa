@@ -24,6 +24,8 @@ import java.net.URL;
 import java.net.URI;
 import java.net.MalformedURLException;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Javadocs go here!
  *
@@ -43,13 +45,16 @@ public class LoaderDriver {
 
         AtlasDAO.ExpressionValueMatrix r = (new AtlasDAO()).getExpressionValueMatrix(experimentID,arrayDesignID);
 
-        //r.assays;
-        //r.designElements();
-        //r.expressionValues();
+        assertNotNull(r.assays);
+        assertNotNull(r.designElements);
+        assertNotNull(r.expressionValues);
     }
 
 
     public static void main(String[] args) {
+
+        LoadExpressionValues();
+
         // configure logging
         try {
             LogManager.getLogManager()
