@@ -3,11 +3,12 @@ package uk.ac.ebi.gxa.netcdf.generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.service.ExperimentNetCDFGeneratorService;
 import uk.ac.ebi.gxa.netcdf.generator.service.NetCDFGeneratorService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.utils.Deque;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -151,10 +152,9 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
             final String experimentAccession,
             final NetCDFGeneratorListener listener) {
         final long startTime = System.currentTimeMillis();
-        final List<Future<Boolean>> buildingTasks =
-                new ArrayList<Future<Boolean>>();
+        final Deque<Future<Boolean>> buildingTasks = new Deque<Future<Boolean>>(5);
 
-        buildingTasks.add(service.submit(new Callable<Boolean>() {
+        buildingTasks.offerLast(service.submit(new Callable<Boolean>() {
             public Boolean call() throws NetCDFGeneratorException {
                 try {
                     log.info("Starting NetCDF generations");
@@ -185,10 +185,14 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
                     boolean success = true;
                     List<Throwable> observedErrors = new ArrayList<Throwable>();
 
-                    // wait for expt and gene indexes to build
-                    for (Future<Boolean> buildingTask : buildingTasks) {
+                    // wait for task to complete
+                    while (true) {
                         try {
-                            success = success && buildingTask.get();
+                            Future<Boolean> task = buildingTasks.poll();
+                            if (task == null) {
+                                break;
+                            }
+                            success = success && task.get();
                         }
                         catch (Exception e) {
                             observedErrors.add(e);
@@ -211,6 +215,14 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
                     }
                 }
             }).start();
+        }
+        else {
+            // just slam through all tasks, ignoring the results
+            while(true) {
+                if (buildingTasks.poll() == null) {
+                    break;
+                }
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.netcdf.generator.helper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.ArrayList;
@@ -33,6 +35,8 @@ public class DataSlice {
     private Map<String, List<String>> experimentFactorMap;
     private Map<String, List<String>> sampleCharacteristicMap;
 
+    // logger
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     public DataSlice(Experiment experiment, ArrayDesign arrayDesign) {
         this.experiment = experiment;
@@ -357,40 +361,79 @@ public class DataSlice {
         // maps property names to all values for sample properties
         sampleCharacteristicMap = new HashMap<String, List<String>>();
 
-        // check all assays
+        // iterate over assays, create keys for the map
         for (Assay assay : assays) {
-            // get all assay properties
+            // check properties for next assay
             for (Property prop : assay.getProperties()) {
-                // we only care about factor values, not other properties
-                // fixme: wrong for data in DB right now
-                // have we seen this property name before?
-                if (experimentFactorMap.containsKey(prop.getName())) {
-                    // if so, add values to the existing list
-                    experimentFactorMap.get(prop.getName()).add(prop.getValue());
-                }
-                else {
-                    // otherwise, start a new list and add it, keyed by the new name
+                // seen this one before?
+                if (!experimentFactorMap.containsKey(prop.getName())) {
+                    // if not, start a new list and add it, keyed by the new name
                     List<String> propertyNames = new ArrayList<String>();
-                    propertyNames.add(prop.getValue());
                     experimentFactorMap.put(prop.getName(), propertyNames);
                 }
             }
         }
 
-        // check all samples
-        for (Sample sample : samples) {
-            // get all sample properties
-            for (Property prop : sample.getProperties()) {
-                // have we seen this property name before?
-                if (sampleCharacteristicMap.containsKey(prop.getName())) {
-                    // if so, add values to the existing list
-                    sampleCharacteristicMap.get(prop.getName()).add(prop.getValue());
+        // now check all assays for values
+        for (Assay assay : assays) {
+            // iterate over known properties
+            for (String propName : experimentFactorMap.keySet()) {
+                // do next property
+                boolean located = false;
+                for (Property prop : assay.getProperties()) {
+                    if (prop.getName().equals(propName)) {
+                        // we only care about factor values, not other properties
+                        // fixme: wrong for data in DB right now
+                        experimentFactorMap.get(propName).add(prop.getValue());
+                        located = true;
+                        break;
+                    }
                 }
-                else {
-                    // otherwise, start a new list and add it, keyed by the new name
+
+                if (!located) {
+                    // missing property value, add an empty string to ensure ordering is still correct
+                    log.warn("Assay " + assay.getAccession() + " [experiment " + experiment.getAccession() +
+                            "] has no property value associated with the property " + propName +
+                            ".  Mapped records will be empty.");
+                    experimentFactorMap.get(propName).add("");
+                }
+            }
+        }
+
+        // iterate over samples, create keys for the map
+        for (Sample sample : samples) {
+            // check properties for next sample
+            for (Property prop : sample.getProperties()) {
+                // seen this one before?
+                if (!sampleCharacteristicMap.containsKey(prop.getName())) {
+                    // if not, start a new list and add it, keyed by the new name
                     List<String> propertyNames = new ArrayList<String>();
-                    propertyNames.add(prop.getValue());
                     sampleCharacteristicMap.put(prop.getName(), propertyNames);
+                }
+            }
+        }
+
+        // now check all samples for values
+        for (Sample sample : samples) {
+            // iterate over known properties
+            for (String propName : sampleCharacteristicMap.keySet()) {
+                // do next property
+                boolean located = false;
+                for (Property prop : sample.getProperties()) {
+                    // found the property, so add its value
+                    if (prop.getName().equals(propName)) {
+                        sampleCharacteristicMap.get(propName).add(prop.getValue());
+                        located = true;
+                        break;
+                    }
+                }
+
+                if (!located) {
+                    // missing property value, add an empty string to ensure ordering is still correct
+                    log.warn("Sample " + sample.getAccession() + " [experiment " + experiment.getAccession() +
+                            "] has no property value associated with the property " + propName +
+                            ".  Mapped records will be empty.");
+                    sampleCharacteristicMap.get(propName).add("");
                 }
             }
         }
