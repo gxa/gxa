@@ -524,27 +524,31 @@ END;
 PROCEDURE Clean
 AS
 BEGIN
-  dbms_output.put_line('delete property ALL');
+  dbms_output.put_line('delete property ALL - assay');
   Delete from a2_AssayPropertyValue
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));
-                            
+  
+  dbms_output.put_line('delete property ALL - sample');                          
   Delete from a2_SamplePropertyValue
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));                            
 
+  dbms_output.put_line('delete property ALL - expression analytics');
   Delete from a2_ExpressionAnalytics
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));   
 
+  dbms_output.put_line('delete property ALL - property value');
   Delete from a2_PropertyValue
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));   
-                            
+  
+  dbms_output.put_line('delete property ALL - property');                          
   Delete from a2_Property                            
   where PropertyID = (select PropertyID from a2_Property where Name = 'ALL');
   
-  commit;
+  rollback;
 
 END;
   

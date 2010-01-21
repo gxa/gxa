@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import oracle.jdbc.OracleTypes;
+import oracle.jdbc.OracleConnection;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
@@ -14,6 +15,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -2002,6 +2004,11 @@ public class AtlasDAO {
         public List<ExpressionValue> expressionValues;
         public List<DesignElement> designElements;
         public List<Integer> assays;
+        public ExpressionValueMatrix(){
+            expressionValues = new ArrayList<ExpressionValue>();
+            designElements = new ArrayList<DesignElement>();
+            assays = new ArrayList<Integer>();        
+        }
     }
 
     public ExpressionValueMatrix getExpressionValueMatrix(int ExperimentID, int ArrayDesignID) {
@@ -2012,12 +2019,17 @@ public class AtlasDAO {
         ResultSet rsAssays = null;
         ResultSet rsExpressionValues = null;
 
-        ///SimpleJdbcCall procedure = new SimpleJdbcCall(template);
-        ///need to get connection here
-        java.sql.Connection connection = null;
-
         try{
-          stmt = connection.prepareCall("{call AtlasAPI.a2_SampleGet(?,?,?,?,?)}");
+
+         ///SimpleJdbcCall procedure = new SimpleJdbcCall(template);
+         ///need to get connection here
+         java.sql.Connection connection = null; //DataSourceUtils.getConnection(getJdbcTemplate().getDataSource());
+
+         DriverManager.registerDriver (new oracle.jdbc.OracleDriver());
+            
+         connection = (OracleConnection) DriverManager.getConnection("jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT","Atlas2",  "Atlas2");
+
+          stmt = connection.prepareCall("{call AtlasAPI.a2_ExpressionValueGet(?,?,?,?,?)}");
 
           stmt.setInt(1, ExperimentID);
           stmt.setInt(2, ArrayDesignID);
@@ -2028,8 +2040,8 @@ public class AtlasDAO {
 
           stmt.execute();
 
-          rsDesignElements = (ResultSet) stmt.getObject(3);
-          rsAssays = (ResultSet) stmt.getObject(4);
+          rsAssays = (ResultSet) stmt.getObject(3);
+          rsDesignElements = (ResultSet) stmt.getObject(4);
           rsExpressionValues = (ResultSet) stmt.getObject(5);
 
           while(rsAssays.next()){
@@ -2037,7 +2049,7 @@ public class AtlasDAO {
           }
 
           while(rsDesignElements.next()){
-              result.designElements.add(new ExpressionValueMatrix.DesignElement(rsDesignElements.getInt("DesignElemetId"),rsDesignElements.getInt("GeneId")));
+              result.designElements.add(new ExpressionValueMatrix.DesignElement(rsDesignElements.getInt("DesignElementId"),rsDesignElements.getInt("GeneId")));
           }
 
           while(rsExpressionValues.next()){
@@ -2048,6 +2060,7 @@ public class AtlasDAO {
           }
         }
         catch(Exception ex){
+            System.out.print(ex.getMessage());
         }
 
         return result;
