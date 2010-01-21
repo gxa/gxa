@@ -27,10 +27,8 @@ public class DesignElementSlicer extends CallableSlicer<Void> {
 
     public Void call() throws Exception {
         getLog().debug("Fetching design element data for " + arrayDesign.getAccession());
-        Map<Integer, String> designElements =
-                getAtlasDAO().getDesignElementsByArrayAccession(arrayDesign.getAccession());
         // and store
-        dataSlice.storeDesignElements(designElements);
+        dataSlice.storeDesignElements(arrayDesign.getDesignElements());
 
         // genes for this experiment were prefetched -
         // compare to design elements and store, correctly indexed
