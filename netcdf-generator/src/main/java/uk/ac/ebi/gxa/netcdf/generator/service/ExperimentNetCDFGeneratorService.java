@@ -15,7 +15,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -83,7 +82,8 @@ public class ExperimentNetCDFGeneratorService
                                     // write the data from our data slice to this netCDF
                                     NetCDFWriter writer = new NetCDFWriter();
                                     writer.writeNetCDF(netCDF, dataSlice);
-                                } finally {
+                                }
+                                finally {
                                     // save and close the netCDF
                                     netCDF.close();
                                 }
@@ -98,10 +98,12 @@ public class ExperimentNetCDFGeneratorService
                                     experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
 
                             return success;
-                        } catch (NetCDFGeneratorException e) {
-                            getLog().error("Experiment " + experiment.getAccession() + " NetCDF generation exception", e);
+                        }
+                        catch (NetCDFGeneratorException e) {
+                            getLog().error("Experiment " + experiment.getAccession() + " NetCDF generation failed.");
                             throw e;
-                        } finally {
+                        }
+                        finally {
                             // if success if true, everything completed as expected, but if it's false we got
                             // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
                             if (!success) {
@@ -215,7 +217,8 @@ public class ExperimentNetCDFGeneratorService
                         try {
                             NetCDFWriter writer = new NetCDFWriter();
                             writer.writeNetCDF(netCDF, dataSlice);
-                        } finally {
+                        }
+                        finally {
                             // save and close the netCDF
                             netCDF.close();
                         }
@@ -231,8 +234,9 @@ public class ExperimentNetCDFGeneratorService
             try {
                 while (true) {
                     Future<Boolean> task = tasks.poll();
-                    if(task == null)
+                    if (task == null) {
                         break;
+                    }
                     success = success && task.get();
                 }
             }
