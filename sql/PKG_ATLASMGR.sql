@@ -23,6 +23,7 @@ CREATE OR REPLACE PACKAGE ATLASMGR IS
   PROCEDURE LoadExpressionAnalytics;
 
   PROCEDURE Load;
+  PROCEDURE Clean;
   
 END ATLASMGR;
 /
@@ -432,10 +433,9 @@ END;
 --------------------------------------------------------------------------------
 PROCEDURE DisableConstraints
 AS
-BEGIN
-declare 
  cursor c1 is select CONSTRAINT_NAME, TABLE_NAME from user_constraints;
  q varchar2(8000);
+begin
 for rec in c1
  loop
     q := 'ALTER TABLE ' || rec.TABLE_NAME  || ' DISABLE CONSTRAINT ' || rec.CONSTRAINT_NAME;
@@ -446,10 +446,9 @@ END;
 --------------------------------------------------------------------------------
 PROCEDURE EnableConstraints
 AS
-BEGIN
-declare 
  cursor c1 is select CONSTRAINT_NAME, TABLE_NAME from user_constraints;
  q varchar2(8000);
+begin 
 for rec in c1
  loop
     q := 'ALTER TABLE ' || rec.TABLE_NAME  || ' ENABLE CONSTRAINT ' || rec.CONSTRAINT_NAME;
@@ -519,10 +518,35 @@ BEGIN
   LoadExpressionAnalytics();
   dbms_output.put_line('expression analytics: ' || CountRows('a2_ExpressionAnalytics') || ' in ' || ElapsedSec());  
 
-  rollback;
+  commit;
 END;
 --------------------------------------------------------------------------------
+PROCEDURE Clean
+AS
+BEGIN
+  dbms_output.put_line('delete property ALL');
+  Delete from a2_AssayPropertyValue
+  where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
+                            where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));
+                            
+  Delete from a2_SamplePropertyValue
+  where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
+                            where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));                            
+
+  Delete from a2_ExpressionAnalytics
+  where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
+                            where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));   
+
+  Delete from a2_PropertyValue
+  where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
+                            where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));   
+                            
+  Delete from a2_Property                            
+  where PropertyID = (select PropertyID from a2_Property where Name = 'ALL');
   
+  commit;
+
+END;
   
 END;
 /
