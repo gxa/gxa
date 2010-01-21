@@ -20,10 +20,6 @@ import java.util.*;
  * @date 30-Sep-2009
  */
 public class NetCDFWriter {
-    // internal maps - indexes for locations of given assay/design element ids
-    private Map<Integer, Integer> assayIndex = new HashMap<Integer, Integer>();
-    private Map<Integer, Integer> designElementIndex = new HashMap<Integer, Integer>();
-
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -97,13 +93,8 @@ public class NetCDFWriter {
             // add assay id data
             ArrayInt as = new ArrayInt.D1(assays.size());
             IndexIterator asIt = as.getIndexIterator();
-            int counter = 0;
             for (Assay assay : assays) {
                 asIt.setIntNext(assay.getAssayID());
-
-                // record in the index
-                assayIndex.put(assay.getAssayID(), counter);
-                counter++;
             }
             netCDF.write("AS", as);
         }
@@ -169,13 +160,8 @@ public class NetCDFWriter {
             // add design element id data
             ArrayInt de = new ArrayInt.D1(designElements.keySet().size());
             IndexIterator deIt = de.getIndexIterator();
-            int counter = 0;
             for (int designElementID : designElements.keySet()) {
                 deIt.setIntNext(designElementID);
-
-                // record in the index
-                designElementIndex.put(designElementID, counter);
-                counter++;
             }
             netCDF.write("DE", de);
         }
@@ -215,7 +201,7 @@ public class NetCDFWriter {
                     // insert value
                     if (designElementsToGenes.get(designElement).contains(gene)) {
                         // got a mapping between design element id='designElement' and gene, lookup position in DE
-                        deIndex = designElementIndex.get(designElement);
+                        deIndex = designElementIndex(netCDF, designElement);
 
                         // create a one to one map
                         int[] map = new int[]{deIndex, gnIndex};
@@ -282,9 +268,11 @@ public class NetCDFWriter {
 
                 // check that number of factor values is divisible by the number of assays
                 if (experimentFactorMap.get(propertyName).size() % assayCount != 0) {
-                    throw new InvalidRangeException("Cannot reconcile property values for " + propertyName +
-                            ": expected a multiple of the number of assays (" + assayCount + "), got " +
-                            experimentFactorMap.get(propertyName).size());
+                    String message = "\n\tCannot reconcile property values for " + propertyName + "." +
+                            "\n\tExpected a multiple of the number of assays (" + assayCount + "), but got " +
+                            experimentFactorMap.get(propertyName).size() + " property values.";
+                    log.error(message);
+                    throw new InvalidRangeException(message);
                 }
 
                 // may be multiple EFVs per assay - if so, we need to concatenate EFVs with a comma
@@ -323,7 +311,7 @@ public class NetCDFWriter {
                         uniqueFactorValues.add(propertyName.concat("||").concat(propertyValue));
 
                         // reset tracker and currentEFV
-                        tracker=0;
+                        tracker = 0;
                         currentEFV = "";
                     }
                 }
@@ -383,9 +371,11 @@ public class NetCDFWriter {
 
                 // check that number of factor values is divisible by the number of assays
                 if (sampleCharacteristicMap.get(propertyName).size() % sampleCount != 0) {
-                    throw new InvalidRangeException("Cannot reconcile property values for " + propertyName +
-                            ": expected a multiple of the number of samples (" + sampleCount + "), got " +
-                            sampleCharacteristicMap.get(propertyName).size());
+                    String message = "\n\tCannot reconcile property values for " + propertyName + "." +
+                            "\n\tExpected a multiple of the number of samples (" + sampleCount + "), but got " +
+                            sampleCharacteristicMap.get(propertyName).size() + " property values.";
+                    log.error(message);
+                    throw new InvalidRangeException(message);
                 }
 
                 // may be multiple SCVs per sample - if so, we need to concatenate SCVs with a comma
@@ -423,7 +413,7 @@ public class NetCDFWriter {
                         scvIndex++;
 
                         // reset tracker and currentEFV
-                        tracker=0;
+                        tracker = 0;
                         currentSCV = "";
                     }
                 }
@@ -459,8 +449,8 @@ public class NetCDFWriter {
             for (int assayID : expressionValues.keySet()) {
                 for (Map.Entry<Integer, Float> ev : expressionValues.get(assayID)
                         .entrySet()) {
-                    int asIndex = assayIndex.get(assayID);
-                    int deIndex = designElementIndex.get(ev.getKey());
+                    int asIndex = assayIndex(netCDF, assayID);
+                    int deIndex = designElementIndex(netCDF, ev.getKey());
 
                     bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
                 }
@@ -509,7 +499,8 @@ public class NetCDFWriter {
                         for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
                             if (analysis.getEfvName().equals(uniqueFactorValue)) {
                                 // locate the position of this design element in the DE matrix
-                                int deIndex = designElementIndex.get(designElementID);
+//                                int deIndex = designElementIndex.get(designElementID);
+                                int deIndex = designElementIndex(netCDF, designElementID);
 
                                 // found the right analysis, add - make sure these are ordered the same as uEFV
                                 pval.setDouble(pval.getIndex().set(deIndex, uefvIndex), analysis.getPValAdjusted());
@@ -554,5 +545,45 @@ public class NetCDFWriter {
             netCDF.write("TSTAT", tstat);
         }
         log.debug("Wrote stats data matrix ok.");
+    }
+
+    private int assayIndex(NetcdfFileWriteable netCDF, int assayID) throws IOException {
+        if (netCDF.findVariable("AS") == null) {
+            throw new IOException("Unable to read back AS index values");
+        }
+        else {
+            try {
+                int[] as = (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
+                for (int i = 0; i < as.length; i++) {
+                    if (as[i] == assayID) {
+                        return i;
+                    }
+                }
+                throw new IOException("AS does not contain assay ID " + assayID);
+            }
+            catch (IOException e) {
+                throw new IOException("Unable to read back AS index values");
+            }
+        }
+    }
+
+    private int designElementIndex(NetcdfFileWriteable netCDF, int designElementID) throws IOException {
+        if (netCDF.findVariable("DE") == null) {
+            throw new IOException("Unable to read back DE index values");
+        }
+        else {
+            try {
+                int[] as = (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
+                for (int i = 0; i < as.length; i++) {
+                    if (as[i] == designElementID) {
+                        return i;
+                    }
+                }
+                throw new IOException("DE does not contain design element ID " + designElementID);
+            }
+            catch (IOException e) {
+                throw new IOException("Unable to read back DE index values");
+            }
+        }
     }
 }
