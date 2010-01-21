@@ -44,7 +44,7 @@ public class ExperimentNetCDFGeneratorService
                 : getAtlasDAO().getAllExperiments();
 
         // the list of futures - we need these so we can block until completion
-        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>();
+        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
 
         try {
             // process each experiment to build the netcdfs
@@ -79,12 +79,14 @@ public class ExperimentNetCDFGeneratorService
                                 // actually create the netCDF
                                 netCDF.create();
 
-                                // write the data from our data slice to this netCDF
-                                NetCDFWriter writer = new NetCDFWriter();
-                                writer.writeNetCDF(netCDF, dataSlice);
-
-                                // save and close the netCDF
-                                netCDF.close();
+                                try {
+                                    // write the data from our data slice to this netCDF
+                                    NetCDFWriter writer = new NetCDFWriter();
+                                    writer.writeNetCDF(netCDF, dataSlice);
+                                } finally {
+                                    // save and close the netCDF
+                                    netCDF.close();
+                                }
                             }
 
                             getLog().info("Finalising NetCDF changes for " +
@@ -96,21 +98,22 @@ public class ExperimentNetCDFGeneratorService
                                     experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
 
                             return success;
-                        }
-                        finally {
+                        } catch (NetCDFGeneratorException e) {
+                            getLog().error("Experiment " + experiment.getAccession() + " NetCDF generation exception", e);
+                            throw e;
+                        } finally {
                             // if success if true, everything completed as expected, but if it's false we got
                             // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
                             if (!success) {
                                 getAtlasDAO().writeLoadDetails(
                                         experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
                             }
-
-                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
-                            System.gc();
                         }
                     }
                 }));
             }
+
+            experiments.clear();
 
             // block until completion, and throw any errors
             while (true) {
@@ -120,6 +123,7 @@ public class ExperimentNetCDFGeneratorService
                         task.get();
                     }
                     catch (ExecutionException e) {
+                        getLog().error("NetCDF generation exception", e);
                         if (e.getCause() instanceof NetCDFGeneratorException) {
                             throw (NetCDFGeneratorException) e.getCause();
                         }
@@ -175,8 +179,8 @@ public class ExperimentNetCDFGeneratorService
                 getExperimentByAccession(experimentAccession);
 
         // the list of futures - we need these so we can block until completion
-        List<Future<Boolean>> tasks =
-                new ArrayList<Future<Boolean>>();
+        Deque<Future<Boolean>> tasks =
+                new Deque<Future<Boolean>>(5);
 
         try {
             getLog().info("Generating NetCDFs - experiment " +
@@ -192,37 +196,32 @@ public class ExperimentNetCDFGeneratorService
             // slice our experiment first
             for (final DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
                 // run each experiment in parallel
-                tasks.add(tpool.submit(new Callable<Boolean>() {
+                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
+                        // create a new NetCDF document
+                        NetcdfFileWriteable netCDF = createNetCDF(
+                                dataSlice.getExperiment(),
+                                dataSlice.getArrayDesign());
+
+                        // format it with paramaters suitable for our data
+                        NetCDFFormatter formatter = new NetCDFFormatter();
+                        formatter.formatNetCDF(netCDF, dataSlice);
+
+                        // actually create the netCDF
+                        netCDF.create();
+
+                        // write the data from our data slice to this netCDF
                         try {
-                            // create a new NetCDF document
-                            NetcdfFileWriteable netCDF = createNetCDF(
-                                    dataSlice.getExperiment(),
-                                    dataSlice.getArrayDesign());
-
-                            // format it with paramaters suitable for our data
-                            NetCDFFormatter formatter = new NetCDFFormatter();
-                            formatter.formatNetCDF(netCDF, dataSlice);
-
-                            // actually create the netCDF
-                            netCDF.create();
-
-                            // write the data from our data slice to this netCDF
                             NetCDFWriter writer = new NetCDFWriter();
                             writer.writeNetCDF(netCDF, dataSlice);
-
+                        } finally {
                             // save and close the netCDF
                             netCDF.close();
-
-                            getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
-                                    " and " + dataSlice.getArrayDesign().getAccession());
-                            return true;
                         }
-                        finally {
-                            // perform an explicit garbage collection to make sure all refs to large datasets are cleaned up
-                            System.gc();
-                        }
+                        getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
+                                " and " + dataSlice.getArrayDesign().getAccession());
+                        return true;
                     }
                 }));
             }
@@ -230,7 +229,10 @@ public class ExperimentNetCDFGeneratorService
             // block until completion, and throw any errors
             boolean success = true;
             try {
-                for (Future<Boolean> task : tasks) {
+                while (true) {
+                    Future<Boolean> task = tasks.poll();
+                    if(task == null)
+                        break;
                     success = success && task.get();
                 }
             }
