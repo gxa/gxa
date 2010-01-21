@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author pashky
 */
 class LowercaseAnalyzer extends Analyzer {
-    private class LowercaseTokenizer extends WhitespaceTokenizer
+    private static class LowercaseTokenizer extends WhitespaceTokenizer
     {
         public LowercaseTokenizer(Reader in)
         {
