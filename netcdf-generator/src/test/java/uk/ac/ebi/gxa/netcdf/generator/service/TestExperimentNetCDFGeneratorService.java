@@ -17,7 +17,7 @@ public class TestExperimentNetCDFGeneratorService
     super.setUp();
 
     ExperimentNetCDFGeneratorService engs =
-        new ExperimentNetCDFGeneratorService(getAtlasDAO(), getRepoLocation());
+        new ExperimentNetCDFGeneratorService(getAtlasDAO(), getRepoLocation(), 1);
     engs.versionDescriptor = "Atlas NetCDF Experiment Generator Version [TEST]";
     setNetCDFGenerator(engs);
   }

@@ -15,6 +15,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -26,24 +27,32 @@ import java.util.concurrent.*;
  */
 public class ExperimentNetCDFGeneratorService
         extends NetCDFGeneratorService<File> {
-    private static final int NUM_THREADS = 16;
+    private final int maxThreads;
 
     public ExperimentNetCDFGeneratorService(AtlasDAO atlasDAO,
-                                            File repositoryLocation) {
+                                            File repositoryLocation,
+                                            int maxThreads) {
         super(atlasDAO, repositoryLocation);
+        this.maxThreads = maxThreads;
     }
 
     protected void createNetCDFDocs() throws NetCDFGeneratorException {
         // do initial setup - build executor service
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+        ExecutorService tpool = Executors.newFixedThreadPool(maxThreads);
 
         // fetch experiments - check if we want all or only the pending ones
         List<Experiment> experiments = getPendingOnly()
                 ? getAtlasDAO().getAllExperimentsPendingNetCDFs()
                 : getAtlasDAO().getAllExperiments();
 
+        // create a timer, so we can track time to create NetCDFs
+        final NetCDFTimer timer = new NetCDFTimer(experiments);
+
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
+
+        // start the timer
+        timer.start();
 
         try {
             // process each experiment to build the netcdfs
@@ -54,6 +63,8 @@ public class ExperimentNetCDFGeneratorService
                     public Boolean call() throws Exception {
                         boolean success = false;
                         try {
+                            long start = System.currentTimeMillis();
+
                             // update loadmonitor - experiment is netcdf-ing
                             getAtlasDAO().writeLoadDetails(
                                     experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
@@ -85,18 +96,22 @@ public class ExperimentNetCDFGeneratorService
                                 }
                                 finally {
                                     // save and close the netCDF
+                                    timer.completed(experiment.getExperimentID());
                                     netCDF.close();
                                 }
                             }
 
-                            getLog().info("Finalising NetCDF changes for " +
-                                    experiment.getAccession());
+                            long end = System.currentTimeMillis();
+                            String total = new DecimalFormat("#.##").format((end - start) / 1000);
+                            String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
+                            
+
+                            getLog().info(
+                                    "\n\tNetCDF(s) for " + experiment.getAccession() + " created in " + total + "s." +
+                                            "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
+                                            timer.getTotalExperimentCount() + "." +
+                                            "\n\tEstimated time remaining: " + estimate + " mins.");
                             success = true;
-
-                            // update loadmonitor - experiment has completed netcdf-ing
-                            getAtlasDAO().writeLoadDetails(
-                                    experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
-
                             return success;
                         }
                         catch (NetCDFGeneratorException e) {
@@ -104,11 +119,14 @@ public class ExperimentNetCDFGeneratorService
                             throw e;
                         }
                         finally {
-                            // if success if true, everything completed as expected, but if it's false we got
-                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-                            if (!success) {
-                                getAtlasDAO().writeLoadDetails(
-                                        experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
+                            // update loadmonitor - experiment has completed netcdf-ing
+                            if (success) {
+                                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF,
+                                                               LoadStatus.DONE);
+                            }
+                            else {
+                                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF,
+                                                               LoadStatus.FAILED);
                             }
                         }
                     }
@@ -174,7 +192,7 @@ public class ExperimentNetCDFGeneratorService
     protected void createNetCDFDocsForExperiment(String experimentAccession)
             throws NetCDFGeneratorException {
         // do initial setup - build executor service
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+        ExecutorService tpool = Executors.newFixedThreadPool(maxThreads);
 
         // fetch experiment - ignore pending if explicitly building by accession
         Experiment experiment = getAtlasDAO().
@@ -331,5 +349,58 @@ public class ExperimentNetCDFGeneratorService
                 arrayDesign.getName());
 
         return netcdfFile;
+    }
+
+    private class NetCDFTimer {
+        private int[] experimentIDs;
+        private boolean[] completions;
+        private int completedCount;
+        private long startTime;
+        private long lastEstimate;
+
+        public NetCDFTimer(List<Experiment> experiments) {
+            experimentIDs = new int[experiments.size()];
+            completions = new boolean[experiments.size()];
+            int i = 0;
+            for (Experiment exp : experiments) {
+                experimentIDs[i] = exp.getExperimentID();
+                completions[i] = false;
+                i++;
+            }
+
+        }
+
+        public synchronized NetCDFTimer start() {
+            startTime = System.currentTimeMillis();
+            return this;
+        }
+
+        public synchronized NetCDFTimer completed(int experimentID) {
+            for (int i = 0; i < experimentIDs.length; i++) {
+                if (experimentIDs[i] == experimentID) {
+                    completions[i] = true;
+                    completedCount++;
+                    break;
+                }
+            }
+
+            // calculate estimate of time
+            long timeWorking = System.currentTimeMillis() - startTime;
+            lastEstimate = (timeWorking / completedCount) * (completions.length - completedCount);
+
+            return this;
+        }
+
+        public synchronized long getCurrentEstimate() {
+            return lastEstimate;
+        }
+
+        public synchronized int getCompletedExperimentCount() {
+            return completedCount;
+        }
+
+        public synchronized int getTotalExperimentCount() {
+            return completions.length;
+        }
     }
 }

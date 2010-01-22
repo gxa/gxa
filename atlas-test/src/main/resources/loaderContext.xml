@@ -120,6 +120,7 @@
           class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="repositoryLocation" ref="atlasNetCDFs"/>
+        <property name="maxThreads" value="16"/>
     </bean>
 
     <!-- Analytics Generator component -->

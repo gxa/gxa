@@ -15,28 +15,28 @@
 
     <!-- SOLR index -->
     <bean id="solrContainerFactory" class="uk.ac.ebi.gxa.index.SolrContainerFactory">
-        <property name="atlasIndex" ref="atlasIndex" />
-        <property name="templatePath" value="solr" />
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="templatePath" value="solr"/>
     </bean>
 
     <bean name="solrContainer"
           factory-bean="solrContainerFactory"
           factory-method="createContainer"
-          destroy-method="shutdown" />
+          destroy-method="shutdown"/>
 
     <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="atlas" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="atlas"/>
     </bean>
 
     <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="expt" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="expt"/>
     </bean>
 
     <bean name="solrServerProp" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
-        <constructor-arg ref="solrContainer" />
-        <constructor-arg value="properties" />
+        <constructor-arg ref="solrContainer"/>
+        <constructor-arg value="properties"/>
     </bean>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
@@ -55,20 +55,22 @@
     </bean>
 
     <!-- Index Builder component -->
-    <bean name="indexBuilderServiceProperties" class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO" />
-        <property name="solrServer" ref="solrServerProp" />
+    <bean name="indexBuilderServiceProperties"
+          class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="solrServer" ref="solrServerProp"/>
     </bean>
 
-    <bean name="indexBuilderServiceExperiments" class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO" />
-        <property name="solrServer" ref="solrServerExpt" />
+    <bean name="indexBuilderServiceExperiments"
+          class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO" />
-        <property name="solrServer" ref="solrServerAtlas" />
-        <property name="efo" ref="efo" />
+        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="solrServer" ref="solrServerAtlas"/>
+        <property name="efo" ref="efo"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
@@ -98,6 +100,8 @@
         <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
         <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
+        <!-- the number of NetCDFs that can be generated in parallel.  May need tweaking based on memory constraints -->
+        <property name="maxThreads" value="8"/>
     </bean>
 
     <!-- Analytics Generator component -->
@@ -114,47 +118,47 @@
     <!-- Web interface component -->
 
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasDao">
-        <property name="solrServerAtlas" ref="solrServerAtlas" />
-        <property name="solrServerExpt" ref="solrServerExpt" />
+        <property name="solrServerAtlas" ref="solrServerAtlas"/>
+        <property name="solrServerExpt" ref="solrServerExpt"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
-        <property name="solrServerAtlas" ref="solrServerAtlas" />
-        <property name="solrServerExpt" ref="solrServerExpt" />
-        <property name="solrServerProp" ref="solrServerProp" />
+        <property name="solrServerAtlas" ref="solrServerAtlas"/>
+        <property name="solrServerExpt" ref="solrServerExpt"/>
+        <property name="solrServerProp" ref="solrServerProp"/>
         <!-- needs it for cache updates -->
-        <property name="indexBuilder" ref="indexBuilder" />
+        <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
     <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
-        <property name="solrServerAtlas" ref="solrServerAtlas" />
-        <property name="efo" ref="efo" />
+        <property name="solrServerAtlas" ref="solrServerAtlas"/>
+        <property name="efo" ref="efo"/>
         <!-- needs it for cache updates -->
-        <property name="indexBuilder" ref="indexBuilder" />
+        <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
     <bean name="atlasGenePropertyService" class="ae3.service.structuredquery.AtlasGenePropertyService">
-        <property name="solrServerAtlas" ref="solrServerAtlas" />
+        <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <!-- needs it for cache updates -->
-        <property name="indexBuilder" ref="indexBuilder" />
+        <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
-        <property name="solrServerAtlas" ref="solrServerAtlas" />
-        <property name="solrServerExpt" ref="solrServerExpt" />
-        <property name="solrServerProp" ref="solrServerProp" />
-        <property name="atlasSolrDAO" ref="atlasSolrDAO" />
-        <property name="atlasDbDAO" ref="atlasInterfaceDAO" />
-        <property name="efoService" ref="atlasEfoService" />
-        <property name="efvService" ref="atlasEfvService" />
-        <property name="efo" ref="efo" />
+        <property name="solrServerAtlas" ref="solrServerAtlas"/>
+        <property name="solrServerExpt" ref="solrServerExpt"/>
+        <property name="solrServerProp" ref="solrServerProp"/>
+        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
+        <property name="atlasDbDAO" ref="atlasInterfaceDAO"/>
+        <property name="efoService" ref="atlasEfoService"/>
+        <property name="efvService" ref="atlasEfvService"/>
+        <property name="efo" ref="efo"/>
 
         <!-- needs it for cache updates -->
-        <property name="indexBuilder" ref="indexBuilder" />
+        <property name="indexBuilder" ref="indexBuilder"/>
 
         <!-- hack: it doesn't need to know about core container,
                    but it uses it to close searcher and clean cache to prevent OOMs -->
-        <property name="coreContainer" ref="solrContainer" />
+        <property name="coreContainer" ref="solrContainer"/>
     </bean>
 
     <!-- interface compute service -->
@@ -165,7 +169,7 @@
     <!-- interface download service -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
           destroy-method="shutdown">
-        <property name="atlasQueryService" ref="atlasQueryService" />
+        <property name="atlasQueryService" ref="atlasQueryService"/>
     </bean>
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
@@ -181,7 +185,7 @@
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
-    
+
     <bean name="queryServlet" class="ae3.servlet.structuredquery.StructuredQueryServlet">
         <property name="queryService" ref="atlasQueryService"/>
         <property name="downloadService" ref="atlasDownloadService"/>
@@ -192,13 +196,19 @@
         <property name="autoCompleters">
             <util:map>
                 <entry key="gene">
-                    <util:list><ref bean="atlasGenePropertyService"/></util:list>
+                    <util:list>
+                        <ref bean="atlasGenePropertyService"/>
+                    </util:list>
                 </entry>
                 <entry key="efv">
-                    <util:list><ref bean="atlasEfvService"/></util:list>
+                    <util:list>
+                        <ref bean="atlasEfvService"/>
+                    </util:list>
                 </entry>
                 <entry key="efo">
-                    <util:list><ref bean="atlasEfoService"/></util:list>
+                    <util:list>
+                        <ref bean="atlasEfoService"/>
+                    </util:list>
                 </entry>
                 <entry key="efoefv">
                     <util:list>
@@ -238,7 +248,7 @@
     </bean>
 
     <bean name="ebeyeDownloadServlet" class="ae3.servlet.GeneEbeyeDumpDownloadServlet">
-        <property name="dao" ref="atlasSolrDAO" />
+        <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
