@@ -36,7 +36,7 @@
     <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
         <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>
-        <property name="username" value="atlas2"/>
+        <property name="username" value="atlas2test"/>
         <property name="password" value="atlas2"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="initialSize" value="32"/>
@@ -120,7 +120,7 @@
           class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="repositoryLocation" ref="atlasNetCDFs"/>
-        <property name="maxThreads" value="16"/>
+        <property name="maxThreads" value="8"/>
     </bean>
 
     <!-- Analytics Generator component -->

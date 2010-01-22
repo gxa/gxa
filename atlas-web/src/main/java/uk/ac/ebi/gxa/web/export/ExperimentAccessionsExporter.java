@@ -5,6 +5,7 @@ import net.sourceforge.fluxion.ajax.Ajaxified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
 import javax.servlet.http.HttpSession;
@@ -54,6 +55,10 @@ public class ExperimentAccessionsExporter {
         // extract pageNumber, experimentsPerPage params
         int pageNumber = input.getInt("pageNumber");
         int experimentsPerPage = input.getInt("experimentsPerPage");
+
+        // update session variables
+        session.setAttribute(Atlas.ADMIN_PAGE_NUMBER.key(), pageNumber);
+        session.setAttribute(Atlas.ADMIN_EXPERIMENTS_PER_PAGE.key(), experimentsPerPage);
 
         // request this page of experiment accessions
         List<LoadDetails> details = getAtlasDAO().getLoadDetailsForExperimentsByPage(pageNumber, experimentsPerPage);
