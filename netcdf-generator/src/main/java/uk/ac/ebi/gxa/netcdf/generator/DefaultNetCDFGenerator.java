@@ -25,6 +25,7 @@ import java.util.concurrent.*;
 public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, InitializingBean {
     private AtlasDAO atlasDAO;
     private File repositoryLocation;
+    private int maxThreads = 16;
 
     private NetCDFGeneratorService netCDFService;
 
@@ -43,12 +44,20 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
         this.atlasDAO = atlasDAO;
     }
 
+    public File getRepositoryLocation() {
+        return repositoryLocation;
+    }
+
     public void setRepositoryLocation(File repositoryLocation) {
         this.repositoryLocation = repositoryLocation;
     }
 
-    public File getRepositoryLocation() {
-        return repositoryLocation;
+    public int getMaxThreads() {
+        return maxThreads;
+    }
+
+    public void setMaxThreads(int maxThreads) {
+        this.maxThreads = maxThreads;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -70,7 +79,8 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
             }
 
             // create the service
-            netCDFService = new ExperimentNetCDFGeneratorService(atlasDAO, repositoryLocation);
+            netCDFService = new ExperimentNetCDFGeneratorService(
+                    getAtlasDAO(), getRepositoryLocation(), getMaxThreads());
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();
@@ -218,7 +228,7 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
         }
         else {
             // just slam through all tasks, ignoring the results
-            while(true) {
+            while (true) {
                 if (buildingTasks.poll() == null) {
                     break;
                 }

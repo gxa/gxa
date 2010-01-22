@@ -20,6 +20,9 @@ import java.util.*;
  * @date 30-Sep-2009
  */
 public class NetCDFWriter {
+    private int[] assayIndex;
+    private int[] designElementIndex;
+
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -201,7 +204,7 @@ public class NetCDFWriter {
                     // insert value
                     if (designElementsToGenes.get(designElement).contains(gene)) {
                         // got a mapping between design element id='designElement' and gene, lookup position in DE
-                        deIndex = designElementIndex(netCDF, designElement);
+                        deIndex = lookupDesignElementIndex(netCDF, designElement);
 
                         // create a one to one map
                         int[] map = new int[]{deIndex, gnIndex};
@@ -449,8 +452,8 @@ public class NetCDFWriter {
             for (int assayID : expressionValues.keySet()) {
                 for (Map.Entry<Integer, Float> ev : expressionValues.get(assayID)
                         .entrySet()) {
-                    int asIndex = assayIndex(netCDF, assayID);
-                    int deIndex = designElementIndex(netCDF, ev.getKey());
+                    int asIndex = lookupAssayIndex(netCDF, assayID);
+                    int deIndex = lookupDesignElementIndex(netCDF, ev.getKey());
 
                     bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
                 }
@@ -500,7 +503,7 @@ public class NetCDFWriter {
                             if (analysis.getEfvName().equals(uniqueFactorValue)) {
                                 // locate the position of this design element in the DE matrix
 //                                int deIndex = designElementIndex.get(designElementID);
-                                int deIndex = designElementIndex(netCDF, designElementID);
+                                int deIndex = lookupDesignElementIndex(netCDF, designElementID);
 
                                 // found the right analysis, add - make sure these are ordered the same as uEFV
                                 pval.setDouble(pval.getIndex().set(deIndex, uefvIndex), analysis.getPValAdjusted());
@@ -547,43 +550,53 @@ public class NetCDFWriter {
         log.debug("Wrote stats data matrix ok.");
     }
 
-    private int assayIndex(NetcdfFileWriteable netCDF, int assayID) throws IOException {
-        if (netCDF.findVariable("AS") == null) {
-            throw new IOException("Unable to read back AS index values");
-        }
-        else {
-            try {
-                int[] as = (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
-                for (int i = 0; i < as.length; i++) {
-                    if (as[i] == assayID) {
-                        return i;
-                    }
-                }
-                throw new IOException("AS does not contain assay ID " + assayID);
-            }
-            catch (IOException e) {
+    private int lookupAssayIndex(NetcdfFileWriteable netCDF, int assayID) throws IOException {
+        if (assayIndex == null) {
+            if (netCDF.findVariable("AS") == null) {
                 throw new IOException("Unable to read back AS index values");
             }
+            else {
+                try {
+                    // cache the AS in an int array for the life of this writer
+                    assayIndex = (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
+                }
+                catch (IOException e) {
+                    throw new IOException("Unable to read back AS index values");
+                }
+            }
         }
+
+        // now perform lookup
+        for (int i = 0; i < assayIndex.length; i++) {
+            if (assayIndex[i] == assayID) {
+                return i;
+            }
+        }
+        throw new IOException("AS does not contain assay ID " + assayID);
     }
 
-    private int designElementIndex(NetcdfFileWriteable netCDF, int designElementID) throws IOException {
-        if (netCDF.findVariable("DE") == null) {
-            throw new IOException("Unable to read back DE index values");
-        }
-        else {
-            try {
-                int[] as = (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
-                for (int i = 0; i < as.length; i++) {
-                    if (as[i] == designElementID) {
-                        return i;
-                    }
-                }
-                throw new IOException("DE does not contain design element ID " + designElementID);
-            }
-            catch (IOException e) {
+    private int lookupDesignElementIndex(NetcdfFileWriteable netCDF, int designElementID) throws IOException {
+        if (designElementIndex == null) {
+            if (netCDF.findVariable("DE") == null) {
                 throw new IOException("Unable to read back DE index values");
             }
+            else {
+                try {
+                    // cache the DE in an int array for the life of this writer
+                    designElementIndex = (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
+                }
+                catch (IOException e) {
+                    throw new IOException("Unable to read back DE index values");
+                }
+            }
         }
+
+        // now perform lookup
+        for (int i = 0; i < designElementIndex.length; i++) {
+            if (designElementIndex[i] == designElementID) {
+                return i;
+            }
+        }
+        throw new IOException("designElementIndex does not contain design element ID " + designElementID);
     }
 }
