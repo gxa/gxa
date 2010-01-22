@@ -16,6 +16,9 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadStage;
+import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -27,9 +30,6 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.LoadStage;
-import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
@@ -187,15 +187,24 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 Set<String> missingDesignElements;
                 try {
                     if (!designElementsByArray.containsKey(arrayDesignAcc)) {
-                        missingDesignElements =
-                                lookupMissingDesignElements(
-                                        assay.getExpressionValuesByAccession(),
-                                        assay.getArrayDesignAccession());
+                        if (assay.getExpressionValuesByAccession() == null) {
+                            getLog().debug("Assay " + assay.getAssayID() + " contains no expression values");
+                            missingDesignElements =
+                                    lookupMissingDesignElements(
+                                            new HashMap<String, Float>(),
+                                            assay.getArrayDesignAccession());
+                        }
+                        else {
+                            missingDesignElements =
+                                    lookupMissingDesignElements(
+                                            assay.getExpressionValuesByAccession(),
+                                            assay.getArrayDesignAccession());
 
-                        // add to our cache for known missing design elements
-                        designElementsByArray.put(arrayDesignAcc, missingDesignElements);
+                            // add to our cache for known missing design elements
+                            designElementsByArray.put(arrayDesignAcc, missingDesignElements);
 
-                        missingCount += missingDesignElements.size();
+                            missingCount += missingDesignElements.size();
+                        }
                     }
                     else {
                         missingDesignElements = designElementsByArray.get(arrayDesignAcc);
