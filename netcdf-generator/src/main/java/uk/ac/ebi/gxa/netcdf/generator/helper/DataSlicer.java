@@ -42,6 +42,7 @@ public class DataSlicer {
     public Set<DataSlice> sliceExperiment(final Experiment experiment) throws DataSlicingException {
         // create a service to handle slicing tasks in parallel
         final ExecutorService service = Executors.newCachedThreadPool();
+        log.debug("Started service " + service);
 
         // prefetch genes by experiment
         final Future<List<Gene>> fetchGenesTask =
@@ -125,7 +126,7 @@ public class DataSlicer {
         }
         finally {
             // shutdown the service
-            log.debug("Shutting down executor service in " + getClass().getSimpleName());
+            log.debug("Shutting down service " + service.toString());
 
             try {
                 service.shutdown();
@@ -136,7 +137,7 @@ public class DataSlicer {
                             " cleanly - suspended tasks were found");
                 }
                 else {
-                    log.debug("Executor service exited cleanly");
+                    log.debug("Service " + service.toString() + " exited cleanly");
                 }
             }
             catch (InterruptedException e) {
