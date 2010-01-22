@@ -119,7 +119,7 @@ var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments
 
     content = content + "<td><b>&nbsp;" + Number(pageNumber) + "&nbsp;</b></td>";
 
-    if ((Number(pageNumber) + 1) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+    if ((Number(pageNumber) + 1) <= Math.round(Number(maxExperiments) / Number(experimentsPerPage))) {
         content = content +
                   "<td>" +
                   "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) + 1) + "','" +
@@ -130,7 +130,7 @@ var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments
                   "</td>";
     }
 
-    if ((Number(pageNumber) + 2) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+    if ((Number(pageNumber) + 2) <= Math.round(Number(maxExperiments) / Number(experimentsPerPage))) {
         content = content +
                   "<td>" +
                   "<a href=\"#\" onclick=\"updateComputeTable('" + (Number(pageNumber) + 2) + "','" +
@@ -141,7 +141,7 @@ var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments
                   "</td>";
     }
 
-    if ((Number(pageNumber) + 3) < (Number(maxExperiments) / Number(experimentsPerPage))) {
+    if ((Number(pageNumber) + 3) <= Math.round(Number(maxExperiments) / Number(experimentsPerPage))) {
         content = content +
                   "<td>" +
                   "&nbsp;...&nbsp;" +
@@ -155,7 +155,7 @@ var renderPageSwitcher = function(pageNumber, experimentsPerPage, maxExperiments
                   "</td>" +
                   "<td>" +
                   "<a href=\"#\" onclick=\"updateComputeTable('" +
-                  (Number(maxExperiments) / Number(experimentsPerPage)) + "','" +
+                  Math.round(Number(maxExperiments) / Number(experimentsPerPage)) + "','" +
                   Number(experimentsPerPage) + "', '" + Number(maxExperiments) + "');\">" +
                   "&nbsp;&gt;|&nbsp;" +
                   "</a>" +
@@ -263,9 +263,10 @@ var createUpdatingRow = function(accession, objectType) {
 
 var writeWorkingElement = function(accession, objectType, elementType) {
     var elementID = extractTableColumnID(accession, objectType, elementType);
-
-    $(elementID).innerHTML =
-    "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>";
+    var newHTML = "<img src=\"../images/ajax-loader.gif\" alt=\"checking status with database...\"/>";
+    if ($(elementID).innerHTML != newHTML) {
+        $(elementID).innerHTML = newHTML;
+    }
 };
 
 var writeDoneElement = function(accession, objectType, elementType) {
@@ -289,7 +290,7 @@ var writeDoneElement = function(accession, objectType, elementType) {
     formID = elementID + "_form";
     buttonName = "regenerate";
 
-    $(elementID).innerHTML =
+    var newHTML =
     "<img src=\"../images/green-tick.png\" alt=\"done\" align=\"left\">" +
     "<form id=\"" + formID + "\"" +
     "action=\"" + formAction + "\"" +
@@ -299,6 +300,9 @@ var writeDoneElement = function(accession, objectType, elementType) {
     "<input type=\"hidden\" name=\"accession\" value=\"" + accession + "\"/>" +
     "<input type=\"button\" value=\"" + buttonName + "\" onclick=\"this.form.submit();\"/>" +
     "</form>";
+    if ($(elementID).innerHTML != newHTML) {
+        $(elementID).innerHTML = newHTML;
+    }
 };
 
 var writePendingElement = function(accession, objectType, elementType) {
@@ -307,9 +311,11 @@ var writePendingElement = function(accession, objectType, elementType) {
     var formAction;
     var buttonName;
 
+    var newHTML;
+
     // element type one of index, netcdf, analytics
     if (elementType == "index") {
-        $(elementID).innerHTML =
+        newHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
     }
     else if (elementType == "netcdf" || elementType == "analytics") {
@@ -317,7 +323,7 @@ var writePendingElement = function(accession, objectType, elementType) {
         formID = elementID + "_form";
         buttonName = "generate";
 
-        $(elementID).innerHTML =
+        newHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\">" +
         "<form id=\"" + formID + "\"" +
         "action=\"" + formAction + "\"" +
@@ -333,6 +339,10 @@ var writePendingElement = function(accession, objectType, elementType) {
         alert("Unrecognised element type: " + elementType + " not known!");
         return;
     }
+
+    if ($(elementID).innerHTML != newHTML) {
+        $(elementID).innerHTML = newHTML;
+    }
 };
 
 var writeFailedElement = function(accession, objectType, elementType) {
@@ -341,9 +351,11 @@ var writeFailedElement = function(accession, objectType, elementType) {
     var formAction;
     var buttonName;
 
+    var newHTML;
+
     // element type one of index, netcdf, analytics
     if (elementType == "index") {
-        $(elementID).innerHTML =
+        newHTML =
         "<img src=\"../images/red-cross.png\" alt=\"pending\" align=\"left\" />"
     }
     else if (elementType == "netcdf" || elementType == "analytics") {
@@ -351,7 +363,7 @@ var writeFailedElement = function(accession, objectType, elementType) {
         formID = elementID + "_form";
         buttonName = "retry";
 
-        $(elementID).innerHTML =
+        newHTML =
         "<img src=\"../images/red-cross.png\" alt=\"failed\" align=\"left\">" +
         "<form id=\"" + formID + "\"" +
         "action=\"" + formAction + "\"" +
@@ -367,13 +379,17 @@ var writeFailedElement = function(accession, objectType, elementType) {
         alert("Unrecognised element type: " + elementType + " not known!");
         return;
     }
+
+    if ($(elementID).innerHTML != newHTML) {
+        $(elementID).innerHTML = newHTML;
+    }
 }
 
 var writeFailedLoadRow = function(accession, objectType) {
     // check the row first of all - might need to insert new <td> elements
     var rowID = extractTableRowID(accession, objectType);
 
-    $(rowID).innerHTML =
+    var newHTML =
     "<td id=\"" + objectType + "_" + accession + "_accession\">" + accession + "</td>" +
     "<td id=\"" + objectType + "_" + accession + "_netcdf\" align=\"left\">" +
     "<img src=\"../images/dialog-warning.png\" alt=\"Failed load!\"/>This load failed, please reload!" +
@@ -382,6 +398,10 @@ var writeFailedLoadRow = function(accession, objectType) {
     "</td>" +
     "<td id=\"" + objectType + "_" + accession + "_index\" align=\"left\">" +
     "</td>";
+
+    if ($(rowID).innerHTML != newHTML) {
+        $(rowID).innerHTML = newHTML;
+    }
 };
 
 var extractTableRowID = function(accession, objectType) {
