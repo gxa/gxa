@@ -4,6 +4,8 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
@@ -16,6 +18,7 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
+import javax.sql.DataSource;
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import java.net.URL;
 import java.net.URI;
 import java.net.MalformedURLException;
+import java.sql.Connection;
 
 //import static org.junit.Assert.assertNotNull;
 
@@ -35,27 +39,31 @@ import java.net.MalformedURLException;
 public class LoaderDriver {
 
     //just to test EV stored procedure
-    public static void LoadExpressionValues(){
+    public static void LoadExpressionValues(AtlasDAO atlasDao){
 
-        int experimentID = 1241;
+        int experimentID = 1261;
         int arrayDesignID = 130297520;
 
         List<Integer> assays = new ArrayList<Integer>();
         List<Integer> designElements = new ArrayList<Integer>();
 
-        AtlasDAO.ExpressionValueMatrix r = (new AtlasDAO()).getExpressionValueMatrix(experimentID,arrayDesignID);
+        //DataSource atlasDataSource = new SingleConnectionDataSource(connection, false);
 
-        //assertNotNull(r.assays);
+        //AtlasDAO atlasDAO = new AtlasDAO();
+        //atlasDAO.setJdbcTemplate(new JdbcTemplate());
+
+        AtlasDAO.ExpressionValueMatrix r = atlasDao.getExpressionValueMatrix(experimentID,arrayDesignID);
+
+       System.out.println(String.format("Assays:%1$d",  r.assays.size()));
+       System.out.println(String.format("DesignElements:%1$d" , r.designElements.size()));
+       System.out.println(String.format("ExpressionValues:%1$d" , r.expressionValues.size()));
+
         //assertNotNull(r.designElements);
         //assertNotNull(r.expressionValues);
     }
 
 
     public static void main(String[] args) {
-
-        LoadExpressionValues();
-        if(1==1)
-            return;
 
         // configure logging
         try {
@@ -73,6 +81,11 @@ public class LoaderDriver {
 
         // loader
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
+
+        LoadExpressionValues(loader.getAtlasDAO());
+        if(1==1)
+            return;
+
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
         // netcdfs

@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -2011,59 +2012,56 @@ public class AtlasDAO {
         }
     }
 
+
+    public class AssayRowMapper implements ParameterizedRowMapper<Integer>{
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException{
+             return rs.getInt("AssayID");
+        }
+    }
+
+    public class DesignElementRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.DesignElement>{
+        public ExpressionValueMatrix.DesignElement mapRow(ResultSet rs, int rowNum) throws SQLException{
+             return new ExpressionValueMatrix.DesignElement(rs.getInt("DesignElementID")
+                                                           ,rs.getInt("GeneID"));
+        }
+    }
+
+    public class ExpressionValueRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.ExpressionValue>{
+        public ExpressionValueMatrix.ExpressionValue mapRow(ResultSet rs, int rowNum) throws SQLException{
+             return new ExpressionValueMatrix.ExpressionValue(rs.getInt("AssayID")
+                                                           ,rs.getInt("DesignElementID")
+                                                           ,rs.getFloat("Value"));
+        }
+    }
+
     public ExpressionValueMatrix getExpressionValueMatrix(int ExperimentID, int ArrayDesignID) {
+
         ExpressionValueMatrix result = new ExpressionValueMatrix();
 
-        CallableStatement stmt = null;
-        ResultSet rsDesignElements = null;
-        ResultSet rsAssays = null;
-        ResultSet rsExpressionValues = null;
+        SimpleJdbcCall procedure1 =
+                   new SimpleJdbcCall(template)
+                           .withProcedureName("ATLASAPI.A2_EXPRESSIONVALUEGET")
+                           .withoutProcedureColumnMetaDataAccess()
+                           .useInParameterNames("EXPERIMENTID")
+                           .useInParameterNames("ARRAYDESIGNID")
+                           .declareParameters(new SqlParameter("EXPERIMENTID", Types.INTEGER))
+                           .declareParameters(new SqlParameter("ARRAYDESIGNID", Types.INTEGER))
+                           .returningResultSet("ASSAYS",new AssayRowMapper())
+                           .returningResultSet("DESIGNELEMENTS",new DesignElementRowMapper())
+                           .returningResultSet("EXPRESSIONVALUES",new ExpressionValueRowMapper());
 
-        try{
+        // map parameters...
+        MapSqlParameterSource params1 = new MapSqlParameterSource()
+               .addValue("EXPERIMENTID", ExperimentID)
+               .addValue("ARRAYDESIGNID", ArrayDesignID);
 
-         ///SimpleJdbcCall procedure = new SimpleJdbcCall(template);
-         ///need to get connection here
-         java.sql.Connection connection = null; //DataSourceUtils.getConnection(getJdbcTemplate().getDataSource());
+       Map<String,Object> proc_result = procedure1.execute(params1);
 
-         DriverManager.registerDriver (new oracle.jdbc.OracleDriver());
-            
-         connection = (OracleConnection) DriverManager.getConnection("jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT","Atlas2",  "Atlas2");
+       result.assays = (List<Integer>)proc_result.get("ASSAYS");
+       result.designElements = (List<ExpressionValueMatrix.DesignElement>)proc_result.get("DESIGNELEMENTS");
+       result.expressionValues = (List<ExpressionValueMatrix.ExpressionValue>)proc_result.get("EXPRESSIONVALUES");
 
-          stmt = connection.prepareCall("{call AtlasAPI.a2_ExpressionValueGet(?,?,?,?,?)}");
-
-          stmt.setInt(1, ExperimentID);
-          stmt.setInt(2, ArrayDesignID);
-
-          stmt.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR); //DesignElements
-          stmt.registerOutParameter(4, oracle.jdbc.OracleTypes.CURSOR); //Assays
-          stmt.registerOutParameter(5, oracle.jdbc.OracleTypes.CURSOR); //ExpressionValues
-
-          stmt.execute();
-
-          rsAssays = (ResultSet) stmt.getObject(3);
-          rsDesignElements = (ResultSet) stmt.getObject(4);
-          rsExpressionValues = (ResultSet) stmt.getObject(5);
-
-          while(rsAssays.next()){
-              result.assays.add(rsAssays.getInt("AssayId"));
-          }
-
-          while(rsDesignElements.next()){
-              result.designElements.add(new ExpressionValueMatrix.DesignElement(rsDesignElements.getInt("DesignElementId"),rsDesignElements.getInt("GeneId")));
-          }
-
-          while(rsExpressionValues.next()){
-                result.expressionValues.add(
-                  new ExpressionValueMatrix.ExpressionValue( rsExpressionValues.getInt("DesignElementId")
-                                                            ,rsExpressionValues.getInt("AssayId")
-                                                            ,rsExpressionValues.getFloat("Value")));
-          }
-        }
-        catch(Exception ex){
-            System.out.print(ex.getMessage());
-        }
-
-        return result;
+       return result;
     }
 
 }
