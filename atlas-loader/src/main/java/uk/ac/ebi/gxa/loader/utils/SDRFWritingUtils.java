@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.loader.utils;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
@@ -27,6 +29,8 @@ import java.util.Set;
  * @date 28-Aug-2009
  */
 public class SDRFWritingUtils {
+    private static Logger log = LoggerFactory.getLogger(SDRFWritingUtils.class);
+
     /**
      * Write out the properties associated with a {@link Sample} in the SDRF graph.  These properties are obtained by
      * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
@@ -43,9 +47,7 @@ public class SDRFWritingUtils {
             SourceNode sourceNode)
             throws ObjectConversionException {
         // fetch characteristics of this sourceNode
-        for (CharacteristicsAttribute characteristicsAttribute :
-                sourceNode.characteristics) {
-
+        for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute
             if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
@@ -57,16 +59,46 @@ public class SDRFWritingUtils {
 
                 throw new ObjectConversionException(error, true);
             }
-            Property p = new Property();
-            p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                    investigation, characteristicsAttribute));
-            p.setName(characteristicsAttribute.type);
-            p.setValue(characteristicsAttribute.getNodeName());
-            p.setFactorValue(false);
 
-            sample.addProperty(p);
+            // does this sample already contain this property/property value pair?
+            boolean existing = false;
+            if (sample.getProperties() != null) {
+                for (Property sp : sample.getProperties()) {
+                    if (sp.getName().equals(characteristicsAttribute.type)) {
+                        if (sp.getValue().equals(characteristicsAttribute.getNodeName())) {
+                            existing = true;
+                            break;
+                        }
+                        else {
+                            // generate error item and throw exception
+                            String message = "Inconsistent characteristic values for sample " + sample.getAccession() +
+                                    ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
+                                    characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
+                                    characteristicsAttribute + ") will be ignored";
 
-            // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
+                            ErrorItem error =
+                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
+
+                            throw new ObjectConversionException(error, false);
+
+                        }
+                    }
+                }
+            }
+
+            if (!existing) {
+                Property p = new Property();
+                p.setAccession(AtlasLoaderUtils.getNodeAccession(
+                        investigation, characteristicsAttribute));
+                p.setName(characteristicsAttribute.type);
+                p.setValue(characteristicsAttribute.getNodeName());
+                p.setFactorValue(false);
+
+                sample.addProperty(p);
+
+                // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
+            }
         }
     }
 
@@ -86,9 +118,8 @@ public class SDRFWritingUtils {
             Assay assay,
             AssayNode assayNode)
             throws ObjectConversionException {
-        // fetch characteristics of this sourceNode
-        for (FactorValueAttribute factorValueAttribute :
-                assayNode.factorValues) {
+        // fetch factor values of this assayNode
+        for (FactorValueAttribute factorValueAttribute : assayNode.factorValues) {
             // create Property for this attribute
             if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
@@ -101,16 +132,45 @@ public class SDRFWritingUtils {
                 throw new ObjectConversionException(error, true);
             }
 
-            Property p = new Property();
-            p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                    investigation, factorValueAttribute));
-            p.setName(factorValueAttribute.type);
-            p.setValue(factorValueAttribute.getNodeName());
-            p.setFactorValue(true);
+            // does this assay already contain this property/property value pair?
+            boolean existing = false;
+            if (assay.getProperties() != null) {
+                for (Property ap : assay.getProperties()) {
+                    if (ap.getName().equals(factorValueAttribute.type)) {
+                        if (ap.getValue().equals(factorValueAttribute.getNodeName())) {
+                            existing = true;
+                            break;
+                        }
+                        else {
+                            // generate error item and throw exception
+                            String message = "Inconsistent characteristic values for assay " + assay.getAccession() +
+                                    ": property " + ap.getName() + " has values " + ap.getValue() + " and " +
+                                    factorValueAttribute.getNodeName() + " in different rows. Second value (" +
+                                    factorValueAttribute + ") will be ignored";
 
-            assay.addProperty(p);
+                            ErrorItem error =
+                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
 
-            // todo - factor values can have ontology entries, set these values
+                            throw new ObjectConversionException(error, false);
+
+                        }
+                    }
+                }
+            }
+
+            if (!existing) {
+                Property p = new Property();
+                p.setAccession(AtlasLoaderUtils.getNodeAccession(
+                        investigation, factorValueAttribute));
+                p.setName(factorValueAttribute.type);
+                p.setValue(factorValueAttribute.getNodeName());
+                p.setFactorValue(false);
+
+                assay.addProperty(p);
+
+                // todo - factor values can have ontology entries, set these values
+            }
         }
     }
 
@@ -129,20 +189,59 @@ public class SDRFWritingUtils {
                                                     Assay assay,
                                                     HybridizationNode hybridizationNode)
             throws ObjectConversionException {
-        // fetch characteristics of this sourceNode
-        for (FactorValueAttribute factorValueAttribute :
-                hybridizationNode.factorValues) {
+        // fetch factor values of this assayNode
+        for (FactorValueAttribute factorValueAttribute : hybridizationNode.factorValues) {
             // create Property for this attribute
-            Property p = new Property();
-            p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                    investigation, factorValueAttribute));
-            p.setName(factorValueAttribute.type);
-            p.setValue(factorValueAttribute.getNodeName());
-            p.setFactorValue(true);
+            if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
+                // generate error item and throw exception
+                String message = "Factors and their values must NOT contain '||' - " +
+                        "this is a special reserved character used as a delimiter in the database";
 
-            assay.addProperty(p);
+                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
 
-            // todo - factor values can have ontology entries, set these values
+                throw new ObjectConversionException(error, true);
+            }
+
+            // does this assay already contain this property/property value pair?
+            boolean existing = false;
+            if (assay.getProperties() != null) {
+                for (Property ap : assay.getProperties()) {
+                    if (ap.getName().equals(factorValueAttribute.type)) {
+                        if (ap.getValue().equals(factorValueAttribute.getNodeName())) {
+                            existing = true;
+                            break;
+                        }
+                        else {
+                            // generate error item and throw exception
+                            String message = "Inconsistent characteristic values for assay " + assay.getAccession() +
+                                    ": property " + ap.getName() + " has values " + ap.getValue() + " and " +
+                                    factorValueAttribute.getNodeName() + " in different rows. Second value (" +
+                                    factorValueAttribute + ") will be ignored";
+
+                            ErrorItem error =
+                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
+                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
+
+                            throw new ObjectConversionException(error, false);
+
+                        }
+                    }
+                }
+            }
+
+            if (!existing) {
+                Property p = new Property();
+                p.setAccession(AtlasLoaderUtils.getNodeAccession(
+                        investigation, factorValueAttribute));
+                p.setName(factorValueAttribute.type);
+                p.setValue(factorValueAttribute.getNodeName());
+                p.setFactorValue(false);
+
+                assay.addProperty(p);
+
+                // todo - factor values can have ontology entries, set these values
+            }
         }
     }
 
@@ -249,6 +348,12 @@ public class SDRFWritingUtils {
      * @return true if "maybeDownstreamNode" is downstream of currentNode, false otherwise
      */
     public static boolean isDirectlyDownstream(SDRF sdrf, SDRFNode currentNode, SDRFNode maybeDownstreamNode) {
+        // check for nulls - remember the graph might just not yet be complete,
+        // but nodes upstream of the one we want will DEFINATELY be present
+        if (currentNode.getChildNodeType() == null || currentNode.getChildNodeValues() == null) {
+            return false;
+        }
+
         // check children of currentNode
         if (currentNode.getChildNodeValues().contains(maybeDownstreamNode.getNodeName())) {
             // does have the maybeDownstreamNode as a child

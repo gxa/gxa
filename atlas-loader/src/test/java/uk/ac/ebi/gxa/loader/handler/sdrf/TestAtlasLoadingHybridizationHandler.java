@@ -17,8 +17,11 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Javadocs go here.
@@ -56,8 +59,6 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
 
     public void tearDown() throws Exception {
         AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
-        investigation = null;
-        cache = null;
     }
 
     public void testWriteValues() {
@@ -76,13 +77,33 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
                     }
                 }
                 if (message.equals("")) {
-                    message = "Unknown error";
+                    // try and load from properties
+                    try {
+                        Properties props = new Properties();
+                        Enumeration<URL> urls =
+                                getClass().getClassLoader().getResources("META-INF/magetab/errorcodes.properties");
+                        while (urls.hasMoreElements()) {
+                            props.load(urls.nextElement().openStream());
+                        }
+
+                        String em = props.getProperty(Integer.toString(item.getErrorCode()));
+                        if (em != null) {
+                            message = em;
+                        }
+                        else {
+                            message = "Unknown error";
+                        }
+                    }
+                    catch (IOException e) {
+                        message = "Unknown error";
+                    }
                 }
 
                 // log the error - but this isn't a fail on its own
                 System.err.println(
                         "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                item.getErrorCode() + ": " + message + " (" +
+                                item.getComment() + ")\n\t\t - " +
                                 "occurred in parsing " + item.getParsedFile() + " " +
                                 "[line " + item.getLine() + ", column " + item.getCol() + "].");
             }
@@ -96,12 +117,12 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
             fail();
         }
 
-        System.out.println("Parsing done");
+        System.out.println("parse() completed!");
 
         // parsing finished, look in our cache...
         // expect 404 assays
         assertEquals("Local cache doesn't contain correct number of assays",
-                     cache.fetchAllAssays().size(), 404);
+                     404, cache.fetchAllAssays().size());
 
         // get the title of the experiment
         for (Assay assay : cache.fetchAllAssays()) {
@@ -122,7 +143,8 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
 
             // test some property values at random
             if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::11 CN A")) {
-                assertEquals("Property value should be 'Cape Verde Islands'", "Cape Verde Islands", props.get(0).getValue());
+                assertEquals("Property value should be 'Cape Verde Islands'", "Cape Verde Islands",
+                             props.get(0).getValue());
             }
 
             if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::81 CB A")) {

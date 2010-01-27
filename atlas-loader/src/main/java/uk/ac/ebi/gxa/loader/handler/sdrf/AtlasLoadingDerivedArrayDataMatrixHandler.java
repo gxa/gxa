@@ -2,7 +2,10 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
@@ -17,9 +20,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * A dedicated handler that parses expression data from a specified data matrix file, referenced in the SDRF.  This
@@ -31,14 +33,11 @@ import java.util.Map;
  */
 public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataMatrixHandler {
     public void writeValues() throws ObjectConversionException {
-        // make sure we wait until IDF has finished reading
-        AtlasLoaderUtils.waitWhilstSDRFCompiles(investigation, this.getClass().getSimpleName(), getLog());
-
         if (investigation.accession != null) {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof DerivedArrayDataMatrixNode) {
-                    getLog().debug("Writing expression values from data file referenced by " +
+                    getLog().info("Writing expression values from data file referenced by " +
                             "derived array data matrix node '" + node.getNodeName() + "'");
 
                     if (node.getNodeName().equals(MissingDataFile.DERIVED_ARRAY_DATA_MATRIX_FILE)) {
@@ -65,10 +64,6 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                           sdrfURL.getPort(),
                                           relPath.toString().replaceAll("\\\\", "/"));
 
-                        // simple counts
-                        int refNodeCount;
-                        int evCount = 0;
-
                         // now, obtain a buffer for this dataMatrixFile
                         getLog().debug("Opening buffer of data matrix file at " + dataMatrixURL);
                         DataMatrixFileBuffer buffer = DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
@@ -76,32 +71,25 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         // find the type of nodes we need - lookup from data matrix buffer
                         String refNodeName = buffer.readReferenceColumnName();
 
-                        // grab the class associated with the refNodeName type
-                        Class<? extends SDRFNode> refNodeType =
-                                investigation.SDRF.lookupNodes(refNodeName).iterator().next().getClass();
+                        // fetch the references from the buffer
+                        Set<String> refNames = buffer.readReferences();
 
-                        // first, find all upstream nodes of the refNodeType
-                        getLog().debug("Locating upstream nodes of type: " + refNodeType.getSimpleName());
+                        // for each refName, identify the assay the expression values relate to
+                        int done = 0;
+                        int total = refNames.size();
+                        for (String refName : refNames) {
+                            getLog().debug("Attempting to attach expression values to next reference " + refName);
+                            String assayName;
+                            if (refNodeName.equals("scanname")) {
+                                // this requires mapping the assay upstream of this node to the scan
+                                SDRFNode refNode = AtlasLoaderUtils.waitForSDRFNode(
+                                        refName, refNodeName, investigation, this.getClass().getSimpleName(), getLog());
 
-                        // look for ref nodes
-                        Collection<? extends SDRFNode> referenceNodes = SDRFWritingUtils.findUpstreamNodes(
-                                investigation.SDRF, node, refNodeType);
-
-                        // if our ref nodes are Scan nodes, we need to map to the first assay node directly upstream of it
-                        boolean refsAreScans;
-                        Map<SDRFNode, SDRFNode> scanToAssayMapping = new HashMap<SDRFNode, SDRFNode>();
-                        if (refNodeType == ScanNode.class) {
-                            getLog().debug(
-                                    "Data matrix file references Scan nodes - resolving scans to associated assays");
-                            refsAreScans = true;
-
-                            // and map each scan
-                            for (SDRFNode referenceNode : referenceNodes) {
                                 // collect all the possible 'assay' forming nodes
                                 Collection<HybridizationNode> hybTypeNodes = SDRFWritingUtils.findUpstreamNodes(
-                                        investigation.SDRF, referenceNode, HybridizationNode.class);
+                                        investigation.SDRF, refNode, HybridizationNode.class);
                                 Collection<AssayNode> assayTypeNodes = SDRFWritingUtils.findUpstreamNodes(
-                                        investigation.SDRF, referenceNode, AssayNode.class);
+                                        investigation.SDRF, refNode, AssayNode.class);
 
                                 // lump the two together
                                 Collection<SDRFNode> assayNodes = new HashSet<SDRFNode>();
@@ -111,9 +99,10 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                 // now check we have 1:1 mappings so that we can resolve our scans
                                 if (assayNodes.size() == 1) {
                                     SDRFNode assayNode = assayNodes.iterator().next();
-                                    getLog().debug("Scan node " + referenceNode.getNodeName() + " resolves to " +
+                                    getLog().debug("Scan node " + refNodeName + " resolves to " +
                                             assayNode.getNodeName());
-                                    scanToAssayMapping.put(referenceNode, assayNode);
+
+                                    assayName = assayNode.getNodeName();
                                 }
                                 else {
                                     // many to one scan-to-assay, we can't load this
@@ -132,67 +121,58 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                     throw new ObjectConversionException(error, true);
                                 }
                             }
-                        }
-                        else {
-                            refsAreScans = false;
-                        }
+                            else {
+                                assayName = refName;
+                            }
 
-                        // fetch the ids
-                        String[] refNodes = new String[referenceNodes.size()];
-                        int i = 0;
-                        for (SDRFNode refNode : referenceNodes) {
-                            refNodes[i] = refNode.getNodeName();
-                            i++;
-                        }
-                        refNodeCount = refNodes.length;
+                            getLog().trace(
+                                    "Updating assay " + assayName + " with expression values, must be stored first...");
 
-                        getLog().debug("Got " + refNodes.length + " assays that require expression values");
-
-                        // and read out all expression values
-                        Map<String, Map<String, Float>> evMap = buffer.readAssayExpressionValues(refNodes);
-
-                        // now fetch each assay and add expression values
-                        for (SDRFNode referenceNode : referenceNodes) {
-                            // reference node name (might be a scan)
-                            getLog().debug("Reference node " + referenceNode.getNodeName() + " is a scan - " +
-                                    "resolving to assay before setting expression values");
-                            SDRFNode assayNode = refsAreScans
-                                    ? scanToAssayMapping.get(referenceNode)
-                                    : referenceNode;
-
-                            String accession = AtlasLoaderUtils.getNodeAccession(investigation, assayNode);
-                            String assayRef = assayNode.getNodeName();
-
-                            Map<String, Float> evs = evMap.get(referenceNode.getNodeName());
-
-                            // now we have then next expression value - if refsAreScans, map to the right assay, else just set
+                            // try to acquire the assay node from the graph
                             try {
-                                Assay assay;
-                                getLog().debug("Retrieving assay " + assayRef + ", ready to update expression values");
-                                assay = AtlasLoaderUtils.waitForAssay(accession,
-                                                                      investigation,
-                                                                      this.getClass().getSimpleName(),
-                                                                      getLog());
-                                getLog().debug("Updating assay " + assayRef + " with " + evs.size() +
-                                        " expression values");
-                                assay.setExpressionValuesByAccession(evs);
+                                AtlasLoaderUtils.waitForSDRFNode(assayName, "hybridizationname", investigation,
+                                                                 this.getClass().getSimpleName(),
+                                                                 getLog());
                             }
                             catch (LookupException e) {
-                                // generate error item and throw exception
-                                String message = "Unable to update assay with expression values - " +
-                                        "failed whilst attempting to lookup " + assayRef;
-
-                                ErrorItem error =
-                                        ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                                .generateErrorItem(message, 1032, this.getClass());
-
-                                throw new ObjectConversionException(error, true, e);
+                                try {
+                                    AtlasLoaderUtils.waitForSDRFNode(assayName, "assayname", investigation,
+                                                                     this.getClass().getSimpleName(),
+                                                                     getLog());
+                                }
+                                catch (LookupException e2) {
+                                    // if we get to here, both lookups failed
+                                    // this means we have a problem - the datafile references an element
+                                    // not present in SDRF
+                                    throw e2;
+                                }
                             }
-                            evCount = evs.size();
-                        }
 
-                        getLog().info("Updated " + refNodeCount + " assays with " + evCount * refNodeCount +
-                                " expression values");
+                            // if foundAssayNode is false,
+
+                            // now we have the name of the assay to attach EVs to, so lookup
+                            Assay assay = AtlasLoaderUtils.waitForAssay(
+                                    assayName, investigation, getClass().getSimpleName(), getLog());
+
+                            // extract twice, cos we're reading only one node at a time
+                            assay.setExpressionValuesByAccession(buffer.readExpressionValues(refName).get(refName));
+
+                            done++;
+                            getLog().debug("Updated assay " + assayName + " with " +
+                                    buffer.readExpressionValues(refName).get(refName).size() +
+                                    " expression values: Now done " + done + "/" + total +
+                                    " expression value updates");
+                        }
+                    }
+                    catch (LookupException e) {
+                        // generate error item and throw exception
+                        String message =
+                                "Data file references elements that are not present in the SDRF";
+                        ErrorItem error =
+                                ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                        .generateErrorItem(message, 511, this.getClass());
+
+                        throw new ObjectConversionException(error, true);
                     }
                     catch (MalformedURLException e) {
                         // generate error item and throw exception

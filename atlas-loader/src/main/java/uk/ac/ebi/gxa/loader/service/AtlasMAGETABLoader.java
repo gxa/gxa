@@ -70,58 +70,64 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         // pair this cache and this investigation in the registry
         AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
 
-        // configure the handlers so we write out the right bits
-        configureHandlers();
-
-        // now, perform the parse - with registered handlers, our cache will be populated
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
-        // register an error item listener
-        parser.addErrorItemListener(new ErrorItemListener() {
-            public void errorOccurred(ErrorItem item) {
-                // lookup message
-                String message = "";
-                for (ErrorCode ec : ErrorCode.values()) {
-                    if (item.getErrorCode() == ec.getIntegerValue()) {
-                        message = ec.getErrorMessage();
-                        break;
-                    }
-                }
-                if (message.equals("")) {
-                    if (item.getComment().equals("")) {
-                        message = "Unknown error";
-                    }
-                    else {
-                        message = item.getComment();
-                    }
-                }
-                String comment = item.getComment();
-
-                // log the error
-                // todo: this should go to a different log stream, part of loader report -
-                // probably should dynamically creating an appender that writes to the magetab directory
-                getLog().error(
-                        "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
-                                "occurred in parsing " + item.getParsedFile() + " " +
-                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-            }
-        });
-
         try {
-            parser.parse(idfFileLocation, investigation);
-            getLog().debug("Parsing finished");
-        }
-        catch (ParseException e) {
-            // something went wrong - no objects have been created though
-            getLog().error("There was a problem whilst trying to parse " + idfFileLocation);
-            e.printStackTrace();
-            return false;
-        }
+            // configure the handlers so we write out the right bits
+            configureHandlers();
 
-        // parsing completed, so now write the objects in the cache
-        return writeObjects(cache);
+            // now, perform the parse - with registered handlers, our cache will be populated
+            MAGETABParser parser = new MAGETABParser();
+            parser.setParsingMode(ParserMode.READ_AND_WRITE);
+
+            // register an error item listener
+            parser.addErrorItemListener(new ErrorItemListener() {
+                public void errorOccurred(ErrorItem item) {
+                    // lookup message
+                    String message = "";
+                    for (ErrorCode ec : ErrorCode.values()) {
+                        if (item.getErrorCode() == ec.getIntegerValue()) {
+                            message = ec.getErrorMessage();
+                            break;
+                        }
+                    }
+                    if (message.equals("")) {
+                        if (item.getComment().equals("")) {
+                            message = "Unknown error";
+                        }
+                        else {
+                            message = item.getComment();
+                        }
+                    }
+                    String comment = item.getComment();
+
+                    // log the error
+                    // todo: this should go to a different log stream, part of loader report -
+                    // probably should dynamically creating an appender that writes to the magetab directory
+                    getLog().error(
+                            "Parser reported:\n\t" +
+                                    item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
+                                    "occurred in parsing " + item.getParsedFile() + " " +
+                                    "[line " + item.getLine() + ", column " + item.getCol() + "].");
+                }
+            });
+
+            try {
+                parser.parse(idfFileLocation, investigation);
+                getLog().debug("Parsing finished");
+            }
+            catch (ParseException e) {
+                // something went wrong - no objects have been created though
+                getLog().error("There was a problem whilst trying to parse " + idfFileLocation);
+                e.printStackTrace();
+                return false;
+            }
+
+            // parsing completed, so now write the objects in the cache
+            return writeObjects(cache);
+        }
+        finally {
+            AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+            cache.clear();
+        }
     }
 
     protected void configureHandlers() {

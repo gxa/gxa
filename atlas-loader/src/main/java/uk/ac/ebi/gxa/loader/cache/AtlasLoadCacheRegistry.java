@@ -146,7 +146,7 @@ public class AtlasLoadCacheRegistry {
    * @param investigation the investigation being used to create objects
    * @return the cache linked to this investigation
    */
-  public AtlasLoadCache retrieveAtlasLoadCache(
+  public synchronized AtlasLoadCache retrieveAtlasLoadCache(
       MAGETABInvestigation investigation) {
     return cacheRegistry.get(investigation);
   }

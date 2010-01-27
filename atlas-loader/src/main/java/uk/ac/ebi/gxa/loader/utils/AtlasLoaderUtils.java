@@ -33,7 +33,7 @@ public class AtlasLoaderUtils {
             synchronized (investigation.IDF) {
                 try {
                     investigation.IDF.wait(1000);
-                    log.debug(handlerName + " polling for status");
+                    log.trace(handlerName + " polling for status");
                 }
                 catch (InterruptedException e) {
                     // ignore this
@@ -45,34 +45,44 @@ public class AtlasLoaderUtils {
         return investigation.getStatus() != Status.FAILED;
     }
 
-    /**
-     * Blocking method that waits until the SDRF for the given MAGETABInvestigation reached {@link
-     * Status}<code>.COMPILING</code> status, or else fails.
-     *
-     * @param investigation the investigation to wait on
-     * @param handlerName   the name of the handler (or the client class) that is waiting - this is used for logging
-     * @param log           a log stream to write - this is used in debug modes
-     * @return true when the SDRF has finished compiling, or false if it failed
-     */
-    public static boolean waitWhilstSDRFCompiles(final MAGETABInvestigation investigation,
-                                                 String handlerName,
-                                                 Log log) {
-        // compile objects
-        while (investigation.SDRF.getStatus().ordinal() < Status.COMPILING.ordinal()
-                && investigation.getStatus() != Status.FAILED) {
-            synchronized (investigation.SDRF) {
+    public static SDRFNode waitForSDRFNode(String nodeName,
+                                           String nodeType,
+                                           final MAGETABInvestigation investigation,
+                                           String handlerName,
+                                           Log log) throws LookupException {
+        if (nodeName == null) {
+            throw new LookupException("Cannot lookup an object using a null nodeName");
+        }
+
+        log.debug(handlerName + " doing lookup for " + nodeType + " " + nodeName);
+        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for dependent object");
+        // fetch from the bag
+        while (investigation.SDRF.lookupNode(nodeName, nodeType) == null &&
+                investigation.SDRF.getStatus().ordinal() < Status.COMPILING.ordinal() &&
+                investigation.getStatus() != Status.FAILED) {
+            // object isn't in the bag yet, so wait
+            synchronized (investigation) {
                 try {
-                    investigation.SDRF.wait();
-                    log.debug(handlerName + " polling for status");
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                    // wait for new objects to be available
+                    investigation.wait(1000);
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                 }
                 catch (InterruptedException e) {
-                    // ignore this
+                    if (investigation.getStatus() == Status.FAILED) {
+                        log.warn(handlerName + " was interrupted by a failure elsewhere " +
+                                "whilst waiting for " + nodeType + " " + nodeName + " and is terminating");
+                        throw new LookupException(
+                                "Interrupted by a fail whilst waiting " + "for " + nodeType + " " + nodeName);
+                    }
+                    else {
+                        // interrupted but no fail, so safe to continue
+                    }
                 }
             }
         }
-
-        // exited the loop, check whether this is due to fail or complete
-        return investigation.getStatus() != Status.FAILED;
+        log.debug(handlerName + " resumed after dependent object obtained");
+        return investigation.SDRF.lookupNode(nodeName, nodeType);
     }
 
     /**
@@ -104,16 +114,18 @@ public class AtlasLoaderUtils {
         }
 
         log.debug(handlerName + " doing lookup for experiment " + accession);
-        log.debug("Thread [" + Thread.currentThread().getName() + "] polling for dependent object");
+        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for dependent object");
         // fetch from the bag
-        while (cache.fetchExperiment(accession) == null && investigation.getStatus() != Status.COMPLETE) {
+        while (cache.fetchExperiment(accession) == null &&
+                investigation.getStatus() != Status.COMPLETE &&
+                investigation.getStatus() != Status.FAILED) {
             // object isn't in the bag yet, so wait
-            synchronized (investigation) {
+            synchronized (cache) {
                 try {
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
                     // wait for new objects to be available
-                    investigation.wait();
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] resumed");
+                    cache.wait(1000);
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                 }
                 catch (InterruptedException e) {
                     if (investigation.getStatus() == Status.FAILED) {
@@ -128,7 +140,7 @@ public class AtlasLoaderUtils {
                 }
             }
         }
-        log.debug("Thread [" + Thread.currentThread().getName() + "] resumed after dependent object obtained");
+        log.debug(handlerName + " resumed after dependent object obtained");
         return cache.fetchExperiment(accession);
     }
 
@@ -161,16 +173,18 @@ public class AtlasLoaderUtils {
         }
 
         log.debug(handlerName + " doing lookup for assay " + accession + " in " + cache.toString());
-        log.debug("Thread [" + Thread.currentThread().getName() + "] polling for assay");
+        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for assay");
         // fetch from the bag
-        while (cache.fetchAssay(accession) == null && investigation.getStatus() != Status.COMPLETE) {
+        while (cache.fetchAssay(accession) == null &&
+                investigation.getStatus() != Status.COMPLETE &&
+                investigation.getStatus() != Status.FAILED) {
             // object isn't in the bag yet, so wait
-            synchronized (investigation) {
+            synchronized (cache) {
                 try {
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
                     // wait for new objects to be available
-                    investigation.wait();
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] resumed");
+                    cache.wait(1000);
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                 }
                 catch (InterruptedException e) {
                     if (investigation.getStatus() == Status.FAILED) {
@@ -185,7 +199,7 @@ public class AtlasLoaderUtils {
                 }
             }
         }
-        log.debug("Thread [" + Thread.currentThread().getName() + "] resumed after assay obtained");
+        log.debug(handlerName + " resumed after dependent object obtained");
         return cache.fetchAssay(accession);
     }
 
@@ -218,16 +232,18 @@ public class AtlasLoaderUtils {
         }
 
         log.debug(handlerName + " doing lookup for sample " + accession);
-        log.debug("Thread [" + Thread.currentThread().getName() + "] polling for sample");
+        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for sample");
         // fetch from the bag
-        while (cache.fetchSample(accession) == null && investigation.getStatus() != Status.COMPLETE) {
+        while (cache.fetchSample(accession) == null &&
+                investigation.getStatus() != Status.COMPLETE &&
+                investigation.getStatus() != Status.FAILED) {
             // object isn't in the bag yet, so wait
-            synchronized (investigation) {
+            synchronized (cache) {
                 try {
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
                     // wait for new objects to be available
-                    investigation.wait();
-                    log.debug("Thread [" + Thread.currentThread().getName() + "] resumed");
+                    cache.wait(1000);
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                 }
                 catch (InterruptedException e) {
                     if (investigation.getStatus() == Status.FAILED) {
@@ -241,7 +257,7 @@ public class AtlasLoaderUtils {
                 }
             }
         }
-        log.debug("Thread [" + Thread.currentThread().getName() + "] resumed after sample obtained");
+        log.debug(handlerName + " resumed after dependent object obtained");
         return cache.fetchSample(accession);
     }
 
@@ -256,16 +272,6 @@ public class AtlasLoaderUtils {
      * @return the accession that was generated
      */
     public static String getNodeAccession(MAGETABInvestigation investigation, SDRFNode node) {
-//        // todo - make decision on accession number format - just use name if not required to be unique?
-//        String accession;
-//        if (investigation.accession != null) {
-//            accession = investigation.accession + "::" + node.getNodeType() + "::" + node.getNodeName();
-//        }
-//        else {
-//            accession = "UNKNOWN::" + node.getNodeType() + "::" + node.getNodeName();
-//        }
-//        return accession;
-
         // no requirement to be unique, so just return node name
         return node.getNodeName();
     }
