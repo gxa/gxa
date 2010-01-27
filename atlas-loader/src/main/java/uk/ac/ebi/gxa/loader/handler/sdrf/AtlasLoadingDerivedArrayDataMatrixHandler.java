@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,6 +74,10 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                         // fetch the references from the buffer
                         Set<String> refNames = buffer.readReferences();
+
+                        // prefetch the map of all expression values in this file
+                        Map<String, Map<String, Float>> expressionValues =
+                                buffer.readExpressionValues(refNames.toArray(new String[refNames.size()]));
 
                         // for each refName, identify the assay the expression values relate to
                         int done = 0;
@@ -159,9 +164,8 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                             done++;
                             getLog().debug("Updated assay " + assayName + " with " +
-                                    buffer.readExpressionValues(refName).get(refName).size() +
-                                    " expression values: Now done " + done + "/" + total +
-                                    " expression value updates");
+                                    expressionValues.get(refName).size() + " expression values. " +
+                                    "Now done " + done + "/" + total + " expression value updates");
                         }
                     }
                     catch (LookupException e) {
