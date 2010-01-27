@@ -210,6 +210,7 @@ public class DataMatrixFileBuffer {
                                 maybeHeader.equals("assayref") ||
                                 maybeHeader.equals("hybridizationref") ||
                                 maybeHeader.equals("scanref") ||
+                                maybeHeader.equals("reporterref") ||
                                 maybeHeader.equals("compositeelementref") ||
                                 maybeHeader.startsWith("termsourceref:") ||
                                 maybeHeader.startsWith("coordinatesref:")) {
