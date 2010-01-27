@@ -240,5 +240,8 @@ CREATE OR REPLACE VIEW vwExperimentSample as
   join a2_AssaySample ass on ass.SampleID = s.SampleID
   join a2_Assay a on a.AssayID = ass.AssayID;
 /  
+
+quit;
+/
   
 

@@ -44,3 +44,6 @@
               END LOOP;
               RETURN v_STRING_TBL;
   end;
+/
+exit;
+/

@@ -227,3 +227,6 @@ drop type TIPTB2;
 create or replace
 TYPE INTARRAY is VARRAY(100000000) OF INTEGER;
 /
+
+quit;
+/
