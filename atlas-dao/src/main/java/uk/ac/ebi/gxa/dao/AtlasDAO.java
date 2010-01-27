@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
-import oracle.jdbc.OracleTypes;
 import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
@@ -16,15 +16,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Gene;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.model.*;
 
 import java.sql.*;
 import java.util.*;
@@ -214,6 +206,11 @@ public class AtlasDAO {
                     "AND a.arraydesignid=d.arraydesignid " +
                     "AND e.accession=?";
     private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
+            "SELECT de.designelementid, de.accession " +
+                    "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
+                    "WHERE de.arraydesignid=ad.arraydesignid " +
+                    "AND ad.accession=?";
+    private static final String DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION =
             "SELECT de.designelementid, de.accession " +
                     "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
                     "WHERE de.arraydesignid=ad.arraydesignid " +
@@ -899,6 +896,24 @@ public class AtlasDAO {
     public Map<Integer, String> getDesignElementsByArrayAccession(
             String arrayDesignAccession) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
+                                        new Object[]{arrayDesignAccession},
+                                        new DesignElementMapper());
+        return (Map<Integer, String>) results;
+    }
+
+    /**
+     * A convenience method that fetches the set of design elements by array design accession.  In this case, design
+     * elements are recorded as a map, indexed by design element id and with a value of the design element name.  The
+     * design element name corresponds to the arraydesign reporter name or composite reporter name, and is usually the
+     * probeset ID. The set of design element ids contains no duplicates, and the results that are returned are the
+     * names for design elements.  This takes the accession of the array design as a parameter.
+     *
+     * @param arrayDesignAccession the accession number of the array design to query for
+     * @return the map of design element names indexed by unique design element id integers
+     */
+    public Map<Integer, String> getDesignElementNamesByArrayAccession(
+            String arrayDesignAccession) {
+        Object results = template.query(DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION,
                                         new Object[]{arrayDesignAccession},
                                         new DesignElementMapper());
         return (Map<Integer, String>) results;
@@ -1981,34 +1996,39 @@ public class AtlasDAO {
     }
 
     //AZ:to be moved to model
-    public static class ExpressionValueMatrix{
-        public static class ExpressionValue{
+
+    public static class ExpressionValueMatrix {
+        public static class ExpressionValue {
             //can I just leave it here without get/set methods?
             public int assayID;
             public int designElementID;
             public double value;
 
-            public ExpressionValue(int assayID, int designElementID, float value){
+            public ExpressionValue(int assayID, int designElementID, float value) {
                 this.assayID = assayID;
                 this.designElementID = designElementID;
                 this.value = value;
             }
         }
-        public static class DesignElement{
+
+        public static class DesignElement {
             public int designElementID;
             public int geneID;
-            public DesignElement(int designElementID, int geneID){
+
+            public DesignElement(int designElementID, int geneID) {
                 this.designElementID = designElementID;
                 this.geneID = geneID;
             }
         }
+
         public List<ExpressionValue> expressionValues;
         public List<DesignElement> designElements;
         public List<Integer> assays;
-        public ExpressionValueMatrix(){
+
+        public ExpressionValueMatrix() {
             expressionValues = new ArrayList<ExpressionValue>();
             designElements = new ArrayList<DesignElement>();
-            assays = new ArrayList<Integer>();        
+            assays = new ArrayList<Integer>();
         }
     }
 

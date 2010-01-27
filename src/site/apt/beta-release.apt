@@ -38,11 +38,11 @@ Gene Expression Atlas, Beta Release
  specification.  To construct an Atlas 2 compliant database, you can download the bundle of sql scripts from
  {{{http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}},
  or build the database directly from a dump we provide.  This dump contains all the array designs and associated data,
- and is available from the EBI FTP site - follow the instructiuons below to obtain this.
+ and is available from the EBI FTP site - follow the instructions below to obtain this.
 
 *** Atlas 2 Database Dump
 
- ftp to ftp1.ebi.ac.uk
+ ftp to ftp1.ebi.ac.uk.
  Name and password are both 'aexpress'
 
  This is a restricted ftp site, so you won't be able to list the contents, and to download the files you need to know

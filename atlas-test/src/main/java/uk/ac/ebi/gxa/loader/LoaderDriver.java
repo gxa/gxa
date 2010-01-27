@@ -4,31 +4,22 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
-import javax.sql.DataSource;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
-import java.util.List;
-import java.util.ArrayList;
-import java.net.URL;
-import java.net.URI;
-import java.net.MalformedURLException;
-import java.sql.Connection;
-
-//import static org.junit.Assert.assertNotNull;
 
 /**
  * Javadocs go here!
@@ -37,34 +28,7 @@ import java.sql.Connection;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
-
-    //just to test EV stored procedure
-    public static void LoadExpressionValues(AtlasDAO atlasDao){
-
-        int experimentID = 1261;
-        int arrayDesignID = 130297520;
-
-        List<Integer> assays = new ArrayList<Integer>();
-        List<Integer> designElements = new ArrayList<Integer>();
-
-        //DataSource atlasDataSource = new SingleConnectionDataSource(connection, false);
-
-        //AtlasDAO atlasDAO = new AtlasDAO();
-        //atlasDAO.setJdbcTemplate(new JdbcTemplate());
-
-        AtlasDAO.ExpressionValueMatrix r = atlasDao.getExpressionValueMatrix(experimentID,arrayDesignID);
-
-       System.out.println(String.format("Assays:%1$d",  r.assays.size()));
-       System.out.println(String.format("DesignElements:%1$d" , r.designElements.size()));
-       System.out.println(String.format("ExpressionValues:%1$d" , r.expressionValues.size()));
-
-        //assertNotNull(r.designElements);
-        //assertNotNull(r.expressionValues);
-    }
-
-
     public static void main(String[] args) {
-
         // configure logging
         try {
             LogManager.getLogManager()
@@ -81,11 +45,6 @@ public class LoaderDriver {
 
         // loader
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
-
-        LoadExpressionValues(loader.getAtlasDAO());
-        if(1==1)
-            return;
-
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
         // netcdfs
@@ -97,7 +56,7 @@ public class LoaderDriver {
 
         // run the loader
         try {
-            final URL url = URI.create("file:////Work/MAGE-TAB/E-TABM-18/E-TABM-18.idf.txt").toURL();
+            final URL url = URI.create("file:////home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
             final long indexStart = System.currentTimeMillis();
             loader.loadExperiment(url, new AtlasLoaderListener() {
 
@@ -191,8 +150,7 @@ public class LoaderDriver {
 
         // run the NetCDFGenerator
 //        final long netStart = System.currentTimeMillis();
-//        generator.generateNetCDFsForExperiment(
-//                "E-TABM-199",
+//        generator.generateNetCDFs(
 //                new NetCDFGeneratorListener() {
 //                    public void buildSuccess(NetCDFGenerationEvent event) {
 //                        final long netEnd = System.currentTimeMillis();
@@ -224,6 +182,9 @@ public class LoaderDriver {
 //                    }
 //                });
 
+        // iteratively invoke netcdf generator
+//        iterativelyInvokeNetCDFs(generator, 0, 5);
+
         // in case we don't run netCDF generator
         try {
             generator.shutdown();
@@ -233,47 +194,47 @@ public class LoaderDriver {
         }
 
         // run the analytics
-        final long netStart = System.currentTimeMillis();
-        analytics.generateAnalyticsForExperiment(
-                "E-TABM-199",
-                new AnalyticsGeneratorListener() {
-                    public void buildSuccess(AnalyticsGenerationEvent event) {
-                        final long netEnd = System.currentTimeMillis();
-
-                        String total = new DecimalFormat("#.##").format(
-                                (netEnd - netStart) / 60000);
-                        System.out.println(
-                                "Analytics generated successfully in " + total + " mins.");
-
-                        try {
-                            analytics.shutdown();
-                        }
-                        catch (AnalyticsGeneratorException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    public void buildError(AnalyticsGenerationEvent event) {
-                        System.out.println("Analytics Generation failed!");
-                        for (Throwable t : event.getErrors()) {
-                            t.printStackTrace();
-                            try {
-                                analytics.shutdown();
-                            }
-                            catch (AnalyticsGeneratorException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
+//        final long netStart = System.currentTimeMillis();
+//        analytics.generateAnalyticsForExperiment(
+//                "E-GEOD-4174",
+//                new AnalyticsGeneratorListener() {
+//                    public void buildSuccess(AnalyticsGenerationEvent event) {
+//                        final long netEnd = System.currentTimeMillis();
+//
+//                        String total = new DecimalFormat("#.##").format(
+//                                (netEnd - netStart) / 60000);
+//                        System.out.println(
+//                                "Analytics generated successfully in " + total + " mins.");
+//
+//                        try {
+//                            analytics.shutdown();
+//                        }
+//                        catch (AnalyticsGeneratorException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                    public void buildError(AnalyticsGenerationEvent event) {
+//                        System.out.println("Analytics Generation failed!");
+//                        for (Throwable t : event.getErrors()) {
+//                            t.printStackTrace();
+//                            try {
+//                                analytics.shutdown();
+//                            }
+//                            catch (AnalyticsGeneratorException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                });
 
         // in case we don't run analytics
-//        try {
-//            analytics.shutdown();
-//        }
-//        catch (AnalyticsGeneratorException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            analytics.shutdown();
+        }
+        catch (AnalyticsGeneratorException e) {
+            e.printStackTrace();
+        }
 
 //        // do a load_monitor update
 //        final AtlasDAO atlasDAO =
@@ -296,5 +257,50 @@ public class LoaderDriver {
 //        System.out.println("Set index-test: searchindex = done");
 
         // do a test
+    }
+
+    private static void iterativelyInvokeNetCDFs(final NetCDFGenerator generator, final int iteration, final int maxTimes) {
+        System.out.println("Invoking generator, iteration " + iteration);
+
+        // run the NetCDFGenerator
+        final long netStart = System.currentTimeMillis();
+        generator.generateNetCDFsForExperiment(
+                "E-TABM-199",
+                new NetCDFGeneratorListener() {
+                    public void buildSuccess(NetCDFGenerationEvent event) {
+                        int it = iteration + 1;
+                        final long netEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (netEnd - netStart) / 60000);
+                        System.out.println(
+                                "NetCDFs generated successfully in " + total + " mins.");
+
+                        if (it <= maxTimes) {
+                            iterativelyInvokeNetCDFs(generator, it, maxTimes);
+                        }
+                        else {
+                            try {
+                                generator.shutdown();
+                            }
+                            catch (NetCDFGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    public void buildError(NetCDFGenerationEvent event) {
+                        System.out.println("NetCDF Generation failed!");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                            try {
+                                generator.shutdown();
+                            }
+                            catch (NetCDFGeneratorException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
     }
 }
