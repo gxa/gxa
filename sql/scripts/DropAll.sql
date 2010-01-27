@@ -191,6 +191,9 @@ DROP PROCEDURE A2_ARRAYDESIGNSET;
 DROP PROCEDURE A2_ASSAYSET;
 DROP PROCEDURE A2_EXPERIMENTSET;
 DROP VIEW VWGENEPROPERTY;
+DROP PROCEDURE A2_E1;
 
 
 select * from all_objects where object_name like 'A2_%'
+select count(1) from a2_expressionvalue
+
