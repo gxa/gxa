@@ -5,6 +5,7 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDesignNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -12,8 +13,10 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -25,21 +28,38 @@ import java.util.List;
  */
 public class AtlasLoadingAssayHandler extends AssayHandler {
     public void writeValues() throws ObjectConversionException {
-        // make sure we wait until IDF has finsihed reading
-        AtlasLoaderUtils.waitWhilstSDRFCompiles(investigation, this.getClass().getSimpleName(), getLog());
-
         if (investigation.accession != null) {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof AssayNode) {
                     getLog().debug("Writing assay from assay node '" + node.getNodeName() + "'");
-
                     AssayNode assayNode = (AssayNode) node;
 
-                    Assay assay = new Assay();
-                    assay.setAccession(AtlasLoaderUtils.getNodeAccession(investigation, assayNode));
-                    assay.setExperimentAccession(investigation.accession);
+                    // fetch cache
+                    AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
 
+                    // create/retrieve the new assay
+                    Assay assay;
+                    if (cache.fetchAssay(AtlasLoaderUtils.getNodeAccession(investigation, node)) != null) {
+                        // get the existing sample
+                        assay = cache.fetchAssay(AtlasLoaderUtils.getNodeAccession(investigation, node));
+                        getLog().debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
+                                "count now = " + cache.fetchAllAssays().size());
+                    }
+                    else {
+                        // create a new sample and add it to the cache
+                        assay = new Assay();
+                        assay.setAccession(AtlasLoaderUtils.getNodeAccession(investigation, assayNode));
+                        assay.setExperimentAccession(investigation.accession);
+                        cache.addAssay(assay);
+                        getLog().debug("Created new assay (" + assay.getAccession() + "), " +
+                                "count now = " + cache.fetchAllAssays().size());
+
+                        // and notify, as the investigation has updated
+                        synchronized (investigation) {
+                            investigation.notifyAll();
+                        }
+                    }
 
                     // add array design accession
                     List<String> arrayDesignAccessions = new ArrayList<String>();
@@ -59,18 +79,48 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
                     }
                     else {
                         // only one, so set the accession
-                        assay.setArrayDesignAcession(arrayDesignAccessions.get(0));
+                        if (assay.getArrayDesignAccession() == null) {
+                            assay.setArrayDesignAcession(arrayDesignAccessions.get(0));
+                        }
+                        else if (!assay.getArrayDesignAccession().equals(arrayDesignAccessions.get(0))) {
+                            String message = "The same assay in the SDRF references two different array designs";
+
+                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(message, 1018, this.getClass());
+
+                            throw new ObjectConversionException(error, true);
+                        }
+                        else {
+                            // already set, and equal, so ignore
+                        }
                     }
 
                     // now record any properties
                     SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
 
-                    // add the experiment to the cache
-                    AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
-                            .retrieveAtlasLoadCache(investigation);
-                    cache.addAssay(assay);
-                    synchronized (investigation) {
-                        investigation.notifyAll();
+                    // finally, assays must be linked to their upstream samples
+                    Collection<SourceNode> upstreamSources = SDRFWritingUtils.findUpstreamNodes(
+                            investigation.SDRF, assayNode, SourceNode.class);
+
+                    for (SourceNode source : upstreamSources) {
+                        // retrieve the samples with the matching accession
+                        Sample sample = cache.fetchSample(source.getNodeName());
+                        if (sample == null) {
+                            // no sample to link to in the cache - generate error item and throw exception
+                            String message = "Assay " + assay.getAccession() + " is linked to sample " +
+                                    source.getNodeName() + " but this sample is not due to be loaded. " +
+                                    "This assay will not be linked to a sample";
+                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(message, 511, this.getClass());
+
+                            throw new ObjectConversionException(error, false);
+                        }
+                        else {
+                            if (sample.getAssayAccessions() != null &&
+                                    !sample.getAssayAccessions().contains(assay.getAccession())) {
+                                sample.addAssayAccession(assay.getAccession());
+                            }
+                        }
                     }
                 }
                 else {

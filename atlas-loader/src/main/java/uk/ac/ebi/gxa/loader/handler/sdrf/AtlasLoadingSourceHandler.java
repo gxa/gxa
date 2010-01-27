@@ -27,38 +27,32 @@ import java.util.List;
  */
 public class AtlasLoadingSourceHandler extends SourceHandler {
     protected void writeValues() throws ObjectConversionException {
-        // make sure we wait until IDF has finsihed reading
-        AtlasLoaderUtils.waitWhilstSDRFCompiles(investigation, this.getClass().getSimpleName(), getLog());
-
         if (investigation.accession != null) {
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof SourceNode) {
                     getLog().debug("Writing sample from source node '" + node.getNodeName() + "'");
-                    
-                    Sample sample = new Sample();
-                    sample.setAccession(AtlasLoaderUtils.getNodeAccession(investigation, node));
 
-                    // add the sample to the cache
                     AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
-                    cache.addSample(sample);
-                    synchronized (investigation) {
-                        investigation.notifyAll();
+
+                    Sample sample;
+                    if (cache.fetchSample(AtlasLoaderUtils.getNodeAccession(investigation, node)) != null) {
+                        // get the existing sample
+                        sample = cache.fetchSample(AtlasLoaderUtils.getNodeAccession(investigation, node));
+                    }
+                    else {
+                        // create a new sample and add it to the cache
+                        sample = new Sample();
+                        sample.setAccession(AtlasLoaderUtils.getNodeAccession(investigation, node));
+                        cache.addSample(sample);
+                        // and notify, as the investigation has updated
+                        synchronized (investigation) {
+                            investigation.notifyAll();
+                        }
                     }
 
-                    // write the characterstic values as properties
+                    // write the characteristic values as properties
                     SDRFWritingUtils.writeSampleProperties(investigation, sample, (SourceNode) node);
-
-                    // now we've created the sample, wait for donwstream assays and link them
-
-                    // walk down the graph to get to child hyb/assay nodes
-                    List<SDRFNode> assayNodes = findDownstreamAssayNode(investigation.SDRF, (SourceNode) node);
-
-                    for (SDRFNode assayNode : assayNodes) {
-                        // set up link between sample and assay
-                        String assayAccession = AtlasLoaderUtils.getNodeAccession(investigation, assayNode);
-                        sample.addAssayAccession(assayAccession);
-                    }
                 }
                 else {
                     // generate error item and throw exception
@@ -82,33 +76,6 @@ public class AtlasLoadingSourceHandler extends SourceHandler {
                     .generateErrorItem(message, 501, this.getClass());
 
             throw new ObjectConversionException(error, true);
-        }
-    }
-
-    private List<SDRFNode> findDownstreamAssayNode(SDRF sdrf, SourceNode node) {
-        List<SDRFNode> foundNodes = new ArrayList<SDRFNode>();
-
-        for (String nodeName : node.getChildNodeValues()) {
-            SDRFNode nextNode = sdrf.lookupNode(nodeName, node.getChildNodeType());
-            walkDownGraph(sdrf, nextNode, foundNodes);
-        }
-
-        return foundNodes;
-    }
-
-    private void walkDownGraph(SDRF sdrf, SDRFNode node,
-                               List<SDRFNode> foundNodes) {
-        // check current node
-        if (node instanceof AssayNode || node instanceof HybridizationNode) {
-            // we want this node
-            foundNodes.add(node);
-        }
-        else {
-            // we don't want this, but do walk to children
-            for (String nodeName : node.getChildNodeValues()) {
-                SDRFNode nextNode = sdrf.lookupNode(nodeName, node.getChildNodeType());
-                walkDownGraph(sdrf, nextNode, foundNodes);
-            }
         }
     }
 }

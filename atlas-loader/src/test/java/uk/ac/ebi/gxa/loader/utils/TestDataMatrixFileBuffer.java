@@ -37,7 +37,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
 
       long startTime = System.currentTimeMillis();
       Map<String, Map<String, Float>> evs =
-          buffer.readAssayExpressionValues(assayRef);
+          buffer.readExpressionValues(assayRef);
       long endTime = System.currentTimeMillis();
 
       long readOnceTime = endTime - startTime;
@@ -72,7 +72,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
       // repeat reads
       for (int i = 0; i < 100; i++) {
         long startTime = System.currentTimeMillis();
-        buffer.readAssayExpressionValues(assayRef);
+        buffer.readExpressionValues(assayRef);
         long endTime = System.currentTimeMillis();
 
         long repeatTime = endTime - startTime;

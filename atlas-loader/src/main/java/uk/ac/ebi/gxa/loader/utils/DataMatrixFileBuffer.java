@@ -18,9 +18,9 @@ import java.util.*;
  * accomplished by use of a factory method to generate a single DataMatrixFileBuffer object per-file.  On construction,
  * the buffer is initialized - this starts a process that runs in a new thread, parsing the file for headers and doing a
  * dictionary lookup for quantitation types in the file. Once initialization has completed, data can be quickly and
- * easily read out of the file by calling the {@link #readAssayExpressionValues(String[])} method, passing in the id of
+ * easily read out of the file by calling the {@link #readExpressionValues(String...)} method, passing in the id of
  * the assay you wish to read (which should be obtained from the SDRF file, and binds to particular columns in the data
- * matrix file).  You can call {@link #readAssayExpressionValues(String[])} immediately once your bufer object is
+ * matrix file).  You can call {@link #readExpressionValues(String...)} immediately once your bufer object is
  * returned, but this method blocks until initialization has completed.
  *
  * @author Tony Burdett
@@ -98,18 +98,42 @@ public class DataMatrixFileBuffer {
     }
 
     /**
-     * Read off expression values for the given assay ref.  This buffer object automatically knows which columns must be
-     * read, as a dictionary lookup on column names was performed on initialization.  You can configure the dictionary
-     * of terms to use manually - for more on this see {@link QuantitationTypeDictionary}.  This method blocks until
-     * initialization has completed, and this buffer knows which columns to read to obtain expression values.
+     * Returns the list of references observed in this data file.  This should normally match exactly to the set of
+     * hybs/assays/scans described in the SDRF file.
      *
-     * @param assayRefs the references of the assays you wish to find expression values for
+     * @return
+     */
+    public Set<String> readReferences() {
+        // block until ready
+        synchronized (this) {
+            while (!ready && initFailed == null) {
+                try {
+                    log.debug("Blocking whilst buffer initializes...");
+                    wait();
+                }
+                catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+
+        return refToEVColumn.keySet();
+    }
+
+    /**
+     * Read off expression values for the column reference.  The reference will normally be a hyb, assay or scan column
+     * from the SDRF file.  This buffer object automatically knows which columns must be read, as a dictionary lookup on
+     * column names was performed on initialization.  You can configure the dictionary of terms to use manually - for
+     * more on this see {@link QuantitationTypeDictionary}.  This method blocks until initialization has completed, and
+     * this buffer knows which columns to read to obtain expression values.
+     *
+     * @param references the references of the assays you wish to find expression values for
      * @return a map of expression values read, indexed by assay ref
      * @throws ParseException if the file could not be parsed, either at initialization or when reading expression
      *                        values
      */
-    public Map<String, Map<String, Float>> readAssayExpressionValues(
-            String... assayRefs)
+    public Map<String, Map<String, Float>> readExpressionValues(
+            String... references)
             throws ParseException {
         // block until ready
         synchronized (this) {
@@ -135,7 +159,7 @@ public class DataMatrixFileBuffer {
 
         // if we've read these expression values before
         Set<String> bufferedAssays = new HashSet<String>();
-        for (String assayRef : assayRefs) {
+        for (String assayRef : references) {
             if (refToEVs.containsKey(assayRef)) {
                 result.put(assayRef, refToEVs.get(assayRef));
                 bufferedAssays.add(assayRef);
@@ -149,7 +173,7 @@ public class DataMatrixFileBuffer {
         }
 
         // do we need to actually read the file now?
-        if (bufferedAssays.size() == assayRefs.length) {
+        if (bufferedAssays.size() == references.length) {
             // we've got all the results we need
             return result;
         }
@@ -194,7 +218,7 @@ public class DataMatrixFileBuffer {
                         }
                         else {
                             // not a header line, so read out expression values
-                            for (String assayRef : assayRefs) {
+                            for (String assayRef : references) {
                                 // only look for this value if we've not got it cached
                                 if (!bufferedAssays.contains(assayRef)) {
                                     // read all expression values for this line
@@ -295,12 +319,12 @@ public class DataMatrixFileBuffer {
                         for (Header header : headers) {
                             List<String> possibleTypes = new ArrayList<String>();
                             for (String qtType : header.getQuantitationTypes()) {
-                                log.debug("Checking type (" + qtType + ") against dictionary " +
+                                log.trace("Checking type (" + qtType + ") against dictionary " +
                                         "for " + header.assayRef);
                                 if (dictionary.lookupTerm(qtType)) {
                                     possibleTypes.add(qtType);
                                     if (!refToEVColumn.containsKey(header.assayRef)) {
-                                        log.debug("Term " + qtType +
+                                        log.trace("Term " + qtType +
                                                 " is in dictionary, inserting column " +
                                                 header.getIndexOfQuantitationType(qtType) +
                                                 " into map for " + header.assayRef);
@@ -404,6 +428,8 @@ public class DataMatrixFileBuffer {
             }).start();
         }
     }
+
+    
 
     private Header[] parseHeaders(BufferedReader reader)
             throws IOException, ParseException {
@@ -515,14 +541,14 @@ public class DataMatrixFileBuffer {
             // new header needed?
             if (header == null || !header.getAssayRef().equals(hybRef)) {
                 // i.e. first token, or the hybRef is the same as the last token so use same header
-                log.debug("Found header binding to " + hybRef);
+                log.trace("Found header binding to " + hybRef);
                 header = new Header();
                 header.setAssayRef(hybRef);
                 headers.add(header);
             }
 
             // add qtTypes
-            log.debug("Adding quantitation type '" + qtType + "' to header '" +
+            log.trace("Adding quantitation type '" + qtType + "' to header '" +
                     hybRef + "', index=" + column);
             header.addQTType(qtType, column);
         }

@@ -16,7 +16,10 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
+import java.util.Properties;
 
 /**
  * Javadocs go here.
@@ -54,8 +57,6 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
 
     public void tearDown() throws Exception {
         AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
-        investigation = null;
-        cache = null;
     }
 
     public void testWriteValues() {
@@ -74,7 +75,26 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
                     }
                 }
                 if (message.equals("")) {
-                    message = "Unknown error";
+                    // try and load from properties
+                    try {
+                        Properties props = new Properties();
+                        Enumeration<URL> urls =
+                                getClass().getClassLoader().getResources("META-INF/magetab/errorcodes.properties");
+                        while (urls.hasMoreElements()) {
+                            props.load(urls.nextElement().openStream());
+                        }
+
+                        String em = props.getProperty(Integer.toString(item.getErrorCode()));
+                        if (em != null) {
+                            message = em;
+                        }
+                        else {
+                            message = "Unknown error";
+                        }
+                    }
+                    catch (IOException e) {
+                        message = "Unknown error";
+                    }
                 }
 
                 // log the error - but this isn't a fail on its own
@@ -99,7 +119,7 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
         // parsing finished, look in our cache...
         // expect 404 samples
         assertEquals("Local cache doesn't contain correct number of samples",
-                     cache.fetchAllSamples().size(), 404);
+                     404, cache.fetchAllSamples().size());
 
         // get the title of the experiment
         for (Sample sample : cache.fetchAllSamples()) {
@@ -107,13 +127,5 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
             System.out.println("Next sample acc: " + acc);
             assertNotNull("Sample acc is null", acc);
         }
-    }
-
-    public void testFindDownstreamAssayNode() {
-        // private method, test in the context of writeValues()
-    }
-
-    public void testWalkDownGraph() {
-        // private method, test in the context of writeValues()
     }
 }

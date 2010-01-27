@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <appender name="console" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern"
+                   value="%-5p(%C:%L; %t) - %m%n"/>
+        </layout>
+    </appender>
+
+    <!--<logger name="uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF">-->
+        <!--<level value="DEBUG"/>-->
+        <!--<appender-ref ref="console" />-->
+    <!--</logger>-->
+
+    <!--<logger name="uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler" additivity="false">-->
+        <!--<level value="DEBUG"/>-->
+        <!--<appender-ref ref="console" />-->
+    <!--</logger>-->
+
+</log4j:configuration>
