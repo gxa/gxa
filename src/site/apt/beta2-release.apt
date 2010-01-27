@@ -10,7 +10,7 @@ Gene Expression Atlas, Beta 2 Release
 
 * What's in the Beta Release
 
- The beta 2 release is similar to the {{{beta-release.html}beta release}, but contains several bug fixes
+ The beta 2 release is similar to the {{{beta-release.html}beta release}}, but contains several bug fixes
  and performance enhancements.  These are:
 
  * Fixed errors in NetCDF generation
@@ -30,7 +30,7 @@ Gene Expression Atlas, Beta 2 Release
  The installer requires an Atlas 2 database to be installed locally, and also requires sufficient diskspace allocated to
  build the NetCDF and SOLR index files.  It also requires a local installation of R; more notes on this below.
 
- See the {{{beta-release.html}beta release} page for more details.
+ See the {{{beta-release.html}beta release}} page for more details.
 
 ** Note on the Atlas Database
 
@@ -59,7 +59,9 @@ Gene Expression Atlas, Beta 2 Release
 
    * All the expression value data in the arrayexpress atlas (about 40GB in size)
 
-   *  Note that this file is large, and is located in a further subdirectory 'Data' 
+   * Note that this file is large, and is located in a further subdirectory 'Data'
+
+ []
 
  Use the get command to download these files to your working directory.
 
