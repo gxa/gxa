@@ -372,8 +372,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         Set<String> missingDesignElements = new HashSet<String>();
 
         // for every expression value, check the design element ref is in database (first by accession, then name)
-        Set<String> expressionValuesKeys = expressionValues.keySet();
-        for (String deRef : expressionValuesKeys) {
+        Iterator<String> expressionValuesKeys = expressionValues.keySet().iterator();
+        while (expressionValuesKeys.hasNext()) {
+            String deRef = expressionValuesKeys.next();
             if (!designElements.containsValue(deRef)) {
                 // no design element with matching accession, so check name
                 if (!designElementNames.containsValue(deRef)) {
@@ -389,12 +390,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     for (int deID : designElementNames.keySet()) {
                         if (designElementNames.get(deID).equals(deRef)) {
                             // update expression values to reflect accession, not name
-                            // fetch expression value
+                            // fetch expression value, and insert with correct key
                             float ev = expressionValues.get(deRef);
-                            // remove entry indexed by name, this is wrong
-                            expressionValues.remove(deRef);
-                            // insert entry indexed by the accession, with the value from before
                             expressionValues.put(designElements.get(deID), ev);
+                            // finally remove entry indexed by name, this is wrong
+                            expressionValuesKeys.remove();
                             break;
                         }
                     }
