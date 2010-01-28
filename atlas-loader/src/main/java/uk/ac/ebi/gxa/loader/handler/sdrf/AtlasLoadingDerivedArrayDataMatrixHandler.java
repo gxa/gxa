@@ -159,13 +159,25 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             Assay assay = AtlasLoaderUtils.waitForAssay(
                                     assayName, investigation, getClass().getSimpleName(), getLog());
 
-                            // extract twice, cos we're reading only one node at a time
-                            assay.setExpressionValuesByAccession(buffer.readExpressionValues(refName).get(refName));
-
                             done++;
-                            getLog().debug("Updated assay " + assayName + " with " +
-                                    expressionValues.get(refName).size() + " expression values. " +
-                                    "Now done " + done + "/" + total + " expression value updates");
+                            if (assay != null) {
+                                // extract twice, cos we're reading only one node at a time
+                                assay.setExpressionValuesByAccession(buffer.readExpressionValues(refName).get(refName));
+
+                                getLog().debug("Updated assay " + assayName + " with " +
+                                        expressionValues.get(refName).size() + " expression values. " +
+                                        "Now done " + done + "/" + total + " expression value updates");
+                            }
+                            else {
+                                // generate error item and throw exception
+                                String message =
+                                        "Data file references elements that are not present in the SDRF";
+                                ErrorItem error =
+                                        ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                .generateErrorItem(message, 511, this.getClass());
+
+                                throw new ObjectConversionException(error, true);
+                            }
                         }
                     }
                     catch (LookupException e) {

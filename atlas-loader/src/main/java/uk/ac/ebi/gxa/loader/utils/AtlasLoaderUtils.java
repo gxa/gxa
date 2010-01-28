@@ -2,13 +2,22 @@ package uk.ac.ebi.gxa.loader.utils;
 
 import org.apache.commons.logging.Log;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
+import uk.ac.ebi.arrayexpress2.magetab.handler.Handler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
+import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
+import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
+import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+
+import java.util.Set;
 
 /**
  * Simple utilities classes dealing with common functions that are required in loading to the Atlas DB.
@@ -175,32 +184,39 @@ public class AtlasLoaderUtils {
         log.debug(handlerName + " doing lookup for assay " + accession + " in " + cache.toString());
         log.trace("Thread [" + Thread.currentThread().getName() + "] polling for assay");
         // fetch from the bag
-        while (cache.fetchAssay(accession) == null &&
-                investigation.getStatus() != Status.COMPLETE &&
-                investigation.getStatus() != Status.FAILED) {
-            // object isn't in the bag yet, so wait
-            synchronized (cache) {
-                try {
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
-                    // wait for new objects to be available
-                    cache.wait(1000);
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
-                }
-                catch (InterruptedException e) {
-                    if (investigation.getStatus() == Status.FAILED) {
-                        log.warn(handlerName + " was interrupted by a failure elsewhere " +
-                                "whilst waiting for assay " + accession + " and is terminating");
-                        throw new LookupException(
-                                "Interrupted by a fail whilst waiting for assay " + accession);
+        if (requiresWaiting("assayname") || requiresWaiting("hybridizationname")) {
+            while (cache.fetchAssay(accession) == null &&
+                    investigation.getStatus() != Status.COMPLETE &&
+                    investigation.getStatus() != Status.FAILED) {
+                // object isn't in the bag yet, so wait
+                synchronized (cache) {
+                    try {
+                        log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                        // wait for new objects to be available
+                        cache.wait(1000);
+                        log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                     }
-                    else {
-                        // interrupted but no fail, so safe to continue
+                    catch (InterruptedException e) {
+                        if (investigation.getStatus() == Status.FAILED) {
+                            log.warn(handlerName + " was interrupted by a failure elsewhere " +
+                                    "whilst waiting for assay " + accession + " and is terminating");
+                            throw new LookupException(
+                                    "Interrupted by a fail whilst waiting for assay " + accession);
+                        }
+                        else {
+                            // interrupted but no fail, so safe to continue
+                        }
                     }
                 }
             }
+            log.debug(handlerName + " resumed after dependent object obtained");
+            return cache.fetchAssay(accession);
         }
-        log.debug(handlerName + " resumed after dependent object obtained");
-        return cache.fetchAssay(accession);
+        else {
+            log.info(
+                    "No loading handler registered for nodes of type 'assayname' or 'hybridizationname', so won't wait");
+            return null;
+        }
     }
 
     /**
@@ -234,31 +250,36 @@ public class AtlasLoaderUtils {
         log.debug(handlerName + " doing lookup for sample " + accession);
         log.trace("Thread [" + Thread.currentThread().getName() + "] polling for sample");
         // fetch from the bag
-        while (cache.fetchSample(accession) == null &&
-                investigation.getStatus() != Status.COMPLETE &&
-                investigation.getStatus() != Status.FAILED) {
-            // object isn't in the bag yet, so wait
-            synchronized (cache) {
-                try {
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
-                    // wait for new objects to be available
-                    cache.wait(1000);
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
-                }
-                catch (InterruptedException e) {
-                    if (investigation.getStatus() == Status.FAILED) {
-                        log.warn(handlerName + " was interrupted by a failure elsewhere " +
-                                "whilst waiting for sample " + accession + " and is terminating");
-                        throw new LookupException("Interrupted by a fail whilst waiting for sample " + accession);
+        if (requiresWaiting("sourcename")) {
+            while (cache.fetchSample(accession) == null &&
+                    investigation.getStatus() != Status.COMPLETE &&
+                    investigation.getStatus() != Status.FAILED) {
+                // object isn't in the bag yet, so wait
+                synchronized (cache) {
+                    try {
+                        log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                        // wait for new objects to be available
+                        cache.wait(1000);
+                        log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
                     }
-                    else {
-                        // interrupted but no fail, so safe to continue
+                    catch (InterruptedException e) {
+                        if (investigation.getStatus() == Status.FAILED) {
+                            log.warn(handlerName + " was interrupted by a failure elsewhere " +
+                                    "whilst waiting for sample " + accession + " and is terminating");
+                            throw new LookupException("Interrupted by a fail whilst waiting for sample " + accession);
+                        }
+                        else {
+                            // interrupted but no fail, so safe to continue
+                        }
                     }
                 }
             }
+            log.debug(handlerName + " resumed after dependent object obtained");
+            return cache.fetchSample(accession);
         }
-        log.debug(handlerName + " resumed after dependent object obtained");
-        return cache.fetchSample(accession);
+        else {
+            return null;
+        }
     }
 
     /**
@@ -274,5 +295,28 @@ public class AtlasLoaderUtils {
     public static String getNodeAccession(MAGETABInvestigation investigation, SDRFNode node) {
         // no requirement to be unique, so just return node name
         return node.getNodeName();
+    }
+
+    public static boolean requiresWaiting(String nodeType) {
+        Set<Class<? extends Handler>> handlerClasses = HandlerPool.getInstance().getHandlerClasses();
+        if (nodeType.equals(new AtlasLoadingAssayHandler().handlesTag())) {
+            // if nodeType is "assayname" check our pool contains AtlasLoadingAssayHandlers
+            return (handlerClasses.contains(AtlasLoadingAssayHandler.class));
+        }
+        else if (nodeType.equals(new AtlasLoadingDerivedArrayDataMatrixHandler().handlesTag())) {
+            // if nodeType is "derived array..." check our pool contains AtlasLoadingDerivedArrayDataMatrixHandlers
+            return (handlerClasses.contains(AtlasLoadingDerivedArrayDataMatrixHandler.class));
+        }
+        else if (nodeType.equals(new AtlasLoadingHybridizationHandler().handlesTag())) {
+            // if nodeType is "hyb..." check our pool contains AtlasLoadingHybridizationHandlers
+            return (handlerClasses.contains(AtlasLoadingHybridizationHandler.class));
+        }
+        else if (nodeType.equals(new AtlasLoadingSourceHandler().handlesTag())) {
+            // if nodeType is "sourcename" check our pool contains AtlasLoadingSourceHandlers
+            return (handlerClasses.contains(AtlasLoadingSourceHandler.class));
+        }
+        else {
+            return false;
+        }
     }
 }

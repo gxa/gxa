@@ -317,9 +317,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
 
-                // remove old experiment
-                getLog().info("Deleting existing version of experiment " + accession);
-                getAtlasDAO().deleteExperiment(accession);
+                // check experiment exists in database, and not just in the loadmonitor
+                if (getAtlasDAO().getExperimentByAccession(accession) != null) {
+                    // experiment genuinely was already in the DB, so remove old experiment
+                    getLog().info("Deleting existing version of experiment " + accession);
+                    getAtlasDAO().deleteExperiment(accession);
+                }
 
                 return true;
             }
@@ -360,18 +363,25 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     private Set<String> lookupMissingDesignElements(Map<String, Float> expressionValues, String arrayDesignAccession)
             throws AtlasLoaderException {
         // use our dao to lookup design elements, instead of the writer class
-        Map<Integer, String> designElements = getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
+        Map<Integer, String> designElements =
+                getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
+        Map<Integer, String> designElementNames =
+                getAtlasDAO().getDesignElementNamesByArrayAccession(arrayDesignAccession);
 
         // check off missing design elements against any present
         Set<String> missingDesignElements = new HashSet<String>();
 
-        // for every expression value, check if it's in database
-        for (String deAcc : expressionValues.keySet()) {
-            if (!designElements.containsValue(deAcc)) {
-                // deAcc is missing - add to missing design elements and provide trace output
-                missingDesignElements.add(deAcc);
-                getLog().trace("Design Element '" + deAcc + "' is referenced in the data file, " +
-                        "but is not present in the database.  This may be a control spot missing in legacy data");
+        // for every expression value, check the design element ref is in database (first by accession, then name)
+        for (String deRef : expressionValues.keySet()) {
+            if (!designElements.containsValue(deRef)) {
+                // no design element with matching accession, so check name
+                if (!designElementNames.containsValue(deRef)) {
+                    // no design element with matching name either.  Definitely missing
+                    // deAcc is missing - add to missing design elements and provide trace output
+                    missingDesignElements.add(deRef);
+                    getLog().trace("Design Element '" + deRef + "' is referenced in the data file, " +
+                            "but is not present in the database.  This may be a control spot missing in legacy data");
+                }
             }
         }
 

@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.dao;
 
-import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -13,12 +12,15 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 
 /**
@@ -211,7 +213,7 @@ public class AtlasDAO {
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
     private static final String DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION =
-            "SELECT de.designelementid, de.accession " +
+            "SELECT de.designelementid, de.name " +
                     "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
@@ -1537,22 +1539,28 @@ public class AtlasDAO {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 // this should be creating an oracle ARRAY of properties
                 // the array of STRUCTS representing each property
-                Object[] propArrayValues = new Object[properties.size()];
+                Object[] propArrayValues;
+                if (properties != null) {
+                    propArrayValues = new Object[properties.size()];
 
-                // convert each property to an oracle STRUCT
-                int i = 0;
-                Object[] propStructValues = new Object[4];
-                for (Property property : properties) {
-                    // array representing the values to go in the STRUCT
-                    propStructValues[0] = property.getAccession();
-                    propStructValues[1] = property.getName();
-                    propStructValues[2] = property.getValue();
-                    propStructValues[3] = property.isFactorValue();
+                    // convert each property to an oracle STRUCT
+                    int i = 0;
+                    Object[] propStructValues = new Object[4];
+                    for (Property property : properties) {
+                        // array representing the values to go in the STRUCT
+                        propStructValues[0] = property.getAccession();
+                        propStructValues[1] = property.getName();
+                        propStructValues[2] = property.getValue();
+                        propStructValues[3] = property.isFactorValue();
 
-                    // descriptor for PROPERTY type
-                    StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
-                    // each array value is a new STRUCT
-                    propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
+                        // descriptor for PROPERTY type
+                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
+                        // each array value is a new STRUCT
+                        propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
+                    }
+                }
+                else {
+                    propArrayValues = new Object[0];
                 }
 
                 // created the array of STRUCTs, group into ARRAY
@@ -1567,19 +1575,26 @@ public class AtlasDAO {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 // this should be creating an oracle ARRAY of expression values
                 // the array of STRUCTS representing each expression value
-                Object[] evArrayValues = new Object[expressionValues.size()];
+                Object[] evArrayValues;
+                if (expressionValues != null) {
+                    evArrayValues = new Object[expressionValues.size()];
 
-                // convert each property to an oracle STRUCT
-                // descriptor for EXPRESSIONVALUE type
-                StructDescriptor structDescriptor = StructDescriptor.createDescriptor("EXPRESSIONVALUE", connection);
-                int i = 0;
-                Object[] evStructValues = new Object[2];
-                for (Map.Entry<String, Float> expressionValue : expressionValues.entrySet()) {
-                    // array representing the values to go in the STRUCT
-                    evStructValues[0] = expressionValue.getKey();
-                    evStructValues[1] = expressionValue.getValue();
+                    // convert each property to an oracle STRUCT
+                    // descriptor for EXPRESSIONVALUE type
+                    StructDescriptor structDescriptor =
+                            StructDescriptor.createDescriptor("EXPRESSIONVALUE", connection);
+                    int i = 0;
+                    Object[] evStructValues = new Object[2];
+                    for (Map.Entry<String, Float> expressionValue : expressionValues.entrySet()) {
+                        // array representing the values to go in the STRUCT
+                        evStructValues[0] = expressionValue.getKey();
+                        evStructValues[1] = expressionValue.getValue();
 
-                    evArrayValues[i++] = new STRUCT(structDescriptor, connection, evStructValues);
+                        evArrayValues[i++] = new STRUCT(structDescriptor, connection, evStructValues);
+                    }
+                }
+                else {
+                    evArrayValues = new Object[0];
                 }
 
                 // created the array of STRUCTs, group into ARRAY
@@ -1592,10 +1607,16 @@ public class AtlasDAO {
     private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                Object[] accessions = new Object[assayAccessions.size()];
-                int i = 0;
-                for (String assayAccession : assayAccessions) {
-                    accessions[i++] = assayAccession;
+                Object[] accessions;
+                if (assayAccessions != null) {
+                    accessions = new Object[assayAccessions.size()];
+                    int i = 0;
+                    for (String assayAccession : assayAccessions) {
+                        accessions[i++] = assayAccession;
+                    }
+                }
+                else {
+                    accessions = new Object[0];
                 }
 
                 // created the array of STRUCTs, group into ARRAY
@@ -1607,7 +1628,7 @@ public class AtlasDAO {
 
     private SqlTypeValue convertExpressionAnalyticsToOracleArray(final Map<Integer, Double> pValues,
                                                                  final Map<Integer, Double> tStatistics) {
-        if (pValues.size() != tStatistics.size()) {
+        if (pValues == null || tStatistics == null || pValues.size() != tStatistics.size()) {
             throw new RuntimeException(
                     "Cannot store analytics - inconsistent design element counts for pValues and tStatistics");
         }
@@ -2033,24 +2054,24 @@ public class AtlasDAO {
     }
 
 
-    public class AssayRowMapper implements ParameterizedRowMapper<Integer>{
-        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException{
-             return rs.getInt("AssayID");
+    public class AssayRowMapper implements ParameterizedRowMapper<Integer> {
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("AssayID");
         }
     }
 
-    public class DesignElementRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.DesignElement>{
-        public ExpressionValueMatrix.DesignElement mapRow(ResultSet rs, int rowNum) throws SQLException{
-             return new ExpressionValueMatrix.DesignElement(rs.getInt("DesignElementID")
-                                                           ,rs.getInt("GeneID"));
+    public class DesignElementRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.DesignElement> {
+        public ExpressionValueMatrix.DesignElement mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new ExpressionValueMatrix.DesignElement(rs.getInt("DesignElementID")
+                    , rs.getInt("GeneID"));
         }
     }
 
-    public class ExpressionValueRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.ExpressionValue>{
-        public ExpressionValueMatrix.ExpressionValue mapRow(ResultSet rs, int rowNum) throws SQLException{
-             return new ExpressionValueMatrix.ExpressionValue(rs.getInt("AssayID")
-                                                           ,rs.getInt("DesignElementID")
-                                                           ,rs.getFloat("Value"));
+    public class ExpressionValueRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.ExpressionValue> {
+        public ExpressionValueMatrix.ExpressionValue mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new ExpressionValueMatrix.ExpressionValue(rs.getInt("AssayID")
+                    , rs.getInt("DesignElementID")
+                    , rs.getFloat("Value"));
         }
     }
 
@@ -2059,29 +2080,29 @@ public class AtlasDAO {
         ExpressionValueMatrix result = new ExpressionValueMatrix();
 
         SimpleJdbcCall procedure1 =
-                   new SimpleJdbcCall(template)
-                           .withProcedureName("ATLASAPI.A2_EXPRESSIONVALUEGET")
-                           .withoutProcedureColumnMetaDataAccess()
-                           .useInParameterNames("EXPERIMENTID")
-                           .useInParameterNames("ARRAYDESIGNID")
-                           .declareParameters(new SqlParameter("EXPERIMENTID", Types.INTEGER))
-                           .declareParameters(new SqlParameter("ARRAYDESIGNID", Types.INTEGER))
-                           .returningResultSet("ASSAYS",new AssayRowMapper())
-                           .returningResultSet("DESIGNELEMENTS",new DesignElementRowMapper())
-                           .returningResultSet("EXPRESSIONVALUES",new ExpressionValueRowMapper());
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASAPI.A2_EXPRESSIONVALUEGET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENTID")
+                        .useInParameterNames("ARRAYDESIGNID")
+                        .declareParameters(new SqlParameter("EXPERIMENTID", Types.INTEGER))
+                        .declareParameters(new SqlParameter("ARRAYDESIGNID", Types.INTEGER))
+                        .returningResultSet("ASSAYS", new AssayRowMapper())
+                        .returningResultSet("DESIGNELEMENTS", new DesignElementRowMapper())
+                        .returningResultSet("EXPRESSIONVALUES", new ExpressionValueRowMapper());
 
         // map parameters...
         MapSqlParameterSource params1 = new MapSqlParameterSource()
-               .addValue("EXPERIMENTID", ExperimentID)
-               .addValue("ARRAYDESIGNID", ArrayDesignID);
+                .addValue("EXPERIMENTID", ExperimentID)
+                .addValue("ARRAYDESIGNID", ArrayDesignID);
 
-       Map<String,Object> proc_result = procedure1.execute(params1);
+        Map<String, Object> proc_result = procedure1.execute(params1);
 
-       result.assays = (List<Integer>)proc_result.get("ASSAYS");
-       result.designElements = (List<ExpressionValueMatrix.DesignElement>)proc_result.get("DESIGNELEMENTS");
-       result.expressionValues = (List<ExpressionValueMatrix.ExpressionValue>)proc_result.get("EXPRESSIONVALUES");
+        result.assays = (List<Integer>) proc_result.get("ASSAYS");
+        result.designElements = (List<ExpressionValueMatrix.DesignElement>) proc_result.get("DESIGNELEMENTS");
+        result.expressionValues = (List<ExpressionValueMatrix.ExpressionValue>) proc_result.get("EXPRESSIONVALUES");
 
-       return result;
+        return result;
     }
 
 }
