@@ -372,7 +372,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         Set<String> missingDesignElements = new HashSet<String>();
 
         // for every expression value, check the design element ref is in database (first by accession, then name)
-        for (String deRef : expressionValues.keySet()) {
+        Set<String> expressionValuesKeys = expressionValues.keySet();
+        for (String deRef : expressionValuesKeys) {
             if (!designElements.containsValue(deRef)) {
                 // no design element with matching accession, so check name
                 if (!designElementNames.containsValue(deRef)) {
@@ -381,6 +382,22 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     missingDesignElements.add(deRef);
                     getLog().trace("Design Element '" + deRef + "' is referenced in the data file, " +
                             "but is not present in the database.  This may be a control spot missing in legacy data");
+                }
+                else {
+                    // the data we've obtained from the datafile reflects names, not accessions
+                    // we need to update the expression values to use accessions
+                    for (int deID : designElementNames.keySet()) {
+                        if (designElementNames.get(deID).equals(deRef)) {
+                            // update expression values to reflect accession, not name
+                            // fetch expression value
+                            float ev = expressionValues.get(deRef);
+                            // remove entry indexed by name, this is wrong
+                            expressionValues.remove(deRef);
+                            // insert entry indexed by the accession, with the value from before
+                            expressionValues.put(designElements.get(deID), ev);
+                            break;
+                        }
+                    }
                 }
             }
         }

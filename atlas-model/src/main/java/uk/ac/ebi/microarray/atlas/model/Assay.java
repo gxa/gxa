@@ -66,9 +66,9 @@ public class Assay {
    * Returns a map of expression values indexed by the String.  This is forked
    * because the database loader only has access to design element accessions
    * from the data files, but all accessors of Assays use design element IDs.
-   * This is a bit ugly and will be consolidtaed in future.
+   * This is a bit ugly and will be consolidated in future.
    *
-   * @return a map of expression vlaues, indexed by design element accession.
+   * @return a map of expression values, indexed by design element accession.
    */
   public Map<String, Float> getExpressionValuesByAccession() {
     return this.expressionValuesAcc;

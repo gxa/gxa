@@ -162,7 +162,5 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
 
             throw new ObjectConversionException(error, true);
         }
-
-        System.out.println("Assay handler completed without error");
     }
 }
