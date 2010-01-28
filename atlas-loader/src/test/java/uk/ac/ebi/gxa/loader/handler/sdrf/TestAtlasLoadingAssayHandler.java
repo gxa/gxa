@@ -35,6 +35,8 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
 
     private URL parseURL;
 
+    private volatile Integer counter;
+
     public void setUp() {
         // now, create an investigation
         investigation = new MAGETABInvestigation();
@@ -44,6 +46,8 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790B.idf.txt");
+
+        counter = 0;
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
@@ -59,6 +63,8 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
 
     public void tearDown() throws Exception {
         AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+
+        counter = null;
     }
 
     public void testWriteValues() {
@@ -68,6 +74,9 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         parser.addErrorItemListener(new ErrorItemListener() {
 
             public void errorOccurred(ErrorItem item) {
+                // update counter
+                counter++;
+
                 // lookup message
                 String message = "";
                 for (ErrorCode ec : ErrorCode.values()) {
@@ -123,6 +132,9 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         // expect 404 assays
         assertEquals("Local cache doesn't contain correct number of assays",
                      404, cache.fetchAllAssays().size());
+
+        assertEquals("Should have rejected 404 assay to sample links, as samples aren't loaded", 404,
+                     counter.intValue());
 
         // get the title of the experiment
         for (Assay assay : cache.fetchAllAssays()) {
