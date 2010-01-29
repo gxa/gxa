@@ -30,6 +30,7 @@ PROCEDURE A2_ASSAYSET(
   ,TheArrayDesignAccession varchar2
   ,TheProperties PropertyTable
   ,TheExpressionValues ExpressionValueTable
+  ,UnknownAccessionThreshold int default 75  
 );
 
 PROCEDURE A2_SAMPLESET(
@@ -131,13 +132,15 @@ PROCEDURE A2_ASSAYSET (
   ,TheArrayDesignAccession varchar2
   ,TheProperties PropertyTable
   ,TheExpressionValues ExpressionValueTable
+  ,UnknownAccessionThreshold int default 75  
 )
 as
   TheExperimentID int := 0;
   TheArrayDesignID int := 0;
   TheAssayID int :=0;
-  UnknownDesignElementAccession varchar2(255) := NULL;
+  UnknownDesignElementAccession int :=0; --;varchar2(255) := NULL;
   LowerCaseProperties PropertyTable := TheProperties;
+  MissedAccessionPercentage int := 0;
 begin
 
   begin
@@ -158,20 +161,19 @@ begin
 
   dbms_output.put_line('check for invalid design elements');
   begin
-    Select t.DesignElementAccession into UnknownDesignElementAccession
+    Select count(t.DesignElementAccession) into UnknownDesignElementAccession
     from table(CAST(TheExpressionValues as ExpressionValueTable)) t
-    where not exists(select 1 from a2_designelement e where e.arraydesignid = Thearraydesignid and e.accession = t.DesignElementAccession)
-    and rownum < 2;
-  exception
-    WHEN NO_DATA_FOUND THEN
-      null;
-    when others then
-      raise;
-  end;
-
-  if(not(UnknownDesignElementAccession is NULL)) then
-    RAISE_APPLICATION_ERROR(-20001, 'design element accession not found:');
-  end if;
+    where not exists(select 1 from a2_designelement e 
+                     where e.arraydesignid = Thearraydesignid 
+                     and ((e.accession = t.DesignElementAccession) or (e.name = t.DesignElementAccession)));
+    
+    Select (100*UnknownDesignElementAccession)/count(t.DesignElementAccession) into MissedAccessionPercentage
+    from table(CAST(TheExpressionValues as ExpressionValueTable)) t;
+    
+    if(MissedAccessionPercentage > UnknownDesignElementAccession) then
+      RAISE_APPLICATION_ERROR(-20001, 'unknown accession threshold exceeded');
+    end if;
+  end;  
 
   begin
       Select a.AssayID into TheAssayID
@@ -204,7 +206,7 @@ begin
   Insert into a2_ExpressionValue(DesignElementID,ExperimentID,AssayID,Value)
   select distinct d.DesignElementID, TheExperimentID, TheAssayID, t.Value
   from table(CAST(TheExpressionValues as ExpressionValueTable)) t
-  join a2_designelement d on d.Accession = t.DesignElementAccession;
+  join a2_designelement d on ((d.Accession = t.DesignElementAccession) or (d.name = t.DesignElementAccession));
 
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
