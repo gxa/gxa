@@ -137,6 +137,7 @@ as
   TheArrayDesignID int := 0;
   TheAssayID int :=0;
   UnknownDesignElementAccession varchar2(255) := NULL;
+  LowerCaseProperties PropertyTable := TheProperties;
 begin
 
   begin
@@ -187,6 +188,13 @@ begin
     when others then 
       RAISE;    
   end;
+  
+  --convert properties to lowercase 
+  if(LowerCaseProperties is not null) then 
+  for j in LowerCaseProperties.first..LowerCaseProperties.last loop
+    LowerCaseProperties(j).name := LOWER(LowerCaseProperties(j).name);
+  end loop;
+  end if;
 
   dbms_output.put_line('cleanup');
   delete a2_assaypropertyvalue pv where pv.assayid = TheAssayID;
@@ -201,20 +209,20 @@ begin
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
   select distinct t.Name
-  from table(CAST(TheProperties as PropertyTable)) t
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
   where not exists (select 1 from a2_Property where Name = t.Name);
   
   dbms_output.put_line('insert property value');
   Insert into a2_propertyvalue(propertyid,name)
   select distinct p.PropertyID, t.Value
-  from table(CAST(TheProperties as PropertyTable)) t
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_assaypropertyvalue(AssayID, PropertyValueID, IsFactorValue)
   select distinct TheAssayID, pv.PropertyValueID, t.IsFactorValue
-  from table(CAST(TheProperties as PropertyTable)) t
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_AssayPropertyValue pv1 where pv1.AssayID = Theassayid and pv1.PropertyValueID = pv.PropertyValueID);
@@ -288,6 +296,7 @@ as
   ExperimentID int := 0;
   ArrayDesignID int := 0;
   UnknownDesignElementAccession varchar2(255) := NULL;
+  LowerCaseProperties PropertyTable := p_Properties;
 begin
 
  dbms_output.put_line('checking sample accession'); 
@@ -307,6 +316,13 @@ begin
       RAISE;    
   end;
 
+ --convert properties to lowercase 
+  if(LowerCaseProperties is not null) then 
+  for j in LowerCaseProperties.first..LowerCaseProperties.last loop
+    LowerCaseProperties(j).name := LOWER(LowerCaseProperties(j).name);
+  end loop;
+  end if;
+
   dbms_output.put_line('linking sample and assay'); 
   Insert into a2_AssaySample(AssayID, SampleID)
   Select AssayID, SampleID
@@ -322,14 +338,14 @@ begin
   dbms_output.put_line('insert property value');
   Insert into a2_propertyvalue(propertyid,name)
   select distinct p.PropertyID, t.Value
-  from table(CAST(p_Properties as PropertyTable)) t
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_samplepropertyvalue(SampleID, PropertyValueID, IsFactorValue)
   select distinct SampleID, pv.PropertyValueID, t.IsFactorValue
-  from table(CAST(p_Properties as PropertyTable)) t
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_SamplePropertyValue pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
@@ -350,6 +366,7 @@ PROCEDURE A2_AnalyticsSet(
  as
   ExperimentID int := 0;
   PropertyValueID int := 0;
+  LowerCaseProperty varchar2(255) := LOWER(Property);
 begin
 
   begin
@@ -360,7 +377,7 @@ begin
       Select pv.PropertyValueID into PropertyValueID
       from a2_Property p
       join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
-      where p.Name = Property
+      where p.Name = LowerCaseProperty
       and pv.Name = PropertyValue;
       
   exception 
@@ -486,6 +503,9 @@ BEGIN
       RAISE;
   end; 
   
+  Delete from a2_ExpressionAnalytics where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
+  Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+
   Delete from a2_SampleOntology where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_SamplePropertyValue where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
@@ -496,8 +516,6 @@ BEGIN
   Delete from a2_AssayPropertyValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
  
-  Delete from a2_ExpressionAnalytics where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
-  Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
   
   commit;
