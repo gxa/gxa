@@ -140,20 +140,11 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                                                  getLog());
                             }
                             catch (LookupException e) {
-                                try {
-                                    AtlasLoaderUtils.waitForSDRFNode(assayName, "assayname", investigation,
-                                                                     this.getClass().getSimpleName(),
-                                                                     getLog());
-                                }
-                                catch (LookupException e2) {
-                                    // if we get to here, both lookups failed
-                                    // this means we have a problem - the datafile references an element
-                                    // not present in SDRF
-                                    throw e2;
-                                }
+                                // try again for assay, but if this throws a lookup exception we really throw it
+                                AtlasLoaderUtils.waitForSDRFNode(assayName, "assayname", investigation,
+                                                                 this.getClass().getSimpleName(),
+                                                                 getLog());
                             }
-
-                            // if foundAssayNode is false,
 
                             // now we have the name of the assay to attach EVs to, so lookup
                             Assay assay = AtlasLoaderUtils.waitForAssay(
@@ -162,7 +153,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             done++;
                             if (assay != null) {
                                 // extract twice, cos we're reading only one node at a time
-                                assay.setExpressionValuesByAccession(buffer.readExpressionValues(refName).get(refName));
+                                assay.setExpressionValuesByDesignElementReference(buffer.readExpressionValues(refName).get(refName));
 
                                 getLog().debug("Updated assay " + assayName + " with " +
                                         expressionValues.get(refName).size() + " expression values. " +

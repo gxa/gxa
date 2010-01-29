@@ -9,7 +9,7 @@
         </layout>
     </appender>
 
-    <!--<logger name="uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF">-->
+    <!--<logger name="uk.ac.ebi.arrayexpress2.magetab">-->
         <!--<level value="DEBUG"/>-->
         <!--<appender-ref ref="console" />-->
     <!--</logger>-->

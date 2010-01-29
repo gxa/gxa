@@ -18,10 +18,10 @@ import java.util.*;
  * accomplished by use of a factory method to generate a single DataMatrixFileBuffer object per-file.  On construction,
  * the buffer is initialized - this starts a process that runs in a new thread, parsing the file for headers and doing a
  * dictionary lookup for quantitation types in the file. Once initialization has completed, data can be quickly and
- * easily read out of the file by calling the {@link #readExpressionValues(String...)} method, passing in the id of
- * the assay you wish to read (which should be obtained from the SDRF file, and binds to particular columns in the data
- * matrix file).  You can call {@link #readExpressionValues(String...)} immediately once your bufer object is
- * returned, but this method blocks until initialization has completed.
+ * easily read out of the file by calling the {@link #readExpressionValues(String...)} method, passing in the id of the
+ * assay you wish to read (which should be obtained from the SDRF file, and binds to particular columns in the data
+ * matrix file).  You can call {@link #readExpressionValues(String...)} immediately once your bufer object is returned,
+ * but this method blocks until initialization has completed.
  *
  * @author Tony Burdett
  * @date 03-Sep-2009
@@ -101,7 +101,7 @@ public class DataMatrixFileBuffer {
      * Returns the list of references observed in this data file.  This should normally match exactly to the set of
      * hybs/assays/scans described in the SDRF file.
      *
-     * @return
+     * @return the 'references' in this data file, which should correspond to the e.g. hybridization name in the SDRF
      */
     public Set<String> readReferences() {
         // block until ready
@@ -149,8 +149,7 @@ public class DataMatrixFileBuffer {
         }
 
         // argh, complex mapping - this maps the assay accession to the map of design element/expression value mappings
-        Map<String, Map<String, Float>> result =
-                new HashMap<String, Map<String, Float>>();
+        Map<String, Map<String, Float>> result = new HashMap<String, Map<String, Float>>();
 
         // if initFailed is not null, failed to init so throw
         if (initFailed != null) {
@@ -430,7 +429,6 @@ public class DataMatrixFileBuffer {
         }
     }
 
-    
 
     private Header[] parseHeaders(BufferedReader reader)
             throws IOException, ParseException {

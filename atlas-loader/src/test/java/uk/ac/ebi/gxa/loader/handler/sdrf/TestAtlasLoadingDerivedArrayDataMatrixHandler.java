@@ -51,6 +51,8 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
                 DerivedArrayDataMatrixHandler.class,
                 AtlasLoadingDerivedArrayDataMatrixHandler.class);
 
+        assertTrue(pool.getHandlerClasses().contains(AtlasLoadingDerivedArrayDataMatrixHandler.class));
+
         // deata matrix is also dependent on experiments being created, so replace accession handler too
         pool.replaceHandlerClass(
                 AccessionHandler.class,
@@ -130,7 +132,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
 
         // get the title of the experiment
         for (Assay assay : cache.fetchAllAssays()) {
-            Map<String, Float> evs = assay.getExpressionValuesByAccession();
+            Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference();
 
             if (evs == null) {
                 fail("Expression values are null for assay " + assay.getAccession());

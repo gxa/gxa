@@ -306,15 +306,15 @@ public class AtlasDB {
 
             // replacing expression value lookup with mapped values lookup
             Object[] expressionValues =
-                    new Object[null == value.getExpressionValuesByAccession() ? 0
-                            : value.getExpressionValuesByAccession().keySet().size()];
+                    new Object[null == value.getExpressionValuesByDesignElementReference() ? 0
+                            : value.getExpressionValuesByDesignElementReference().keySet().size()];
             //placeholders for all properties of ExpressionValue structure
             Object[] members = new Object[2];
 
-            if (value.getExpressionValuesByAccession() != null) {
+            if (value.getExpressionValuesByDesignElementReference() != null) {
                 int i = 0;
                 for (Map.Entry<String, Float> expressionValue :
-                        value.getExpressionValuesByAccession().entrySet()) {
+                        value.getExpressionValuesByDesignElementReference().entrySet()) {
                     members[0] = expressionValue.getKey();
                     members[1] = expressionValue.getValue();
 

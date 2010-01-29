@@ -29,6 +29,11 @@
         <appender-ref ref="console" />
     </logger>
 
+    <logger name="uk.ac.ebi.gxa.loader.service" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="console" />
+    </logger>
+
     <!--<logger name="uk.ac.ebi.gxa.analytics" additivity="false">-->
         <!--<level value="DEBUG"/>-->
         <!--<appender-ref ref="console" />-->
