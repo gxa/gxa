@@ -1204,9 +1204,9 @@ public class AtlasDAO {
         List<Property> props = assay.getProperties() == null
                 ? new ArrayList<Property>()
                 : assay.getProperties();
-        Map<String, Float> evs = assay.getExpressionValuesByAccession() == null
+        Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference() == null
                 ? new HashMap<String, Float>()
-                : assay.getExpressionValuesByAccession();
+                : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("THEACCESSION", assay.getAccession())
                 .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
@@ -1716,7 +1716,7 @@ public class AtlasDAO {
 
             assay.setAccession(resultSet.getString(1));
             assay.setExperimentAccession(resultSet.getString(2));
-            assay.setArrayDesignAcession(resultSet.getString(3));
+            assay.setArrayDesignAccession(resultSet.getString(3));
             assay.setAssayID(resultSet.getInt(4));
 
             return assay;

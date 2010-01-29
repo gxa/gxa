@@ -282,7 +282,10 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         // parsing finished, look in our cache...
         boolean allEmpty = true;
         for (Assay assay : cache.fetchAllAssays()) {
-            Map<String, Float> evs = assay.getExpressionValuesByAccession();
+            Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference();
+            assertNotNull("Expression values are null", evs);
+            assertNotNull("Expression values keyset is null", evs.keySet());
+            
             if (evs.keySet().size() > 0) {
                 allEmpty = false;
                 break;

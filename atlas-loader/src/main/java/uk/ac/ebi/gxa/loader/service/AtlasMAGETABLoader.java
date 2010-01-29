@@ -193,7 +193,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 Set<String> missingDesignElements;
                 try {
                     if (!designElementsByArray.containsKey(arrayDesignAcc)) {
-                        if (assay.getExpressionValuesByAccession() == null) {
+                        if (assay.getExpressionValuesByDesignElementReference() == null) {
                             getLog().debug("Assay " + assay.getAssayID() + " contains no expression values");
                             missingDesignElements =
                                     lookupMissingDesignElements(
@@ -203,7 +203,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                         else {
                             missingDesignElements =
                                     lookupMissingDesignElements(
-                                            assay.getExpressionValuesByAccession(),
+                                            assay.getExpressionValuesByDesignElementReference(),
                                             assay.getArrayDesignAccession());
 
                             // add to our cache for known missing design elements
@@ -386,18 +386,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 }
                 else {
                     // the data we've obtained from the datafile reflects names, not accessions
-                    // we need to update the expression values to use accessions
-                    for (int deID : designElementNames.keySet()) {
-                        if (designElementNames.get(deID).equals(deRef)) {
-                            // update expression values to reflect accession, not name
-                            // fetch expression value, and insert with correct key
-                            float ev = expressionValues.get(deRef);
-                            expressionValues.put(designElements.get(deID), ev);
-                            // finally remove entry indexed by name, this is wrong
-                            expressionValues.remove(deRef);
-                            break;
-                        }
-                    }
+                    // but this is ok, stored procedure still accepts them
                 }
             }
         }
@@ -431,10 +420,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
     private void trimMissingDesignElements(Assay assay, Set<String> missingDesignElements) {
         for (String deAcc : missingDesignElements) {
-            if (assay.getExpressionValuesByAccession().containsKey(deAcc)) {
+            if (assay.getExpressionValuesByDesignElementReference().containsKey(deAcc)) {
                 getLog().debug("Missing design element " + deAcc + " will be " +
                         "removed from this assay - not in database.");
-                assay.getExpressionValuesByAccession().remove(deAcc);
+                assay.getExpressionValuesByDesignElementReference().remove(deAcc);
             }
         }
     }

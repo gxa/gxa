@@ -89,7 +89,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                     else {
                         // only one, so set the accession
                         if (assay.getArrayDesignAccession() == null) {
-                            assay.setArrayDesignAcession(arrayDesignAccessions.get(0));
+                            assay.setArrayDesignAccession(arrayDesignAccessions.get(0));
                         }
                         else if (!assay.getArrayDesignAccession().equals(arrayDesignAccessions.get(0))) {
                             String message = "The same assay in the SDRF references two different array designs";
