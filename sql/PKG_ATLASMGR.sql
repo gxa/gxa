@@ -1,5 +1,5 @@
 CREATE OR REPLACE PACKAGE ATLASMGR IS
-  
+  /*
   PROCEDURE CreateLink(ID varchar2);
   
   PROCEDURE LoadSpecies;
@@ -21,13 +21,13 @@ CREATE OR REPLACE PACKAGE ATLASMGR IS
   PROCEDURE LoadSampleOntology;
   PROCEDURE LoadAssayOntology;
   PROCEDURE LoadExpressionAnalytics;
-
+  */
   PROCEDURE DisableConstraints;
   PROCEDURE EnableConstraints;
-
+  /*
   PROCEDURE Load;
   PROCEDURE Clean;
-  
+  */
 END ATLASMGR;
 /
 
@@ -58,7 +58,8 @@ delete from a2_Spec;
 
 /*******************************************************************************/
 CREATE OR REPLACE PACKAGE BODY ATLASMGR AS
-  
+
+/*  
 PROCEDURE CreateLink(ID varchar2)
 AS
 BEGIN
@@ -433,6 +434,7 @@ As
 BEGIN
   return 33;
 END;
+*/
 --------------------------------------------------------------------------------
 PROCEDURE DisableConstraints
 AS
@@ -462,6 +464,7 @@ for rec in c1
  end loop;
 END;
 --------------------------------------------------------------------------------
+/*
 PROCEDURE Load
 AS
 
@@ -556,6 +559,7 @@ BEGIN
   rollback;
 
 END;
+*/
   
 END;
 /
