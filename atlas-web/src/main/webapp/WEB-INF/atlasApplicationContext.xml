@@ -261,12 +261,18 @@
     </bean>
 
     <!-- JMX -->
-    <bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+    <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
+        <property name="domain" value="GXAtlas" />
+    </bean>
+    
+    <bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false" >
+        <property name="registrationBehaviorName" value="REGISTRATION_IGNORE_EXISTING" />
         <property name="beans">
             <util:map>
-                <entry key="GXAtlas:name=AtlasManager" value-ref="atlasManager"/>
+                <entry key="AtlasManager" value-ref="atlasManager"/>
             </util:map>
         </property>
+        <property name="namingStrategy" ref="namingStrategy"/>
     </bean>
 
     <bean id="atlasManager" class="uk.ac.ebi.gxa.jmx.AtlasManager">

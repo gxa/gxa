@@ -21,4 +21,6 @@ public interface AtlasManagerMBean {
     String getAtlasProperty(String property);
 
     void setAtlasProperty(String property, String newValue);
+
+    String getWebappPath();
 }
