@@ -1,12 +1,14 @@
 package uk.ac.ebi.gxa.jmx;
 
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.web.context.ServletContextAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.efo.Efo;
 
 import javax.sql.DataSource;
+import javax.servlet.ServletContext;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -20,7 +22,7 @@ import ae3.util.AtlasProperties;
 /**
  * @author pashky
  */
-public class AtlasManager implements AtlasManagerMBean {
+public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private IndexBuilder indexBuilder;
@@ -28,6 +30,7 @@ public class AtlasManager implements AtlasManagerMBean {
     private File netCDFRepo;
     private DataSource dataSource;
     private Efo efo;
+    private ServletContext servletContext;
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
@@ -47,6 +50,10 @@ public class AtlasManager implements AtlasManagerMBean {
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public void setServletContext(ServletContext servletContext) {
+        this.servletContext = servletContext;
     }
 
     public void rebuildIndex(String index) {
@@ -105,5 +112,9 @@ public class AtlasManager implements AtlasManagerMBean {
     public void setAtlasProperty(String property, String newValue) {
         log.info("JMX: Setting property " + property + " to " + newValue);
         AtlasProperties.setProperty(property, newValue);
+    }
+
+    public String getWebappPath() {
+        return servletContext.getRealPath("");
     }
 }
