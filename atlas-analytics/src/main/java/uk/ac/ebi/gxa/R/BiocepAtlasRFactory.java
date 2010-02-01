@@ -21,22 +21,11 @@ import java.util.NoSuchElementException;
  * @date 17-Nov-2009
  */
 public class BiocepAtlasRFactory implements AtlasRFactory {
-    private boolean isInitialized = false;
+    private volatile boolean isInitialized = false;
 
     private GenericObjectPool workerPool;
-    private final GenericObjectPool.Config workerPoolConfig;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    public BiocepAtlasRFactory() {
-        // setup worker pool config
-        workerPoolConfig = new GenericObjectPool.Config();
-        workerPoolConfig.maxActive = 4;
-        workerPoolConfig.minIdle = 4;
-        workerPoolConfig.maxWait = 1000;
-        workerPoolConfig.testOnBorrow = true;
-        workerPoolConfig.testOnReturn = true;
-    }
 
     /**
      * Validates that all the system properties required by biocep are set.
@@ -98,18 +87,34 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         // lazily initialize servant provider
         initialize();
 
+        log.trace("Worker pool before borrow... " +
+                "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         try {
-            return (RServices) workerPool.borrowObject();
+            RServices rServices = (RServices) workerPool.borrowObject();
+            log.debug("Borrowed " + rServices.getServantName() + " from the pool");
+            return rServices;
         }
         catch (Exception e) {
+            e.printStackTrace();
+            log.debug("borrowObject() threw an exception: {}" + e.getMessage());
             throw new AtlasRServicesException(
                     "Failed to borrow an RServices object from the pool of workers", e);
+        }
+        finally {
+            log.trace("Worker pool after borrow... " +
+                    "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         }
     }
 
     public void recycleRServices(RServices rServices) throws UnsupportedOperationException, AtlasRServicesException {
+        log.trace("Recycling R services");
+        log.trace("Worker pool before return... " +
+                "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         try {
+            log.debug("Returning rServices " + rServices.getServantName() + " to the pool");
             workerPool.returnObject(rServices);
+            log.trace("Worker pool after return... " +
+                    "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         }
         catch (Exception e) {
             throw new AtlasRServicesException(
@@ -117,7 +122,8 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
     }
 
-    public void releaseResources() {
+    public synchronized void releaseResources() {
+        log.debug("Releasing resources...");
         if (isInitialized) {
             try {
                 if (workerPool.getNumActive() > 0) {
@@ -139,11 +145,16 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
      *
      * @throws AtlasRServicesException if initialization failed
      */
-    private void initialize() throws AtlasRServicesException {
+    private synchronized void initialize() throws AtlasRServicesException {
         if (!isInitialized) {
             if (validateEnvironment()) {
-                // create worked pool
-                workerPool = new GenericObjectPool(new RWorkerObjectFactory(), workerPoolConfig);
+                // create worker pool
+                workerPool = new GenericObjectPool(new RWorkerObjectFactory());
+                workerPool.setMaxActive(4);
+                workerPool.setMaxIdle(4);
+                workerPool.setTestOnBorrow(true);
+                workerPool.setTestOnReturn(true);
+
                 isInitialized = true;
             }
             else {
@@ -155,54 +166,47 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
     }
 
     private class RWorkerObjectFactory implements PoolableObjectFactory {
-        private ServantProvider sp;
+        private final ServantProvider sp;
 
         public RWorkerObjectFactory() {
-            initializeServantProvider();
-        }
-
-        private void initializeServantProvider() {
-            // and get the servant provider
             sp = ServantProviderFactory.getFactory().getServantProvider();
         }
 
-        public Object makeObject() throws Exception {
-            log.info("Borrowing R worker from proxy...");
+        public synchronized Object makeObject() throws Exception {
             RServices R = (RServices) sp.borrowServantProxyNoWait();
 
             if (null == R) {
                 throw new NoSuchElementException();
             }
 
-            log.info("Got worker " + R.getServantName());
-
+            log.debug("Acquired biocep worker " + R.getServantName());
             return R;
         }
 
-        public void destroyObject(Object o) throws Exception {
+        public synchronized void destroyObject(Object o) throws Exception {
             RServices R = (RServices) o;
-            log.info("Returning worker " + R.getServantName() + " proxy");
+            log.debug("Released biocep worker " + R.getServantName());
 
             sp.returnServantProxy((RServices) o);
         }
 
-        public boolean validateObject(Object o) {
+        public synchronized boolean validateObject(Object o) {
             RServices R = (RServices) o;
             try {
                 R.ping();
             }
             catch (RemoteException e) {
-                log.info("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
+                log.debug("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
                 return false;
             }
 
             return true;
         }
 
-        public void activateObject(Object o) throws Exception {
+        public synchronized void activateObject(Object o) throws Exception {
         }
 
-        public void passivateObject(Object o) throws Exception {
+        public synchronized void passivateObject(Object o) throws Exception {
         }
     }
 }

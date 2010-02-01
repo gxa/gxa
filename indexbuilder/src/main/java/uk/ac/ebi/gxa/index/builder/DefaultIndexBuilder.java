@@ -220,7 +220,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                 // wait for expt and gene indexes to build
                 for (Future<Boolean> indexingTask : indexingTasks) {
                     try {
-                        success = success && indexingTask.get();
+                        success = indexingTask.get() && success;
                     }
                     catch (Exception e) {
                         observedErrors.add(e);

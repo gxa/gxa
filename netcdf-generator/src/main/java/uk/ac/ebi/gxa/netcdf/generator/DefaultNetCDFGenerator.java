@@ -202,7 +202,7 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, Initializi
                             if (task == null) {
                                 break;
                             }
-                            success = success && task.get();
+                            success = task.get() && success;
                         }
                         catch (Exception e) {
                             observedErrors.add(e);

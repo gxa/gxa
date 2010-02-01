@@ -1,10 +1,6 @@
 package uk.ac.ebi.gxa.analytics.generator.service;
 
-import org.kchine.r.server.RConsoleAction;
-import org.kchine.r.server.RConsoleActionListener;
 import org.kchine.r.server.RServices;
-import org.kchine.rpf.RemoteLogListener;
-import org.slf4j.Logger;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -17,7 +13,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.*;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +46,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // the list of futures - we need these so we can block until completion
         List<Future<Boolean>> tasks =
                 new ArrayList<Future<Boolean>>();
-
         try {
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
@@ -87,8 +81,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
         finally {
             // shutdown the service
-            getLog().debug("Shutting down executor service in " +
-                    getClass().getSimpleName());
+            getLog().debug("Shutting down executor service in " + getClass().getSimpleName());
 
             try {
                 tpool.shutdown();
@@ -104,6 +97,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             }
             catch (InterruptedException e) {
+                e.printStackTrace();
                 //noinspection ThrowFromFinallyBlock
                 throw new AnalyticsGeneratorException(
                         "Failed to terminate service for " + getClass().getSimpleName() +
@@ -141,11 +135,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws RemoteException {
                         try {
-                            // add output listener
-//                            rs.addRConsoleActionListener(new MyRConsoleActionListener());
-//                            rs.addOutListener(new MyRemoteLogListener(getLog()));
-//                            rs.addErrListener(new MyRemoteLogListener(getLog()));
-
                             // first, make sure we load the R code that runs the analytics
                             rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
@@ -200,14 +189,13 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         }
 
                         // write values
-                        getLog().debug(
-                                "Writing analytics for " + experimentAccession + "; EF: " + ef + " and EFV: " + efv);
+                        getLog().debug("Writing analytics for experiment: " + experimentAccession + "; " +
+                                "EF: " + ef + "; EFV: " + efv);
                         getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, pValues, tStatistics);
 
                         // increment uefvIndex
                         uefvIndex++;
                     }
-
                 }
                 catch (IOException e) {
                     getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath());
@@ -247,45 +235,4 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
         return sb.toString();
     }
-
-//    public static class MyRConsoleActionListener extends UnicastRemoteObject
-//            implements RConsoleActionListener, java.io.Serializable {
-//        public MyRConsoleActionListener() throws RemoteException {
-//            super();
-//        }
-//
-//        public void rConsoleActionPerformed(RConsoleAction consoleAction) throws RemoteException {
-//            System.out.println("console " + consoleAction.getAttributes().get("log"));
-//        }
-//    }
-//
-//    public static class MyRemoteLogListener extends UnicastRemoteObject
-//            implements RemoteLogListener, java.io.Serializable {
-//
-//        private Logger log;
-//
-//        public MyRemoteLogListener(Logger log) throws RemoteException {
-//            super();
-//            this.log = log;
-//        }
-//
-//        private void printOut(String text) {
-//            log.debug(text);
-//        }
-//
-//        public void write(final byte[] b) throws RemoteException {
-//            log.debug(new String(b));
-//        }
-//
-//        public void write(final byte[] b, final int off, final int len) throws RemoteException {
-//            log.debug(new String(b, off, len));
-//        }
-//
-//        public void write(final int b) throws RemoteException {
-//            log.debug(new String(new byte[]{(byte) b, (byte) (b >> 8)}));
-//        }
-//
-//        public void flush() throws RemoteException {
-//        }
-//    }
 }
