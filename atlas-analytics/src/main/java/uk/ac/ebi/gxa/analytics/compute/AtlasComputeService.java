@@ -52,13 +52,14 @@ public class AtlasComputeService implements Compute {
             return task.compute(rService);
         }
         catch (Exception e) {
+            e.printStackTrace();
             log.error("Problem computing task! ({})", e.getMessage());
             throw new ComputeException(e);
         }
         finally {
             if (rService != null) {
                 try {
-                    log.info("Recycling R service");
+                    log.debug("Recycling R service");
                     getAtlasRFactory().recycleRServices(rService);
                 }
                 catch (Exception e) {
@@ -72,6 +73,7 @@ public class AtlasComputeService implements Compute {
      * Releases any resources that are retained by this AtlasComputeService
      */
     public void shutdown() {
-        atlasRFactory.releaseResources();
+        log.debug("Shutting down...");
+        getAtlasRFactory().releaseResources();
     }
 }

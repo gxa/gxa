@@ -201,7 +201,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, Init
                     // wait for expt and gene indexes to build
                     for (Future<Boolean> buildingTask : buildingTasks) {
                         try {
-                            success = success && buildingTask.get();
+                            success = buildingTask.get() && success;
                         }
                         catch (Exception e) {
                             observedErrors.add(e);

@@ -169,13 +169,13 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         if (directory.exists()) {
             for (File file : directory.listFiles()) {
                 if (file.isDirectory()) {
-                    success = success && deleteDirectory(file);
+                    success = deleteDirectory(file) && success;
                 }
                 else {
-                    success = success && file.delete();
+                    success = file.delete() && success;
                 }
             }
         }
-        return success && directory.delete();
+        return directory.delete() && success;
     }
 }

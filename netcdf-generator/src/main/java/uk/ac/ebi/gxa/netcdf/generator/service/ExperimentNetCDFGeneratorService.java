@@ -104,7 +104,7 @@ public class ExperimentNetCDFGeneratorService
                             long end = System.currentTimeMillis();
                             String total = new DecimalFormat("#.##").format((end - start) / 1000);
                             String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
-                            
+
 
                             getLog().info(
                                     "\n\tNetCDF(s) for " + experiment.getAccession() + " created in " + total + "s." +
@@ -255,7 +255,7 @@ public class ExperimentNetCDFGeneratorService
                     if (task == null) {
                         break;
                     }
-                    success = success && task.get();
+                    success = task.get() && success;
                 }
             }
             catch (ExecutionException e) {
@@ -378,8 +378,10 @@ public class ExperimentNetCDFGeneratorService
         public synchronized NetCDFTimer completed(int experimentID) {
             for (int i = 0; i < experimentIDs.length; i++) {
                 if (experimentIDs[i] == experimentID) {
-                    completions[i] = true;
-                    completedCount++;
+                    if (!completions[i]) {
+                        completions[i] = true;
+                        completedCount++;
+                    }
                     break;
                 }
             }
