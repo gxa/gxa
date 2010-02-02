@@ -159,8 +159,8 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             if (validateEnvironment()) {
                 // create worker pool
                 workerPool = new GenericObjectPool(new RWorkerObjectFactory());
-                workerPool.setMaxActive(4);
-                workerPool.setMaxIdle(4);
+                workerPool.setMaxActive(8);
+                workerPool.setMaxIdle(8);
                 workerPool.setTestOnBorrow(true);
                 workerPool.setTestOnReturn(true);
 

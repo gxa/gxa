@@ -26,7 +26,7 @@ import java.util.concurrent.*;
  * @date 28-Sep-2009
  */
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
-    private static final int NUM_THREADS = 64;
+    private static final int NUM_THREADS = 8;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                File repositoryLocation,
@@ -65,6 +65,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     task.get();
                 }
                 catch (ExecutionException e) {
+                    e.printStackTrace();
                     if (e.getCause() instanceof AnalyticsGeneratorException) {
                         throw (AnalyticsGeneratorException) e.getCause();
                     }
@@ -74,6 +75,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     }
                 }
                 catch (InterruptedException e) {
+                    e.printStackTrace();
                     throw new AnalyticsGeneratorException(
                             "An error occurred updating Analytics", e);
                 }
@@ -136,7 +138,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Void compute(RServices rs) throws RemoteException {
                         try {
                             // first, make sure we load the R code that runs the analytics
-//                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
                             rs.evaluate(getRCodeFromResource("R/analytics.R"));
 
                             // note - the netCDF file MUST be on the same file system where the workers run
