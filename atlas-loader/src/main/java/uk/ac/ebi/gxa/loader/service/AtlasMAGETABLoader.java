@@ -235,22 +235,44 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
             // first, load experiments
+            start = System.currentTimeMillis();
             getLog().debug("Writing " + cache.fetchAllExperiments().size() + " experiment(s)");
+            System.out.print("Writing experiments...");
             for (Experiment experiment : cache.fetchAllExperiments()) {
                 getAtlasDAO().writeExperiment(experiment);
+                System.out.print(".");
             }
+            System.out.println("done!");
+            end = System.currentTimeMillis();
+            total = new DecimalFormat("#.##").format((end - start) / 1000);
+            getLog().debug("Wrote {} experiments in {}s.", cache.fetchAllExperiments().size(), total);
+
 
             // next, write assays
+            start = System.currentTimeMillis();
             getLog().debug("Writing " + cache.fetchAllAssays().size() + " assays");
+            System.out.print("Writing assays...");
             for (Assay assay : cache.fetchAllAssays()) {
                 getAtlasDAO().writeAssay(assay);
+                System.out.print(".");
             }
+            System.out.println("done!");
+            end = System.currentTimeMillis();
+            total = new DecimalFormat("#.##").format((end - start) / 1000);
+            getLog().debug("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), total);
 
             // finally, load samples
+            start = System.currentTimeMillis();
             getLog().debug("Writing " + cache.fetchAllSamples().size() + " samples");
+            System.out.print("Writing assays...");
             for (Sample sample : cache.fetchAllSamples()) {
                 getAtlasDAO().writeSample(sample);
+                System.out.print(".");
             }
+            System.out.println("done!");
+            end = System.currentTimeMillis();
+            total = new DecimalFormat("#.##").format((end - start) / 1000);
+            getLog().debug("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
