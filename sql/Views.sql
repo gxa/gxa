@@ -4,7 +4,8 @@
 /*                                              
 /*******************************************************************************/
 
- CREATE OR REPLACE VIEW "A2_ONTOLOGYMAPPING" ("ACCESSION", "PROPERTY", "PROPERTYVALUE", "ONTOLOGYTERM", "ONTOLOGYTERMNAME", "ONTOLOGYTERMID", "ONTOLOGYNAME", "ISSAMPLEPROPERTY", "ISASSAYPROPERTY", "ISFACTORVALUE") AS SELECT   e.accession, 
+ CREATE OR REPLACE VIEW "A2_ONTOLOGYMAPPING" 
+ AS SELECT   e.accession, 
          p.name AS Property, 
          pv.name AS PropertyValue, 
          ot.accession AS OntologyTerm, 
@@ -13,7 +14,8 @@
          o.Name OntologyName, 
          1 IsSampleProperty, 
          0 IsAssayProperty, 
-         0 IsFactorValue 
+         0 IsFactorValue,
+         e.ExperimentID 
  FROM                          a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
                                  JOIN 
                                     a2_assay ass 
@@ -52,7 +54,8 @@ SELECT   e.accession,
          o.Name OntologyName, 
          0 IsSampleProperty, 
          1 IsAssayProperty, 
-         1 IsFactorValue 
+         1 IsFactorValue,
+         e.ExperimentID 
   FROM                        a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
                            JOIN 
                               a2_assay ass 
