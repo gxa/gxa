@@ -250,24 +250,7 @@ public class AtlasDAO {
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=a.designelementid " +
-                    "WHERE de.geneid=?) GROUP BY  ef, efv, experimentid, tstat, efid, efvid";
-    private static final String EXPRESSIONANALYTICS_BY_GENEID_EF_EFV =
-            "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
-                    "a.tstat, a.pvaladj, " +
-                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
-                    "FROM a2_expressionanalytics a " +
-                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
-                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "WHERE a.geneid=? AND ef.name=? AND efv.name=?";
-    private static final String EXPRESSIONANALYTICS_BY_GENEID_EFO =
-            "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
-                    "a.tstat, a.pvaladj, " +
-                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
-                    "FROM a2_expressionanalytics a " +
-                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
-                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "JOIN a2_ontologymapping efo ON efo.propertyvalueid=a.propertyvalueid " +
-                    "WHERE a.geneid=? AND efo.accession IN (?)";
+                    "WHERE de.geneid=? AND a.pvaladj < 0.05) GROUP BY  ef, efv, experimentid, tstat, efid, efvid";
     private static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +
@@ -940,22 +923,6 @@ public class AtlasDAO {
             int geneID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
                                       new Object[]{geneID},
-                                      new ExpressionAnalyticsMapper());
-        return (List<ExpressionAnalysis>) results;
-    }
-
-    public List<ExpressionAnalysis> getExpressionAnalyticsByGeneIDEfEfv(
-            int geneID, String ef, String efv) {
-        List results = template.query(EXPRESSIONANALYTICS_BY_GENEID_EF_EFV,
-                                      new Object[]{geneID, ef, efv},
-                                      new ExpressionAnalyticsMapper());
-        return (List<ExpressionAnalysis>) results;
-    }
-
-    public List<ExpressionAnalysis> getExpressionAnalyticsByGeneIDEfo(
-            int geneID, Collection<String> efoAccessions) {
-        List results = template.query(EXPRESSIONANALYTICS_BY_GENEID_EFO,
-                                      new Object[]{geneID, new ArrayList<String>(efoAccessions)},
                                       new ExpressionAnalyticsMapper());
         return (List<ExpressionAnalysis>) results;
     }
