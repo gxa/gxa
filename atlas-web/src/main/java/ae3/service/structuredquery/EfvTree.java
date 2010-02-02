@@ -5,6 +5,7 @@ import ae3.servlet.structuredquery.result.ExperimentRestProfile;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
+import java.io.Serializable;
 
 /**
  * @author pashky
@@ -62,7 +63,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     }
 
     @RestOut(xmlItemName = "expression", forProfile = ExperimentRestProfile.class) 
-    public static class EfEfv<Payload> implements Comparable<EfEfv<Payload>> {
+    public static class EfEfv<Payload> implements Comparable<EfEfv<Payload>>, Serializable {
         private String ef;
         private String efv;
 

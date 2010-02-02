@@ -9,6 +9,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 
 import java.util.*;
+import java.io.Serializable;
 
 /**
  * EFO tree handling helper class
@@ -98,7 +99,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      * View helper class representing one tree node
      * @param <PayLoad> payload type
      */
-    public static class EfoItem<PayLoad extends Comparable<PayLoad>> {
+    public static class EfoItem<PayLoad extends Comparable<PayLoad>> implements Serializable {
         private EfoTerm term;
         private PayLoad payload;
         private boolean explicit;
