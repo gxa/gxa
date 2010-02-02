@@ -111,12 +111,21 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         log.trace("Worker pool before return... " +
                 "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         try {
-            log.debug("Returning rServices " + rServices.getServantName() + " to the pool");
-            workerPool.returnObject(rServices);
-            log.trace("Worker pool after return... " +
-                    "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+            if (rServices != null) {
+                log.debug("Returning rServices " + rServices.getServantName() + " to the pool");
+                workerPool.returnObject(rServices);
+                log.trace("Worker pool after return... " +
+                        "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+            }
+            else {
+                // rServices is unexpectedly null - hmmmm....
+                log.warn("R services object became unexpectedly null, invalidating");
+                workerPool.invalidateObject(rServices);
+                workerPool.returnObject(rServices);
+            }
         }
         catch (Exception e) {
+            e.printStackTrace();
             throw new AtlasRServicesException(
                     "Failed to release an RServices object back into the pool of workers", e);
         }
@@ -191,16 +200,19 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized boolean validateObject(Object o) {
-            RServices R = (RServices) o;
             try {
+                RServices R = (RServices) o;
                 R.ping();
+                return true;
             }
             catch (RemoteException e) {
-                log.debug("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
+                log.error("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
                 return false;
             }
-
-            return true;
+            catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
 
         public synchronized void activateObject(Object o) throws Exception {

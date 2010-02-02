@@ -136,7 +136,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Void compute(RServices rs) throws RemoteException {
                         try {
                             // first, make sure we load the R code that runs the analytics
-                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+//                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+                            rs.evaluate(getRCodeFromResource("R/analytics.R"));
 
                             // note - the netCDF file MUST be on the same file system where the workers run
                             rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
