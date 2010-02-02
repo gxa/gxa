@@ -76,6 +76,8 @@ public class AtlasGene {
 
     public String getShortValue(String name){
     	ArrayList fval = (ArrayList)geneSolrDocument.getFieldValues(name);
+        if(fval == null)
+            return "";
     	if(fval.size()>5)
     		return StringUtils.join(fval.subList(0, 5),", ");
     	else
