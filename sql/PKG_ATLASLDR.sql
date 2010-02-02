@@ -160,6 +160,7 @@ begin
       RAISE;
   end;
 
+  /*
   dbms_output.put_line('check for invalid design elements');
   begin
     Select count(t.DesignElementAccession) into UnknownDesignElementAccession
@@ -174,7 +175,8 @@ begin
     if(MissedAccessionPercentage > UnknownDesignElementAccession) then
       RAISE_APPLICATION_ERROR(-20001, 'unknown accession threshold exceeded');
     end if;
-  end;  
+  end;
+  */
 
   begin
       Select a.AssayID into TheAssayID
