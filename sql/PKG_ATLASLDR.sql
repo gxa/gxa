@@ -30,7 +30,7 @@ PROCEDURE A2_ASSAYSET(
   ,TheArrayDesignAccession varchar2
   ,TheProperties PropertyTable
   ,TheExpressionValues ExpressionValueTable
-  ,UnknownAccessionThreshold int default 75  
+  --,UnknownAccessionThreshold int default 75  
 );
 
 PROCEDURE A2_SAMPLESET(
@@ -132,7 +132,7 @@ PROCEDURE A2_ASSAYSET (
   ,TheArrayDesignAccession varchar2
   ,TheProperties PropertyTable
   ,TheExpressionValues ExpressionValueTable
-  ,UnknownAccessionThreshold int default 75  
+  --,UnknownAccessionThreshold int default 75  
 )
 as
   TheExperimentID int := 0;
@@ -141,6 +141,7 @@ as
   UnknownDesignElementAccession int :=0; --;varchar2(255) := NULL;
   LowerCaseProperties PropertyTable := TheProperties;
   MissedAccessionPercentage int := 0;
+  UnknownAccessionThreshold int := 100;
 begin
 
   begin
