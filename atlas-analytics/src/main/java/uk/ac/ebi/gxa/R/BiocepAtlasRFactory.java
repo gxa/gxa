@@ -2,13 +2,19 @@ package uk.ac.ebi.gxa.R;
 
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.kchine.r.RNumeric;
+import org.kchine.r.server.RConsoleAction;
+import org.kchine.r.server.RConsoleActionListener;
 import org.kchine.r.server.RServices;
+import org.kchine.rpf.RemoteLogListener;
 import org.kchine.rpf.ServantProvider;
 import org.kchine.rpf.ServantProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.NoSuchElementException;
 
 /**
@@ -90,6 +96,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         log.trace("Worker pool before borrow... " +
                 "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         try {
+            // borrow a worker
             RServices rServices = (RServices) workerPool.borrowObject();
             log.debug("Borrowed " + rServices.getServantName() + " from the pool");
             return rServices;
@@ -182,14 +189,21 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized Object makeObject() throws Exception {
-            RServices R = (RServices) sp.borrowServantProxyNoWait();
+            RServices rServices = (RServices) sp.borrowServantProxyNoWait();
 
-            if (null == R) {
+            if (null == rServices) {
                 throw new NoSuchElementException();
             }
 
-            log.debug("Acquired biocep worker " + R.getServantName());
-            return R;
+            // add output listener
+            rServices.addRConsoleActionListener(new MyRConsoleActionListener());
+            MyRemoteLogListener listener = new MyRemoteLogListener();
+            rServices.addOutListener(listener);
+            rServices.addErrListener(listener);
+
+
+            log.debug("Acquired biocep worker " + rServices.getServantName());
+            return rServices;
         }
 
         public synchronized void destroyObject(Object o) throws Exception {
@@ -201,9 +215,39 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
 
         public synchronized boolean validateObject(Object o) {
             try {
-                RServices R = (RServices) o;
-                R.ping();
-                return true;
+                // check response to ping
+                RServices rServices = (RServices) o;
+                String pingResponse = rServices.ping();
+                log.debug("Worker response to ping: " + pingResponse);
+
+                // test this worker can evaluate 2 + 2
+                boolean valid;
+                try {
+                    double[] values = ((RNumeric) rServices.getObject("2 + 2")).getValue();
+                    if (values.length > 0) {
+                        log.debug("Worker response to 2 + 2: " + values[0]);
+                        valid = (values[0] == 4.0);
+                    }
+                    else {
+                        log.debug("No response to 2 + 2 from worker");
+                        valid = false;
+                    }
+                }
+                catch (Exception e) {
+                    log.error("R worker threw exception during validity test, invalidating");
+                    valid = false;
+                }
+
+                if (!valid) {
+                    log.warn("R worker " + rServices.getServantName() + " could not accurately evaluate 2 + 2 - " +
+                            "this worker will be released");
+                    // invalidate the worker if it's not valid
+                    rServices.die();
+                    return false;
+                }
+                else {
+                    return true;
+                }
             }
             catch (RemoteException e) {
                 log.error("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
@@ -219,6 +263,43 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized void passivateObject(Object o) throws Exception {
+        }
+    }
+
+
+    public class MyRConsoleActionListener
+            extends UnicastRemoteObject
+            implements RConsoleActionListener, Serializable {
+        public MyRConsoleActionListener() throws RemoteException {
+            super();
+        }
+
+        public void rConsoleActionPerformed(RConsoleAction consoleAction) throws RemoteException {
+            BiocepAtlasRFactory.this.log.trace(
+                    "R console said:\n\t" + consoleAction.getAttributes().get("log"));
+        }
+    }
+
+    public class MyRemoteLogListener
+            extends UnicastRemoteObject
+            implements RemoteLogListener, Serializable {
+        public MyRemoteLogListener() throws RemoteException {
+            super();
+        }
+
+        public void write(final byte[] b) throws RemoteException {
+            BiocepAtlasRFactory.this.log.trace(new String(b));
+        }
+
+        public void write(final byte[] b, final int off, final int len) throws RemoteException {
+            BiocepAtlasRFactory.this.log.trace(new String(b, off, len));
+        }
+
+        public void write(final int b) throws RemoteException {
+            BiocepAtlasRFactory.this.log.trace(new String(new byte[]{(byte) b, (byte) (b >> 8)}));
+        }
+
+        public void flush() throws RemoteException {
         }
     }
 }

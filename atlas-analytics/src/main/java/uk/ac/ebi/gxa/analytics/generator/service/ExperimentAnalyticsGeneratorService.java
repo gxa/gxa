@@ -14,9 +14,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -117,6 +115,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             getAtlasDAO().writeLoadDetails(
                     experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
+            // first, delete old analytics for this experiment
+            getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
             // work out where the NetCDF(s) are located
             final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
@@ -131,17 +131,19 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
 
+            int count = 0;
             for (final File netCDF : netCDFs) {
-                getLog().debug("Generating analytics from NetCDF file " + netCDF.getAbsolutePath() + " " +
-                        "(Experiment " + experimentAccession + ")");
+                count++;
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws RemoteException {
                         try {
                             // first, make sure we load the R code that runs the analytics
-                            rs.evaluate(getRCodeFromResource("R/analytics.R"));
+                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
                             // note - the netCDF file MUST be on the same file system where the workers run
+                            getLog().debug("Starting compute task for " + netCDF.getAbsolutePath());
                             rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
+                            getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
 
                             // todo - handle the returned results - RChar, array of codes?
                             return null;
@@ -156,19 +158,22 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 // now run this compute task
                 try {
                     getAtlasComputeService().computeTask(computeAnalytics);
+                    getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
+                            " has completed.");
                 }
                 catch (ComputeException e) {
-                    throw new AnalyticsGeneratorException("Compute task failed for " + experimentAccession, e);
+                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
+                            e.getMessage());
+                    e.printStackTrace();
+                    success = false;
                 }
-
-                getLog().debug("Analytics complete for " + experimentAccession + ".  File " + netCDF.getAbsolutePath() +
-                        " has been updated.");
 
                 // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
                 NetCDFProxy proxy = new NetCDFProxy(netCDF);
 
+                // get unique factor values for the expression value matrix
                 try {
-                    // get unique factor values for the expression value matrix
+                    int[] designElements = proxy.getDesignElements();
                     String[] uefvs = proxy.getUniqueFactorValues();
 
                     // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
@@ -177,23 +182,25 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     for (String uefv : uefvs) {
                         String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                         String ef = values[0];
-                        String efv = values[1];
+                        String efv = values.length > 1 ? values[1] : "";
 
-                        int[] designElements = proxy.getDesignElements();
-                        double[] pValuesArray = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                        double[] tStatsArray = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
-
-                        Map<Integer, Double> pValues = new HashMap<Integer, Double>();
-                        Map<Integer, Double> tStatistics = new HashMap<Integer, Double>();
-                        for (int i = 0; i < designElements.length; i++) {
-                            pValues.put(designElements[i], pValuesArray[i]);
-                            tStatistics.put(designElements[i], tStatsArray[i]);
-                        }
+                        double[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                        double[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
 
                         // write values
-                        getLog().debug("Writing analytics for experiment: " + experimentAccession + "; " +
+                        getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
                                 "EF: " + ef + "; EFV: " + efv);
-                        getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, pValues, tStatistics);
+
+                        try {
+                            getAtlasDAO().writeExpressionAnalytics(
+                                    experimentAccession, ef, efv, designElements, pValues, tStatistics);
+                        }
+                        catch (RuntimeException e) {
+                            getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
+                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage());
+                            e.printStackTrace();
+                            success = false;
+                        }
 
                         // increment uefvIndex
                         uefvIndex++;
@@ -201,10 +208,10 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
                 catch (IOException e) {
                     getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath());
-                    throw new AnalyticsGeneratorException("Could not access NetCDF at " + netCDF.getAbsolutePath(), e);
+                    e.printStackTrace();
+                    success = false;
                 }
             }
-
             success = true;
         }
         finally {

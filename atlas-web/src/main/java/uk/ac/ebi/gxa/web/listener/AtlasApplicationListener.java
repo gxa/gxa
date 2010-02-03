@@ -13,9 +13,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
 import javax.servlet.ServletContext;
@@ -53,7 +53,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             LogManager.getLogManager().readConfiguration(
                     AtlasApplicationListener.class.getResourceAsStream("logging.properties"));
         }
-        catch(Exception e) {
+        catch (Exception e) {
             log.warn("Unable to read logging.properties file - SLF4J bridge may not be correctly configured");
         }
         SLF4JBridgeHandler.install();
@@ -105,11 +105,12 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
-        String atlasDatasourceUrl;
+        String atlasDatasourceUrl, atlasDatasourceUser;
         try {
             Connection c = DataSourceUtils.getConnection(atlasDataSource);
             DatabaseMetaData dmd = c.getMetaData();
             atlasDatasourceUrl = dmd.getURL();
+            atlasDatasourceUser = dmd.getUserName();
             DataSourceUtils.releaseConnection(c, atlasDataSource);
         }
         catch (SQLException e) {
@@ -136,17 +137,20 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
         String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
 
-        log.info("Atlas initializing with the following parameters...");
+        StringBuffer sb = new StringBuffer();
+        sb.append("\nAtlas initializing with the following parameters...");
         // software properties
-        log.info("\tBuild Number:               " + versionProps.getProperty("atlas.buildNumber"));
-        log.info("\tSoftware Version:           " + versionProps.getProperty("atlas.software.version"));
+        sb.append("\n\tBuild Number:               ").append(versionProps.getProperty("atlas.buildNumber"));
+        sb.append("\n\tSoftware Version:           ").append(versionProps.getProperty("atlas.software.version"));
         // data properties
-        log.info("\tData Release:               " +
-                AtlasProperties.getProperty("atlas.data.release")); // fixme: read this from DB
+        // fixme: read this from DB
+        sb.append("\n\tData Release:               ").append(AtlasProperties.getProperty("atlas.data.release"));
         // context properties
-        log.info("\tSOLR Index Location:        " + atlasIndex);
-        log.info("\tAtlas DataSource:           " + atlasDatasourceUrl);
-        log.info("\tNetCDF repository Location: " + atlasNetCDFRepo);
+        sb.append("\n\tSOLR Index Location:        ").append(atlasIndex);
+        sb.append("\n\tAtlas DataSource:           ").append(atlasDatasourceUrl)
+                .append(" (user ").append(atlasDatasourceUser).append(")");
+        sb.append("\n\tNetCDF repository Location: ").append(atlasNetCDFRepo);
+        log.info(sb.toString());
 
         long end = System.currentTimeMillis();
         double time = ((double) (end - start)) / 1000;
@@ -185,7 +189,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         ServletContext application = se.getSession().getServletContext();
 
         // cleanup any downloads being done in this session
-        AtlasDownloadService downloadService = (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
+        AtlasDownloadService downloadService =
+                (AtlasDownloadService) application.getAttribute(Atlas.DOWNLOAD_SERVICE.key());
         downloadService.cleanupDownloads(se.getSession().getId());
     }
 }
