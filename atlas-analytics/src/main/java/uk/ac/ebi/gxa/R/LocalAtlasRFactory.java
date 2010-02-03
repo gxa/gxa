@@ -18,7 +18,7 @@ import java.util.concurrent.Semaphore;
  * @date 17-Nov-2009
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
-    private final BootableSemaphore r = new BootableSemaphore(1, true);
+    private final BootableSemaphore r = new BootableSemaphore(16, true);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

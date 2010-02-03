@@ -1,6 +1,7 @@
 ### Atlas Analytics Original Driver Functions
 ### Author: ostolop
 
+(function() {
 
 ### Reads data from Atlas NetCDF file and returns an ExpressionSet
 ### Post-AEW migration TODOs:
@@ -221,7 +222,7 @@ process.atlas.nc<-
 }
 
 ### Atlas analytics, returns instead of writing
-computeAnalytics <-
+computeAnalytics <<-
 function (nc)
 {
   e <- try({
@@ -304,3 +305,4 @@ design.pairs <- function(levels) {
    design
 }
 
+})()

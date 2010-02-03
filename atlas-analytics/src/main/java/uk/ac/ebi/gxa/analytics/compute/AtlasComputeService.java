@@ -52,8 +52,7 @@ public class AtlasComputeService implements Compute {
             return task.compute(rService);
         }
         catch (Exception e) {
-            e.printStackTrace();
-            log.error("Problem computing task! ({})", e.getMessage());
+            log.error("Problem computing task!", e);
             throw new ComputeException(e);
         }
         finally {
@@ -63,7 +62,7 @@ public class AtlasComputeService implements Compute {
                     getAtlasRFactory().recycleRServices(rService);
                 }
                 catch (Exception e) {
-                    log.error("Problem returning worker! {}", e.getMessage());
+                    log.error("Problem returning worker!", e);
                 }
             }
         }
