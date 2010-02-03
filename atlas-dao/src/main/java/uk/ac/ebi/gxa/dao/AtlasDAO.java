@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -1254,16 +1255,18 @@ public class AtlasDAO {
      * @param experimentAccession the accession of the experiment these analytics values belong to
      * @param property            the name of the property for this set of analytics
      * @param propertyValue       the property value for this set of analytics
-     * @param pValues             a map linking each design element to a pValue (a double) in the context of this
-     *                            property/property value pair
-     * @param tStatistics         a map linking each design element to a tStatistic (a double) in the context of this
-     *                            property/property value pair
+     * @param designElements      an array of ints, representing the design element ids for this analytics 'bundle'
+     * @param pValues             an array of doubles, indexed in the same order as design elements, capturing the
+     *                            pValues in the context of this property/property value pair
+     * @param tStatistics         an array of doubles, indexed in the same order as design elements, capturing the
+     *                            tStatistic (a double) in the context of this property/property value pair
      */
     public void writeExpressionAnalytics(String experimentAccession,
                                          String property,
                                          String propertyValue,
-                                         Map<Integer, Double> pValues,
-                                         Map<Integer, Double> tStatistics) {
+                                         int[] designElements,
+                                         double[] pValues,
+                                         double[] tStatistics) {
         // execute this procedure...
         /*
         PROCEDURE A2_AnalyticsSet(
@@ -1273,6 +1276,8 @@ public class AtlasDAO {
           ,ExpressionAnalytics ExpressionAnalyticsTable
         )
         */
+        log.debug("Starting writing analytics for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "]");
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_ANALYTICSSET")
@@ -1290,14 +1295,36 @@ public class AtlasDAO {
                         .declareParameters(
                                 new SqlParameter("EXPRESSIONANALYTICS", OracleTypes.ARRAY, "EXPRESSIONANALYTICSTABLE"));
 
+        // tracking variables for timings
+        long start, end;
+        String total;
+
         // map parameters...
+        log.trace("Mapping parameters to oracle structures for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "]");
+        start = System.currentTimeMillis();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("PROPERTY", property)
                 .addValue("PROPERTYVALUE", propertyValue)
-                .addValue("EXPRESSIONANALYTICS", convertExpressionAnalyticsToOracleArray(pValues, tStatistics));
+                .addValue("EXPRESSIONANALYTICS",
+                          convertExpressionAnalyticsToOracleArray(designElements, pValues, tStatistics));
+        end = System.currentTimeMillis();
+        total = new DecimalFormat("#.##").format((end - start) / 1000);
+        log.trace("Parameter mapping for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "] complete in " + total + "s.");
 
+        log.trace("Executing procedure for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "]");
+        start = System.currentTimeMillis();
         procedure.execute(params);
+        end = System.currentTimeMillis();
+        total = new DecimalFormat("#.##").format((end - start) / 1000);
+        log.trace("Procedure execution for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "]  complete in " + total + "s.");
+
+        log.debug("Writing analytics for [experiment: " + experimentAccession + "; " +
+                "Property: " + property + "; Property Value: " + propertyValue + "] completed!");
     }
 
     /*
@@ -1329,6 +1356,37 @@ public class AtlasDAO {
         params.addValue("THEACCESSION", experimentAccession);
 
         procedure.execute(params);
+    }
+
+    public void deleteExpressionAnalytics(String experimentAccession) {
+        // execute this procedure...
+        /*
+        PROCEDURE A2_ANALYTICSDELETE(
+          ExperimentAccession varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSDELETE")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // tracking variables for timings
+        long start, end;
+        String total;
+
+        log.trace("Executing procedure to delete analytics for experiment: " + experimentAccession);
+        start = System.currentTimeMillis();
+        procedure.execute(params);
+        end = System.currentTimeMillis();
+        total = new DecimalFormat("#.##").format((end - start) / 1000);
+        log.trace("Procedure execution to delete analytics for experiment: " + experimentAccession + 
+                " complete in " + total + "s.");
     }
 
     /*
@@ -1593,14 +1651,16 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertExpressionAnalyticsToOracleArray(final Map<Integer, Double> pValues,
-                                                                 final Map<Integer, Double> tStatistics) {
-        if (pValues == null || tStatistics == null || pValues.size() != tStatistics.size()) {
+    private SqlTypeValue convertExpressionAnalyticsToOracleArray(final int[] designElements,
+                                                                 final double[] pValues,
+                                                                 final double[] tStatistics) {
+        if (designElements == null || pValues == null || tStatistics == null ||
+                designElements.length != pValues.length || pValues.length != tStatistics.length) {
             throw new RuntimeException(
                     "Cannot store analytics - inconsistent design element counts for pValues and tStatistics");
         }
         else {
-            final int deCount = pValues.size();
+            final int deCount = designElements.length;
             return new AbstractSqlTypeValue() {
                 protected Object createTypeValue(Connection connection, int sqlType, String typeName)
                         throws SQLException {
@@ -1612,16 +1672,15 @@ public class AtlasDAO {
                     // descriptor for EXPRESSIONANALYTICS type
                     StructDescriptor structDescriptor =
                             StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
-                    int i = 0;
                     Object[] expressionAnalyticsValues = new Object[3];
-                    for (int designElement : pValues.keySet()) {
+                    for (int i = 0; i < designElements.length; i++) {
                         // array representing the values to go in the STRUCT
                         // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
-                        expressionAnalyticsValues[0] = designElement;
-                        expressionAnalyticsValues[1] = pValues.get(designElement);
-                        expressionAnalyticsValues[2] = tStatistics.get(designElement);
+                        expressionAnalyticsValues[0] = designElements[i];
+                        expressionAnalyticsValues[1] = pValues[i];
+                        expressionAnalyticsValues[2] = tStatistics[i];
 
-                        expressionAnalytics[i++] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
+                        expressionAnalytics[i] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
                     }
 
                     // created the array of STRUCTs, group into ARRAY

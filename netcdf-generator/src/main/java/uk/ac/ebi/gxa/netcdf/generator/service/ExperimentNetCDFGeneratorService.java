@@ -96,10 +96,11 @@ public class ExperimentNetCDFGeneratorService
                                 }
                                 finally {
                                     // save and close the netCDF
-                                    timer.completed(experiment.getExperimentID());
                                     netCDF.close();
                                 }
                             }
+                            // update the timer, this experiment is done
+                            timer.completed(experiment.getExperimentID());
 
                             long end = System.currentTimeMillis();
                             String total = new DecimalFormat("#.##").format((end - start) / 1000);
