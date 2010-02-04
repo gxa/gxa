@@ -41,23 +41,11 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
             this.profile = profile;
             process(object, null, null);
-
-            // configure output properties
-            Properties outputProperties = new Properties();
-            // explicitly identify the output as an XML document
-            outputProperties.put(OutputKeys.METHOD, "xml");
-            // set indenting to pretty print
-            outputProperties.put(OutputKeys.INDENT, indent);
-            // set indent amount
-            outputProperties.put("{http://xml.apache.org/xslt}indent-amount", indentAmount);
-
+            
             // and write out
-            where.append(xml.asString(outputProperties));
+            where.append(xml.asString(indent, indentAmount));
         }
         catch (ParserConfigurationException e) {
-            throw new RenderException(e);
-        }
-        catch (TransformerException e) {
             throw new RenderException(e);
         }
     }
