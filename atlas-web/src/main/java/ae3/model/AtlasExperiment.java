@@ -12,8 +12,8 @@ public class AtlasExperiment implements java.io.Serializable {
 
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
-    private TreeMap<String, List<String>> sampleCharacterisitcValues = new TreeMap<String, List<String>>();
-    private TreeMap<String, List<String>> factorValues = new TreeMap<String, List<String>>();
+    private TreeMap<String, Collection<String>> sampleCharacterisitcValues = new TreeMap<String, Collection<String>>();
+    private TreeMap<String, Collection<String>> factorValues = new TreeMap<String, Collection<String>>();
 
     private SolrDocument exptSolrDocument;
 
@@ -22,19 +22,20 @@ public class AtlasExperiment implements java.io.Serializable {
     public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
+    @SuppressWarnings("unchecked")
     public AtlasExperiment(SolrDocument exptdoc) {
         exptSolrDocument = exptdoc;
 
         for(String field : exptSolrDocument.getFieldNames()) {
             if(field.startsWith("a_property_")) {
                 String property = field.substring("a_property_".length());
-                List<String> values = new ArrayList<String>();
+                Collection<String> values = new HashSet<String>();
                 values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 experimentFactors.add(property);
                 factorValues.put(property, values);
             } else if(field.startsWith("s_property_")) {
                 String property = field.substring("s_property_".length());
-                List<String> values = new ArrayList<String>();
+                Collection<String> values = new HashSet<String>();
                 values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 sampleCharacteristics.add(property);
                 sampleCharacterisitcValues.put(property, values);
@@ -46,11 +47,11 @@ public class AtlasExperiment implements java.io.Serializable {
         return sampleCharacteristics;
     }
 
-    public TreeMap<String, List<String>> getSampleCharacterisitcValues() {
+    public TreeMap<String, Collection<String>> getSampleCharacterisitcValues() {
 		return sampleCharacterisitcValues;
 	}
 
-    public TreeMap<String, List<String>> getFactorValuesForEF() {
+    public TreeMap<String, Collection<String>> getFactorValuesForEF() {
 		return factorValues;
 	}
 
