@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.loader.utils;
 
 import org.apache.commons.logging.Log;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.Handler;
@@ -26,74 +25,6 @@ import java.util.Set;
  * @date 26-Aug-2009
  */
 public class AtlasLoaderUtils {
-    /**
-     * Blocking method that waits until the IDF for the given MAGETABInvestigation reached {@link
-     * Status}<code>.COMPILING</code> status, or else fails.
-     *
-     * @param investigation the investigation to wait on
-     * @param handlerName   the name of the handler (or the client class) that is waiting - this is used for logging
-     * @param log           a log stream to write - this is used in debug modes
-     * @return true when the IDF has finished compiling, or false if it failed
-     */
-    public static boolean waitWhilstIDFCompiles(final MAGETABInvestigation investigation, String handlerName, Log log) {
-        // compile objects
-        while (investigation.IDF.getStatus().ordinal() < Status.COMPILING.ordinal()
-                && investigation.getStatus() != Status.FAILED) {
-            synchronized (investigation.IDF) {
-                try {
-                    investigation.IDF.wait(1000);
-                    log.trace(handlerName + " polling for status");
-                }
-                catch (InterruptedException e) {
-                    // ignore this
-                }
-            }
-        }
-
-        // exited the loop, check whether this is due to fail or complete
-        return investigation.getStatus() != Status.FAILED;
-    }
-
-    public static SDRFNode waitForSDRFNode(String nodeName,
-                                           String nodeType,
-                                           final MAGETABInvestigation investigation,
-                                           String handlerName,
-                                           Log log) throws LookupException {
-        if (nodeName == null) {
-            throw new LookupException("Cannot lookup an object using a null nodeName");
-        }
-
-        log.debug(handlerName + " doing lookup for " + nodeType + " " + nodeName);
-        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for dependent object");
-        // fetch from the bag
-        while (investigation.SDRF.lookupNode(nodeName, nodeType) == null &&
-                investigation.SDRF.getStatus().ordinal() < Status.COMPILING.ordinal() &&
-                investigation.getStatus() != Status.FAILED) {
-            // object isn't in the bag yet, so wait
-            synchronized (investigation) {
-                try {
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
-                    // wait for new objects to be available
-                    investigation.wait(1000);
-                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
-                }
-                catch (InterruptedException e) {
-                    if (investigation.getStatus() == Status.FAILED) {
-                        log.warn(handlerName + " was interrupted by a failure elsewhere " +
-                                "whilst waiting for " + nodeType + " " + nodeName + " and is terminating");
-                        throw new LookupException(
-                                "Interrupted by a fail whilst waiting " + "for " + nodeType + " " + nodeName);
-                    }
-                    else {
-                        // interrupted but no fail, so safe to continue
-                    }
-                }
-            }
-        }
-        log.debug(handlerName + " resumed after dependent object obtained");
-        return investigation.SDRF.lookupNode(nodeName, nodeType);
-    }
-
     /**
      * Blocking method that waits until an experiment with the given accession number is available.  Note that this
      * method will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>

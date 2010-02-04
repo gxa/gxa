@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -10,10 +11,11 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
+import uk.ac.ebi.arrayexpress2.magetab.utils.ParsingUtils;
+import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
-import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
@@ -87,13 +89,30 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             String assayName;
                             if (refNodeName.equals("scanname")) {
                                 // this requires mapping the assay upstream of this node to the scan
-                                SDRFNode refNode = AtlasLoaderUtils.waitForSDRFNode(
-                                        refName, refNodeName, investigation, this.getClass().getSimpleName(), getLog());
+                                SDRFNode refNode = null;
+                                while (refNode == null) {
+                                    try {
+                                        refNode = ParsingUtils.waitForSDRFNode(
+                                                refName, refNodeName, investigation.SDRF);
+                                    }
+                                    catch (InterruptedException e) {
+                                        if (investigation.SDRF.getStatus() == Status.FAILED) {
+                                            // generate error item and throw exception
+                                            String message =
+                                                    "SDRF graph failed to parse before scans could be read";
+                                            ErrorItem error =
+                                                    ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                            .generateErrorItem(message, 511, this.getClass());
+
+                                            throw new ObjectConversionException(error, true);
+                                        }
+                                    }
+                                }
 
                                 // collect all the possible 'assay' forming nodes
-                                Collection<HybridizationNode> hybTypeNodes = SDRFWritingUtils.findUpstreamNodes(
+                                Collection<HybridizationNode> hybTypeNodes = SDRFUtils.findUpstreamNodes(
                                         investigation.SDRF, refNode, HybridizationNode.class);
-                                Collection<AssayNode> assayTypeNodes = SDRFWritingUtils.findUpstreamNodes(
+                                Collection<AssayNode> assayTypeNodes = SDRFUtils.findUpstreamNodes(
                                         investigation.SDRF, refNode, AssayNode.class);
 
                                 // lump the two together
@@ -134,16 +153,23 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                     "Updating assay " + assayName + " with expression values, must be stored first...");
 
                             // try to acquire the assay node from the graph
-                            try {
-                                AtlasLoaderUtils.waitForSDRFNode(assayName, "hybridizationname", investigation,
-                                                                 this.getClass().getSimpleName(),
-                                                                 getLog());
-                            }
-                            catch (LookupException e) {
-                                // try again for assay, but if this throws a lookup exception we really throw it
-                                AtlasLoaderUtils.waitForSDRFNode(assayName, "assayname", investigation,
-                                                                 this.getClass().getSimpleName(),
-                                                                 getLog());
+                            while (true) {
+                                try {
+                                    if (ParsingUtils.waitForSDRFNode(
+                                            assayName, "hybridizationname", investigation.SDRF) == null) {
+                                        // try again for assay, but if this throws a lookup exception we really throw it
+                                        ParsingUtils.waitForSDRFNode(assayName, "assayname", investigation.SDRF);
+                                        break;
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                catch (InterruptedException e) {
+                                    if (investigation.SDRF.getStatus() == Status.FAILED) {
+                                        break;
+                                    }
+                                }
                             }
 
                             // now we have the name of the assay to attach EVs to, so lookup
@@ -153,7 +179,8 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             done++;
                             if (assay != null) {
                                 // extract twice, cos we're reading only one node at a time
-                                assay.setExpressionValuesByDesignElementReference(buffer.readExpressionValues(refName).get(refName));
+                                assay.setExpressionValuesByDesignElementReference(
+                                        buffer.readExpressionValues(refName).get(refName));
 
                                 getLog().debug("Updated assay " + assayName + " with " +
                                         expressionValues.get(refName).size() + " expression values. " +
