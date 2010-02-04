@@ -13,6 +13,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.*;
 import java.rmi.RemoteException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -41,9 +42,16 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 ? getAtlasDAO().getAllExperimentsPendingAnalytics()
                 : getAtlasDAO().getAllExperiments();
 
+        // create a timer, so we can track time to generate analytics
+        final AnalyticsTimer timer = new AnalyticsTimer(experiments);
+
         // the list of futures - we need these so we can block until completion
         List<Future<Boolean>> tasks =
                 new ArrayList<Future<Boolean>>();
+
+        // start the timer
+        timer.start();
+
         try {
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
@@ -51,8 +59,24 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 tasks.add(tpool.submit(new Callable<Boolean>() {
 
                     public Boolean call() throws Exception {
-                        createAnalyticsForExperiment(experiment.getAccession());
-                        return true;
+                        long start = System.currentTimeMillis();
+                        try {
+                            createAnalyticsForExperiment(experiment.getAccession());
+                            return true;
+                        }
+                        finally {
+                            timer.completed(experiment.getExperimentID());
+
+                            long end = System.currentTimeMillis();
+                            String total = new DecimalFormat("#.##").format((end - start) / 1000);
+                            String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
+
+                            getLog().info("\n\tAnalytics for " + experiment.getAccession() +
+                                    " created in " + total + "s." +
+                                    "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
+                                    timer.getTotalExperimentCount() + "." +
+                                    "\n\tEstimated time remaining: " + estimate + " mins.");
+                        }
                     }
                 }));
             }
@@ -243,5 +267,60 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
 
         return sb.toString();
+    }
+
+    private class AnalyticsTimer {
+        private int[] experimentIDs;
+        private boolean[] completions;
+        private int completedCount;
+        private long startTime;
+        private long lastEstimate;
+
+        public AnalyticsTimer(List<Experiment> experiments) {
+            experimentIDs = new int[experiments.size()];
+            completions = new boolean[experiments.size()];
+            int i = 0;
+            for (Experiment exp : experiments) {
+                experimentIDs[i] = exp.getExperimentID();
+                completions[i] = false;
+                i++;
+            }
+
+        }
+
+        public synchronized AnalyticsTimer start() {
+            startTime = System.currentTimeMillis();
+            return this;
+        }
+
+        public synchronized AnalyticsTimer completed(int experimentID) {
+            for (int i = 0; i < experimentIDs.length; i++) {
+                if (experimentIDs[i] == experimentID) {
+                    if (!completions[i]) {
+                        completions[i] = true;
+                        completedCount++;
+                    }
+                    break;
+                }
+            }
+
+            // calculate estimate of time
+            long timeWorking = System.currentTimeMillis() - startTime;
+            lastEstimate = (timeWorking / completedCount) * (completions.length - completedCount);
+
+            return this;
+        }
+
+        public synchronized long getCurrentEstimate() {
+            return lastEstimate;
+        }
+
+        public synchronized int getCompletedExperimentCount() {
+            return completedCount;
+        }
+
+        public synchronized int getTotalExperimentCount() {
+            return completions.length;
+        }
     }
 }
