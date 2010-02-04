@@ -42,6 +42,14 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 ? getAtlasDAO().getAllExperimentsPendingAnalytics()
                 : getAtlasDAO().getAllExperiments();
 
+        // if we're computing all analytics, some might not be pending, so reset them to pending up front
+        if (!getPendingOnly()) {
+            for (Experiment experiment : experiments) {
+                getAtlasDAO().writeLoadDetails(
+                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
+            }
+        }
+
         // create a timer, so we can track time to generate analytics
         final AnalyticsTimer timer = new AnalyticsTimer(experiments);
 
@@ -206,24 +214,26 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     for (String uefv : uefvs) {
                         String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                         String ef = values[0];
-                        String efv = values.length > 1 ? values[1] : "";
+                        if (values.length > 1) {
+                            String efv = values[1];
 
-                        double[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                        double[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+                            double[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                            double[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
 
-                        // write values
-                        getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
-                                "EF: " + ef + "; EFV: " + efv);
+                            // write values
+                            getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
+                                    "EF: " + ef + "; EFV: " + efv);
 
-                        try {
-                            getAtlasDAO().writeExpressionAnalytics(
-                                    experimentAccession, ef, efv, designElements, pValues, tStatistics);
-                        }
-                        catch (RuntimeException e) {
-                            getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
-                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage());
-                            e.printStackTrace();
-                            success = false;
+                            try {
+                                getAtlasDAO().writeExpressionAnalytics(
+                                        experimentAccession, ef, efv, designElements, pValues, tStatistics);
+                            }
+                            catch (RuntimeException e) {
+                                getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
+                                        "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage());
+                                e.printStackTrace();
+                                success = false;
+                            }
                         }
 
                         // increment uefvIndex

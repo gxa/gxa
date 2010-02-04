@@ -45,6 +45,14 @@ public class ExperimentNetCDFGeneratorService
                 ? getAtlasDAO().getAllExperimentsPendingNetCDFs()
                 : getAtlasDAO().getAllExperiments();
 
+        // if we're computing all analytics, some might not be pending, so reset them to pending up front
+        if (!getPendingOnly()) {
+            for (Experiment experiment : experiments) {
+                getAtlasDAO().writeLoadDetails(
+                        experiment.getAccession(), LoadStage.NETCDF, LoadStatus.PENDING);
+            }
+        }
+
         // create a timer, so we can track time to create NetCDFs
         final NetCDFTimer timer = new NetCDFTimer(experiments);
 
