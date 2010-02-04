@@ -4,9 +4,9 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.utils.ParsingUtils;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -19,8 +19,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 public class AtlasLoadingAccessionHandler extends AccessionHandler {
     protected void writeValues() throws ObjectConversionException {
         // make sure we wait until IDF has finsihed reading
-        AtlasLoaderUtils.waitWhilstIDFCompiles(
-                investigation, this.getClass().getSimpleName(), getLog());
+        ParsingUtils.waitForIDFToParse(investigation.IDF);
 
         // now, pull out the bits we need to create experiment objects
         if (investigation.accession != null) {

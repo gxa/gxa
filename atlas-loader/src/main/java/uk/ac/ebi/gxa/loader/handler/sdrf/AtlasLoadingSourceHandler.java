@@ -2,9 +2,6 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
@@ -14,9 +11,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A dedicated handler for creating sample objects and storing them in the cache whenever a new source node is

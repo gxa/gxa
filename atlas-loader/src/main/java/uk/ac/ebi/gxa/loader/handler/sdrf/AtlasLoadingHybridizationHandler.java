@@ -8,6 +8,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
+import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
@@ -108,7 +109,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                     SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
 
                     // finally, assays must be linked to their upstream samples
-                    Collection<SourceNode> upstreamSources = SDRFWritingUtils.findUpstreamNodes(
+                    Collection<SourceNode> upstreamSources = SDRFUtils.findUpstreamNodes(
                             investigation.SDRF, hybridizationNode, SourceNode.class);
 
                     for (SourceNode source : upstreamSources) {

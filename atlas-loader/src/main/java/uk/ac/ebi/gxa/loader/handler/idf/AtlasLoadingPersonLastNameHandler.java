@@ -4,6 +4,7 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
+import uk.ac.ebi.arrayexpress2.magetab.utils.ParsingUtils;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -17,8 +18,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 public class AtlasLoadingPersonLastNameHandler extends PersonLastNameHandler {
     protected void writeValues() throws ObjectConversionException {
         // make sure we wait until IDF has finsihed reading
-        AtlasLoaderUtils.waitWhilstIDFCompiles(
-                investigation, this.getClass().getSimpleName(), getLog());
+        ParsingUtils.waitForIDFToParse(investigation.IDF);
 
         // read off name fields
         String firstName = (investigation.IDF.personFirstName.size() > 0)
