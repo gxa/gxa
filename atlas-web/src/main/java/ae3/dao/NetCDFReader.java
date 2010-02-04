@@ -103,7 +103,8 @@ public class NetCDFReader {
 
             ArrayChar.StringIterator scvi = ((ArrayChar)varSCV.read()).getStringIterator();
             for(ArrayChar.StringIterator i = ((ArrayChar)varSC.read()).getStringIterator(); i.hasNext(); ) {
-                String sc = i.next().substring("bs_".length());
+                String scStr = i.next();
+                String sc = scStr.startsWith("bs_") ? i.next().substring("bs_".length()) : scStr;
                 List<String> scvList = new ArrayList<String>(numSamples);
                 scvs.put(sc, scvList);
                 for(int j = 0; j < numSamples; ++j) {
