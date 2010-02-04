@@ -2,16 +2,19 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.utils.Deque;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.*;
 
 /**
@@ -34,6 +37,14 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         List<Experiment> experiments = pendingOnly
                 ? getAtlasDAO().getAllExperimentsPendingIndexing()
                 : getAtlasDAO().getAllExperiments();
+
+        // if we're computing all analytics, some might not be pending, so reset them to pending up front
+        if (!pendingOnly) {
+            for (Experiment experiment : experiments) {
+                getAtlasDAO().writeLoadDetails(
+                        experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.PENDING);
+            }
+        }
 
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
@@ -148,8 +159,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             // block until completion, and throw any errors
             while (true) {
                 Future<Boolean> task = tasks.poll();
-                if(task == null)
+                if (task == null) {
                     break;
+                }
 
                 try {
                     task.get();

@@ -358,16 +358,15 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
     private boolean checkArray(String accession) {
         // check load_monitor for this accession
-        getLog().debug("Fetching load details for " + accession);
+        getLog().debug("Fetching array design for " + accession);
         ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(accession);
         if (arrayDesign == null) {
             // this array design is absent
-            getLog().debug("DAO lookup found array design " + accession);
+            getLog().debug("DAO lookup returned null for " + accession);
             return false;
         }
         else {
-            // no experiment present in load_monitor table
-            getLog().debug("DAO lookup returned null for " + accession);
+            getLog().debug("DAO lookup found array design " + accession);
             return true;
         }
     }

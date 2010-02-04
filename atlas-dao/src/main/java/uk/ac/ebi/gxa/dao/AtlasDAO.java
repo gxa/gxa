@@ -1188,6 +1188,15 @@ public class AtlasDAO {
                           OracleTypes.ARRAY,
                           "EXPRESSIONVALUETABLE");
 
+        log.debug("Invoking A2_ASSAYSET with the following parameters..." +
+                "\n\tassay accession:          {}" +
+                "\n\texperiment:               {}" +
+                "\n\tarray design:             {}" +
+                "\n\tproperties count:         {}" +
+                "\n\texpression value count:   {}",
+                  new Object[]{assay.getAccession(), assay.getExperimentAccession(), assay.getArrayDesignAccession(),
+                          props.size(), evs.size()});
+
         // and execute
         procedure.execute(params);
     }
@@ -1385,7 +1394,7 @@ public class AtlasDAO {
         procedure.execute(params);
         end = System.currentTimeMillis();
         total = new DecimalFormat("#.##").format((end - start) / 1000);
-        log.trace("Procedure execution to delete analytics for experiment: " + experimentAccession + 
+        log.trace("Procedure execution to delete analytics for experiment: " + experimentAccession +
                 " complete in " + total + "s.");
     }
 
