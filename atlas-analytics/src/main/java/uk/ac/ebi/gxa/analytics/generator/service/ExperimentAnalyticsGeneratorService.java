@@ -205,11 +205,10 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
                     int uefvIndex = 0;
                     for (String uefv : uefvs) {
-                        getLog().trace("Analytics values are for uEFV '" + uefv + "'");
-                        String[] values = uefv.split("\\\\|\\\\|"); // sheesh, crazy java regexing!
+                        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                         String ef = values[0];
-                        if (values.length > 1) {
-                            String efv = values[1];
+                        for (int i = 1; i < values.length; i++) {
+                            String efv = values[i];
 
                             double[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
                             double[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);

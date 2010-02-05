@@ -330,7 +330,7 @@ public class NetCDFFormatter {
                 }
 
                 // derive longest text value for EF/EFV
-                int maxLength = maxEFLength > maxEFVLength ? maxEFLength : maxEFVLength;
+                int maxLength = maxEFLength + maxEFVLength + 2;
 
                 // next up, EFV length - this is equal to max number of values mapped to one property
                 Dimension efvDimension = netCDF.addDimension("EFlen", maxLength);
