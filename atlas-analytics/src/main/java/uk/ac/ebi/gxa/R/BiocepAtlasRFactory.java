@@ -9,6 +9,7 @@ import org.kchine.r.server.RServices;
 import org.kchine.rpf.RemoteLogListener;
 import org.kchine.rpf.ServantProvider;
 import org.kchine.rpf.ServantProviderFactory;
+import org.kchine.rpf.db.ServantProxyPoolSingletonDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,6 +185,9 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         private final ServantProvider sp;
 
         public RWorkerObjectFactory() {
+            // fixme: this is a hack to overcome hard-coded 8 worker limit from ServantProviderFactory
+            hackServantProxyPoolSettings();
+
             sp = ServantProviderFactory.getFactory().getServantProvider();
         }
 
@@ -267,6 +271,40 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized void passivateObject(Object o) throws Exception {
+        }
+
+        private void hackServantProxyPoolSettings() {
+            // from set system properties
+            String poolName, driver, url, user, password;
+            poolName = System.getProperty("pools.dbmode.defaultpoolname");
+            driver = System.getProperty("pools.dbmode.driver");
+            user = System.getProperty("pools.dbmode.user");
+            password = System.getProperty("pools.dbmode.password");
+
+            String dbType = System.getProperty("pools.dbmode.type");
+            String dbHost = System.getProperty("pools.dbmode.host");
+            int dbPort = Integer.parseInt(System.getProperty("pools.dbmode.port"));
+            String dbName = System.getProperty("pools.dbmode.name");
+
+            if (dbType.equals("derby")) {
+                url = "jdbc:derby://" + dbHost + ":" + dbPort + "/" + dbName + ";create=true";
+                driver = "org.apache.derby.jdbc.ClientDriver";
+            }
+            else if (dbType.equals("mysql")) {
+                url = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName;
+                driver = "org.gjt.mm.mysql.Driver";
+
+            }
+            else if (dbType.equals("oracle")) {
+                url = "jdbc:oracle:thin:@" + dbHost + ":" + dbPort + ":" + dbName;
+                driver = "oracle.jdbc.driver.OracleDriver";
+            }
+            else {
+                throw new IllegalArgumentException("No biocep database URL can be extrapolated from the " +
+                        "system properties defined");
+            }
+
+            ServantProxyPoolSingletonDB.getInstance(poolName, driver, url, user, password).setMaxActive(-1);
         }
     }
 
