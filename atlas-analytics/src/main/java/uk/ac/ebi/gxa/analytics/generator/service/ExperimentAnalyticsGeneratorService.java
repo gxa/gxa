@@ -25,7 +25,7 @@ import java.util.concurrent.*;
  * @date 28-Sep-2009
  */
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
-    private static final int NUM_THREADS = 8;
+    private static final int NUM_THREADS = 40;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                File repositoryLocation,
@@ -192,19 +192,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     getAtlasComputeService().computeTask(computeAnalytics);
                     getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
                             " has completed.");
-                }
-                catch (ComputeException e) {
-                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
-                            e.getMessage());
-                    e.printStackTrace();
-                    success = false;
-                }
 
-                // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
-                NetCDFProxy proxy = new NetCDFProxy(netCDF);
+                    // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
+                    NetCDFProxy proxy = new NetCDFProxy(netCDF);
 
-                // get unique factor values for the expression value matrix
-                try {
+                    // get unique factor values for the expression value matrix
                     int[] designElements = proxy.getDesignElements();
                     String[] uefvs = proxy.getUniqueFactorValues();
 
@@ -245,6 +237,13 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     e.printStackTrace();
                     success = false;
                 }
+                catch (ComputeException e) {
+                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
+                            e.getMessage());
+                    e.printStackTrace();
+                    success = false;
+                }
+
             }
             success = true;
         }

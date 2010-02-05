@@ -89,7 +89,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         return true;
     }
 
-    public RServices createRServices() throws AtlasRServicesException {
+    public synchronized RServices createRServices() throws AtlasRServicesException {
         // lazily initialize servant provider
         initialize();
 
@@ -103,7 +103,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
         catch (Exception e) {
             e.printStackTrace();
-            log.debug("borrowObject() threw an exception: {}" + e.getMessage());
+            log.debug("borrowObject() threw an exception: {}", e.getMessage());
             throw new AtlasRServicesException(
                     "Failed to borrow an RServices object from the pool of workers", e);
         }
@@ -113,19 +113,18 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
     }
 
-    public void recycleRServices(RServices rServices) throws UnsupportedOperationException, AtlasRServicesException {
+    public synchronized void recycleRServices(RServices rServices)
+            throws UnsupportedOperationException, AtlasRServicesException {
         log.trace("Recycling R services");
         log.trace("Worker pool before return... " +
                 "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
         try {
             if (rServices != null) {
-                log.debug("Returning rServices " + rServices.getServantName() + " to the pool");
                 workerPool.returnObject(rServices);
                 log.trace("Worker pool after return... " +
                         "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
             }
             else {
-                // rServices is unexpectedly null - hmmmm....
                 log.warn("R services object became unexpectedly null, invalidating");
                 workerPool.invalidateObject(rServices);
                 workerPool.returnObject(rServices);
@@ -166,8 +165,8 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             if (validateEnvironment()) {
                 // create worker pool
                 workerPool = new GenericObjectPool(new RWorkerObjectFactory());
-                workerPool.setMaxActive(8);
-                workerPool.setMaxIdle(8);
+                workerPool.setMaxActive(32);
+                workerPool.setMaxIdle(32);
                 workerPool.setTestOnBorrow(true);
                 workerPool.setTestOnReturn(true);
 
@@ -189,11 +188,15 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized Object makeObject() throws Exception {
-            RServices rServices = (RServices) sp.borrowServantProxyNoWait();
+            log.debug("Attempting to create another rServices object for the pool...");
+            RServices rServices = (RServices) sp.borrowServantProxy();
 
             if (null == rServices) {
+                log.debug("Borrowed an rServices object that proved to be null");
                 throw new NoSuchElementException();
             }
+
+            log.debug("rServices acquired, registering logging/console reporting listeners");
 
             // add output listener
             rServices.addRConsoleActionListener(new MyRConsoleActionListener());
@@ -214,6 +217,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
 
         public synchronized boolean validateObject(Object o) {
+            log.debug("Testing validity of " + o.toString() + "...");
             try {
                 // check response to ping
                 RServices rServices = (RServices) o;
