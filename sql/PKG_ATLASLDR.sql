@@ -159,7 +159,7 @@ begin
     when others then 
       RAISE;
   end;
-
+  
   /*
   dbms_output.put_line('check for invalid design elements');
   begin
@@ -194,13 +194,13 @@ begin
       RAISE;    
   end;
   
-  --convert properties to lowercase 
+  --convert properties to lowercase
   if(LowerCaseProperties is not null) then 
   for j in LowerCaseProperties.first..LowerCaseProperties.last loop
     LowerCaseProperties(j).name := LOWER(LowerCaseProperties(j).name);
   end loop;
   end if;
-
+  
   dbms_output.put_line('cleanup');
   delete a2_assaypropertyvalue pv where pv.assayid = TheAssayID;
   delete a2_expressionvalue ev where ev.assayid = TheAssayID;
@@ -231,7 +231,7 @@ begin
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_AssayPropertyValue pv1 where pv1.AssayID = Theassayid and pv1.PropertyValueID = pv.PropertyValueID);
- 
+  
   /*
   Insert into a2_AssayPropertyValue(DesignElementID,ExperimentID,AssayID,Value)
   select d.DesignElementID, ExperimentID, AssayID, t.Value
@@ -372,29 +372,39 @@ PROCEDURE A2_AnalyticsSet(
   ExperimentID int := 0;
   PropertyValueID int := 0;
   LowerCaseProperty varchar2(255) := LOWER(Property);
+  err varchar2(255) := 0;
 begin
 
   begin
       Select e.ExperimentID into ExperimentID 
       from a2_Experiment e
       where e.Accession = ExperimentAccession;
-      
+  exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      err:= 'experiment not found:' || NVL(ExperimentAccession,'NULL');
+      RAISE_APPLICATION_ERROR(-20001,err );
+    when others then 
+      RAISE;
+  end;
+
+  begin       
       Select pv.PropertyValueID into PropertyValueID
       from a2_Property p
       join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
       where p.Name = LowerCaseProperty
       and pv.Name = PropertyValue;
-      
-  exception 
+   exception 
     when NO_DATA_FOUND then
       dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
+      err:= 'property not found:' || NVL(Property ,'NULL') || ':' || NVL(PropertyValue ,'NULL');
+      RAISE_APPLICATION_ERROR(-20001, err);
     when others then 
       RAISE;
   end;
 
   dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionAnalytics(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
+  Insert into a2_ExpressionAnalytics_tmp(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
   select t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
   from table(CAST(ExpressionAnalytics as ExpressionAnalyticsTable)) t;
 
@@ -410,6 +420,8 @@ PROCEDURE A2_AnalyticsDelete(
  as
   ExperimentID int := 0;
 begin
+
+  return;
 
   begin
       Select e.ExperimentID into ExperimentID 
