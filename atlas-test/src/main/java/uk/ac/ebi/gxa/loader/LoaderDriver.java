@@ -6,15 +6,18 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
 
@@ -52,54 +55,54 @@ public class LoaderDriver {
         final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
 
         // run the loader
-//        try {
-//            final URL url = URI.create("file:////home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
-//            final long indexStart = System.currentTimeMillis();
-//            loader.loadExperiment(url, new AtlasLoaderListener() {
-//
-//                public void loadSuccess(AtlasLoaderEvent event) {
-//                    final long indexEnd = System.currentTimeMillis();
-//
-//                    String total = new DecimalFormat("#.##").format(
-//                            (indexEnd - indexStart) / 60000);
-//                    System.out.println(
-//                            "Load completed successfully in " + total + " mins.");
-//
-//                    try {
-//                        loader.shutdown();
-//                    }
-//                    catch (AtlasLoaderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                public void loadError(AtlasLoaderEvent event) {
-//                    System.out.println("Load failed");
-//                    for (Throwable t : event.getErrors()) {
-//                        t.printStackTrace();
-//                    }
-//
-//                    try {
-//                        loader.shutdown();
-//                    }
-//                    catch (AtlasLoaderException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//        }
-//        catch (MalformedURLException e) {
-//            e.printStackTrace();
-//            System.out.println("Load failed - inaccessible URL");
-//        }
+        try {
+            final URL url = URI.create("file:////home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
+            final long indexStart = System.currentTimeMillis();
+            loader.loadExperiment(url, new AtlasLoaderListener() {
+
+                public void loadSuccess(AtlasLoaderEvent event) {
+                    final long indexEnd = System.currentTimeMillis();
+
+                    String total = new DecimalFormat("#.##").format(
+                            (indexEnd - indexStart) / 60000);
+                    System.out.println(
+                            "Load completed successfully in " + total + " mins.");
+
+                    try {
+                        loader.shutdown();
+                    }
+                    catch (AtlasLoaderException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void loadError(AtlasLoaderEvent event) {
+                    System.out.println("Load failed");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                    }
+
+                    try {
+                        loader.shutdown();
+                    }
+                    catch (AtlasLoaderException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("Load failed - inaccessible URL");
+        }
 
         // in case we don't run loader
-        try {
-            loader.shutdown();
-        }
-        catch (AtlasLoaderException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            loader.shutdown();
+//        }
+//        catch (AtlasLoaderException e) {
+//            e.printStackTrace();
+//        }
 
         // run the index builder
 //        final long indexStart = System.currentTimeMillis();
@@ -195,69 +198,47 @@ public class LoaderDriver {
         }
 
         // run the analytics
-        final long netStart = System.currentTimeMillis();
-        analytics.generateAnalytics(
-                new AnalyticsGeneratorListener() {
-                    public void buildSuccess(AnalyticsGenerationEvent event) {
-                        final long netEnd = System.currentTimeMillis();
-
-                        String total = new DecimalFormat("#.##").format(
-                                (netEnd - netStart) / 60000);
-                        System.out.println(
-                                "Analytics generated successfully in " + total + " mins.");
-
-                        try {
-                            analytics.shutdown();
-                        }
-                        catch (AnalyticsGeneratorException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    public void buildError(AnalyticsGenerationEvent event) {
-                        System.out.println("Analytics Generation failed!");
-                        for (Throwable t : event.getErrors()) {
-                            t.printStackTrace();
-                        }
-
-                        try {
-                            analytics.shutdown();
-                        }
-                        catch (AnalyticsGeneratorException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+//        final long netStart = System.currentTimeMillis();
+//        analytics.generateAnalytics(
+//                new AnalyticsGeneratorListener() {
+//                    public void buildSuccess(AnalyticsGenerationEvent event) {
+//                        final long netEnd = System.currentTimeMillis();
+//
+//                        String total = new DecimalFormat("#.##").format(
+//                                (netEnd - netStart) / 60000);
+//                        System.out.println(
+//                                "Analytics generated successfully in " + total + " mins.");
+//
+//                        try {
+//                            analytics.shutdown();
+//                        }
+//                        catch (AnalyticsGeneratorException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                    public void buildError(AnalyticsGenerationEvent event) {
+//                        System.out.println("Analytics Generation failed!");
+//                        for (Throwable t : event.getErrors()) {
+//                            t.printStackTrace();
+//                        }
+//
+//                        try {
+//                            analytics.shutdown();
+//                        }
+//                        catch (AnalyticsGeneratorException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                });
 
         // in case we don't run analytics
-//        try {
-//            analytics.shutdown();
-//        }
-//        catch (AnalyticsGeneratorException e) {
-//            e.printStackTrace();
-//        }
-
-//        // do a load_monitor update
-//        final AtlasDAO atlasDAO =
-//                (AtlasDAO) factory.getBean("atlasDAO");
-//        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.WORKING);
-//        System.out.println("Set index-test: searchindex = working");
-//
-//        // wait 30 seconds
-//        final Object o = new Object();
-//        synchronized (o) {
-//            try {
-//                o.wait(30000);
-//            }
-//            catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        atlasDAO.writeLoadDetails("index-test", LoadStage.NETCDF, LoadStatus.DONE);
-//        System.out.println("Set index-test: searchindex = done");
-
-        // do a test
+        try {
+            analytics.shutdown();
+        }
+        catch (AnalyticsGeneratorException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void iterativelyInvokeNetCDFs(final NetCDFGenerator generator,

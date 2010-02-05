@@ -20,7 +20,8 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("645932669_159274783.nc").toURI());
+//        netCDFfile = new File(getClass().getClassLoader().getResource("645932669_159274783.nc").toURI());
+        netCDFfile = new File("/ebi/ArrayExpress-files/NetCDFs.ATLAS2TEST/533515898_159009398.nc");
         netCDF = new NetCDFProxy(netCDFfile);
     }
 

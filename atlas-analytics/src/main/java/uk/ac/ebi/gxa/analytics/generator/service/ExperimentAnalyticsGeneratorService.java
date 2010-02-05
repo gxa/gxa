@@ -25,7 +25,7 @@ import java.util.concurrent.*;
  * @date 28-Sep-2009
  */
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
-    private static final int NUM_THREADS = 40;
+    private static final int NUM_THREADS = 32;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                File repositoryLocation,
@@ -141,7 +141,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
-        boolean success = false;
+        boolean success = true;
         try {
             // update loadmonitor - experiment is indexing
             getAtlasDAO().writeLoadDetails(
@@ -160,6 +160,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             });
 
             if (netCDFs.length == 0) {
+                success = false;
                 throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
 
@@ -204,7 +205,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
                     int uefvIndex = 0;
                     for (String uefv : uefvs) {
-                        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+                        getLog().trace("Analytics values are for uEFV '" + uefv + "'");
+                        String[] values = uefv.split("\\\\|\\\\|"); // sheesh, crazy java regexing!
                         String ef = values[0];
                         if (values.length > 1) {
                             String efv = values[1];
@@ -221,10 +223,10 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                         experimentAccession, ef, efv, designElements, pValues, tStatistics);
                             }
                             catch (RuntimeException e) {
+                                success = false;
                                 getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
                                         "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage());
                                 e.printStackTrace();
-                                success = false;
                             }
                         }
 
@@ -233,19 +235,17 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     }
                 }
                 catch (IOException e) {
+                    success = false;
                     getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath());
                     e.printStackTrace();
-                    success = false;
                 }
                 catch (ComputeException e) {
+                    success = false;
                     getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
                             e.getMessage());
                     e.printStackTrace();
-                    success = false;
                 }
-
             }
-            success = true;
         }
         finally {
             getLog().info("Finalising analytics changes for " + experimentAccession);

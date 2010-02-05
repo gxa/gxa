@@ -14,6 +14,19 @@ import java.io.InputStreamReader;
  * @date 15-Nov-2009
  */
 public class TestExperimentAnalyticsGeneratorService extends TestCase {
+    private String uefv = "diseasestate||normal 9";
+
+    public void testDoublePipeEscape() {
+        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+        String ef = values[0];
+        if (values.length > 1) {
+            String efv = values[1];
+
+            assertEquals("ef is wrong!", "diseasestate", ef);
+            assertEquals("efv is wrong!", "normal 9", efv);
+        }
+    }
+
     public void testGetRCodeFromResource() throws IOException {
         try {// open a stream to the resource
             InputStream in = getClass().getClassLoader().getResourceAsStream("R/analytics.R");
