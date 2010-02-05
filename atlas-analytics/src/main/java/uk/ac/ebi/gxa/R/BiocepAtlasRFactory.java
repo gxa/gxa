@@ -90,7 +90,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         return true;
     }
 
-    public synchronized RServices createRServices() throws AtlasRServicesException {
+    public RServices createRServices() throws AtlasRServicesException {
         // lazily initialize servant provider
         initialize();
 
@@ -114,7 +114,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         }
     }
 
-    public synchronized void recycleRServices(RServices rServices)
+    public void recycleRServices(RServices rServices)
             throws UnsupportedOperationException, AtlasRServicesException {
         log.trace("Recycling R services");
         log.trace("Worker pool before return... " +
