@@ -81,7 +81,6 @@ Gene Expression Atlas - Gene Index
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.autocomplete.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>

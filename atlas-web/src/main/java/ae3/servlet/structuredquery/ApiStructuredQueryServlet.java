@@ -5,6 +5,7 @@ import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
+import ae3.model.ListResultRow;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.structuredquery.*;
@@ -127,7 +128,7 @@ public class ApiStructuredQueryServlet extends RestServlet implements IndexBuild
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
                             if(nTopFinal > 0) {
                                 genes.clear();
-                                for(StructuredResultRow r : queryService.findGenesForExperiment("", experiment.getAccession(), 0, nTopFinal).getResults())
+                                for(ListResultRow r : queryService.findGenesForExperiment("", experiment.getId(), 0, nTopFinal))
                                     genes.add(r.getGene());
                             }
 

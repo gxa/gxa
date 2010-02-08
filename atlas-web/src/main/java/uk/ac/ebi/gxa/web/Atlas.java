@@ -7,9 +7,7 @@ package uk.ac.ebi.gxa.web;
  * @date 09-Nov-2009
  */
 public enum Atlas {
-    STATISTICS_SERVICE("atlas.statistics.service"),
     DOWNLOAD_SERVICE("atlas.download.service"),
-    PLOTTER("atlas.plotter"),
     GENES_CACHE("atlas.genelist.cache.service"),
     ATLAS_SOLR_DAO("atlas.solr.dao"),
     ATLAS_DAO("atlas.dao"),

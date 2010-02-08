@@ -2,6 +2,7 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.ExperimentsTable;
+import uk.ac.ebi.gxa.index.Experiment;
 import ae3.dao.AtlasDao;
 import uk.ac.ebi.gxa.utils.Pair;
 import org.junit.Before;
@@ -179,13 +180,13 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getTopFVs() {
-        Collection<AtlasTuple> efvs = gene.getTopFVs(204778371);
+        Collection<Experiment> efvs = gene.getTopFVs(204778371);
         assertNotNull(efvs);
 
         double pv = 0;
-        for(AtlasTuple t : efvs) {
-            assertTrue(pv <= t.getPval());
-            pv = t.getPval();
+        for(Experiment t : efvs) {
+            assertTrue(pv <= t.getPvalue());
+            pv = t.getPvalue();
         }
     }
 

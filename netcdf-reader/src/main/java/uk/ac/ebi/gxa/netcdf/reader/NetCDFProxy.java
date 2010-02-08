@@ -179,6 +179,8 @@ public class NetCDFProxy {
             String[] result = new String[efsArray.length];
             for (int i = 0; i < efsArray.length; i++) {
                 result[i] = (String) efsArray[i];
+                if(result[i].startsWith("ba_"))
+                    result[i] = result[i].substring(3);
             }
             return result;
         }
@@ -270,6 +272,8 @@ public class NetCDFProxy {
             String[] result = new String[scsArray.length];
             for (int i = 0; i < scsArray.length; i++) {
                 result[i] = (String) scsArray[i];
+                if(result[i].startsWith("bs_"))
+                    result[i] = result[i].substring(3);
             }
             return result;
         }

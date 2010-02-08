@@ -111,10 +111,14 @@ public class AtlasStructuredQueryResult {
     }
 
     @RestOut(name="genes")
-    public Iterator<ListResultGene> getListResultsGenes() {
-        return new MappingIterator<List<ListResultRow>, ListResultGene>(listResults.values().iterator()) {
-            public ListResultGene map(List<ListResultRow> listResultRows) {
-                return new ListResultGene(listResultRows);
+    public Iterable<ListResultGene> getListResultsGenes() {
+        return new Iterable<ListResultGene>() {
+            public Iterator<ListResultGene> iterator() {
+                return new MappingIterator<List<ListResultRow>, ListResultGene>(listResults.values().iterator()) {
+                    public ListResultGene map(List<ListResultRow> listResultRows) {
+                        return new ListResultGene(listResultRows);
+                    }
+                };
             }
         };
     }

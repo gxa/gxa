@@ -1,11 +1,9 @@
 package uk.ac.ebi.gxa.web;
 
 import junit.framework.TestCase;
-import org.json.JSONObject;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,22 +38,4 @@ public class TestAtlasPlotter extends TestCase {
         plotter = null;
     }
 
-    public void testCreateJSON() {
-        try {
-            JSONObject json = plotter.createJSON(netCDF, ef, topFVs, geneIndices);
-            System.out.println(json.toString());
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
-    public void testCreateThumbnailJSON() {
-
-    }
-
-    public void testCreateBigPLotJSON() {
-
-    }
 }
