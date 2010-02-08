@@ -7,6 +7,7 @@ import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
 import ae3.util.AtlasProperties;
+import ae3.restresult.RestOut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,7 @@ public class Download implements Runnable {
 		return query.toString();
 	}
 
+    @RestOut(name="progress")
 	public double getProgress() {
         if(0 == getTotalResults()) return 0;
         if(getResultsRetrieved() == getTotalResults()) return 100;

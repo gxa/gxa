@@ -269,6 +269,10 @@
         <property name="queryService" ref="atlasQueryService"/>
     </bean>
 
+    <bean name="downloadsProgressServlet" class="ae3.servlet.DownloadProgressServlet">
+        <property name="downloadService" ref="atlasDownloadService"/>
+    </bean>
+
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
         <property name="domain" value="GXAtlas" />
