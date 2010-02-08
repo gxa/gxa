@@ -309,7 +309,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         $("#dwnldCounter").text(count);
                         $("#dwnldCounter").parent().show();
                     }
-			        atlas.popup('downloads.jsp');
+			        atlas.popup('downloads');
                 }
             });
 
@@ -378,7 +378,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     </c:if>
     &nbsp;•&nbsp;
     <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
-    <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads.jsp')">in progress</a></span>
+    <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads')">in progress</a></span>
     &nbsp;•&nbsp; <c:import url="apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">

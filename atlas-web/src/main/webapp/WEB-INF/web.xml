@@ -307,6 +307,17 @@
         <url-pattern>/plot</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <display-name>Downloads Progress servlet</display-name>
+        <servlet-name>downloadsProgressServlet</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>downloadsProgressServlet</servlet-name>
+        <url-pattern>/downloads</url-pattern>
+    </servlet-mapping>
+
     <!-- Atlas Admin Page servlet -->
     <servlet>
       <servlet-name>admin</servlet-name>
