@@ -2,16 +2,17 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
-import ae3.model.AtlasTuple;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
+import uk.ac.ebi.gxa.utils.CountIterator;
+import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.gxa.utils.FlattenIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -55,29 +56,13 @@ public class AtlasPlotter {
         this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 
-    public JSONObject getGeneInExpPlotData(final String geneIdKey,
-                                           final String experimentID,
-                                           final String ef,
-                                           final String efv,
-                                           final String plotType,
-                                           final String gplotIds) {
-        String efToPlot;
+    public Map<String,Object> getGeneInExpPlotData(final String geneIdKey,
+                                    final String experimentID,
+                                    final String ef,
+                                    final String efv,
+                                    final String plotType) {
 
-        AtlasGene atlasGene = getAtlasSolrDAO().getGeneById(StringUtils.split(geneIdKey, ",")[0]).getGene();
-
-        // if ef is "default" fetch highest ranked EF using SOLR index
-        if (ef.equals("default")) {
-            efToPlot = atlasGene.getHighestRankEF(Long.valueOf(experimentID)).getFirst();
-        }
-        else {
-            efToPlot = ef;
-        }
-
-        if (efToPlot == null) {
-            return null;
-        }
-
-        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentID, efToPlot});
+        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentID, ef});
 
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
@@ -95,22 +80,37 @@ public class AtlasPlotter {
 
         // iterate over our proxies to find the one that contains the genes we're after
         try {
-            List<String> geneNames = new ArrayList<String>();
-            List<Integer> deIds = new ArrayList<Integer>();
-            List<Integer> geneIds = new ArrayList<Integer>();
-            List<Integer> deIndices = new ArrayList<Integer>();
+            List<AtlasGene> genes = new ArrayList<AtlasGene>();
 
             // lookup gene names, again using SOLR index
             for(String geneIdStr : geneIdKey.split(",")) {
                 AtlasDao.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(geneIdStr);
                 if (gene.isFound()) {
-                    Integer geneId = Integer.valueOf(gene.getGene().getGeneId());
-                    geneIds.add(geneId);
-                    geneNames.add(gene.getGene().getGeneName());
-                    deIndices.add(null);
-                    deIds.add(null);
+                    genes.add(gene.getGene());
                 }
             }
+
+            if(genes.isEmpty())
+                throw new RuntimeException("No existing genes specified by query" + geneIdKey);
+
+            String efToPlot;
+
+            // if ef is "default" fetch highest ranked EF using SOLR index
+            if ("default".equals(ef)) {
+                efToPlot = genes.get(0).getHighestRankEF(Long.valueOf(experimentID)).getFirst();
+            }
+            else {
+                efToPlot = ef;
+            }
+
+            if (efToPlot == null)
+                throw new RuntimeException("Can't find EF to plot");
+
+
+            Map<AtlasGene,Integer> deIndexMap = new HashMap<AtlasGene, Integer>();
+
+            boolean[] stop = new boolean[genes.size()];
+            Integer[] desearch = new Integer[genes.size()];
 
             // this is the NetCDF containing the gene we care about
             NetCDFProxy proxy = null;
@@ -118,32 +118,35 @@ public class AtlasPlotter {
             for (NetCDFProxy next : proxies) {
                 // loop over all de/genes in this NetCDFProxy
                 int[] designElements = next.getDesignElements();
-                int[] genes = next.getGenes();
+                int[] ncgenes = next.getGenes();
                 for (int deIndex = 0; deIndex < designElements.length; ++deIndex) {
                     int i = 0;
-                    for(Integer geneId : geneIds) {
-                        if(geneId != null && geneId == genes[deIndex]) {
+                    for(AtlasGene gene : genes) {
+                        if(!stop[i] && Integer.valueOf(gene.getGeneId()) == ncgenes[deIndex]) {
                             proxy = next;
-                            if(deIndices.get(i) != null) {
+                            if(deIndexMap.containsKey(gene)) {
                                 // okay, we got at least two DEs for the same gene. it's time to use analytics to choose one
-                                Integer deId = atlasDatabaseDAO.getBestDesignElementForExpressionProfile(geneId, Integer.valueOf(experimentID), efToPlot.substring(3));
+                                Integer deId = atlasDatabaseDAO.getBestDesignElementForExpressionProfile(
+                                        Integer.valueOf(gene.getGeneId()),
+                                        Integer.valueOf(experimentID),
+                                        efToPlot);
                                 if(deId != null) {
                                     // this (second) one is the best
                                     if(designElements[deIndex] == deId)
-                                        deIndices.set(i, deIndex);
+                                        deIndexMap.put(gene, deIndex);
                                     // not previous and not this one is the best, so put it into search queue
-                                    else if(designElements[deIndices.get(i)] != deId)
-                                        deIds.set(i, deId);
+                                    else if(designElements[deIndexMap.get(gene)] != deId)
+                                        desearch[i] = deId;
                                     // otherwise the first one was the best, it's already there
                                 }
-                                geneIds.set(i, null); // anyway turn off next searches for this gene
+                                stop[i] = true;
                             } else {
-                                deIndices.set(i, deIndex);
+                                deIndexMap.put(gene, deIndex);
                             }
-                        } else if(deIds.get(i) != null) {
-                            if(designElements[deIndex] == deIds.get(i)) {
-                                deIndices.set(i, deIndex);
-                                deIds.set(i, deIndex);
+                        } else if(desearch[i] != null) {
+                            if(designElements[deIndex] == desearch[i]) {
+                                deIndexMap.put(genes.get(i), deIndex);
+                                desearch[i] = null;
                             }
                         }
                         ++i;
@@ -156,733 +159,384 @@ public class AtlasPlotter {
                 }
             }
 
-            // now leave only those DEs which were found in (last) netcdf
-            Iterator<String> geneNamesIter = geneNames.iterator();
-            Iterator<Integer> deIndicesIter = deIndices.iterator();
-            while(deIndicesIter.hasNext()) {
-                geneNamesIter.next();
-                if(deIndicesIter.next() == null) {
-                    geneNamesIter.remove();
-                    deIndicesIter.remove();
-                }
-            }
-
             // make sure proxy isn't null - if it is, break
             if (proxy != null) {
+                if(!Arrays.asList(proxy.getFactors()).contains(efToPlot))
+                    throw new RuntimeException("Unknown ef");
+
                 // and build up the plot, based on plotType parameter
                 if (plotType.equals("thumb")) {
-                    return createThumbnailJSON(proxy, efToPlot, efv, deIndices);
+                    Integer deIndex = deIndexMap.get(genes.get(0));
+                    if(deIndex == null)
+                        throw new RuntimeException("Can't find gene " + geneIdKey);
+                    return createThumbnailPlot(proxy, efToPlot, efv, deIndex);
                 }
-                else if (plotType.equals("big") || plotType.equals("large")) {
-                    return createBigPlotJSON(proxy, efToPlot, geneNames, gplotIds, deIndices);
+                else if (plotType.equals("large")) {
+                    return createLargePlot(proxy, efToPlot, genes, deIndexMap);
                 }
                 else {
-                    ArrayList<String> topFVs = new ArrayList<String>();
+                    Integer deIndex = deIndexMap.get(genes.get(0));
+                    if(deIndex == null)
+                        throw new RuntimeException("Can't find gene " + geneIdKey);
 
-                    List<AtlasTuple> atlasTuples = atlasGene.getTopFVs(Long.valueOf(experimentID));
+                    Set<String> topFVs = new HashSet<String>();
 
-                    for (AtlasTuple at : atlasTuples) {
-                        if (at.getEf().equalsIgnoreCase(efToPlot) && !at.getEfv().equals("V1")) {
+                    List<Experiment> atlasTuples = genes.get(0).getTopFVs(Long.valueOf(experimentID));
+
+                    for (Experiment at : atlasTuples) {
+                        if (at.getEf().equals(efToPlot) && !at.getEfv().equals("V1")) {
                             topFVs.add(at.getEfv().toLowerCase());
                         }
                     }
-                    return createJSON(proxy, efToPlot, topFVs, deIndices);
+                    return createBarPlot(proxy, efToPlot, topFVs, deIndex);
                 }
 
             }
             else {
-                return null;
+                throw new RuntimeException("Can't find genes " + geneIdKey + " in NetCDF");
             }
         }
         catch (IOException e) {
             log.error("IOException whilst trying to read from NetCDF at " + atlasNetCDFRepo.getAbsolutePath() +
                     " for " + experimentID);
-            return null;
+            throw new RuntimeException("IOException whilst trying to read from NetCDF for "
+                    + atlasNetCDFRepo.getAbsolutePath(), e);
         }
     }
 
-    public JSONObject createJSON(NetCDFProxy netCDF, String ef, List<String> topFVs, List<Integer> geneIndices)
+    private Map<String,Object> createBarPlot(NetCDFProxy netCDF, String ef, Set<String> topFVs, int geneIndex)
             throws IOException {
 
-        log.debug("Creating plot... EF: {}, Top FVs: [{}], DE indices: [{}]",
-                new Object[]{ef, StringUtils.join(topFVs, ","), StringUtils.join(geneIndices, ",")});
+        log.debug("Creating plot... EF: {}, Top FVs: [{}], DE index: [{}]",
+                new Object[]{ef, StringUtils.join(topFVs, ","), geneIndex});
 
-        // the data for our plot
-        JSONObject plotData = new JSONObject();
-        try {
-            // counter for this series - helps pick colour!
-            int counter = 0;
-            boolean insignificantSeries = false;
+        // get unique factor values
+        String[] assayFVs = netCDF.getFactorValues(ef);
+        String[] uniqueFVs = sortUniqueFVs(assayFVs);
+        double[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
 
-            // data for individual series
-            JSONArray seriesList = new JSONArray();
+        // data for mean series
+        List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
 
-            // get unique factor values
-            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
-            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
+        int counter = 0;
+        boolean insignificantSeries = false;
+        List<Object> seriesList = new ArrayList<Object>();
+        int position = 0;
+        for (String factorValue : uniqueFVs) {
+            // create a series for these datapoints - new series for each factor value
+            List<Object> seriesData = new ArrayList<Object>();
 
-            // sort the factor values into a good order
-            Integer[] sortedFVIndices = sortFVs(fvs);
+            double meanForFV = 0;
+            int meanCount = 0;
 
-            // get the datapoints we want, indexed by factor value and gene
-            Map<String, Map<Integer, List<Double>>> datapoints =
-                    getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
-            // the index of the datapoint -
-            // this runs across all samples/factor values
-            int datapointIndex = 0;
+            for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
+                if(assayFVs[assayIndex].equals(factorValue)) {
+                    double value = expressions[assayIndex];
+                    seriesData.add(Arrays.<Number>asList(++position, value <= -1000000 ? null : value));
 
-            // data for mean series
-            JSONObject meanSeries = new JSONObject();
-            JSONArray meanSeriesData = new JSONArray();
-
-            // map holding mean data
-            Map<String, Double> meanDataByFactorValue = new HashMap<String, Double>();
-
-            for (int factorValueIndex : sortedFVIndices) {
-                // get the factor value at this index
-                String factorValue = fvs[factorValueIndex];
-                log.debug("Next factor value is '{}', starting at datapoint index {}",
-                          new Object[]{factorValue, datapointIndex});
-
-                // now extract datapoints for this factor value
-                Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
-
-                // create a series for these datapoints - new series for each factor value
-                JSONObject series = new JSONObject();
-                JSONArray seriesData = new JSONArray();
-
-                // count the number of samples that have the same factor value
-                int sampleCount = geneIndices.size() > 0 ? factorValueDataPoints.get(geneIndices.get(0)).size() : 0;
-
-                // loop over samples
-                for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
-                    // for each sample position, loop over the datapoints for interesting genes
-                    for (int geneIndex : geneIndices) {
-                        // get the datapoint for this gene at this sample index
-                        Double datapoint = factorValueDataPoints.get(geneIndex).get(sampleIndex);
-
-                        // create the JSON point
-                        JSONArray point = new JSONArray();
-
-                        // store our data - in json, points are 1-indexed not 0-indexed so shift position by one
-                        datapointIndex++;
-                        point.put(datapointIndex);
-                        // check the datapoint isn't a default (i.e. missing expression data) - set to null if so
-                        point.put(datapoint <= -1000000 ? null : datapoint);
-
-                        // store this point in our series data
-                        seriesData.put(point);
-
-                        log.trace("Adding datapoint: {} for {};{}", new Object[]{point.toString(), ef, factorValue});
-
-                        // if we haven't done so, calculate mean data
-                        if (!meanDataByFactorValue.containsKey(factorValue)) {
-                            meanDataByFactorValue.put(factorValue, getMean(factorValueDataPoints.get(geneIndex)));
-                        }
-
-                        // get the mean expression for this factor value
-                        double fvMean = meanDataByFactorValue.get(factorValue);
-                        // create a point and store the mean value
-                        point = new JSONArray();
-                        point.put(datapointIndex);
-                        point.put(fvMean);
-                        meanSeriesData.put(point);
-                    }
+                    meanForFV += value;
+                    ++meanCount;
                 }
 
-                // store the data for this factor value series
-                series.put("data", seriesData);
-                // and store some other standard params
-                series.put("bars", new JSONObject("{show:true, align: \"center\", fill:true}"));
-                series.put("lines", new JSONObject("{show:false}"));
-                series.put("points", new JSONObject("{show:false}"));
-                series.put("label", factorValue);
-                series.put("legend", new JSONObject("{show:true}"));
-
-                // choose alternate series color for any insignificant factor values
-                if (!topFVs.contains(factorValue.toLowerCase())) {
-                    series.put("color", altColors[counter % 2]);
-                    series.put("legend", new JSONObject("{show:false}"));
-                    counter++;
-                    insignificantSeries = true;
-                    StringBuffer sb2 = new StringBuffer();
-                    for (String topFV : topFVs) {
-                        sb2.append(topFV).append(", ");
-                    }
-                    log.debug("Factor value: " + factorValue + " not present in topFVs (" + sb2.toString() + "), " +
-                            "flagging this series insignificant");
-                }
-
-                seriesList.put(series);
+            for(meanForFV /= meanCount; meanCount > 0; --meanCount) {
+                meanSeriesData.add(Arrays.<Number>asList(meanSeriesData.size() + 1, meanForFV <= -1000000 ? null : meanForFV));
             }
 
-            // create the mean series
-            meanSeries.put("data", meanSeriesData);
-            meanSeries.put("lines", new JSONObject("{show:true,lineWidth:1.0,fill:false}"));
-            meanSeries.put("bars", new JSONObject("{show:false}"));
-            meanSeries.put("points", new JSONObject("{show:false}"));
-            meanSeries.put("color", "#5e5e5e");
-            meanSeries.put("label", "Mean");
-            meanSeries.put("legend", new JSONObject("{show:false}"));
-            meanSeries.put("hoverable", "false");
-            meanSeries.put("shadowSize", 2);
-            seriesList.put(meanSeries);
+            // store the data for this factor value series
+            Map<String,Object> series = makeMap(
+                    "data", seriesData,
+                    // and store some other standard params
+                    "bars", makeMap("show", true, "align", "center", "fill", true),
+                    "lines", makeMap("show", false),
+                    "points", makeMap("show", false),
+                    "label", factorValue,
+                    "legend", makeMap("show", true)
+            );
 
-            // and put all data into the plot, flagging whether it is significant or not
-            plotData.put("series", seriesList);
-            plotData.put("insigLegend", insignificantSeries);
+            // choose alternate series color for any insignificant factor values
+            if (!topFVs.contains(factorValue.toLowerCase())) {
+                series.put("color", altColors[counter % 2]);
+                series.put("legend", makeMap("show", false));
+                counter++;
+                insignificantSeries = true;
+                log.debug("Factor value: " + factorValue + " not present in topFVs (" + StringUtils.join(topFVs, ",") + "), " +
+                        "flagging this series insignificant");
+            }
+
+            seriesList.add(series);
         }
-        catch (JSONException e) {
-            log.error("Error construction JSON!", e);
-        }
-        return plotData;
+
+        // create the mean series
+        seriesList.add(makeMap(
+                "data", meanSeriesData,
+                "lines", makeMap("show", true, "lineWidth", 1.0, "fill", false),
+                "bars", makeMap("show", false),
+                "points", makeMap("show", false),
+                "color", "#5e5e5e",
+                "label", "Mean",
+                "legend", makeMap("show", false),
+                "hoverable", "false",
+                "shadowSize", 2));
+
+        // and put all data into the plot, flagging whether it is significant or not
+        return makeMap(
+                "series", seriesList,
+                "options", makeMap(
+                        "xaxis", makeMap("ticks", 0),
+                        "legend", makeMap("show", true,
+                                "position", "sw",
+                                "insigLegend", makeMap("show", insignificantSeries),
+                                "noColumns", 1),
+                        "grid", makeMap(
+                                "backgroundColor", "#fafafa",
+                                "autoHighlight", false,
+                                "hoverable", true,
+                                "clickable", true,
+                                "borderWidth", 1)
+                ));
     }
 
 
-    public JSONObject createThumbnailJSON(NetCDFProxy netCDF, String ef, String efv, List<Integer> geneIndices)
+    private Map<String,Object> createThumbnailPlot(NetCDFProxy netCDF, String ef, String efv, int geneIndex)
             throws IOException {
-        StringBuffer sb = new StringBuffer();
-        sb.append("{");
-        for (int geneIndex : geneIndices) {
-            sb.append(geneIndex).append(",");
-        }
-        sb.append("}");
-        String geneIndexStr = sb.toString();
+        log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, Gene index: {}",
+                  new Object[]{ef, efv, geneIndex});
 
-        log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, Gene indices: {}",
-                  new Object[]{ef, efv, geneIndexStr});
+        String[] assayFVs = netCDF.getFactorValues(ef);
+        String[] uniqueFVs = sortUniqueFVs(assayFVs);
+        double[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
 
-        // the data for our plot
-        JSONObject plotData = new JSONObject();
-        try {
-            // data for individual series
-            JSONArray seriesList = new JSONArray();
+        int startMark = 0;
+        int endMark = 0;
 
-            // get unique factor values
-            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
-            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
+        List<Object> seriesData = new ArrayList<Object>();
 
-            // sort the factor values into a good order
-            Integer[] sortedFVIndices = sortFVs(fvs);
+        // iterate over each factor value (in sorted order)
+        for (String factorValue : uniqueFVs) {
+            // mark start position, in list of all samples, of the factor value we're after
+            if (factorValue.equals(efv)) {
+                startMark = seriesData.size() + 1;
+            }
 
-            // get the datapoints we want, indexed by factor value and gene
-            Map<String, Map<Integer, List<Double>>> datapoints =
-                    getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
-
-            // create a series for these datapoints - series runs across all factor values
-            JSONObject series = new JSONObject();
-            JSONArray seriesData = new JSONArray();
-
-            int startMark = 0;
-            int endMark = 0;
-            int index = 1;
-
-            // iterate over each factor value (in sorted order)
-            for (int factorValueIndex : sortedFVIndices) {
-                // get the factor value at this index
-                String factorValue = fvs[factorValueIndex];
-
-                // mark start position, in list of all samples, of the factor value we're after
-                if (factorValue.equals(efv)) {
-                    startMark = index;
+            for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
+                if(assayFVs[assayIndex].equals(factorValue)) {
+                    double value = expressions[assayIndex];
+                    seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
                 }
 
-                // now extract datapoints for this factor value
-                Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
+            // mark end position, in list of all samples, of the factor value we're after
+            if (factorValue.equals(efv)) {
+                endMark = seriesData.size();
+            }
+        }
 
-                // count the number of samples that have the same factor value
-                int sampleCount = factorValueDataPoints.get(geneIndices.get(0)).size();
+        return makeMap(
+                "series", Collections.singletonList(makeMap(
+                        "data", seriesData,
+                        "lines", makeMap("show", true, "lineWidth", 2, "fill", false),
+                        "legend", makeMap("show", false))), 
+                "options", makeMap(
+                        "xaxis", makeMap("ticks", 0),
+                        "yaxis", makeMap("ticks", 0),
+                        "legend", makeMap("show", false),
+                        "colors", Collections.singletonList("#edc240"),
+                        "grid", makeMap(
+                                "backgroundColor", "#f0ffff",
+                                "autoHighlight", false,
+                                "hoverable", true,
+                                "clickable", true,
+                                "borderWidth", 1,
+                                "markings", Collections.singletonList(
+                                        makeMap("xaxis", makeMap("from", startMark, "to", endMark),
+                                                "color", "#F5F5DC"))
+                        ),
+                        "selection", makeMap("mode","x")
+                )
+        );
+    }
 
-                // loop over samples
-                for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
-                    for (int geneIndex : geneIndices) {
-                        // get the datapoint for this gene at this sample index
-                        Double datapoint = factorValueDataPoints.get(geneIndex).get(sampleIndex);
 
-                        // create the JSON point
-                        JSONArray point = new JSONArray();
+    private Map<String,Object> createLargePlot(final NetCDFProxy netCDF,
+                                               final String ef,
+                                               final List<AtlasGene> genes,
+                                               final Map<AtlasGene,Integer> deIndexMap)
+            throws IOException {
 
-                        // store our data - in json, points are 1-indexed not 0-indexed so shift position by one
-                        point.put(sampleIndex + 1);
-                        // check the datapoint isn't a default (i.e. missing expression data) - set to null if so
-                        point.put(datapoint <= -1000000 ? null : datapoint);
+        log.debug("Creating big plot... EF: {}, Gene Names: [{}]",
+                  new Object[]{ef, StringUtils.join(genes, " ")});
 
-                        // store this point in our series data
-                        seriesData.put(point);
+        // data for individual series
+        List<Object> seriesList = new ArrayList<Object>();
+
+
+        String[] assayFVs = netCDF.getFactorValues(ef);
+        String[] uniqueFVs = sortUniqueFVs(assayFVs);
+
+        // iterate over design elements axis
+        // fixme: this assumes gene indices and design element indices are the same, actually we need to do a lookup
+        for (AtlasGene gene : genes) {
+            Integer deIndex = deIndexMap.get(gene);
+            if(deIndex == null)
+                continue;
+
+            double[] expressions = netCDF.getExpressionDataForDesignElement(deIndex);
+
+            // create series objects for this row of the data matrix
+            List<List<Number>> seriesData = new ArrayList<List<Number>>();
+
+            for(String factorValue : uniqueFVs) {
+                for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
+                    if(assayFVs[assayIndex].equals(factorValue)) {
+                        double value = expressions[assayIndex];
+                        seriesData.add(Arrays.<Number>asList(0.5d + seriesData.size(), value <= -1000000 ? null : value));
                     }
-
-                    index++;
-                }
-
-                // mark end position, in list of all samples, of the factor value we're after
-                if (factorValue.equals(efv)) {
-                    endMark = index;
-                }
             }
 
-            // store the entire series data
-            series.put("data", seriesData);
-            series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false}"));
-            series.put("legend", new JSONObject("{show:false}"));
-            seriesList.put(series);
+            Map<String,Object> series = makeMap(
+                    "data", seriesData,
+                    // store some standard config info
+                    "lines", makeMap("show", "true", "lineWidth", 2, "fill", false, "steps", false),
+                    "points", makeMap("show", true, "fill", true),
+                    "legend", makeMap("show", true),
+                    "label", makeMap("id", gene.getGeneId(), "identifier", gene.getGeneIdentifier(), "name", gene.getGeneName()));
 
-            // and store the data for the whole plot
-            plotData.put("series", seriesList);
-            plotData.put("startMarkIndex", startMark);
-            plotData.put("endMarkIndex", endMark);
+            // store the plot order for tihs gene
+            series.put("color", seriesList.size());
 
-        }
-        catch (JSONException e) {
-            log.error("Error construction JSON!", e);
+            // and save this series
+            seriesList.add(series);
         }
 
-        return plotData;
-    }
-
-
-    public JSONObject createBigPlotJSON(NetCDFProxy netCDF,
-                                        String ef,
-                                        List<String> geneNames,
-                                        String gplotIds,
-                                        List<Integer> geneIndices) throws IOException {
-
-        log.debug("Creating big plot... EF: {}, Gene Names: [{}], Gene plot ids: {}, DE indices: [{}]",
-                  new Object[]{ef, StringUtils.join(geneNames, " "), gplotIds, StringUtils.join(geneIndices, ",")});
-
-        // the data for our plot
-        JSONObject plotData = new JSONObject();
-
-        // split gplotIds to evaluate the genePlotOrder
-        String[] genePlotOrder = gplotIds.split(",");
-
-        try {
-            // data for individual series
-            JSONArray seriesList = new JSONArray();
-
-            // get unique factor values
-            Set<String> uniqueFVs = new HashSet<String>(Arrays.asList(netCDF.getFactorValues(ef)));
-            String[] fvs = uniqueFVs.toArray(new String[uniqueFVs.size()]);
-
-            // sort the unique factor values into a good order
-            Integer[] sortedFVIndices = sortFVs(fvs);
-
-            // get the list of all factor values
-            String[] allfvs = netCDF.getFactorValues(ef);
-
-            // sort all factor values into a good order
-            Integer[] sortedAllFVIndices = sortFVs(allfvs);
-
-            // get the whole data matrix
-            double[][] datamatrix = netCDF.getExpressionMatrix();
-
-            // iterate over design elements axis
-            // fixme: this assumes gene indices and design element indices are the same, actually we need to do a lookup
-            for (int i = 0; i < geneIndices.size(); i++) {
-                int geneIndex = geneIndices.get(i);
-
-                // lookup next data row, using geneIndex
-                double[] geneData = datamatrix[geneIndex];
-
-                // create series objects for this row of the data matrix
-                JSONObject series = new JSONObject();
-                JSONArray seriesData = new JSONArray();
-
-                // now loop over array data
-                for (int x = 0; x < geneData.length; x++) {
-                    // create a new point on this x-axis for this datapoint (representing next assay)
-                    JSONArray point = new JSONArray();
-                    point.put(x + 0.5);
-
-                    // get the data point for the assay for this (sorted) factor value
-                    Double datapoint = geneData[sortedAllFVIndices[x]];
-
-                    // store this datapoint
-                    point.put(datapoint <= -1000000 ? null : datapoint);
-
-                    // add this point to the seriesData
-                    seriesData.put(point);
+        List<Map> markings = new ArrayList<Map>();
+        int position = 0;
+        int flicker = 0;
+        Integer[] sortedAssayOrder = new Integer[assayFVs.length];
+        for(String factorValue : uniqueFVs) {
+            int start = position;
+            int assayIndex = 0;
+            for(String assayFV : assayFVs) {
+                if(assayFV.equals(factorValue)) {
+                    sortedAssayOrder[position] = assayIndex;
+                    ++position;
                 }
-
-                // now we've added all the assays for this design element, store
-                series.put("data", seriesData);
-
-                // store some standard config info
-                series.put("lines", new JSONObject("{show:true,lineWidth:2, fill:false, steps:false}"));
-                series.put("points", new JSONObject("{show:true,fill:true}"));
-                series.put("legend", new JSONObject("{show:true}"));
-                series.put("label", geneNames.get(i));
-
-                // store the plot order for tihs gene
-                if (genePlotOrder[i] != null) {
-                    series.put("color", Integer.parseInt(genePlotOrder[i]));
-                }
-
-                // and save this series
-                seriesList.put(series);
+                ++assayIndex;
             }
 
-            // get the datapoints we want, indexed by factor value and gene
-            Map<String, Map<Integer, List<Double>>> datapoints =
-                    getDataPointsByFactorValueForInterestingGenes(netCDF, ef, geneIndices);
-
-            // axis labelling
-            int cursor = 0;
-            String markings = "";
-
-            // iterate over each factor value (in sorted order)
-            for (int i = 0; i < sortedFVIndices.length; i++) {
-                int factorValueIndex = sortedFVIndices[i];
-
-                // get the factor value at this index
-                String factorValue = fvs[factorValueIndex];
-
-                // now extract datapoints for this factor value
-                Map<Integer, List<Double>> factorValueDataPoints = datapoints.get(factorValue);
-
-                // count the number of samples that have the same factor value
-                int sampleCount = factorValueDataPoints.get(geneIndices.get(0)).size();
-
-                if (factorValue.equals("")) {
-                    factorValue = "unannotated";
-                }
-
-                markings = markings.equals("") ? markings : markings + ",";
-                markings += "{xaxis:{from: " + cursor + ", to: " + (cursor + sampleCount) + "},label:\"" +
-                        factorValue.replaceAll("'", "").replaceAll(",", "") + "\" ,color: '" + markingColors[i % 2] +
-                        "' }";
-
-                cursor += sampleCount;
-            }
-
-            // add the rest of the data for the required genes to this plot
-            plotData.put("series", seriesList);
-            plotData.put("markings", markings);
-
-            // create an array of assays, sorted by factor value
-            JSONStringer sortedAssayIds = new JSONStringer();
-            sortedAssayIds.array();
-            int[] unSortedAssayIds = netCDF.getAssays();
-            for (int i = 0; i < unSortedAssayIds.length; i++) {
-                sortedAssayIds.value(unSortedAssayIds[sortedAllFVIndices[i]]);
-            }
-            sortedAssayIds.endArray();
-
-            // create an array of characteristics
-            JSONStringer sampleChars = new JSONStringer();
-            JSONStringer sampleCharValues = new JSONStringer();
-            getCharacteristics(netCDF, sampleChars, sampleCharValues);
-
-            // get array design id
-            int adID = netCDF.getArrayDesignID();
-            if (adID == -1) {
-                log.warn("Looking up ADid from database - this will not be supported in future releases");
-                adID = getAtlasDatabaseDAO()
-                        .getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
-            }
-
-            plotData.put("sAttrs", getSampleAttributes(netCDF));
-            plotData.put("assay_ids", sortedAssayIds);
-            plotData.put("assay2samples", getSampleAssayMap(netCDF, ef));
-            plotData.put("characteristics", sampleChars);
-            plotData.put("charValues", sampleCharValues);
-            plotData.put("currEF", ef);
-            plotData.put("ADid", adID);
-            // fixme: this should be returning the small subset of values appropriate to this factor, NOT everthing!!
-            plotData.put("geneNames", getJSONarray(geneNames));
-            plotData.put("DEids", getJSONarrayFromIntArray(netCDF.getDesignElements(), geneIndices));
-            plotData.put("GNids", getJSONarrayFromIntArray(netCDF.getGenes(), geneIndices));
-            plotData.put("EFs", getJSONarrayFromStringArray(stripLegacyPrefixes(netCDF.getFactors())));
-        }
-        catch (JSONException e) {
-            log.error("Error construction JSON!", e);
+            markings.add(makeMap(
+                    "xaxis", makeMap("from", start, "to", position),
+                    "label", factorValue,
+                    "color", markingColors[++flicker % 2]
+                    ));
         }
 
-        return plotData;
-    }
+        // get array design id
+        final int adID = netCDF.getArrayDesignID() != -1 ? netCDF.getArrayDesignID() :
+                getAtlasDatabaseDAO().getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
 
-    public JSONStringer getSampleAttributes(NetCDFProxy netCDF) throws JSONException, IOException {
-        JSONStringer sampleAttrs = new JSONStringer();
-        int[] sample_ids = netCDF.getSamples();
-        String[] characteristics = netCDF.getCharacteristics();
-        List<String> characteristicsSet = Arrays.asList(characteristics);
-
-        sampleAttrs.object();
-        for (int i = 0; i < sample_ids.length; i++) {
-            int sample_key = sample_ids[i];
-            sampleAttrs.key("s" + Integer.toString(sample_key));
-            sampleAttrs.object();
-            for (String scar : characteristics) {
-                String charValue = netCDF.getCharacteristicValues(scar)[i];
-                sampleAttrs.key(stripLegacyPrefixes(scar)[0]).value(stripLegacyPrefixes(charValue)[0]);
-            }
-            sampleAttrs.endObject();
-        }
-
-        int[] assays = netCDF.getAssays();
-        String[] efs = stripLegacyPrefixes(netCDF.getFactors());
-        for (int i = 0; i < assays.length; i++) {
-            int assay_id = assays[i];
-            sampleAttrs.key("a" + Integer.toString(assay_id));
-            sampleAttrs.object();
-            for (String ef : efs) {
-                if (!characteristicsSet.contains(ef) && !characteristicsSet.contains("bs_" + ef)) {
-                    StringBuffer charSetBuffer = new StringBuffer();
-                    for (String s : characteristicsSet) {
-                        charSetBuffer.append(s).append(",");
+        final int[] deIds = netCDF.getDesignElements();
+        return makeMap(
+                "ef", ef,
+                "series", seriesList,
+                "simInfo", new FilterIterator<AtlasGene,Map>(genes.iterator()) {
+                    public Map map(AtlasGene atlasGene) {
+                        Integer deIndex = deIndexMap.get(atlasGene);
+                        return deIndex != null ? makeMap(
+                                "deId", deIds[deIndex],
+                                "adId", adID,
+                                "name", atlasGene.getGeneName()
+                        ) : null;
                     }
-                    log.trace("Factor {} not found in characteristics set {}", ef, charSetBuffer.toString());
-                    String factorValue = netCDF.getFactorValues(ef)[i];
-                    sampleAttrs.key(stripLegacyPrefixes(ef)[0]).value(stripLegacyPrefixes(factorValue)[0]);
-                }
-            }
-            sampleAttrs.endObject();
-        }
-
-        sampleAttrs.endObject();
-        return sampleAttrs;
-    }
-
-    public JSONStringer getSampleAssayMap(NetCDFProxy netCDF, String ef) throws JSONException, IOException {
-        // get factor values, ordering is the same as assays
-        String[] efvs = netCDF.getFactorValues(ef);
-        // sort them logically
-        Integer[] sortedFVIndices = sortFVs(efvs);
-        // get all samples, and the assay2samples mapping matrix - these have the same ordering
-        int[] assays = netCDF.getAssays();
-        int[] samples = netCDF.getSamples();
-        int[][] samples2assays = netCDF.getSamplesToAssays();
-
-        Map<Integer, List<String>> assayPositionToSamples = new HashMap<Integer, List<String>>();
-        for (int sampleIndex = 0; sampleIndex < samples2assays.length; sampleIndex++) {
-            int[] bs2as = samples2assays[sampleIndex];
-            for (int assayIndex : sortedFVIndices) {
-                if (bs2as[assayIndex] == 1) {
-                    log.trace("BS2AS mapping: " +
-                            "sample index " + sampleIndex + "[" + samples[sampleIndex] + "], " +
-                            "assay index " + assayIndex + "[" + assays[assayIndex] + "] " +
-                            "(for factor " + ef + " and factor value " + efvs[assayIndex]);
-
-                    // insert this sample into the map
-                    String sampleRef = "s" + samples[sampleIndex];
-                    if (assayPositionToSamples.get(assayIndex) == null) {
-                        assayPositionToSamples.put(assayIndex, new ArrayList<String>());
-                    }
-                    assayPositionToSamples.get(assayIndex).add(sampleRef);
-                }
-            }
-        }
-
-        JSONStringer map = new JSONStringer();
-        map.array();
-        for (int assayIndex : sortedFVIndices) {
-            map.array();
-            for (String sampleRef : assayPositionToSamples.get(assayIndex)) {
-                map.value(sampleRef);
-            }
-            map.endArray();
-        }
-        map.endArray();
-
-        return map;
-    }
-
-    public void getCharacteristics(NetCDFProxy netCDF, JSONStringer sampleChars, JSONStringer sampleCharValues)
-            throws JSONException, IOException {
-
-        sampleChars.array();
-        sampleCharValues.object();
-        for (String characteristic : stripLegacyPrefixes(netCDF.getCharacteristics())) {
-            sampleChars.value(characteristic);
-            sampleCharValues.key(characteristic);
-            sampleCharValues.array();
-
-            // get all characteristic values
-            Set<String> uniqueSCVs = new HashSet<String>(Arrays.asList(netCDF.getCharacteristicValues(characteristic)));
-            String[] scvs = uniqueSCVs.toArray(new String[uniqueSCVs.size()]);
-
-            for (String charValue : scvs) {
-                sampleCharValues.value(charValue);
-            }
-            sampleCharValues.endArray();
-        }
-        sampleCharValues.endObject();
-        sampleChars.endArray();
-    }
-
-    public Integer[] sortFVs(final String[] fvs) {
-
-        Integer[] fso = new Integer[fvs.length];
-        for (int i = 0; i < fvs.length; i++) {
-            fso[i] = i;
-        }
-
-        Arrays.sort(fso,
-                    new Comparator<Integer>() {
-
-                        public int compare(Integer o1, Integer o2) {
-                            String s1 = fvs[o1];
-                            String s2 = fvs[o2];
-
-                            // want to make sure that empty strings are pushed to the back
-                            if (s1.equals("") && s2.equals("")) {
-                                return 0;
-                            }
-                            if (s1.equals("") && !s2.equals("")) {
-                                return 1;
-                            }
-                            if (!s1.equals("") && s2.equals("")) {
-                                return -1;
-                            }
-
-                            java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
-                            java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
-
-                            if (m1.find() && m2.find()) {
-                                Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-                                Long i2 = new Long(s2.substring(m2.start(), m2.end()));
-
-                                if (i1.compareTo(i2) == 0) {
-                                    return s1.compareToIgnoreCase(s2);
+                },
+                "assayOrder", Arrays.asList(sortedAssayOrder).iterator(),
+                "assayProperties", new MappingIterator<Integer,Map>(Arrays.asList(sortedAssayOrder).iterator()) {
+                    final List<String> efs = Arrays.asList(netCDF.getFactors());
+                    final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
+                    final int[][] bs2as = netCDF.getSamplesToAssays();
+                    public Map map(final Integer assayIndex) {
+                        return makeMap(
+                                "efvs", new MappingIterator<String,Map>(efs.iterator()) {
+                                    public Map map(String ef) {
+                                        try {
+                                            return makeMap("k", ef, "v", netCDF.getFactorValues(ef)[assayIndex]);
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
+                                },
+                                "scvs", new FlattenIterator<Integer,Map>(
+                                        new FilterIterator<Integer,Integer>(CountIterator.zeroTo(bs2as.length)) {
+                                            public Integer map(Integer sampleIndex) {
+                                                return bs2as[sampleIndex][assayIndex] == 1 ? sampleIndex : null;
+                                            }
+                                        }
+                                ) {
+                                    public Iterator<Map> inner(final Integer sampleIndex) {
+                                        return new MappingIterator<String,Map>(scs.iterator()) {
+                                            public Map map(String sc) {
+                                                try {
+                                                    return makeMap("k", sc, "v", netCDF.getCharacteristicValues(sc)[sampleIndex]);
+                                                } catch (IOException e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                            }
+                                        };
+                                    }
                                 }
-                                else {
-                                    return i1.compareTo(i2);
-                                }
-                            }
-
-                            return s1.compareToIgnoreCase(s2);
-                        }
-
-                    });
-        return fso;
+                        );
+                    }
+                },
+                "options", makeMap(
+                        "xaxis", makeMap("ticks", 0),
+                        "yaxis", makeMap("ticks", 3),
+                        "series", makeMap(
+                                "points", makeMap("show", true, "fill", true, "radius", 1.5),
+                                "lines", makeMap("show", true, "steps", false)),
+                        "legend", makeMap("show", true),
+                        "grid", makeMap(
+                                "backgroundColor", "#fafafa",
+                                "autoHighlight", true,
+                                "hoverable", true,
+                                "clickable", true,
+                                "borderWidth", 0,
+                                "markings", markings),
+                        "selection", makeMap("mode","x")
+                ));
     }
 
-    public double getMean(List<Double> values) {
-        double sum = 0.0;
-        for (Double value : values) {
-            if (value > -1000000) {
-                sum += value;
-            }
-        }
-        return sum / values.size();
-    }
-
-    public ArrayList<String> getGeneNames(String gids) {
-
-        ArrayList<String> geneNames = new ArrayList<String>();
-        String[] ids = gids.split(",");
-        for (String gid : ids) {
-            AtlasDao.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(gid);
-            if (gene.isFound()) {
-                geneNames.add(gene.getGene().getGeneName());
-            }
-        }
-        return geneNames;
-    }
-
-    public JSONStringer getJSONarray(List<String> geneNames) throws JSONException {
-        JSONStringer JSONarray = new JSONStringer();
-        JSONarray.array();
-        for (String gene : geneNames) {
-            JSONarray.value(gene);
-        }
-        JSONarray.endArray();
-        return JSONarray;
-    }
-
-
-    public JSONStringer getJSONarrayFromStringArray(String[] names) throws JSONException {
-        JSONStringer JSONarray = new JSONStringer();
-        JSONarray.array();
-        for (String name : names) {
-            JSONarray.value(name);
-        }
-        JSONarray.endArray();
-        return JSONarray;
-    }
-
-    public JSONStringer getJSONarrayFromIntArray(int[] values, List<Integer> indices) throws JSONException {
-        JSONStringer JSONarray = new JSONStringer();
-        JSONarray.array();
-        for (int index : indices) {
-            JSONarray.value(values[index]);
-        }
-        JSONarray.endArray();
-        return JSONarray;
-    }
-
-    /**
-     * Gets a map that indexes factor values to the map of datapoints, indexed by genes we're interested in studying.
-     * For each factor value key in the returned map, the value is a second map indexing genes to a list of data points.
-     * For each gene, the value is a list of datapoints, where these datapoints represent data which applies to the gene
-     * observed and the assays which expressly mentions the factor value that is the outer key.
-     *
-     * @param netCDF      the NetCDF proxy to recover data from
-     * @param factor      the factor we're looking for values for
-     * @param geneIndices the list of gene positions we're interested in studying
-     * @return a complex map, keying datapoints to factor values and genes
-     * @throws IOException if there was a failure in accessing the NetCDF
-     */
-    public Map<String, Map<Integer, List<Double>>> getDataPointsByFactorValueForInterestingGenes(
-            NetCDFProxy netCDF, String factor, List<Integer> geneIndices)
-            throws IOException {
-        // get the list of factor values for the given factor
-        String[] fvs = netCDF.getFactorValues(factor);
-
-        // extract data from netCDF for the design element corresponding to each geneIndex
-        Map<Integer, double[]> allDataForGenes = new HashMap<Integer, double[]>();
-        for (int geneIndex : geneIndices) {
-            allDataForGenes.put(geneIndex, netCDF.getExpressionDataForDesignElement(geneIndex));
-        }
-
-        // extract data from netCDF for each assay, and index it by factor value
-        Map<String, Map<Integer, List<Double>>> datapointsByFactorValue =
-                new HashMap<String, Map<Integer, List<Double>>>();
-        for (int assayIndex = 0; assayIndex < fvs.length; assayIndex++) {
-            // get the current factor value
-            String factorValue = fvs[assayIndex];
-
-            // create an arraylist[] - this is datapoints, orded by "interesting" gene
-            Map<Integer, List<Double>> datapointsByInterestingGene;
-
-            // is this factor value a repeat of one we've already seen for this factor?
-            if (datapointsByFactorValue.containsKey(factorValue)) {
-                // if so, add more datapoints to this list
-                datapointsByInterestingGene = datapointsByFactorValue.get(factorValue);
-            }
-            else {
-                // if not, create a new map for datapoints
-                datapointsByInterestingGene = new HashMap<Integer, List<Double>>();
-                // also, put this map into our map of factor values
-                datapointsByFactorValue.put(factorValue, datapointsByInterestingGene);
-            }
-
-            // now, iterate over allDataForGenes and extract the data for the assay that is described with this factor value
-            for (int geneIndex : geneIndices) {
-                // if this gene index hasn't been done for this factor value yet, create a new list
-                if (!datapointsByInterestingGene.containsKey(geneIndex)) {
-                    datapointsByInterestingGene.put(geneIndex, new ArrayList<Double>());
+    private static String[] sortUniqueFVs(String[] assayFVs) {
+        HashSet<String> uniqueSet = new HashSet<String>(Arrays.asList(assayFVs));
+        String[] uniqueFVs = uniqueSet.toArray(new String[uniqueSet.size()]);
+        Arrays.sort(uniqueFVs, new Comparator<String>() {
+            public int compare(String s1, String s2) {
+                // want to make sure that empty strings are pushed to the back
+                if (s1.equals("") && s2.equals("")) {
+                    return 0;
+                }
+                if (s1.equals("") && !s2.equals("")) {
+                    return 1;
+                }
+                if (!s1.equals("") && s2.equals("")) {
+                    return -1;
                 }
 
-                // add a datapoint for the current "interesting" gene corresponding to this factor value
-                datapointsByInterestingGene.get(geneIndex).add(allDataForGenes.get(geneIndex)[assayIndex]);
-            }
-        }
+                java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
+                java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
 
-        return datapointsByFactorValue;
-    }
+                if (m1.find() && m2.find()) {
+                    Long i1 = new Long(s1.substring(m1.start(), m1.end()));
+                    Long i2 = new Long(s2.substring(m2.start(), m2.end()));
 
-    private static String[] stripLegacyPrefixes(String... strings) {
-        String[] result = new String[strings.length];
-        int i = 0;
-        for (String s : strings) {
-            if (s.startsWith("bs_") || s.startsWith("ba_")) {
-                result[i] = s.substring(3);
+                    if (i1.compareTo(i2) == 0) {
+                        return s1.compareToIgnoreCase(s2);
+                    }
+                    else {
+                        return i1.compareTo(i2);
+                    }
+                }
+
+                return s1.compareToIgnoreCase(s2);
             }
-            else {
-                result[i] = s;
-            }
-            i++;
-        }
-        return result;
+        });
+        return uniqueFVs;
     }
 }

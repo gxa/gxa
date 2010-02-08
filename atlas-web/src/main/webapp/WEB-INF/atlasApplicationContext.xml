@@ -260,6 +260,15 @@
     <bean name="listviewDownloadServlet" class="ae3.servlet.ListviewDownloadServlet">
     </bean>
 
+    <bean name="plotterServlet" class="ae3.servlet.PlotterServlet">
+        <property name="plotter" ref="atlasPlotter" />
+    </bean>
+
+    <bean name="experimentPageServlet" class="ae3.servlet.ExperimentPageServlet">
+        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="queryService" ref="atlasQueryService"/>
+    </bean>
+
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
         <property name="domain" value="GXAtlas" />

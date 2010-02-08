@@ -517,11 +517,11 @@
             eventHolder = $([overlay, canvas]);
 
             // bind events
-            if (options.selection.mode != null
+            if ((options.selection != null && options.selection.mode != null)
                 || options.grid.hoverable)
                 eventHolder.mousemove(onMouseMove);
 
-            if (options.selection.mode != null)
+            if ((options.selection && options.selection.mode) != null)
                 eventHolder.mousedown(onMouseDown);
 
             if (options.grid.clickable)
@@ -609,7 +609,7 @@
                 noTicks = canvasWidth / 100;
             else
                 noTicks = canvasHeight / 60;
-            
+
             var delta = (axis.max - axis.min) / noTicks;
             var size, generator, unit, formatter, i, magn, norm;
 
@@ -780,7 +780,7 @@
                 var dec = -Math.floor(Math.log(delta) / Math.LN10);
                 if (maxDec != null && dec > maxDec)
                     dec = maxDec;
-                
+
                 magn = Math.pow(10, -dec);
                 norm = delta / magn; // norm is between 1.0 and 10.0
                 
@@ -808,7 +808,7 @@
                     size = axisOptions.tickSize;
                 
                 axis.tickDecimals = Math.max(0, (maxDec != null) ? maxDec : dec);
-                
+
                 generator = function (axis) {
                     var ticks = [];
 
@@ -1773,8 +1773,7 @@
 
                 var label = series[i].label;
                 if (options.legend.labelFormatter != null){
-                	//label = options.legend.labelFormatter(label);
-                	label = radioLabel(label);//To do: use line above
+                	label = options.legend.labelFormatter(label);
                 }
                     
                     

@@ -46,7 +46,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquerydefaultvalue.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
@@ -57,60 +56,162 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
 
 <script type="text/javascript">
-<!--
-    function  viewMore(id)
-    {
 
-        id = String(id);
-        var extElt = $("#" + id + "_ext");
-        var lnkEltLess = $("#" + id + "_atls_lnk_less");
-        var lnkEltMore = $("#" + id + "_atls_lnk_more");
-        if (extElt.hasClass("fullSectionViewExt")) {
-            // collapse now
-            extElt.removeClass("fullSectionViewExt");
-            extElt.addClass("fullSectionView");
-            extElt.toggle("fast");
-            lnkEltMore.show();
-        } else {
-            extElt.addClass("fullSectionViewExt");
-            extElt.toggle("fast");
-            lnkEltMore.hide();
-
-        }
-    }
-    function showStudyDetails(id) {
-        id = String(id);
-        var divElt = $("#" + id + "_desc_ext");
-        var lnkElt = $("#" + id + "_std_lnk");
-        divElt.slideToggle("fast");
-        if (lnkElt.hasClass("expanded")) {
-            lnkElt.removeClass("expanded");
-            lnkElt.attr("src", "${pageContext.request.contextPath}/images/plus.gif");
-        } else {
-            lnkElt.addClass("expanded");
-            lnkElt.attr("src", "${pageContext.request.contextPath}/images/minus.gif");
+    function showThumbTooltip(x, y, contents) {
+        if(contents != 'Mean'){
+            $('<div id="tooltip" />').text(contents).css( {
+                position: 'absolute',
+                display: 'none',
+                top: (y+5)+'px',
+                left: (x+5)+'px',
+                border: '1px solid #005555',
+                margin: '0px',
+                backgroundColor: '#EEF5F5'
+            }).appendTo("body").fadeIn('fast');
         }
     }
 
-//-->
-</script>
-<script type="text/javascript">
+    function drawPlot(jsonObj, plot_id){
+        if(jsonObj.series){
+            var legend_id = plot_id.replace("_plot", "_legend");
+            jsonObj.options.legend.container = '#' + legend_id;
+            var plot = $.plot($('#'+plot_id), jsonObj.series, jsonObj.options);
 
-	function loadExps(){
-
-        countExperiments();
-        paginateExperiments();
-        return;
+            var previousPoint = null;
+            $('#'+plot_id).bind("plothover", function (event, pos, item) {
+                if (item) {
+                    if (previousPoint != item.datapoint) {
+                        previousPoint = item.datapoint;
+                        $("#tooltip").remove();
+                        showThumbTooltip(item.pageX, item.pageY, item.series.label);
+                    }
+                }else {
+                    $("#tooltip").remove();
+                    previousPoint = null;
+                }
+            });
+            return plot;
+        }
+        return null;
     }
+
+    function drawPlots(){
+        $(".plot").each(function(){
+            var plot_id = this.id;
+            var tokens = plot_id.split('_');
+            var eid = tokens[0];
+            var gid = tokens[1];
+            $.ajax({
+                type: "GET",
+                url: atlas.homeUrl + "plot",
+                data: { gid: gid, eid: eid, plot: 'bar' },
+                dataType:"json",
+                success: function(o){
+                    if(o.error)
+                        alert(o.error);
+                    else
+                        drawPlot(o,plot_id);
+                },
+                error: atlas.onAjaxError
+            });
+        });
+    }
+
+    function redrawPlotForFactor(eid,gid,ef,mark,efv){
+        var plot_id = eid+"_"+gid+"_plot";
+        $.ajax({
+            type: "GET",
+            url: atlas.homeUrl + "plot",
+            data: { gid: gid, eid: eid, ef: ef, plot: 'bar' },
+            dataType:"json",
+            success: function(o){
+                var plot = drawPlot(o,plot_id);
+                if(mark){
+                    markClicked(eid, gid, ef, efv, plot, o);
+                }
+            },
+            error: atlas.onAjaxError
+        });
+        drawEFpagination(eid,gid,ef);
+    }
+
+    function drawEFpagination(eid,gid,currentEF,plotType) {
+        var panelContent = [];
+
+        $("#"+eid+"_EFpagination *").each(function(){
+            var ef = $(this).attr("id");
+            var ef_txt = $(this).html();
+            if(ef == currentEF){
+                panelContent.push("<span id='"+ef+"' class='current'>"+ef_txt+"</span>")
+            }
+            else{
+                panelContent.push('<a id="'+ef+'" onclick="redrawPlotForFactor( \''+eid+'\',\''+gid+'\',\''+ef+'\',\''+plotType+'\',false)">'+ef_txt+'</a>');
+            }
+        });
+
+        $("#"+eid+"_EFpagination").empty();
+        $("#"+eid+"_EFpagination").html(panelContent.join(""));
+    }
+
+
+    function markClicked(eid,gid,ef,efv,plot,jsonObj) {
+
+        var plot_id = eid+'_'+gid+'_plot';
+        var allSeries = plot.getData();
+        var series;
+        var markColor;
+
+        for (var i = 0; i < allSeries.length; ++i){
+            if(allSeries[i].label){
+                if(allSeries[i].label.toLowerCase()==efv.toLowerCase()){
+                    series = allSeries[i];
+                    markColor = series.color;
+                    break;
+                }
+            }
+        }
+
+        if(series==null){
+            return ;
+        }
+
+        var data = series.data;
+        var xMin= data[0][0]
+        var xMax= data[data.length-1][0]
+
+        var overviewDiv = $('#'+plot_id+'_thm');
+        if(allSeries.length>10 && data.length<5){
+            if(overviewDiv.height()!=0){
+                var overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series, jsonObj.options);
+
+                overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+            }
+            plot = $.plot($('#'+plot_id), jsonObj.series,$.extend(true, {}, jsonObj.options, {
+                grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
+                xaxis: { min: xMin-10, max: xMax+10  }, yaxis: {labelWidth:40}
+            }));
+        }
+        else{
+
+            plot = $.plot($('#'+plot_id), jsonObj.series, $.extend(true, {}, jsonObj.options, {
+                grid:{ backgroundColor: '#fafafa',	autoHighlight: true, hoverable: true, borderWidth: 1, markings: [{ xaxis: { from: xMin-1, to: xMax+1 }, color: '#FFFFCC' }]},
+                yaxis: {labelWidth:40}
+            }));
+            if(overviewDiv.height() != 0) {
+                var overview = $.plot($('#'+plot_id+'_thm'), jsonObj.series,$.extend(true,{},jsonObj.options,{color:['#999999','#D3D3D3']}));
+
+                overview.setSelection({ xaxis: { from: xMin-10, to: xMax+10 }});
+            }
+        }
+    }
+
 
     function reloadExps(){
 
-		 $('#ExperimentResult').load("${pageContext.request.contextPath}/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:"1", to:"5"},drawPlots);
-         $('#pagingSummary').empty();
-         $(".heatmap_over").removeClass("heatmap_over");
-         paginateExperiments();
-         //$("#expHeader_td").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
-         //$("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
+        $('#ExperimentResult').load("${pageContext.request.contextPath}/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:"1", to:"5"},drawPlots);
+        $('#pagingSummary').empty();
+        $(".heatmap_over").removeClass("heatmap_over");
+        paginateExperiments();
         countExperiments();
 	}
 
@@ -125,18 +226,15 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 				num_edge_entries: 2,
 				num_display_entries: 5,
 				items_per_page:5,
-                //link_to : "#?Page=__id__",
                 callback: pageselectCallback
          	});
          </c:if>
     }
 
-	function pageselectCallback(page_id, jq){
+	function pageselectCallback(page_id){
 		var fromPage = (page_id*5) +1;
 		var toPage = (page_id*5) + 5;
 		$('#ExperimentResult').load("${pageContext.request.contextPath}/AtlasExpResults.jsp",{gid:${atlasGene.geneId},from:fromPage, to: toPage},drawPlots);
-		//$('#pagingSummary').text("Showing experiments "+fromPage+"-"+toPage);
-		//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 	}
 
 
@@ -144,41 +242,32 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
         $('#ExperimentResult').empty();
 
-		$('#ExperimentResult').load("${pageContext.request.contextPath}/AtlasExpResults.jsp",{gid:${atlasGene.geneId}, efv: uni2ent(fv), factor:ef},
+		$('#ExperimentResult').load("${pageContext.request.contextPath}/AtlasExpResults.jsp",{gid:${atlasGene.geneId}, efv: fv, factor:ef},
 							function(){
-
-                                //alert(exps.length);
-
 								for (var i = 0; i < exps.length; ++i){
-									eid = jQuery.trim(exps[i].id);
+									var eid = jQuery.trim(exps[i].id);
 									redrawPlotForFactor(eid,'${atlasGene.geneId}',ef,true,fv);
 								}
-								//$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
 								$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
 								var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
 								$("#Pagination").empty().append(lnk);
 							});
-
-        //$("#expHeader_td").text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in "+ fv);
-        //$('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ fv + "\"");
-        //var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
-        //$("#Pagination").empty().append(lnk);
 
 
         old = $(".heatmap_over");
 		old.removeClass("heatmap_over");
         old.addClass ("heatmap_row");
 		el.className = "heatmap_over";
-		scroll(0,0);
+		window.scrollTo(0,0);
 	}
-
-
 
     jQuery(document).ready(function()
     {
-       loadExps();
-       $("#heatmap_tbl").tablesorter({
-               headers: {2: {sorter: false}}});
+        countExperiments();
+        paginateExperiments();
+        $("#heatmap_tbl").tablesorter({
+            headers: {2: {sorter: false}}});
+        drawPlots();
     });
 </script>
 
@@ -220,9 +309,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         <td colspan="2" align="left" style="padding-bottom:1em;padding-top:1em">
            ${f:escapeXml(atlasGene.geneDescription)}
         </td>
-
-        <!-- td width="8%">&nbsp;</td-->
-
     </tr>
 
 
@@ -354,9 +440,9 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                     <table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
                                         <thead>
                                             <tr style="height:26px;border-top:1px solid #CDCDCD">
-                                                <th style="padding-left:2px;padding-right:5px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Factor Value</th>
+                                                <th style="border: 1px solid #CDCDCD;padding: 1px 5px 1px 4px;">Factor Value</th>
                                                 <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Factor</th>
-                                                <th style="padding-right:2px;border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Up/Down</th>
+                                                <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px;">Up/Down</th>
                                             </tr>
                                             <tr>
                                                 <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white;border-left:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
@@ -370,13 +456,13 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
                                                     onclick="FilterExps(this,'${u:escapeJS(row.fv)}','${u:escapeJS(row.ef)}')"
                                                     title="${atlasGene.geneName}${row.text}">
-                                                    <td nowrap="true" style="padding-right:5px;padding-left:2px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">
+                                                    <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
                                                         <span style="font-weight: bold">
                                                                 ${row.shortFv}
                                                         </span>
                                                     </td>
 
-                                                    <td nowrap="true" style="padding-right:5px;border-bottom:1px solid #CDCDCD;min-width: 80px;padding-left:4px;padding-top:1px;padding-bottom:1px">
+                                                    <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD;min-width: 80px;">
                                                         <fmt:message key="head.ef.${row.ef}"/>
                                                     </td>
 
@@ -391,8 +477,8 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
-                                                                    <div class="heatmap_cell"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"></c:out> </c:if>
-                                                                        <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"></c:out> </c:if> </div>
+                                                                    <div class="heatmap_cell"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"/> </c:if>
+                                                                        <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"/> </c:if> </div>
                                                                 </div>
                                                             </c:otherwise>
                                                         </c:choose>
@@ -407,9 +493,37 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                         </table>
                     </td>
                     <td valign="top" align="left">
-                        <c:import url="AtlasExpResultsTable.jsp">
-                            <c:param name="GeneId" value="${atlasGene.geneId}" />
-                        </c:import>
+                        <table align="left">
+                            <tr>
+                                <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
+                                <td align="right">
+                                    <div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
+                                    <div id="Pagination1" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; ">
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="left"  valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+                                    <div id="pagingSummary" class="header"></div>
+                                </td>
+                                <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+                                    <div id="expSelect"></div>
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div id="ExperimentResult">
+                                        <c:import url="AtlasExpResults.jsp">
+                                            <c:param name="gid" value="${atlasGene.geneId}" />
+                                            <c:param name="from" value="1" />
+                                            <c:param name="to" value="5" />
+                                        </c:import>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </table>

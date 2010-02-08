@@ -99,10 +99,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             throw new RuntimeException("R computation environment not valid/present: " + e.getMessage());
         }
 
-        // initialize and store in-session the AtlasPlotter
-        AtlasPlotter plotter = (AtlasPlotter) context.getBean("atlasPlotter");
-        application.setAttribute(Atlas.PLOTTER.key(), plotter);
-
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         String atlasDatasourceUrl, atlasDatasourceUser;
@@ -173,7 +169,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.removeAttribute(Atlas.ATLAS_DAO.key());
 
         application.removeAttribute(Atlas.DOWNLOAD_SERVICE.key());
-        application.removeAttribute(Atlas.PLOTTER.key());
         application.removeAttribute(Atlas.GENES_CACHE.key());
 
         long end = System.currentTimeMillis();

@@ -26,74 +26,8 @@ if (geneId != null) {
 
 %>
 
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 <script type="text/javascript">
-
-	var exp_ids;
-	var exps;
-	exps= [ <c:forEach var="exp" varStatus="s" items="${exps}">{
-				id: '${exp.id}',
-				acc: '${exp.accession}'
-				}<c:if test="${!s.last}">,</c:if>
-			</c:forEach>
-			];
-	
-    function viewMore(id)
-    {
-
-        id = String(id);
-        var extElt = $("#" + id + "_ext");
-        var lnkEltLess = $("#" + id + "_atls_lnk_less");
-        var lnkEltMore = $("#" + id + "_atls_lnk_more");
-        if (extElt.hasClass("fullSectionViewExt")) {
-            // collapse now
-            extElt.removeClass("fullSectionViewExt");
-            extElt.addClass("fullSectionView");
-            extElt.toggle("fast");
-            lnkEltMore.show();
-        } else {
-            extElt.addClass("fullSectionViewExt");
-            extElt.toggle("fast");
-            lnkEltMore.hide();
-
-        }
-       // onWindowResize();
-    }
-    function showStudyDetails(id) {
-        id = String(id);
-        var divElt = $("#" + id + "_desc_ext");
-        var lnkElt = $("#" + id + "_std_lnk");
-       
-        divElt.slideToggle("fast");
-        if (lnkElt.hasClass("expanded")) {
-            lnkElt.removeClass("expanded");
-            lnkElt.attr("src", "images/minus.gif");
-        } else {
-            lnkElt.addClass("expanded");
-            lnkElt.attr("src", "images/plus.gif");
-        }
-    }
-    
-    
-    
-	function showThumbnail(id){
-        var thumb = $("#" + id + '_plot_thm');
-        var legend_ext = $("#" + id + '_legend_ext');
-        var legend = $("#" + id + '_legend');
-        thumb.show();
-        legend.hide();
-        legend_ext.show();
-	}
-	
-	function openInAEW(eid){
-		for (var i = 0; i < exps.length; ++i){
-			if(eid == exps[i].id)
-				exp_acc = jQuery.trim(exps[i].acc);
-		}
-		window.open("/microarray-as/aew/DW?queryFor=gene&gene_query=${atlasGene.geneIdentifier}&exp_query="+exp_acc,"_blank");
-	}
-
-	
+	var exps = [ <c:forEach var="exp" varStatus="s" items="${exps}">{ id: '${exp.id}', acc: '${exp.accession}' }<c:if test="${!s.last}">,</c:if></c:forEach> ];
 </script>
 
 <table align="left" cellpadding="0" >
@@ -153,14 +87,6 @@ if (geneId != null) {
 							<div id="${exp.id}_${atlasGene.geneId}_plot_thm" > </div>
 						</td>
 					</tr>
-
-					
-					<!--
-					<span class="moreLink" style="top: 5px;"
-						onclick="showThumbnail('${exp.id}_${atlasGene.geneId}')">Click
-					here to zoom</span>
-					</td>
-					</tr> -->
 					<!--/div-->
 				</table>
 				</td>
@@ -192,5 +118,3 @@ if (geneId != null) {
 	</c:forEach>
 
 </table>
-
-<img src="${pageContext.request.contextPath}/images/1.gif" onload="drawPlots();"/>

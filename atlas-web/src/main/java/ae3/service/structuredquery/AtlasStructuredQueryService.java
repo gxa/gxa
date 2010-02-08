@@ -364,14 +364,37 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
         return result;
     }
 
-    public AtlasStructuredQueryResult findGenesForExperiment(Object geneIds, String eAcc, int start, int rows) {
-        return doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
+    public List<ListResultRow> findGenesForExperiment(Object geneIds, int experimentId, int start, int rows) {
+        AtlasStructuredQueryResult result = doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                 .andGene(geneIds)
-                .andUpdnIn(Constants.EXP_FACTOR_NAME, EscapeUtil.optionalQuote(eAcc))
+                .andUpdnIn(Constants.EXP_FACTOR_NAME, String.valueOf(experimentId))
                 .viewAs(ViewType.LIST)
                 .rowsPerPage(rows)
                 .startFrom(start)
                 .expsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene")).query());
+
+        List<ListResultRow> res = new ArrayList<ListResultRow>();
+        for(AtlasStructuredQueryResult.ListResultGene gene : result.getListResultsGenes()) {
+            ListResultRow minRow = null;
+            double minPvalue = 1;
+            for(ListResultRow row : gene.getExpressions()) {
+                double pvalue = 1;
+                for(ListResultRowExperiment e : row.getExp_list()) {
+                    if(e.getExperimentId() == experimentId) {
+                        pvalue = e.getPvalue();
+                        row.setExp_list(Collections.singleton(e));
+                        break;
+                    }
+                }
+                if(minRow == null || pvalue < minPvalue) {
+                    minRow = row;
+                    minPvalue = pvalue;
+                }
+            }
+            if(minRow != null)
+                res.add(minRow);
+        }
+        return res;
     }
         
     private EfvTree<Integer> trimColumns(final AtlasStructuredQuery query,

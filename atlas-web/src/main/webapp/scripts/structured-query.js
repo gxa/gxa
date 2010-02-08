@@ -464,7 +464,7 @@ if(!atlas)
                             for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
                                 $.ajax({
                                     type: "GET",
-                                    url: ""+ atlas.homeUrl +"plot.jsp",
+                                    url: atlas.homeUrl + "plot",
                                     data: {
                                         gid: gene,
                                         eid: resp.experiments[iexp].id,
@@ -473,8 +473,11 @@ if(!atlas)
                                     },
                                     dataType: "json",
                                     success: (function(x,cc) { return function(o) {
-                                        drawPlot(o, plots.filter(cc), x);
-                                    } })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                                        if(o.error)
+                                            alert(o.error);
+                                        else
+                                            drawPlot(o, plots.filter(cc), x);
+                                    }; })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
                                 });
                             }
                     }
@@ -627,5 +630,39 @@ if(!atlas)
 
             }});
     };
+
+    atlas.showListThumbs = function (row) {
+        var efv = $("#"+row.id+" .lvrowefv").text();
+
+        var data = row.id.split("_");
+        var gid = data[0];
+        var ef = data[1];
+        var i = data[2];
+
+        $(".thumb" + i).not(".done").each(function(){
+            var plot_id = this.id;
+            var tokens = plot_id.split('_');
+            var eid = tokens[0];
+            var divEle = $(this);
+            $.ajax({
+                type: "GET",
+                url: atlas.homeUrl + "plot",
+                data: { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' },
+                dataType:"json",
+
+                success: function(jsonObj){
+                    if(jsonObj.error)
+                        alert(jsonObj.error);
+                    else if(jsonObj.series){
+                        $.plot(divEle, jsonObj.series, jsonObj.options);
+                    }
+                },
+                error: atlas.onAjaxError
+            });
+
+            $(this).addClass("done");
+        });
+    };
+
 
  })(jQuery);

@@ -320,8 +320,14 @@ if(!atlas)
     atlas.copyText = function(e) {
         e.focus();
         e.select();
-        var t = e.createTextRange();
-        t.execCommand("Copy");
+        if(e && e.createTextRange) {
+            var t = e.createTextRange();
+            t.execCommand("Copy");
+        }
+    };
+
+    atlas.onAjaxError = function() {
+        alert('Ajax HTTP error');
     };
 
 })(jQuery);

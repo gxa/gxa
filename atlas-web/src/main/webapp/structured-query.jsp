@@ -17,7 +17,6 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 <script type="text/javascript" src="scripts/jquery.flot.atlas.js"></script>
-<script type="text/javascript" src="scripts/plots.js"></script>
 <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="scripts/structured-query.js"></script>
 <script type="text/javascript" src="scripts/jquery.tablesorter.mod.js"></script>
@@ -229,9 +228,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
         $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,
-            callback: showExps
-        })
-          .tablesorter({
+            callback: atlas.showListThumbs
+        }).tablesorter({
             // don't sort by first column
             headers: {0: {sorter: false}}
             // set the widgets being used - zebra stripping

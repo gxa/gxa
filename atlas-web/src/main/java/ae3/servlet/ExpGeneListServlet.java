@@ -1,6 +1,8 @@
 package ae3.servlet;
 
 import ae3.model.ListResultRow;
+import ae3.model.AtlasGene;
+import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
@@ -20,8 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 public class ExpGeneListServlet implements HttpRequestHandler {
     final private Logger log = LoggerFactory.getLogger(getClass());
@@ -47,12 +48,11 @@ public class ExpGeneListServlet implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String eid = request.getParameter("eid");
+        int eid = Integer.valueOf(request.getParameter("eid"));
         String qryType = request.getParameter("query");
         String geneId = request.getParameter("gid");
         String startRow = request.getParameter("from");
         Integer start;
-        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(0, 0, 0);
         try {
             start = Integer.valueOf(startRow);
         }
@@ -60,10 +60,11 @@ public class ExpGeneListServlet implements HttpRequestHandler {
             start = 0;
         }
 
+        Object geneQuery = null;
         if (qryType.equals("sim")) {
             String DEid = request.getParameter("deid");
             String ADid = request.getParameter("adid");
-            final SimilarityResultSet simRS = new SimilarityResultSet(eid, DEid, ADid);
+            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid);
 
             try {
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
@@ -80,9 +81,7 @@ public class ExpGeneListServlet implements HttpRequestHandler {
 
                 if (null != sim) {
                     simRS.loadResult(sim);
-                    ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
-                    result = queryService.findGenesForExperiment(simGeneIds, eid, start, NUM_GENES);
-                    request.setAttribute("genes", result.getListResults());
+                    geneQuery = simRS.getSimGeneIDs();
                     request.setAttribute("simRS", simRS);
                 }
             }
@@ -92,19 +91,15 @@ public class ExpGeneListServlet implements HttpRequestHandler {
             }
 
         } else if (qryType.equals("top")) {
-
-            result = queryService.findGenesForExperiment("", eid, start, NUM_GENES);
-
-            Collection<ListResultRow> a = result.getListResults();
-
-            request.setAttribute("genes", a);
-
+            geneQuery = "";
         } else if (qryType.equals("search")) {
-            String geneQuery = request.getParameter("gene");
-            result = queryService.findGenesForExperiment(geneQuery != null ? geneQuery : "", eid, start, NUM_GENES);
-            request.setAttribute("genes", result.getListResults());
+            geneQuery = request.getParameter("gene");
         }
-        request.setAttribute("result", result);
+
+        if(geneQuery != null) {
+            request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, eid, start, NUM_GENES));
+        }
+
         request.setAttribute("eid", eid);
         request.setAttribute("gid", geneId);
 

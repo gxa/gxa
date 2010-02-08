@@ -2,42 +2,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@page import="ae3.dao.AtlasDao" %>
-<%@page import="ae3.model.AtlasExperiment" %>
-<%@page import="org.apache.commons.lang.StringUtils" %>
-<%@page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%
-    String expAcc = request.getParameter("eid");
-    String geneId = request.getParameter("gid");
-    String ef = request.getParameter("ef");
-    AtlasDao dao = (AtlasDao)application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    if (expAcc != null && !"".equals(expAcc)) {
-        AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
-        if (exp != null) {
-            request.setAttribute("exp", exp);
-            request.setAttribute("eid", exp.getId());
-
-            if(geneId != null) {
-                AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(StringUtils.split(geneId, ",")[0]);
-                if (result.isFound()) {
-                    geneId = result.getGene().getGeneId(); //if GeneIdentifer passed in query string, geneId is still geneid
-                    request.setAttribute("gene_identifier", result.getGene().getGeneIdentifier());
-                    if (ef == null || "".equals(ef)) {
-                        ef = result.getGene().getHighestRankEF(exp.getId()).getFirst();
-                        request.setAttribute("topRankEF", ef);
-                    }
-                }
-            }
-        } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            request.setAttribute("errorMessage", "There are no records for experiment " + String.valueOf(expAcc));
-            request.getRequestDispatcher("/error.jsp").forward(request,response);
-        }
-    }
-
-    request.setAttribute("gid", geneId);
-    request.setAttribute("ef", ef);
-%>
 
 <jsp:include page="start_head.jsp"/>
 Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
@@ -52,11 +16,11 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
         src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/plots.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
@@ -78,199 +42,32 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 
 
 <script id="source" language="javascript" type="text/javascript">
-    var genesToPlot = new Array("${gid}");
-    var geneIdentifiers = new Array(<c:if test="${!empty gene_identifier}">"${gene_identifier}"</c:if>);
+    genesToPlot = [
+        <c:forEach items="${genes}" var="gene" varStatus="s">
+        { id: ${gene.geneId}, identifier: '${gene.geneIdentifier}', name: '${u:escapeJS(gene.geneName)}' }<c:if test="${!s.last}">,</c:if>
+        </c:forEach>
+    ];
 
-    var sampleAttrs;
-    var assayIds;
-    var assay2samples;
-    var characteristics;
-    var charValues;
-    var EFs;
-    var plot;
-    var prevSelections = new Array();
-    var geneCounter = 0;
-    var geneIndeces = new Array();
-    geneIndeces.push(geneCounter);
+    currentEF = '${u:escapeJS(ef)}';
 
-    //AZ:2009-06-09:carry highlighted EF for removeGene
-    var currentEF = '${ef}';
+    experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
 
-    function addToolTips() {
-        $("#grid a.genename").tooltip({
-            bodyHandler: function () {
-                return $(this).next('.gtooltip').html();
-            },
-            showURL: false
-        });
-    }
-
-    $(document).ready(function()
-    {
-
-        $("#topGenes").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}',gid:'${gid}',query:'top'}, function() {
-            initPaging();
-            addToolTips();
-        });
-
-        $("#accordion").accordion({
-            collapsible: true,
-            active:false,
-            autoHeight: false
-
-        });
-
-        atlas.tokenizeGeneInput($("#geneInExp_qry"), '', '(all genes)');
-
-        $("#gene_menu").accordion({
-            collapsible: true,
-            active: 2,
-            autoHeight: false
-        });
-
-        //AZ:2009-06-26:only plot if gid is not supplyed
-    <c:if test="${!empty gid}">
-        plotBigPlot(genesToPlot.toString(), '${eid}', '${ef}', true, geneIndeces.toString());
-    </c:if>
-
-        $("button").click(function() {
-
-            $("#drill").slideToggle("fast");
-
-        });
-
-        $("#zoom").click(function() {
-
-            if ($("#zoom").text() == "(hide)")
-                $("#zoom").text("(show)");
-            else
-                $("#zoom").text("(hide)");
-            $("#plot_thm").toggle("fast");
-        });
-
-        $("#simForm").submit(function() {
-            $("#simResult").empty();
-            var name = $('select option:selected').text();
-            $("#simHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Searching for profiles similar to " +
-                                 name + "...");
-            $("#simHeader").show();
-            var DEid_ADid = $("select option:selected").val();
-            var tokens = DEid_ADid.split('_');
-            var DEid = tokens[0];
-            var ADid = tokens[1];
-            $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', deid:DEid, adid:ADid, query:'sim'}, function() {
-                $("#simHeader").hide();
-                addToolTips();
-            });
-            return false;
-        });
-
-        $("#searchForm").submit(function() {
-            var qry = $("#geneInExp_qry").fullVal();
-            $("#qryHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Loading...");
-            $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid:'${eid}', gene:qry, query:'search'}, function() {
-                $("#qryHeader").hide()
-                addToolTips();
-            });
-            return false;
-        });
-
-        $(".sample_attr_title").click(function() {
-            var savals = $(this).parent().next().clone();
-            $("#display_attr_values").empty().append(savals);
-            savals.show();
-
-            $(".sample_attr_title").each(function() {
-                $(this).css('font-weight', 'normal')
-            });
-            $(this).css('font-weight', 'bold');
-            return false;
-        });
-
-    });
-
-    function addGeneToPlot(gid, gname, eid, ef, gene_identififer) {
-
-        if (genesToPlot[gname] != null) {
-            return false;
-            // if ef is different from current one redraw plot for new ef
-        }
-        geneCounter++;
-        genesToPlot.push(gid);
-        genesToPlot[gname] = gid;
-        geneIdentifiers.push(gene_identififer);
-        geneIndeces.push(geneCounter);
-        plotBigPlot(genesToPlot.toString(), eid, ef, false, geneIndeces.toString());
-        currentEF = ef;
-    }
-
-
-    //function called on each added gene, and draw plot for first 5 of them
-    function addGeneToPlotIfEmpty(gid, gname, eid, ef, gene_identififer) {
-        <c:if test="${empty gid}">
-        if (geneCounter > 4)
-            return;
-
-        geneCounter++;
-        genesToPlot.push(gid);
-        genesToPlot[gname] = gid;
-        geneIndeces.push(geneCounter);
-        geneIdentifiers.push(gene_identififer);
-
-        if (geneCounter == 5) {
-            plotBigPlot(genesToPlot.toString(), eid, ef, true, geneIndeces.toString());
-            currentEF = ef;
-        }
-        </c:if>
-    }
-
-    function redrawForEF(eid, ef, efTxt) {
-
-        //redrawPlotForFactor(eid,genesToPlot.toString(),ef,'large',false,"",geneIndeces.toString());
-        plotBigPlot(genesToPlot.toString(), eid, ef, false, geneIndeces.toString());
-        $('#sortHeader').text("Expression profile sorted by " + efTxt);
-        currentEF = ef;
-    }
-
-
-    function radioLabel(label) {
-        return label + '&nbsp;<img id="' + label + '"class="rmButton" height="8" src="images/closeButton.gif"/>';
-    }
-
-    function removeGene(gname) {
-        if (genesToPlot.length == 1)
-            return false;
-
-        var gid = genesToPlot[gname];
-        delete genesToPlot[gname];
-        for (var i = 0; i < genesToPlot.length; i++)
-        {
-            if (genesToPlot[i] == gid) {
-                genesToPlot.splice(i, 1);
-                geneIndeces.splice(i, 1);
-            }
-        }
-        //$("#"+gname+":parent").hide();
-        //AZ:2009-06-26:do not jump to default EF (use curentEF)
-        plotBigPlot(genesToPlot.toString(), '${eid}', currentEF, false, geneIndeces.toString());
-    }
-
-
-    var curatedChars = new Array();
-    var curatedEFs = new Array();
     <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
-    curatedChars['${char}'] = '${u:getCurated(char)}';
+    curatedSCs['${char}'] = '${u:getCurated(char)}';
     </c:forEach>
     <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
     curatedEFs['${ef}'] = '${u:getCurated(ef)}';
     </c:forEach>
 
-    function calcApiLink(url) {
-        if (genesToPlot.length)
-            url += '&gene=' + geneIdentifiers.join('&gene=');
-        return url;
-    }
-
+    $(document).ready(function()
+    {
+        addGeneToolTips();
+        plotBigPlot();
+        drawZoomControls();
+        bindPlotEvents();
+        bindGeneMenus();
+        bindSampleAttrsSelector();
+    });
 </script>
 
 
@@ -314,16 +111,16 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                     <td style="padding:0px">
                         <div class="header"
                              style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
-                            <div id="${exp.id}_EFpagination" class="pagination_ie">
+                            <div id="EFpagination" class="pagination_ie">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <c:choose>
                                         <c:when test="${EF == topRankEF}">
-                                        <span class="current" id="${EF}"><fmt:message
+                                        <span class="current" id="efpage${EF}"><fmt:message
                                                 key="head.ef.${EF}"/></span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a id="${EF}"
-                                               onclick="redrawForEF('${exp.id}','${EF}','<fmt:message key="head.ef.${EF}"/>')"><fmt:message
+                                            <a id="efpage${EF}"
+                                               onclick="redrawForEF('${EF}')"><fmt:message
                                                     key="head.ef.${EF}"/></a>
                                         </c:otherwise>
                                     </c:choose>
@@ -401,9 +198,8 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                             <div><a href="#" style="font-size:12px">Choose from top ten differentially
                                 expressed genes</a></div>
                             <div>
-                                <div id="topGenes"><img src='${pageContext.request.contextPath}/images/indicator.gif'/>&nbsp;Loading
-                                    gene
-                                    list...
+                                <div id="topGenes">
+                                    <c:import url="expGeneResults.jsp"  />
                                 </div>
                             </div>
 
@@ -438,8 +234,8 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                                            items="${exp.sampleCharacterisitcValues[char]}"
                                                            varStatus="r">
                                                     <a class="sample_attr_value" id="${char}_${r.count}"
-                                                       onclick="highlightSamples('${char}','${u:escapeJS(value)}','<fmt:message key="head.ef.${char}"/>', false, this);return false;"
-                                                       href="#">${value}</a>
+                                                       onclick="highlightPoints('${char}','${f:escapeXml(u:escapeJS(value))}', false, this);return false;"
+                                                       href="#">${f:escapeXml(value)}</a>
                                                     <br/>
                                                 </c:forEach>
                                             </div>
@@ -455,7 +251,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                                                items="${exp.factorValuesForEF[EF]}"
                                                                varStatus="r">
                                                         <a class="sample_attr_value" id="${EF}_${r.count}" href="#"
-                                                           onclick="highlightSamples('${EF}','${u:escapeJS(value)}','<fmt:message key="head.ef.${EF}"/>',true, this)">${value}</a>
+                                                           onclick="highlightPoints('${EF}','${f:escapeXml(u:escapeJS(value))}', true, this);return false;">${f:escapeXml(value)}</a>
                                                         <br/>
                                                     </c:forEach>
                                                 </div>

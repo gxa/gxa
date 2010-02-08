@@ -387,14 +387,14 @@ public class AtlasGene {
         return heatmap;
     }
 
-    public List<AtlasTuple> getTopFVs(long exp_id_key) {
-        List<AtlasTuple> result = new ArrayList<AtlasTuple>();
+    public List<Experiment> getTopFVs(long exp_id_key) {
+        List<Experiment> result = new ArrayList<Experiment>();
         for(Experiment e : getExperimentsTable().findByExperimentId(exp_id_key)) {
-            result.add(new AtlasTuple(e.getEf(), e.getEfv(), e.getExpression().isUp() ? 1 : -1, e.getPvalue()));
+            result.add(e);
         }
-        Collections.sort(result, new Comparator<AtlasTuple>() {
-            public int compare(AtlasTuple o1, AtlasTuple o2) {
-                return o1.getPval().compareTo(o2.getPval());
+        Collections.sort(result, new Comparator<Experiment>() {
+            public int compare(Experiment o1, Experiment o2) {
+                return Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
             }
         });
         return result;
