@@ -106,7 +106,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         try {
             Connection c = DataSourceUtils.getConnection(dataSource);
             DatabaseMetaData dmd = c.getMetaData();
-            result = dmd.getURL();
+            result = dmd.getUserName() + " @ " + dmd.getURL();
             DataSourceUtils.releaseConnection(c, dataSource);
         }
         catch (SQLException e) {
