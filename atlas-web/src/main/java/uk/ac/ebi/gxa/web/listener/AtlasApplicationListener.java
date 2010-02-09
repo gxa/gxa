@@ -49,13 +49,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         log.info("Starting up atlas");
 
         // use SLF4J to configure logging
-        try {
-            LogManager.getLogManager().readConfiguration(
-                    AtlasApplicationListener.class.getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
-            log.warn("Unable to read logging.properties file - SLF4J bridge may not be correctly configured");
-        }
         SLF4JBridgeHandler.install();
 
         // get context, driven by config
