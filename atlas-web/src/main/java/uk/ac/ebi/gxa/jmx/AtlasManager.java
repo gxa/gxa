@@ -4,6 +4,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.ServletContextAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.efo.Efo;
 
@@ -16,6 +17,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.logging.LogManager;
 
 import ae3.util.AtlasProperties;
 
@@ -56,13 +58,25 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         this.servletContext = servletContext;
     }
 
+    private void fixLog() {
+        try {
+            LogManager.getLogManager().readConfiguration(getClass().getClassLoader().getResourceAsStream("logging.properties"));
+        }
+        catch (Exception e) {
+            //
+        }
+        SLF4JBridgeHandler.install();
+    }
+
     public void rebuildIndex(String index) {
+        fixLog();
         log.info("JMX: Rebuilding index " + index);
         indexBuilder.setIncludeIndexes(Collections.singletonList(index));
         indexBuilder.buildIndex();
     }
 
     public void rebuildAllIndexes() {
+        fixLog();
         log.info("JMX: Rebuilding all indexes");
         indexBuilder.setIncludeIndexes(Arrays.asList("properties", "experiments", "genes"));
         indexBuilder.buildIndex();
