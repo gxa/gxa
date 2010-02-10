@@ -145,11 +145,11 @@ as
 begin
 
   begin
-      Select e.ExperimentID into TheExperimentID 
+      Select MIN(e.ExperimentID) into TheExperimentID 
       from a2_Experiment e
       where e.Accession = TheExperimentAccession;
 
-      Select d.ArrayDesignID into TheArrayDesignID
+      Select MIN(d.ArrayDesignID) into TheArrayDesignID
       from a2_ArrayDesign d
       where d.Accession = TheArrayDesignAccession;
   exception 
@@ -179,7 +179,7 @@ begin
   */
 
   begin
-      Select a.AssayID into TheAssayID
+      Select MIN(a.AssayID) into TheAssayID
       from a2_Assay a
       where a.Accession = TheAccession;
   exception
@@ -376,7 +376,7 @@ PROCEDURE A2_AnalyticsSet(
 begin
 
   begin
-      Select e.ExperimentID into ExperimentID 
+      Select MIN(e.ExperimentID) into ExperimentID 
       from a2_Experiment e
       where e.Accession = ExperimentAccession;
   exception 
@@ -389,7 +389,7 @@ begin
   end;
 
   begin       
-      Select pv.PropertyValueID into PropertyValueID
+      Select MIN(pv.PropertyValueID) into PropertyValueID
       from a2_Property p
       join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
       where p.Name = LowerCaseProperty
@@ -404,7 +404,7 @@ begin
   end;
 
   dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionAnalytics_tmp(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
+  Insert into a2_ExpressionAnalytics(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
   select t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
   from table(CAST(ExpressionAnalytics as ExpressionAnalyticsTable)) t;
 
@@ -421,7 +421,7 @@ PROCEDURE A2_AnalyticsDelete(
   ExperimentID int := 0;
 begin
 
-  return;
+ -- return;
 
   begin
       Select e.ExperimentID into ExperimentID 

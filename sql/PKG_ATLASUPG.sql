@@ -17,7 +17,7 @@ CREATE OR REPLACE PACKAGE ATLASUPG IS
   PROCEDURE LoadAssayPropertyValue;
   PROCEDURE LoadSamplePropertyValue;
   PROCEDURE LoadOntology;
-  PROCEDURE LoadIOntologyTerm;
+  PROCEDURE LoadOntologyTerm;
   PROCEDURE LoadSampleOntology;
   PROCEDURE LoadAssayOntology;
   PROCEDURE LoadExpressionAnalytics;
@@ -376,7 +376,7 @@ select Ontology_ID_Key,Name, Source_URI, Description,Version
 from ontology_sources@dwprd; 
 END;
 --------------------------------------------------------------------------------
-PROCEDURE LoadIOntologyTerm
+PROCEDURE LoadOntologyTerm
 AS
 BEGIN
 Insert into a2_ontologyterm(OntologyTermID, OntologyID, Term , Accession, Description, ORIG_VALUE, orig_value_src ) 
@@ -540,6 +540,10 @@ BEGIN
   dbms_output.put_line('delete property ALL - property');                          
   Delete from a2_Property                            
   where PropertyID = (select PropertyID from a2_Property where Name = 'ALL');
+
+  dbms_output.put_line('update name to lowercase');                          
+  Update a2_Property                            
+  set name = LOWER(name);
   
   commit;
 
