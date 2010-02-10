@@ -62,6 +62,11 @@ public class ExperimentNetCDFGeneratorService
         // start the timer
         timer.start();
 
+        // flag to indicate if all netcdfs completed
+        boolean success = true;
+        // the first error encountered whilst generating NetCDFs, if any
+        Exception firstError = null;
+
         try {
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
@@ -144,31 +149,28 @@ public class ExperimentNetCDFGeneratorService
 
             experiments.clear();
 
-            // block until completion, and throw any errors
+            // block until completion, and throw the first error we see
             while (true) {
-                Future<Boolean> task = tasks.poll();
-                if (task != null) {
-                    try {
-                        task.get();
+                try {
+                    Future<Boolean> task = tasks.poll();
+                    if (task == null) {
+                        break;
                     }
-                    catch (ExecutionException e) {
-                        getLog().error("NetCDF generation exception", e);
-                        if (e.getCause() instanceof NetCDFGeneratorException) {
-                            throw (NetCDFGeneratorException) e.getCause();
-                        }
-                        else {
-                            throw new NetCDFGeneratorException(
-                                    "An error occurred updating NetCDFs", e);
-                        }
-                    }
-                    catch (InterruptedException e) {
-                        throw new NetCDFGeneratorException(
-                                "An error occurred updating NetCDFs", e);
+                    success = task.get() && success;
+                }
+                catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    success = false;
+                    getLog().error("An error occurred whilst generating NetCDFs:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
                     }
                 }
-                else {
-                    break;
-                }
+            }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError == null) {
+                throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
             }
         }
         finally {
@@ -211,17 +213,22 @@ public class ExperimentNetCDFGeneratorService
         Deque<Future<Boolean>> tasks =
                 new Deque<Future<Boolean>>(5);
 
+        getLog().info("Generating NetCDFs - experiment " +
+                experiment.getAccession());
+
+        // update loadmonitor - experiment is netcdf-ing
+        getAtlasDAO().writeLoadDetails(
+                experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
+
+        // create a data slicer to slice up this experiment
+        DataSlicer slicer = new DataSlicer(getAtlasDAO());
+
+        // flag to indicate if all netcdfs for this experiment completed
+        boolean success = true;
+        // the first error encountered whilst generating NetCDFs, if any
+        Exception firstError = null;
+
         try {
-            getLog().info("Generating NetCDFs - experiment " +
-                    experiment.getAccession());
-
-            // update loadmonitor - experiment is netcdf-ing
-            getAtlasDAO().writeLoadDetails(
-                    experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
-
-            // create a data slicer to slice up this experiment
-            DataSlicer slicer = new DataSlicer(getAtlasDAO());
-
             // slice our experiment first
             for (final DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
                 // run each experiment in parallel
@@ -256,41 +263,39 @@ public class ExperimentNetCDFGeneratorService
                 }));
             }
 
-            // block until completion, and throw any errors
-            boolean success = true;
-            try {
-                while (true) {
+            // block until completion, and throw the first error we see
+            while (true) {
+                try {
                     Future<Boolean> task = tasks.poll();
                     if (task == null) {
                         break;
                     }
                     success = task.get() && success;
                 }
+                catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    success = false;
+                    getLog().error("An error occurred whilst generating NetCDFs:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
+                    }
+                }
             }
-            catch (ExecutionException e) {
-                success = false;
-                if (e.getCause() instanceof NetCDFGeneratorException) {
-                    throw (NetCDFGeneratorException) e.getCause();
-                }
-                else {
-                    throw new NetCDFGeneratorException("An error occurred updating NetCDFs", e);
-                }
-            }
-            catch (InterruptedException e) {
-                success = false;
-                throw new NetCDFGeneratorException("An error occurred updating NetCDFs", e);
-            }
-            finally {
-                // update loadmonitor - experiment has completed netcdf-ing
-                if (success) {
-                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
-                }
-                else {
-                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
-                }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError == null) {
+                throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
             }
         }
         finally {
+            // update loadmonitor - all NetCDFs completed/failed for this experiment
+            if (success) {
+                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
+            }
+            else {
+                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
+            }
+
             // shutdown the service
             getLog().debug("Shutting down executor service in " +
                     getClass().getSimpleName() + " (" + tpool.toString() + ") for " +

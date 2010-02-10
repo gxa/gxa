@@ -293,7 +293,7 @@ public class NetCDFWriter {
                             .append("): ").append(experimentFactorMap.get(propertyName).size()).append(".")
                             .append("\n\t").append(repeats).append(" EFVs at a time will be stored")
                             .toString();
-                    log.warn("Multiple property values assigned to the same " +
+                    log.trace("Multiple property values assigned to the same " +
                             "property (" + propertyName + ") for single assay!" + stats);
                 }
 
@@ -397,7 +397,7 @@ public class NetCDFWriter {
                             .append("): ").append(sampleCharacteristicMap.get(propertyName).size()).append(".")
                             .append("\n\t").append(repeats).append(" SCVs at a time will be stored")
                             .toString();
-                    log.warn("Multiple property values assigned to the same " +
+                    log.trace("Multiple property values assigned to the same " +
                             "property (" + propertyName + ") for single sample!" + stats);
                 }
 
@@ -539,7 +539,7 @@ public class NetCDFWriter {
                 int count = unmappedProperties.size() +
                         (unmappedDesignElements.size() * uefvMaxLength);
                 int total = deMaxLength * uefvMaxLength;
-                log.warn("No analysis present for " + count + "/" + total + " " +
+                log.trace("No analysis present for " + count + "/" + total + " " +
                         "design element/factor value pairs: stats matrix cells will " +
                         "default to 0 for each affected cell");
             }

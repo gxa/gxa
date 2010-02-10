@@ -1399,30 +1399,69 @@ public class AtlasDAO {
     }
 
 
-
     public void writeTest() {
-          SimpleJdbcCall procedure =
-                  new SimpleJdbcCall(template)
-                          .withProcedureName("A2_TEST")
-                          .withoutProcedureColumnMetaDataAccess()
-                          .useInParameterNames("VALUE")
-                          .declareParameters(
-                                  new SqlParameter("VALUE", Types.DOUBLE));
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("A2_TEST")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("VALUE")
+                        .declareParameters(
+                                new SqlParameter("VALUE", Types.DOUBLE));
 
 
+        MapSqlParameterSource params = new MapSqlParameterSource();
 
+        params.addValue("Value", 5.860309365539401E-159);
 
-          MapSqlParameterSource params = new MapSqlParameterSource();
-
-          params.addValue("Value",5.860309365539401E-159);
-
-          procedure.execute(params);
-      }
+        procedure.execute(params);
+    }
 
 
     /*
     utils methods for doing standard stuff
      */
+
+    public void startExpressionAnalytics(String experimentAccession) {
+        // execute the startup analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetBegin(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETBEGIN")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute();
+    }
+
+    public void finaliseExpressionAnalytics(String experimentAccession) {
+        // execute the ending analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetEnd(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETEND")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute();
+    }
 
     private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
         // map array designs to array design id
@@ -1620,8 +1659,9 @@ public class AtlasDAO {
                 }
 
                 //AZ: JDBC call fails when empty array passed (ORA-06502: PL/SQL: numeric or value error)
-                if(propArrayValues.length == 0)
-                        propArrayValues = null;
+                if (propArrayValues.length == 0) {
+                    propArrayValues = null;
+                }
 
                 // created the array of STRUCTs, group into ARRAY
                 ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
@@ -1712,8 +1752,8 @@ public class AtlasDAO {
                         // array representing the values to go in the STRUCT
                         // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
                         expressionAnalyticsValues[0] = designElements[i];
-                        expressionAnalyticsValues[1] = pValues[i];
-                        expressionAnalyticsValues[2] = tStatistics[i];
+                        expressionAnalyticsValues[1] = (float) pValues[i];
+                        expressionAnalyticsValues[2] = (float) tStatistics[i];
 
                         expressionAnalytics[i] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
                     }

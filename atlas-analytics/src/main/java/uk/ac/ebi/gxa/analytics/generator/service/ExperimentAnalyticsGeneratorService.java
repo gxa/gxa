@@ -60,6 +60,12 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // start the timer
         timer.start();
 
+        // call the start procedure with "null" parameter, as we're doing all
+        getAtlasDAO().startExpressionAnalytics(null);
+
+        // the first error encountered whilst generating analytics, if any
+        Exception firstError = null;
+
         try {
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
@@ -69,8 +75,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Boolean call() throws Exception {
                         long start = System.currentTimeMillis();
                         try {
-                            createAnalyticsForExperiment(experiment.getAccession());
-                            return true;
+                            return generateExperimentAnalytics(experiment.getAccession());
                         }
                         finally {
                             timer.completed(experiment.getExperimentID());
@@ -89,29 +94,29 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }));
             }
 
-            // block until completion, and throw any errors
+            // block until completion, and throw the first error we see
             for (Future<Boolean> task : tasks) {
                 try {
                     task.get();
                 }
-                catch (ExecutionException e) {
-                    e.printStackTrace();
-                    if (e.getCause() instanceof AnalyticsGeneratorException) {
-                        throw (AnalyticsGeneratorException) e.getCause();
-                    }
-                    else {
-                        throw new AnalyticsGeneratorException(
-                                "An error occurred updating Analytics", e);
+                catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    getLog().error("An error occurred whilst generating analytics:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
                     }
                 }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                    throw new AnalyticsGeneratorException(
-                            "An error occurred updating Analytics", e);
-                }
+            }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError == null) {
+                throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
             }
         }
         finally {
+            // call the ending procedure
+            getAtlasDAO().finaliseExpressionAnalytics(null);
+
             // shutdown the service
             getLog().debug("Shutting down executor service in " + getClass().getSimpleName());
 
@@ -139,6 +144,17 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
+        // simply call start procedure
+        getAtlasDAO().startExpressionAnalytics(experimentAccession);
+
+        // then generateExperimentAnalytics
+        generateExperimentAnalytics(experimentAccession);
+
+        // finally call end procedure
+        getAtlasDAO().finaliseExpressionAnalytics(experimentAccession);
+    }
+
+    private boolean generateExperimentAnalytics(String experimentAccession) throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
         boolean success = true;
@@ -245,6 +261,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     e.printStackTrace();
                 }
             }
+
+            return success;
         }
         finally {
             getLog().info("Finalising analytics changes for " + experimentAccession);

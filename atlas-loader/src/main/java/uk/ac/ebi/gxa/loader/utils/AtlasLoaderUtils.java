@@ -2,10 +2,10 @@ package uk.ac.ebi.gxa.loader.utils;
 
 import org.apache.commons.logging.Log;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.Handler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
+import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
@@ -27,7 +27,7 @@ import java.util.Set;
 public class AtlasLoaderUtils {
     /**
      * Blocking method that waits until an experiment with the given accession number is available.  Note that this
-     * method will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+     * method will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.lang.Status}<code>.FAILED</code>
      * status, but not otherwise.  If the calling code never writes an experiment with this accession into a cache
      * associated with the given investigation, this method will never terminate.
      *
@@ -86,7 +86,7 @@ public class AtlasLoaderUtils {
 
     /**
      * Blocking method that waits until an assay with the given accession number is available.  Note that this method
-     * will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+     * will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.lang.Status}<code>.FAILED</code>
      * status, but not otherwise.  If the calling code never writes an assay with this accession into a cache associated
      * with the given investigation, this method will never terminate.
      *
@@ -152,7 +152,7 @@ public class AtlasLoaderUtils {
 
     /**
      * Blocking method that waits until an sample with the given accession number is available.  Note that this method
-     * will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.Status}<code>.FAILED</code>
+     * will be interrupted if the investigation acquires a {@link uk.ac.ebi.arrayexpress2.magetab.lang.Status}<code>.FAILED</code>
      * status, but not otherwise.  If the calling code never writes an sample with this accession into a cache
      * associated with the given investigation, this method will never terminate.
      *

@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.Status;
+import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
