@@ -40,7 +40,7 @@ public class AtlasStructuredQueryResult {
      */
     public AtlasStructuredQueryResult(long start, long rowsPerPage, int expsPerGene) {
         this.results = new ArrayList<StructuredResultRow>();
-        this.listResults = new HashMap<AtlasGene,List<ListResultRow>>();
+        this.listResults = new LinkedHashMap<AtlasGene,List<ListResultRow>>();
         this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
         this.rowsPerPage = rowsPerPage;
