@@ -222,8 +222,8 @@ public class AtlasDAO {
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid=?";
-    private static final String DESIGN_ELEMENTS_BY_RELATED_ARRAY =
-            "SELECT de.arraydesignid, de.designelementid, de.accession " +
+    private static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
+            "SELECT de.arraydesignid, de.designelementid, de.accession, de.geneid " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid IN (:arraydesignids)";
     private static final String DESIGN_ELEMENTS_BY_GENEID =
@@ -1400,30 +1400,71 @@ public class AtlasDAO {
     }
 
 
-
     public void writeTest() {
-          SimpleJdbcCall procedure =
-                  new SimpleJdbcCall(template)
-                          .withProcedureName("A2_TEST")
-                          .withoutProcedureColumnMetaDataAccess()
-                          .useInParameterNames("VALUE")
-                          .declareParameters(
-                                  new SqlParameter("VALUE", Types.DOUBLE));
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("A2_TEST")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("VALUE")
+                        .declareParameters(
+                                new SqlParameter("VALUE", Types.DOUBLE));
 
 
 
 
-          MapSqlParameterSource params = new MapSqlParameterSource();
+        MapSqlParameterSource params = new MapSqlParameterSource();
 
-          params.addValue("Value",5.860309365539401E-159);
+        params.addValue("Value", 5.860309365539401E-159);
 
-          procedure.execute(params);
-      }
+        procedure.execute(params);
+    }
 
 
     /*
     utils methods for doing standard stuff
      */
+
+    public void startExpressionAnalytics(String experimentAccession) {
+        // execute the startup analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetBegin(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETBEGIN")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute();
+    }
+
+    public void finaliseExpressionAnalytics(String experimentAccession) {
+        // execute the ending analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetEnd(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETEND")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute();
+    }
 
     private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
         // map array designs to array design id
@@ -1436,6 +1477,9 @@ public class AtlasDAO {
             if (array.getDesignElements() == null) {
                 array.setDesignElements(new HashMap<Integer, String>());
             }
+            if (array.getGenes() == null) {
+                array.setGenes(new HashMap<Integer, List<Integer>>());
+            }
         }
 
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -1444,7 +1488,7 @@ public class AtlasDAO {
         ArrayDesignElementMapper arrayDesignElementMapper = new ArrayDesignElementMapper(arrayDesignsByID);
         MapSqlParameterSource arrayParams = new MapSqlParameterSource();
         arrayParams.addValue("arraydesignids", arrayDesignsByID.keySet());
-        namedTemplate.query(DESIGN_ELEMENTS_BY_RELATED_ARRAY, arrayParams, arrayDesignElementMapper);
+        namedTemplate.query(DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY, arrayParams, arrayDesignElementMapper);
     }
 
     private void fillOutGeneProperties(List<Gene> genes) {
@@ -1622,7 +1666,7 @@ public class AtlasDAO {
 
                 //AZ: JDBC call fails when empty array passed (ORA-06502: PL/SQL: numeric or value error)
                 if(propArrayValues.length == 0)
-                        propArrayValues = null;
+                    propArrayValues = null;
 
                 // created the array of STRUCTs, group into ARRAY
                 ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
@@ -1936,8 +1980,11 @@ public class AtlasDAO {
 
             Integer id = resultSet.getInt(2);
             String acc = resultSet.getString(3);
+            Integer geneId = resultSet.getInt(4);
 
-            arrayByID.get(assayID).getDesignElements().put(id, acc);
+            ArrayDesign ad = arrayByID.get(assayID);
+            ad.getDesignElements().put(id, acc);
+            ad.getGenes().put(id, Collections.singletonList(geneId)); // TODO: as of today, we have one gene per de
 
             return null;
         }

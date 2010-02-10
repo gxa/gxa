@@ -7,13 +7,12 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * Javadocs go here!
@@ -30,9 +29,6 @@ public class NetCDFFormatter {
 
     private boolean designElementInitialized = false;
     private Dimension designElementDimension;
-
-    private boolean geneInitialized = false;
-    private Dimension geneDimension;
 
     private boolean uefvInitialized = false;
     private Dimension uefvDimension;
@@ -60,9 +56,6 @@ public class NetCDFFormatter {
 
         // setup design element part of netCDF
         createDesignElementVariables(netCDF, dataSlice.getDesignElements());
-
-        // setup gene part of netCDF
-        createGeneVariables(netCDF, dataSlice.getDesignElements(), dataSlice.getGenes());
 
         // setup design element to gene part of netCDF (DE2GN matrix)
         createDesignElementGeneVariable(netCDF);
@@ -188,6 +181,7 @@ public class NetCDFFormatter {
             designElementDimension = netCDF.addDimension("DE", designElements.keySet().size());
             // add gene variable
             netCDF.addVariable("DE", DataType.INT, new Dimension[]{designElementDimension});
+            netCDF.addVariable("GN", DataType.INT, new Dimension[]{designElementDimension});
         }
         else {
             log.warn("Encountered an empty set of design elements whilst generating the NetCDF for " + dataSliceStr);
@@ -195,54 +189,6 @@ public class NetCDFFormatter {
 
         log.debug("Initialized design element dimensions and variables ok.");
         designElementInitialized = true;
-    }
-
-    /**
-     * Creates dimensions and variables in a NetCDF for a list of genes.  This results in the creation of the "GN"
-     * dimension and variable.
-     *
-     * @param netCDF         the NetCDF model to modify
-     * @param designElements the design elements map - the keyset is the list of unique identifiers for design elements
-     *                       that will be used to configure this NetCDF
-     * @param genes          the mapping of design element ids to genes that will be used to configure this NetCDF
-     * @throws uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException
-     *          if the number of genes exceeds the number of design elements
-     */
-    private void createGeneVariables(NetcdfFileWriteable netCDF, Map<Integer, String> designElements, List<Gene> genes)
-            throws NetCDFGeneratorException {
-        if (genes.size() > 0) {
-            // check that we have an appropriate mapping
-            if (genes.size() < designElements.keySet().size()) {
-                log.warn(
-                        "Mismatched design element/gene counts (" + designElements.keySet().size() + "/" +
-                                genes.size() + ").  Some design elements have no annotations.  " +
-                                "GN will be created using design element counts");
-                // update the netCDF with the genes count
-                geneDimension = netCDF.addDimension("GN", designElements.keySet().size());
-                // add gene variable
-                netCDF.addVariable("GN", DataType.INT, new Dimension[]{geneDimension});
-            }
-            else {
-                if (genes.size() > designElements.keySet().size()) {
-                    throw new NetCDFGeneratorException(
-                            "Mismatched design element/gene counts: " +
-                                    "There are more genes than design elements, so something " +
-                                    "went wrong during data slicing - this shouldn't be possible.  " +
-                                    "GN will be created using gene counts, but incorrect data may " +
-                                    "be stored");
-                }
-
-                // update the netCDF with the genes count
-                geneDimension = netCDF.addDimension("GN", genes.size());
-                // add gene variable
-                netCDF.addVariable("GN", DataType.INT, new Dimension[]{geneDimension});
-            }
-        }
-        else {
-            log.warn("Encountered an empty set of genes whilst generating the NetCDF for " + dataSliceStr);
-        }
-        log.debug("Initialized gene dimensions and variables ok.");
-        geneInitialized = true;
     }
 
     /**
@@ -262,14 +208,11 @@ public class NetCDFFormatter {
         if (!designElementInitialized) {
             throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable without first assessing 'DE' dimension");
         }
-        if (!geneInitialized) {
-            throw new NetCDFGeneratorException("Cannot create 'DE2GN' variable without first assessing 'GN' dimension");
-        }
 
         // DE2GN is an array of unlimited length (i.e. increases with each unique pair) by 2, (i.e. pairs of De to GN mappings)
         Dimension pairsDimension = netCDF.addUnlimitedDimension("DE2GNPairs");
         Dimension mappingsDimension = netCDF.addDimension("DE2GNMapping", 2);
-        if (designElementDimension != null && geneDimension != null) {
+        if (designElementDimension != null) {
             // add assay to sample variable
             netCDF.addVariable("DE2GN", DataType.INT, new Dimension[]{pairsDimension, mappingsDimension});
             log.debug("DE2GN variable added, unlimited length array of pairs");

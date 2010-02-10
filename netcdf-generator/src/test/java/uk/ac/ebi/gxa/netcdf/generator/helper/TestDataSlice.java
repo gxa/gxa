@@ -36,41 +36,7 @@ public class TestDataSlice extends TestCase {
     experiment = null;
   }
 
-  public void testStoreGenes() {
-    try {
-      int deID1 = 1;
-      String deAcc1 = "Test:designElement:1";
-      int deID2 = 2;
-      String deAcc2 = "Test:designElement:2";
-
-      Map<Integer, String> designElements = new HashMap<Integer, String>();
-      designElements.put(deID1, deAcc1);
-      designElements.put(deID2, deAcc2);
-
-      dataSlice.storeDesignElements(designElements);
-
-      Gene gene1 = new Gene();
-      Gene gene2 = new Gene();
-
-      Map<Integer, Gene> genes = new HashMap<Integer, Gene>();
-      genes.put(deID1, gene1);
-      genes.put(deID2, gene2);
-
-      dataSlice.storeGene(deID1, genes.get(deID1));
-      dataSlice.storeGene(deID2, genes.get(deID2));
-
-      // now get genes
-      assertSame("Wrong number of genes",
-                 dataSlice.getGeneMappings().keySet().size(),
-                 2);
-    }
-    catch (DataSlicingException e) {
-      e.printStackTrace();
-      fail();
-    }
-  }
-
-  public void testStoreAssays() {
+    public void testStoreAssays() {
     Assay ass1 = new Assay();
     Assay ass2 = new Assay();
     List<Assay> storage = new ArrayList<Assay>();
@@ -109,34 +75,7 @@ public class TestDataSlice extends TestCase {
     }
   }
 
-  public void testStoreDesignElementIDs() {
-    int deID1 = 1;
-    String deAcc1 = "Test:designElement:1";
-    int deID2 = 2;
-    String deAcc2 = "Test:designElement:2";
-
-    Map<Integer, String> designElements = new HashMap<Integer, String>();
-    designElements.put(deID1, deAcc1);
-    designElements.put(deID2, deAcc2);
-
-    dataSlice.storeDesignElements(designElements);
-
-    // now get design elements
-    assertSame("Wrong number of design elements",
-               dataSlice.getDesignElements().keySet().size(), 2);
-  }
-
-  public void testReset() {
-    int deID1 = 1;
-    String deAcc1 = "Test:designElement:1";
-    int deID2 = 2;
-    String deAcc2 = "Test:designElement:2";
-
-    Map<Integer, String> designElements = new HashMap<Integer, String>();
-    designElements.put(deID1, deAcc1);
-    designElements.put(deID2, deAcc2);
-
-    dataSlice.storeDesignElements(designElements);
+    public void testReset() {
 
     Assay ass1 = new Assay();
     Assay ass2 = new Assay();
@@ -155,7 +94,7 @@ public class TestDataSlice extends TestCase {
                dataSlice.getSampleMappings().size(), 0);
     assertSame("Design Elements was not null",
                dataSlice.getDesignElements().keySet().size(), 0);
-    assertSame("Genes was not null", dataSlice.getGenes().size(), 0);
+    assertSame("Genes was not null", dataSlice.getGeneMapping().size(), 0);
     assertSame("Samples was not null", dataSlice.getSamples().size(), 0);
   }
 }

@@ -22,15 +22,10 @@ public class DataSlice {
     private final Experiment experiment;
     private final ArrayDesign arrayDesign;
     private List<Assay> assays;
-    private Map<Integer, String> designElements;
     private List<Sample> samples;
-    private List<Gene> genes;
-    private List<ExpressionAnalysis> analyses;
     private Map<Integer, Map<Integer, Float>> expressionValues;
     // maps of indexed things
     private Map<Assay, List<Sample>> samplesMap;
-    private Map<Integer, List<Gene>> genesMap;
-    private Map<Integer, List<ExpressionAnalysis>> analysesMap;
     // maps of properties
     private Map<String, List<String>> experimentFactorMap;
     private Map<String, List<String>> sampleCharacteristicMap;
@@ -61,30 +56,11 @@ public class DataSlice {
     }
 
     public synchronized Map<Integer, String> getDesignElements() {
-        if (designElements != null) {
-            return designElements;
-        }
-        else {
-            return new HashMap<Integer, String>();
-        }
+        return arrayDesign.getDesignElements();
     }
 
-    public synchronized List<Gene> getGenes() {
-        if (genes != null) {
-            return genes;
-        }
-        else {
-            return new ArrayList<Gene>();
-        }
-    }
-
-    public synchronized List<ExpressionAnalysis> getExpressionAnalyses() {
-        if (analyses != null) {
-            return analyses;
-        }
-        else {
-            return new ArrayList<ExpressionAnalysis>();
-        }
+    public synchronized Map<Integer, List<Integer>> getGeneMapping() {
+        return arrayDesign.getGenes();
     }
 
     public synchronized List<Sample> getSamples() {
@@ -119,32 +95,6 @@ public class DataSlice {
         }
         else {
             return new HashMap<Assay, List<Sample>>();
-        }
-    }
-
-    /**
-     * Returns a map of genes, keyed by the design element id they are annotated for. This is a mapping with one-to-one
-     * cardinality - design elements cannot be annotated with multiple genes, although the same gene can be annotated
-     * against multiple design elements.  Note that some design elements may not be annotated at all, in which case the
-     * gene will be null.
-     *
-     * @return a map of genes, indexed by the design element id they're related to.
-     */
-    public synchronized Map<Integer, List<Gene>> getGeneMappings() {
-        if (genesMap != null) {
-            return genesMap;
-        }
-        else {
-            return new HashMap<Integer, List<Gene>>();
-        }
-    }
-
-    public synchronized Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysisMappings() {
-        if (analysesMap != null) {
-            return analysesMap;
-        }
-        else {
-            return new HashMap<Integer, List<ExpressionAnalysis>>();
         }
     }
 
@@ -230,115 +180,6 @@ public class DataSlice {
                     List<Sample> samples = new ArrayList<Sample>();
                     samples.add(sample);
                     samplesMap.put(assay, samples);
-                }
-            }
-        }
-    }
-
-    /**
-     * Stores a map containing information about design elements for this data slice.  This map should contain the list
-     * of design element ids and the manufacturers design element accession.
-     *
-     * @param designElements the design elements to store, being a map of design element ids to accessions
-     */
-    public synchronized void storeDesignElements(
-            Map<Integer, String> designElements) {
-        this.designElements = designElements;
-    }
-
-    /**
-     * Stores the given gene, indexed by the design element to which it belongs. If a list of design element ids has
-     * already been stored, the supplied design element id should be found in this list. A DataSlicingException will be
-     * raised if there are no stored design elements, or if you attempt to store a Gene for an unknown design element.
-     * It is not legal to store several Genes for the same design element: if you attempt this, a DataSlicingException
-     * will be thrown.
-     *
-     * @param designElementID the design element id for this gene
-     * @param gene            the gene to store, indexed by the design element id
-     * @throws DataSlicingException if you store a gene for an unknown design element, or if no design elements are
-     *                              stored.
-     */
-    public synchronized void storeGene(int designElementID, Gene gene) throws DataSlicingException {
-        if (designElements == null) {
-            throw new DataSlicingException("Can't store " + gene + ": design element index has not been initialized!");
-        }
-        else {
-            // ok to initialize
-            if (genesMap == null) {
-                genesMap = new HashMap<Integer, List<Gene>>();
-            }
-            if (genes == null) {
-                genes = new ArrayList<Gene>();
-            }
-
-            // now check integrity
-            if (!designElements.containsKey(designElementID)) {
-                throw new DataSlicingException(
-                        "Can't store " + gene + ": design element " + designElementID + " absent from index");
-            }
-            else {
-                // add gene to the list (unless it's already added)
-                if (!genes.contains(gene)) {
-                    genes.add(gene);
-                }
-                // and add to the map indexed by designElementID
-                if (genesMap.containsKey(designElementID)) {
-                    genesMap.get(designElementID).add(gene);
-                }
-                else {
-                    List<Gene> genes = new ArrayList<Gene>();
-                    genes.add(gene);
-                    genesMap.put(designElementID, genes);
-                }
-            }
-        }
-    }
-
-    /**
-     * Stores an ExpressionAnalysis object, indexed  by the design element id to which it belongs.  If a list of design
-     * element ids has already been stored, the supplied design element id should be found in this list.  A
-     * DataSlicingException will be raised if there are no stored design elements, or if you attempt to store an
-     * ExpressionAnalysis for an unknown design element.  It is legal to store several ExpressionAnalyses for the same
-     * design element.
-     *
-     * @param designElementID the design element id for this collection of analyses
-     * @param analysis        the list of analyses to store.
-     * @throws DataSlicingException if you store an analysis for an unknown design element, or if no design elements are
-     *                              stored.
-     */
-    public synchronized void storeExpressionAnalysis(
-            int designElementID, ExpressionAnalysis analysis)
-            throws DataSlicingException {
-        if (designElements == null) {
-            throw new DataSlicingException(
-                    "Can't store " + analysis + ": design element index has not been initialized!");
-        }
-        else {
-            // we're ok to initialize
-            if (analysesMap == null) {
-                analysesMap = new HashMap<Integer, List<ExpressionAnalysis>>();
-            }
-            if (analyses == null) {
-                analyses = new ArrayList<ExpressionAnalysis>();
-            }
-
-            // now check integrity
-            if (!designElements.containsKey(designElementID)) {
-                throw new DataSlicingException(
-                        "Can't store " + analysis + ": design element " + designElementID + " absent from index");
-            }
-            else {
-                // add analysis to the list
-                analyses.add(analysis);
-                // and add to the map indexed by design element id
-                if (analysesMap.containsKey(designElementID)) {
-                    analysesMap.get(designElementID).add(analysis);
-                }
-                else {
-                    List<ExpressionAnalysis> analyses =
-                            new ArrayList<ExpressionAnalysis>();
-                    analyses.add(analysis);
-                    this.analysesMap.put(designElementID, analyses);
                 }
             }
         }
@@ -445,15 +286,10 @@ public class DataSlice {
     public synchronized void reset() {
         // reset any lists that are lazily created after storing
         this.assays = null;
-        this.designElements = null;
         // lists of indexed things
         this.samples = null;
-        this.genes = null;
-        this.analyses = null;
         // maps of indexed things
         this.samplesMap = null;
-        this.genesMap = null;
-        this.analysesMap = null;
     }
 
     public String toString() {

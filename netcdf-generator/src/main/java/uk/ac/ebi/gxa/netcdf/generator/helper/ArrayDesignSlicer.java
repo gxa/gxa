@@ -50,16 +50,6 @@ public class ArrayDesignSlicer extends CallableSlicer<DataSlice> {
             dataFetching.add(getService().submit(evSlicer));
         }
 
-        // fetch design elements specific to this array design
-        synchronized (dataFetching) {
-            DesignElementSlicer deSlicer = new DesignElementSlicer(getService(), arrayDesign, dataSlice);
-            deSlicer.setAtlasDAO(getAtlasDAO());
-            deSlicer.setGeneFetchingStrategy(fetchGenesTask, unmappedGenes);
-            deSlicer.setAnalyticsFetchingStrategy(fetchAnalyticsTask, unmappedAnalytics);
-
-            dataFetching.add(getService().submit(deSlicer));
-        }
-
         // block until all data fetching tasks are complete
         synchronized (dataFetching) {
             getLog().debug("Waiting for all data slicing tasks to complete (modify each dataslice with required data)");
@@ -71,7 +61,7 @@ public class ArrayDesignSlicer extends CallableSlicer<DataSlice> {
                     throw new DataSlicingException("A thread handling data slicing was interrupted", e);
                 }
                 catch (ExecutionException e) {
-                    e.printStackTrace();
+                    getLog().error("A thread handling data slicing failed", e);
                     if (e.getCause() != null) {
                         throw new DataSlicingException("A thread handling data slicing failed.  Caused by: " +
                                 (e.getMessage() == null ||
