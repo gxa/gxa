@@ -38,8 +38,6 @@ public class ExperimentSlicer extends CallableSlicer<Set<DataSlice>> {
             ArrayDesignSlicer arraySlicer =
                     new ArrayDesignSlicer(getService(), experiment, arrayDesign);
             arraySlicer.setAtlasDAO(getAtlasDAO());
-            arraySlicer.setGeneFetchingStrategy(fetchGenesTask, unmappedGenes);
-            arraySlicer.setAnalyticsFetchingStrategy(fetchAnalyticsTask, unmappedAnalytics);
 
             arrayFetching.add(getService().submit(arraySlicer));
         }

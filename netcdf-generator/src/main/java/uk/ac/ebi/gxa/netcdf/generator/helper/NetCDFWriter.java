@@ -20,9 +20,6 @@ import java.util.*;
  * @date 30-Sep-2009
  */
 public class NetCDFWriter {
-    private int[] assayIndex;
-    private int[] designElementIndex;
-
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,22 +43,20 @@ public class NetCDFWriter {
                     dataSlice.getAssays(),
                     dataSlice.getSampleMappings());
 
+            Collection<Integer> designElements = dataSlice.getDesignElements().keySet();
+            
             // write design element data
             writeDesignElementData(
                     netCDF,
-                    dataSlice.getDesignElements());
+                    designElements,
+                    dataSlice.getGeneMapping()
+                    );
 
             // write gene data
-            writeGeneData(
-                    netCDF,
-                    dataSlice.getGenes());
-
             // write design element/gene mapping data
             writeDesignElementToGeneData(
                     netCDF,
-                    dataSlice.getDesignElements(),
-                    dataSlice.getGenes(),
-                    dataSlice.getGeneMappings());
+                    dataSlice.getGeneMapping());
 
             // write property data
             writePropertyData(
@@ -72,13 +67,14 @@ public class NetCDFWriter {
             // write expression matrix values
             writeExpressionMatrixValues(
                     netCDF,
+                    designElements,
+                    dataSlice.getAssays(),
                     dataSlice.getExpressionValues());
 
             // write stats matrix values
             writeStatsValues(
                     netCDF,
-                    dataSlice.getDesignElements(),
-                    dataSlice.getExpressionAnalysisMappings(),
+                    designElements,
                     dataSlice.getExperimentFactorMappings());
         }
         catch (IOException e) {
@@ -157,77 +153,29 @@ public class NetCDFWriter {
     }
 
     private void writeDesignElementData(NetcdfFileWriteable netCDF,
-                                        Map<Integer, String> designElements)
+                                        Collection<Integer> designElements,
+                                        Map<Integer,List<Integer>> genes)
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("DE") != null) {
             // add design element id data
-            ArrayInt de = new ArrayInt.D1(designElements.keySet().size());
+            ArrayInt de = new ArrayInt.D1(designElements.size());
             IndexIterator deIt = de.getIndexIterator();
-            for (int designElementID : designElements.keySet()) {
+            ArrayInt gn = new ArrayInt.D1(designElements.size());
+            IndexIterator gnIt = gn.getIndexIterator();
+            for (int designElementID : designElements) {
                 deIt.setIntNext(designElementID);
+                List<Integer> geneList = genes.get(designElementID);
+                gnIt.setIntNext(geneList.isEmpty() ? 0 : geneList.get(0));
             }
             netCDF.write("DE", de);
+            netCDF.write("GN", gn);
         }
         log.debug("Wrote design element data matrix ok.");
     }
 
-    private void writeGeneData(NetcdfFileWriteable netCDF,
-                               List<Gene> genes)
-            throws IOException, InvalidRangeException, NetCDFGeneratorException {
-        if (netCDF.findDimension("GN") != null) {
-            // add sample id data
-            ArrayInt gn = new ArrayInt.D1(genes.size());
-            IndexIterator gnIt = gn.getIndexIterator();
-            for (Gene gene : genes) {
-                gnIt.setIntNext(gene.getGeneID());
-            }
-            netCDF.write("GN", gn);
-        }
-        log.debug("Wrote gene data matrix ok.");
-    }
-
-    private void writeDesignElementToGeneData(NetcdfFileWriteable netCDF, Map<Integer, String> designElements,
-                                              List<Gene> genes, Map<Integer, List<Gene>> designElementsToGenes)
+    private void writeDesignElementToGeneData(NetcdfFileWriteable netCDF,
+                                              Map<Integer, List<Integer>> designElementsToGenes)
             throws IOException, InvalidRangeException {
-        if (netCDF.findDimension("DE") != null && netCDF.findDimension("GN") != null) {
-            // index counters
-            int deIndex;
-            int gnIndex = 0;
-
-            // map of deIndex to gnIndex
-            List<int[]> mappingList = new ArrayList<int[]>();
-
-            // iterate over design elements and genes,
-            // and work out which spots in the matrix to set to 1
-            for (Integer designElement : designElements.keySet()) {
-                for (Gene gene : genes) {
-                    // insert value
-                    if (designElementsToGenes.get(designElement).contains(gene)) {
-                        // got a mapping between design element id='designElement' and gene, lookup position in DE
-                        deIndex = lookupDesignElementIndex(netCDF, designElement);
-
-                        // create a one to one map
-                        int[] map = new int[]{deIndex, gnIndex};
-                        mappingList.add(map);
-                    }
-
-                    // increment gene index by one
-                    gnIndex++;
-                }
-
-                // reset gene index (next row)
-                gnIndex = 0;
-            }
-
-            // now we have the list of pairs, write them
-            ArrayInt de2gn = new ArrayInt.D2(mappingList.size(), 2);
-            for (int i = 0; i < mappingList.size(); i++) {
-                de2gn.setInt(de2gn.getIndex().set(i, 0), mappingList.get(i)[0]);
-                de2gn.setInt(de2gn.getIndex().set(i, 1), mappingList.get(i)[1]);
-            }
-            netCDF.write("DE2GN", de2gn);
-        }
-        log.debug("Wrote designElement2gene data matrix ok.");
     }
 
     private void writePropertyData(
@@ -434,6 +382,8 @@ public class NetCDFWriter {
 
     private void writeExpressionMatrixValues(
             NetcdfFileWriteable netCDF,
+            Collection<Integer> designElements,
+            List<Assay> assays,
             Map<Integer, Map<Integer, Float>> expressionValues)
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("AS") != null &&
@@ -444,18 +394,16 @@ public class NetCDFWriter {
 
             // initialise everything to -1000000, default value
             IndexIterator bdcIt = bdc.getIndexIterator();
-            while (bdcIt.hasNext()) {
-                bdcIt.setDoubleNext(-1000000);
-            }
-
-            // loop over expression values doing crafty index lookups
-            for (int assayID : expressionValues.keySet()) {
-                for (Map.Entry<Integer, Float> ev : expressionValues.get(assayID)
-                        .entrySet()) {
-                    int asIndex = lookupAssayIndex(netCDF, assayID);
-                    int deIndex = lookupDesignElementIndex(netCDF, ev.getKey());
-
-                    bdc.setDouble(bdc.getIndex().set(deIndex, asIndex), ev.getValue());
+            for(int designElementId : designElements) {
+                for(Assay assay : assays) {
+                    double value = -1000000;
+                    Map<Integer,Float> evmap = expressionValues.get(assay.getAssayID());
+                    if(evmap != null) {
+                        Float v = evmap.get(designElementId);
+                        if(v != null)
+                            value = Double.valueOf(v);
+                    }
+                    bdcIt.setDoubleNext(value);
                 }
             }
 
@@ -465,8 +413,7 @@ public class NetCDFWriter {
     }
 
     private void writeStatsValues(NetcdfFileWriteable netCDF,
-                                  Map<Integer, String> designElements,
-                                  Map<Integer, List<ExpressionAnalysis>> analyses,
+                                  Collection<Integer> designElements,
                                   Map<String, List<String>> experimentFactorMap)
             throws IOException, InvalidRangeException {
         if (netCDF.findDimension("DE") != null &&
@@ -478,125 +425,9 @@ public class NetCDFWriter {
             ArrayDouble tstat = new ArrayDouble.D2(
                     deMaxLength, uefvMaxLength);
 
-            // keep track of all design elements with missing expression values
-            Set<Integer> unmappedDesignElements = new HashSet<Integer>();
-            Set<String> unmappedProperties = new HashSet<String>();
-
-            Set<String> uniqueFactorValues = new LinkedHashSet<String>();
-            for (String property : experimentFactorMap.keySet()) {
-                for (String propertyValue : experimentFactorMap.get(property)) {
-                    uniqueFactorValues.add(property.concat("||").concat(propertyValue));
-                }
-            }
-
-            // loop over design elements, do positional lookups as we go
-            int uefvIndex;
-            for (int designElementID : designElements.keySet()) {
-                if (analyses.get(designElementID) != null) {
-                    // not null, so now loop over values of the assayFactorValueMap,
-                    // so  we can lookup analysis by design element id and property value
-                    uefvIndex = 0;
-                    for (String uniqueFactorValue : uniqueFactorValues) {
-                        uefvIndex++;
-                        boolean foundAnalysis = false;
-                        for (ExpressionAnalysis analysis : analyses.get(designElementID)) {
-                            if (analysis.getEfvName().equals(uniqueFactorValue)) {
-                                // locate the position of this design element in the DE matrix
-//                                int deIndex = designElementIndex.get(designElementID);
-                                int deIndex = lookupDesignElementIndex(netCDF, designElementID);
-
-                                // found the right analysis, add - make sure these are ordered the same as uEFV
-                                pval.setDouble(pval.getIndex().set(deIndex, uefvIndex), analysis.getPValAdjusted());
-                                tstat.setDouble(tstat.getIndex().set(deIndex, uefvIndex), analysis.getTStatistic());
-
-                                // and quit this loop
-                                foundAnalysis = true;
-                                break;
-                            }
-                        }
-
-                        // if we couldn't find an appropriate analysis, warn
-                        if (!foundAnalysis) {
-                            unmappedProperties.add(designElementID + ":" + uniqueFactorValue);
-                        }
-                    }
-                }
-                else {
-                    unmappedDesignElements.add(designElementID);
-                }
-            }
-
-            if (unmappedProperties.size() > 0 || unmappedDesignElements.size() > 0) {
-                if (unmappedDesignElements.size() > 0) {
-                    // todo - log unmapped design elements to a file
-                }
-
-                if (unmappedProperties.size() > 0) {
-                    // todo - log unmapped design element/propterty value cells to a file
-                }
-
-                // count missing cells
-                int count = unmappedProperties.size() +
-                        (unmappedDesignElements.size() * uefvMaxLength);
-                int total = deMaxLength * uefvMaxLength;
-                log.trace("No analysis present for " + count + "/" + total + " " +
-                        "design element/factor value pairs: stats matrix cells will " +
-                        "default to 0 for each affected cell");
-            }
-
             netCDF.write("PVAL", pval);
             netCDF.write("TSTAT", tstat);
         }
         log.debug("Wrote stats data matrix ok.");
-    }
-
-    private int lookupAssayIndex(NetcdfFileWriteable netCDF, int assayID) throws IOException {
-        if (assayIndex == null) {
-            if (netCDF.findVariable("AS") == null) {
-                throw new IOException("Unable to read back AS index values");
-            }
-            else {
-                try {
-                    // cache the AS in an int array for the life of this writer
-                    assayIndex = (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
-                }
-                catch (IOException e) {
-                    throw new IOException("Unable to read back AS index values");
-                }
-            }
-        }
-
-        // now perform lookup
-        for (int i = 0; i < assayIndex.length; i++) {
-            if (assayIndex[i] == assayID) {
-                return i;
-            }
-        }
-        throw new IOException("AS does not contain assay ID " + assayID);
-    }
-
-    private int lookupDesignElementIndex(NetcdfFileWriteable netCDF, int designElementID) throws IOException {
-        if (designElementIndex == null) {
-            if (netCDF.findVariable("DE") == null) {
-                throw new IOException("Unable to read back DE index values");
-            }
-            else {
-                try {
-                    // cache the DE in an int array for the life of this writer
-                    designElementIndex = (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
-                }
-                catch (IOException e) {
-                    throw new IOException("Unable to read back DE index values");
-                }
-            }
-        }
-
-        // now perform lookup
-        for (int i = 0; i < designElementIndex.length; i++) {
-            if (designElementIndex[i] == designElementID) {
-                return i;
-            }
-        }
-        throw new IOException("designElementIndex does not contain design element ID " + designElementID);
     }
 }

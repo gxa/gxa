@@ -44,37 +44,10 @@ public class DataSlicer {
         final ExecutorService service = Executors.newCachedThreadPool();
         log.debug("Started service " + service);
 
-        // prefetch genes by experiment
-        final Future<List<Gene>> fetchGenesTask =
-                service.submit(new Callable<List<Gene>>() {
-                    public List<Gene> call() throws Exception {
-                        log.debug("Fetching genes data for " + experiment.getAccession());
-                        return getAtlasDAO().getGenesByExperimentAccession(experiment.getAccession());
-                    }
-                });
-
-        // prefetch expression analysis by experiment
-        final Future<List<ExpressionAnalysis>> fetchAnalyticsTask =
-                service.submit(new Callable<List<ExpressionAnalysis>>() {
-
-                    public List<ExpressionAnalysis> call() throws Exception {
-                        log.debug("Fetching analytics data for " + experiment.getAccession());
-                        return getAtlasDAO().getExpressionAnalyticsByExperimentID(experiment.getExperimentID());
-                    }
-                });
-
-        // create dumps for things that didn't resolve to a design element for any data slice
-        final Set<Gene> unmappedGenes = new HashSet<Gene>();
-        final Set<ExpressionAnalysis> unmappedAnalytics = new HashSet<ExpressionAnalysis>();
-
-
-        // start fetching data...
 
         // fetch array designs and iterate
         ExperimentSlicer exptSlicer = new ExperimentSlicer(service, experiment);
         exptSlicer.setAtlasDAO(getAtlasDAO());
-        exptSlicer.setGeneFetchingStrategy(fetchGenesTask, unmappedGenes);
-        exptSlicer.setAnalyticsFetchingStrategy(fetchAnalyticsTask, unmappedAnalytics);
         // submit this task
         Future<Set<DataSlice>> exptFetching = service.submit(exptSlicer);
 
@@ -84,26 +57,6 @@ public class DataSlicer {
                     "(fetch arrays and populate the dataslice set)");
             Set<DataSlice> results = exptFetching.get();
             log.debug("Experiment slicing task completed");
-
-            // this should mean that fetchGenesTask and fetchAnalyticsTask have completed, but fetch anyway
-            log.debug("Waiting for gene and expression analytics to complete fetching");
-            int genesCount = fetchGenesTask.get().size();
-            int analyticsCount = fetchAnalyticsTask.get().size();
-            log.debug("Gene, analytics counts acquired");
-
-            synchronized (unmappedGenes) {
-                synchronized (unmappedAnalytics) {
-                    if (unmappedGenes.size() > 0 || unmappedAnalytics.size() > 0) {
-                        log.warn(unmappedGenes.size() + "/" + genesCount +
-                                " genes and " + unmappedAnalytics.size() + "/" +
-                                analyticsCount + " expression analytics " +
-                                "that were recovered for " + experiment.getAccession() +
-                                " could not be mapped to known design elements");
-
-                        // todo - generate a log file of unmapped genes and expression analytics
-                    }
-                }
-            }
 
             log.debug("Returning the sliced data");
             return results;

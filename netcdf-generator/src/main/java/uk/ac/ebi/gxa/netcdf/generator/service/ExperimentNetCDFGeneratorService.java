@@ -129,7 +129,7 @@ public class ExperimentNetCDFGeneratorService
                             return success;
                         }
                         catch (NetCDFGeneratorException e) {
-                            getLog().error("Experiment " + experiment.getAccession() + " NetCDF generation failed.");
+                            getLog().error("Experiment " + experiment.getAccession() + " NetCDF generation failed.", e);
                             throw e;
                         }
                         finally {
@@ -169,7 +169,7 @@ public class ExperimentNetCDFGeneratorService
             }
 
             // if we have encountered an exception, throw the first error
-            if (firstError == null) {
+            if (firstError != null) {
                 throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
             }
         }
@@ -283,7 +283,7 @@ public class ExperimentNetCDFGeneratorService
             }
 
             // if we have encountered an exception, throw the first error
-            if (firstError == null) {
+            if (firstError != null) {
                 throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
             }
         }
