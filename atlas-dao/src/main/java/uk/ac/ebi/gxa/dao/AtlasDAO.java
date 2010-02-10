@@ -1181,11 +1181,11 @@ public class AtlasDAO {
                 .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
                 .addValue("THEARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
                 .addValue("THEPROPERTIES",
-                          convertPropertiesToOracleARRAY(props),
+                          assay.getProperties() == null || assay.getProperties().isEmpty() ? null : convertPropertiesToOracleARRAY(props),
                           OracleTypes.ARRAY,
                           "PROPERTYTABLE")
                 .addValue("THEEXPRESSIONVALUES",
-                          convertExpressionValuesToOracleARRAY(evs),
+                          assay.getExpressionValues() == null || assay.getExpressionValues().isEmpty() ? null : convertExpressionValuesToOracleARRAY(evs),
                           OracleTypes.ARRAY,
                           "EXPRESSIONVALUETABLE");
 
