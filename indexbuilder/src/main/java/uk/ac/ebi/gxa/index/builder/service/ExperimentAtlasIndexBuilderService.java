@@ -15,7 +15,10 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -49,6 +52,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
 
+        // the first error encountered whilst building the index, if any
+        Exception firstError = null;
+
         try {
             for (final Experiment experiment : experiments) {
                 tasks.offerLast(tpool.submit(new Callable<Boolean>() {
@@ -73,7 +79,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             List<Assay> assays =
                                     getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
                             if (assays.size() == 0) {
-                                getLog().warn("No assays present for " +
+                                getLog().trace("No assays present for " +
                                         experiment.getAccession());
                             }
 
@@ -83,7 +89,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                 // get assay properties and values
                                 getLog().debug("Getting properties for assay " + assay.getAssayID());
                                 if (assay.getProperties().size() == 0) {
-                                    getLog().warn("No properties present for assay " + assay.getAssayID() +
+                                    getLog().trace("No properties present for assay " + assay.getAssayID() +
                                             " (" + experiment.getAccession() + ")");
                                 }
 
@@ -104,7 +110,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                             List<Sample> samples =
                                     getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
                             if (samples.size() == 0) {
-                                getLog().warn("No samples present for experiment " + experiment.getAccession());
+                                getLog().trace("No samples present for experiment " + experiment.getAccession());
                             }
 
                             Set<String> sampleProps = new HashSet<String>();
@@ -112,7 +118,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                 // get assay properties and values
                                 getLog().debug("Getting properties for sample " + sample.getSampleID());
                                 if (sample.getProperties().size() == 0) {
-                                    getLog().warn("No properties present for sample " + sample.getSampleID() +
+                                    getLog().trace("No properties present for sample " + sample.getSampleID() +
                                             " (" + experiment.getAccession() + ")");
                                 }
 
@@ -156,27 +162,27 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
             experiments.clear();
 
-            // block until completion, and throw any errors
+            // block until completion, and throw the first error we see
             while (true) {
-                Future<Boolean> task = tasks.poll();
-                if (task == null) {
-                    break;
-                }
-
                 try {
+                    Future<Boolean> task = tasks.poll();
+                    if (task == null) {
+                        break;
+                    }
                     task.get();
                 }
-                catch (ExecutionException e) {
-                    if (e.getCause() instanceof IndexBuilderException) {
-                        throw (IndexBuilderException) e.getCause();
-                    }
-                    else {
-                        throw new IndexBuilderException("An error occurred updating Experiments SOLR index", e);
+                catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    getLog().error("An error occurred whilst building the Experiments index:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
                     }
                 }
-                catch (InterruptedException e) {
-                    throw new IndexBuilderException("An error occurred updating Experiments SOLR index", e);
-                }
+            }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError == null) {
+                throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
             }
         }
         finally {

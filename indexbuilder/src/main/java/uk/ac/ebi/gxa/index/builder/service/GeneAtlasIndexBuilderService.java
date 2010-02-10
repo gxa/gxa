@@ -69,6 +69,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Found " + total + " genes");
 
+        // the first error encountered whilst building the index, if any
+        Exception firstError = null;
+
         try {
             // index all genes in parallel
             for (final Gene gene : genes) {
@@ -155,26 +158,27 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             genes.clear();
 
-            // block until completion, and throw any errors
+            // block until completion, and throw the first error we see
             while (true) {
-                Future<Boolean> task = tasks.poll();
-                if(task == null)
-                    break;
-
                 try {
+                    Future<Boolean> task = tasks.poll();
+                    if (task == null) {
+                        break;
+                    }
                     task.get();
                 }
-                catch (ExecutionException e) {
-                    if (e.getCause() instanceof IndexBuilderException) {
-                        throw (IndexBuilderException) e.getCause();
-                    }
-                    else {
-                        throw new IndexBuilderException("An error occurred updating Atlas SOLR index", e);
+                catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    getLog().error("An error occurred whilst building the Experiments index:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
                     }
                 }
-                catch (InterruptedException e) {
-                    throw new IndexBuilderException("An error occurred updating Atlas SOLR index", e);
-                }
+            }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError == null) {
+                throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
             }
         }
         finally {
