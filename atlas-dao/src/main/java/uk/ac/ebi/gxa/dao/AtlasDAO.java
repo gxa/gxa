@@ -1398,6 +1398,28 @@ public class AtlasDAO {
                 " complete in " + total + "s.");
     }
 
+
+
+    public void writeTest() {
+          SimpleJdbcCall procedure =
+                  new SimpleJdbcCall(template)
+                          .withProcedureName("A2_TEST")
+                          .withoutProcedureColumnMetaDataAccess()
+                          .useInParameterNames("VALUE")
+                          .declareParameters(
+                                  new SqlParameter("VALUE", Types.DOUBLE));
+
+
+
+
+          MapSqlParameterSource params = new MapSqlParameterSource();
+
+          params.addValue("Value",5.860309365539401E-159);
+
+          procedure.execute(params);
+      }
+
+
     /*
     utils methods for doing standard stuff
      */
@@ -1596,6 +1618,10 @@ public class AtlasDAO {
                 else {
                     propArrayValues = new Object[0];
                 }
+
+                //AZ: JDBC call fails when empty array passed (ORA-06502: PL/SQL: numeric or value error)
+                if(propArrayValues.length == 0)
+                        propArrayValues = null;
 
                 // created the array of STRUCTs, group into ARRAY
                 ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
