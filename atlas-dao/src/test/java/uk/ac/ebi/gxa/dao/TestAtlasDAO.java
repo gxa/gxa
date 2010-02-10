@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Actual tests for AtlasDAO, extends AtlasDAOTestCase which does all the handy instantiation of a basic, in memory DB.
@@ -41,6 +42,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     public void testGetAllExperiments() {
         try {
+
+            getAtlasDAO().writeTest();
+
+            if(1==1)
+            return;
+
             // get row count of experiments in the dataset
             int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
@@ -502,5 +509,19 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // create test assay
         Assay assay = new Assay();
         assay.setAccession("assay-test-assay-1");
+        assay.setExperimentAccession("E-PFIZ-2");
+        assay.setArrayDesignAccession("A-MEXP-27");
+
+        Property p1 = new Property();
+        p1.setAccession("property1");
+        p1.setName("property2");
+        p1.setValue("hello");
+
+        List<Property> p = new ArrayList<Property>();
+        p.add(p1);
+
+        //assay.setProperties(p);
+
+        getAtlasDAO().writeAssay(assay);
     }
 }
