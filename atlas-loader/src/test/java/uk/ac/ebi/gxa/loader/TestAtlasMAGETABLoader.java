@@ -69,6 +69,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     }
 
     public void testReplaceHandlers() {
+        System.out.println("Running replaceHandlers() test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
         assertTrue(pool.replaceHandlerClass(
@@ -95,9 +96,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertTrue(pool.replaceHandlerClass(
                 DerivedArrayDataMatrixHandler.class,
                 AtlasLoadingDerivedArrayDataMatrixHandler.class));
+        System.out.println("replaceHandlers() test done!");
     }
 
     public void testParseAndCheckExperiments() {
+        System.out.println("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
         pool.replaceHandlerClass(AccessionHandler.class,
@@ -154,9 +157,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);
+        System.out.println("Experiment parse and check test done!");
     }
 
     public void testLoadAndCompare() {
+        System.out.println("Running load and compare test...");
         AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getAtlasDAO());
         boolean result = loader.load(parseURL);
         // now check expected objects can be retrieved with DAO
@@ -168,9 +173,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                     "until test in-memory DB gets stored procedures! LOLZ!!!!");
 //                fail();
         }
+        System.out.println("Load and compare test done!");
     }
 
     public void testParseAndCheckSamplesAndAssays() {
+        System.out.println("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
         pool.replaceHandlerClass(SourceHandler.class,
@@ -230,9 +237,12 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                       AtlasLoadCacheRegistry.getRegistry()
                               .retrieveAtlasLoadCache(investigation)
                               .fetchAllAssays().size(), 0);
+
+        System.out.println("Parse and check sample/assays done");
     }
 
     public void testParseAndCheckExpressionValues() {
+        System.out.println("Running parse and check expression values test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
         pool.replaceHandlerClass(
@@ -294,5 +304,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         assertFalse("No expression values were read - all assays have 0 EVs",
                     allEmpty);
+        System.out.println("Parse and check expression values test done!");
     }
 }

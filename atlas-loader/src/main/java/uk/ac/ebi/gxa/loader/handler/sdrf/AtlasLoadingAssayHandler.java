@@ -110,21 +110,24 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
                             Sample sample = AtlasLoaderUtils.waitForSample(
                                     source.getNodeName(), investigation, getClass().getSimpleName(), getLog());
 
-                            if (sample != null
-                                    && sample.getAssayAccessions() != null
-                                    && !sample.getAssayAccessions().contains(assay.getAccession())) {
-                                System.out.println("Updating " + sample.getAccession() + " with assay accession");
-                                sample.addAssayAccession(assay.getAccession());
+                            if (sample != null) {
+                                if (sample.getAssayAccessions() == null ||
+                                        !sample.getAssayAccessions().contains(assay.getAccession())) {
+                                    getLog().trace("Updating " + sample.getAccession() + " with assay accession");
+                                    sample.addAssayAccession(assay.getAccession());
+                                }
                             }
                             else {
                                 // no sample to link to in the cache - generate error item and throw exception
                                 String message = "Assay " + assay.getAccession() + " is linked to sample " +
                                         source.getNodeName() + " but this sample is not due to be loaded. " +
                                         "This assay will not be linked to a sample";
-                                ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                        .generateErrorItem(message, 511, this.getClass());
 
-                                throw new ObjectConversionException(error, false);
+                                getLog().warn(message);
+//                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+//                                    .generateErrorItem(message, 511, this.getClass());
+//
+//                            throw new ObjectConversionException(error, false);
                             }
                         }
                         catch (LookupException e) {

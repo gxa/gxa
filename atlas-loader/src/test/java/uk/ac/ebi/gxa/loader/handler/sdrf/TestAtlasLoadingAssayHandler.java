@@ -71,6 +71,8 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
+
+        // fixme: note that I've stopped rejected links from generating error items, it was a crazy overhead
         parser.addErrorItemListener(new ErrorItemListener() {
 
             public void errorOccurred(ErrorItem item) {
@@ -133,8 +135,8 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         assertEquals("Local cache doesn't contain correct number of assays",
                      404, cache.fetchAllAssays().size());
 
-        assertEquals("Should have rejected 404 assay to sample links, as samples aren't loaded", 404,
-                     counter.intValue());
+//        assertEquals("Should have rejected 404 assay to sample links, as samples aren't loaded", 404,
+//                     counter.intValue());
 
         // get the title of the experiment
         for (Assay assay : cache.fetchAllAssays()) {
