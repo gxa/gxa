@@ -84,10 +84,6 @@ public class AtlasGene {
     		return StringUtils.join(fval,", ");
     }
 
-    public boolean fieldAvailable(String field){
-    	return geneSolrDocument.getFieldNames().contains(field);
-    }
-
     public String getInterProTerm() {
         return getValue("property_INTERPROTERM");
     }

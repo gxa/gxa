@@ -180,7 +180,7 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
                     }
                 }
                 public boolean enough() {
-                    return res.size() >= limit;
+                    return limit >= 0 && (res.size() >= limit);
                 }
             });
         }

@@ -92,9 +92,6 @@ public class TestDataSlice extends TestCase {
                dataSlice.getSampleMappings().size(), 0);
     assertSame("Assays to sample mapping was not empty",
                dataSlice.getSampleMappings().size(), 0);
-    assertSame("Design Elements was not null",
-               dataSlice.getDesignElements().keySet().size(), 0);
-    assertSame("Genes was not null", dataSlice.getGeneMapping().size(), 0);
     assertSame("Samples was not null", dataSlice.getSamples().size(), 0);
   }
 }
