@@ -432,7 +432,6 @@ public class AtlasDAO {
         return (List<LoadDetails>) results;
     }
 
-
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
                                       new ExperimentMapper());
@@ -1255,6 +1254,17 @@ public class AtlasDAO {
                 .addValue("P_PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
                 .addValue("P_SPECIES", sample.getSpecies())
                 .addValue("P_CHANNEL", sample.getChannel());
+
+        int assayCount = sample.getAssayAccessions() == null ? 0 : sample.getAssayAccessions().size();
+        int propertiesCount = sample.getProperties() == null ? 0 : sample.getProperties().size();
+        log.debug("Invoking A2_SAMPLESET with the following parameters..." +
+                "\n\tsample accession: {}" +
+                "\n\tassays count:     {}" +
+                "\n\tproperties count: {}" +
+                "\n\tspecies:          {}" +
+                "\n\tchannel:          {}",
+                  new Object[]{sample.getAccession(), assayCount, propertiesCount, sample.getSpecies(),
+                          sample.getChannel()});
 
         // and execute
         procedure.execute(params);
