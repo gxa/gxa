@@ -1177,17 +1177,19 @@ public class AtlasDAO {
                 : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
 
+        SqlTypeValue propertiesParam =
+                assay.getProperties() == null || assay.getProperties().isEmpty()
+                        ? null
+                        : convertPropertiesToOracleARRAY(props);
+        SqlTypeValue expressionValuesParam =
+                assay.getExpressionValues() == null || assay.getExpressionValues().isEmpty() ? null :
+                        convertExpressionValuesToOracleARRAY(evs);
+
         params.addValue("THEACCESSION", assay.getAccession())
                 .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
                 .addValue("THEARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
-                .addValue("THEPROPERTIES",
-                          assay.getProperties() == null || assay.getProperties().isEmpty() ? null : convertPropertiesToOracleARRAY(props),
-                          OracleTypes.ARRAY,
-                          "PROPERTYTABLE")
-                .addValue("THEEXPRESSIONVALUES",
-                          assay.getExpressionValues() == null || assay.getExpressionValues().isEmpty() ? null : convertExpressionValuesToOracleARRAY(evs),
-                          OracleTypes.ARRAY,
-                          "EXPRESSIONVALUETABLE");
+                .addValue("THEPROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
+                .addValue("THEEXPRESSIONVALUES", expressionValuesParam, OracleTypes.ARRAY, "EXPRESSIONVALUETABLE");
 
         log.debug("Invoking A2_ASSAYSET with the following parameters..." +
                 "\n\tassay accession:          {}" +
@@ -1240,15 +1242,17 @@ public class AtlasDAO {
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
+        SqlTypeValue accessionsParam =
+                sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty() ? null :
+                        convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
+        SqlTypeValue propertiesParam =
+                sample.getProperties() == null || sample.getProperties().isEmpty()
+                        ? null
+                        : convertPropertiesToOracleARRAY(sample.getProperties());
+
         params.addValue("P_ACCESSION", sample.getAccession())
-                .addValue("P_ASSAYS",
-                          convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions()),
-                          OracleTypes.ARRAY,
-                          "ACCESSIONTABLE")
-                .addValue("P_PROPERTIES",
-                          convertPropertiesToOracleARRAY(sample.getProperties()),
-                          OracleTypes.ARRAY,
-                          "PROPERTYTABLE")
+                .addValue("P_ASSAYS", accessionsParam, OracleTypes.ARRAY, "ACCESSIONTABLE")
+                .addValue("P_PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
                 .addValue("P_SPECIES", sample.getSpecies())
                 .addValue("P_CHANNEL", sample.getChannel());
 
@@ -1314,11 +1318,15 @@ public class AtlasDAO {
                 "Property: " + property + "; Property Value: " + propertyValue + "]");
         start = System.currentTimeMillis();
         MapSqlParameterSource params = new MapSqlParameterSource();
+        SqlTypeValue analyticsParam =
+                designElements == null || designElements.length == 0
+                        ? null
+                        : convertExpressionAnalyticsToOracleArray(designElements, pValues, tStatistics);
+
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("PROPERTY", property)
                 .addValue("PROPERTYVALUE", propertyValue)
-                .addValue("EXPRESSIONANALYTICS",
-                          convertExpressionAnalyticsToOracleArray(designElements, pValues, tStatistics));
+                .addValue("EXPRESSIONANALYTICS", analyticsParam);
         end = System.currentTimeMillis();
         total = new DecimalFormat("#.##").format((end - start) / 1000);
         log.trace("Parameter mapping for [experiment: " + experimentAccession + "; " +
@@ -1408,8 +1416,6 @@ public class AtlasDAO {
                         .useInParameterNames("VALUE")
                         .declareParameters(
                                 new SqlParameter("VALUE", Types.DOUBLE));
-
-
 
 
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -1641,7 +1647,7 @@ public class AtlasDAO {
                 // this should be creating an oracle ARRAY of properties
                 // the array of STRUCTS representing each property
                 Object[] propArrayValues;
-                if (properties != null) {
+                if (properties != null && !properties.isEmpty()) {
                     propArrayValues = new Object[properties.size()];
 
                     // convert each property to an oracle STRUCT
@@ -1659,18 +1665,14 @@ public class AtlasDAO {
                         // each array value is a new STRUCT
                         propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
                     }
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, propArrayValues);
                 }
                 else {
-                    propArrayValues = new Object[0];
+                    // throw an SQLException, as we cannot create a ARRAY with an empty array
+                    throw new SQLException("Unable to create an ARRAY from an empty list of properties");
                 }
-
-                //AZ: JDBC call fails when empty array passed (ORA-06502: PL/SQL: numeric or value error)
-                if(propArrayValues.length == 0)
-                    propArrayValues = null;
-
-                // created the array of STRUCTs, group into ARRAY
-                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                return new ARRAY(arrayDescriptor, connection, propArrayValues);
             }
         };
     }
@@ -1681,7 +1683,7 @@ public class AtlasDAO {
                 // this should be creating an oracle ARRAY of expression values
                 // the array of STRUCTS representing each expression value
                 Object[] evArrayValues;
-                if (expressionValues != null) {
+                if (expressionValues != null && !expressionValues.isEmpty()) {
                     evArrayValues = new Object[expressionValues.size()];
 
                     // convert each property to an oracle STRUCT
@@ -1697,14 +1699,15 @@ public class AtlasDAO {
 
                         evArrayValues[i++] = new STRUCT(structDescriptor, connection, evStructValues);
                     }
+
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, evArrayValues);
                 }
                 else {
-                    evArrayValues = new Object[0];
+                    // throw an SQLException, as we cannot create a ARRAY with an empty array
+                    throw new SQLException("Unable to create an ARRAY from an empty list of expression values");
                 }
-
-                // created the array of STRUCTs, group into ARRAY
-                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                return new ARRAY(arrayDescriptor, connection, evArrayValues);
             }
         };
     }
@@ -1713,20 +1716,21 @@ public class AtlasDAO {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 Object[] accessions;
-                if (assayAccessions != null) {
+                if (assayAccessions != null && !assayAccessions.isEmpty()) {
                     accessions = new Object[assayAccessions.size()];
                     int i = 0;
                     for (String assayAccession : assayAccessions) {
                         accessions[i++] = assayAccession;
                     }
+
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, accessions);
                 }
                 else {
-                    accessions = new Object[0];
+                    // throw an SQLException, as we cannot create a ARRAY with an empty array
+                    throw new SQLException("Unable to create an ARRAY from an empty list of accessions");
                 }
-
-                // created the array of STRUCTs, group into ARRAY
-                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                return new ARRAY(arrayDescriptor, connection, accessions);
             }
         };
     }
@@ -1746,26 +1750,34 @@ public class AtlasDAO {
                         throws SQLException {
                     // this should be creating an oracle ARRAY of 'expressionAnalytics'
                     // the array of STRUCTS representing each property
-                    Object[] expressionAnalytics = new Object[deCount];
+                    Object[] expressionAnalytics;
+                    if (deCount != 0) {
+                        expressionAnalytics = new Object[deCount];
 
-                    // convert each expression analytic pair into an oracle STRUCT
-                    // descriptor for EXPRESSIONANALYTICS type
-                    StructDescriptor structDescriptor =
-                            StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
-                    Object[] expressionAnalyticsValues = new Object[3];
-                    for (int i = 0; i < designElements.length; i++) {
-                        // array representing the values to go in the STRUCT
-                        // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
-                        expressionAnalyticsValues[0] = designElements[i];
-                        expressionAnalyticsValues[1] = pValues[i];
-                        expressionAnalyticsValues[2] = tStatistics[i];
+                        // convert each expression analytic pair into an oracle STRUCT
+                        // descriptor for EXPRESSIONANALYTICS type
+                        StructDescriptor structDescriptor =
+                                StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
+                        Object[] expressionAnalyticsValues = new Object[3];
+                        for (int i = 0; i < designElements.length; i++) {
+                            // array representing the values to go in the STRUCT
+                            // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
+                            expressionAnalyticsValues[0] = designElements[i];
+                            expressionAnalyticsValues[1] = pValues[i];
+                            expressionAnalyticsValues[2] = tStatistics[i];
 
-                        expressionAnalytics[i] = new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
+                            expressionAnalytics[i] =
+                                    new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
+                        }
+
+                        // created the array of STRUCTs, group into ARRAY
+                        ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                        return new ARRAY(arrayDescriptor, connection, expressionAnalytics);
                     }
-
-                    // created the array of STRUCTs, group into ARRAY
-                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                    return new ARRAY(arrayDescriptor, connection, expressionAnalytics);
+                    else {
+                        // throw an SQLException, as we cannot create a ARRAY with an empty array
+                        throw new SQLException("Unable to create an ARRAY from empty lists of expression analytics");
+                    }
                 }
             };
         }
