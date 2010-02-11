@@ -68,12 +68,6 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_fieldAvailable() {
-        assertTrue(gene.fieldAvailable("gene_name"));
-        assertFalse(gene.fieldAvailable("gene_chebi"));
-    }
-
-    @Test
     public void test_getInterProTerm() {
         assertNotNull(gene.getInterProTerm());
         assertTrue(gene.getInterProTerm().matches(".*\\S+.*"));
@@ -102,7 +96,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     public void test_getGeneSolrDocument() {
         SolrDocument solrdoc = gene.getGeneSolrDocument();
         assertNotNull(solrdoc);
-        assertTrue(solrdoc.getFieldNames().contains("gene_id"));
+        assertTrue(solrdoc.getFieldNames().contains("id"));
     }
 
     @Test
@@ -120,7 +114,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     @Test
     public void test_highlighting() {
         Map<String, List<String>> highlights = new HashMap<String, List<String>>();
-        highlights.put("gene_synonym", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
+        highlights.put("property_SYNONYM", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
         gene.setGeneHighlights(highlights);
         assertTrue(gene.getHilitSynonym().matches(".*<em>.*"));
         assertNotNull(gene.getGeneHighlightStringForHtml());

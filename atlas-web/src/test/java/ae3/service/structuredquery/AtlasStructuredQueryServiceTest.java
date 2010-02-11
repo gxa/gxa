@@ -5,7 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.efo.Efo;
 import ae3.dao.AtlasDao;
+
+import java.net.URI;
 
 /**
  * @author pashky
@@ -15,11 +18,14 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     AtlasStructuredQueryService service;
 
     @Before
-    public void createService()
+    public void createService() throws Exception
     {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
         EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
+
+        Efo efo = new Efo();
+        efo.setUri(new URI("resource:META-INF/efo.owl"));
 
         AtlasDao dao = new AtlasDao();
         dao.setSolrServerAtlas(solrServerAtlas);
@@ -31,6 +37,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         efvService.setSolrServerProp(serverProp);
 
         AtlasEfoService efoService = new AtlasEfoService();
+        efoService.setEfo(efo);
         efoService.setSolrServerAtlas(solrServerAtlas);
 
         service = new AtlasStructuredQueryService();
@@ -40,6 +47,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setAtlasSolrDAO(dao);
         service.setEfoService(efoService);
         service.setEfvService(efvService);
+        service.setEfo(efo);
     }
 
     @After

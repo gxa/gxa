@@ -18,7 +18,7 @@
             <xsl:with-param name="name"><xsl:value-of select="@name" /></xsl:with-param>
         </xsl:apply-templates>
     </xsl:template>
-    <xsl:template match="str|long|short">
+    <xsl:template match="str|long|short|int">
         <xsl:param name="name"><xsl:value-of select="@name" /></xsl:param>
         <xsl:element name="field">
             <xsl:attribute name="name">
