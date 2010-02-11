@@ -22,12 +22,15 @@ import java.util.*;
  */
 public class Efo implements InitializingBean {
 
-    private Map<String,EfoNode> efomap;
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
     private Directory indexDirectory = new RAMDirectory();
     private IndexSearcher indexSearcher;
     private IndexReader indexReader;
     private URI uri;
+
+    Map<String,EfoNode> efomap;
+    String version;
+    String versionInfo;
 
     public URI getUri() {
         return uri;
@@ -36,10 +39,6 @@ public class Efo implements InitializingBean {
     public void setUri(URI uri) {
         this.uri = uri;
     }
-
-    //    public void setIndexFile(String indexFile) {
-//        this.indexFile = new File(indexFile);
-//    }
 
     public void afterPropertiesSet() throws Exception {
         load();
@@ -52,9 +51,18 @@ public class Efo implements InitializingBean {
         return efomap;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public String getVersionInfo() {
+        return versionInfo;
+    }
+
     public void load() {
         Loader loader = new Loader();
-        loader.load(efomap = new HashMap<String,EfoNode>(), uri);
+        efomap = new HashMap<String,EfoNode>();
+        loader.load(this, uri);
 
         for(EfoNode n : getMap().values()) {
             if(n.parents.isEmpty())

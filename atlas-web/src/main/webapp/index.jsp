@@ -4,6 +4,7 @@
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 
 <jsp:include page="start_head.jsp"/>
 Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
@@ -83,6 +84,13 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
                         <tr>
                             <td align="left">conditions</td>
                             <td align="right"><c:out value="${atlasStatistics.propertyValueCount}"/></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td align="left"><a href="http://www.ebi.ac.uk/efo">EFO</a> version</td>
+                            <td align="right"><c:out value="${atlasQueryService.efo.version}"/></td>
                         </tr>
                     </table>
                 </div>
