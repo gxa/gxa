@@ -1,3 +1,7 @@
+/*******************************************************************************
+drop package ATLASUPG;
+*******************************************************************************/
+
 CREATE OR REPLACE PACKAGE ATLASUPG IS
   
   PROCEDURE CreateLink(ID varchar2);
@@ -274,9 +278,9 @@ Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE)
 Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 114,'QCDESCRTYPE','AE1__ASSAY_QCDESCRTYPE__DM','' from dual; 
 Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 115,'SOURCEPROVIDER','AE1__ASSAY_SOURCEPROVIDER__DM','AE1__SAMPLE_SOURCEPROVIDER__DM' from dual; 
 Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 116,'TESTTYPE','AE1__ASSAY_TESTTYPE__DM','AE1__SAMPLE_TESTTYPE__DM' from dual; 
-Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 117,'TEST','AE1__ASSAY_TEST__DM','' from dual; 
-Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 118,'ALL','','AE1__SAMPLE_ALL__DM' from dual; 
-Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 119,'TEST_','','AE1__SAMPLE_TEST__DM' from dual; 
+--Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 117,'TEST','AE1__ASSAY_TEST__DM','' from dual; 
+--Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 118,'ALL','','AE1__SAMPLE_ALL__DM' from dual; 
+--Insert into a2_property (PropertyID,Name,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE) select 119,'TEST_','','AE1__SAMPLE_TEST__DM' from dual; 
 END;
 --------------------------------------------------------------------------------
 PROCEDURE LoadPropertyValue
