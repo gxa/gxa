@@ -16,8 +16,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.java_cup.internal.version;
-
 /**
      * Ontology loader class reading OWL files
  */
