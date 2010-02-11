@@ -16,8 +16,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import oracle.jdbc.OracleConnection;
-
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
  * testing DAO methods and other stuff.
@@ -83,17 +81,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         super.setUp();
 
         // do our setup
-        //atlasDataSource = new SingleConnectionDataSource(
-        //        getConnection().getConnection(), false);
-        
-        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-        Connection connection = DriverManager.getConnection("jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT","Atlas2","atlas2");
-
-        atlasDataSource = new SingleConnectionDataSource(connection,false );    
-
-                                                               
+        atlasDataSource = new SingleConnectionDataSource(
+                getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
-
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
     }
 
