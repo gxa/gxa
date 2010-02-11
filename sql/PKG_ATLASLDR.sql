@@ -52,6 +52,14 @@ PROCEDURE A2_AnalyticsDelete(
     ExperimentAccession      IN   varchar2  
 );
 
+PROCEDURE A2_AnalyticsSetBegin(
+    ExperimentAccession      IN   varchar2  
+);
+
+PROCEDURE A2_AnalyticsSetEnd(
+    ExperimentAccession      IN   varchar2  
+);
+
 PROCEDURE LOAD_PROGRESS(
  experiment_accession varchar
  ,stage varchar --load, netcdf, similarity, ranking, searchindex
@@ -411,8 +419,106 @@ begin
   COMMIT WORK;
 END;
 
+
 --------------------------------------------------------
---  DDL for Procedure A2_AnalyticsDelete
+--  DDL for Procedure A2_AnalyticsDelete 
+--------------------------------------------------------
+PROCEDURE A2_AnalyticsSetBegin(
+    ExperimentAccession      IN   varchar2  
+ )
+as
+  q varchar2(2000);
+  ExperimentID int := 0;
+begin
+
+if ExperimentAccession is null then
+   
+  q := 'DROP INDEX "A2_IDX_EXPRESSION_FV"';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'DROP INDEX "IDX_ANALYTICS_DESIGNELEMENT"';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'DROP INDEX "IDX_EA_EXPERIMENT"';
+  EXECUTE IMMEDIATE q;
+    
+  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" DISABLE CONSTRAINT "FK_ANALYTICS_EXPERIMENT"';  
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" DISABLE CONSTRAINT "FK_ANALYTICS_PROPERTYVALUE"';
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" DISABLE';
+  EXECUTE IMMEDIATE q;
+   
+else --ExperimentAccession is null
+
+  begin
+      Select e.ExperimentID into ExperimentID 
+      from a2_Experiment e
+      where e.Accession = ExperimentAccession;
+      
+  exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
+    when others then 
+      RAISE;
+  end;
+
+  dbms_output.put_line('delete expression value');
+  delete from a2_ExpressionAnalytics
+  where ExperimentID = A2_AnalyticsSetBegin.ExperimentID;
+end if;
+  
+  COMMIT WORK;
+END;
+
+--------------------------------------------------------
+--  DDL for Procedure A2_AnalyticsDelete 
+--------------------------------------------------------
+PROCEDURE A2_AnalyticsSetEnd(
+    ExperimentAccession      IN   varchar2  
+ )
+as
+  ExperimentID int := 0;
+  q varchar2(2000);
+  INDEX_TABLESPACE varchar2(2000);
+begin
+  if ExperimentAccession is null then
+  
+  select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
+  from user_indexes where INDEX_NAME = 'PK_SPEC';
+
+  q := 'CREATE INDEX "A2_IDX_EXPRESSION_FV" ON "A2_EXPRESSIONANALYTICS" ("PROPERTYVALUEID") $INDEX_TABLESPACE';
+  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  EXECUTE IMMEDIATE q;
+  
+  q := 'CREATE INDEX "IDX_ANALYTICS_DESIGNELEMENT" ON "A2_EXPRESSIONANALYTICS" ("DESIGNELEMENTID") TABLESPACE ATLAS2TEST_INDX';
+  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  EXECUTE IMMEDIATE q;
+  
+  q := 'CREATE INDEX "IDX_EA_EXPERIMENT" ON "A2_EXPRESSIONANALYTICS" ("EXPERIMENTID") TABLESPACE ATLAS2TEST_INDX';
+  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  EXECUTE IMMEDIATE q;
+    
+  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" ENABLE CONSTRAINT "FK_ANALYTICS_EXPERIMENT"';  
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" ENABLE CONSTRAINT "FK_ANALYTICS_PROPERTYVALUE"';
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" ENABLE';
+  EXECUTE IMMEDIATE q;
+
+  else --ExperimentAccession is not null
+    null;  
+
+  end if;
+END;
+
+--------------------------------------------------------
+--  DDL for Procedure A2_AnalyticsDelete !!!OBSOLETE!!!
 --------------------------------------------------------
 PROCEDURE A2_AnalyticsDelete(
     ExperimentAccession      IN   varchar2  
