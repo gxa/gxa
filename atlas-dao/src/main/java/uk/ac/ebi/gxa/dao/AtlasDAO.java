@@ -1449,6 +1449,7 @@ public class AtlasDAO {
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_ANALYTICSSETBEGIN")
+                        .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
 
@@ -1470,6 +1471,7 @@ public class AtlasDAO {
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_ANALYTICSSETEND")
+                        .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
 
