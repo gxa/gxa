@@ -1175,13 +1175,12 @@ public class AtlasDAO {
                 ? new HashMap<String, Float>()
                 : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
-
+        
         SqlTypeValue propertiesParam =
-                assay.getProperties() == null || assay.getProperties().isEmpty()
-                        ? null
-                        : convertPropertiesToOracleARRAY(props);
+                props.isEmpty() ? null :
+                        convertPropertiesToOracleARRAY(props);
         SqlTypeValue expressionValuesParam =
-                assay.getExpressionValues() == null || assay.getExpressionValues().isEmpty() ? null :
+                evs.isEmpty() ? null :
                         convertExpressionValuesToOracleARRAY(evs);
 
         params.addValue("THEACCESSION", assay.getAccession())

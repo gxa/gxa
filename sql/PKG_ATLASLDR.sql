@@ -155,11 +155,14 @@ begin
   begin
       Select MIN(e.ExperimentID) into TheExperimentID 
       from a2_Experiment e
-      where e.Accession = TheExperimentAccession;
+      where e.Accession = TheExperimentAccession
+      group by 1; --returns "NULL" otherwise
 
       Select MIN(d.ArrayDesignID) into TheArrayDesignID
       from a2_ArrayDesign d
-      where d.Accession = TheArrayDesignAccession;
+      where d.Accession = TheArrayDesignAccession
+      group by 1;
+      
   exception 
     when NO_DATA_FOUND then
       dbms_output.put_line('NO_DATA_FOUND');  
@@ -187,7 +190,7 @@ begin
   */
 
   begin
-      Select MIN(a.AssayID) into TheAssayID
+      Select a.AssayID into TheAssayID
       from a2_Assay a
       where a.Accession = TheAccession;
   exception
@@ -386,7 +389,8 @@ begin
   begin
       Select MIN(e.ExperimentID) into ExperimentID 
       from a2_Experiment e
-      where e.Accession = ExperimentAccession;
+      where e.Accession = ExperimentAccession
+      group by 1;
   exception 
     when NO_DATA_FOUND then
       dbms_output.put_line('NO_DATA_FOUND');  
@@ -401,7 +405,8 @@ begin
       from a2_Property p
       join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
       where p.Name = LowerCaseProperty
-      and pv.Name = PropertyValue;
+      and pv.Name = PropertyValue
+      group by 1;
    exception 
     when NO_DATA_FOUND then
       dbms_output.put_line('NO_DATA_FOUND');  
