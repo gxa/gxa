@@ -3,9 +3,12 @@ package uk.ac.ebi.gxa.index;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.io.File;
+import java.util.StringTokenizer;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
@@ -32,11 +35,84 @@ public class EfoTest {
         efo.close();
     }
 
+    public static class ResourceHttpServer extends Thread {
+
+        private int port;
+        private final String resource;
+        private boolean stop = false;
+        private ServerSocket serverSocket;
+
+        public ResourceHttpServer(int startPort, String resource) {
+            this.resource = resource;
+            for(port = startPort; port < startPort + 1000; ++port) {
+                try {
+                    serverSocket = new ServerSocket(port);
+                    break;
+                } catch(IOException e) {
+                    // continue
+                }
+            }
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while(!stop){
+                    Socket sock = serverSocket.accept();
+
+                    BufferedReader in
+                            = new BufferedReader(
+                            new InputStreamReader(
+                                    sock.getInputStream() ) );
+                    String first = in.readLine();
+
+                    String status = "HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n";
+                    byte[] buf = status.getBytes("UTF-8");
+                    sock.getOutputStream().write(buf, 0, buf.length);
+
+                    InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
+                    buf = new byte[1024];
+                    int len = 0;
+                    while((len = is.read(buf)) >= 0) {
+                        sock.getOutputStream().write(buf, 0, len);
+                    }
+                    sock.getOutputStream().flush();
+                    sock.close();
+                }
+                serverSocket.close();
+            }
+            catch( Exception e ){
+                e.printStackTrace();
+            }
+        }
+
+        public void kill() {
+            stop = true;
+        }
+    }
+
     @Test
     public void testExternalSource() throws URISyntaxException {
+
+        ResourceHttpServer server = new ResourceHttpServer(12345, "META-INF/efo.owl");
+        server.start();
+
         Efo efo = new Efo();
-        efo.setUri(new URI("http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"));
+        efo.setUri(new URI("http://localhost:" + server.getPort() + "/efo.owl"));
         assertTrue(efo.getAllTerms().size() > 0);
+
+        server.kill();
+    }
+
+    @Test
+    public void testGetVersion() {
+        assertNotNull(efo);
+        assertEquals("1.1", efo.getVersion());
+        assertTrue(efo.getVersionInfo().length() > 0);
     }
 
     @Test
