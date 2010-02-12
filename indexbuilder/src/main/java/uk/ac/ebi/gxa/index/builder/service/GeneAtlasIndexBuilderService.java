@@ -177,7 +177,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             // if we have encountered an exception, throw the first error
-            if (firstError == null) {
+            if (firstError != null) {
                 throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
             }
         }

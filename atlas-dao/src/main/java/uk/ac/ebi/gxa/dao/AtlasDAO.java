@@ -1175,7 +1175,7 @@ public class AtlasDAO {
                 ? new HashMap<String, Float>()
                 : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
-        
+
         SqlTypeValue propertiesParam =
                 props.isEmpty() ? null :
                         convertPropertiesToOracleARRAY(props);
@@ -1416,25 +1416,6 @@ public class AtlasDAO {
                 " complete in " + total + "s.");
     }
 
-
-    public void writeTest() {
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("A2_TEST")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("VALUE")
-                        .declareParameters(
-                                new SqlParameter("VALUE", Types.DOUBLE));
-
-
-        MapSqlParameterSource params = new MapSqlParameterSource();
-
-        params.addValue("Value", 5.860309365539401E-159);
-
-        procedure.execute(params);
-    }
-
-
     /*
     utils methods for doing standard stuff
      */
@@ -1458,7 +1439,7 @@ public class AtlasDAO {
         params.addValue("EXPERIMENTACCESSION", experimentAccession);
 
         // and execute
-        procedure.execute();
+        procedure.execute(params);
     }
 
     public void finaliseExpressionAnalytics(String experimentAccession) {
@@ -1480,7 +1461,7 @@ public class AtlasDAO {
         params.addValue("EXPERIMENTACCESSION", experimentAccession);
 
         // and execute
-        procedure.execute();
+        procedure.execute(params);
     }
 
     private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {

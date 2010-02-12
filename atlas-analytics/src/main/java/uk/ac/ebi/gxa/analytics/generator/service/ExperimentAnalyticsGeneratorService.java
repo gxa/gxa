@@ -61,7 +61,19 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         timer.start();
 
         // call the start procedure with "null" parameter, as we're doing all
-        getAtlasDAO().startExpressionAnalytics(null);
+        try {
+            // simply call start procedure
+            getAtlasDAO().startExpressionAnalytics(null);
+        }
+        catch (Exception e) {
+            getLog().error("Failing analytics run for all experiments: " +
+                    "failed to run initialising management procedure.\n{}", e);
+            for (Experiment experiment : experiments) {
+                getAtlasDAO().writeLoadDetails(
+                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
+            }
+            return;
+        }
 
         // the first error encountered whilst generating analytics, if any
         Exception firstError = null;
@@ -109,13 +121,24 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             }
 
             // if we have encountered an exception, throw the first error
-            if (firstError == null) {
+            if (firstError != null) {
                 throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
             }
         }
         finally {
             // call the ending procedure
-            getAtlasDAO().finaliseExpressionAnalytics(null);
+            try {
+                // simply call start procedure
+                getAtlasDAO().finaliseExpressionAnalytics(null);
+            }
+            catch (Exception e) {
+                getLog().error("Failing analytics run for all experiments: " +
+                        "failed to run finalising management procedure.\n{}", e);
+                for (Experiment experiment : experiments) {
+                    getAtlasDAO().writeLoadDetails(
+                            experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
+                }
+            }
 
             // shutdown the service
             getLog().debug("Shutting down executor service in " + getClass().getSimpleName());
@@ -144,14 +167,31 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
-        // simply call start procedure
-        getAtlasDAO().startExpressionAnalytics(experimentAccession);
+        try {
+            // simply call start procedure
+            getAtlasDAO().startExpressionAnalytics(experimentAccession);
+        }
+        catch (Exception e) {
+            getLog().error("Failing analytics for {}: failed to run initialising management procedure.\n{}",
+                           experimentAccession, e);
+            getAtlasDAO().writeLoadDetails(
+                    experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
+            return;
+        }
 
         // then generateExperimentAnalytics
         generateExperimentAnalytics(experimentAccession);
 
-        // finally call end procedure
-        getAtlasDAO().finaliseExpressionAnalytics(experimentAccession);
+        try {
+            // finally call end procedure
+            getAtlasDAO().finaliseExpressionAnalytics(experimentAccession);
+        }
+        catch (Exception e) {
+            getLog().error("Failing analytics for {}: failed to run finalising management procedure.\n{}",
+                           experimentAccession, e);
+            getAtlasDAO().writeLoadDetails(
+                    experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
+        }
     }
 
     private boolean generateExperimentAnalytics(String experimentAccession) throws AnalyticsGeneratorException {
@@ -259,6 +299,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
                             e.getMessage());
                     e.printStackTrace();
+                }
+                catch (Exception e) {
+                    success = false;
+                    getLog().error("An error occurred whilst generating analytics for {}\n{}", netCDF.getAbsolutePath(),
+                                   e);
                 }
             }
 
