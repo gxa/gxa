@@ -216,6 +216,7 @@ public class DataSlice {
         }
 
         // now check all assays for values
+        int propFreeAssayCount = 0;
         for (Assay assay : assays) {
             // iterate over known properties
             for (String propName : experimentFactorMap.keySet()) {
@@ -233,13 +234,20 @@ public class DataSlice {
 
                 if (!located) {
                     // missing property value, add an empty string to ensure ordering is still correct
-                    log.warn("Assay " + assay.getAccession() + " [experiment " + experiment.getAccession() +
+                    propFreeAssayCount++;
+                    log.trace("Assay " + assay.getAccession() + " [experiment " + experiment.getAccession() +
                             "] has no property value associated with the property " + propName +
                             ".  Mapped records will be empty.");
                     experimentFactorMap.get(propName).add("");
                 }
             }
         }
+
+        if (propFreeAssayCount > 0) {
+            log.warn("Experiment " + experiment.getAccession() + " has " + propFreeAssayCount + " assay " +
+                    "properties without associated property values - assays will be created without properties.");
+        }
+
 
         // iterate over samples, create keys for the map
         for (Sample sample : samples) {
@@ -255,6 +263,7 @@ public class DataSlice {
         }
 
         // now check all samples for values
+        int propFreeSampleCount = 0;
         for (Sample sample : samples) {
             // iterate over known properties
             for (String propName : sampleCharacteristicMap.keySet()) {
@@ -271,12 +280,18 @@ public class DataSlice {
 
                 if (!located) {
                     // missing property value, add an empty string to ensure ordering is still correct
-                    log.warn("Sample " + sample.getAccession() + " [experiment " + experiment.getAccession() +
+                    propFreeSampleCount++;
+                    log.trace("Sample " + sample.getAccession() + " [experiment " + experiment.getAccession() +
                             "] has no property value associated with the property " + propName +
                             ".  Mapped records will be empty.");
                     sampleCharacteristicMap.get(propName).add("");
                 }
             }
+        }
+
+        if (propFreeSampleCount > 0) {
+            log.warn("Experiment " + experiment.getAccession() + " has " + propFreeSampleCount + " sample " +
+                    "properties without associated property values - samples will be created without properties.");
         }
     }
 
