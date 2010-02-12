@@ -52,10 +52,12 @@ public class Efo implements InitializingBean {
     }
 
     public String getVersion() {
+        getMap(); // trigger load, if it's the first thing we do
         return version;
     }
 
     public String getVersionInfo() {
+        getMap(); // trigger load, if it's the first thing we do
         return versionInfo;
     }
 
