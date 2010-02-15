@@ -267,6 +267,7 @@
     <bean name="experimentPageServlet" class="ae3.servlet.ExperimentPageServlet">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
     </bean>
 
     <bean name="downloadsProgressServlet" class="ae3.servlet.DownloadProgressServlet">
