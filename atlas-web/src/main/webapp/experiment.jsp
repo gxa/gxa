@@ -113,17 +113,9 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                              style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
                             <div id="EFpagination" class="pagination_ie">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
-                                    <c:choose>
-                                        <c:when test="${EF == topRankEF}">
-                                        <span class="current" id="efpage${EF}"><fmt:message
-                                                key="head.ef.${EF}"/></span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a id="efpage${EF}"
-                                               onclick="redrawForEF('${EF}')"><fmt:message
-                                                    key="head.ef.${EF}"/></a>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <a id="efpage${EF}"
+                                       onclick="redrawForEF('${EF}')"><fmt:message
+                                            key="head.ef.${EF}"/></a>
                                 </c:forEach>
                             </div>
                         </div>
