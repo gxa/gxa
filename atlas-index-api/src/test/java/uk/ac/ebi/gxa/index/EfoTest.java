@@ -111,7 +111,7 @@ public class EfoTest {
     @Test
     public void testGetVersion() {
         assertNotNull(efo);
-        assertEquals("1.1", efo.getVersion());
+        assertEquals("1.2.3", efo.getVersion());
         assertTrue(efo.getVersionInfo().length() > 0);
     }
 

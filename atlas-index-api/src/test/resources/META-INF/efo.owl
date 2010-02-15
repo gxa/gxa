@@ -25,7 +25,7 @@
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Cell Type ontology mappings to Revision 1.23</rdfs:comment>
     <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >$version 1.1$</owl:versionInfo>
+    >$version 1.2.3$</owl:versionInfo>
     <efo:creator rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Helen Parkinson</efo:creator>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
