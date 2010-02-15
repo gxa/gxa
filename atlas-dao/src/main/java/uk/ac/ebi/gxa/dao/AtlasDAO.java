@@ -1330,7 +1330,7 @@ public class AtlasDAO {
         SqlTypeValue analyticsParam =
                 designElements == null || designElements.length == 0
                         ? null
-                        : convertExpressionAnalyticsToOracleArray(designElements, pValues, tStatistics);
+                        : convertExpressionAnalyticsToOracleARRAY(designElements, pValues, tStatistics);
 
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("PROPERTY", property)
@@ -1352,6 +1352,54 @@ public class AtlasDAO {
 
         log.debug("Writing analytics for [experiment: " + experimentAccession + "; " +
                 "Property: " + property + "; Property Value: " + propertyValue + "] completed!");
+    }
+
+    /**
+     * Writes array designs and associated data back to the database.
+     */
+    public void writeArrayDesign(final ArrayDesign arrayDesign) {
+        // execute this procedure...
+        /*
+        PROCEDURE A2_ARRAYDESIGNSET(
+          Accession varchar2
+          ,Type varchar2
+          ,Name varchar2
+          ,Provider varchar2
+          ,DesignElements DesignElementTable
+        );
+         */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ARRAYDESIGNSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("ACCESSION")
+                        .useInParameterNames("TYPE")
+                        .useInParameterNames("NAME")
+                        .useInParameterNames("PROVIDER")
+                        .useInParameterNames("DESIGNELEMENTS")
+                        .declareParameters(
+                                new SqlParameter("ACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("TYPE", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("NAME", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("PROVIDER", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
+
+        SqlTypeValue designElementsParam =
+                arrayDesign.getDesignElements().isEmpty() ? null :
+                        convertDesignElementsToOracleARRAY(arrayDesign.getDesignElements());
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ACCESSION", arrayDesign.getAccession())
+                .addValue("TYPE", arrayDesign.getType())
+                .addValue("NAME", arrayDesign.getName())
+                .addValue("PROVIDER", arrayDesign.getProvider())
+                .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
+
+        procedure.execute(params);
     }
 
     /*
@@ -1727,7 +1775,7 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertExpressionAnalyticsToOracleArray(final int[] designElements,
+    private SqlTypeValue convertExpressionAnalyticsToOracleARRAY(final int[] designElements,
                                                                  final double[] pValues,
                                                                  final double[] tStatistics) {
         if (designElements == null || pValues == null || tStatistics == null ||
@@ -1773,6 +1821,41 @@ public class AtlasDAO {
                 }
             };
         }
+    }
+
+    private SqlTypeValue convertDesignElementsToOracleARRAY(final Map<Integer, String> designElements) {
+                return new AbstractSqlTypeValue() {
+            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // this should be creating an oracle ARRAY of expression values
+                // the array of STRUCTS representing each expression value
+                Object[] deArrayValues;
+                if (designElements != null && !designElements.isEmpty()) {
+                    deArrayValues = new Object[designElements.size()];
+
+                    // convert each property to an oracle STRUCT
+                    // descriptor for DESIGNELEMENT type
+                    StructDescriptor structDescriptor =
+                            StructDescriptor.createDescriptor("DESIGNELEMENT", connection);
+                    int i = 0;
+                    Object[] deStructValues = new Object[2];
+                    for (Map.Entry<Integer, String> designElement : designElements.entrySet()) {
+                        // array representing the values to go in the STRUCT
+                        deStructValues[0] = designElement.getKey();
+                        deStructValues[1] = designElement.getValue();
+
+                        deArrayValues[i++] = new STRUCT(structDescriptor, connection, deStructValues);
+                    }
+
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, deArrayValues);
+                }
+                else {
+                    // throw an SQLException, as we cannot create a ARRAY with an empty array
+                    throw new SQLException("Unable to create an ARRAY from an empty list of design elements");
+                }
+            }
+        };
     }
 
     private class LoadDetailsMapper implements RowMapper {
