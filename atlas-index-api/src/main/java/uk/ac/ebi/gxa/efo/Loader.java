@@ -91,7 +91,7 @@ class Loader {
                 OWLAnnotation a = annotation.getAnnotation();
                 if(a.getAnnotationURI().toString().contains("versionInfo")) {
                     String value = a.getAnnotationValueAsConstant().getLiteral();
-                    Matcher m = Pattern.compile(".*(\\d+(\\.\\d+)+).*").matcher(value);
+                    Matcher m = Pattern.compile(".*?(\\d+(\\.\\d+)+).*").matcher(value);
                     if(m.matches()) {
                         efo.version = m.group(1);
                     }
