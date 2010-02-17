@@ -21,7 +21,7 @@ import java.util.concurrent.*;
  * @author Misha Kapushesky
  * @date 09-Nov-2009
  */
-public class DefaultAnalyticsGenerator implements AnalyticsGenerator<File>, InitializingBean {
+public class DefaultAnalyticsGenerator implements AnalyticsGenerator, InitializingBean {
     private AtlasDAO atlasDAO;
     private File repositoryLocation;
     private AtlasComputeService atlasComputeService;

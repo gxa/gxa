@@ -14,52 +14,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
  * @author Tony Burdett
  * @date 17-Sep-2009
  */
-public interface AnalyticsGenerator<T> {
-    /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @param atlasDAO the DAO that is used to obtain data to generate NetCDFs from
-     */
-    void setAtlasDAO(AtlasDAO atlasDAO);
-
-    /**
-     * Get the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @return the Atlas 2 compliant datasource to generate NetCDFs from
-     */
-    AtlasDAO getAtlasDAO();
-
-    /**
-     * Set the location for the repository.  If there is already a pre-existing repository at this location,
-     * implementations should update it.  If there is no repository pre-existing, it should be created.
-     *
-     * @param repositoryLocation the location of the repository
-     */
-    void setRepositoryLocation(T repositoryLocation);
-
-    /**
-     * Get the location of the repository.  This may not exist, if the NetCDF generator has not yet been run.
-     *
-     * @return the location of the repository
-     */
-    T getRepositoryLocation();
-
-    /**
-     * Set the {@link uk.ac.ebi.gxa.analytics.compute.AtlasComputeService} that will be used to run R computations for
-     * this generator.
-     *
-     * @param atlasComputeService the atlas compute service that we will use to run our R analyses.
-     */
-    void setAtlasComputeService(AtlasComputeService atlasComputeService);
-
-    /**
-     * Set the {@link uk.ac.ebi.gxa.analytics.compute.AtlasComputeService} that will be used to run R computations for
-     * this generator.
-     *
-     * @return the atlas compute service that we will use to run our R analyses.
-     */
-    AtlasComputeService getAtlasComputeService();
-
+public interface AnalyticsGenerator {
     /**
      * Initialise this IndexBuilder and any resources required by it.
      *

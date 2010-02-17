@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  * @author Tony Burdett
  * @date 17-Sep-2009
  */
-public class DefaultNetCDFGenerator implements NetCDFGenerator<File>, InitializingBean {
+public class DefaultNetCDFGenerator implements NetCDFGenerator, InitializingBean {
     private AtlasDAO atlasDAO;
     private File repositoryLocation;
     private int maxThreads = 16;
