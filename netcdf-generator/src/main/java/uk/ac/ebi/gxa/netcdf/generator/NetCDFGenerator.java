@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.netcdf.generator;
 
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 /**
@@ -12,36 +11,7 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
  * @author Tony Burdett
  * @date 17-Sep-2009
  */
-public interface NetCDFGenerator<T> {
-    /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @param atlasDAO the DAO that is used to obtain data to generate NetCDFs from
-     */
-    void setAtlasDAO(AtlasDAO atlasDAO);
-
-    /**
-     * Get the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to obtain data to generate NetCDFs.
-     *
-     * @return the DAO that is used to obtain data to generate NetCDFs from
-     */
-    AtlasDAO getAtlasDAO();
-
-    /**
-     * Set the location for the repository.  If there is already a pre-existing repository at this location,
-     * implementations should update it.  If there is no repository pre-existing, it should be created.
-     *
-     * @param repositoryLocation the location of the repository
-     */
-    void setRepositoryLocation(T repositoryLocation);
-
-    /**
-     * Get the location of the repository.  This may not exist, if the NetCDF generator has not yet been run.
-     *
-     * @return the location of the repository
-     */
-    T getRepositoryLocation();
-
+public interface NetCDFGenerator {
     /**
      * Initialise this NetCDFGenerator and any resources required by it.
      *
