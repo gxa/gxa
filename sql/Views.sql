@@ -1,11 +1,12 @@
 /*******************************************************************************/
 /*  Views in Atlas2 schema     
 /*
-/*                                              
+/* select * from A2_ONTOLOGYMAPPING where Accession = 'E-MEXP-171' and PropertyValue ='ectoderm'   
+/*
+/*
 /*******************************************************************************/
-
  CREATE OR REPLACE VIEW "A2_ONTOLOGYMAPPING" 
- AS SELECT   e.accession, 
+ AS SELECT distinct  e.accession, 
          p.name AS Property, 
          pv.name AS PropertyValue, 
          ot.accession AS OntologyTerm, 
@@ -16,36 +17,18 @@
          0 IsAssayProperty, 
          0 IsFactorValue,
          e.ExperimentID 
- FROM                          a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
-                                 JOIN 
-                                    a2_assay ass 
-                                 ON ass.ExperimentID = e.ExperimentID 
-                              JOIN 
-                                 a2_assaysample asss 
-                              ON asss.AssayID = ass.AssayID 
-                           JOIN 
-                              a2_sample s 
-                           ON s.SampleID = asss.SampleID 
-                        JOIN 
-                           a2_sampleontology so 
-                        ON so.SampleID = s.SampleID 
-                     JOIN 
-                        a2_samplepropertyvalue spv 
-                     ON spv.SamplePropertyValueID = so.Sourcemapping 
-                  JOIN 
-                     a2_propertyvalue pv 
-                  ON pv.PropertyValueID = spv.PropertyValueID 
-               JOIN 
-                  a2_property p 
-               ON p.PropertyID = pv.PropertyID 
-            JOIN 
-               a2_ontologyterm ot 
-            ON ot.OntologyTermID = so.OntologyTermID 
-         JOIN 
-            a2_ontology o 
-         ON o.OntologyID = ot.OntologyID 
-UNION ALL 
-SELECT   e.accession, 
+ FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
+ JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
+ JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID 
+ JOIN a2_sample s ON s.SampleID = asss.SampleID 
+ JOIN a2_samplePV spv ON spv.SampleID = s.SampleID
+ JOIN a2_samplePVontology so ON so.SamplePVID = spv.SamplePVID 
+ JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID 
+ JOIN a2_property p ON p.PropertyID = pv.PropertyID 
+ JOIN a2_ontologyterm ot ON ot.OntologyTermID = so.OntologyTermID 
+ JOIN a2_ontology o ON o.OntologyID = ot.OntologyID 
+ UNION ALL 
+SELECT distinct e.accession, 
          p.name AS Property, 
          pv.name AS PropertyValue, 
          ot.accession AS OntologyTerm, 
@@ -56,28 +39,14 @@ SELECT   e.accession,
          1 IsAssayProperty, 
          1 IsFactorValue,
          e.ExperimentID 
-  FROM                        a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
-                           JOIN 
-                              a2_assay ass 
-                           ON ass.ExperimentID = e.ExperimentID 
-                        JOIN 
-                           a2_assayontology so 
-                        ON so.assayID = ass.assayID 
-                     JOIN 
-                        a2_assaypropertyvalue spv 
-                     ON spv.assayPropertyValueID = so.Sourcemapping 
-                  JOIN 
-                     a2_propertyvalue pv 
-                  ON pv.PropertyValueID = spv.PropertyValueID 
-               JOIN 
-                  a2_property p 
-               ON p.PropertyID = pv.PropertyID 
-            JOIN 
-               a2_ontologyterm ot 
-            ON ot.OntologyTermID = so.OntologyTermID 
-         JOIN 
-            a2_ontology o 
-         ON o.OntologyID = ot.OntologyID
+  FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
+  JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
+  JOIN a2_assayPV apv ON apv.assayPVID = ass.AssayID
+  JOIN a2_assayPVontology ao ON ao.AssayPVID = apv.assayPVID
+  JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
+  JOIN a2_property p ON p.PropertyID = pv.PropertyID 
+  JOIN a2_ontologyterm ot ON ot.OntologyTermID = ao.OntologyTermID 
+  JOIN a2_ontology o ON o.OntologyID = ot.OntologyID
 /
 --------------------------------------------------------
 --  DDL for View VWARRAYDESIGN
@@ -117,7 +86,7 @@ join a2_Experiment e on a.ExperimentID = e.ExperimentID
     ,p.Name Property
     ,pv.Name PropertyValue
 from a2_Assay a
-join a2_AssayPropertyValue ap on ap.AssayID = a.AssayID
+join a2_AssayPV ap on ap.AssayID = a.AssayID
 join a2_PropertyValue pv on pv.PropertyValueID = ap.PropertyValueID
 join a2_Property p on p.PropertyID = pv.PropertyID
 /
@@ -155,7 +124,7 @@ join a2_Assay a on a.ExperimentID = e.ExperimentID
 select a. ExperimentID
       , pv.PropertyID
       , pv.PropertyValueID
-from a2_assaypropertyvalue apv
+from a2_assayPV apv
 join a2_propertyvalue pv on apv.propertyvalueid = pv.propertyvalueid
 join a2_assay a on a.assayid = apv.assayid
 where apv.isfactorvalue = 1
@@ -163,7 +132,7 @@ UNION ALL
 select a. ExperimentID
       , pv.PropertyID
       , pv.PropertyValueID
-from a2_samplepropertyvalue spv
+from a2_samplePV spv
 join a2_propertyvalue pv on spv.propertyvalueid = pv.propertyvalueid
 join a2_assaysample assa on assa.sampleid = spv.sampleid
 join a2_assay a on a.assayid = assa.assayid
@@ -185,19 +154,20 @@ join a2_Sample s on s.SampleID = sa.SampleID
 --  DDL for View VWGENE
 --------------------------------------------------------
 
-  CREATE OR REPLACE VIEW "VWGENE" ("GENEID", "SPECID", "IDENTIFIER", "NAME") AS select "GENEID","SPECID","IDENTIFIER","NAME" from a2_Gene
+  CREATE OR REPLACE VIEW "VWGENE" ("GENEID", "ORGANISMID", "IDENTIFIER", "NAME") AS select "GENEID","ORGANISMID","IDENTIFIER","NAME" from a2_Gene
 /
 --------------------------------------------------------
 --  DDL for View VWGENEPROPERTYVALUE
 --------------------------------------------------------
 
   CREATE OR REPLACE VIEW "VWGENEPROPERTYVALUE" ("GENEPROPERTYVALUEID", "GENEID", "GENEPROPERTYID", "PROPERTYNAME", "VALUE") AS select pv.GenePropertyValueID
-,pv.GeneID
+,gpv.GeneID
 ,pv.GenePropertyID
 ,p.Name PropertyName
 ,pv.Value Value
 from a2_GenePropertyValue pv
 join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID
+join a2_GeneGPV gpv on gpv.genepropertyvalueid = pv.genepropertyvalueid
 /
 --------------------------------------------------------
 --  DDL for View VWPROPERTYVALUE
@@ -232,7 +202,7 @@ join a2_assay a on a.AssayID = asa.AssayID
     ,p.Name Property
     ,pv.Name PropertyValue
 from a2_Sample a
-join a2_SamplePropertyValue ap on ap.SampleID = a.SampleID
+join a2_SamplePV ap on ap.SampleID = a.SampleID
 join a2_PropertyValue pv on pv.PropertyValueID = ap.PropertyValueID
 join a2_Property p on p.PropertyID = pv.PropertyID
 /

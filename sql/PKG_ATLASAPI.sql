@@ -125,7 +125,7 @@ PROCEDURE A2_EXPRESSIONVALUEGET(
   
 END AtlasAPI;
 /
-  CREATE OR REPLACE PACKAGE BODY "ATLASAPI" AS
+  create or replace PACKAGE BODY "ATLASAPI" AS
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -161,7 +161,7 @@ begin
   from a2_Assay a
   where a.assayid = COALESCE(assayQuery."AccessionQuery".ID,a.AssayID)
   and a.accession = COALESCE(assayQuery."AccessionQuery".Accession,a.accession)
-  and exists (select 1 from a2_assaypropertyvalue apv 
+  and exists (select 1 from a2_assaypv apv 
               join TABLE(CAST(assayQuery.properties as TBLINT)) t on t.ID = apv.PropertyValueID
               where apv.AssayID = a.AssayID );
   
@@ -263,7 +263,7 @@ BEGIN
     Select INTRECORD(t.ID) BULK COLLECT INTO TmpPropertyValueIDs
     from (select distinct pv.ID
     from TABLE(CAST(result as TBLINT)) pv 
-    join a2_AssayPropertyValue aa on aa.propertyvalueid = pv.id
+    join a2_AssayPV aa on aa.propertyvalueid = pv.id
     join TABLE(CAST(PropertyQuery.assays AS TBLINT)) t on t.ID = aa.AssayID ) t;
   
     result := TmpPropertyValueIDs;
@@ -275,7 +275,7 @@ BEGIN
     Select INTRECORD(t.ID) BULK COLLECT INTO TmpPropertyValueIDs
     from (select distinct pv.ID
     from TABLE(CAST(result as TBLINT)) pv 
-    join a2_AssayPropertyValue aa on aa.propertyvalueid = pv.id) t;
+    join a2_AssayPV aa on aa.propertyvalueid = pv.id) t;
     
     result := TmpPropertyValueIDs;
     
@@ -287,7 +287,7 @@ BEGIN
     Select INTRECORD(t.ID) BULK COLLECT INTO TmpPropertyValueIDs
     from (select pv.ID
     from TABLE(CAST(result as TBLINT)) pv 
-    join a2_SamplePropertyValue aa on aa.propertyvalueid = pv.id
+    join a2_SamplePV aa on aa.propertyvalueid = pv.id
     join TABLE(CAST(PropertyQuery.samples AS TBLINT)) t on t.ID = aa.SampleID) t;
   
     result := TmpPropertyValueIDs;
@@ -355,7 +355,7 @@ begin
   
     Select INTRECORD(t.ID) BULK COLLECT INTO TmpPropertyValueIDs
     from (Select distinct r.ID from TABLE(CAST(result as TBLINT)) r 
-    join a2_SamplePropertyValue aa on aa.SampleID = r.id
+    join a2_SamplePV aa on aa.SampleID = r.id
     join TABLE(CAST(sampleQuery.properties AS TBLINT)) p on p.ID = aa.PropertyValueID) t ;
   
     result := TmpPropertyValueIDs;

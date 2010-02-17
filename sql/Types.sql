@@ -228,5 +228,27 @@ create or replace
 TYPE INTARRAY is VARRAY(100000000) OF INTEGER;
 /
 
+CREATE OR REPLACE TYPE GeneInfo
+ as Object(
+   OrganismID int
+  ,Identifier varchar2(255)
+  ,Name varchar2(255)
+);
+/
+
+CREATE OR REPLACE TYPE GeneInfoTable as table of GeneInfo;
+/
+
+CREATE OR REPLACE TYPE GeneProperty
+ as Object(
+   GeneIdentifier varchar2(255)
+  ,Name varchar2(255)
+  ,Value varchar(255)
+);
+/
+
+CREATE OR REPLACE TYPE GenePropertyTable as table of GeneProperty;
+/
+
 quit;
 /
