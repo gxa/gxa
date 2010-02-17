@@ -165,7 +165,7 @@ public class SDRFWritingUtils {
                         investigation, factorValueAttribute));
                 p.setName(factorValueAttribute.type);
                 p.setValue(factorValueAttribute.getNodeName());
-                p.setFactorValue(false);
+                p.setFactorValue(true);
 
                 assay.addProperty(p);
 
@@ -236,7 +236,7 @@ public class SDRFWritingUtils {
                         investigation, factorValueAttribute));
                 p.setName(factorValueAttribute.type);
                 p.setValue(factorValueAttribute.getNodeName());
-                p.setFactorValue(false);
+                p.setFactorValue(true);
 
                 assay.addProperty(p);
 

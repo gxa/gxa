@@ -1176,6 +1176,13 @@ public class AtlasDAO {
                 : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
 
+        StringBuffer sb = new StringBuffer();
+        sb.append("Properties listing for ").append(assay.getAccession()).append(":\n");
+        for (Property p : props) {
+            sb.append("\t").append(p.getName()).append("\t\t->\t\t").append(p.getValue()).append("\n");
+        }
+        log.debug(sb.toString());
+
         SqlTypeValue propertiesParam =
                 props.isEmpty() ? null :
                         convertPropertiesToOracleARRAY(props);
