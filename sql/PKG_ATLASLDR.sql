@@ -17,28 +17,41 @@ PROCEDURE A2_ARRAYDESIGNSET(
   ,DesignElements DesignElementTable 
 ); 
 
+PROCEDURE A2_GENEPROPERTYSET(
+   Genes GeneInfoTable 
+   ,GeneProperties GenePropertyTable
+);
+
 PROCEDURE A2_EXPERIMENTSET(
-  TheAccession varchar2
- ,TheDescription varchar2 
- ,ThePerformer varchar2 
- ,TheLab varchar2
+  Accession varchar2
+ ,Description varchar2 
+ ,Performer varchar2 
+ ,Lab varchar2
 );
 
 PROCEDURE A2_ASSAYSET(
-   TheAccession varchar2
-  ,TheExperimentAccession  varchar2
-  ,TheArrayDesignAccession varchar2
-  ,TheProperties PropertyTable
-  ,TheExpressionValues ExpressionValueTable
+   Accession varchar2
+  ,ExperimentAccession  varchar2
+  ,ArrayDesignAccession varchar2
+  ,Properties PropertyTable
+  ,ExpressionValues ExpressionValueTable
   --,UnknownAccessionThreshold int default 75  
 );
 
+PROCEDURE A2_AssaySetBegin(
+   ExperimentAccession  IN varchar2 --null if many
+);
+
+PROCEDURE A2_AssaySetEnd(
+   ExperimentAccession  IN varchar2 --null if many
+);
+
 PROCEDURE A2_SAMPLESET(
-    p_Accession varchar2
-  , p_Assays AccessionTable
-  , p_Properties PropertyTable
-  , p_Species varchar2
-  , p_Channel varchar2
+    Accession varchar2
+  , Assays AccessionTable
+  , Properties PropertyTable
+  , Species varchar2
+  , Channel varchar2
 ); 
 
 PROCEDURE A2_AnalyticsSet(
@@ -77,7 +90,8 @@ END;
 /*******************************************************************************
 BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY
 *******************************************************************************/
-CREATE OR REPLACE PACKAGE BODY ATLASLDR AS
+create or replace
+PACKAGE BODY ATLASLDR AS
 
 --------------------------------------------------------
 --  DDL for Procedure A2_ARRAYDESIGNSET
@@ -132,35 +146,47 @@ begin
 end;
 
 --------------------------------------------------------
+--  DDL for Procedure A2_A2_GENEPROPERTYSET
+--------------------------------------------------------
+PROCEDURE A2_GENEPROPERTYSET(
+   Genes GeneInfoTable 
+   ,GeneProperties GenePropertyTable
+)
+as
+begin
+ null;
+end;
+
+--------------------------------------------------------
 --  DDL for Procedure A2_ASSAYSET
 --------------------------------------------------------
 PROCEDURE A2_ASSAYSET (
-   TheAccession varchar2
-  ,TheExperimentAccession  varchar2
-  ,TheArrayDesignAccession varchar2
-  ,TheProperties PropertyTable
-  ,TheExpressionValues ExpressionValueTable
+   Accession varchar2
+  ,ExperimentAccession  varchar2
+  ,ArrayDesignAccession varchar2
+  ,Properties PropertyTable
+  ,ExpressionValues ExpressionValueTable
   --,UnknownAccessionThreshold int default 75  
 )
 as
-  TheExperimentID int := 0;
-  TheArrayDesignID int := 0;
-  TheAssayID int :=0;
+  ExperimentID int := 0;
+  ArrayDesignID int := 0;
+  AssayID int :=0;
   UnknownDesignElementAccession int :=0; --;varchar2(255) := NULL;
-  LowerCaseProperties PropertyTable := TheProperties;
+  LowerCaseProperties PropertyTable := A2_AssaySet.Properties;
   MissedAccessionPercentage int := 0;
   UnknownAccessionThreshold int := 100;
 begin
 
   begin
-      Select MIN(e.ExperimentID) into TheExperimentID 
+      Select MIN(e.ExperimentID) into A2_AssaySet.ExperimentID 
       from a2_Experiment e
-      where e.Accession = TheExperimentAccession
-      group by 1; --returns "NULL" otherwise
+      where e.Accession = A2_AssaySet.ExperimentAccession
+      group by 1; --returns "NULL" oA2_AssaySet.rwise
 
-      Select MIN(d.ArrayDesignID) into TheArrayDesignID
+      Select MIN(d.ArrayDesignID) into A2_AssaySet.ArrayDesignID
       from a2_ArrayDesign d
-      where d.Accession = TheArrayDesignAccession
+      where d.Accession = A2_AssaySet.ArrayDesignAccession
       group by 1;
       
   exception 
@@ -175,31 +201,31 @@ begin
   dbms_output.put_line('check for invalid design elements');
   begin
     Select count(t.DesignElementAccession) into UnknownDesignElementAccession
-    from table(CAST(TheExpressionValues as ExpressionValueTable)) t
+    from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
     where not exists(select 1 from a2_designelement e 
-                     where e.arraydesignid = Thearraydesignid 
+                     where e.arraydesignid = A2_AssaySet.arraydesignid 
                      and ((e.accession = t.DesignElementAccession) or (e.name = t.DesignElementAccession)));
     
     Select (100*UnknownDesignElementAccession)/count(t.DesignElementAccession) into MissedAccessionPercentage
-    from table(CAST(TheExpressionValues as ExpressionValueTable)) t;
+    from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t;
     
-    if(MissedAccessionPercentage > UnknownDesignElementAccession) then
+    if(MissedAccessionPercentage > UnknownDesignElementAccession) A2_AssaySet.n
       RAISE_APPLICATION_ERROR(-20001, 'unknown accession threshold exceeded');
     end if;
   end;
   */
 
   begin
-      Select a.AssayID into TheAssayID
+      Select a.AssayID into A2_AssaySet.AssayID
       from a2_Assay a
-      where a.Accession = TheAccession;
+      where a.Accession = A2_AssaySet.Accession;
   exception
      when NO_DATA_FOUND then
      begin
       insert into A2_Assay(Accession,ExperimentID,ArrayDesignID)
-      values (TheAccession,TheExperimentID,TheArrayDesignID);
+      values (A2_AssaySet.Accession,A2_AssaySet.ExperimentID,A2_AssaySet.ArrayDesignID);
       
-      Select a2_Assay_seq.currval into TheAssayID from dual;
+      Select a2_Assay_seq.currval into A2_AssaySet.AssayID from dual;
      end;
     when others then 
       RAISE;    
@@ -213,13 +239,13 @@ begin
   end if;
   
   dbms_output.put_line('cleanup');
-  delete a2_assaypropertyvalue pv where pv.assayid = TheAssayID;
-  delete a2_expressionvalue ev where ev.assayid = TheAssayID;
+  delete a2_assaypv pv where pv.assayid = A2_AssaySet.AssayID;
+  delete a2_expressionvalue ev where ev.assayid = A2_AssaySet.AssayID;
   
   dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionValue(DesignElementID,ExperimentID,AssayID,Value)
-  select distinct d.DesignElementID, TheExperimentID, TheAssayID, t.Value
-  from table(CAST(TheExpressionValues as ExpressionValueTable)) t
+  Insert into a2_ExpressionValue(DesignElementID,AssayID,Value)
+  select distinct d.DesignElementID, A2_AssaySet.AssayID, t.Value
+  from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
   join a2_designelement d on ((d.Accession = t.DesignElementAccession) or (d.name = t.DesignElementAccession));
 
   dbms_output.put_line('insert property');
@@ -236,56 +262,72 @@ begin
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
 
   dbms_output.put_line('link property value to assay');
-  Insert into a2_assaypropertyvalue(AssayID, PropertyValueID, IsFactorValue)
-  select distinct TheAssayID, pv.PropertyValueID, t.IsFactorValue
+  Insert into a2_assayPV(AssayID, PropertyValueID, IsFactorValue)
+  select distinct A2_AssaySet.AssayID, pv.PropertyValueID, t.IsFactorValue
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
-  where not exists(select 1 from a2_AssayPropertyValue pv1 where pv1.AssayID = Theassayid and pv1.PropertyValueID = pv.PropertyValueID);
+  where not exists(select 1 from a2_AssayPV pv1 where pv1.AssayID = A2_AssaySet.assayid and pv1.PropertyValueID = pv.PropertyValueID);
   
   /*
   Insert into a2_AssayPropertyValue(DesignElementID,ExperimentID,AssayID,Value)
   select d.DesignElementID, ExperimentID, AssayID, t.Value
-  from table(CAST(TheExpressionValues as ExpressionValueTable)) t
+  from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
   join a2_designelement d on d.Accession = t.DesignElementAccession;
   */
 
   /*
-  if SQL%NOTFOUND THEN
+  if SQL%NOTFOUND A2_AssaySet.N
     RAISE_APPLICATION_ERROR(-20001, 'no expression values inserted');
   end if; 
 
   Insert into a2_AssayPropertyValue(AssayID,PropertyValueID,IsFactorValue)
   select 
-  from table (CAST(ThePrope) )
+  from table (CAST(A2_AssaySet.Prope) )
   */
   COMMIT WORK;
 
 end;
 
+PROCEDURE A2_AssaySetBegin(
+   ExperimentAccession  IN varchar2 --null if many
+)
+AS
+BEGIN
+  null;
+END;
+
+PROCEDURE A2_AssaySetEnd(
+   ExperimentAccession  IN varchar2 --null if many
+)
+AS
+BEGIN
+  null;
+END;
+
 --------------------------------------------------------
 --  DDL for Procedure A2_EXPERIMENTSET
 --------------------------------------------------------
 PROCEDURE A2_EXPERIMENTSET (
-  TheAccession varchar2
- ,TheDescription varchar2 
- ,ThePerformer varchar2 
- ,TheLab varchar2
+  Accession varchar2
+ ,Description varchar2 
+ ,Performer varchar2 
+ ,Lab varchar2
 )
 AS
 begin
   update a2_Experiment e
-  set e.Description = Thedescription
-  ,e.Performer = Theperformer
-  ,e.Lab = Thelab
-  where e.accession = TheAccession;
+  set e.Description = A2_EXPERIMENTSET.description
+  ,e.Performer = A2_EXPERIMENTSET.performer
+  ,e.Lab = A2_EXPERIMENTSET.lab
+  where e.accession = A2_EXPERIMENTSET.Accession;
   
   dbms_output.put_line('updated ' || sql%rowcount || ' rows' );
   
   if ( sql%rowcount = 0 )
   then
      insert into a2_Experiment(Accession,Description,Performer,Lab)
-     values (TheAccession,TheDescription,ThePerformer,TheLab);
+     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab);
      
      dbms_output.put_line('inserted');
   else
@@ -300,11 +342,11 @@ end;
 --  DDL for Procedure A2_SAMPLESET
 --------------------------------------------------------
 PROCEDURE A2_SAMPLESET (
-    p_Accession varchar2
-  , p_Assays AccessionTable
-  , p_Properties PropertyTable
-  , p_Species varchar2
-  , p_Channel varchar2
+    Accession varchar2
+  , Assays AccessionTable
+  , Properties PropertyTable
+  , Species varchar2
+  , Channel varchar2
 ) 
 as
   SampleID int :=0;
@@ -312,19 +354,19 @@ as
   ExperimentID int := 0;
   ArrayDesignID int := 0;
   UnknownDesignElementAccession varchar2(255) := NULL;
-  LowerCaseProperties PropertyTable := p_Properties;
+  LowerCaseProperties PropertyTable := A2_SAMPLESET.Properties;
 begin
 
  dbms_output.put_line('checking sample accession'); 
  begin
       Select s.SampleID into SampleID
       from a2_Sample s
-      where s.Accession = p_Accession;
+      where s.Accession = A2_SAMPLESET.Accession;
   exception
      when NO_DATA_FOUND then
      begin
       insert into A2_Sample(Accession,Species,Channel)
-      values (p_Accession,p_Species,p_Channel);
+      values (A2_SAMPLESET.Accession,A2_SAMPLESET.Species,A2_SAMPLESET.Channel);
       
       Select a2_Sample_seq.currval into SampleID from dual;
      end;
@@ -343,12 +385,12 @@ begin
   Insert into a2_AssaySample(AssayID, SampleID)
   Select AssayID, SampleID
   from a2_Assay a
-  where a.Accession in (select * from table(CAST(p_Assays as AccessionTable)) t);
+  where a.Accession in (select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t);
   
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
   select distinct t.Name
-  from table(CAST(p_Properties as PropertyTable)) t
+  from table(CAST(A2_SAMPLESET.Properties as PropertyTable)) t
   where not exists (select 1 from a2_Property where Name = t.Name);
   
   dbms_output.put_line('insert property value');
@@ -359,12 +401,12 @@ begin
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
 
   dbms_output.put_line('link property value to assay');
-  Insert into a2_samplepropertyvalue(SampleID, PropertyValueID, IsFactorValue)
+  Insert into a2_samplePV(SampleID, PropertyValueID, IsFactorValue)
   select distinct SampleID, pv.PropertyValueID, t.IsFactorValue
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
-  where not exists(select 1 from a2_SamplePropertyValue pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
+  where not exists(select 1 from a2_SamplePV pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
   
   COMMIT WORK;
 end;
@@ -634,14 +676,20 @@ BEGIN
   Delete from a2_ExpressionAnalytics where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
   Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
 
-  Delete from a2_SampleOntology where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
-  Delete from a2_SamplePropertyValue where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_SamplePVOntology where SamplePVID in (Select spv.SamplePVID 
+                                                         from vwExperimentSample 
+                                                         join a2_SamplePV spv on spv.SampleID = vwExperimentSample.SampleID
+                                                         where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_SamplePV where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Sample where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
 
   
-  Delete from a2_AssayOntology where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
-  Delete from a2_AssayPropertyValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_AssayPVOntology where AssayPVID in (Select AssayPVID
+                                                    from a2_AssayPV   
+                                                    join a2_Assay ON a2_Assay.AssayID = a2_AssayPV.AssayID 
+                                                    where a2_Assay.ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  Delete from a2_AssayPV where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
  
   Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
