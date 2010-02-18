@@ -144,10 +144,12 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                             String message = "Assay " + assay.getAccession() + " is linked to sample " +
                                     source.getNodeName() + " but this sample is not due to be loaded. " +
                                     "This assay will not be linked to a sample";
-                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                    .generateErrorItem(message, 511, this.getClass());
 
-                            throw new ObjectConversionException(error, false);
+                            getLog().warn(message);
+//                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+//                                    .generateErrorItem(message, 511, this.getClass());
+//
+//                            throw new ObjectConversionException(error, false);
                         }
                     }
                 }
