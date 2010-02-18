@@ -141,8 +141,7 @@
     <servlet>
         <display-name>Help Servlet</display-name>
         <servlet-name>help</servlet-name>
-        <jsp-file>/help.jsp</jsp-file>
-        <load-on-startup>1</load-on-startup>
+        <jsp-file>/WEB-INF/jsp/help.jsp</jsp-file>
     </servlet>
 
     <servlet-mapping>
@@ -154,7 +153,6 @@
         <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>
         <servlet-class>uk.ac.ebi.gxa.requesthandlers.query.TableHeaderServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
     </servlet>
 
     <servlet-mapping>
@@ -287,7 +285,6 @@
         <display-name>ExperimentGeneList servlet</display-name>
         <servlet-name>expGeneListRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
@@ -317,6 +314,29 @@
         <url-pattern>/downloads</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <display-name>Gene page experiment list</display-name>
+        <servlet-name>geneExperimentsListRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>geneExperimentsListRequestHandler</servlet-name>
+        <url-pattern>/geneExpList</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Feedback mailer</display-name>
+        <servlet-name>feedbackRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>feedbackRequestHandler</servlet-name>
+        <url-pattern>/feedback</url-pattern>
+    </servlet-mapping>
+
+
     <!-- Atlas Admin Page servlet -->
     <servlet>
       <servlet-name>admin</servlet-name>
@@ -336,7 +356,7 @@
 
     <error-page>
         <exception-type>java.lang.Exception</exception-type>
-        <location>/error.jsp</location>
+        <location>/WEB-INF/jsp/error.jsp</location>
     </error-page>
 
     <login-config>

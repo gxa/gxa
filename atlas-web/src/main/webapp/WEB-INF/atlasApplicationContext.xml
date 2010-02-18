@@ -274,8 +274,16 @@
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
     </bean>
 
+    <bean name="geneExperimentsListRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.ExperimentsListRequestHandler">
+        <property name="atlasSolrDao" ref="atlasSolrDAO"/>
+    </bean>
+
     <bean name="downloadsProgressRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.download.DownloadProgressRequestHandler">
         <property name="downloadService" ref="atlasDownloadService"/>
+    </bean>
+
+    <bean name="feedbackRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FeedbackRequestHandler">
+        
     </bean>
 
     <!-- JMX -->

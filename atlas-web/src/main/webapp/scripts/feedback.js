@@ -10,7 +10,7 @@ function resetFeedback() {
 function sendFeedback(v,m){
       if(v) {
           $.post(
-            "feedback.jsp",
+            atlas.homeUrl + "feedback",
             { f: m.children('#feedback_txt').val(),
               e: m.children('#feedback_email').val()
             },

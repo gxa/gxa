@@ -28,7 +28,7 @@ public class DownloadProgressRequestHandler extends AbstractRestRequestHandler {
 
         if(request.getParameter("progress") == null) {
             request.setAttribute("downloads",  downloadService.getDownloads(request.getSession().getId()));
-            request.getRequestDispatcher("downloads.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/jsp/query/downloads.jsp").forward(request, response);
         } else {
             super.handleRequest(request, response);
         }

@@ -4,11 +4,11 @@
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<jsp:include page="start_head.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/start_head.jsp"/>
 <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help
-<jsp:include page="end_head.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/end_head.jsp"/>
 
-<jsp:include page="query-includes.jsp" />
+<c:import url="/WEB-INF/jsp/includes/query-includes.jsp" />
 
 <style type="text/css">
     /* TODO: display contents appropriately */
@@ -54,7 +54,7 @@
     });
 </script>
 
-<jsp:include page="start_body_no_menus.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">
@@ -86,5 +86,5 @@
 </div><!-- /id="ae_pagecontainer" -->
 </div><!-- /id="contents" -->
 
-<jsp:include page="end_body.jsp"></jsp:include>
+<jsp:include page="/WEB-INF/jsp/includes/end_body.jsp"/>
 

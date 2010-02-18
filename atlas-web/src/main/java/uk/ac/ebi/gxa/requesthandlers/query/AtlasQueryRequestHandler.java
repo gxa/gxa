@@ -13,6 +13,7 @@ import java.io.IOException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 /**
  * @author pashky
@@ -53,9 +54,8 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if(disableQueries) {
-            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            request.setAttribute("errorMessage", "Index building is in progress, please wait");
-            request.getRequestDispatcher("/error.jsp").forward(request,response);
+            ErrorResponseHelper.errorUnavailable(request, response, "Index building is in progress, please wait");
+            return;
         }
 
         long startTime = HtmlHelper.currentTime();
@@ -89,6 +89,6 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("noDownloads", downloadService.getNumOfDownloads(request.getSession().getId()));
 
-        request.getRequestDispatcher("structured-query.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/query/query-result.jsp").forward(request, response);
     }
 }
