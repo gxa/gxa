@@ -506,23 +506,27 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
        getAtlasDAO().writeSample(sample);
     }
 
-    public void testWriteAssays() {
-        // create test assay
-        Assay assay = new Assay();
-        assay.setAccession("assay-test-assay-1");
-        assay.setExperimentAccession("E-PFIZ-2");
-        assay.setArrayDesignAccession("A-MEXP-27");
+    public void testWriteAdf() {
 
-        Property p1 = new Property();
-        p1.setAccession("property1");
-        p1.setName("property2");
-        p1.setValue("hello");
+        AdfFile adfFile = new AdfFile();
+        adfFile.arrayDesignName = "Affymetrix GeneChip Human Genome HG-U133A [HG-U133A]";
+        adfFile.arrayDesignProvider = "Affymetrix, Inc. (support@affymetrix.com)";
+        adfFile.arrayDesignType = "in_situ_oligo_features";
+        adfFile.entryPriorityList = new String[] {"ensembl","embl","unigene"};
 
-        List<Property> p = new ArrayList<Property>();
-        p.add(p1);
+        /*read header line from file*/
+        String[] DatabaseEntryNames = new String[] {"embl","affymetrix_netaffx","blocks","interpro","locus","..."};
 
-        //assay.setProperties(p);
+        /*while not EOF*/{
+           String CompositeElementName = "Affymetrix:CompositeSequence:HG-U133A:AFFX-BioB-5_at"; //read_to_tab();
+           AdfFile.CompositeElement element = adfFile.createCompositeElement(CompositeElementName);
 
-        getAtlasDAO().writeAssay(assay);
+           for(String entryName : DatabaseEntryNames){
+               String entryValue = "unknown"; //read_to_tab();
+               element.createDatabaseEntry(entryName,entryValue);
+           }
+        }
+
+        getAtlasDAO().writeAdf(adfFile);
     }
 }

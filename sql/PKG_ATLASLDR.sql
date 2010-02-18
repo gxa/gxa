@@ -14,13 +14,9 @@ PROCEDURE A2_ARRAYDESIGNSET(
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
+  ,EntryPriorityList varchar2
   ,DesignElements DesignElementTable 
 ); 
-
-PROCEDURE A2_GENEPROPERTYSET(
-   Genes GeneInfoTable 
-   ,GeneProperties GenePropertyTable
-);
 
 PROCEDURE A2_EXPERIMENTSET(
   Accession varchar2
@@ -101,6 +97,7 @@ PROCEDURE A2_ARRAYDESIGNSET (
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
+  ,EntryPriorityList varchar2
   ,DesignElements DesignElementTable 
 ) 
 as
@@ -110,6 +107,8 @@ as
   TheProvider varchar2(255) := Provider;
   TheName varchar2(255) := Name;
 begin
+
+ RAISE_APPLICATION_ERROR(-20001, 'A2_ARRAYDESIGNSET not implemented');
  
  Select ArrayDesignID into TheArrayDesignID
  from a2_ArrayDesign
@@ -135,26 +134,17 @@ begin
  select a2_ArrayDesign_Seq.nextval, TheAccession, TheType, TheName, TheProvider 
  from dual;
  
+ /*
+ 
  Delete from a2_DesignElement where ArrayDesignID = TheArrayDesignID;
  
  Insert into a2_DesignElement (DesignElementID, ArrayDesignID, GeneID, Accession, Name, Type, IsControl)
  Select a2_DesignElement_seq.NEXTVAL, TheArrayDesignID, g.GeneID, de.Accession, de.Accession, 'unknown', 0
  from table(CAST(DesignElements as DesignElementTable)) de
  join a2_Gene g on g.Identifier = de.GeneAccession;
+ */ 
  
  commit;
-end;
-
---------------------------------------------------------
---  DDL for Procedure A2_A2_GENEPROPERTYSET
---------------------------------------------------------
-PROCEDURE A2_GENEPROPERTYSET(
-   Genes GeneInfoTable 
-   ,GeneProperties GenePropertyTable
-)
-as
-begin
- null;
 end;
 
 --------------------------------------------------------

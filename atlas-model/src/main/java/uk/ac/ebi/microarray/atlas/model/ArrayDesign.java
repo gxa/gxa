@@ -9,6 +9,7 @@ import java.util.List;
  * @author Tony Burdett
  * @date 28-Sep-2009
  */
+
 public class ArrayDesign {
     private String accession;
     private String type;
