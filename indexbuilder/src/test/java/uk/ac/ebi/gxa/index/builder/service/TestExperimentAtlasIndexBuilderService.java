@@ -87,7 +87,7 @@ public class TestExperimentAtlasIndexBuilderService
             for (int i = 0; i < assays.getRowCount(); i++) {
                 String assayId = assays.getValue(i, dbFieldName).toString();
 
-                result = checkPropertyMatches("assayid", assayId, "A2_ASSAYPROPERTYVALUE", queryResponse);
+                result = checkPropertyMatches("assayid", assayId, "A2_ASSAYPV", queryResponse);
 
                 assertTrue("Couldn't match properties for Assay id '" + assayId + "'",
                            result);
@@ -102,7 +102,7 @@ public class TestExperimentAtlasIndexBuilderService
                 String sampleId = samples.getValue(i, dbFieldName).toString();
 
                 result = checkPropertyMatches("sampleid", sampleId,
-                                              "A2_SAMPLEPROPERTYVALUE",
+                                              "A2_SAMPLEPV",
                                               queryResponse);
 
                 assertTrue("Couldn't match properties for Sample id '" + sampleId + "'", result);

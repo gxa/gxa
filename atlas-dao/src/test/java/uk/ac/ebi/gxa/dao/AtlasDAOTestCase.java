@@ -26,10 +26,10 @@ import java.sql.Statement;
 public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-db.xml";
 
-    private static final String DRIVER = "org.hsqldb.jdbcDriver";
-    private static final String URL = "jdbc:hsqldb:mem:atlas";
-    private static final String USER = "sa";
-    private static final String PASSWD = "";
+    private static final String DRIVER = "oracle.jdbc.driver.OracleDriver";//"org.hsqldb.jdbcDriver";
+    private static final String URL = "jdbc.oracle.thin:@apu.ebi.ac.uk:1521:AEDWT"; //jdbc:hsqldb:mem:atlas";
+    private static final String USER = "atlas2";//"sa";
+    private static final String PASSWD = "atlas2";//"";
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
@@ -75,14 +75,15 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD, PASSWD);
 
         // create a new database
-        createDatabase();
+        // createDatabase();
 
         // do dbunit setup
-        super.setUp();
+        // super.setUp();
 
         // do our setup
         atlasDataSource = new SingleConnectionDataSource(
-                getConnection().getConnection(), false);
+                getOracleConnection(), false);
+                //getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
     }
@@ -105,14 +106,34 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD);
     }
 
+    private Connection getOracleConnection() throws Exception{
+        String connectionString="jdbc:oracle:thin:atlas2/atlas2@barney.ebi.ac.uk:1521:AE2TST";
+        DriverManager.registerDriver (new oracle.jdbc.driver.OracleDriver());
+        Connection conn = DriverManager.getConnection(connectionString);
+
+        return conn;
+    }
+
     @SuppressWarnings({"UnusedDeclaration"})
     @BeforeClass
     private void createDatabase() throws SQLException, ClassNotFoundException {
+
+        Connection conn = null;
+        try{
+            conn = getOracleConnection();
+        }
+        catch(Exception ex){
+            conn = null;
+        }
+
+        if(1==1)
+        return;
+
         // Load the HSQL Database Engine JDBC driver
-        Class.forName("org.hsqldb.jdbcDriver");
+        //Class.forName(DRIVER);
 
         // get a database connection, that will create the DB if it doesn't exist yet
-        Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
+        //Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
         System.out.print("Creating test database tables...");
 
         runStatement(conn,
@@ -310,13 +331,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     @AfterClass
     private void destroyDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
-        Class.forName("org.hsqldb.jdbcDriver");
+        //Class.forName("org.hsqldb.jdbcDriver");
 
         // get a database connection, that will create the DB if it doesn't exist yet
-        Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
+        //Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
 
-        runStatement(conn, "SHUTDOWN");
-        conn.close();
+        //runStatement(conn, "SHUTDOWN");
+        //conn.close();
     }
 
     private void runStatement(Connection conn, String sql) throws SQLException {

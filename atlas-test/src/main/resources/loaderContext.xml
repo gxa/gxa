@@ -62,11 +62,11 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/index"/>
+        <constructor-arg value="/atlas/index"/>
     </bean>
 
     <bean id="efoIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/efoindex"/>
+        <constructor-arg value="/atlas/efoindex"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
