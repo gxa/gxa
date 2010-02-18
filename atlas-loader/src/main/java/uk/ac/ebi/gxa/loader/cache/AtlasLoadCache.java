@@ -18,6 +18,7 @@ public class AtlasLoadCache {
     private Map<String, Experiment> experimentsByAcc;
     private Map<String, Assay> assaysByAcc;
     private Map<String, Sample> samplesByAcc;
+    private Map<String, ArrayDesignBundle> arrayDesignBundlesByAcc;
 
     /**
      * Creates a new cache for storing objects that are to be loaded into the database.
@@ -26,13 +27,14 @@ public class AtlasLoadCache {
         this.experimentsByAcc = new HashMap<String, Experiment>();
         this.assaysByAcc = new HashMap<String, Assay>();
         this.samplesByAcc = new HashMap<String, Sample>();
+        this.arrayDesignBundlesByAcc = new HashMap<String, ArrayDesignBundle>();
     }
 
     /**
-     * Adds an experiment to the cache of objects to be loaded.  Experiments are indexed by accession, so every experiment
-     * in the cache should have a unique accession.  If an experiment is passed to this method with an accession that is
-     * the same as one that has been previously stored, and the experiment is not the same object, then an
-     * IllegalArgumentException is thrown
+     * Adds an experiment to the cache of objects to be loaded.  Experiments are indexed by accession, so every
+     * experiment in the cache should have a unique accession.  If an experiment is passed to this method with an
+     * accession that is the same as one that has been previously stored, and the experiment is not the same object,
+     * then an IllegalArgumentException is thrown
      *
      * @param experiment the experiment to store in the cache.
      */
@@ -76,7 +78,8 @@ public class AtlasLoadCache {
     /**
      * Adds an assay to the cache of objects to be loaded.  Assays are indexed by accession, so every assay in the cache
      * should have a unique accession.  If an assay is passed to this method with an accession that is the same as one
-     * that has been previously stored, and the assay is not the same object, then an IllegalArgumentException is thrown
+     * that has been previously stored, and the assay is not the same object, then an IllegalArgumentException is
+     * thrown
      *
      * @param assay the assay to store in the cache.
      */
@@ -140,8 +143,8 @@ public class AtlasLoadCache {
     }
 
     /**
-     * Retrieves an sample from the load cache with the given accession, if present.  If there is no sample with the given
-     * accession, null is returned.
+     * Retrieves an sample from the load cache with the given accession, if present.  If there is no sample with the
+     * given accession, null is returned.
      *
      * @param accession the accession of the sample to fetch
      * @return the sample, if present, or null if there is no sample with this accession
@@ -157,6 +160,48 @@ public class AtlasLoadCache {
      */
     public synchronized Collection<Sample> fetchAllSamples() {
         return samplesByAcc.values();
+    }
+
+    /**
+     * Adds a specially constructed data bundle that ships array design data into the database.  Unlike other objects,
+     * this does not use the standard atlas object model but instead creates a new data bundle with structures ready to
+     * ship to the loading stored procedure.
+     *
+     * @param arrayDesign the array design "bundle" loader object to store in the cache
+     */
+    public synchronized void addArrayDesignBundle(ArrayDesignBundle arrayDesign) {
+        if (arrayDesign.getAccession() == null) {
+            throw new NullPointerException("Cannot add array design bundle without first setting the accession");
+        }
+        if (arrayDesignBundlesByAcc.containsKey(arrayDesign.getAccession()) &&
+                arrayDesignBundlesByAcc.get(arrayDesign.getAccession()) != arrayDesign) {
+            throw new IllegalArgumentException("Attempting to store a new " +
+                    "experiment with a non-unique accession");
+        }
+        else {
+            arrayDesignBundlesByAcc.put(arrayDesign.getAccession(), arrayDesign);
+        }
+        notifyAll();
+    }
+
+    /**
+     * Retrieves an array design bundle from the load cache with the given accession, if present.  If there is no array
+     * design bundle with the given accession, null is returned.
+     *
+     * @param accession the accession of the sample to fetch
+     * @return the sample, if present, or null if there is no sample with this accession
+     */
+    public synchronized ArrayDesignBundle fetchArrayDesignBundle(String accession) {
+        return arrayDesignBundlesByAcc.get(accession);
+    }
+
+    /**
+     * Retrieves all stored array design bundles from this cache.
+     *
+     * @return the collection of stored samples
+     */
+    public synchronized Collection<ArrayDesignBundle> fetchAllArrayDesignBundles() {
+        return arrayDesignBundlesByAcc.values();
     }
 
     /**
