@@ -96,6 +96,6 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         request.setAttribute("eid", eid);
         request.setAttribute("gid", geneId);
 
-        request.getRequestDispatcher("/expGeneResults.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/gene-list.jsp").forward(request, response);
     }
 }

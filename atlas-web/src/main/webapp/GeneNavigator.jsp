@@ -68,9 +68,9 @@
 </style>
 
 
-<jsp:include page="start_head.jsp" />
+<jsp:include page="WEB-INF/jsp/includes/start_head.jsp" />
 Gene Expression Atlas - Gene Index
-<jsp:include page="end_head.jsp" />
+<jsp:include page="WEB-INF/jsp/includes/end_head.jsp" />
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
@@ -92,7 +92,7 @@ Gene Expression Atlas - Gene Index
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
-<jsp:include page='start_body_no_menus.jsp' />
+<jsp:include page='WEB-INF/jsp/includes/start_body_no_menus.jsp' />
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">
@@ -177,4 +177,4 @@ Gene Expression Atlas - Gene Index
 </div>
 
 <!-- end page contents here -->
-<jsp:include page='end_body.jsp' />
+<jsp:include page='WEB-INF/jsp/includes/end_body.jsp' />

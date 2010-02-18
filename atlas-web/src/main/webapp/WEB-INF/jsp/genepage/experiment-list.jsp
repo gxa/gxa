@@ -1,30 +1,5 @@
-<%@page import="ae3.dao.AtlasDao"%>
-<%@page import="ae3.model.AtlasExperiment"%>
-<%@page import="uk.ac.ebi.gxa.web.Atlas"%>
-<%@ page import="java.util.List"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%
-String geneId = request.getParameter("gid");
-int fromRow = -1;
-try { fromRow = Integer.valueOf(request.getParameter("from")); } catch (Exception e) { }
-int toRow = -1;
-try { toRow = Integer.valueOf(request.getParameter("to")); } catch (Exception e) { }
-
-String ef = request.getParameter("factor");
-String efv = request.getParameter("efv");
-
-if (geneId != null) {
-    AtlasDao dao = (AtlasDao)application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    AtlasDao.AtlasGeneResult atlasGene = dao.getGeneByIdentifier(geneId);
-    if(atlasGene.isFound()) {
-        List<AtlasExperiment> exps = dao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
-        request.setAttribute("exps",exps);
-        request.setAttribute("atlasGene", atlasGene.getGene());
-    }
-}    
-
-%>
 
 <script type="text/javascript">
 	var exps = [ <c:forEach var="exp" varStatus="s" items="${exps}">{ id: '${exp.id}', acc: '${exp.accession}' }<c:if test="${!s.last}">,</c:if></c:forEach> ];
@@ -33,7 +8,6 @@ if (geneId != null) {
 <table align="left" cellpadding="0" >
 
 <c:forEach var="exp" items="${exps}">
-
 	<tr align="left" class="exp_header">
 		<td align="left" nowrap="true" valign="top">
 			${exp.accession}:
@@ -72,7 +46,6 @@ if (geneId != null) {
 		</tr>
 	</c:if>
 
-	
 	<tr align="left">
 		<td colspan="3">
 		<table width="100%">
@@ -93,11 +66,6 @@ if (geneId != null) {
 				<td>
 					<div style="overflow-y: auto; width:150px; height:150px" id="${exp.id}_${atlasGene.geneId}_legend"></div>
 				</td>
-
-
-
-
-
 			</tr>
 		</table>
 		</td>
@@ -116,5 +84,4 @@ if (geneId != null) {
 	</tr>
 	
 	</c:forEach>
-
 </table>

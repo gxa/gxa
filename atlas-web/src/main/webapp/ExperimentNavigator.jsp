@@ -5,7 +5,6 @@
 <%@ page import="java.util.List" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <%
@@ -14,9 +13,9 @@
     request.setAttribute("allexpts", expz);
 %>
 
-<jsp:include page="start_head.jsp"/>
+<jsp:include page="WEB-INF/jsp/includes/start_head.jsp"/>
 Gene Expression Atlas - Experiment Index
-<jsp:include page="end_head.jsp"/>
+<jsp:include page="WEB-INF/jsp/includes/end_head.jsp"/>
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -61,7 +60,7 @@ Gene Expression Atlas - Experiment Index
 
 </style>
 
-<jsp:include page='start_body_no_menus.jsp'/>
+<jsp:include page='WEB-INF/jsp/includes/start_body_no_menus.jsp'/>
 
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
@@ -149,4 +148,4 @@ Gene Expression Atlas - Experiment Index
     </div>
 
     <!-- end page contents here -->
-    <jsp:include page='end_body.jsp' />
+    <jsp:include page='WEB-INF/jsp/includes/end_body.jsp' />

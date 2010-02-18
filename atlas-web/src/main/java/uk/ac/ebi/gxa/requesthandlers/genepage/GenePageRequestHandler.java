@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 /**
  * Gene page request handler 
@@ -42,14 +43,12 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("heatMapRows", gene.getHeatMapRows());
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
-                request.getRequestDispatcher("/gene.jsp").forward(request,response);
+                request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;
             }
 
         }
 
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
-        request.getRequestDispatcher("/error.jsp").forward(request,response);
+        ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + String.valueOf(geneId));
     }
 }

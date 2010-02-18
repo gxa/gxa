@@ -4,24 +4,24 @@
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<jsp:include page="start_head.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/start_head.jsp"/>
 Gene Expression Atlas
-<jsp:include page="end_head.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/end_head.jsp"/>
 
 
-<jsp:include page="query-includes.jsp"/>
+<c:import url="/WEB-INF/jsp/includes/query-includes.jsp"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 
-<jsp:include page="start_body_no_menus.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
 
-<jsp:include page="end_menu.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/end_menu.jsp"/>
 
 <div id="ae_pagecontainer">
     <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
-        <jsp:include page="simpleform.jsp">
-            <jsp:param name="logolink" value="true"/>
-        </jsp:include>
+        <c:import url="/WEB-INF/jsp/includes/simpleform.jsp">
+            <c:param name="logolink" value="true"/>
+        </c:import>
     </div>
 </div>
 
@@ -47,4 +47,4 @@ Gene Expression Atlas
     </div>
 </form>
 
-<jsp:include page="end_body.jsp"></jsp:include>
+<c:import url="/WEB-INF/jsp/includes/end_body.jsp"/>

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 /**
  * @author pashky
@@ -76,7 +77,7 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                         }
                     });
                     if(netCDFs.length == 0) {
-                        error(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
+                        ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
                         return;
                     }
                     NetCDFProxy netcdf = new NetCDFProxy(netCDFs[0]);
@@ -92,25 +93,20 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                     if(factors.length > 0)
                         ef = factors[0];
                     if(genes.isEmpty() || ef == null) {
-                        error(request, response, "No genes to display for experiment " + String.valueOf(expAcc));
+                        ErrorResponseHelper.errorNotFound(request, response, "No genes to display for experiment " + String.valueOf(expAcc));
                         return;
                     }
                 }
 
                 request.setAttribute("genes", genes);
             } else {
-                error(request, response, "There are no records for experiment " + String.valueOf(expAcc));
+                ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + String.valueOf(expAcc));
                 return;
             }
         }
 
         request.setAttribute("ef", ef);
-        request.getRequestDispatcher("/experiment.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment.jsp").forward(request, response);
     }
 
-    private void error(HttpServletRequest request, HttpServletResponse response, String message) throws ServletException, IOException {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        request.setAttribute("errorMessage", message);
-        request.getRequestDispatcher("/error.jsp").forward(request,response);
-    }
 }

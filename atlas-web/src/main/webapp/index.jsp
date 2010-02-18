@@ -6,18 +6,16 @@
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 
-<jsp:include page="start_head.jsp"/>
+<jsp:include page="/WEB-INF/jsp/includes/start_head.jsp"/>
 Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
-<jsp:include page="end_head.jsp"/>
+<jsp:include page="/WEB-INF/jsp/includes/end_head.jsp"/>
 
 <meta name="Description"
       content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
 <meta name="Keywords"
       content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-<jsp:include page="query-includes.jsp"/>
 <link rel="stylesheet" href="structured-query.css" type="text/css"/>
-<script type="text/javascript" src="scripts/jquery.corner.js"></script>
 
 
 <style type="text/css">
@@ -39,11 +37,17 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
 </style>
 
-<jsp:include page="start_body_no_menus.jsp"/>
+<jsp:include page="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
 
 <div id="contents" class="contents">
     <div id="centeredMain">
-        <jsp:include page="simpleform.jsp"/>
+        <jsp:include page="/WEB-INF/jsp/includes/simpleform.jsp"/>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.corner.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("div.roundCorner").corner();
+            });
+        </script>
 
         <!--    <div class="alertNotice">
                 <p class="alertHeader">Downtime Notice!</p>
@@ -122,4 +126,4 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 </div>
 
 
-<jsp:include page="end_body.jsp"/>
+<jsp:include page="/WEB-INF/jsp/includes/end_body.jsp"/>
