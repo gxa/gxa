@@ -499,6 +499,13 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
+    public void testWriteSample(){
+        Sample sample = new Sample();
+        sample.setAccession("enee menee");
+
+       getAtlasDAO().writeSample(sample);
+    }
+
     public void testWriteAssays() {
         // create test assay
         Assay assay = new Assay();

@@ -33,14 +33,14 @@ import java.util.*;
  */
 public class AtlasDAO {
     // load monitor
-    private static final String LOAD_MONITOR_SELECT =
+    public static final String LOAD_MONITOR_SELECT =
             "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
                     "FROM load_monitor " +
                     "WHERE load_type='experiment'";
-    private static final String LOAD_MONITOR_BY_ACC_SELECT =
+    public static final String LOAD_MONITOR_BY_ACC_SELECT =
             LOAD_MONITOR_SELECT + " " +
                     "AND accession=?";
-    private static final String LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
+    public static final String LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
             "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
                     "SELECT ROWNUM r, accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
                     "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
@@ -49,120 +49,120 @@ public class AtlasDAO {
                     "ORDER BY accession)) " +
                     "WHERE r BETWEEN ? AND ?";
     // experiment queries
-    private static final String EXPERIMENTS_COUNT =
+    public static final String EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment";
 
-    private static final String EXPERIMENTS_SELECT =
+    public static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid " +
                     "FROM a2_experiment";
-    private static final String EXPERIMENTS_PENDING_INDEX_SELECT =
+    public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
-    private static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
+    public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
-    private static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
+    public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
-    private static final String EXPERIMENT_BY_ACC_SELECT =
+    public static final String EXPERIMENT_BY_ACC_SELECT =
             EXPERIMENTS_SELECT + " " +
                     "WHERE accession=?";
 
     // gene queries
-    private static final String GENES_COUNT =
+    public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
 
-    private static final String GENES_SELECT =
+    public static final String GENES_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_spec s " +
-                    "WHERE g.specid=s.specid";
-    private static final String GENE_BY_IDENTIFIER =
+                    "FROM a2_gene g, a2_organism s " +
+                    "WHERE g.organismid=s.organismid";
+    public static final String GENE_BY_IDENTIFIER =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_spec s " +
+                    "FROM a2_gene g, a2_organism s " +
                     "WHERE g.identifier=?";
-    private static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
+    public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
-    private static final String GENES_PENDING_SELECT =
+    public static final String GENES_PENDING_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_spec s, load_monitor lm " +
-                    "WHERE g.specid=s.specid " +
+                    "FROM a2_gene g, a2_organism s, load_monitor lm " +
+                    "WHERE g.organismid=s.organismid " +
                     "AND g.identifier=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='gene'";
-    private static final String DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT =
+    public static final String DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de, a2_gene g, load_monitor lm " +
                     "WHERE de.geneid=g.geneid " +
                     "AND g.identifier=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='gene'";
-    private static final String GENES_BY_EXPERIMENT_ACCESSION =
+    public static final String GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_spec s, a2_designelement d, a2_assay a, " +
+                    "FROM a2_gene g, a2_organism s, a2_designelement d, a2_assay a, " +
                     "a2_experiment e " +
                     "WHERE g.geneid=d.geneid " +
-                    "AND g.specid = s.specid " +
+                    "AND g.organismid = s.organismid " +
                     "AND d.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
-    private static final String DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION =
+    public static final String DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de, a2_assay a, a2_experiment e " +
                     "WHERE de.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
-    private static final String PROPERTIES_BY_RELATED_GENES =
-            "SELECT gpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
-                    "FROM a2_geneproperty gp, a2_genepropertyvalue gpv " +
-                    "WHERE gpv.genepropertyid=gp.genepropertyid " +
-                    "AND gpv.geneid IN (:geneids)";
-    private static final String GENE_COUNT_SELECT =
+    public static final String PROPERTIES_BY_RELATED_GENES =
+            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue  " +
+                    "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
+                    "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
+                    "AND ggpv.geneid IN (:geneids)";
+    public static final String GENE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
     // assay queries
-    private static final String ASSAYS_COUNT =
+    public static final String ASSAYS_COUNT =
             "SELECT COUNT(*) FROM a2_assay";
 
-    private static final String ASSAYS_SELECT =
+    public static final String ASSAYS_SELECT =
             "SELECT a.accession, e.accession, ad.accession, a.assayid " +
                     "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                     "WHERE e.experimentid=a.experimentid " +
                     "AND a.arraydesignid=ad.arraydesignid";
-    private static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
+    public static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
             ASSAYS_SELECT + " " +
                     "AND e.accession=?";
-    private static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
+    public static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
             ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
                     "AND ad.accession=?";
-    private static final String ASSAYS_BY_RELATED_SAMPLES =
+    public static final String ASSAYS_BY_RELATED_SAMPLES =
             "SELECT s.sampleid, a.accession " +
                     "FROM a2_assay a, a2_assaysample s " +
                     "WHERE a.assayid=s.assayid " +
                     "AND s.sampleid IN (:sampleids)";
-    private static final String PROPERTIES_BY_RELATED_ASSAYS =
+    public static final String PROPERTIES_BY_RELATED_ASSAYS =
             "SELECT apv.assayid, p.name AS property, pv.name AS propertyvalue, apv.isfactorvalue " +
-                    "FROM a2_property p, a2_propertyvalue pv, a2_assaypropertyvalue apv " +
+                    "FROM a2_property p, a2_propertyvalue pv, a2_assayPV apv " +
                     "WHERE apv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
                     "AND apv.assayid IN (:assayids)";
 
     // expression value queries
-    private static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
+    public static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
             "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev, a2_designelement de " +
                     "WHERE ev.designelementid=de.designelementid " +
                     "AND ev.assayid IN (:assayids)";
-    private static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
+    public static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
             "SELECT ev.assayid, ev.designelementid, ev.value " +
                     "FROM a2_expressionvalue ev " +
                     "JOIN a2_designelement de ON de.designelementid=ev.designelementid " +
@@ -170,69 +170,69 @@ public class AtlasDAO {
                     "WHERE a.experimentid=? AND de.arraydesignid=?";
 
     // sample queries
-    private static final String SAMPLES_BY_ASSAY_ACCESSION =
+    public static final String SAMPLES_BY_ASSAY_ACCESSION =
             "SELECT s.accession, s.species, s.channel, s.sampleid " +
                     "FROM a2_sample s, a2_assay a, a2_assaysample ass " +
                     "WHERE s.sampleid=ass.sampleid " +
                     "AND a.assayid=ass.assayid " +
                     "AND a.accession=?";
-    private static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
+    public static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
             "SELECT s.accession, s.species, s.channel, s.sampleid " +
                     "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                     "WHERE s.sampleid=ass.sampleid " +
                     "AND a.assayid=ass.assayid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
-    private static final String PROPERTIES_BY_RELATED_SAMPLES =
+    public static final String PROPERTIES_BY_RELATED_SAMPLES =
             "SELECT spv.sampleid, p.name AS property, pv.name AS propertyvalue, spv.isfactorvalue " +
-                    "FROM a2_property p, a2_propertyvalue pv, a2_samplepropertyvalue spv " +
+                    "FROM a2_property p, a2_propertyvalue pv, a2_samplepv spv " +
                     "WHERE spv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
                     "AND spv.sampleid IN (:sampleids)";
 
     // query for counts, for statistics
-    private static final String PROPERTY_VALUE_COUNT_SELECT =
+    public static final String PROPERTY_VALUE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT name) FROM a2_propertyvalue";
 
     // array and design element queries
-    private static final String ARRAY_DESIGN_SELECT =
+    public static final String ARRAY_DESIGN_SELECT =
             "SELECT accession, type, name, provider, arraydesignid " +
                     "FROM a2_arraydesign";
-    private static final String ARRAY_DESIGN_BY_ACC_SELECT =
+    public static final String ARRAY_DESIGN_BY_ACC_SELECT =
             ARRAY_DESIGN_SELECT + " " +
                     "WHERE accession=?";
-    private static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
+    public static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
             "SELECT " +
                     "DISTINCT d.accession, d.type, d.name, d.provider, d.arraydesignid " +
                     "FROM a2_arraydesign d, a2_assay a, a2_experiment e " +
                     "WHERE e.experimentid=a.experimentid " +
                     "AND a.arraydesignid=d.arraydesignid " +
                     "AND e.accession=?";
-    private static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
+    public static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
             "SELECT de.designelementid, de.accession " +
                     "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
-    private static final String DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION =
+    public static final String DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION =
             "SELECT de.designelementid, de.name " +
                     "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
-    private static final String DESIGN_ELEMENTS_BY_ARRAY_ID =
+    public static final String DESIGN_ELEMENTS_BY_ARRAY_ID =
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid=?";
-    private static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
+    public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
             "SELECT de.arraydesignid, de.designelementid, de.accession, de.geneid " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid IN (:arraydesignids)";
-    private static final String DESIGN_ELEMENTS_BY_GENEID =
+    public static final String DESIGN_ELEMENTS_BY_GENEID =
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
 
     // other useful queries
-    private static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
+    public static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
                     "a.designelementid, a.tstat, a.pvaladj, " +
                     "ef.propertyid as efid, efv.propertyvalueid as efvid " +
@@ -241,7 +241,7 @@ public class AtlasDAO {
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
                     "WHERE a.experimentid=?";
-    private static final String EXPRESSIONANALYTICS_BY_GENEID =
+    public static final String EXPRESSIONANALYTICS_BY_GENEID =
             "SELECT ef, efv, experimentid, null, tstat, min(pvaladj), efid, efvid FROM " +
                     "(SELECT ef.name AS ef, efv.name AS efv, a.experimentid AS experimentid, " +
                     "first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid ORDER BY a.pvaladj ASC) AS tstat, " +
@@ -252,7 +252,7 @@ public class AtlasDAO {
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=a.designelementid " +
                     "WHERE de.geneid=? AND a.pvaladj < 0.05) GROUP BY  ef, efv, experimentid, tstat, efid, efvid";
-    private static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
+    public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +
                     "ef.propertyid as efid, efv.propertyvalueid as efvid " +
@@ -260,19 +260,19 @@ public class AtlasDAO {
                     "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "WHERE a.designelementid=?";
-    private static final String ONTOLOGY_MAPPINGS_SELECT =
+    public static final String ONTOLOGY_MAPPINGS_SELECT =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
                     "issampleproperty, isassayproperty, isfactorvalue, experimentid " +
                     "FROM a2_ontologymapping";
-    private static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
+    public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE ontologyname=?";
-    private static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
+    public static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE accession=?";
 
     // queries for atlas interface
-    private static final String ATLAS_RESULTS_SELECT =
+    public static final String ATLAS_RESULTS_SELECT =
             "SELECT " +
                     "ea.experimentid, " +
                     "g.geneid, " +
@@ -286,7 +286,7 @@ public class AtlasDAO {
                     "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
                     "JOIN a2_gene g ON g.geneid=de.geneid";
     // same as results, but counts geneids instead of returning them
-    private static final String ATLAS_COUNTS_SELECT =
+    public static final String ATLAS_COUNTS_SELECT =
             "SELECT " +
                     "ea.experimentid, " +
                     "p.name AS property, " +
@@ -301,12 +301,12 @@ public class AtlasDAO {
                     "JOIN a2_property p ON p.propertyid=pv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
                     "JOIN a2_gene g ON g.geneid=de.geneid";
-    private static final String ATLAS_COUNTS_BY_EXPERIMENTID =
+    public static final String ATLAS_COUNTS_BY_EXPERIMENTID =
             ATLAS_COUNTS_SELECT + " " +
                     "WHERE ea.experimentid=? " +
                     "GROUP BY ea.experimentid, p.name, pv.name, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    private static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
+    public static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
                     "WHERE ea.experimentid IN (:exptids) " +
                     "AND g.geneid IN (:geneids) " +
@@ -316,7 +316,7 @@ public class AtlasDAO {
                     "ORDER BY ea.pvaladj " +
                     "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    private static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
+    public static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
                     "WHERE ea.experimentid IN (:exptids) " +
                     "AND g.geneid IN (:geneids) " +
@@ -326,7 +326,7 @@ public class AtlasDAO {
                     "ORDER BY ea.pvaladj " +
                     "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    private static final String ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
+    public static final String ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
             ATLAS_RESULTS_SELECT + " " +
                     "WHERE ea.experimentid IN (:exptids) " +
                     "AND g.geneid IN (:geneids) " +
@@ -338,18 +338,18 @@ public class AtlasDAO {
                     "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
     // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
-    private static final String SPECIES_ALL =
-            "SELECT specid, name FROM A2_SPEC";
+    public static final String SPECIES_ALL =
+            "SELECT organismid, name FROM A2_organism";
 
-    private static final String PROPERTIES_ALL =
+    public static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
 
-    private static final String GENEPROPERTY_ALL_NAMES =
+    public static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
 
-    private static final String BEST_DESIGNELEMENTID_FOR_GENE =
+    public static final String BEST_DESIGNELEMENTID_FOR_GENE =
             "SELECT topde FROM (SELECT de.designelementid as topde," +
                     "          MIN(a.pvaladj) KEEP(DENSE_RANK FIRST ORDER BY a.pvaladj ASC)" +
                     "     OVER (PARTITION BY a.propertyvalueid) as minp" +
@@ -1112,21 +1112,21 @@ public class AtlasDAO {
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_EXPERIMENTSET")
                         .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("THEACCESSION")
-                        .useInParameterNames("THEDESCRIPTION")
-                        .useInParameterNames("THEPERFORMER")
-                        .useInParameterNames("THELAB")
-                        .declareParameters(new SqlParameter("THEACCESSION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("THEDESCRIPTION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("THEPERFORMER", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("THELAB", Types.VARCHAR));
+                        .useInParameterNames("ACCESSION")
+                        .useInParameterNames("DESCRIPTION")
+                        .useInParameterNames("PERFORMER")
+                        .useInParameterNames("LAB")
+                        .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("DESCRIPTION", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("PERFORMER", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("LAB", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("THEACCESSION", experiment.getAccession())
-                .addValue("THEDESCRIPTION", experiment.getDescription())
-                .addValue("THEPERFORMER", experiment.getPerformer())
-                .addValue("THELAB", experiment.getLab());
+        params.addValue("ACCESSION", experiment.getAccession())
+                .addValue("DESCRIPTION", experiment.getDescription())
+                .addValue("PERFORMER", experiment.getPerformer())
+                .addValue("LAB", experiment.getLab());
 
         procedure.execute(params);
     }
@@ -1151,21 +1151,21 @@ public class AtlasDAO {
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_ASSAYSET")
                         .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("THEACCESSION")
-                        .useInParameterNames("THEEXPERIMENTACCESSION")
-                        .useInParameterNames("THEARRAYDESIGNACCESSION")
-                        .useInParameterNames("THEPROPERTIES")
-                        .useInParameterNames("THEEXPRESSIONVALUES")
+                        .useInParameterNames("ACCESSION")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .useInParameterNames("ARRAYDESIGNACCESSION")
+                        .useInParameterNames("PROPERTIES")
+                        .useInParameterNames("EXPRESSIONVALUES")
                         .declareParameters(
-                                new SqlParameter("THEACCESSION", Types.VARCHAR))
+                                new SqlParameter("ACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("THEEXPERIMENTACCESSION", Types.VARCHAR))
+                                new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("THEARRAYDESIGNACCESSION", Types.VARCHAR))
+                                new SqlParameter("ARRAYDESIGNACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("THEPROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
+                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
                         .declareParameters(
-                                new SqlParameter("THEEXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
+                                new SqlParameter("EXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
 
         // map parameters...
         List<Property> props = assay.getProperties() == null
@@ -1190,11 +1190,11 @@ public class AtlasDAO {
                 evs.isEmpty() ? null :
                         convertExpressionValuesToOracleARRAY(evs);
 
-        params.addValue("THEACCESSION", assay.getAccession())
-                .addValue("THEEXPERIMENTACCESSION", assay.getExperimentAccession())
-                .addValue("THEARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
-                .addValue("THEPROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
-                .addValue("THEEXPRESSIONVALUES", expressionValuesParam, OracleTypes.ARRAY, "EXPRESSIONVALUETABLE");
+        params.addValue("ACCESSION", assay.getAccession())
+                .addValue("EXPERIMENTACCESSION", assay.getExperimentAccession())
+                .addValue("ARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
+                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
+                .addValue("EXPRESSIONVALUES", expressionValuesParam, OracleTypes.ARRAY, "EXPRESSIONVALUETABLE");
 
         log.debug("Invoking A2_ASSAYSET with the following parameters..." +
                 "\n\tassay accession:          {}" +
@@ -1229,21 +1229,21 @@ public class AtlasDAO {
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_SAMPLESET")
                         .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("P_ACCESSION")
-                        .useInParameterNames("P_ASSAYS")
-                        .useInParameterNames("P_PROPERTIES")
-                        .useInParameterNames("P_SPECIES")
-                        .useInParameterNames("P_CHANNEL")
+                        .useInParameterNames("ACCESSION")
+                        .useInParameterNames("ASSAYS")
+                        .useInParameterNames("PROPERTIES")
+                        .useInParameterNames("SPECIES")
+                        .useInParameterNames("CHANNEL")
                         .declareParameters(
-                                new SqlParameter("P_ACCESSION", Types.VARCHAR))
+                                new SqlParameter("ACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("P_ASSAYS", OracleTypes.ARRAY, "ACCESSIONTABLE"))
+                                new SqlParameter("ASSAYS", OracleTypes.ARRAY, "ACCESSIONTABLE"))
                         .declareParameters(
-                                new SqlParameter("P_PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
+                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
                         .declareParameters(
-                                new SqlParameter("P_SPECIES", Types.VARCHAR))
+                                new SqlParameter("SPECIES", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("P_CHANNEL", Types.VARCHAR));
+                                new SqlParameter("CHANNEL", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -1255,11 +1255,11 @@ public class AtlasDAO {
                         ? null
                         : convertPropertiesToOracleARRAY(sample.getProperties());
 
-        params.addValue("P_ACCESSION", sample.getAccession())
-                .addValue("P_ASSAYS", accessionsParam, OracleTypes.ARRAY, "ACCESSIONTABLE")
-                .addValue("P_PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
-                .addValue("P_SPECIES", sample.getSpecies())
-                .addValue("P_CHANNEL", sample.getChannel());
+        params.addValue("ACCESSION", sample.getAccession())
+                .addValue("ASSAYS", accessionsParam, OracleTypes.ARRAY, "ACCESSIONTABLE")
+                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
+                .addValue("SPECIES", sample.getSpecies())
+                .addValue("CHANNEL", sample.getChannel());
 
         int assayCount = sample.getAssayAccessions() == null ? 0 : sample.getAssayAccessions().size();
         int propertiesCount = sample.getProperties() == null ? 0 : sample.getProperties().size();
@@ -1431,11 +1431,11 @@ public class AtlasDAO {
                         .withProcedureName("ATLASLDR.A2_EXPERIMENTDELETE")
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("ACCESSION")
-                        .declareParameters(new SqlParameter("THEACCESSION", Types.VARCHAR));
+                        .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("THEACCESSION", experimentAccession);
+        params.addValue("ACCESSION", experimentAccession);
 
         procedure.execute(params);
     }
