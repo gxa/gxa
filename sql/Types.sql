@@ -84,13 +84,18 @@ drop type TIPTB2;
 --  DDL for Type DESIGNELEMENT
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "DESIGNELEMENT" is object (Accession varchar2(255),  GeneAccession varchar2(255));
+  CREATE OR REPLACE TYPE "DESIGNELEMENT2" is object (
+         Accession  varchar2(255)  ---Composite Element Name
+      ,  EntryName  varchar2(255)  ---embl,affymetrix_netaffx,blocks,interpro,locus,ensembl,swall,genbank,unigene,refseq,scop,omim,pfam,ec,kegg,pkr_hanks,cp450,gpcrdb
+      ,  EntryValue varchar2(255)  ---value of the element 
+);
 /
+
 --------------------------------------------------------
 --  DDL for Type DESIGNELEMENTTABLE
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "DESIGNELEMENTTABLE" is table of DESIGNELEMENT;
+  CREATE OR REPLACE TYPE "DESIGNELEMENTTABLE" is table of DESIGNELEMENT2;
 /  
 --------------------------------------------------------
 --  DDL for Type EXPERIMENTQUERY
@@ -237,17 +242,6 @@ CREATE OR REPLACE TYPE GeneInfo
 /
 
 CREATE OR REPLACE TYPE GeneInfoTable as table of GeneInfo;
-/
-
-CREATE OR REPLACE TYPE GeneProperty
- as Object(
-   GeneIdentifier varchar2(255)
-  ,Name varchar2(255)
-  ,Value varchar(255)
-);
-/
-
-CREATE OR REPLACE TYPE GenePropertyTable as table of GeneProperty;
 /
 
 quit;

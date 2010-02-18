@@ -1364,7 +1364,7 @@ public class AtlasDAO {
     /**
      * Writes array designs and associated data back to the database.
      */
-    public void writeArrayDesign(final ArrayDesign arrayDesign) {
+    public void writeAdf(final AdfFile adfFile) {
         // execute this procedure...
         /*
         PROCEDURE A2_ARRAYDESIGNSET(
@@ -1383,6 +1383,7 @@ public class AtlasDAO {
                         .useInParameterNames("TYPE")
                         .useInParameterNames("NAME")
                         .useInParameterNames("PROVIDER")
+                        .useInParameterNames("ENTRYPRIORITYLIST")
                         .useInParameterNames("DESIGNELEMENTS")
                         .declareParameters(
                                 new SqlParameter("ACCESSION", Types.VARCHAR))
@@ -1393,17 +1394,20 @@ public class AtlasDAO {
                         .declareParameters(
                                 new SqlParameter("PROVIDER", Types.VARCHAR))
                         .declareParameters(
+                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))                        
+                        .declareParameters(
                                 new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
 
         SqlTypeValue designElementsParam =
-                arrayDesign.getDesignElements().isEmpty() ? null :
-                        convertDesignElementsToOracleARRAY(arrayDesign.getDesignElements());
+                adfFile.elements.isEmpty() ? null :
+                        convertDesignElementsToOracleARRAY(adfFile.elements);
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ACCESSION", arrayDesign.getAccession())
-                .addValue("TYPE", arrayDesign.getType())
-                .addValue("NAME", arrayDesign.getName())
-                .addValue("PROVIDER", arrayDesign.getProvider())
+        params.addValue("ACCESSION", adfFile.arrayDesignName)
+                .addValue("TYPE", adfFile.arrayDesignType)
+                .addValue("NAME", adfFile.arrayDesignName)  //EQUAL TO ACCESSION ??
+                .addValue("PROVIDER", adfFile.arrayDesignProvider)
+                .addValue("ENTRYPRIORITYLIST", "adfFile.entryPriorityList") //TODO
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);
@@ -1830,37 +1834,30 @@ public class AtlasDAO {
         }
     }
 
-    private SqlTypeValue convertDesignElementsToOracleARRAY(final Map<Integer, String> designElements) {
+    private SqlTypeValue convertDesignElementsToOracleARRAY(final List<AdfFile.CompositeElement> designElements) {
                 return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // this should be creating an oracle ARRAY of expression values
-                // the array of STRUCTS representing each expression value
-                Object[] deArrayValues;
-                if (designElements != null && !designElements.isEmpty()) {
-                    deArrayValues = new Object[designElements.size()];
+                if(null==designElements)
+                    return null;
 
-                    // convert each property to an oracle STRUCT
-                    // descriptor for DESIGNELEMENT type
-                    StructDescriptor structDescriptor =
-                            StructDescriptor.createDescriptor("DESIGNELEMENT", connection);
-                    int i = 0;
-                    Object[] deStructValues = new Object[2];
-                    for (Map.Entry<Integer, String> designElement : designElements.entrySet()) {
-                        // array representing the values to go in the STRUCT
-                        deStructValues[0] = designElement.getKey();
-                        deStructValues[1] = designElement.getValue();
+                List<Object> deArrayValues = new ArrayList<Object>();
 
-                        deArrayValues[i++] = new STRUCT(structDescriptor, connection, deStructValues);
+                StructDescriptor structDescriptor =
+                        StructDescriptor.createDescriptor("DESIGNELEMENT2", connection);
+
+                for(AdfFile.CompositeElement compositeElement : designElements){
+                    for(AdfFile.DatabaseEntry databaseEntry : compositeElement.entries){
+                        Object[] deStructValues = new Object[3];
+                        deStructValues[0] = compositeElement.name;
+                        deStructValues[1] = databaseEntry.name;
+                        deStructValues[2] = databaseEntry.value;
+
+                        deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));
                     }
+                }
 
-                    // created the array of STRUCTs, group into ARRAY
-                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                    return new ARRAY(arrayDescriptor, connection, deArrayValues);
-                }
-                else {
-                    // throw an SQLException, as we cannot create a ARRAY with an empty array
-                    throw new SQLException("Unable to create an ARRAY from an empty list of design elements");
-                }
+                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                return new ARRAY(arrayDescriptor, connection, deArrayValues.toArray());
             }
         };
     }
