@@ -114,29 +114,29 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
-        parser.addErrorItemListener(new ErrorItemListener() {
-
-            public void errorOccurred(ErrorItem item) {
-                // lookup message
-                String message = "";
-                for (ErrorCode ec : ErrorCode.values()) {
-                    if (item.getErrorCode() == ec.getIntegerValue()) {
-                        message = ec.getErrorMessage();
-                        break;
-                    }
-                }
-                if (message.equals("")) {
-                    message = "Unknown error";
-                }
-
-                // log the error
-                System.err.println(
-                        "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-                                "occurred in parsing " + item.getParsedFile() + " " +
-                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-            }
-        });
+//        parser.addErrorItemListener(new ErrorItemListener() {
+//
+//            public void errorOccurred(ErrorItem item) {
+//                // lookup message
+//                String message = "";
+//                for (ErrorCode ec : ErrorCode.values()) {
+//                    if (item.getErrorCode() == ec.getIntegerValue()) {
+//                        message = ec.getErrorMessage();
+//                        break;
+//                    }
+//                }
+//                if (message.equals("")) {
+//                    message = "Unknown error";
+//                }
+//
+//                // log the error
+//                System.err.println(
+//                        "Parser reported:\n\t" +
+//                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+//                                "occurred in parsing " + item.getParsedFile() + " " +
+//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+//            }
+//        });
 
         try {
             parser.parse(parseURL, investigation);
@@ -192,29 +192,29 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
-        parser.addErrorItemListener(new ErrorItemListener() {
-
-            public void errorOccurred(ErrorItem item) {
-                // lookup message
-                String message = "";
-                for (ErrorCode ec : ErrorCode.values()) {
-                    if (item.getErrorCode() == ec.getIntegerValue()) {
-                        message = ec.getErrorMessage();
-                        break;
-                    }
-                }
-                if (message.equals("")) {
-                    message = "Unknown error";
-                }
-
-                // log the error
-                System.err.println(
-                        "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-                                "occurred in parsing " + item.getParsedFile() + " " +
-                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-            }
-        });
+//        parser.addErrorItemListener(new ErrorItemListener() {
+//
+//            public void errorOccurred(ErrorItem item) {
+//                // lookup message
+//                String message = "";
+//                for (ErrorCode ec : ErrorCode.values()) {
+//                    if (item.getErrorCode() == ec.getIntegerValue()) {
+//                        message = ec.getErrorMessage();
+//                        break;
+//                    }
+//                }
+//                if (message.equals("")) {
+//                    message = "Unknown error";
+//                }
+//
+//                // log the error
+//                System.err.println(
+//                        "Parser reported:\n\t" +
+//                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+//                                "occurred in parsing " + item.getParsedFile() + " " +
+//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+//            }
+//        });
 
         try {
             parser.parse(parseURL, investigation);
@@ -260,29 +260,29 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
-        parser.addErrorItemListener(new ErrorItemListener() {
-
-            public void errorOccurred(ErrorItem item) {
-                // lookup message
-                String message = "";
-                for (ErrorCode ec : ErrorCode.values()) {
-                    if (item.getErrorCode() == ec.getIntegerValue()) {
-                        message = ec.getErrorMessage();
-                        break;
-                    }
-                }
-                if (message.equals("")) {
-                    message = "Unknown error";
-                }
-
-                // log the error
-                System.err.println(
-                        "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-                                "occurred in parsing " + item.getParsedFile() + " " +
-                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-            }
-        });
+//        parser.addErrorItemListener(new ErrorItemListener() {
+//
+//            public void errorOccurred(ErrorItem item) {
+//                // lookup message
+//                String message = "";
+//                for (ErrorCode ec : ErrorCode.values()) {
+//                    if (item.getErrorCode() == ec.getIntegerValue()) {
+//                        message = ec.getErrorMessage();
+//                        break;
+//                    }
+//                }
+//                if (message.equals("")) {
+//                    message = "Unknown error";
+//                }
+//
+//                // log the error
+//                System.err.println(
+//                        "Parser reported:\n\t" +
+//                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+//                                "occurred in parsing " + item.getParsedFile() + " " +
+//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+//            }
+//        });
 
         try {
             parser.parse(parseURL, investigation);
