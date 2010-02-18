@@ -1,7 +1,7 @@
 package ae3.model;
 
 import ae3.dao.AtlasDao;
-import ae3.restresult.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;

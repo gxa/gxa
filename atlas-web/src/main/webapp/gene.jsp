@@ -2,38 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f"%>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@page import="ae3.dao.AtlasDao"%>
-<%@page import="ae3.model.AtlasGene"%>
-<%@page import="uk.ac.ebi.gxa.web.Atlas"%>
 <c:set var="timeStart" value="${u:currentTime()}" />
-<%
-
-	String geneId = request.getParameter("gid");
-
-    AtlasDao dao = (AtlasDao)application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-
-	if (geneId != null || !"".equals(geneId)) {
-        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneId);
-		if(result.isMulti()) {
-	        response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
-	        return;
-		}
-
-        if(!result.isFound()) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            request.setAttribute("errorMessage", "There are no records for gene " + String.valueOf(geneId));
-            request.getRequestDispatcher("/error.jsp").forward(request,response);
-            return;
-        }
-
-        AtlasGene gene = result.getGene();
-        dao.retrieveOrthoGenes(gene);
-
-        request.setAttribute("heatMapRows", gene.getHeatMapRows());
-        request.setAttribute("atlasGene", gene);
-        request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
-    }
-%>
 <jsp:include page="start_head.jsp" />
 Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
 <jsp:include page="end_head.jsp" />

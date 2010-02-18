@@ -7,7 +7,7 @@ import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
 import ae3.util.AtlasProperties;
-import ae3.restresult.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

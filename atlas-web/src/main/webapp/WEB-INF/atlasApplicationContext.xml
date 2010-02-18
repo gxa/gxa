@@ -186,13 +186,13 @@
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
 
-    <bean name="queryServlet" class="ae3.servlet.structuredquery.StructuredQueryServlet">
+    <bean name="queryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.AtlasQueryRequestHandler">
         <property name="queryService" ref="atlasQueryService"/>
         <property name="downloadService" ref="atlasDownloadService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="autocompleterServlet" class="ae3.servlet.structuredquery.FactorValuesServlet">
+    <bean name="autocompleterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FactorValuesRequestHandler">
         <property name="autoCompleters">
             <util:map>
                 <entry key="gene">
@@ -220,11 +220,11 @@
         </property>
     </bean>
 
-    <bean name="efoServlet" class="ae3.servlet.structuredquery.EfoServlet">
+    <bean name="efoRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.EfoRequestHandler">
         <property name="efoService" ref="atlasEfoService"/>
     </bean>
 
-    <bean name="apiQueryServlet" class="ae3.servlet.structuredquery.ApiStructuredQueryServlet">
+    <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
@@ -232,45 +232,49 @@
         <property name="netCDFPath" ref="atlasNetCDFRepo"/>
     </bean>
 
-    <bean name="experimentsServlet" class="ae3.servlet.structuredquery.ExperimentsServlet">
+    <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
     </bean>
 
-    <bean name="expGeneListServlet" class="ae3.servlet.ExpGeneListServlet">
+    <bean name="expGeneListRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.experimentpage.GeneListWidgetRequestHandler">
         <property name="queryService" ref="atlasQueryService"/>
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
-    <bean name="geneIdsDownloadServlet" class="ae3.servlet.GeneIdentifiersDumpDownloadServlet">
+    <bean name="geneIdsDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="ebeyeDownloadServlet" class="ae3.servlet.GeneEbeyeDumpDownloadServlet">
+    <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="sitemapDownloadServlet" class="ae3.servlet.GoogleSitemapXmlServlet">
+    <bean name="sitemapDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="listviewDownloadServlet" class="ae3.servlet.ListviewDownloadServlet">
+    <bean name="listviewDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
     </bean>
 
-    <bean name="plotterServlet" class="ae3.servlet.PlotterServlet">
+    <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">
         <property name="plotter" ref="atlasPlotter" />
     </bean>
 
-    <bean name="experimentPageServlet" class="ae3.servlet.ExperimentPageServlet">
+    <bean name="experimentPageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
     </bean>
 
-    <bean name="downloadsProgressServlet" class="ae3.servlet.DownloadProgressServlet">
+    <bean name="genePageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.GenePageRequestHandler">
+        <property name="atlasSolrDao" ref="atlasSolrDAO"/>
+    </bean>
+
+    <bean name="downloadsProgressRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.download.DownloadProgressRequestHandler">
         <property name="downloadService" ref="atlasDownloadService"/>
     </bean>
 

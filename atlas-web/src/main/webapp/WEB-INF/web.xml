@@ -153,7 +153,7 @@
     <servlet>
         <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>
-        <servlet-class>ae3.servlet.TableHeaderServlet</servlet-class>
+        <servlet-class>uk.ac.ebi.gxa.requesthandlers.query.TableHeaderServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
 
@@ -164,157 +164,156 @@
 
     <servlet>
         <display-name>Auto completion helper</display-name>
-        <servlet-name>autocompleterServlet</servlet-name>
+        <servlet-name>autocompleterRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>autocompleterServlet</servlet-name>
+        <servlet-name>autocompleterRequestHandler</servlet-name>
         <url-pattern>/fval</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>EFO ajax helper</display-name>
-        <servlet-name>efoServlet</servlet-name>
+        <servlet-name>efoRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>efoServlet</servlet-name>
+        <servlet-name>efoRequestHandler</servlet-name>
         <url-pattern>/efo</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Gene Identifiers Dump</display-name>
-        <servlet-name>geneIdsDownloadServlet</servlet-name>
+        <servlet-name>geneIdsDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>geneIdsDownloadServlet</servlet-name>
+        <servlet-name>geneIdsDownloadRequestHandler</servlet-name>
         <url-pattern>/download/gene_identifiers.txt</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Gene Ebeye Dump</display-name>
-        <servlet-name>ebeyeDownloadServlet</servlet-name>
+        <servlet-name>ebeyeDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>ebeyeDownloadServlet</servlet-name>
+        <servlet-name>ebeyeDownloadRequestHandler</servlet-name>
         <url-pattern>/download/ebeye_export.xml</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Google Sitemap</display-name>
-        <servlet-name>sitemapDownloadServlet</servlet-name>
+        <servlet-name>sitemapDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>sitemapDownloadServlet</servlet-name>
+        <servlet-name>sitemapDownloadRequestHandler</servlet-name>
         <url-pattern>/sitemap/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>List view download servlet</display-name>
-        <servlet-name>listviewDownloadServlet</servlet-name>
+        <servlet-name>listviewDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>listviewDownloadServlet</servlet-name>
+        <servlet-name>listviewDownloadRequestHandler</servlet-name>
         <url-pattern>/listviewdownload/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
-        <display-name>Gene View</display-name>
-        <servlet-name>gene</servlet-name>
-        <jsp-file>/gene.jsp</jsp-file>
-        <load-on-startup>0</load-on-startup>
+        <display-name>Gene Page Request Handler</display-name>
+        <servlet-name>genePageRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>gene</servlet-name>
+        <servlet-name>genePageRequestHandler</servlet-name>
         <url-pattern>/gene</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Experiment View</display-name>
-        <servlet-name>experimentPageServlet</servlet-name>
+        <servlet-name>experimentPageRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>experimentPageServlet</servlet-name>
+        <servlet-name>experimentPageRequestHandler</servlet-name>
         <url-pattern>/experiment</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Search Servlet</display-name>
-        <servlet-name>queryServlet</servlet-name>
+        <servlet-name>queryRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>queryServlet</servlet-name>
+        <servlet-name>queryRequestHandler</servlet-name>
         <url-pattern>/qrs</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>API Search JSP Servlet</display-name>
-        <servlet-name>apiQueryServlet</servlet-name>
+        <servlet-name>apiQueryRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>apiQueryServlet</servlet-name>
+        <servlet-name>apiQueryRequestHandler</servlet-name>
         <url-pattern>/api</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Experiments servlet</display-name>
-        <servlet-name>experimentsServlet</servlet-name>
+        <servlet-name>experimentsRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>experimentsServlet</servlet-name>
+        <servlet-name>experimentsRequestHandler</servlet-name>
         <url-pattern>/experiments</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>ExperimentGeneList servlet</display-name>
-        <servlet-name>expGeneListServlet</servlet-name>
+        <servlet-name>expGeneListRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>expGeneListServlet</servlet-name>
+        <servlet-name>expGeneListRequestHandler</servlet-name>
         <url-pattern>/expGenes</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Plotter servlet</display-name>
-        <servlet-name>plotterServlet</servlet-name>
+        <servlet-name>plotterRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>plotterServlet</servlet-name>
+        <servlet-name>plotterRequestHandler</servlet-name>
         <url-pattern>/plot</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <display-name>Downloads Progress servlet</display-name>
-        <servlet-name>downloadsProgressServlet</servlet-name>
+        <servlet-name>downloadsProgressRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>downloadsProgressServlet</servlet-name>
+        <servlet-name>downloadsProgressRequestHandler</servlet-name>
         <url-pattern>/downloads</url-pattern>
     </servlet-mapping>
 

@@ -1,6 +1,6 @@
 package ae3.model;
 
-import ae3.restresult.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 /**
  * Class, representing array design for {@link ae3.model.ExperimentalData} object
