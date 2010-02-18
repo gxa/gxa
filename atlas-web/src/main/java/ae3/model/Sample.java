@@ -1,7 +1,7 @@
 package ae3.model;
 
-import ae3.restresult.RestOut;
-import ae3.restresult.XmlRestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.util.HashSet;

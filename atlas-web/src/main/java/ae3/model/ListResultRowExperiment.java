@@ -1,6 +1,6 @@
 package ae3.model;
 
-import ae3.restresult.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.index.Expression;
 
 /**

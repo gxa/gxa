@@ -1,10 +1,8 @@
 package ae3.model;
 
-import ae3.dao.NetCDFReader;
-import ae3.restresult.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.apache.solr.common.SolrDocument;
 
-import java.io.IOException;
 import java.util.*;
 
 @RestOut(xmlItemName ="experiment")

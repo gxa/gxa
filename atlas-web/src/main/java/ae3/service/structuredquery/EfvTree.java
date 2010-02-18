@@ -1,7 +1,7 @@
 package ae3.service.structuredquery;
 
-import ae3.restresult.RestOut;
-import ae3.servlet.structuredquery.result.ExperimentRestProfile;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentRestProfile;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
