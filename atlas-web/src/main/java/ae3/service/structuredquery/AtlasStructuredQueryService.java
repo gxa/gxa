@@ -721,7 +721,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_up")) > threshold)
+                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -729,7 +729,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + efo + "_s_dn")) > threshold)
+                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_dn")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -753,7 +753,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
                 if(usingEfv) {
                     cellId = efv.getEfEfvId();
                 } else {
-                    cellId = "efo_" + efo.getId();
+                    cellId = EscapeUtil.encode("efo", efo.getId());
                 }
 
                 UpdownCounter counter = new UpdownCounter(
@@ -923,10 +923,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
             }
             for(String id : qstate.getEfos().getEfoIds())
             {
-                q.addField("cnt_efo_" + id + "_up");
-                q.addField("cnt_efo_" + id + "_dn");
-                q.addField("minpval_efo_" + id + "_up");
-                q.addField("minpval_efo_" + id + "_dn");
+                String ide = EscapeUtil.encode(id);
+                q.addField("cnt_efo_" + ide + "_up");
+                q.addField("cnt_efo_" + ide + "_dn");
+                q.addField("minpval_efo_" + ide + "_up");
+                q.addField("minpval_efo_" + ide + "_dn");
             }
 
             q.addField("score");
