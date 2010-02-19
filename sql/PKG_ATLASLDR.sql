@@ -212,8 +212,8 @@ begin
   exception
      when NO_DATA_FOUND then
      begin
-      insert into A2_Assay(Accession,ExperimentID,ArrayDesignID)
-      values (A2_AssaySet.Accession,A2_AssaySet.ExperimentID,A2_AssaySet.ArrayDesignID);
+      insert into A2_Assay(AssayID, Accession,ExperimentID,ArrayDesignID)
+      values (A2_ASSAY_SEQ.nextval,A2_AssaySet.Accession,A2_AssaySet.ExperimentID,A2_AssaySet.ArrayDesignID);
       
       Select a2_Assay_seq.currval into A2_AssaySet.AssayID from dual;
      end;
