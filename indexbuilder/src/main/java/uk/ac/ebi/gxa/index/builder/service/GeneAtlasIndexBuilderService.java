@@ -363,6 +363,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 Map<String, UpDnSet> efoupdn) {
         for (Map.Entry<String, UpDnSet> e : efoupdn.entrySet()) {
             String accession = e.getKey();
+            String accessionE = EscapeUtil.encode(accession);
             UpDnSet ud = e.getValue();
 
             ud.childrenUp.addAll(ud.up);
@@ -375,32 +376,32 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             double pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
 
             if (cup > 0) {
-                solrDoc.addField("cnt_efo_" + accession + "_up", cup);
-                solrDoc.addField("minpval_efo_" + accession + "_up", pup);
+                solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
+                solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
             }
             if (cdn > 0) {
-                solrDoc.addField("cnt_efo_" + accession + "_dn", cdn);
-                solrDoc.addField("minpval_efo_" + accession + "_dn", pdn);
+                solrDoc.addField("cnt_efo_" + accessionE + "_dn", cdn);
+                solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
             }
             if (ud.up.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accession + "_s_up", ud.up.size());
-                solrDoc.addField("minpval_efo_" + accession + "_s_up", ud.minpvalUp);
+                solrDoc.addField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
+                solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
             }
             if (ud.dn.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accession + "_s_dn", ud.dn.size());
-                solrDoc.addField("minpval_efo_" + accession + "_s_dn", ud.minpvalDn);
+                solrDoc.addField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
+                solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
             }
 
             if (cup > 0) {
-                solrDoc.addField("s_efo_" + accession + "_up",
+                solrDoc.addField("s_efo_" + accessionE + "_up",
                                  shorten(cup * (1.0 - pup) - cdn * (1.0 - pdn)));
             }
             if (cdn > 0) {
-                solrDoc.addField("s_efo_" + accession + "_dn",
+                solrDoc.addField("s_efo_" + accessionE + "_dn",
                                  shorten(cdn * (1.0 - pdn) - cup * (1.0 - pup)));
             }
             if (cup + cdn > 0) {
-                solrDoc.addField("s_efo_" + accession + "_ud",
+                solrDoc.addField("s_efo_" + accessionE + "_ud",
                                  shorten(cup * (1.0 - pup) + cdn * (1.0 - pdn)));
             }
 

@@ -171,7 +171,7 @@ class Loader {
     }
 
     private String getId(OWLClass cls) {
-        return cls.getURI().getPath().replaceAll("^.*/", "");
+        return cls.getURI().toString().replaceAll("^.*?([^#/=?]+)$", "$1");
     }
 
     private Collection<EfoNode> loadClass(OWLClass cls) throws OWLReasonerException {
