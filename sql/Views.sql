@@ -41,7 +41,7 @@ SELECT distinct e.accession,
          e.ExperimentID 
   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
-  JOIN a2_assayPV apv ON apv.assayPVID = ass.AssayID
+  JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
   JOIN a2_assayPVontology ao ON ao.AssayPVID = apv.assayPVID
   JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
