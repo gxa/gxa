@@ -11,10 +11,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonAffiliationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
@@ -26,10 +23,7 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
-import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
-import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
-import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
-import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
+import uk.ac.ebi.gxa.loader.handler.sdrf.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
@@ -148,6 +142,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                                  AtlasLoadingAssayHandler.class);
         pool.replaceHandlerClass(HybridizationHandler.class,
                                  AtlasLoadingHybridizationHandler.class);
+        pool.replaceHandlerClass(FactorValueNodeHandler.class,
+                                 AtlasLoadUpdatingFactorValueNodeHandler.class);
         pool.replaceHandlerClass(DerivedArrayDataMatrixHandler.class,
                                  AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
@@ -442,7 +438,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     private void trimMissingDesignElements(Assay assay, Set<String> missingDesignElements) {
         for (String deAcc : missingDesignElements) {
             if (assay.getExpressionValuesByDesignElementReference().containsKey(deAcc)) {
-                getLog().debug("Missing design element " + deAcc + " will be " +
+                getLog().trace("Missing design element " + deAcc + " will be " +
                         "removed from this assay - not in database.");
                 assay.getExpressionValuesByDesignElementReference().remove(deAcc);
             }
