@@ -105,6 +105,10 @@ for rec in c1
 
     Delta := MaxID - rec.LAST_NUMBER;
     
+    if (Delta <= 0) then 
+      Delta := 20; ---we have unexplained PK violation, probably related to sequence cache
+    end if;
+    
     if (Delta > 0) then
     q := 'ALTER SEQUENCE $SEQUENCE_NAME INCREMENT BY $DELTA';
     q := REPLACE(q,'$SEQUENCE_NAME',rec.SEQUENCE_NAME); 
