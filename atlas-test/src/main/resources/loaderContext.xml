@@ -35,8 +35,8 @@
 
     <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>
-        <property name="username" value="atlas2test"/>
+        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:AE2TST"/>
+        <property name="username" value="atlas2"/>
         <property name="password" value="atlas2"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="initialSize" value="32"/>
@@ -62,11 +62,11 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/atlas/index"/>
+        <constructor-arg value="/home/tburdett/atlas/index"/>
     </bean>
 
     <bean id="efoIndex" class="java.io.File">
-        <constructor-arg value="/atlas/efoindex"/>
+        <constructor-arg value="/home/tburdett/atlas/efoindex"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
