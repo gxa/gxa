@@ -622,7 +622,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
         if(Constants.EFO_FACTOR_NAME.equals(factor) || null == factor) {
             Efo efo = getEfo();
             for(String v : values) {
-                for(EfoTerm term : efo.searchTerm(v)) {
+                for(EfoTerm term : efo.searchTerm(EscapeUtil.escapeSolr(v))) {
                     condEfvs.put(Constants.EFO_FACTOR_NAME, term.getId(), true);
                 }
             }
