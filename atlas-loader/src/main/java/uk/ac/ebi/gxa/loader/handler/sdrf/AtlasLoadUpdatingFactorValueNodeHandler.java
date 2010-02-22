@@ -6,6 +6,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.List;
@@ -32,14 +33,14 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
             if (assay != null) {
                 if (assay.getProperties() == null) {
                     if (assayNode.factorValues.size() != 0) {
-                        // todo - add new properties
-                        System.out.println("Factor Values need updating for " + assay.getAccession());
+                        getLog().debug("Factor Values need adding for " + assay.getAccession());
+                        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
                     }
                 }
                 else {
                     if (assay.getProperties().size() != assayNode.factorValues.size()) {
-                        // todo - add extra properties
-                        System.out.println("Factor Values need adding for " + assay.getAccession());
+                        getLog().debug("Factor Values need updating for " + assay.getAccession());
+                        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
                     }
                 }
             }
@@ -47,20 +48,19 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
 
         // now, diff hyb nodes with the assays in the cache
         for (HybridizationNode hybridizationNode : hybridizationNodes) {
-            System.out.println("Looking for assays with name " + hybridizationNode.getNodeName());
             Assay assay = cache.fetchAssay(hybridizationNode.getNodeName());
 
             if (assay != null) {
                 if (assay.getProperties() == null) {
                     if (hybridizationNode.factorValues.size() != 0) {
-                        // todo - add new properties
-                        System.out.println("Factor Values need updating for " + assay.getAccession());
+                        getLog().debug("Factor Values need adding for " + assay.getAccession());
+                        SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
                     }
                 }
                 else {
                     if (assay.getProperties().size() != hybridizationNode.factorValues.size()) {
-                        // todo - add extra properties
-                        System.out.println("Factor Values need adding for " + assay.getAccession());
+                        getLog().debug("Factor Values need updating for " + assay.getAccession());
+                        SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
                     }
                 }
             }
