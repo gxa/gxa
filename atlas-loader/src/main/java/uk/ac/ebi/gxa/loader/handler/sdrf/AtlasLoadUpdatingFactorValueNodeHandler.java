@@ -23,44 +23,50 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
         AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
 
         // lookup hyb/assay nodes in the graph
-        List<AssayNode> assayNodes = investigation.SDRF.lookupNodes(AssayNode.class);
-        List<HybridizationNode> hybridizationNodes = investigation.SDRF.lookupNodes(HybridizationNode.class);
+        synchronized (investigation) {
+            List<AssayNode> assayNodes = investigation.SDRF.lookupNodes(AssayNode.class);
+            List<HybridizationNode> hybridizationNodes = investigation.SDRF.lookupNodes(HybridizationNode.class);
 
-        // now, diff assay nodes with the assays in the cache
-        for (AssayNode assayNode : assayNodes) {
-            Assay assay = cache.fetchAssay(assayNode.getNodeName());
+            // now, diff assay nodes with the assays in the cache
+            for (AssayNode assayNode : assayNodes) {
+                Assay assay = cache.fetchAssay(assayNode.getNodeName());
 
-            if (assay != null) {
-                if (assay.getProperties() == null) {
-                    if (assayNode.factorValues.size() != 0) {
-                        getLog().debug("Factor Values need adding for " + assay.getAccession());
-                        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
-                    }
-                }
-                else {
-                    if (assay.getProperties().size() != assayNode.factorValues.size()) {
-                        getLog().debug("Factor Values need updating for " + assay.getAccession());
-                        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
+                if (assay != null) {
+                    synchronized (assay) {
+                        if (assay.getProperties() == null) {
+                            if (assayNode.factorValues.size() != 0) {
+                                getLog().debug("Factor Values need adding for " + assay.getAccession());
+                                SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
+                            }
+                        }
+                        else {
+                            if (assay.getProperties().size() != assayNode.factorValues.size()) {
+                                getLog().debug("Factor Values need updating for " + assay.getAccession());
+                                SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        // now, diff hyb nodes with the assays in the cache
-        for (HybridizationNode hybridizationNode : hybridizationNodes) {
-            Assay assay = cache.fetchAssay(hybridizationNode.getNodeName());
+            // now, diff hyb nodes with the assays in the cache
+            for (HybridizationNode hybridizationNode : hybridizationNodes) {
+                Assay assay = cache.fetchAssay(hybridizationNode.getNodeName());
 
-            if (assay != null) {
-                if (assay.getProperties() == null) {
-                    if (hybridizationNode.factorValues.size() != 0) {
-                        getLog().debug("Factor Values need adding for " + assay.getAccession());
-                        SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
-                    }
-                }
-                else {
-                    if (assay.getProperties().size() != hybridizationNode.factorValues.size()) {
-                        getLog().debug("Factor Values need updating for " + assay.getAccession());
-                        SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
+                if (assay != null) {
+                    synchronized (assay) {
+                        if (assay.getProperties() == null) {
+                            if (hybridizationNode.factorValues.size() != 0) {
+                                getLog().debug("Factor Values need adding for " + assay.getAccession());
+                                SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
+                            }
+                        }
+                        else {
+                            if (assay.getProperties().size() != hybridizationNode.factorValues.size()) {
+                                getLog().debug("Factor Values need updating for " + assay.getAccession());
+                                SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
+                            }
+                        }
                     }
                 }
             }

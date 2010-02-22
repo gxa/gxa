@@ -1,10 +1,7 @@
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import junit.framework.TestCase;
-import org.mged.magetab.error.ErrorCode;
-import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
@@ -17,11 +14,8 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
-import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Javadocs go here.
@@ -42,7 +36,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
-        AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
@@ -62,7 +56,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         counter = 0;
     }
 

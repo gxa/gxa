@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader.utils;
 
 import org.apache.commons.logging.Log;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.Handler;
@@ -12,6 +13,7 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -211,6 +213,50 @@ public class AtlasLoaderUtils {
         else {
             return null;
         }
+    }
+
+    public static ArrayDesignBundle waitForArrayDesignBundle(String accession,
+                                                             MAGETABArrayDesign arrayDesign,
+                                                             String handlerName,
+                                                             Log log) throws LookupException {
+        // retrieve object bag
+        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(arrayDesign);
+
+        // check the identifier is not null
+        if (accession == null) {
+            throw new LookupException("Cannot lookup an object using a null accession");
+        }
+
+        log.debug(handlerName + " doing lookup for experiment " + accession);
+        log.trace("Thread [" + Thread.currentThread().getName() + "] polling for dependent object");
+        // fetch from the bag
+        while (cache.fetchArrayDesignBundle(accession) == null &&
+                arrayDesign.getStatus() != Status.COMPLETE &&
+                arrayDesign.getStatus() != Status.FAILED) {
+            // object isn't in the bag yet, so wait
+            synchronized (cache) {
+                try {
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] waiting, no result yet");
+                    // wait for new objects to be available
+                    cache.wait(1000);
+                    log.trace("Thread [" + Thread.currentThread().getName() + "] resumed");
+                }
+                catch (InterruptedException e) {
+                    if (arrayDesign.getStatus() == Status.FAILED) {
+                        log.warn(handlerName + " was interrupted by a failure elsewhere " +
+                                "whilst waiting for array design bundle " + accession + " and is terminating");
+                        throw new LookupException(
+                                "Interrupted by a fail whilst waiting " + " for array design bundle " + accession);
+                    }
+                    else {
+                        // interrupted but no fail, so safe to continue
+                    }
+                }
+            }
+        }
+        log.debug(handlerName + " resumed after dependent object obtained");
+        return cache.fetchArrayDesignBundle(accession);
+
     }
 
     /**

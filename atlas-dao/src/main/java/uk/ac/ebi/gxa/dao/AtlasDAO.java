@@ -33,14 +33,21 @@ import java.util.*;
  */
 public class AtlasDAO {
     // load monitor
-    public static final String LOAD_MONITOR_SELECT =
+    public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
             "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
                     "FROM load_monitor " +
                     "WHERE load_type='experiment'";
-    public static final String LOAD_MONITOR_BY_ACC_SELECT =
-            LOAD_MONITOR_SELECT + " " +
+    public static final String ARRAY_LOAD_MONITOR_SELECT =
+            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
+                    "FROM load_monitor " +
+                    "WHERE load_type='arraydesign'";
+    public static final String EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT =
+            EXPERIMENT_LOAD_MONITOR_SELECT + " " +
                     "AND accession=?";
-    public static final String LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
+    public static final String ARRAY_LOAD_MONITOR_BY_ACC_SELECT =
+            ARRAY_LOAD_MONITOR_SELECT + " " +
+                    "AND accession=?";
+    public static final String EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
             "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
                     "SELECT ROWNUM r, accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
                     "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
@@ -407,13 +414,20 @@ public class AtlasDAO {
     */
 
     public List<LoadDetails> getLoadDetailsForExperiments() {
-        List results = template.query(LOAD_MONITOR_SELECT,
+        List results = template.query(EXPERIMENT_LOAD_MONITOR_SELECT,
                                       new LoadDetailsMapper());
         return (List<LoadDetails>) results;
     }
 
     public LoadDetails getLoadDetailsForExperimentsByAccession(String accession) {
-        List results = template.query(LOAD_MONITOR_BY_ACC_SELECT,
+        List results = template.query(EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT,
+                                      new Object[]{accession},
+                                      new LoadDetailsMapper());
+        return results.size() > 0 ? (LoadDetails) results.get(0) : null;
+    }
+
+    public LoadDetails getLoadDetailsForArrayDesignsByAccession(String accession) {
+        List results = template.query(ARRAY_LOAD_MONITOR_BY_ACC_SELECT,
                                       new Object[]{accession},
                                       new LoadDetailsMapper());
         return results.size() > 0 ? (LoadDetails) results.get(0) : null;
@@ -423,9 +437,10 @@ public class AtlasDAO {
         int offset = (pageNumber - 1) * experimentsPerPage;
         int rowcount = pageNumber * experimentsPerPage;
 
-        log.debug("Query is {}, from " + offset + " to " + rowcount, LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS);
+        log.debug("Query is {}, from " + offset + " to " + rowcount,
+                  EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS);
 
-        List results = template.query(LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS,
+        List results = template.query(EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS,
                                       new Object[]{offset, rowcount},
                                       new LoadDetailsMapper());
 
@@ -1363,8 +1378,10 @@ public class AtlasDAO {
 
     /**
      * Writes array designs and associated data back to the database.
+     *
+     * @param arrayDesignBundle an object encapsulating the array design data that must be written to the database
      */
-    public void writeAdf(final AdfFile adfFile) {
+    public void writeArrayDesignBundle(ArrayDesignBundle arrayDesignBundle) {
         // execute this procedure...
         /*
         PROCEDURE A2_ARRAYDESIGNSET(
@@ -1394,19 +1411,19 @@ public class AtlasDAO {
                         .declareParameters(
                                 new SqlParameter("PROVIDER", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))                        
+                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
 
         SqlTypeValue designElementsParam =
-                adfFile.elements.isEmpty() ? null :
-                        convertDesignElementsToOracleARRAY(adfFile.elements);
+                arrayDesignBundle.getDesignElementNames().isEmpty() ? null :
+                        convertDesignElementsToOracleARRAY(arrayDesignBundle);
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ACCESSION", adfFile.arrayDesignName)
-                .addValue("TYPE", adfFile.arrayDesignType)
-                .addValue("NAME", adfFile.arrayDesignName)  //EQUAL TO ACCESSION ??
-                .addValue("PROVIDER", adfFile.arrayDesignProvider)
+        params.addValue("ACCESSION", arrayDesignBundle.getAccession())
+                .addValue("TYPE", arrayDesignBundle.getType())
+                .addValue("NAME", arrayDesignBundle.getName())  //EQUAL TO ACCESSION ??
+                .addValue("PROVIDER", arrayDesignBundle.getProvider())
                 .addValue("ENTRYPRIORITYLIST", "adfFile.entryPriorityList") //TODO
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
@@ -1440,6 +1457,33 @@ public class AtlasDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experimentAccession);
+
+        procedure.execute(params);
+    }
+
+    /**
+     * Deletes the array design with the given accession from the database.  If this array design is not present, this
+     * does nothing.
+     *
+     * @param arrayDesignAccession the accession of the array design to remove
+     */
+    public void deleteArrayDesign(final String arrayDesignAccession) {
+        // execute this procedure...
+        /*
+        PROCEDURE A2_ARRAYDESIGNDELETE(
+          Accession varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ARRAYDESIGNDELETE")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("ACCESSION")
+                        .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR));
+
+        // map parameters...
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ACCESSION", arrayDesignAccession);
 
         procedure.execute(params);
     }
@@ -1834,23 +1878,21 @@ public class AtlasDAO {
         }
     }
 
-    private SqlTypeValue convertDesignElementsToOracleARRAY(final List<AdfFile.CompositeElement> designElements) {
-                return new AbstractSqlTypeValue() {
+    private SqlTypeValue convertDesignElementsToOracleARRAY(final ArrayDesignBundle arrayDesignBundle) {
+        return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                if(null==designElements)
-                    return null;
-
                 List<Object> deArrayValues = new ArrayList<Object>();
 
                 StructDescriptor structDescriptor =
                         StructDescriptor.createDescriptor("DESIGNELEMENT2", connection);
 
-                for(AdfFile.CompositeElement compositeElement : designElements){
-                    for(AdfFile.DatabaseEntry databaseEntry : compositeElement.entries){
+                for (String designElementName : arrayDesignBundle.getDesignElementNames()) {
+                    for (Map.Entry<String, String> databaseEntry :
+                            arrayDesignBundle.getDatabaseEntriesForDesignElement(designElementName).entrySet()) {
                         Object[] deStructValues = new Object[3];
-                        deStructValues[0] = compositeElement.name;
-                        deStructValues[1] = databaseEntry.name;
-                        deStructValues[2] = databaseEntry.value;
+                        deStructValues[0] = designElementName;
+                        deStructValues[1] = databaseEntry.getKey();
+                        deStructValues[2] = databaseEntry.getValue();
 
                         deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));
                     }

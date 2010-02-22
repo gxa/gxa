@@ -203,7 +203,7 @@ public class DataSlice {
         sampleCharacteristicMap = new HashMap<String, List<String>>();
 
         // iterate over assays, create keys for the map
-        for (Assay assay : assays) {
+        for (Assay assay : getAssays()) {
             // check properties for next assay
             for (Property prop : assay.getProperties()) {
                 // seen this one before?
@@ -217,7 +217,7 @@ public class DataSlice {
 
         // now check all assays for values
         int propFreeAssayCount = 0;
-        for (Assay assay : assays) {
+        for (Assay assay : getAssays()) {
             // iterate over known properties
             for (String propName : experimentFactorMap.keySet()) {
                 // do next property
@@ -250,7 +250,7 @@ public class DataSlice {
 
 
         // iterate over samples, create keys for the map
-        for (Sample sample : samples) {
+        for (Sample sample : getSamples()) {
             // check properties for next sample
             for (Property prop : sample.getProperties()) {
                 // seen this one before?
@@ -264,7 +264,7 @@ public class DataSlice {
 
         // now check all samples for values
         int propFreeSampleCount = 0;
-        for (Sample sample : samples) {
+        for (Sample sample : getSamples()) {
             // iterate over known properties
             for (String propName : sampleCharacteristicMap.keySet()) {
                 // do next property

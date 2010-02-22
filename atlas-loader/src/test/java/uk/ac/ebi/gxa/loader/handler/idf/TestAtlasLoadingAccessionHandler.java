@@ -32,7 +32,7 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     investigation = new MAGETABInvestigation();
     cache = new AtlasLoadCache();
 
-    AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
+    AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
     parseURL = this.getClass().getClassLoader().getResource(
         "E-GEOD-3790.idf.txt");
@@ -45,7 +45,7 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
   }
 
   public void tearDown() throws Exception {
-    AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+    AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
     investigation = null;
     cache = null;
   }
