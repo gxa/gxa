@@ -62,7 +62,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         MAGETABInvestigation investigation = new MAGETABInvestigation();
 
         // pair this cache and this investigation in the registry
-        AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         try {
             // configure the handlers so we write out the right bits
@@ -119,7 +119,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             return writeObjects(cache);
         }
         finally {
-            AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+            AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
             cache.clear();
         }
     }

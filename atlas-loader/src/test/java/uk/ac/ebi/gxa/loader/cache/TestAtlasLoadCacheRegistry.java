@@ -29,7 +29,7 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
 
   public void testRegisterAndRetrieve() {
     // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().register(
+    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
         investigation,
         cache);
 
@@ -43,7 +43,7 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
     try {
       // try and register a different cache to the same investigation
       AtlasLoadCache cache2 = new AtlasLoadCache();
-      AtlasLoadCacheRegistry.getRegistry().register(
+      AtlasLoadCacheRegistry.getRegistry().registerExperiment(
           investigation,
           cache2);
 
@@ -57,12 +57,12 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
 
   public void testDeregister() {
     // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().register(
+    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
         investigation,
         cache);
 
     // now deregister
-    AtlasLoadCacheRegistry.getRegistry().deregister(
+    AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(
         investigation);
 
     // check we can't retrieve the cache
@@ -74,14 +74,14 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
 
   public void testReplace() {
     // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().register(
+    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
         investigation,
         cache);
 
     try {
       // try and register a different cache to the same investigation
       AtlasLoadCache cache2 = new AtlasLoadCache();
-      AtlasLoadCacheRegistry.getRegistry().replace(
+      AtlasLoadCacheRegistry.getRegistry().replaceExperiment(
           investigation,
           cache2);
 
@@ -100,7 +100,7 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
 
   public void testMerge() {
     // attempt to register cache, no objects in this
-    AtlasLoadCacheRegistry.getRegistry().register(
+    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
         investigation,
         cache);
 
@@ -115,7 +115,7 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
       exp.setAccession("TEST-EXP");
       cache2.addExperiment(exp);
 
-      AtlasLoadCacheRegistry.getRegistry().merge(
+      AtlasLoadCacheRegistry.getRegistry().mergeExperiments(
           investigation,
           cache2);
 

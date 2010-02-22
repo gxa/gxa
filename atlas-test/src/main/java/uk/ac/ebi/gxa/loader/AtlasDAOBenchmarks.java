@@ -404,7 +404,7 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetLoadDetails() {
         reportBenchmarks("getLoadDetailsForExperiments()",
-                         AtlasDAO.LOAD_MONITOR_SELECT,
+                         AtlasDAO.EXPERIMENT_LOAD_MONITOR_SELECT,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
                                  atlasDAO.getLoadDetailsForExperiments();
@@ -414,7 +414,7 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetLoadDetailsByAccession() {
         final String accession = this.extractParameter("load.details.accession");
-        reportBenchmarks("getLoadDetailsForExperimentsByAccession()", AtlasDAO.LOAD_MONITOR_BY_ACC_SELECT,
+        reportBenchmarks("getLoadDetailsForExperimentsByAccession()", AtlasDAO.EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
                                  atlasDAO.getLoadDetailsForExperimentsByAccession(accession);

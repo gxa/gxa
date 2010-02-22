@@ -505,28 +505,4 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
        getAtlasDAO().writeSample(sample);
     }
-
-    public void testWriteAdf() {
-
-        AdfFile adfFile = new AdfFile();
-        adfFile.arrayDesignName = "Affymetrix GeneChip Human Genome HG-U133A [HG-U133A]";
-        adfFile.arrayDesignProvider = "Affymetrix, Inc. (support@affymetrix.com)";
-        adfFile.arrayDesignType = "in_situ_oligo_features";
-        adfFile.entryPriorityList = new String[] {"ensembl","embl","unigene"};
-
-        /*read header line from file*/
-        String[] DatabaseEntryNames = new String[] {"embl","affymetrix_netaffx","blocks","interpro","locus","..."};
-
-        /*while not EOF*/{
-           String CompositeElementName = "Affymetrix:CompositeSequence:HG-U133A:AFFX-BioB-5_at"; //read_to_tab();
-           AdfFile.CompositeElement element = adfFile.createCompositeElement(CompositeElementName);
-
-           for(String entryName : DatabaseEntryNames){
-               String entryValue = "unknown"; //read_to_tab();
-               element.createDatabaseEntry(entryName,entryValue);
-           }
-        }
-
-        getAtlasDAO().writeAdf(adfFile);
-    }
 }

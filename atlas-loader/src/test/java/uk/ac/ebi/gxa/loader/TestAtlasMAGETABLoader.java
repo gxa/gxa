@@ -1,10 +1,6 @@
 package uk.ac.ebi.gxa.loader;
 
-import junit.framework.AssertionFailedError;
-import org.mged.magetab.error.ErrorCode;
-import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
@@ -27,7 +23,6 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -54,7 +49,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
-        AtlasLoadCacheRegistry.getRegistry().register(investigation, cache);
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
@@ -63,7 +58,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
 
-        AtlasLoadCacheRegistry.getRegistry().deregister(investigation);
+        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         investigation = null;
         cache = null;
     }
