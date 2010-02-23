@@ -60,6 +60,8 @@ public abstract class IndexBuilderService {
      */
     public void buildIndex(boolean pendingOnly) throws IndexBuilderException {
         try {
+            if(!pendingOnly)
+                getSolrServer().deleteByQuery("[* TO *]");
             createIndexDocs(pendingOnly);
             getSolrServer().commit();
             getSolrServer().optimize();
