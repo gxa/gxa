@@ -14,7 +14,6 @@ PROCEDURE A2_ARRAYDESIGNSET(
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
-  ,EntryPriorityList varchar2
   ,DesignElements DesignElementTable 
 ); 
 
@@ -97,7 +96,6 @@ PROCEDURE A2_ARRAYDESIGNSET (
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
-  ,EntryPriorityList varchar2
   ,DesignElements DesignElementTable 
 ) 
 as
@@ -106,10 +104,22 @@ as
   TheType varchar2(255) := Type;
   TheProvider varchar2(255) := Provider;
   TheName varchar2(255) := Name;
+  LowerCaseDesignElements DesignElementTable :=  A2_ARRAYDESIGNSET.DesignElements;
+  TheGeneID integer;
+  StartTime date := sysdate; 
 begin
 
- RAISE_APPLICATION_ERROR(-20001, 'A2_ARRAYDESIGNSET not implemented');
+ --RAISE_APPLICATION_ERROR(-20001, 'A2_ARRAYDESIGNSET not implemented');
  
+ --DO NOT convert all property names to lowercase
+ if(LowerCaseDesignElements is not null) then 
+  for j in LowerCaseDesignElements.first..LowerCaseDesignElements.last loop
+    null;--LowerCaseDesignElements(j).EntryName := LOWER(LowerCaseDesignElements(j).EntryName);
+  end loop;
+  end if;
+ 
+ BEGIN
+ --find/create ArrayDesignID
  Select ArrayDesignID into TheArrayDesignID
  from a2_ArrayDesign
  where Accession = TheAccession;
@@ -118,7 +128,7 @@ begin
  set Type = TheType
      ,Name = TheName
      ,Provider = TheProvider
- where ArrayDesignID = ArrayDesignID;   
+ where ArrayDesignID = TheArrayDesignID;   
 
  EXCEPTION
  WHEN NO_DATA_FOUND THEN
@@ -129,13 +139,108 @@ begin
  
   Select a2_ArrayDesign_Seq.CURRVAL into TheArrayDesignID from dual;
  end;
+ END;
+ dbms_output.put_line(' create ArrayDesignID: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+
+ --update properties 
+ MERGE into a2_GeneProperty p 
+ USING (select distinct EntryName from table(CAST(LowerCaseDesignElements as DesignElementTable))) t
+ ON (t.EntryName = p.Name)
+ WHEN NOT MATCHED THEN 
+  Insert (GenePropertyID, Name) 
+  values (a2_GeneProperty_Seq.nextval, t.EntryName);  
+ dbms_output.put_line(' update properties: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
- Insert into a2_ArrayDesign (ArrayDesignID,Accession,Type,Name,Provider)
- select a2_ArrayDesign_Seq.nextval, TheAccession, TheType, TheName, TheProvider 
- from dual;
+ --update propertyvalues
+ MERGE into a2_GenePropertyValue p
+ USING (select distinct p.GenePropertyID, EntryName, EntryValue 
+        from table(CAST(LowerCaseDesignElements as DesignElementTable)) d 
+        join a2_GeneProperty p on p.Name = d.EntryName) t
+ ON (p.GenePropertyID = t.GenePropertyID and p.Value = t.EntryValue)
+ WHEN NOT MATCHED THEN
+   Insert (GenePropertyValueID, GenePropertyID, value)
+   values (a2_GenePropertyValue_seq.nextval, t.GenePropertyID, t.EntryValue);
+ dbms_output.put_line(' update propertyvalues: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
- /*
+ --map DesignElementAccessions to existing genes
+ Insert into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
+ select t.Accession, min(GeneID), null
+ from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
+ join vwGeneIDs IDs on ids.name = t.EntryName and ids.value = t.EntryValue
+ group by t.Accession;
+ dbms_output.put_line(' map DesignElementAccessions to existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+
+ --add accessions for non-existing genes
+ Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
+ select Accession, null, EntryValue
+ from (
+ select t.Accession, EntryValue, RowNum r 
+ from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
+ join vwgeneidproperty p on p.Name = t.EntryName
+ where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession)
+ order by p.Priority ) t where r=1;
+ dbms_output.put_line(' add accessions for non-existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+  
+ -- add accessions for non-identifiable genes  
+ Insert into  tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
+ select distinct Accession, null, 'GENE_BY_DE:' || Accession
+ from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
+ where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession);
+ dbms_output.put_line(' add accessions for non-identifiable genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
+ -- find orphane genes with same identifiers (to keep identifier unique)
+ Update tmp_DesignElementMap set GeneID = (select GeneID from a2_Gene where identifier = tmp_DesignElementMap.geneidentifier)
+ where GeneID is null;
+ dbms_output.put_line(' find orphane genes with same identifiers: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+ 
+ --create missed genes  
+ for r in (select * from tmp_DesignElementMap where GeneID is null) loop
+   TheGeneID := a2_Gene_Seq.nextval; 
+    
+   Insert into a2_Gene(GeneID, Name, Identifier)
+   select TheGeneID,'GENE:' || r.GeneIdentifier, r.GeneIdentifier from dual;
+      
+   update tmp_DesignElementMap set GeneID = TheGeneID 
+   where DesignElementAccession = r.DesignElementAccession;
+ end loop;
+ dbms_output.put_line(' create missed genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+ 
+ --add properties (do not remove old properties from Gene) 
+ MERGE INTO a2_GeneGPV gpv
+ USING (select m.GeneID, pv.genepropertyvalueid 
+        from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
+        join tmp_DesignElementMap m on m.designelementaccession = t.Accession
+        join a2_GeneProperty p on p.name = t.EntryName
+        join a2_genepropertyvalue pv on pv.genepropertyid = p.genepropertyid and pv.value = t.EntryValue) t 
+ ON (t.GeneID = gpv.GeneID)
+ WHEN NOT MATCHED THEN
+  Insert (GeneGPVID, GeneID, GenePropertyValueID)
+  values (a2_GeneGPV_SEQ.nextval, t.GeneID, t.GenePropertyValueID);
+ dbms_output.put_line(' add properties: ' || TO_CHAR(sysdate, 'HH24:MI:SS')); 
+   
+ delete from a2_designelement where arraydesignid = TheArrayDesignID;
+ dbms_output.put_line(' delete existing design elements: ' || TO_CHAR(sysdate, 'HH24:MI:SS')); 
+   
+ --add design elements to ArrayDesign
+ Insert into a2_DesignElement( DesignElementID
+                              , ArrayDesignID
+                              , GeneID
+                              , Accession
+                              , Name
+                              , Type
+                              , IsControl)
+ select a2_DesignElement_seq.nextval
+      , TheArrayDesignID
+      , t.GeneID
+      , t.DesignElementAccession
+      , t.DesignElementAccession
+      , 'compositeSequence'
+      , null
+ from tmp_DesignElementMap t;
+ dbms_output.put_line(' add design elements to ArrayDesign: ' || TO_CHAR(sysdate, 'HH24:MI:SS')); 
+
+  
+ /* 
  Delete from a2_DesignElement where ArrayDesignID = TheArrayDesignID;
  
  Insert into a2_DesignElement (DesignElementID, ArrayDesignID, GeneID, Accession, Name, Type, IsControl)
@@ -283,16 +388,104 @@ PROCEDURE A2_AssaySetBegin(
    ExperimentAccession  IN varchar2 --null if many
 )
 AS
+  q varchar2(2000);
+  ExperimentID int := 0;
 BEGIN
-  null;
+
+if ExperimentAccession is null then
+   
+  q := 'DROP INDEX IDX_EV_DESIGNELEMENT';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'DROP INDEX IDX_EV_ASSAYID';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "UQ_EXPRESSIONVALUE"';  
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "FK_EV_DESIGNELEMENT"';
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY"';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" DISABLE';
+  EXECUTE IMMEDIATE q;
+   
+else --ExperimentAccession is null
+
+  begin
+      Select e.ExperimentID into ExperimentID 
+      from a2_Experiment e
+      where e.Accession = ExperimentAccession;
+      
+  exception 
+    when NO_DATA_FOUND then
+      dbms_output.put_line('NO_DATA_FOUND');  
+      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
+    when others then 
+      RAISE;
+  end;
+
+  dbms_output.put_line('delete expression value');
+  delete from a2_ExpressionValue
+  where ExperimentID = A2_AssaySetBegin.ExperimentID;
+end if;
+  
+  COMMIT WORK;
 END;
 
 PROCEDURE A2_AssaySetEnd(
    ExperimentAccession  IN varchar2 --null if many
 )
 AS
+  q varchar2(2000);
+  ExperimentID int := 0;
+  INDEX_TABLESPACE varchar2(2000);
 BEGIN
-  null;
+
+  if ExperimentAccession is null then
+  begin
+  
+  dbms_output.put_line('find tablespace 232');
+  
+  select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
+  from user_indexes where INDEX_NAME = 'PK_ORGANISM';
+  
+  dbms_output.put_line('find tablespace 2');
+
+  q := 'CREATE INDEX "IDX_EV_DESIGNELEMENT" ON "A2_EXPRESSIONVALUE" ("DESIGNELEMENTID") $INDEX_TABLESPACE';
+  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+  
+  q := 'CREATE INDEX "IDX_EV_ASSAYID" ON "A2_EXPRESSIONVALUE" ("ASSAYID") $INDEX_TABLESPACE';
+  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "UQ_EXPRESSIONVALUE"';  
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+  
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "FK_EV_DESIGNELEMENT"';
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY"';
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE';
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+  end;
+  else --ExperimentAccession is not null
+    RAISE_APPLICATION_ERROR(-20001, 'not implemented');  
+
+  end if;
+  
+  COMMIT WORK;
 END;
 
 --------------------------------------------------------
@@ -449,8 +642,8 @@ begin
   end;
 
   dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionAnalytics(DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
-  select t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
+  Insert into a2_ExpressionAnalytics(ExpressionID,DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
+  select a2_expressionanalytics_seq.nextval,t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
   from table(CAST(ExpressionAnalytics as ExpressionAnalyticsTable)) t;
 
   COMMIT WORK;
@@ -525,7 +718,7 @@ begin
   if ExperimentAccession is null then
   
   select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
-  from user_indexes where INDEX_NAME = 'PK_SPEC';
+  from user_indexes where INDEX_NAME = 'PK_ORGANISM';
 
   q := 'CREATE INDEX "A2_IDX_EXPRESSION_FV" ON "A2_EXPRESSIONANALYTICS" ("PROPERTYVALUEID") $INDEX_TABLESPACE';
   q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);

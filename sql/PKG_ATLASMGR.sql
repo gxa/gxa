@@ -73,6 +73,16 @@ for rec in c1
  end loop;
 END;
 --------------------------------------------------------------------------------
+
+/*******************************************************************************
+rebuilding sequences for all tables in schema
+
+naming conventions and DB structure assumptions:
+Each table has one autoincrement PK, updated in trigger from corresponding 
+sequence. SEQUENCE_NAME = TABLE_NAME || "_SEQ"
+
+call RebuildSequence();
+********************************************************************************/
 procedure RebuildSequence
 AS
  cursor c1 is select SEQUENCE_NAME, LAST_NUMBER from user_sequences;
@@ -85,7 +95,7 @@ AS
 begin 
 for rec in c1
  loop
-    Select REPLACE(rec.SEQUENCE_NAME, '_SEQ','') into TABLE_NAME from dual;
+    TABLE_NAME := REPLACE(rec.SEQUENCE_NAME, '_SEQ','');
     
     select c.COLUMN_NAME into PK_NAME 
     from user_tab_columns c
@@ -102,12 +112,14 @@ for rec in c1
     
     dbms_output.put_line(q);
     Execute immediate q INTO MaxID; 
-
-    Delta := MaxID - rec.LAST_NUMBER;
     
-    if (Delta <= 0) then 
-      Delta := 20; ---we have unexplained PK violation, probably related to sequence cache
-    end if;
+    q := 'select $SEQUENCE_NAME.nextval from dual';
+    q := REPLACE(q, '$SEQUENCE_NAME', rec.SEQUENCE_NAME);
+    
+    dbms_output.put_line(q);
+    Execute immediate q into NewID; 
+
+    Delta := MaxID - NewID;
     
     if (Delta > 0) then
     q := 'ALTER SEQUENCE $SEQUENCE_NAME INCREMENT BY $DELTA';

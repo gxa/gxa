@@ -1092,5 +1092,11 @@ ALTER TRIGGER "A2_GENEGPV_INSERT" ENABLE;
 -- COMMIT WORK;
 --ROLLBACK;
 
+create global temporary table tmp_DesignElementMap(
+    DesignElementAccession varchar2(255)
+    ,GeneID integer
+    ,GeneIdentifier varchar2(255)) ON COMMIT DELETE ROWS;
+/
+
 quit;
 /
