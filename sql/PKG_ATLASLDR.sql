@@ -338,8 +338,8 @@ begin
   delete a2_expressionvalue ev where ev.assayid = A2_AssaySet.AssayID;
   
   dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionValue(DesignElementID,AssayID,Value)
-  select distinct d.DesignElementID, A2_AssaySet.AssayID, t.Value
+  Insert into a2_ExpressionValue(ExpressionValueID, DesignElementID,AssayID,Value)
+  select a2_ExpressionValue_seq.nextval, d.DesignElementID, A2_AssaySet.AssayID, t.Value
   from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
   join a2_designelement d on ((d.Accession = t.DesignElementAccession) or (d.name = t.DesignElementAccession));
 
