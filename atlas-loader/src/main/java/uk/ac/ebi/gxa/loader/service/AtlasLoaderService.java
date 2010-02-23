@@ -13,7 +13,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
  */
 public abstract class AtlasLoaderService<T> {
     private AtlasDAO atlasDAO;
-    private double missingDesignElementsCutoff = 1.0;
     private boolean allowReloading = false;
 
     // logging
@@ -23,33 +22,16 @@ public abstract class AtlasLoaderService<T> {
         this.atlasDAO = atlasDAO;
     }
 
-    protected AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    protected double getMissingDesignElementsCutoff() {
-        return missingDesignElementsCutoff;
-    }
-
-    protected boolean allowReloading() {
-        return allowReloading;
-    }
-
     protected Logger getLog() {
         return log;
     }
 
-    /**
-     * Sets the percentage of design elements that are allowed to be "missing" in the database before this load fails.
-     * This is set at 1.0 (i.e. 100%) by default, so no job will ever fail.  You should normally override this, as high
-     * percentages of missing design elements usually indicates an error, either in the datafile or else during array
-     * design loading.
-     *
-     * @param missingDesignElementsCutoff the percentage of design elements that are allowed to be absent in the
-     *                                    database before a load fails.
-     */
-    public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) {
-        this.missingDesignElementsCutoff = missingDesignElementsCutoff;
+    protected AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    protected boolean allowReloading() {
+        return allowReloading;
     }
 
     /**

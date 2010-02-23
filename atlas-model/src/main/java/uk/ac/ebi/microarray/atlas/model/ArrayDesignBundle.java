@@ -16,13 +16,13 @@ import java.util.Map;
  */
 public class ArrayDesignBundle {
     private String accession;
-    private String type;
     private String name;
     private String provider;
+    private String type;
     private List<String> designElementNames;
     private Map<String, List<String[]>> designElementDBEs;
 
-    private List<String> identifierPriorityOrder;
+    private List<String> geneIdentifierNames;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -88,7 +88,7 @@ public class ArrayDesignBundle {
         return response;
     }
 
-    public void addDatabaseEntriesForDesignElement(String designElement, String type, String value) {
+    public void addDatabaseEntryForDesignElement(String designElement, String type, String value) {
         if (designElementDBEs == null) {
             designElementDBEs = new HashMap<String, List<String[]>>();
         }
@@ -96,5 +96,13 @@ public class ArrayDesignBundle {
             designElementDBEs.put(designElement, new ArrayList<String[]>());
         }
         this.designElementDBEs.get(designElement).add(new String[]{type, value});
+    }
+
+    public List<String> getGeneIdentifierNames() {
+        return geneIdentifierNames;
+    }
+
+    public void setGeneIdentifierNamesInPriorityOrder(List<String> geneIdentifierNames) {
+        this.geneIdentifierNames = geneIdentifierNames;
     }
 }

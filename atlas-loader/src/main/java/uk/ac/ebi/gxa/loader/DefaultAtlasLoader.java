@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
+import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
@@ -30,8 +30,10 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
     private URL repositoryLocation;
     private double missingDesignElementsCutoff = -1;
     private boolean allowReloading = false;
+    private List<String> geneIdentifierPriority = new ArrayList<String>();
 
-    private AtlasLoaderService<URL> atlasLoaderService;
+    private AtlasMAGETABLoader experimentLoaderService;
+    private AtlasArrayDesignLoader arrayLoaderService;
 
     private ExecutorService service;
     private boolean running = false;
@@ -71,6 +73,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
         this.allowReloading = allowReloading;
     }
 
+    public List<String> getGeneIdentifierPriority() {
+        return geneIdentifierPriority;
+    }
+
+    public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) {
+        this.geneIdentifierPriority = geneIdentifierPriority;
+    }
+
     public void afterPropertiesSet() throws Exception {
         startup();
     }
@@ -80,11 +90,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
             // do some initialization...
 
             // create the service
-            atlasLoaderService = new AtlasMAGETABLoader(atlasDAO);
-            atlasLoaderService.setAllowReloading(allowReloading);
+            experimentLoaderService = new AtlasMAGETABLoader(atlasDAO);
+            experimentLoaderService.setAllowReloading(allowReloading);
             // if we have set the cutoff for missing design elements, set on the service
             if (missingDesignElementsCutoff != -1) {
-                atlasLoaderService.setMissingDesignElementsCutoff(missingDesignElementsCutoff);
+                experimentLoaderService.setMissingDesignElementsCutoff(missingDesignElementsCutoff);
             }
 
             // finally, create an executor service for processing calls to build the index
@@ -165,7 +175,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
                 try {
                     log.info("Starting load operation on " + experimentResource.toString());
 
-                    boolean result = atlasLoaderService.load(experimentResource);
+                    boolean result = experimentLoaderService.load(experimentResource);
 
                     log.debug("Finished load operation on " + experimentResource.toString());
 
@@ -220,6 +230,62 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
     }
 
     public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
-        throw new UnsupportedOperationException("Array Design loading not yet supported");
+                final long startTime = System.currentTimeMillis();
+        final List<Future<Boolean>> buildingTasks =
+                new ArrayList<Future<Boolean>>();
+
+        buildingTasks.add(service.submit(new Callable<Boolean>() {
+            public Boolean call() throws AtlasLoaderException {
+                try {
+                    log.info("Starting load operation on " + arrayDesignResource.toString());
+
+                    boolean result = arrayLoaderService.load(arrayDesignResource);
+
+                    log.debug("Finished load operation on " + arrayLoaderService.toString());
+
+                    return result;
+                }
+                catch (Exception e) {
+                    log.error("Caught unchecked exception: " + e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+        }));
+
+        // this tracks completion, if a listener was supplied
+        if (listener != null) {
+            new Thread(new Runnable() {
+                public void run() {
+                    boolean success = true;
+                    List<Throwable> observedErrors = new ArrayList<Throwable>();
+
+                    // wait for expt and gene indexes to build
+                    for (Future<Boolean> buildingTask : buildingTasks) {
+                        try {
+                            success = buildingTask.get() && success;
+                        }
+                        catch (Exception e) {
+                            observedErrors.add(e);
+                            success = false;
+                        }
+                    }
+
+                    // now we've finished - get the end time, calculate runtime and fire the event
+                    long endTime = System.currentTimeMillis();
+                    long runTime = (endTime - startTime) / 1000;
+
+                    // create our completion event
+                    if (success) {
+                        listener.loadSuccess(new AtlasLoaderEvent(
+                                runTime, TimeUnit.SECONDS));
+                    }
+                    else {
+                        listener.loadError(new AtlasLoaderEvent(
+                                runTime, TimeUnit.SECONDS, observedErrors));
+                    }
+                }
+            }).start();
+        }
     }
 }

@@ -12,15 +12,18 @@ import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.adf.AtlasLoadingAccessionHandler;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Javadocs go here!
@@ -29,8 +32,18 @@ import java.util.*;
  * @date 22-Feb-2010
  */
 public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
+    private List<String> geneIdentifierPriority = new ArrayList<String>();
+
     protected AtlasArrayDesignLoader(AtlasDAO atlasDAO) {
         super(atlasDAO);
+    }
+
+    public List<String> getGeneIdentifierPriority() {
+        return geneIdentifierPriority;
+    }
+
+    public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) {
+        this.geneIdentifierPriority = geneIdentifierPriority;
     }
 
     public boolean load(URL adfFileLocation) {
@@ -136,9 +149,12 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // load array design bundles
             start = System.currentTimeMillis();
-            getLog().debug("Writing " + cache.fetchAllExperiments().size() + " experiment(s)");
-            System.out.print("Writing experiments...");
+            getLog().debug("Writing " + cache.fetchAllArrayDesignBundles().size() + " array design(s)");
+            System.out.print("Writing array designs...");
             for (ArrayDesignBundle arrayBundle : cache.fetchAllArrayDesignBundles()) {
+                // first, update the bundle with the identifier preferences
+                arrayBundle.setGeneIdentifierNamesInPriorityOrder(getGeneIdentifierPriority());
+
                 getAtlasDAO().writeArrayDesignBundle(arrayBundle);
                 System.out.print(".");
             }
