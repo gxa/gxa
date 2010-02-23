@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 
 /**
  * REST API base servlet, implementing common functions as output format and style parameters handling,
@@ -53,7 +52,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 o = process(request);
             } catch (final RuntimeException e) {
                 log.error("Exception in servlet process()", e);
-                o = new ErrorResult("Exception occured: " + exceptionToString(e));
+                o = new ErrorResult(e);
             }
 
             RestResultRenderer renderer;
@@ -102,14 +101,5 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
      * profile.
      */
     public abstract Object process(HttpServletRequest request);
-
-    public static String exceptionToString(Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw, true);
-        e.printStackTrace(pw);
-        pw.flush();
-        sw.flush();
-        return sw.toString();
-    }
 }
 
