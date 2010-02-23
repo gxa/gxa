@@ -1,14 +1,15 @@
 package uk.ac.ebi.gxa.loader;
 
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+
+import java.util.List;
 
 /**
  * Interface for loading experiments and array designs into the Atlas.  Loaders require access to an {@link
- * uk.ac.ebi.gxa.dao.AtlasDAO} in order to read and write to the database.  They can also be configured
- * with a repository storing experiments to automate the loading process.  Implementations would then be free to
- * periodically poll this repository, looking for experiments that were not present int he database, and load them
- * automatically.
+ * uk.ac.ebi.gxa.dao.AtlasDAO} in order to read and write to the database.  They can also be configured with a
+ * repository storing experiments to automate the loading process.  Implementations would then be free to periodically
+ * poll this repository, looking for experiments that were not present int he database, and load them automatically.
  * <p/>
  * This interface iss generically typed by two parameters, R and L.  R represents the type of resource the experiment
  * repository is: this will normally be a directory, URL, or possibly a datasource.  L represents the type of resources
@@ -22,16 +23,16 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
  */
 public interface AtlasLoader<R, L> {
     /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database
-     * during data loading.
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database during data
+     * loading.
      *
      * @param atlasDAO the DAO that is used to obtain access to the database
      */
     void setAtlasDAO(AtlasDAO atlasDAO);
 
     /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database
-     * during data loading.
+     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database during data
+     * loading.
      *
      * @return the DAO that is used to obtain access to the database
      */
@@ -99,6 +100,16 @@ public interface AtlasLoader<R, L> {
      * @return whether or not reloads are allowed - true indicates they are
      */
     boolean getAllowReloading();
+
+    /**
+     * Sets a list of type names that can be used to identify genes within the Atlas, in priority order.  Examples of
+     * values that might be entered here are "ensembl", "entrez" etc.  These strings repres
+     *
+     * @return
+     */
+    List<String> getGeneIdentifierPriority();
+
+    void setGeneIdentifierPriority(List<String> geneIdentifierPriority);
 
     /**
      * Initializes this loader and any resources it requires.

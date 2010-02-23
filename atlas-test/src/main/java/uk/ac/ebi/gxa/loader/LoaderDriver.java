@@ -56,9 +56,10 @@ public class LoaderDriver {
 
         // run the loader
         try {
-            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
+//            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
+            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/A-AFFY-33/A-AFFY-33.adf.txt").toURL();
             final long indexStart = System.currentTimeMillis();
-            loader.loadExperiment(url, new AtlasLoaderListener() {
+            loader.loadArrayDesign(url, new AtlasLoaderListener() {
 
                 public void loadSuccess(AtlasLoaderEvent event) {
                     final long indexEnd = System.currentTimeMillis();

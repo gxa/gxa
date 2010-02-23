@@ -52,6 +52,12 @@
         <property name="atlasDAO" ref="atlasLoaderDAO"/>
         <property name="missingDesignElementsCutoff" value="1.0"/>
         <property name="allowReloading" value="true"/>
+        <property name="geneIdentifierPriority">
+            <util:list>
+                <value>ensembl</value>
+                <value>uniprot</value>
+            </util:list>
+        </property>
     </bean>
 
     <!-- Index Builder component -->
@@ -237,12 +243,14 @@
         <property name="efo" ref="efo"/>
     </bean>
 
-    <bean name="expGeneListRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.experimentpage.GeneListWidgetRequestHandler">
+    <bean name="expGeneListRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.GeneListWidgetRequestHandler">
         <property name="queryService" ref="atlasQueryService"/>
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
-    <bean name="geneIdsDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
+    <bean name="geneIdsDownloadRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -252,19 +260,22 @@
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="sitemapDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler">
+    <bean name="sitemapDownloadRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
-    <bean name="listviewDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
+    <bean name="listviewDownloadRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
     </bean>
 
     <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">
-        <property name="plotter" ref="atlasPlotter" />
+        <property name="plotter" ref="atlasPlotter"/>
     </bean>
 
-    <bean name="experimentPageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
+    <bean name="experimentPageRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
@@ -274,25 +285,27 @@
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
     </bean>
 
-    <bean name="geneExperimentsListRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.ExperimentsListRequestHandler">
+    <bean name="geneExperimentsListRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.genepage.ExperimentsListRequestHandler">
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
     </bean>
 
-    <bean name="downloadsProgressRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.download.DownloadProgressRequestHandler">
+    <bean name="downloadsProgressRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.download.DownloadProgressRequestHandler">
         <property name="downloadService" ref="atlasDownloadService"/>
     </bean>
 
     <bean name="feedbackRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FeedbackRequestHandler">
-        
+
     </bean>
 
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
-        <property name="domain" value="GXAtlas" />
+        <property name="domain" value="GXAtlas"/>
     </bean>
-    
-    <bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false" >
-        <property name="registrationBehaviorName" value="REGISTRATION_IGNORE_EXISTING" />
+
+    <bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+        <property name="registrationBehaviorName" value="REGISTRATION_IGNORE_EXISTING"/>
         <property name="beans">
             <util:map>
                 <entry key="AtlasManager" value-ref="atlasManager"/>

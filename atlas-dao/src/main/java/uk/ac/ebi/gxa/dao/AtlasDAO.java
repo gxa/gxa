@@ -1419,12 +1419,22 @@ public class AtlasDAO {
                 arrayDesignBundle.getDesignElementNames().isEmpty() ? null :
                         convertDesignElementsToOracleARRAY(arrayDesignBundle);
 
+        StringBuffer sb = new StringBuffer();
+        Iterator<String> stringIt = arrayDesignBundle.getGeneIdentifierNames().iterator();
+        if (stringIt.hasNext()) {
+            sb.append(stringIt.next());
+        }
+        while (stringIt.hasNext()) {
+            sb.append(",").append(stringIt.next());
+        }
+        String entryPriorityList = sb.toString();
+
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", arrayDesignBundle.getAccession())
                 .addValue("TYPE", arrayDesignBundle.getType())
                 .addValue("NAME", arrayDesignBundle.getName())  //EQUAL TO ACCESSION ??
                 .addValue("PROVIDER", arrayDesignBundle.getProvider())
-                .addValue("ENTRYPRIORITYLIST", "adfFile.entryPriorityList") //TODO
+                .addValue("ENTRYPRIORITYLIST", entryPriorityList)
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);

@@ -215,6 +215,29 @@ public class AtlasLoaderUtils {
         }
     }
 
+    public static String waitForArrayDesignAccession(MAGETABArrayDesign arrayDesign) throws LookupException {
+        // need to have parsed the accession before we can do more
+        while (arrayDesign.accession == null
+                && arrayDesign.ADF.ranksBelow(Status.COMPILING)
+                && arrayDesign.ADF.getStatus() != Status.FAILED) {
+            synchronized (arrayDesign) {
+                try {
+                    arrayDesign.wait(1000);
+                }
+                catch (InterruptedException e) {
+                    // ignore, check handled elsewhere
+                }
+            }
+        }
+
+        if (arrayDesign.accession == null) {
+            throw new LookupException("Array Design reading completed, but no accession was parsed");
+        }
+        else {
+            return arrayDesign.accession;
+        }
+    }
+
     public static ArrayDesignBundle waitForArrayDesignBundle(String accession,
                                                              MAGETABArrayDesign arrayDesign,
                                                              String handlerName,
