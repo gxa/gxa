@@ -214,6 +214,25 @@ CREATE OR REPLACE VIEW vwExperimentSample as
   join a2_Assay a on a.AssayID = ass.AssayID;
 /  
 
+CREATE OR REPLACE VIEW vwGeneIDProperty as 
+  Select Name, GenePropertyID Priority 
+  from a2_GeneProperty
+  where name in ('EMBL','ENSGENE');
+/
+
+CREATE OR REPLACE VIEW vwGeneIDs as
+ Select g.GeneID
+       ,p.Name
+       ,pv.Value
+ from a2_Gene g
+ join a2_GeneGPV gpv on gpv.GeneID = g.GeneID
+ join a2_GenePropertyValue pv on pv.genepropertyvalueid = gpv.genepropertyvalueid
+ join a2_geneproperty p on p.genepropertyid = pv.genepropertyid
+ where p.name in (select Name from vwGeneIDProperty);
+/
+
+--select * from vwGeneIDs order by GeneID
+
 quit;
 /
   
