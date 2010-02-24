@@ -8,13 +8,18 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.ArrayDesignNameHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.ProviderHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.TechnologyTypeHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.CompositeElementHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.handler.adf.AtlasLoadingAccessionHandler;
+import uk.ac.ebi.gxa.loader.handler.adf.*;
+import uk.ac.ebi.microarray.atlas.model.AdfFile;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
@@ -119,9 +124,16 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
     protected void configureHandlers() {
         HandlerPool pool = HandlerPool.getInstance();
 
-        // todo - calibrate the parser with the relevant handlers that can load atlas data
         pool.replaceHandlerClass(AccessionHandler.class,
                                  AtlasLoadingAccessionHandler.class);
+        pool.replaceHandlerClass(CompositeElementHandler.class,
+                                 AtlasLoadingCompositeElementHandler.class);
+        pool.replaceHandlerClass(ArrayDesignNameHandler.class,
+                                 AtlasLoadingNameHandler.class);
+        pool.replaceHandlerClass(ProviderHandler.class,
+                                 AtlasLoadingProviderHandler.class);
+        pool.replaceHandlerClass(TechnologyTypeHandler.class,
+                                 AtlasLoadingTypeHandler.class);
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
