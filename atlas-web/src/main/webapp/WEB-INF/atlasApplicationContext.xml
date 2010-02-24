@@ -40,9 +40,9 @@
     </bean>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
-        <!--<property name="uri" value="resource:META-INF/efo.owl"/>-->
+        <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- can be any external of file url too -->
-        <property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>
+        <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
     </bean>
 
     <!-- Loader component -->
@@ -190,6 +190,18 @@
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
+    <!-- Task manager -->
+    <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
+        <property name="dao" ref="atlasInterfaceDAO"/>
+    </bean>
+
+    <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
+        <property name="analyticsGenerator" ref="analyticsGenerator"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="netcdfGenerator" ref="netCDFGenerator"/>
+        <property name="storage" ref="taskManagerStorage"/>
+    </bean>
+
     <!-- Servlets (actually, HttpRequestHandlers) -->
 
     <bean name="queryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.AtlasQueryRequestHandler">
@@ -297,6 +309,11 @@
 
     <bean name="feedbackRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FeedbackRequestHandler">
 
+    </bean>
+
+    <bean name="taskManagerRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.TaskManagerRequestHandler">
+        <property name="taskManager" ref="taskManager" />
+        <property name="dao" ref="atlasInterfaceDAO"/>
     </bean>
 
     <!-- JMX -->

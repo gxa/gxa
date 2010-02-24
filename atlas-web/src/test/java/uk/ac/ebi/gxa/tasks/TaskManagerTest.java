@@ -41,12 +41,14 @@ public class TaskManagerTest {
     }
 
     void waitForManager() {
+        log.info("Waiting for task manager...");
         int wait = 0;
         while(manager.isRunningSomething()) {
             delay();
             if(++wait > 100)
                 fail("Timeout");
         }
+        log.info("Task manager finished");
     }
     static class TestStorage implements PersistentStorage {
         static class TaskLogItem {
@@ -85,7 +87,7 @@ public class TaskManagerTest {
 
         Map<TaskSpec, TaskStage> taskStages = new HashMap<TaskSpec, TaskStage>();
 
-        public synchronized void writeTaskLog(TaskSpec task, TaskStage stage, TaskStageEvent event, String message) {
+        public synchronized void logTaskStageEvent(TaskSpec task, TaskStage stage, TaskStageEvent event, String message) {
             taskLog.add(new TaskLogItem(task, stage, event, message));
             log.info("Task Log " + task + " " + stage + " " + event + " " + message);
         }
@@ -99,7 +101,7 @@ public class TaskManagerTest {
             return taskStages.get(task) != null ? taskStages.get(task) : TaskStage.NONE;
         }
 
-        public synchronized void writeOperationLog(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message) {
+        public synchronized void logTaskOperation(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message) {
             operLog.add(new OperLogItem(task, runMode, user, operation, message));
             log.info("Operation Log " + task + " " + runMode + " " + user + " " + operation + " " + message);
         }
@@ -246,7 +248,7 @@ public class TaskManagerTest {
     public void test_basicWorkflowForIndexTask() {
         TaskSpec spec = new TaskSpec("index", "");
 
-        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, true);
         waitForManager();
 
         assertEquals(1, storage.taskStages.size());
@@ -270,28 +272,117 @@ public class TaskManagerTest {
     }
 
     /**
+     * Checks if successful experiment build marks index as dirty
+     */
+    @Test
+    public void test_markIndexAsDirtyAfterSuccessfulExperiment() {
+        TaskSpec spec = new TaskSpec("experiment", "E-AN-1");
+        TaskSpec speci = new TaskSpec("index", "");
+
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, false);
+        waitForManager();
+
+        assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        assertEquals(IndexTask.INDEX_STAGE, storage.taskStages.get(speci));
+    }
+
+    /**
+     * Checks if failed experiment build DOES NOT mark index as dirty
+     */
+    @Test
+    public void test_markIndexAsDirtySometimesNot() {
+        TaskSpec spec = new TaskSpec("experiment", "E-A-1");
+        TaskSpec speci = new TaskSpec("index", "");
+
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, false);
+        waitForManager();
+
+        assertNotSame(TaskStage.DONE, storage.taskStages.get(spec)); // failed experiment
+        assertNull(storage.taskStages.get(speci)); // no change to index status
+    }
+
+    /**
+     * Checks correct workflow and logs for task which has auto-added dependencies
+     */
+    @Test
+    public void test_dependencyWorkflowForIndexTask() {
+        TaskSpec spec = new TaskSpec("experiment", "E-AN-1");
+
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, true);
+        waitForManager();
+
+        assertEquals(2, storage.taskStages.size());
+        assertTrue(storage.taskStages.containsKey(spec));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        TaskSpec speci = new TaskSpec("index", "");
+        assertTrue(storage.taskStages.containsKey(speci));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
+
+
+        assertEquals(6, storage.taskLog.size());
+        assertEquals(spec, storage.taskLog.get(0).task);
+        assertEquals("NETCDF", storage.taskLog.get(0).stage.toString());
+        assertEquals(TaskStageEvent.STARTED, storage.taskLog.get(0).event);
+
+        assertEquals(spec, storage.taskLog.get(1).task);
+        assertEquals("NETCDF", storage.taskLog.get(1).stage.toString());
+        assertEquals(TaskStageEvent.FINISHED, storage.taskLog.get(1).event);
+
+        assertEquals(spec, storage.taskLog.get(2).task);
+        assertEquals("ANALYTICS", storage.taskLog.get(2).stage.toString());
+        assertEquals(TaskStageEvent.STARTED, storage.taskLog.get(2).event);
+
+        assertEquals(spec, storage.taskLog.get(3).task);
+        assertEquals("ANALYTICS", storage.taskLog.get(3).stage.toString());
+        assertEquals(TaskStageEvent.FINISHED, storage.taskLog.get(3).event);
+
+        assertEquals(speci, storage.taskLog.get(4).task);
+        assertEquals("INDEX", storage.taskLog.get(4).stage.toString());
+        assertEquals(TaskStageEvent.STARTED, storage.taskLog.get(4).event);
+
+        assertEquals(speci, storage.taskLog.get(5).task);
+        assertEquals("INDEX", storage.taskLog.get(5).stage.toString());
+        assertEquals(TaskStageEvent.FINISHED, storage.taskLog.get(5).event);
+
+        assertEquals(2, storage.operLog.size());
+        assertEquals(spec, storage.operLog.get(0).task);
+        assertEquals(defaultUser, storage.operLog.get(0).user);
+        assertEquals(TaskRunMode.RESTART, storage.operLog.get(0).runMode);
+        assertEquals(TaskOperation.ENQUEUE, storage.operLog.get(0).operation);
+        assertEquals(speci, storage.operLog.get(1).task);
+        assertEquals(defaultUser, storage.operLog.get(1).user);
+        assertEquals(TaskRunMode.RESTART, storage.operLog.get(1).runMode);
+        assertEquals(TaskOperation.ENQUEUE, storage.operLog.get(1).operation);
+    }
+
+    /**
      * Checks if request to continue/restart from successfully completed task works correctly
      */
     @Test
     public void test_continueAndRestartFromSuccess() {
         TaskSpec spec = new TaskSpec("experiment", "EXP-AN-1");
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
-        waitForManager();
-        assertEquals(1, storage.operLog.size());
-        assertEquals(4, storage.taskLog.size());
-        assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        TaskSpec speci = new TaskSpec("index", "");
 
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, true);
         waitForManager();
-        assertEquals(2, storage.operLog.size()); // check we've logged the request
-        assertEquals(4, storage.taskLog.size()); // ...but done nothing, as it's already done
+        assertEquals(2, storage.operLog.size()); // 1 for experiment, 1 for auto-index
+        assertEquals(6, storage.taskLog.size()); // 4 for experiment, 2 for index
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
 
-        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, true);
         waitForManager();
-        assertEquals(3, storage.operLog.size()); // check we've logged the request
-        assertEquals(8, storage.taskLog.size()); // ...and did it once again
+        assertEquals(4, storage.operLog.size()); // check we've logged the request, +1 for exp, +1 for auto-index
+        assertEquals(6, storage.taskLog.size()); // ...but done nothing, as it's already done (including auto-added index task!)
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
+
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, true);
+        waitForManager();
+        assertEquals(6, storage.operLog.size()); // check we've logged the request, +1 for exp, +1 for auto-index
+        assertEquals(12, storage.taskLog.size()); // ...and did it once again
+        assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
     }
 
     /**
@@ -300,19 +391,19 @@ public class TaskManagerTest {
     @Test
     public void test_continueAndRestartFromFail() throws Exception {
         TaskSpec spec = new TaskSpec("experiment", "EXP-N-1");
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false); // those dependcies are in the way, so don't use them
         waitForManager();
         assertEquals(1, storage.operLog.size());
         assertEquals(4, storage.taskLog.size());
         assertEquals(TaskStage.valueOf("ANALYTICS"), storage.taskStages.get(spec));
 
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false);
         waitForManager();
         assertEquals(2, storage.operLog.size());
         assertEquals(6, storage.taskLog.size()); // tried only analytics one more time
         assertEquals(TaskStage.valueOf("ANALYTICS"), storage.taskStages.get(spec)); // ...and failed once again
 
-        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, false);
         waitForManager();
         assertEquals(3, storage.operLog.size());
         assertEquals(10, storage.taskLog.size()); // tried both stages one more time, thus +4 log entries
@@ -321,14 +412,14 @@ public class TaskManagerTest {
         // MAGIC!!! it will cure failing analysis (see mock generator code)
         manager.getAnalyticsGenerator().startup();
 
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false);
         waitForManager();
         assertEquals(4, storage.operLog.size());
         assertEquals(12, storage.taskLog.size()); // one more attempt
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec)); // and it should be fine now
 
         // ...and once more from the very start to be sure it really works
-        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, false);
         waitForManager();
         assertEquals(5, storage.operLog.size());
         assertEquals(16, storage.taskLog.size()); // one more attempt
@@ -338,15 +429,15 @@ public class TaskManagerTest {
     @Test
     public void test_cancelWorkingTask() throws Exception {
         TaskSpec spec = new TaskSpec("experiment", "EXP-AN-1");
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        int id = manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false); // no index task again
         delay(); // let it do something
-        manager.cancelTask(spec, defaultUser); // and now kill it
+        manager.cancelTask(id, defaultUser); // and now kill it
         waitForManager();
-        assertEquals(2, storage.operLog.size()); // 2 ops: q and cancel
+        assertEquals(2, storage.operLog.size()); // 2 ops: queue and cancel
         assertEquals(3, storage.taskLog.size()); // one stage is done, the other is stopped
         assertEquals(TaskStage.valueOf("ANALYTICS"), storage.taskStages.get(spec)); // ...and no analytics is here
 
-        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false);
         waitForManager();
         assertEquals(3, storage.operLog.size()); // one more start
         assertEquals(5, storage.taskLog.size()); // now it should do the missing stage successfully
@@ -357,32 +448,45 @@ public class TaskManagerTest {
     public void test_cancelPendingTask() throws Exception {
         manager.pause();
         TaskSpec spece1 = new TaskSpec("experiment", "EXP-AN-1");
-        manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true);
+
+        // find auto-added index task
         TaskSpec specidx = new TaskSpec("index", "");
-        manager.enqueueTask(specidx, TaskRunMode.CONTINUE, defaultUser);
+        int taskIdxId = -1;
+        for(Task task : manager.getQueuedTasks())
+            if(task.getTaskSpec().equals(specidx))
+                taskIdxId = task.getTaskId();
+
         manager.start();
         delay(); // let it do something
-        manager.cancelTask(specidx, defaultUser); // change our mind
+        manager.cancelTask(taskIdxId, defaultUser); // change our mind, cancel auto-added task
         waitForManager();
         assertEquals(3, storage.operLog.size()); // 2 q's and 1 cancel
         assertEquals(4, storage.taskLog.size()); // first task is completed succesfully, but no trace of second task
         assertEquals(TaskStage.DONE, storage.taskStages.get(spece1)); // ...and no analytics is here
-        assertNull(storage.taskStages.get(specidx)); // not even mentioned here!
+        assertNotSame(TaskStage.DONE, storage.taskStages.get(specidx)); // indexing was not run!
     }
 
     @Test
-    public void test_sequence() {
-        TaskSpec specidx = new TaskSpec("index", "");
+    public void test_dependenciesSequence() {
         TaskSpec spece1 = new TaskSpec("experiment", "E-AN-1");
         TaskSpec spece2 = new TaskSpec("experiment", "E-AN-2");
+        TaskSpec speci = new TaskSpec("index", "");
 
         manager.pause();
-        manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser);
-        manager.enqueueTask(spece2, TaskRunMode.CONTINUE, defaultUser);
-        manager.enqueueTask(specidx, TaskRunMode.CONTINUE, defaultUser);
+        manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true);
+        manager.enqueueTask(spece2, TaskRunMode.CONTINUE, defaultUser, true);
+        manager.enqueueTask(speci, TaskRunMode.CONTINUE, defaultUser, true);
+
+        List<Task> tasks = new ArrayList<Task>(manager.getQueuedTasks());
+        assertEquals(3, tasks.size()); // 3 tasks should be here        
+        assertEquals(spece1, tasks.get(1).getTaskSpec());
+        assertEquals(spece2, tasks.get(0).getTaskSpec());
+        assertEquals(speci, tasks.get(2).getTaskSpec());
+
         manager.start();
         waitForManager();
-
+        // TODO: check logs for correct running order - experiments 1 & 2 in parallel and index after
     }
 
 

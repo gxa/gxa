@@ -5,11 +5,11 @@ package uk.ac.ebi.gxa.tasks;
  */
 public interface PersistentStorage {
 
-    public void writeTaskLog(TaskSpec task, TaskStage stage, TaskStageEvent event, String message);
+    public void logTaskStageEvent(TaskSpec task, TaskStage stage, TaskStageEvent event, String message);
 
     public void updateTaskStage(TaskSpec task, TaskStage stage);
 
     public TaskStage getTaskStage(TaskSpec task);
 
-    public void writeOperationLog(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message);
+    public void logTaskOperation(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message);
 }
