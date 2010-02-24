@@ -111,19 +111,17 @@ public class ExperimentTask implements WorkingTask {
     }
 
     public void start() {
-        TaskStage currentStatus = queue.getTaskStage(getTaskSpec());
 
         final Stage fromStage;
         if(runMode == TaskRunMode.CONTINUE) {
-            if(TaskStage.DONE.equals(currentStatus)) {
-                currentStage = currentStatus;
+            if(TaskStage.DONE.equals(currentStage)) {
                 queue.notifyTaskFinished(ExperimentTask.this);
                 return; // do nothing, "continue" fired on finished task by mistake
             }
-            if(TaskStage.NONE.equals(currentStatus))
+            if(TaskStage.NONE.equals(currentStage))
                 fromStage = Stage.values()[0]; // continue from nothing = start from scratch
             else
-                fromStage = Stage.valueOf(currentStatus.getStage()); // current status = stage, which is to be completed
+                fromStage = Stage.valueOf(currentStage.getStage()); // current status = stage, which is to be completed
         } else
             fromStage = Stage.values()[0];
 
@@ -163,6 +161,7 @@ public class ExperimentTask implements WorkingTask {
         this.taskId = taskId;
         this.taskSpec = taskSpec;
         this.runMode = runMode;
+        this.currentStage = queue.getTaskStage(getTaskSpec());
     }
 
     public TaskSpec getTaskSpec() {

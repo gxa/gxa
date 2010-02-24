@@ -1,8 +1,12 @@
 var currentState = {};
 var atlas = { homeUrl: '' };
-var searchTimeout;
 var selectedExperiments = {};
-var $t = {};
+var $time = {};
+var $tpl = {};
+var $options = {
+    queueRefreshRate: 2000,
+    searchDelay: 500
+};
 
 function storeState() {
     var urlParts = window.location.href.split('#');
@@ -38,45 +42,60 @@ function restoreState() {
 }
 
 function taskmanCall(op, params, func) {
-    $('.loadIndicator').show();
+    $('.loadIndicator').css('visibility', 'visible');
     return $.ajax({
         type: "GET",
         url: atlas.homeUrl + "tasks",
         dataType: "json",
         data: $.extend(params, { op : op }),
         success: function (json) {
-            $('.loadIndicator').hide();
+            $('.loadIndicator').css('visibility', 'hidden');
             if(json.error)
                 alert(json.error);
             else
                 func(json);
         },
         error: function() {
-            $('.loadIndicator').hide();
+            $('.loadIndicator').css('visibility', 'hidden');
             alert('AJAX error for ' + op + ' ' + params);
         }});
 }
 
 function updateBrowseExperiments() {
     taskmanCall('searchexp', {
+
         search: $('#experimentSearch').val(),
         fromDate: $('#dateFrom').val(),
         toDate: $('#dateTo').val(),
         pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0
+
     }, function (result) {
-        $('#experimentList').render(result, $t.experimentList);
+
+        function updateRestartContinueButtons() {
+            for(var k in selectedExperiments) {
+                $('#experimentList input.continue, #experimentList input.restart').removeAttr('disabled');
+                return;
+            }
+            $('#experimentList input.continue, #experimentList input.restart').attr('disabled', 'disabled');
+        }
+
+        $('#experimentList').render(result, $tpl.experimentList);
         $('#experimentList tr input.selector').click(function () {
             if($(this).is(':checked'))
                 selectedExperiments[this.value] = 1;
             else
                 delete selectedExperiments[this.value];
+            updateRestartContinueButtons();
         });
+
         var newAccessions = {};
         for(var i = 0; i < result.experiments.length; ++i)
             newAccessions[result.experiments[i].accession] = 1;
         for(i in selectedExperiments)
             if(!newAccessions[i])
                 delete selectedExperiments[i];
+        updateRestartContinueButtons();
+        
         $('#selectAll').click(function () {
             if($(this).is(':checked')) {
                 $('#experimentList tr input.selector').attr('disabled', 'disabled').attr('checked','checked');
@@ -84,20 +103,105 @@ function updateBrowseExperiments() {
                     selectedExperiments[result.experiments[i].accession] = 1;
             } else {
                 $('#experimentList tr input.selector').removeAttr('disabled').removeAttr('checked');
-                selectedExperiments.length = 0;
+                selectedExperiments = {};
+            }
+            updateRestartContinueButtons();
+        });
+
+        function startSelectedTasks(mode) {
+            var accessions = [];
+            for(var accession in selectedExperiments)
+                accessions.push(accession);
+
+            if(accessions.length == 0)
+                return;
+
+            if(window.confirm('Do you really want to ' + mode.toLowerCase() + ' ' + accessions.length + ' experiment(s)?')) {
+                selectedExperiments = {};
+                taskmanCall('enqueue', {
+                    runMode: mode,
+                    accession: accessions,
+                    type: 'experiment',
+                    autoDepends: 'true'
+                }, function(result) {
+                    $('#tabs').tabs('select', 1);
+                });
+            }
+        }
+
+        $('#experimentList input.continue').click(function () {
+            startSelectedTasks('CONTINUE');
+        });
+
+        $('#experimentList input.restart').click(function () {
+            startSelectedTasks('RESTART');
+        });
+
+        $('#experimentList .rebuildIndex input').click(function () {
+            if(window.confirm('Do you really want to rebuild index?')) {
+                taskmanCall('enqueue', {
+                    runMode: 'RESTART',
+                    accession: '',
+                    type: 'index',
+                    autoDepends: 'true'
+                }, function(result) {
+                    $('#tabs').tabs('select', 1);
+                });
             }
         });
     });
 }
 
-function updateQueue() {
-    taskmanCall('tasklist', {}, function (result) {
-        $('#taskList').render(result, $t.taskList);
-    });
+function updatePauseButton(isRunning) {
+    function unpauseTaskman() {
+        taskmanCall('restart', {}, function () {
+            updatePauseButton(true);
+        });
+    }
+
+    function pauseTaskman() {
+        taskmanCall('pause', {}, function () {
+            updatePauseButton(true);
+        });
+    }
+    $('#pauseButton').unbind('click').click(isRunning ? pauseTaskman : unpauseTaskman).val(isRunning ? 'pause' : 'restart');
+    $('.taskmanPaused').css('display', isRunning ? 'none' : 'inherit');
 }
 
-function cancelTask(id) {
-    alert('cancel task ' + id);
+function updateQueue() {
+    clearTimeout($time.queue);
+    taskmanCall('tasklist', {}, function (result) {
+        $('#taskList').render(result, $tpl.taskList);
+
+        for(var i in result.tasks) {
+            (function (task) {
+                $('#taskList .cancelButton' + task.id).click(function () {
+                    if(confirm('Do you really want to cancel task ' + task.type + ' ' + task.accession + '?')) {
+                        taskmanCall('cancel', { id: task.id }, function () {
+                            updateQueue();
+                        });
+                    }
+                });
+            })(result.tasks[i]);
+        }
+
+        $('#taskList .cancelAllButton').click(function () {
+            var ids = [];
+            for(var i in result.tasks)
+                ids.push(result.tasks[i].id);
+            if(confirm('Do you really want to cancel all tasks?')) {
+                taskmanCall('cancel', { id: ids }, function () {
+                    updateQueue();
+                });
+            }
+        });
+
+        updatePauseButton(result.isRunning);
+
+        $time.queue = setTimeout(function () {
+            updateQueue();
+        }, $options.queueRefreshRate);
+    });
 }
 
 function redrawCurrentState() {
@@ -109,12 +213,12 @@ function redrawCurrentState() {
         $('#dateTo').val(currentState['exp-dt']);
     if(currentState['exp-io'] != null)
         $('#incompleteOnly').attr('checked', currentState['exp-io'] == 1);
-
-
     if(currentState['tab'] == 0) {
+        clearTimeout($time.queue);
         $('#tabs').tabs('select', 0);
         updateBrowseExperiments();
     } else if(currentState['tab'] == 1) {
+        clearTimeout($time.search);
         $('#tabs').tabs('select', 1);
         updateQueue();
     } else if(currentState['tab'] == 2) {
@@ -136,7 +240,7 @@ function storeExperimentsFormState() {
 }
 
 function compileTemplates() {
-    $t.experimentList = $('#experimentList').compile({
+    $tpl.experimentList = $('#experimentList').compile({
         '.exprow': {
             'experiment <- experiments' : {
                 '.accession': 'experiment.accession',
@@ -146,20 +250,22 @@ function compileTemplates() {
             }
         },
         '.expall@style': function (r) { return r.context.experiments.length ? '' : 'display:none'; },
-        '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; }
+        '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
+        '.rebuildIndex@style': function (r) { return r.context.indexStage == 'DONE' ? 'display:none' : ''; }
     });
 
-    $t.taskList = $('#taskList').compile({
-        'tr': {
+    $tpl.taskList = $('#taskList').compile({
+        'tr.task': {
             'task <- tasks': {
                 '.state': 'task.state',
                 '.type': 'task.type',
                 '.accession': 'task.accession',
                 '.stage': 'task.stage',
                 '.runMode': 'task.runMode',
-                'input@onclick': 'cancelTask(#{task.id})' 
+                'input@class+': 'task.id'
             }
-        }
+        },
+        '.cancelAllButton@style': function (r) { return r.context.tasks.length ? '' : 'display:none'; }
     });
 }
 
@@ -167,13 +273,16 @@ $(document).ready(function () {
 
     compileTemplates();
 
-    $('#tabs').tabs({show: function(event, ui) {
-        if(currentState['tab'] != ui.index) {
-            currentState['tab'] = ui.index;
-            storeState();
-            redrawCurrentState();
-        }
-    }, selected: '-1'});
+    $('#tabs').tabs({
+        show: function(event, ui) {
+            if(currentState['tab'] != ui.index) {
+                currentState['tab'] = ui.index;
+                storeState();
+                redrawCurrentState();
+            }
+        },
+        selected: '-1'
+    });
 
     $('#dateFrom,#dateTo').datepicker({
         dateFormat: 'dd/mm/yy',
@@ -197,7 +306,7 @@ $(document).ready(function () {
     $('#experimentSearch').bind('keydown', function (event) {
         var keycode = event.keyCode;
         if(keycode == 13) {
-            clearTimeout(searchTimeout);
+            clearTimeout($time.search);
             storeExperimentsFormState();
             updateBrowseExperiments();
         } else if(keycode == 8 || keycode == 46 ||
@@ -206,13 +315,14 @@ $(document).ready(function () {
                   (keycode >= 186 && keycode <= 192) ||    // ; = , - . / ^
                   (keycode >= 219 && keycode <= 222)) {
 
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function () {
+            clearTimeout($time.search);
+            $time.search = setTimeout(function () {
                 storeExperimentsFormState();
                 updateBrowseExperiments();
-            }, 500);
+            }, $options.searchDelay);
         }
     });
-    
+
+    updatePauseButton(false);
     restoreState();
 });

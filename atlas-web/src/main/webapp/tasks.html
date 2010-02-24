@@ -37,10 +37,14 @@
                             <label for="incompleteOnly">Incomplete only:</label>
                             <input type="checkbox" id="incompleteOnly" value="1">
                         </nobr>
-                        <img src="images/indicator.gif" alt="" width="16" height="16" style="display:none" class="loadIndicator">
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
                     </form>
 
                     <div id="experimentList">
+                        <div class="rebuildIndex">
+                            Index build is incomplete
+                            <input type="button" value="rebuild index">
+                        </div>
                         <table>
                             <tr class="exprow">
                                 <td>
@@ -54,13 +58,13 @@
                                     <input id="selectAll" type="checkbox">
                                 </td>
                                 <td colspan="2">
-                                    select all
+                                    <label for="selectAll">select all</label>
                                 </td>
                             </tr>
                         </table>
                         <div class="expall">
-                            <input type="button" value="continue"> |
-                            <input type="button" value="restart"> selection
+                            <input type="button" value="continue" class="continue"> |
+                            <input type="button" value="restart" class="restart"> selection
                         </div>
                         <div class="expnone">
                             No experiments found
@@ -68,16 +72,27 @@
                     </div>
                 </div>
                 <div id="tab-que">
+                    <input type="button" value="pause" id="pauseButton">
+                    <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    <div class="taskmanPaused">
+                        Task manager is now paused. All currently working tasks will finish, but no new tasks will be started.
+                    </div>
                     <div id="taskList">
                         <table>
-                            <tr>
+                            <tr class="task">
                                 <td class="state">WORKING</td>
                                 <td class="type">experiment</td>
                                 <td class="accession">E-TABM-1</td>
                                 <td class="stage">NETCDF</td>
                                 <td class="runMode">RESTART</td>
                                 <td>
-                                    <input type="button" value="cancel">
+                                    <input class="cancelButton" type="button" value="cancel">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="5"></td>
+                                <td>
+                                    <input class="cancelAllButton" type="button" value="cancel all">
                                 </td>
                             </tr>
                         </table>

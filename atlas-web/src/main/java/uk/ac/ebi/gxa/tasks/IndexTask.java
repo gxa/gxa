@@ -26,6 +26,7 @@ public class IndexTask implements WorkingTask {
         this.spec = spec;
         this.queue = queue;
         this.runMode = runMode;
+        this.currentStage = queue.getTaskStage(spec);
     }
 
     public TaskSpec getTaskSpec() {
@@ -45,8 +46,6 @@ public class IndexTask implements WorkingTask {
     }
 
     public void start() {
-        currentStage = queue.getTaskStage(spec);
-        
         if(runMode == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
             queue.notifyTaskFinished(this);
             return;
