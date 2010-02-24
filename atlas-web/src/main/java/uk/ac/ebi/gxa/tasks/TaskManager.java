@@ -171,11 +171,15 @@ public class TaskManager implements InitializingBean {
     }
 
     public Collection<Task> getWorkingTasks() {
-        return new ArrayList<Task>(workingTasks);
+        synchronized (this) {
+            return new ArrayList<Task>(workingTasks);
+        }
     }
 
-    public Collection<Task> getQueuedTasks() {
-        return new ArrayList<Task>(queuedTasks);
+    public  Collection<Task> getQueuedTasks() {
+        synchronized (this) {
+            return new ArrayList<Task>(queuedTasks);
+        }
     }
 
     private Task getTaskById(final int taskId) {
@@ -222,12 +226,18 @@ public class TaskManager implements InitializingBean {
     }
 
     public void start() {
+        log.info("Starting task manager");
         running = true;
         runNextTask();
     }
 
     public void pause() {
+        log.info("Pausing task manager");
         running = false;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     public boolean isRunningSomething() {
