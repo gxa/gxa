@@ -209,117 +209,122 @@ public class ExperimentNetCDFGeneratorService
         Experiment experiment = getAtlasDAO().
                 getExperimentByAccession(experimentAccession);
 
-        // the list of futures - we need these so we can block until completion
-        Deque<Future<Boolean>> tasks =
-                new Deque<Future<Boolean>>(5);
+        if (experiment != null) {
+            // the list of futures - we need these so we can block until completion
+            Deque<Future<Boolean>> tasks =
+                    new Deque<Future<Boolean>>(5);
 
-        getLog().info("Generating NetCDFs - experiment " +
-                experiment.getAccession());
+            getLog().info("Generating NetCDFs - experiment " +
+                    experiment.getAccession());
 
-        // update loadmonitor - experiment is netcdf-ing
-        getAtlasDAO().writeLoadDetails(
-                experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
+            // update loadmonitor - experiment is netcdf-ing
+            getAtlasDAO().writeLoadDetails(
+                    experiment.getAccession(), LoadStage.NETCDF, LoadStatus.WORKING);
 
-        // create a data slicer to slice up this experiment
-        DataSlicer slicer = new DataSlicer(getAtlasDAO());
+            // create a data slicer to slice up this experiment
+            DataSlicer slicer = new DataSlicer(getAtlasDAO());
 
-        // flag to indicate if all netcdfs for this experiment completed
-        boolean success = true;
-        // the first error encountered whilst generating NetCDFs, if any
-        Exception firstError = null;
-
-        try {
-            // slice our experiment first
-            for (final DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
-                // run each experiment in parallel
-                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
-
-                    public Boolean call() throws Exception {
-                        // create a new NetCDF document
-                        NetcdfFileWriteable netCDF = createNetCDF(
-                                dataSlice.getExperiment(),
-                                dataSlice.getArrayDesign());
-
-                        // format it with paramaters suitable for our data
-                        NetCDFFormatter formatter = new NetCDFFormatter();
-                        formatter.formatNetCDF(netCDF, dataSlice);
-
-                        // actually create the netCDF
-                        netCDF.create();
-
-                        // write the data from our data slice to this netCDF
-                        try {
-                            NetCDFWriter writer = new NetCDFWriter();
-                            writer.writeNetCDF(netCDF, dataSlice);
-                        }
-                        finally {
-                            // save and close the netCDF
-                            netCDF.close();
-                        }
-                        getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
-                                " and " + dataSlice.getArrayDesign().getAccession());
-                        return true;
-                    }
-                }));
-            }
-
-            // block until completion, and throw the first error we see
-            while (true) {
-                try {
-                    Future<Boolean> task = tasks.poll();
-                    if (task == null) {
-                        break;
-                    }
-                    success = task.get() && success;
-                }
-                catch (Exception e) {
-                    // print the stacktrace, but swallow this exception to rethrow at the very end
-                    success = false;
-                    getLog().error("An error occurred whilst generating NetCDFs:\n{}", e);
-                    if (firstError == null) {
-                        firstError = e;
-                    }
-                }
-            }
-
-            // if we have encountered an exception, throw the first error
-            if (firstError != null) {
-                throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
-            }
-        }
-        finally {
-            // update loadmonitor - all NetCDFs completed/failed for this experiment
-            if (success) {
-                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
-            }
-            else {
-                getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
-            }
-
-            // shutdown the service
-            getLog().debug("Shutting down executor service in " +
-                    getClass().getSimpleName() + " (" + tpool.toString() + ") for " +
-                    experimentAccession);
+            // flag to indicate if all netcdfs for this experiment completed
+            boolean success = true;
+            // the first error encountered whilst generating NetCDFs, if any
+            Exception firstError = null;
 
             try {
-                tpool.shutdown();
-                tpool.awaitTermination(60, TimeUnit.SECONDS);
-                if (!tpool.isTerminated()) {
+                // slice our experiment first
+                for (final DataSlice dataSlice : slicer.sliceExperiment(experiment)) {
+                    // run each experiment in parallel
+                    tasks.offerLast(tpool.submit(new Callable<Boolean>() {
+
+                        public Boolean call() throws Exception {
+                            // create a new NetCDF document
+                            NetcdfFileWriteable netCDF = createNetCDF(
+                                    dataSlice.getExperiment(),
+                                    dataSlice.getArrayDesign());
+
+                            // format it with paramaters suitable for our data
+                            NetCDFFormatter formatter = new NetCDFFormatter();
+                            formatter.formatNetCDF(netCDF, dataSlice);
+
+                            // actually create the netCDF
+                            netCDF.create();
+
+                            // write the data from our data slice to this netCDF
+                            try {
+                                NetCDFWriter writer = new NetCDFWriter();
+                                writer.writeNetCDF(netCDF, dataSlice);
+                            }
+                            finally {
+                                // save and close the netCDF
+                                netCDF.close();
+                            }
+                            getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
+                                    " and " + dataSlice.getArrayDesign().getAccession());
+                            return true;
+                        }
+                    }));
+                }
+
+                // block until completion, and throw the first error we see
+                while (true) {
+                    try {
+                        Future<Boolean> task = tasks.poll();
+                        if (task == null) {
+                            break;
+                        }
+                        success = task.get() && success;
+                    }
+                    catch (Exception e) {
+                        // print the stacktrace, but swallow this exception to rethrow at the very end
+                        success = false;
+                        getLog().error("An error occurred whilst generating NetCDFs:\n{}", e);
+                        if (firstError == null) {
+                            firstError = e;
+                        }
+                    }
+                }
+
+                // if we have encountered an exception, throw the first error
+                if (firstError != null) {
+                    throw new NetCDFGeneratorException("An error occurred whilst generating NetCDFs", firstError);
+                }
+            }
+            finally {
+                // update loadmonitor - all NetCDFs completed/failed for this experiment
+                if (success) {
+                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.DONE);
+                }
+                else {
+                    getAtlasDAO().writeLoadDetails(experiment.getAccession(), LoadStage.NETCDF, LoadStatus.FAILED);
+                }
+
+                // shutdown the service
+                getLog().debug("Shutting down executor service in " +
+                        getClass().getSimpleName() + " (" + tpool.toString() + ") for " +
+                        experimentAccession);
+
+                try {
+                    tpool.shutdown();
+                    tpool.awaitTermination(60, TimeUnit.SECONDS);
+                    if (!tpool.isTerminated()) {
+                        //noinspection ThrowFromFinallyBlock
+                        throw new NetCDFGeneratorException(
+                                "Failed to terminate service for " + getClass().getSimpleName() +
+                                        " cleanly - suspended tasks were found");
+                    }
+                    else {
+                        getLog().debug("Executor service exited cleanly");
+                    }
+                }
+                catch (InterruptedException e) {
                     //noinspection ThrowFromFinallyBlock
                     throw new NetCDFGeneratorException(
                             "Failed to terminate service for " + getClass().getSimpleName() +
                                     " cleanly - suspended tasks were found");
                 }
-                else {
-                    getLog().debug("Executor service exited cleanly");
-                }
             }
-            catch (InterruptedException e) {
-                //noinspection ThrowFromFinallyBlock
-                throw new NetCDFGeneratorException(
-                        "Failed to terminate service for " + getClass().getSimpleName() +
-                                " cleanly - suspended tasks were found");
-            }
+        }
+        else {
+            getLog().warn("Experiment " + experimentAccession + " is not present in the database");
         }
     }
 

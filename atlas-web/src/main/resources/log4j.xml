@@ -21,15 +21,15 @@
         <appender-ref ref="atlas-log"/>
     </logger>
 
-    <!--<logger name="uk.ac.ebi.gxa.analytics" additivity="false">-->
-        <!--<level value="TRACE"/>-->
-        <!--<appender-ref ref="atlas-log" />-->
-    <!--</logger>-->
+    <logger name="uk.ac.ebi.gxa.analytics" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="atlas-log" />
+    </logger>
 
-    <!--<logger name="uk.ac.ebi.gxa.R" additivity="false">-->
-        <!--<level value="TRACE"/>-->
-        <!--<appender-ref ref="atlas-log" />-->
-    <!--</logger>-->
+    <logger name="uk.ac.ebi.gxa.R" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="atlas-log" />
+    </logger>
 
     <!--<logger name="uk.ac.ebi.gxa.dao" additivity="false">-->
         <!--<level value="TRACE"/>-->
