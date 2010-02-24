@@ -46,13 +46,13 @@ public class IndexTask implements WorkingTask {
     }
 
     public void start() {
-        if(runMode == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
-            queue.notifyTaskFinished(this);
-            return;
-        }
-
         Thread thread = new Thread(new Runnable() {
             public void run() {
+                if(runMode == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
+                    queue.notifyTaskFinished(IndexTask.this);
+                    return;
+                }
+
                 queue.updateTaskStage(spec, INDEX_STAGE);
                 queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.STARTED, "");
                 final AtomicReference<IndexBuilderEvent> result = new AtomicReference<IndexBuilderEvent>(null);

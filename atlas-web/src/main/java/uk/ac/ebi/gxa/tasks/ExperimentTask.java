@@ -115,7 +115,11 @@ public class ExperimentTask implements WorkingTask {
         final Stage fromStage;
         if(runMode == TaskRunMode.CONTINUE) {
             if(TaskStage.DONE.equals(currentStage)) {
-                queue.notifyTaskFinished(ExperimentTask.this);
+                new Thread() { // TODO: that's awful, but let's leave for the moment 
+                    public void run() {
+                        queue.notifyTaskFinished(ExperimentTask.this);
+                    }
+                }.start();
                 return; // do nothing, "continue" fired on finished task by mistake
             }
             if(TaskStage.NONE.equals(currentStage))
