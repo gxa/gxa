@@ -337,6 +337,18 @@
     </servlet-mapping>
 
 
+    <servlet>
+        <display-name>Task Manager</display-name>
+        <servlet-name>taskManagerRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>taskManagerRequestHandler</servlet-name>
+        <url-pattern>/tasks</url-pattern>
+    </servlet-mapping>
+
+
     <!-- Atlas Admin Page servlet -->
     <servlet>
       <servlet-name>admin</servlet-name>

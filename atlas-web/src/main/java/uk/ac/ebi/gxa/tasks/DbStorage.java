@@ -1,22 +1,35 @@
 package uk.ac.ebi.gxa.tasks;
 
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * @author pashky
  */
 public class DbStorage implements PersistentStorage {
-    public void writeTaskLog(TaskSpec task, TaskStage stage, TaskStageEvent event, String message) {
+    private AtlasDAO dao;
+
+    Map<TaskSpec, TaskStage> taskStages = new HashMap<TaskSpec, TaskStage>();
+
+    public void setDao(AtlasDAO dao) {
+        this.dao = dao;
+    }
+
+    public void logTaskStageEvent(TaskSpec task, TaskStage stage, TaskStageEvent event, String message) {
 
     }
 
-    public void updateTaskStage(TaskSpec task, TaskStage stage) {
-
+    public synchronized void updateTaskStage(TaskSpec task, TaskStage stage) {
+        taskStages.put(task, stage);
     }
 
-    public TaskStage getTaskStage(TaskSpec task) {
-        return null;        
+    public synchronized TaskStage getTaskStage(TaskSpec task) {
+        return taskStages.get(task) != null ? taskStages.get(task) : TaskStage.NONE;
     }
 
-    public void writeOperationLog(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message) {
+    public void logTaskOperation(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message) {
 
     }
 }

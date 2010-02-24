@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <title>Atlas Maintenance Tasks</title>
+        <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+        <script type="text/javascript" src="scripts/pure2.js"></script>
+        <script type="text/javascript" src="scripts/tasks.js"></script>
+        <link rel="stylesheet" href="atlas.css" type="text/css" />
+        <link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css"/>
+        <style type="text/css">
+            #experimentsTable {
+                
+            }
+        </style>
+    </head>
+    <body>
+        <div id="ae_pagecontainer" style="font-size: 9pt;">
+            <h1>Atlas admin</h1>
+
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tab-exp">Experiments</a></li>
+                    <li><a href="#tab-que">Queue</a></li>
+                    <li><a href="#tab-log">Logs</a></li>
+                </ul>
+                <div id="tab-exp">
+                    <form action="#" id="experimentBrowseForm">
+                        <nobr>
+                            <label for="experimentSearch">Experiment:</label>
+                            <input type="text" id="experimentSearch">
+                        </nobr>
+                        <nobr>
+                            <label for="dateFrom">Load date:</label> 
+                            <input type="text" id="dateFrom"> - <input type="text" id="dateTo">
+                        </nobr>
+                        <nobr>
+                            <label for="incompleteOnly">Incomplete only:</label>
+                            <input type="checkbox" id="incompleteOnly" value="1">
+                        </nobr>
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="display:none" class="loadIndicator">
+                    </form>
+
+                    <div id="experimentList">
+                        <table>
+                            <tr class="exprow">
+                                <td>
+                                    <input class="selector" type="checkbox" value="">
+                                </td>
+                                <td class="accession">E-TABM-1</td>
+                                <td class="stage">NETCDF</td>
+                            </tr>
+                            <tr class="expall">
+                                <td>
+                                    <input id="selectAll" type="checkbox">
+                                </td>
+                                <td colspan="2">
+                                    select all
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="expall">
+                            <input type="button" value="continue"> |
+                            <input type="button" value="restart"> selection
+                        </div>
+                        <div class="expnone">
+                            No experiments found
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-que">
+                    <div id="taskList">
+                        <table>
+                            <tr>
+                                <td class="state">WORKING</td>
+                                <td class="type">experiment</td>
+                                <td class="accession">E-TABM-1</td>
+                                <td class="stage">NETCDF</td>
+                                <td class="runMode">RESTART</td>
+                                <td>
+                                    <input type="button" value="cancel">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="tab-log">
+                    <h1>Logs</h1>
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>

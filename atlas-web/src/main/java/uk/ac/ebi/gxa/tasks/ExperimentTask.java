@@ -7,18 +7,21 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author pashky
  */
 public class ExperimentTask implements WorkingTask {
-    private static final String TYPE = "experiment";
+    public static final String TYPE = "experiment";
 
     private final TaskManager queue;
     private final TaskRunMode runMode;
     private final TaskSpec taskSpec;
     private volatile boolean stop;
     private volatile TaskStage currentStage;
+    private final int taskId;
 
     private enum Stage {
         NETCDF {
@@ -144,15 +147,20 @@ public class ExperimentTask implements WorkingTask {
                     if(!doContinue)
                         break;
                 }
+                if(TaskStage.DONE.equals(currentStage)) {
+                    // reset index to "dirty" stage
+                    queue.updateTaskStage(new TaskSpec(IndexTask.TYPE, ""), IndexTask.INDEX_STAGE);
+                }
                 queue.notifyTaskFinished(ExperimentTask.this); // it's waiting for this
             }
         });
-        thread.setName(taskSpec.toString());
+        thread.setName("ExperimentTaskThread-" + getTaskSpec() + "-" + getTaskId());
         thread.start();
     }
 
-    private ExperimentTask(final TaskManager queue, final TaskSpec taskSpec, final TaskRunMode runMode) {
+    private ExperimentTask(final TaskManager queue, final int taskId, final TaskSpec taskSpec, final TaskRunMode runMode) {
         this.queue = queue;
+        this.taskId = taskId;
         this.taskSpec = taskSpec;
         this.runMode = runMode;
     }
@@ -165,17 +173,33 @@ public class ExperimentTask implements WorkingTask {
         return currentStage;
     }
 
+    public TaskRunMode getRunMode() {
+        return runMode;
+    }
+
+    public int getTaskId() {
+        return taskId;
+    }
+
     public void stop() {
         stop = true;
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
-        public WorkingTask createTask(TaskManager queue, TaskSpec taskSpec, TaskRunMode runMode) {
-            return new ExperimentTask(queue, taskSpec, runMode);
+        public WorkingTask createTask(TaskManager queue, Task prototype) {
+            return new ExperimentTask(queue, prototype.getTaskId(), prototype.getTaskSpec(), prototype.getRunMode());
         }
 
-        public boolean isForType(String type) {
-            return TYPE.equals(type);
+        public boolean isForType(TaskSpec taskSpec) {
+            return TYPE.equals(taskSpec.getType());
+        }
+
+        public boolean isBlockedBy(TaskSpec by) {
+            return false;
+        }
+
+        public Collection<TaskSpec> autoAddAfter(TaskSpec taskSpec) {
+            return Collections.singletonList(new TaskSpec(IndexTask.TYPE, ""));
         }
     };
 
