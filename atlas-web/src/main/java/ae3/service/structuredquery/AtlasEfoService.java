@@ -58,7 +58,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler 
             log.info("Getting counts for ontoltogy");
             Set<String> availIds = getEfo().getAllTermIds();
 
-            SolrQuery q = new SolrQuery("id:[* TO *]");
+            SolrQuery q = new SolrQuery("*:*");
             q.setRows(0);
             q.setFacet(true);
             q.setFacetMinCount(1);

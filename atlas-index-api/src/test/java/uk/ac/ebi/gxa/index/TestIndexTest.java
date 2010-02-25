@@ -17,7 +17,7 @@ public class TestIndexTest extends AbstractOnceIndexTest {
     public void testAtlasIndex() throws Exception {
         SolrServer solr = new EmbeddedSolrServer(getContainer(), "atlas");
         
-        SolrQuery q = new SolrQuery("id:[* TO *]");
+        SolrQuery q = new SolrQuery("*:*");
         QueryResponse qr = solr.query(q);
         assertNotNull(qr.getResults());
         assertTrue(qr.getResults().getNumFound() > 0);
@@ -27,7 +27,7 @@ public class TestIndexTest extends AbstractOnceIndexTest {
     @Test
     public void testExptIndex() throws Exception {
         SolrServer solr = new EmbeddedSolrServer(getContainer(), "expt");
-        SolrQuery q = new SolrQuery("id:[* TO *]");
+        SolrQuery q = new SolrQuery("*:*");
         QueryResponse qr = solr.query(q);
 
         assertNotNull(qr.getResults());
@@ -38,7 +38,7 @@ public class TestIndexTest extends AbstractOnceIndexTest {
     @Test
     public void testPropsIndex() throws Exception {
         SolrServer solr = new EmbeddedSolrServer(getContainer(), "properties");
-        SolrQuery q = new SolrQuery("[* TO *]");
+        SolrQuery q = new SolrQuery("*:*");
         QueryResponse qr = solr.query(q);
 
         assertNotNull(qr.getResults());

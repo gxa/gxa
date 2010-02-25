@@ -1064,7 +1064,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
 
     public SortedSet<String> getSpeciesOptions() {
         if(allSpecies.isEmpty()) {
-            SolrQuery q = new SolrQuery("id:[* TO *]");
+            SolrQuery q = new SolrQuery("*:*");
             q.setRows(0);
             q.addFacetField("species");
             q.setFacet(true);

@@ -23,7 +23,7 @@ public class AtlasExperimentQuery {
     }
 
     public AtlasExperimentQuery listAll() {
-        sb.replace(0, sb.length(), "id:[* TO *]");
+        sb.replace(0, sb.length(), "*:*");
         all = true;
         return this;
     }
