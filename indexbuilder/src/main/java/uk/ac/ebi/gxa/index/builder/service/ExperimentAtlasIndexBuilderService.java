@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -32,7 +33,7 @@ import java.util.concurrent.Future;
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
 
-    protected void createIndexDocs() throws IndexBuilderException {
+    protected void createIndexDocs(final ProgressUpdater progressUpdater) throws IndexBuilderException {
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
@@ -52,6 +53,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         Exception firstError = null;
 
         try {
+            final int total = experiments.size();
+            final AtomicInteger num = new AtomicInteger(0);
             for (final Experiment experiment : experiments) {
                 tasks.offerLast(tpool.submit(new Callable<Boolean>() {
                     public Boolean call() throws IOException, SolrServerException {
@@ -141,6 +144,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                                     experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
 
                             result = true;
+
+                            int processed = num.incrementAndGet();
+                            progressUpdater.update(processed + "/" + total);
 
                             return result;
                         }

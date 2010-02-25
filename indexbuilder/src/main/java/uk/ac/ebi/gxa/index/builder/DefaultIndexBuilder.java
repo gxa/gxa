@@ -10,6 +10,8 @@ import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 /**
@@ -182,13 +184,31 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
         notifyBuildStartHandlers();
 
+        final Map<String, String> progressMap = new HashMap<String, String>();
+
         for (final IndexBuilderService service : services) {
             if(includeIndexes.contains(service.getName())) {
                 indexingTasks.add(this.service.submit(new Callable<Boolean>() {
                     public Boolean call() throws IndexBuilderException {
                         try {
                             log.info("Starting building of index: " + service.getName());
-                            service.buildIndex();
+                            service.buildIndex(new IndexBuilderService.ProgressUpdater() {
+                                public void update(String progress) {
+                                    synchronized (progressMap) {
+                                        progressMap.put(service.getName(), progress);
+                                        StringBuilder sb = new StringBuilder();
+                                        for(Map.Entry<String,String> p : progressMap.entrySet()) {
+                                            if(sb.length() > 0)
+                                                sb.append(", ");
+                                            sb.append(p.getKey()).append(": ").append(p.getValue());
+                                        }
+                                        if(sb.length() > 0)
+                                            sb.insert(0, "Processed ");
+                                        if(listener != null)
+                                            listener.buildProgress(sb.toString());
+                                    }
+                                }
+                            });
                             return true;
                         }
                         catch (Exception e) {

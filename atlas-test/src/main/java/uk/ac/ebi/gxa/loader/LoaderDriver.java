@@ -286,6 +286,10 @@ public class LoaderDriver {
                             }
                         }
                     }
+
+                    public void buildProgress(String progressStatus) {
+                        //To change body of implemented methods use File | Settings | File Templates.
+                    }
                 });
     }
 }

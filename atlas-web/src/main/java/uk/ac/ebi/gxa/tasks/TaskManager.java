@@ -170,9 +170,9 @@ public class TaskManager implements InitializingBean {
         }
     }
 
-    public Collection<Task> getWorkingTasks() {
+    public Collection<WorkingTask> getWorkingTasks() {
         synchronized (this) {
-            return new ArrayList<Task>(workingTasks);
+            return new ArrayList<WorkingTask>(workingTasks);
         }
     }
 

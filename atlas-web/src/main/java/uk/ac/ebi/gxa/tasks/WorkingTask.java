@@ -9,4 +9,6 @@ public interface WorkingTask extends Task {
 
     void stop();
 
+    String getCurrentProgress();
+
 }

@@ -46,14 +46,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         this.efo = efo;
     }
 
-    protected void createIndexDocs() throws IndexBuilderException {
+    protected void createIndexDocs(final ProgressUpdater progressUpdater) throws IndexBuilderException {
         // do initial setup - load efo mappings and build executor service
         loadEfoMapping();
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         getLog().info("Fetching genes to index");
         // fetch genes
-        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
+        final List<Gene> genes = getAtlasDAO().getAllGenesFast().subList(0, 10000);
 
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks =
@@ -131,6 +131,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 getLog().info("Processed " + processedNow + "/" + total + " genes " +
                                         (processedNow * 100/total) + "% " + (1000*1000/diff) +
                                         " genes per sec, estimated " + estimated + " mins.");
+                                progressUpdater.update(processedNow + "/" + total);
                             }
 
                             return true;

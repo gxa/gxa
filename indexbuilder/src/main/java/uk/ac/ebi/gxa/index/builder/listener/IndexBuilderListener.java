@@ -10,17 +10,25 @@ import java.util.EventListener;
  * @date 28-Sep-2009
  */
 public interface IndexBuilderListener extends EventListener {
-  /**
-   * Indicates that building or updating of an index completed successfully
-   *
-   * @param event the event representing this build success event
-   */
-  public void buildSuccess(IndexBuilderEvent event);
+    /**
+     * Indicates that building or updating of an index completed successfully
+     *
+     * @param event the event representing this build success event
+     */
+    void buildSuccess(IndexBuilderEvent event);
 
-  /**
-   * Indicates that building or updating of an index exited with an error
-   *
-   * @param event the event representing this build failure
-   */
-  public void buildError(IndexBuilderEvent event);
+    /**
+     * Indicates that building or updating of an index exited with an error
+     *
+     * @param event the event representing this build failure
+     */
+    void buildError(IndexBuilderEvent event);
+
+    /**
+     * Is called by builder to provide some progress status report
+     *
+     * @param progressStatus a text string representing human-readable status line of current index builder process
+     */
+    void buildProgress(String progressStatus);
+
 }

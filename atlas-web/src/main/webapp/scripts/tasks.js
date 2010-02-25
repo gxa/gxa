@@ -262,6 +262,7 @@ function compileTemplates() {
                 '.accession': 'task.accession',
                 '.stage': 'task.stage',
                 '.runMode': 'task.runMode',
+                '.progress': 'task.progress',
                 'input@class+': 'task.id'
             }
         },

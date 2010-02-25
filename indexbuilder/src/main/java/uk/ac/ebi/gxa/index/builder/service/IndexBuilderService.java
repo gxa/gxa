@@ -5,19 +5,20 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.IOException;
 
 /**
  * An abstract IndexBuilderService, that provides convenience methods for getting and setting parameters required across
- * all SOLR index building implementations.  This class contains a single method, {@link #buildIndex()} that
+ * all SOLR index building implementations.  This class contains a single method, {@link #buildIndex(ProgressUpdater)} that
  * clients should use to construct the different types of index in a consistent manner.  Implementing classes have
  * access to an {@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the index, and an {@link
  * uk.ac.ebi.gxa.dao.AtlasDAO} that provides interaction with the Atlas database (following an Atlas 2
  * schema).
  * <p/>
- * All implementing classes should implement the method {@link #createIndexDocs()} which contains the logic for
+ * All implementing classes should implement the method {@link #createIndexDocs(ProgressUpdater)} which contains the logic for
  * constructing the relevant parts of the index for each implementation.  Implementations do not need to be concerned
  * with the SOLR index lifecycle, as this is handled by this abstract classes and {@link
  * uk.ac.ebi.gxa.index.builder.IndexBuilder} implementations.
@@ -50,16 +51,21 @@ public abstract class IndexBuilderService {
         return log;
     }
 
+    public interface ProgressUpdater {
+        void update(String progress);
+    }
     /**
      * Build the index for this particular IndexBuilderService implementation. Once the index has been built, this
      * method will automatically commit any changes and release any resources held by the SOLR server.
      *
+     * @param progressUpdater listener for passing progress updates
+     *
      * @throws IndexBuilderException if the is a problem whilst generating the index
      */
-    public void buildIndex() throws IndexBuilderException {
+    public void buildIndex(ProgressUpdater progressUpdater) throws IndexBuilderException {
         try {
             getSolrServer().deleteByQuery("*:*");
-            createIndexDocs();
+            createIndexDocs(progressUpdater);
             getSolrServer().commit();
             getSolrServer().optimize();
         }
@@ -84,7 +90,7 @@ public abstract class IndexBuilderService {
      * @throws uk.ac.ebi.gxa.index.builder.IndexBuilderException
      *          if there is a problem whilst trying to generate the index documents
      */
-    protected abstract void createIndexDocs() throws IndexBuilderException;
+    protected abstract void createIndexDocs(ProgressUpdater progressUpdater) throws IndexBuilderException;
 
     /**
      * Returns index name, which this service builds

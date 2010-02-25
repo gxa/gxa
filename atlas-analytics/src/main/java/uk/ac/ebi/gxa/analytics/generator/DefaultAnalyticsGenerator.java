@@ -171,6 +171,9 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws AnalyticsGeneratorException {
                 try {
+                    if(listener != null)
+                        listener.buildProgress("Processing...");
+
                     if (experimentAccession == null) {
                         log.info("Starting analytics generations for all experiments");
                         analyticsService.generateAnalytics();
