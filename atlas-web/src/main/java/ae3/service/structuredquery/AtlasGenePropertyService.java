@@ -89,7 +89,7 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         synchronized(prefixTrees) {
             if(!prefixTrees.containsKey(field)) {
                 log.info("Loading gene property values and counts for " + field);
-                SolrQuery q = new SolrQuery("id:[* TO *]");
+                SolrQuery q = new SolrQuery("*:*");
                 q.setRows(0);
                 q.setFacet(true);
                 q.setFacetMinCount(1);

@@ -74,7 +74,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
 
     public Set<String> getAllFactors() {
         if(allFactors.isEmpty()) {
-            SolrQuery q = new SolrQuery("value_id:[* TO *]");
+            SolrQuery q = new SolrQuery("*:*");
             q.setRows(0);
             q.addFacetField("property_f");
             q.setFacet(true);
@@ -99,7 +99,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
         synchronized(prefixTrees) {
             if(!prefixTrees.containsKey(property)) {
                 log.info("Loading factor values and counts for " + property);
-                SolrQuery q = new SolrQuery("id:[* TO *]");
+                SolrQuery q = new SolrQuery("*:*");
                 q.setRows(0);
                 q.setFacet(true);
                 q.setFacetMinCount(1);
@@ -111,7 +111,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
                     if(Constants.EXP_FACTOR_NAME.equals(property)) {
                         q.addFacetField("exp_ud_ids");
 
-                        SolrQuery exptMapQ = new SolrQuery("id:[* TO *]");
+                        SolrQuery exptMapQ = new SolrQuery("*:*");
                         exptMapQ.setRows(1000000);
                         exptMapQ.addField("id");
                         exptMapQ.addField("accession");
