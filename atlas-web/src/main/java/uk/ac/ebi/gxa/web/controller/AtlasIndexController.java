@@ -40,19 +40,9 @@ public class AtlasIndexController extends AbstractController {
 
     protected ModelAndView handleRequestInternal(HttpServletRequest httpServletRequest,
                                                  HttpServletResponse httpServletResponse) throws Exception {
-        // parse pending parameter
-        boolean pending = Boolean.parseBoolean(ServletRequestUtils.getStringParameter(httpServletRequest, "pending"));
-
-        log.info("Request to " + (pending ? "update" : "build") + "  index");
-        if (pending) {
-            // build index for pending items only
-            indexBuilder.updateIndex();
-            return new ModelAndView(getSuccessView());
-        }
-        else {
-            // build index for pending items only
-            indexBuilder.buildIndex();
-            return new ModelAndView(getSuccessView());
-        }
+        log.info("Request to build index");
+        // build index for pending items only
+        indexBuilder.buildIndex();
+        return new ModelAndView(getSuccessView());
     }
 }

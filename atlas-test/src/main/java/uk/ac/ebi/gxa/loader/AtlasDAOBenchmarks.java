@@ -339,8 +339,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetAllGenes();
         System.out.print(".");
-        benchmarkGetAllPendingGenes();
-        System.out.print(".");
         benchmarkGetArrayDesignByAccession();
         System.out.print(".");
         benchmarkGetArrayDesignByExperimentAccession();
@@ -470,14 +468,6 @@ public class AtlasDAOBenchmarks {
         reportBenchmarks("getAllGenes()", AtlasDAO.GENES_SELECT, timer.execute(new TimedOperation() {
             void doOperation() {
                 atlasDAO.getAllGenes();
-            }
-        }));
-    }
-
-    public void benchmarkGetAllPendingGenes() {
-        reportBenchmarks("getAllPendingGenes()", AtlasDAO.GENES_PENDING_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
-                atlasDAO.getAllPendingGenes();
             }
         }));
     }

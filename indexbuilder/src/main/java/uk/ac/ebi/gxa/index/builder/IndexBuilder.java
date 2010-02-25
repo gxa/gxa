@@ -78,32 +78,6 @@ public interface IndexBuilder {
     void buildIndex(IndexBuilderListener listener);
 
     /**
-     * Incrementally builds the index, updating the existing index with new items rather than building from scratch.
-     * <p/>
-     * Note that this method only guarantees that the index has started updating. Implementations are free to define
-     * their own multithreaded strategies for index construction, and should not block waiting for completion.  If you
-     * wish to be notified on completion, you should register a listener to get callback events when the update
-     * completes by using {@link #updateIndex(uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener)}. You can also
-     * use a listener to get at any errors that may have occurred during index building.
-     * <p/>
-     * Calling this method is equivalent to calling <code>updateIndex(null)</code>.
-     */
-    void updateIndex();
-
-    /**
-     * Incrementally builds the index, updating the existing index with new items rather than building from scratch.
-     * <p/>
-     * Note that this method only guarantees that the index has started updating. Implementations are free to define
-     * their own multithreaded strategies for index construction, and should not block waiting for completion.
-     * <p/>
-     * The listener supplied will provide callbacks whenever the indexbuilder has interesting events to report.
-     *
-     * @param listener a listener that can be used to supply callbacks when updating of the index completes, or when any
-     *                 errors occur.
-     */
-    void updateIndex(IndexBuilderListener listener);
-
-    /**
      * Register index update handler. Those handlers will be called when index build starts and finishes.
      * @param handler handler to register
      */

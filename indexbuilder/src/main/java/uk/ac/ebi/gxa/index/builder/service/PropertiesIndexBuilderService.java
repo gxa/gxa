@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 public class PropertiesIndexBuilderService extends IndexBuilderService {
 
-    protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
+    protected void createIndexDocs() throws IndexBuilderException {
         try {
             getLog().info("Fetching all properties");
             for(Property property : getAtlasDAO().getAllProperties()) {

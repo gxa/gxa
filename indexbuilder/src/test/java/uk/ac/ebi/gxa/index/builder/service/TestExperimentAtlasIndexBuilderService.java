@@ -39,7 +39,7 @@ public class TestExperimentAtlasIndexBuilderService
     public void testCreateIndexDocs() {
         try {
             // create the docs
-            eaibs.createIndexDocs(false);
+            eaibs.createIndexDocs();
             // commit the results
             eaibs.getSolrServer().commit();
 
