@@ -3,10 +3,7 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Javadocs go here!
@@ -20,89 +17,94 @@ public class ArrayDesignBundle {
     private String provider;
     private String type;
     private List<String> designElementNames;
-    private Map<String, List<String[]>> designElementDBEs;
+    private Map<String, Map<String, List<String>>> designElementDBEs;
 
     private List<String> geneIdentifierNames;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public String getAccession() {
+    public synchronized String getAccession() {
         return accession;
     }
 
-    public void setAccession(String accession) {
+    public synchronized void setAccession(String accession) {
         this.accession = accession;
     }
 
-    public String getType() {
+    public synchronized String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public synchronized void setType(String type) {
         this.type = type;
     }
 
-    public String getName() {
+    public synchronized String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public synchronized void setName(String name) {
         this.name = name;
     }
 
-    public String getProvider() {
+    public synchronized String getProvider() {
         return provider;
     }
 
-    public void setProvider(String provider) {
+    public synchronized void setProvider(String provider) {
         this.provider = provider;
     }
 
-    public List<String> getDesignElementNames() {
+    public synchronized List<String> getDesignElementNames() {
         if (designElementNames == null) {
             designElementNames = new ArrayList<String>();
         }
         return designElementNames;
     }
 
-    public void addDesignElementName(String designElementName) {
+    public synchronized void addDesignElementName(String designElementName) {
         if (designElementNames == null) {
             designElementNames = new ArrayList<String>();
         }
-        this.designElementNames.add(designElementName);
+        designElementNames.add(designElementName);
     }
 
-    public Map<String, String> getDatabaseEntriesForDesignElement(String designElementName) {
-        Map<String, String> response = new HashMap<String, String>();
+    public synchronized Map<String, List<String>> getDatabaseEntriesForDesignElement(String designElementName) {
+        if (designElementDBEs != null && designElementDBEs.containsKey(designElementName)) {
+            return designElementDBEs.get(designElementName);
+        }
+        else {
+            return new HashMap<String, List<String>>();
+        }
+    }
 
-        List<String[]> nvps = designElementDBEs.get(designElementName);
-        for (String[] nvp : nvps) {
-            if (nvp.length != 2) {
-                log.warn("Unexpected array length - name value pairs should be 1:1");
+    public synchronized void addDatabaseEntryForDesignElement(String designElement, String type, String... values) {
+        // lazy instantiate
+        if (designElementDBEs == null) {
+            designElementDBEs = new HashMap<String, Map<String, List<String>>>();
+        }
+        // if there is no key for this design element, add it with a new map
+        if (!designElementDBEs.containsKey(designElement)) {
+            if (designElementNames.contains(designElement)) {
+                designElementDBEs.put(designElement, new HashMap<String, List<String>>());
             }
             else {
-                response.put(nvp[0], nvp[1]);
+                throw new NullPointerException("No design element with name '" + designElement + "'");
             }
         }
-
-        return response;
+        // if there is no previous type, add it with a new list
+        if (!designElementDBEs.get(designElement).containsKey(type)) {
+            designElementDBEs.get(designElement).put(type, new ArrayList<String>());
+        }
+        // now put the values into the list
+        designElementDBEs.get(designElement).get(type).addAll(Arrays.asList(values));
     }
 
-    public void addDatabaseEntryForDesignElement(String designElement, String type, String value) {
-        if (designElementDBEs == null) {
-            designElementDBEs = new HashMap<String, List<String[]>>();
-        }
-        if (!designElementDBEs.containsKey(designElement)) {
-            designElementDBEs.put(designElement, new ArrayList<String[]>());
-        }
-        this.designElementDBEs.get(designElement).add(new String[]{type, value});
-    }
-
-    public List<String> getGeneIdentifierNames() {
+    public synchronized List<String> getGeneIdentifierNames() {
         return geneIdentifierNames;
     }
 
-    public void setGeneIdentifierNamesInPriorityOrder(List<String> geneIdentifierNames) {
+    public synchronized void setGeneIdentifierNamesInPriorityOrder(List<String> geneIdentifierNames) {
         this.geneIdentifierNames = geneIdentifierNames;
     }
 }

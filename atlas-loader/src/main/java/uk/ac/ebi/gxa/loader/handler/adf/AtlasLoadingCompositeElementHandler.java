@@ -36,9 +36,9 @@ public class AtlasLoadingCompositeElementHandler extends CompositeElementHandler
                     String deName = composite.getNodeName();
                     getLog().debug("Writing design element from composite element node '" + deName + "'");
 
-                    if (!arrayBundle.getDesignElementNames().contains(composite.getNodeName())) {
+                    if (!arrayBundle.getDesignElementNames().contains(deName)) {
                         // add new design element
-                        arrayBundle.addDesignElementName(composite.getNodeName());
+                        arrayBundle.addDesignElementName(deName);
                     }
 
                     // now write all database entries

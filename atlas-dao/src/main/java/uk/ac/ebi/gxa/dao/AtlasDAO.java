@@ -1375,7 +1375,7 @@ public class AtlasDAO {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", arrayDesignBundle.getAccession())
                 .addValue("TYPE", arrayDesignBundle.getType())
-                .addValue("NAME", arrayDesignBundle.getName())  //EQUAL TO ACCESSION ??
+                .addValue("NAME", arrayDesignBundle.getName())
                 .addValue("PROVIDER", arrayDesignBundle.getProvider())
                 .addValue("ENTRYPRIORITYLIST", entryPriorityList)
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
@@ -1410,33 +1410,6 @@ public class AtlasDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experimentAccession);
-
-        procedure.execute(params);
-    }
-
-    /**
-     * Deletes the array design with the given accession from the database.  If this array design is not present, this
-     * does nothing.
-     *
-     * @param arrayDesignAccession the accession of the array design to remove
-     */
-    public void deleteArrayDesign(final String arrayDesignAccession) {
-        // execute this procedure...
-        /*
-        PROCEDURE A2_ARRAYDESIGNDELETE(
-          Accession varchar2
-        )
-        */
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASLDR.A2_ARRAYDESIGNDELETE")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("ACCESSION")
-                        .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR));
-
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ACCESSION", arrayDesignAccession);
 
         procedure.execute(params);
     }
@@ -1499,6 +1472,50 @@ public class AtlasDAO {
     }
 
     public void finaliseExpressionAnalytics(String experimentAccession) {
+        // execute the ending analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetEnd(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETEND")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute(params);
+    }
+
+    public void startAssay(String experimentAccession) {
+        // execute the startup analytics procedure...
+        /*
+        PROCEDURE A2_AnalyticsSetBegin(
+           ExperimentAccession      IN   varchar2
+        )
+        */
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASLDR.A2_ANALYTICSSETBEGIN")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
+
+        // map single param
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("EXPERIMENTACCESSION", experimentAccession);
+
+        // and execute
+        procedure.execute(params);
+    }
+
+    public void finaliseAssay(String experimentAccession) {
         // execute the ending analytics procedure...
         /*
         PROCEDURE A2_AnalyticsSetEnd(
@@ -1683,6 +1700,11 @@ public class AtlasDAO {
             namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
+            StringBuffer sb  = new StringBuffer();
+            for (int sampleID : sampleIDsChunk) {
+                sb.append(sampleID).append(",");
+            }
+            log.trace("Querying for properties where sample IN (" + sb.toString() + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
@@ -1839,15 +1861,23 @@ public class AtlasDAO {
                 StructDescriptor structDescriptor =
                         StructDescriptor.createDescriptor("DESIGNELEMENT2", connection);
 
+                // loop over all design element names
                 for (String designElementName : arrayDesignBundle.getDesignElementNames()) {
-                    for (Map.Entry<String, String> databaseEntry :
-                            arrayDesignBundle.getDatabaseEntriesForDesignElement(designElementName).entrySet()) {
-                        Object[] deStructValues = new Object[3];
-                        deStructValues[0] = designElementName;
-                        deStructValues[1] = databaseEntry.getKey();
-                        deStructValues[2] = databaseEntry.getValue();
+                    // loop over the mappings of database entry 'type' to the set of values
+                    Map<String, List<String>> dbeMappings =
+                            arrayDesignBundle.getDatabaseEntriesForDesignElement(designElementName);
+                    for (String databaseEntryType : dbeMappings.keySet()) {
+                        // loop over the enumeration of database entry values
+                        List<String> databaseEntryValues = dbeMappings.get(databaseEntryType);
+                        for (String databaseEntryValue : databaseEntryValues) {
+                            // create a new row in the table for each combination
+                            Object[] deStructValues = new Object[3];
+                            deStructValues[0] = designElementName;
+                            deStructValues[1] = databaseEntryType;
+                            deStructValues[2] = databaseEntryValue;
 
-                        deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));
+                            deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));
+                        }
                     }
                 }
 
@@ -2115,6 +2145,8 @@ public class AtlasDAO {
             property.setFactorValue(resultSet.getBoolean(4));
 
             samplesByID.get(sampleID).addProperty(property);
+
+            log.debug("Storing property for " + sampleID + "(" + property.getName() + "->" + property.getValue());
 
             return property;
         }
