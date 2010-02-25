@@ -169,6 +169,9 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator, InitializingBean
                 try {
                     log.info("Starting NetCDF generations");
 
+                    if(listener != null)
+                        listener.buildProgress("Processing...");
+
                     if (experimentAccession == null) {
                         netCDFService.generateNetCDFs();
                     }

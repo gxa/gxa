@@ -22,6 +22,7 @@ public class ExperimentTask implements WorkingTask {
     private volatile boolean stop;
     private volatile TaskStage currentStage;
     private final int taskId;
+    private volatile String currentProgress = "";
 
     private enum Stage {
         NETCDF {
@@ -42,6 +43,10 @@ public class ExperimentTask implements WorkingTask {
                                     result.set(event);
                                     task.notifyAll();
                                 }
+                            }
+
+                            public void buildProgress(String progressStatus) {
+                                task.currentProgress = progressStatus;
                             }
                         });
                 synchronized (task) {
@@ -80,6 +85,10 @@ public class ExperimentTask implements WorkingTask {
                                     result.set(event);
                                     task.notifyAll();
                                 }
+                            }
+
+                            public void buildProgress(String progressStatus) {
+                                task.currentProgress = progressStatus;
                             }
                         });
                 synchronized (task) {
@@ -186,6 +195,10 @@ public class ExperimentTask implements WorkingTask {
 
     public void stop() {
         stop = true;
+    }
+
+    public String getCurrentProgress() {
+        return currentProgress;
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {

@@ -76,6 +76,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM(); ++i) {
                             log.info("Heavy analytics calculations " + i + " for " + experimentAccession);
+                            listener.buildProgress("Heavy analytics calculations " + i + " for " + experimentAccession);
                             delay();
                         }
                         if(fixEverything)
@@ -115,6 +116,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM(); ++i) {
                             log.info("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
+                            listener.buildProgress("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
                             delay();
                         }
                         if(fixEverything)
@@ -152,6 +154,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM(); ++i) {
                             log.info("Index building " + i);
+                            listener.buildProgress("Index building " + i);
                             delay();
                         }
                         if(shouldFail)
@@ -192,29 +195,30 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Map makeTaskObject(Task task, String state) {
+    private Map makeTaskObject(Task task, String state, String progress) {
         return makeMap(
                 "state", state,
                 "id", task.getTaskId(),
                 "runMode", task.getRunMode(),
                 "stage", task.getCurrentStage().toString(),
                 "type", task.getTaskSpec().getType(),
-                "accession", task.getTaskSpec().getAccession());
+                "accession", task.getTaskSpec().getAccession(),
+                "progress", progress);
     }
 
     private Object processTaskList() {
         return makeMap(
                 "isRunning", taskManager.isRunning(),
-                "tasks", new JoinIterator<Task,Task,Map>(
+                "tasks", new JoinIterator<WorkingTask,Task,Map>(
                         taskManager.getWorkingTasks().iterator(),
                         taskManager.getQueuedTasks().iterator()
                 ) {
-                    public Map map1(Task task) {
-                        return makeTaskObject(task, "WORKING");
+                    public Map map1(WorkingTask task) {
+                        return makeTaskObject(task, "WORKING", task.getCurrentProgress());
                     }
 
                     public Map map2(Task task) {
-                        return makeTaskObject(task, "PENDING");
+                        return makeTaskObject(task, "PENDING", null);
                     }
                 });
     }

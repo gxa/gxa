@@ -20,6 +20,7 @@ public class IndexTask implements WorkingTask {
     private final TaskRunMode runMode;
     private volatile TaskStage currentStage;
     private final int taskId;
+    private volatile String currentProgress = "";
 
     private IndexTask(final TaskManager queue, final int taskId, final TaskSpec spec, final TaskRunMode runMode) {
         this.taskId = taskId;
@@ -70,6 +71,10 @@ public class IndexTask implements WorkingTask {
                             IndexTask.this.notifyAll();
                         }
                     }
+
+                    public void buildProgress(String progressStatus) {
+                        currentProgress = progressStatus;
+                    }
                 });
 
                 synchronized (IndexTask.this) {
@@ -98,6 +103,10 @@ public class IndexTask implements WorkingTask {
 
     public void stop() {
         // can't stop this task as there's no stages and no control of index builder when it's running
+    }
+
+    public String getCurrentProgress() {
+        return currentProgress;
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {

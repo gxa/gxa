@@ -138,6 +138,7 @@ public class TaskManagerTest {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM; ++i) {
                             log.info("Heavy analytics calculations " + i + " for " + experimentAccession);
+                            listener.buildProgress("Heavy analytics calculations " + i + " for " + experimentAccession);
                             delay();
                         }
                         if(fixEverything || experimentAccession.contains("A"))
@@ -176,6 +177,7 @@ public class TaskManagerTest {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM; ++i) {
                             log.info("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
+                            listener.buildProgress("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
                             delay();
                         }
                         if(fixEverything || experimentAccession.contains("N"))
@@ -213,6 +215,7 @@ public class TaskManagerTest {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM; ++i) {
                             log.info("Index building " + i);
+                            listener.buildProgress("Index building " + i);
                             delay();
                         }
                         if(shouldFail)
