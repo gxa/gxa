@@ -9,5 +9,6 @@ package uk.ac.ebi.gxa.dao;
  */
 public enum LoadType {
     EXPERIMENT,
+    ARRAYDESIGN,
     GENE
 }

@@ -16,12 +16,11 @@ import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.dao.LoadType;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.adf.*;
-import uk.ac.ebi.microarray.atlas.model.AdfFile;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
 import java.net.URL;
@@ -39,7 +38,7 @@ import java.util.List;
 public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
     private List<String> geneIdentifierPriority = new ArrayList<String>();
 
-    protected AtlasArrayDesignLoader(AtlasDAO atlasDAO) {
+    public AtlasArrayDesignLoader(AtlasDAO atlasDAO) {
         super(atlasDAO);
     }
 
@@ -137,9 +136,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
-        int numOfObjects = cache.fetchAllExperiments().size() +
-                cache.fetchAllSamples().size() +
-                cache.fetchAllAssays().size();
+        int numOfObjects = cache.fetchAllArrayDesignBundles().size();
 
         // validate the load(s)
         if (!validateLoad(cache.fetchAllArrayDesignBundles())) {
@@ -173,7 +170,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote {} experiments in {}s.", cache.fetchAllExperiments().size(), total);
+            getLog().debug("Wrote {} array designs in {}s.", cache.fetchAllArrayDesignBundles().size(), total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
@@ -187,8 +184,8 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         }
         finally {
             // end the load(s)
-            for (Experiment exp : cache.fetchAllExperiments()) {
-                endLoad(exp.getAccession(), success);
+            for (ArrayDesignBundle bundle : cache.fetchAllArrayDesignBundles()) {
+                endLoad(bundle.getAccession(), success);
             }
         }
     }
@@ -226,14 +223,6 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 // not suppressing reloads, so continue
                 getLog().warn("Array Design " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
-
-                // check experiment exists in database, and not just in the loadmonitor
-                if (getAtlasDAO().getArrayDesignByAccession(accession) != null) {
-                    // experiment genuinely was already in the DB, so remove old experiment
-                    getLog().info("Deleting existing version of array design " + accession);
-                    getAtlasDAO().deleteArrayDesign(accession);
-                }
-
                 return true;
             }
         }
@@ -246,11 +235,17 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
     private void startLoad(String accession) {
         getLog().info("Updating load_monitor: starting load for " + accession);
-        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
+        getAtlasDAO().writeLoadDetails(accession,
+                                       LoadStage.LOAD,
+                                       LoadStatus.WORKING,
+                                       LoadType.ARRAYDESIGN);
     }
 
     private void endLoad(String accession, boolean success) {
         getLog().info("Updating load_monitor: ending load for " + accession);
-        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
+        getAtlasDAO().writeLoadDetails(accession,
+                                       LoadStage.LOAD,
+                                       success ? LoadStatus.DONE : LoadStatus.FAILED,
+                                       LoadType.ARRAYDESIGN);
     }
 }

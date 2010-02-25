@@ -89,15 +89,20 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
         if (!running) {
             // do some initialization...
 
-            // create the service
-            experimentLoaderService = new AtlasMAGETABLoader(atlasDAO);
-            experimentLoaderService.setAllowReloading(allowReloading);
+            // create the experiment loading service
+            experimentLoaderService = new AtlasMAGETABLoader(getAtlasDAO());
+            experimentLoaderService.setAllowReloading(getAllowReloading());
             // if we have set the cutoff for missing design elements, set on the service
             if (missingDesignElementsCutoff != -1) {
-                experimentLoaderService.setMissingDesignElementsCutoff(missingDesignElementsCutoff);
+                experimentLoaderService.setMissingDesignElementsCutoff(getMissingDesignElementsCutoff());
             }
 
-            // finally, create an executor service for processing calls to build the index
+            // create the experiment loading service
+            arrayLoaderService = new AtlasArrayDesignLoader(getAtlasDAO());
+            arrayLoaderService.setAllowReloading(getAllowReloading());
+            arrayLoaderService.setGeneIdentifierPriority(getGeneIdentifierPriority());
+
+            // finally, create an executor service for processing calls to load
             service = Executors.newCachedThreadPool();
 
             running = true;
