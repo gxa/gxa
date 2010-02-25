@@ -179,9 +179,10 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
             result = new TreeSet<AutoCompleteItem>();
             for(final String prop : getConfiguredFactors("options"))
                 treeAutocomplete(prop, query, limit, result);
+            treeAutocomplete(Constants.EXP_FACTOR_NAME, query, limit, result);
         } else {
             result = new ArrayList<AutoCompleteItem>();
-            if(getConfiguredFactors("options").contains(property) && !property.equals(Constants.EXP_FACTOR_NAME))
+            if(getConfiguredFactors("options").contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
                 treeAutocomplete(property, query, limit, result);
         }
         return result;
