@@ -46,16 +46,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         this.efo = efo;
     }
 
-    protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
+    protected void createIndexDocs() throws IndexBuilderException {
         // do initial setup - load efo mappings and build executor service
         loadEfoMapping();
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         getLog().info("Fetching genes to index");
         // fetch genes
-        final List<Gene> genes = pendingOnly
-                ? getAtlasDAO().getAllPendingGenes()
-                : getAtlasDAO().getAllGenesFast();
+        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
 
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks =

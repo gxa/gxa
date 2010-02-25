@@ -126,14 +126,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testGetAllPendingGenes() {
-        // test index pending
-        List<Gene> genes = getAtlasDAO().getAllPendingGenes();
-        for (Gene gene : genes) {
-//      assertTrue(gene.isPending()); // todo - how to test this?
-        }
-    }
-
     public void testGetPropertiesForGenes() {
         List<Gene> genes = getAtlasDAO().getAllGenes();
 

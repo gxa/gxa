@@ -33,7 +33,7 @@ public class TestGeneAtlasIndexBuilderService
     public void testCreateIndexDocs() {
         try {
             // create the docs
-            gaibs.createIndexDocs(false);
+            gaibs.createIndexDocs();
             // commit the results
             gaibs.getSolrServer().commit();
 

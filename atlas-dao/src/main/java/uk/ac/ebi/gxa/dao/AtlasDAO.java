@@ -99,13 +99,6 @@ public class AtlasDAO {
     public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
-    public static final String GENES_PENDING_SELECT =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_organism s, load_monitor lm " +
-                    "WHERE g.organismid=s.organismid " +
-                    "AND g.identifier=lm.accession " +
-                    "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
-                    "AND lm.load_type='gene'";
     public static final String DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de, a2_gene g, load_monitor lm " +
@@ -548,56 +541,6 @@ public class AtlasDAO {
         return null;
     }
 
-
-    /**
-     * Fetches all genes in the database that are pending indexing.  Note that genes are not automatically prepopulated
-     * with property information, to keep query time down.  If you require this data, you can fetch it for the list of
-     * genes you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes
-     * <b>are</b> prepopulated with design element information, however.
-     *
-     * @return the list of all genes in the database that are pending indexing
-     */
-    public List<Gene> getAllPendingGenes() {
-        // do the first query to fetch genes without design elements
-        List results = template.query(GENES_PENDING_SELECT,
-                                      new GeneMapper());
-
-        // do the second query to obtain design elements
-        List<Gene> genes = (List<Gene>) results;
-
-        // map genes to gene id
-        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
-        for (Gene gene : genes) {
-            // index this assay
-            genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Integer>());
-            }
-        }
-
-        // map of genes and their design elements
-        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
-
-        // now query for design elements, and genes, by the experiment accession, and map them together
-        template.query(DESIGN_ELEMENTS_AND_GENES_PENDING_SELECT,
-                       geneDesignElementMapper);
-        // and return
-        return genes;
-    }
-
-    /**
-     * Fetches all genes in the database that are pending indexing. No properties or design elements, when you dont'
-     * need that.
-     *
-     * @return the list of all genes in the database that are pending indexing
-     */
-    public List<Gene> getAllPendingGenesFast() {
-        // do the query to fetch genes without design elements
-        return (List<Gene>) template.query(GENES_PENDING_SELECT,
-                                           new GeneMapper());
-    }
 
     /**
      * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with

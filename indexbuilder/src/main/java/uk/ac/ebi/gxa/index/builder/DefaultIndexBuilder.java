@@ -142,18 +142,8 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
     }
 
     public void buildIndex(IndexBuilderListener listener) {
-        startIndexBuild(listener, false);
+        startIndexBuild(listener);
         log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
-    }
-
-    public void updateIndex() {
-        updateIndex(null);
-    }
-
-    public void updateIndex(IndexBuilderListener listener) {
-        startIndexBuild(listener, true);
-        log.info("Started IndexBuilder: " +
-                "Updating for " + StringUtils.join(getIncludeIndexes(), ","));
     }
 
     public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
@@ -180,7 +170,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         }
     }
 
-    private void startIndexBuild(final IndexBuilderListener listener, final boolean pending) {
+    private void startIndexBuild(final IndexBuilderListener listener) {
         if(includeIndexes.isEmpty()) {
             log.info("Nothing to build");
             return;
@@ -198,7 +188,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                     public Boolean call() throws IndexBuilderException {
                         try {
                             log.info("Starting building of index: " + service.getName());
-                            service.buildIndex(pending);
+                            service.buildIndex();
                             return true;
                         }
                         catch (Exception e) {

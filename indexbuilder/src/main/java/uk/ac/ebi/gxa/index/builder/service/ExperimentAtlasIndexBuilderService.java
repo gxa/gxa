@@ -32,21 +32,17 @@ import java.util.concurrent.Future;
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
 
-    protected void createIndexDocs(boolean pendingOnly) throws IndexBuilderException {
+    protected void createIndexDocs() throws IndexBuilderException {
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = pendingOnly
-                ? getAtlasDAO().getAllExperimentsPendingIndexing()
-                : getAtlasDAO().getAllExperiments();
+        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
 
         // if we're computing all analytics, some might not be pending, so reset them to pending up front
-        if (!pendingOnly) {
-            for (Experiment experiment : experiments) {
-                getAtlasDAO().writeLoadDetails(
-                        experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.PENDING);
-            }
+        for (Experiment experiment : experiments) {
+            getAtlasDAO().writeLoadDetails(
+                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.PENDING);
         }
 
         // the list of futures - we need these so we can block until completion
