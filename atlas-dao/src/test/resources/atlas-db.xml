@@ -121,14 +121,14 @@
 
     <A2_GENE
             geneid="1"
-            specid="1"
+            organismid="1"
             identifier="ENSG0001"
             name="AC01.1"
             />
 
     <A2_GENE
             geneid="2"
-            specid="1"
+            organismid="1"
             identifier="ENSG0002"
             name="AC02.1"
             />
@@ -152,8 +152,8 @@
             value="PROP:001"
             />
 
-    <A2_SPEC
-            specid="1"
+    <A2_ORGANISM
+            organismid="1"
             name="SPECIES"
             />
 
@@ -420,6 +420,7 @@
 
     <!-- dummy ontology mapping -->
     <A2_ONTOLOGYMAPPING
+            experimentid="1"
             accession="E-ABCD-1234"
             property="PROP1"
             propertyvalue="value001"

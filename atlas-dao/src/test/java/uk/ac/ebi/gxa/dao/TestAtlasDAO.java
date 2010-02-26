@@ -417,23 +417,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     public void testGetExpressionAnalyticsByGeneID() {
         try {
-            // fetch the accession of the first array design in our dataset
-            int id = Integer.parseInt(
-                    getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
-
-            System.out.println("Getting stats for Gene id: " + id);
-
-            List<ExpressionAnalysis> eas =
-                    getAtlasDAO().getExpressionAnalyticsByGeneID(id);
-
-            // check we got results
-            assertNotSame("Got 0 ExpressionAnalytics back", eas.size(), 0);
-
-            // check the returned data
-            for (ExpressionAnalysis ea : eas) {
-                assertNotNull(ea);
-                System.out.println("Got stats for " + id + ": " + ea.toString());
-            }
+            fail("requires Oracle");
         }
         catch (Exception e) {
             e.printStackTrace();
