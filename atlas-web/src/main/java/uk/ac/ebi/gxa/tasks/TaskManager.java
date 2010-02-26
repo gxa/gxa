@@ -209,6 +209,21 @@ public class TaskManager implements InitializingBean {
         throw new IllegalStateException("Can't find factory for task " + taskSpec);
     }
 
+    public void cancelAllTasks(TaskUser user) {
+        synchronized (this) {
+            log.info("Cancelling all tasks");
+
+            for(WorkingTask workingTask : workingTasks) {
+                storage.logTaskOperation(workingTask.getTaskSpec(), null, user, TaskOperation.CANCEL, "");
+                workingTask.stop();
+            }
+            for(QueuedTask queuedTask : queuedTasks) {
+                storage.logTaskOperation(queuedTask.getTaskSpec(), null, user, TaskOperation.CANCEL, "");
+            }
+            queuedTasks.clear();
+        }
+    }
+
     public void cancelTask(int taskId, TaskUser user) {
         synchronized (this) {
             log.info("Cancelling taskId " + taskId + " as user " + user);
