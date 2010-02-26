@@ -18,9 +18,6 @@ public class AssaySetter {
                           String arrayDesignAccession,
                           Object properties, Object expressionValues)
       throws Exception {
-
-      if(1==1)throw new Exception("obsolete call");
-
     // this mimics the stored procedure A2_ASSAYSET in the actual DB
 
     // lookup ids from accession first

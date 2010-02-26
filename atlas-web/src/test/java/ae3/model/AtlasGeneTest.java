@@ -102,12 +102,14 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     @Test
     public void test_getUniprotIds(){
         assertNotNull(gene.getUniprotId());
+        assertFalse("Uniprot ID is an empty string", gene.getUniprotId().equals(""));
         assertTrue(gene.getUniprotId().matches("^[A-Z0-9, ]+$"));
     }
 
     @Test
     public void getSynonyms(){
         assertNotNull(gene.getSynonym());
+        assertFalse("Synonym is an empty string", gene.getSynonym().equals(""));
         assertTrue(gene.getSynonym().contains("ASPM"));
     }
 

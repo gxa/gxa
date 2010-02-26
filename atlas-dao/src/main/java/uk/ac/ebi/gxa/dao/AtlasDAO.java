@@ -1341,7 +1341,7 @@ public class AtlasDAO {
                         .useInParameterNames("TYPE")
                         .useInParameterNames("NAME")
                         .useInParameterNames("PROVIDER")
-                        .useInParameterNames("ENTRYPRIORITYLIST")
+//                        .useInParameterNames("ENTRYPRIORITYLIST")
                         .useInParameterNames("DESIGNELEMENTS")
                         .declareParameters(
                                 new SqlParameter("ACCESSION", Types.VARCHAR))
@@ -1351,8 +1351,8 @@ public class AtlasDAO {
                                 new SqlParameter("NAME", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("PROVIDER", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))
+//                        .declareParameters(
+//                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
 
@@ -1375,7 +1375,7 @@ public class AtlasDAO {
                 .addValue("TYPE", arrayDesignBundle.getType())
                 .addValue("NAME", arrayDesignBundle.getName())
                 .addValue("PROVIDER", arrayDesignBundle.getProvider())
-                .addValue("ENTRYPRIORITYLIST", entryPriorityList)
+//                .addValue("ENTRYPRIORITYLIST", entryPriorityList)
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);

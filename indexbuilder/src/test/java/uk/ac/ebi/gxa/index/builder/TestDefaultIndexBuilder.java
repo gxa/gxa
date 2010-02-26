@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
+import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -55,6 +57,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
+        indexBuilder.setServices(Collections.<IndexBuilderService>emptyList());
     }
 
     public void tearDown() throws Exception {
