@@ -159,15 +159,13 @@ public class AtlasDAO {
     // expression value queries
     public static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
             "SELECT ev.assayid, ev.designelementid, ev.value " +
-                    "FROM a2_expressionvalue ev, a2_designelement de " +
-                    "WHERE ev.designelementid=de.designelementid " +
-                    "AND ev.assayid IN (:assayids)";
+                    "FROM a2_expressionvalue ev " +
+                    "WHERE ev.assayid IN (:assayids)";
     public static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
             "SELECT ev.assayid, ev.designelementid, ev.value " +
-                    "FROM a2_expressionvalue ev " +
-                    "JOIN a2_designelement de ON de.designelementid=ev.designelementid " +
+                    "FROM A2_Expressionvalue ev " +
                     "JOIN a2_assay a ON a.assayid = ev.assayid " +
-                    "WHERE a.experimentid=? AND de.arraydesignid=?";
+                    "WHERE a.experimentid=? AND a.arraydesignid=?";
 
     // sample queries
     public static final String SAMPLES_BY_ASSAY_ACCESSION =
