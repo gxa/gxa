@@ -105,12 +105,12 @@ function updateBrowseExperiments() {
             if($(this).is(':checked')) {
                 $('#experimentList tr input.selector').attr('disabled', 'disabled').attr('checked','checked');
                 selectAll = true;
-                $('#selectCollapsed').show();
+                $('#selectCollapsed').css('visibility', 'visible');
             } else {
                 $('#experimentList tr input.selector').removeAttr('disabled').removeAttr('checked');
                 selectedExperiments = {};
                 selectAll = false;
-                $('#selectCollapsed').hide();
+                $('#selectCollapsed').css('visibility', 'hidden');
             }
             updateRestartContinueButtons();
         });
@@ -132,8 +132,6 @@ function updateBrowseExperiments() {
                 function afterEnqueue() {
                     $('#tabs').tabs('select', 1);
                 }
-
-                alert(selectAll);
 
                 if(selectAll) {
                     taskmanCall('enqueuesearchexp', {
@@ -193,7 +191,7 @@ function updatePauseButton(isRunning) {
             updatePauseButton(true);
         });
     }
-    $('#pauseButton').unbind('click').click(isRunning ? pauseTaskman : unpauseTaskman).val(isRunning ? 'pause' : 'restart');
+    $('#pauseButton').unbind('click').click(isRunning ? pauseTaskman : unpauseTaskman).val(isRunning ? 'Pause task execution' : 'Restart task execution');
     $('.taskmanPaused').css('display', isRunning ? 'none' : 'inherit');
 }
 
@@ -214,12 +212,9 @@ function updateQueue() {
             })(result.tasks[i]);
         }
 
-        $('#taskList .cancelAllButton').click(function () {
-            var ids = [];
-            for(var i in result.tasks)
-                ids.push(result.tasks[i].id);
+        $('#taskList .cancelAllButton').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
             if(confirm('Do you really want to cancel all tasks?')) {
-                taskmanCall('cancel', { id: ids }, function () {
+                taskmanCall('cancelall', {}, function () {
                     updateQueue();
                 });
             }
@@ -269,27 +264,34 @@ function storeExperimentsFormState() {
 }
 
 function compileTemplates() {
-    $tpl.experimentList = $('#experimentList').compile({
+    function compileTpl(name, func) {
+        $tpl[name] = $('#' + name).compile(func);
+        $('#' + name).empty();
+    }
+
+    compileTpl('experimentList', {
         '.exprow': {
             'experiment <- experiments' : {
-                '.accession': 'experiment.accession',
+                'label.accession': 'experiment.accession',
                 '.stage': 'experiment.stage',
                 '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
                 '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },
-                '.selector@value': 'experiment.accession'
+                '.selector@value': 'experiment.accession',
+                '.selector@id+': 'experiment.accession',
+                'label@for+': 'experiment.accession'
             }
         },
         '.expall@style': function (r) { return r.context.experiments.length ? '' : 'display:none'; },
         '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
 
         '.expcoll@style': function (r) { return r.context.numCollapsed > 0 ? '' : 'display:none'; },
-        '#selectCollapsed@style': function () { return selectAll ? '' : 'display:none'; },
+        '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
         '.numcoll': 'numCollapsed',
 
         '.rebuildIndex@style': function (r) { return r.context.indexStage == 'DONE' ? 'display:none' : ''; }
     });
 
-    $tpl.taskList = $('#taskList').compile({
+    compileTpl('taskList', {
         'tr.task': {
             'task <- tasks': {
                 '.state': 'task.state',
@@ -298,10 +300,10 @@ function compileTemplates() {
                 '.stage': 'task.stage',
                 '.runMode': 'task.runMode',
                 '.progress': 'task.progress',
-                'input@class+': 'task.id'
+                'input@class+': 'task.id',
+                '.@class+': 'task.state'
             }
-        },
-        '.cancelAllButton@style': function (r) { return r.context.tasks.length ? '' : 'display:none'; }
+        }
     });
 }
 
