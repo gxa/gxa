@@ -66,7 +66,7 @@ public class DbStorage implements PersistentStorage {
                             "".equals(task.getAccession()) ? " " : task.getAccession(),
                             stage.getStage(),
                             event.toString(),
-                            message
+                            message == null ? "" : message
                     }) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
@@ -81,10 +81,10 @@ public class DbStorage implements PersistentStorage {
                     new Object[] {
                             task.getType(),
                             "".equals(task.getAccession()) ? " " : task.getAccession(),
-                            runMode == null ? null : runMode.toString(),
+                            runMode == null ? "" : runMode.toString(),
                             user.getUserName(),
                             operation.toString(),
-                            message == null ? null : message
+                            message == null ? "" : message
                     }) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
