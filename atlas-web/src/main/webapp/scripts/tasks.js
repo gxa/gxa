@@ -1,6 +1,7 @@
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
+var selectAll = false;
 var $time = {};
 var $tpl = {};
 var $options = {
@@ -72,11 +73,15 @@ function updateBrowseExperiments() {
     }, function (result) {
 
         function updateRestartContinueButtons() {
+            var cando = selectAll;
             for(var k in selectedExperiments) {
-                $('#experimentList input.continue, #experimentList input.restart').removeAttr('disabled');
-                return;
+                cando = true;
+                break;
             }
-            $('#experimentList input.continue, #experimentList input.restart').attr('disabled', 'disabled');
+            if(cando)
+                $('#experimentList input.continue, #experimentList input.restart').removeAttr('disabled');
+            else
+                $('#experimentList input.continue, #experimentList input.restart').attr('disabled', 'disabled');
         }
 
         $('#experimentList').render(result, $tpl.experimentList);
@@ -95,37 +100,61 @@ function updateBrowseExperiments() {
             if(!newAccessions[i])
                 delete selectedExperiments[i];
         updateRestartContinueButtons();
-        
+
         $('#selectAll').click(function () {
             if($(this).is(':checked')) {
                 $('#experimentList tr input.selector').attr('disabled', 'disabled').attr('checked','checked');
-                for(var i = 0; i < result.experiments.length; ++i)
-                    selectedExperiments[result.experiments[i].accession] = 1;
+                selectAll = true;
+                $('#selectCollapsed').show();
             } else {
                 $('#experimentList tr input.selector').removeAttr('disabled').removeAttr('checked');
                 selectedExperiments = {};
+                selectAll = false;
+                $('#selectCollapsed').hide();
             }
             updateRestartContinueButtons();
         });
+
+        if(selectAll)
+            $('#selectAll').attr('checked', 'checked');
 
         function startSelectedTasks(mode) {
             var accessions = [];
             for(var accession in selectedExperiments)
                 accessions.push(accession);
 
-            if(accessions.length == 0)
+            if(accessions.length == 0 && !selectAll)
                 return;
 
-            if(window.confirm('Do you really want to ' + mode.toLowerCase() + ' ' + accessions.length + ' experiment(s)?')) {
-                selectedExperiments = {};
-                taskmanCall('enqueue', {
-                    runMode: mode,
-                    accession: accessions,
-                    type: 'experiment',
-                    autoDepends: 'true'
-                }, function(result) {
+            if(window.confirm('Do you really want to ' + mode.toLowerCase() + ' '
+                    + (selectAll ? result.numTotal : accessions.length)
+                    + ' experiment(s)?')) {
+                function afterEnqueue() {
                     $('#tabs').tabs('select', 1);
-                });
+                }
+
+                alert(selectAll);
+
+                if(selectAll) {
+                    taskmanCall('enqueuesearchexp', {
+                        runMode: mode,
+                        search: $('#experimentSearch').val(),
+                        fromDate: $('#dateFrom').val(),
+                        toDate: $('#dateTo').val(),
+                        pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0,
+                        autoDepends: 'true'
+                    }, afterEnqueue);
+                } else {
+                    taskmanCall('enqueue', {
+                        runMode: mode,
+                        accession: accessions,
+                        type: 'experiment',
+                        autoDepends: 'true'
+                    }, afterEnqueue);
+                }
+                
+                selectedExperiments = {};
+                selectAll = false;
             }
         }
 
@@ -245,12 +274,18 @@ function compileTemplates() {
             'experiment <- experiments' : {
                 '.accession': 'experiment.accession',
                 '.stage': 'experiment.stage',
-                '.selector@checked': function (r) { return selectedExperiments[r.item.accession] ? 'checked' : ''; },
+                '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
+                '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },
                 '.selector@value': 'experiment.accession'
             }
         },
         '.expall@style': function (r) { return r.context.experiments.length ? '' : 'display:none'; },
         '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
+
+        '.expcoll@style': function (r) { return r.context.numCollapsed > 0 ? '' : 'display:none'; },
+        '#selectCollapsed@style': function () { return selectAll ? '' : 'display:none'; },
+        '.numcoll': 'numCollapsed',
+
         '.rebuildIndex@style': function (r) { return r.context.indexStage == 'DONE' ? 'display:none' : ''; }
     });
 
@@ -310,11 +345,12 @@ $(document).ready(function () {
             clearTimeout($time.search);
             storeExperimentsFormState();
             updateBrowseExperiments();
-        } else if(keycode == 8 || keycode == 46 ||
+        } else if((keycode == 8 || keycode == 46 ||
                   (keycode >= 48 && keycode <= 90) ||      // 0-1a-z
                   (keycode >= 96 && keycode <= 111) ||     // numpad 0-9 + - / * .
                   (keycode >= 186 && keycode <= 192) ||    // ; = , - . / ^
-                  (keycode >= 219 && keycode <= 222)) {
+                  (keycode >= 219 && keycode <= 222))
+                && $(this).val().length > 2) {
 
             clearTimeout($time.search);
             $time.search = setTimeout(function () {

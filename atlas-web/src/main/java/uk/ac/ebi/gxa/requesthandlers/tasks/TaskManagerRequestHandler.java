@@ -5,6 +5,9 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.JoinIterator;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
@@ -255,32 +258,60 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         return makeMap("stage", stage.toString());
     }
 
+    private Object processEnqueueSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr, String runMode, String autoDepend) {
+        Map<String,Integer> result = new HashMap<String, Integer>();
+        boolean wasRunning = taskManager.isRunning();
+        if(wasRunning)
+            taskManager.pause();
+        for(Iterator<Pair<String, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+            String accession = i.next().getFirst();
+            int id = taskManager.enqueueTask(new TaskSpec("experiment", accession),
+                    TaskRunMode.valueOf(runMode),
+                    defaultUser,
+                    toBoolean(autoDepend));
+            result.put(accession,  id);
+        }        
+        if(wasRunning)
+            taskManager.start(); // TODO: should make batch adds here, huh?
+        return result;
+    }
+
     private Object processSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr) {
-        searchText = searchText.toLowerCase();
-        boolean pendingOnly = toBoolean(pendingOnlyStr);
-
-        // TODO: it's just a murder. grimy bloody murder.
-        List<Experiment> experiments = dao.getAllExperiments().subList(0, 10);
-
-        List<Map> result = new ArrayList<Map>();
-        for(Experiment experiment : experiments) {
-            final TaskStage stage = taskManager.getTaskStage(new TaskSpec(ExperimentTask.TYPE, experiment.getAccession()));
-            boolean searchYes = "".equals(searchText)
-                    || experiment.getAccession().toLowerCase().contains(searchText)
-                    || experiment.getDescription().toLowerCase().contains(searchText);
-            boolean pendingYes = !pendingOnly
-                    || !TaskStage.DONE.equals(stage);
-            if(searchYes && pendingYes)
-                result.add(makeMap(
-                        "accession", experiment.getAccession(),
-                        "stage", stage.toString()
-                ));
-
+        List<Map> results = new ArrayList<Map>();
+        int numCollapsed = 0;
+        for(Iterator<Pair<String, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+            Pair<String, TaskStage> e = i.next();
+            if(results.size() < 20)
+                results.add(makeMap("accession", e.getFirst(), "stage", e.getSecond().toString()));
+            else
+                ++numCollapsed;
         }
         return makeMap(
-                "experiments", result,
+                "experiments", results,
+                "numCollapsed", numCollapsed,
+                "numTotal", numCollapsed + results.size(),
                 "indexStage", taskManager.getTaskStage(new TaskSpec(IndexTask.TYPE, "")).toString()
                 );
+    }
+
+    private Iterator<Pair<String,TaskStage>> getSearchExperiments(String searchTextStr, String fromDate, String toDate, String pendingOnlyStr) {
+        final String searchText = searchTextStr.toLowerCase();
+        final boolean pendingOnly = toBoolean(pendingOnlyStr);
+
+        List<Experiment> experiments = dao.getAllExperiments();
+
+        return new FilterIterator<Experiment, Pair<String, TaskStage>>(experiments.iterator()) {
+            @Override
+            public Pair<String, TaskStage> map(Experiment experiment) {
+                final TaskStage stage = taskManager.getTaskStage(new TaskSpec(ExperimentTask.TYPE, experiment.getAccession()));
+                boolean searchYes = "".equals(searchText)
+                        || experiment.getAccession().toLowerCase().contains(searchText)
+                        || experiment.getDescription().toLowerCase().contains(searchText);
+                boolean pendingYes = !pendingOnly
+                        || !TaskStage.DONE.equals(stage);
+                return searchYes && pendingYes ? new Pair<String, TaskStage>(experiment.getAccession(), stage) : null;
+            }
+        };
     }
 
     public Object process(HttpServletRequest request) {
@@ -316,6 +347,15 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     request.getParameter("fromDate"),
                     request.getParameter("toDate"),
                     request.getParameter("pendingOnly"));
+
+        else if("enqueuesearchexp".equals(op))
+            return processEnqueueSearchExperiments(
+                    request.getParameter("search"),
+                    request.getParameter("fromDate"),
+                    request.getParameter("toDate"),
+                    request.getParameter("pendingOnly"),
+                    request.getParameter("runMode"),
+                    request.getParameter("autoDepends"));
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
