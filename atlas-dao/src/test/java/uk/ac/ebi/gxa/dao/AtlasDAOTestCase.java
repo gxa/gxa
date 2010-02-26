@@ -165,12 +165,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "REFERENCES A2_EXPERIMENT (EXPERIMENTID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ASSAYPROPERTYVALUE " +
-                             "(ASSAYPROPERTYVALUEID INTEGER NOT NULL, " +
+                     "CREATE TABLE A2_ASSAYPV " +
+                             "(ASSAYPVID INTEGER NOT NULL, " +
                              "ASSAYID INTEGER, " +
                              "PROPERTYVALUEID INTEGER, " +
                              "ISFACTORVALUE INTEGER, " +
-                             "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPROPERTYVALUEID));");
+                             "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
 
         runStatement(conn,
                      "CREATE TABLE A2_SAMPLE " +
@@ -181,12 +181,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
 
         runStatement(conn,
-                     "  CREATE TABLE A2_SAMPLEPROPERTYVALUE " +
-                             "(SAMPLEPROPERTYVALUEID INTEGER NOT NULL, " +
+                     "  CREATE TABLE A2_SAMPLEPV " +
+                             "(SAMPLEPVID INTEGER NOT NULL, " +
                              "SAMPLEID INTEGER NOT NULL, " +
                              "PROPERTYVALUEID INTEGER, " +
                              "ISFACTORVALUE INTEGER, " +
-                             "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPROPERTYVALUEID)) ;");
+                             "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_ASSAYSAMPLE " +
@@ -210,12 +210,19 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
 
         runStatement(conn,
-                     "  CREATE TABLE A2_GENEPROPERTYVALUE " +
-                             "(GENEPROPERTYVALUEID INTEGER NOT NULL," +
+                     "  CREATE TABLE A2_GENEGPV " +
+                             "(GENEGPVID INTEGER NOT NULL," +
                              "GENEID INTEGER, " +
-                             "GENEPROPERTYID INTEGER, " +
+                             "GENEPROPERTYVALUEID INTEGER, " +
                              "VALUE CHAR, " +
-                             "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
+                             "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
+
+        runStatement(conn,
+                     "  CREATE TABLE A2_GENEPROPERTYVALUE " +
+                             "(GENEPROPERTYVALUEID INTEGER, " +
+                             "GENEPROPERTYID INTEGER, " +
+                             "VALUE CHAR," +
+                             "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_SPEC " +
