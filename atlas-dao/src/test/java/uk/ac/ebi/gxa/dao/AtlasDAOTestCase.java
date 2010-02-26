@@ -198,7 +198,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                      "CREATE TABLE A2_GENE " +
                              "(GENEID INTEGER, " +
-                             "SPECID INTEGER NOT NULL, " +
+                             "ORGANISMID INTEGER NOT NULL, " +
                              "IDENTIFIER CHAR, " +
                              "NAME CHAR) ;");
 
@@ -225,10 +225,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_SPEC " +
-                             "(SPECID INTEGER NOT NULL, " +
+                     "CREATE TABLE A2_ORGANISM " +
+                             "(ORGANISMID INTEGER NOT NULL, " +
                              "NAME CHAR, " +
-                             "CONSTRAINT SYS_C008043 PRIMARY KEY (SPECID)) ;");
+                             "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_DESIGNELEMENT " +
@@ -267,7 +267,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_ONTOLOGYMAPPING " +
-                             "(ACCESSION CHAR, " +
+                             "(EXPERIMENTID INTEGER NOT NULL, " + 
+                             "ACCESSION CHAR, " +
                              "PROPERTY CHAR, " +
                              "PROPERTYVALUE CHAR, " +
                              "ONTOLOGYTERM CHAR, " +
