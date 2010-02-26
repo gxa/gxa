@@ -8,6 +8,8 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.adf.node.ReporterNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,12 +54,20 @@ public class ADFWritingUtils {
                 }
                 else {
                     // add new entry
-                    List<String> databaseEntryValues =
+                    List<String> originalValues =
                             compositeNode.compositeElementDatabaseEntries.get(databaseEntryType);
+                    List<String> databaseEntryValues = new ArrayList<String>();
+
+                    for (String originalValue : originalValues) {
+                        // split on commas
+                        String[] realValues = originalValue.split(",");
+                        Collections.addAll(databaseEntryValues, realValues);
+                    }
+
                     arrayBundle.addDatabaseEntryForDesignElement(designElement,
                                                                  databaseEntryType,
                                                                  databaseEntryValues.toArray(
-                                                                         new String[databaseEntryValues.size()]));
+                                                                         new String[originalValues.size()]));
                 }
             }
         }
@@ -109,12 +119,20 @@ public class ADFWritingUtils {
                 }
                 else {
                     // add new entry
-                    List<String> databaseEntryValues =
+                    List<String> originalValues =
                             reporterNode.reporterDatabaseEntries.get(databaseEntryType);
+                    List<String> databaseEntryValues = new ArrayList<String>();
+
+                    for (String originalValue : originalValues) {
+                        // split on commas
+                        String[] realValues = originalValue.split(",");
+                        Collections.addAll(databaseEntryValues, realValues);
+                    }
+
                     arrayBundle.addDatabaseEntryForDesignElement(designElement,
                                                                  databaseEntryType,
                                                                  databaseEntryValues.toArray(
-                                                                         new String[databaseEntryValues.size()]));
+                                                                         new String[originalValues.size()]));
                 }
             }
         }
