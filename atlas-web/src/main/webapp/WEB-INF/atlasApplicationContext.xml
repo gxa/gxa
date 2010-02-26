@@ -192,7 +192,7 @@
 
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
-        <property name="dao" ref="atlasInterfaceDAO"/>
+        <property name="jdbcTemplate" ref="interfaceTemplate"/>
     </bean>
 
     <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
