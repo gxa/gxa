@@ -68,10 +68,5 @@
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.mged.magetab</groupId>
-            <artifactId>error-api</artifactId>
-            <version>1.0-alpha</version>
-        </dependency>
     </dependencies>
 </project>
