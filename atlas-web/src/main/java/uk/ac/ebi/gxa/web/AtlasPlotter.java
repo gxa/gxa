@@ -434,6 +434,18 @@ public class AtlasPlotter {
                 getAtlasDatabaseDAO().getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
 
         final int[] deIds = netCDF.getDesignElements();
+        final List<String> efs = Arrays.asList(netCDF.getFactors());
+        final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
+        final int[][] bs2as = netCDF.getSamplesToAssays();
+
+        final Map<String, String[]> efvs = new HashMap<String, String[]>();
+        for(String i : efs)
+            efvs.put(i, netCDF.getFactorValues(i));
+
+        final Map<String, String[]> scvs = new HashMap<String, String[]>();
+        for(String i : scs)
+            scvs.put(i, netCDF.getCharacteristicValues(i));
+
         return makeMap(
                 "ef", ef,
                 "series", seriesList,
@@ -449,18 +461,11 @@ public class AtlasPlotter {
                 },
                 "assayOrder", Arrays.asList(sortedAssayOrder).iterator(),
                 "assayProperties", new MappingIterator<Integer,Map>(Arrays.asList(sortedAssayOrder).iterator()) {
-                    final List<String> efs = Arrays.asList(netCDF.getFactors());
-                    final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
-                    final int[][] bs2as = netCDF.getSamplesToAssays();
                     public Map map(final Integer assayIndex) {
                         return makeMap(
                                 "efvs", new MappingIterator<String,Map>(efs.iterator()) {
                                     public Map map(String ef) {
-                                        try {
-                                            return makeMap("k", ef, "v", netCDF.getFactorValues(ef)[assayIndex]);
-                                        } catch (IOException e) {
-                                            throw new RuntimeException(e);
-                                        }
+                                        return makeMap("k", ef, "v", efvs.get(ef)[assayIndex]);
                                     }
                                 },
                                 "scvs", new FlattenIterator<Integer,Map>(
@@ -473,11 +478,7 @@ public class AtlasPlotter {
                                     public Iterator<Map> inner(final Integer sampleIndex) {
                                         return new MappingIterator<String,Map>(scs.iterator()) {
                                             public Map map(String sc) {
-                                                try {
-                                                    return makeMap("k", sc, "v", netCDF.getCharacteristicValues(sc)[sampleIndex]);
-                                                } catch (IOException e) {
-                                                    throw new RuntimeException(e);
-                                                }
+                                                return makeMap("k", sc, "v", scvs.get(sc)[sampleIndex]);
                                             }
                                         };
                                     }
