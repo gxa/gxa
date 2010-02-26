@@ -213,7 +213,7 @@ begin
  
  --add properties (do not remove old properties from Gene) 
  MERGE INTO a2_GeneGPV gpv
- USING (select m.GeneID, pv.genepropertyvalueid 
+ USING (select distinct m.GeneID, pv.genepropertyvalueid 
         from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
         join tmp_DesignElementMap m on m.designelementaccession = t.Accession
         join a2_GeneProperty p on p.name = t.EntryName
@@ -599,7 +599,7 @@ begin
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
   select distinct t.Name
-  from table(CAST(A2_SAMPLESET.Properties as PropertyTable)) t
+  from table(CAST(A2_SAMPLESET.LowerCaseProperties as PropertyTable)) t
   where not exists (select 1 from a2_Property where Name = t.Name);
   
   dbms_output.put_line('insert property value');
