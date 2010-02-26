@@ -23,6 +23,7 @@ public class TaskManager implements InitializingBean {
     private PersistentStorage storage;
     private volatile boolean running = true;
     private AtomicInteger idGenerator = new AtomicInteger(0);
+    private int maxWorkingTasks = 16;
 
     private static List<WorkingTaskFactory> taskFactories = new ArrayList<WorkingTaskFactory>();
 
@@ -67,7 +68,7 @@ public class TaskManager implements InitializingBean {
 
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
 
-    private final Collection<WorkingTask> workingTasks = new LinkedList<WorkingTask>();
+    private final LinkedHashSet<WorkingTask> workingTasks = new LinkedHashSet<WorkingTask>();
 
     public void setStorage(PersistentStorage storage) {
         this.storage = storage;
@@ -95,6 +96,14 @@ public class TaskManager implements InitializingBean {
 
     public void setNetcdfGenerator(NetCDFGenerator netcdfGenerator) {
         this.netcdfGenerator = netcdfGenerator;
+    }
+
+    public int getMaxWorkingTasks() {
+        return maxWorkingTasks;
+    }
+
+    public void setMaxWorkingTasks(int maxWorkingTasks) {
+        this.maxWorkingTasks = maxWorkingTasks;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -250,6 +259,9 @@ public class TaskManager implements InitializingBean {
         synchronized (this) {
             ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
             while(queueIterator.hasNext()) {
+                if(workingTasks.size() >= maxWorkingTasks)
+                    return;
+                
                 QueuedTask nextTask = queueIterator.next();
                 WorkingTaskFactory nextFactory = getFactoryBySpec(nextTask.getTaskSpec());
                 boolean blocked = false;
