@@ -253,6 +253,11 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
+    private Object processCancelAll() {
+        taskManager.cancelAllTasks(defaultUser);
+        return EMPTY;
+    }
+
     private Object processGetStage(String taskType, String accession) {
         TaskStage stage = taskManager.getTaskStage(new TaskSpec(taskType, accession));
         return makeMap("stage", stage.toString());
@@ -335,6 +340,9 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
         else if("cancel".equals(op))
             return processCancel(request.getParameterValues("id"));
+
+        else if("cancelall".equals(op))
+            return processCancelAll();
 
         else if("getstage".equals(op))
             return processGetStage(
