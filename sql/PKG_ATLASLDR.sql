@@ -90,6 +90,8 @@ PACKAGE BODY ATLASLDR AS
 
 --------------------------------------------------------
 --  DDL for Procedure A2_ARRAYDESIGNSET
+
+
 --------------------------------------------------------
 PROCEDURE A2_ARRAYDESIGNSET (
    Accession varchar2
@@ -146,6 +148,8 @@ begin
  MERGE into a2_GeneProperty p 
  USING (select distinct EntryName from table(CAST(LowerCaseDesignElements as DesignElementTable))) t
  ON (t.EntryName = p.Name)
+ WHEN MATCHED THEN 
+  Update set p.GenePropertyID = p.GenePropertyID --9i noop
  WHEN NOT MATCHED THEN 
   Insert (GenePropertyID, Name) 
   values (a2_GeneProperty_Seq.nextval, t.EntryName);  
@@ -157,6 +161,8 @@ begin
         from table(CAST(LowerCaseDesignElements as DesignElementTable)) d 
         join a2_GeneProperty p on p.Name = d.EntryName) t
  ON (p.GenePropertyID = t.GenePropertyID and p.Value = t.EntryValue)
+ WHEN MATCHED THEN 
+  Update set p.GenePropertyValueID = p.GenePropertyValueID --9i noop 
  WHEN NOT MATCHED THEN
    Insert (GenePropertyValueID, GenePropertyID, value)
    values (a2_GenePropertyValue_seq.nextval, t.GenePropertyID, t.EntryValue);
@@ -195,7 +201,7 @@ begin
  
  --create missed genes  
  for r in (select * from tmp_DesignElementMap where GeneID is null) loop
-   TheGeneID := a2_Gene_Seq.nextval; 
+   select a2_Gene_Seq.nextval into TheGeneID from dual; 
     
    Insert into a2_Gene(GeneID, Name, Identifier)
    select TheGeneID,'GENE:' || r.GeneIdentifier, r.GeneIdentifier from dual;
@@ -213,6 +219,8 @@ begin
         join a2_GeneProperty p on p.name = t.EntryName
         join a2_genepropertyvalue pv on pv.genepropertyid = p.genepropertyid and pv.value = t.EntryValue) t 
  ON (t.GeneID = gpv.GeneID)
+ WHEN MATCHED THEN 
+  Update set gpv.GeneGPVID = gpv.GeneGPVID --9i noop  
  WHEN NOT MATCHED THEN
   Insert (GeneGPVID, GeneID, GenePropertyValueID)
   values (a2_GeneGPV_SEQ.nextval, t.GeneID, t.GenePropertyValueID);
@@ -313,7 +321,7 @@ begin
   begin
       Select a.AssayID into A2_AssaySet.AssayID
       from a2_Assay a
-      where a.Accession = A2_AssaySet.Accession;
+      where a.Accession = A2_AssaySet.Accession and a.ExperimentID = A2_AssaySet.ExperimentID;
   exception
      when NO_DATA_FOUND then
      begin
@@ -325,6 +333,10 @@ begin
     when others then 
       RAISE;    
   end;
+  
+  if (A2_AssaySet.AssayID is null) then
+    RAISE_APPLICATION_ERROR(-20001, 'assay can not be created');
+  end if;
   
   --convert properties to lowercase
   if(LowerCaseProperties is not null) then 
@@ -393,6 +405,10 @@ AS
 BEGIN
 
 if ExperimentAccession is null then
+begin
+
+  q := 'TRUNCATE TABLE A2_EXPRESSIONVALUE';
+  EXECUTE IMMEDIATE q;
    
   q := 'DROP INDEX IDX_EV_DESIGNELEMENT';
   EXECUTE IMMEDIATE q;
@@ -411,7 +427,10 @@ if ExperimentAccession is null then
   
   q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" DISABLE';
   EXECUTE IMMEDIATE q;
-   
+exception
+  WHEN OTHERS THEN NULL;
+
+end;   
 else --ExperimentAccession is null
 
   begin
@@ -479,6 +498,10 @@ BEGIN
   q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE';
   dbms_output.put_line(q);
   EXECUTE IMMEDIATE q;
+  
+  exception
+    WHEN OTHERS THEN NULL;
+  
   end;
   else --ExperimentAccession is not null
     RAISE_APPLICATION_ERROR(-20001, 'not implemented');  
@@ -544,7 +567,10 @@ begin
  begin
       Select s.SampleID into SampleID
       from a2_Sample s
-      where s.Accession = A2_SAMPLESET.Accession;
+      join a2_AssaySample ass on ass.SampleID = s.SampleID
+      join a2_Assay a on a.AssayID = ass.AssayID
+      where a.Accession in (select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t) --join may be faster
+      and s.Accession = A2_SAMPLESET.Accession;
   exception
      when NO_DATA_FOUND then
      begin
@@ -662,14 +688,18 @@ as
 begin
 
 if ExperimentAccession is null then
-   
-  q := 'DROP INDEX "A2_IDX_EXPRESSION_FV"';
+begin
+
+  q := 'TRUNCATE TABLE A2_ExpressionAnalytics';
+  EXECUTE IMMEDIATE q;
+  
+  q := 'DROP INDEX "IDX_ANALYTICS_PROPERTY"';
   EXECUTE IMMEDIATE q;
   
   q := 'DROP INDEX "IDX_ANALYTICS_DESIGNELEMENT"';
   EXECUTE IMMEDIATE q;
   
-  q := 'DROP INDEX "IDX_EA_EXPERIMENT"';
+  q := 'DROP INDEX "IDX_ANALYTICS_EXPERIMENT"';
   EXECUTE IMMEDIATE q;
     
   q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" DISABLE CONSTRAINT "FK_ANALYTICS_EXPERIMENT"';  
@@ -680,7 +710,9 @@ if ExperimentAccession is null then
 
   q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" DISABLE';
   EXECUTE IMMEDIATE q;
-   
+exception
+  when others then null;
+end;  
 else --ExperimentAccession is null
 
   begin
@@ -716,19 +748,20 @@ as
   INDEX_TABLESPACE varchar2(2000);
 begin
   if ExperimentAccession is null then
+  begin
   
   select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
   from user_indexes where INDEX_NAME = 'PK_ORGANISM';
 
-  q := 'CREATE INDEX "A2_IDX_EXPRESSION_FV" ON "A2_EXPRESSIONANALYTICS" ("PROPERTYVALUEID") $INDEX_TABLESPACE';
+  q := 'CREATE INDEX "IDX_ANALYTICS_PROPERTY" ON "A2_EXPRESSIONANALYTICS" ("PROPERTYVALUEID") $INDEX_TABLESPACE';
   q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
   EXECUTE IMMEDIATE q;
   
-  q := 'CREATE INDEX "IDX_ANALYTICS_DESIGNELEMENT" ON "A2_EXPRESSIONANALYTICS" ("DESIGNELEMENTID") TABLESPACE ATLAS2TEST_INDX';
+  q := 'CREATE INDEX "IDX_ANALYTICS_DESIGNELEMENT" ON "A2_EXPRESSIONANALYTICS" ("DESIGNELEMENTID") $INDEX_TABLESPACE';
   q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
   EXECUTE IMMEDIATE q;
   
-  q := 'CREATE INDEX "IDX_EA_EXPERIMENT" ON "A2_EXPRESSIONANALYTICS" ("EXPERIMENTID") TABLESPACE ATLAS2TEST_INDX';
+  q := 'CREATE INDEX "IDX_ANALYTICS_EXPERIMENT" ON "A2_EXPRESSIONANALYTICS" ("EXPERIMENTID") $INDEX_TABLESPACE';
   q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
   EXECUTE IMMEDIATE q;
     
@@ -740,6 +773,11 @@ begin
 
   q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" ENABLE';
   EXECUTE IMMEDIATE q;
+  
+  exception
+    when others then null;
+    
+  end;
 
   else --ExperimentAccession is not null
     null;  
@@ -880,8 +918,6 @@ BEGIN
   commit;
   
 END;
-
-
 
 END;
 /
