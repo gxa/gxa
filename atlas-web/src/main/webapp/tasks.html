@@ -11,6 +11,111 @@
             #experimentsTable {
                 
             }
+
+            #tabs {
+                width: 850px;
+            }
+
+            fieldset { border:1px solid #DEDEDE; margin:10px 0 0 0; padding: 10px; }
+            fieldset table { border: none;margin:0;padding:0; }
+            fieldset table td { border: none;padding:2px; }
+
+            input.date { width: 70px; }
+            #tab-exp form .label { text-align: right; }
+            #tab-exp form .label2 { text-align: right;padding-left:20px; }
+
+            #experimentBrowseForm { margin: 0; }
+
+            #tab-exp .expnone {
+                padding: 20px 3px;
+                font-weight: bold;
+                color: #005555;
+            }
+
+            #experimentList table.results, #taskList table {
+                border-collapse:collapse;
+                margin: 10px 0;                
+                width: 100%;
+            }
+
+            #experimentList table.results td, #taskList td {
+                border: 1px solid #cdcdcd;
+                padding: 3px;
+            }
+
+            #experimentList table.results td.sel {
+                border-right: none;
+            }
+
+            #experimentList table.results td.accession {
+                padding-left: 10px;
+                border-right: none; border-left: none;
+                font-weight: bold;
+                color: #005555;
+                white-space:nowrap;
+            }
+
+            #experimentList table.results td.stage {
+                padding-left: 20px;
+                padding-right: 10px;
+                border-left: none;
+                width: 80%;
+            }
+            
+            #experimentList table.results td.selall {
+                padding-left: 10px;
+                border-left: none;
+                color: #005555;
+                font-weight: bold;
+            }
+
+            #experimentList table.results tr.expcoll td {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                color: #aaaaaa;
+                font-weight: bold;
+            }
+
+            #tab-que .taskmanPaused {
+                font-weight: bold;
+                color: #005555;
+            }
+
+            #taskList td.accession {
+                border-left: none;
+                font-weight: bold;
+                color: #005555;
+                white-space:nowrap;
+            }
+
+            #taskList td.state {
+            }
+
+            #taskList td.cancel {
+                text-align: right;                
+            }
+
+            #taskList tr.statePENDING {
+            }
+
+            #taskList tr.stateWORKING {
+                background-color: #EEF5F5;
+            }
+
+            #taskList tr.stateWORKING td.state {
+                color: #005555; font-weight: bold;
+            }
+
+            #taskList tr.statePENDING td.state {
+                color: #aaaaaa; font-weight: bold;
+            }
+
+            #taskList td.progress {
+                width: 50%;
+            }
+            #taskList td.state { border-right: none; }
+            #taskList td.runMode { border-left: none; }
+            #taskList td.type { border-right: none; }
         </style>
     </head>
     <body>
@@ -24,84 +129,95 @@
                     <li><a href="#tab-log">Logs</a></li>
                 </ul>
                 <div id="tab-exp">
-                    <form action="#" id="experimentBrowseForm">
-                        <nobr>
-                            <label for="experimentSearch">Experiment:</label>
-                            <input type="text" id="experimentSearch">
-                        </nobr>
-                        <nobr>
-                            <label for="dateFrom">Load date:</label> 
-                            <input type="text" id="dateFrom"> - <input type="text" id="dateTo">
-                        </nobr>
-                        <nobr>
-                            <label for="incompleteOnly">Incomplete only:</label>
-                            <input type="checkbox" id="incompleteOnly" value="1">
-                        </nobr>
-                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    </form>
+                    <fieldset>
+                        <form action="#" id="experimentBrowseForm">
+                            <table>
+                            <tr>
+                                <td class="label"><label for="experimentSearch">Experiment:</label></td>
+                                <td>
+                                    <input type="text" id="experimentSearch" class="value" style="width:400px;">
+                                </td>
+                                <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
+                                <td><input type="checkbox" id="incompleteOnly" value="1"></td>
+                            </tr>
+                            <tr>
+                                <td class="label"><label for="dateFrom">Load date:</label></td>
+                                <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
+                                <td style="padding-left:20px;">
+                                    <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                                </td>
+                                <td></td>
+                            </tr>
+                            </table>
+                        </form>
+                    </fieldset>
 
                     <div id="experimentList">
-                        <div class="rebuildIndex">
-                            Index build is incomplete
-                            <input type="button" value="rebuild index">
-                        </div>
-                        <table>
+                        <fieldset class="rebuildIndex">
+                                <table>
+                                <tr>
+                                    <td class="label">Index build is incomplete</td>
+                                    <td>
+                                        <input type="button" value="Rebuild index">
+                                    </td>
+                                </tr>
+                                </table>
+                        </fieldset>
+                        <table class="results">
                             <tr class="exprow">
-                                <td>
-                                    <input class="selector" type="checkbox" value="">
+                                <td class="sel">
+                                    <input class="selector" type="checkbox" value="" id="selExp">
                                 </td>
-                                <td class="accession">E-TABM-1</td>
+                                <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
                                 <td class="stage">NETCDF</td>
                             </tr>
                             <tr class="expcoll">
-                                <td>
-                                    <input style="display:none" checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                                <td class="sel">
+                                    <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
                                 </td>
-                                <td colspan="2">
-                                    <label for="selectCollapsed">...there're <span class="numcoll">4</span> more result(s), which are not shown. please refine your query.</label>
+                                <td colspan="2" class="selall">
+                                    <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
                                 </td>
                             </tr>
                             <tr class="expall">
-                                <td>
+                                <td class="sel">
                                     <input id="selectAll" type="checkbox">
                                 </td>
-                                <td colspan="2">
-                                    <label for="selectAll">select all results <span class="expcoll">(including hidden)</span></label>
+                                <td colspan="2" class="selall">
+                                    <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
                                 </td>
                             </tr>
                         </table>
-                        <div class="expall">
-                            <input type="button" value="continue" class="continue"> |
-                            <input type="button" value="restart" class="restart"> selection
-                        </div>
+                        <fieldset class="expall">
+                            <input type="button" value="Continue processing selection" class="continue">
+                            <input type="button" value="Restart processing selection" class="restart">
+                        </fieldset>
+
                         <div class="expnone">
-                            No experiments found
+                            No matching experiments found! Please check your query.
                         </div>
                     </div>
                 </div>
                 <div id="tab-que">
-                    <input type="button" value="pause" id="pauseButton">
-                    <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    <div class="taskmanPaused">
+                    <fieldset>
+                        <input type="button" value="Pause task execution" id="pauseButton">
+                        <input class="cancelAllButton" type="button" value="Cancel all tasks">
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    </fieldset>
+                    <fieldset class="taskmanPaused">
                         Task manager is now paused. All currently working tasks will finish, but no new tasks will be started.
-                    </div>
+                    </fieldset>
                     <div id="taskList">
-                        <table>
-                            <tr class="task">
+                        <table class="results">
+                            <tr class="task state">
                                 <td class="state">WORKING</td>
+                                <td class="runMode">RESTART</td>
                                 <td class="type">experiment</td>
                                 <td class="accession">E-TABM-1</td>
                                 <td class="stage">NETCDF</td>
-                                <td class="runMode">RESTART</td>
                                 <td class="progress">Wasting time...</td>
-                                <td>
-                                    <input class="cancelButton" type="button" value="cancel">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="5"></td>
-                                <td>
-                                    <input class="cancelAllButton" type="button" value="cancel all">
+                                <td class="cancel">
+                                    <input class="cancelButton" type="button" value="Cancel">
                                 </td>
                             </tr>
                         </table>
