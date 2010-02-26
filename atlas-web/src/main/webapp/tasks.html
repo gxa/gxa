@@ -53,12 +53,20 @@
                                 <td class="accession">E-TABM-1</td>
                                 <td class="stage">NETCDF</td>
                             </tr>
+                            <tr class="expcoll">
+                                <td>
+                                    <input style="display:none" checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                                </td>
+                                <td colspan="2">
+                                    <label for="selectCollapsed">...there're <span class="numcoll">4</span> more result(s), which are not shown. please refine your query.</label>
+                                </td>
+                            </tr>
                             <tr class="expall">
                                 <td>
                                     <input id="selectAll" type="checkbox">
                                 </td>
                                 <td colspan="2">
-                                    <label for="selectAll">select all</label>
+                                    <label for="selectAll">select all results <span class="expcoll">(including hidden)</span></label>
                                 </td>
                             </tr>
                         </table>
