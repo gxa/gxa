@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
@@ -34,7 +35,7 @@ public class DbStorage implements PersistentStorage {
                             "".equals(task.getAccession()) ? " " : task.getAccession(),
                             stage.toString()
                     }) != 1)
-                log.error("Can't store task stage " + task + " " + stage);
+                throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task stage " + task + " " + stage, e);
         }
@@ -67,7 +68,7 @@ public class DbStorage implements PersistentStorage {
                             event.toString(),
                             message
                     }) != 1)
-                log.error("Can't store task stage log " + task + " " + stage + " " + event + " " + message);
+                throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task stage log " + task + " " + stage + " " + event + " " + message, e);
         }
@@ -85,7 +86,7 @@ public class DbStorage implements PersistentStorage {
                             operation.toString(),
                             message == null ? null : message
                     }) != 1)
-                log.error("Can't store task operation log " + task + " " + runMode + " " + operation + " " + " " + user + " " + message);
+                throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task operation log " + task + " " + runMode + " " + operation + " " + " " + user + " " + message, e);
         }
