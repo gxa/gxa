@@ -416,15 +416,32 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetExpressionAnalyticsByGeneID() {
-        // todo - requires oracle, how to test?
-        System.out.println("Requires oracle");
-//        try {
-//            fail("requires Oracle");
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//            fail();
-//        }
+        try {
+            // fetch the accession of the first gene in our dataset
+            int id = Integer.parseInt(
+                    getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
+
+            List<ExpressionAnalysis> exprAnalyses =
+                    getAtlasDAO().getExpressionAnalyticsByGeneID(id);
+
+            // check the returned data
+            for (ExpressionAnalysis ea : exprAnalyses) {
+                assertNotNull(ea);
+                assertNotNull("Got null for design element ID", ea.getDesignElementID());
+                assertNotNull("Got null for experiment ID", ea.getExperimentID());
+                assertNotNull("Got null for ef name", ea.getEfName());
+                assertNotNull("Got null for efv name", ea.getEfvName());
+                assertNotNull("Got null for ef id", ea.getEfId());
+                assertNotNull("Got null for efv id", ea.getEfvId());
+                assertNotNull("Got null for pvalue", ea.getPValAdjusted());
+                assertNotNull("Got null for tstat", ea.getTStatistic());
+
+                System.out.println("Got expression analysis for gene id: " + id + " \n" + ea.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     public void testGetOntologyMappingsForOntology() {

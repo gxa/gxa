@@ -433,6 +433,16 @@
             isfactorvalue="0"
             />
 
+    <VWEXPRESSIONANALYTICSBYGENE
+            geneid="1"
+            ef="PROP1"
+            efv="value001"
+            experimentid="1"
+            pvaladj="0.01"
+            tstat="3.0"
+            efid="1"
+            efvid="1"/>
+
     <LOAD_MONITOR
             id="1"
             accession="E-ABCD-123"
