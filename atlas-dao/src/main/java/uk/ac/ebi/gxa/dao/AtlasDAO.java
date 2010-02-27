@@ -88,6 +88,13 @@ public class AtlasDAO {
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
 
+    public static final String GENES_SELECT_FOR_ANALYTICS =
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_organism s " +
+                    "WHERE g.organismid=s.organismid AND EXISTS " + 
+	            "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " + 
+                    "WHERE ea.designelementid=de.designelementid AND ea.pvaladj<0.05 AND de.geneid=g.geneid)";
+
     public static final String GENES_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
@@ -240,16 +247,8 @@ public class AtlasDAO {
                     "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
                     "WHERE a.experimentid=?";
     public static final String EXPRESSIONANALYTICS_BY_GENEID =
-            "SELECT ef, efv, experimentid, null, tstat, min(pvaladj), efid, efvid FROM " +
-                    "(SELECT ef.name AS ef, efv.name AS efv, a.experimentid AS experimentid, " +
-                    "first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid ORDER BY a.pvaladj ASC) AS tstat, " +
-                    "(a.pvaladj ) AS pvaladj," +
-                    "ef.propertyid AS efid, efv.propertyvalueid as efvid " +
-                    "FROM a2_expressionanalytics a " +
-                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
-                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "JOIN a2_designelement de ON de.designelementid=a.designelementid " +
-                    "WHERE de.geneid=? AND a.pvaladj < 0.05) GROUP BY  ef, efv, experimentid, tstat, efid, efvid";
+            "SELECT ef, efv, experimentid, null, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
+                    "WHERE geneid=?";
     public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +

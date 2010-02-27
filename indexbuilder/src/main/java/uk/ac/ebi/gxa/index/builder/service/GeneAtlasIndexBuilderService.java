@@ -53,7 +53,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Fetching genes to index");
         // fetch genes
-        final List<Gene> genes = getAtlasDAO().getAllGenesFast().subList(0, 10000);
+        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
 
         // the list of futures - we need these so we can block until completion
         Deque<Future<Boolean>> tasks =

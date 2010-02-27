@@ -291,6 +291,17 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "LOAD_TYPE CHAR, " +
                              "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
 
+        runStatement(conn,
+                     "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
+                             "(GENEID INTEGER NOT NULL, " +
+                             "EF CHAR NOT NULL, " +
+                             "EFV CHAR NOT NULL, " +
+                             "EXPERIMENTID INTEGER NOT NULL, " +
+                             "PVALADJ FLOAT NOT NULL, " +
+                             "TSTAT FLOAT NOT NULL, " +
+                             "EFID INTEGER NOT NULL, " +
+                             "EFVID INTEGER NOT NULL)");
+
         // testing adding stored procedures
         runStatement(conn,
                      "CREATE ALIAS SQRT FOR \"java.lang.Math.sqrt\"");
