@@ -39,6 +39,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private SolrServer exptServer;
 
+    private boolean buildFinished = false;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void setUp() throws Exception {
@@ -142,8 +143,6 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
             fail();
         }
     }
-
-    private boolean buildFinished = false;
 
     public void testBuildIndex() {
         try {
