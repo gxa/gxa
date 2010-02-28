@@ -2,6 +2,7 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import org.apache.solr.common.params.FacetParams;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.utils.EmptyIterator;
@@ -326,7 +327,7 @@ public class AtlasDao {
         SolrQuery q = new SolrQuery("exp_ud_ids:" + experimentId);
         q.setRows(0);
         q.setFacet(true);
-        q.setFacetSort(true);
+        q.setFacetSort(FacetParams.FACET_SORT_COUNT);
         q.setFacetMinCount(1);
         q.addFacetField("species");
         try {

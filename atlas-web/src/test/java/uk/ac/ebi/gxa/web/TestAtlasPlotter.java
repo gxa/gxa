@@ -35,6 +35,8 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
 
     @Override
     protected void tearDown() throws Exception {
+        super.tearDown();
+
         plotter = null;
     }
 

@@ -34,16 +34,13 @@ public class TestGeneAtlasIndexBuilderService
         try {
             // create the docs
             gaibs.createIndexDocs(new IndexBuilderService.ProgressUpdater() {
-                public void update(String progress) {
-                    //To change body of implemented methods use File | Settings | File Templates.
-                }
+                public void update(String progress) {}
             });
+
             // commit the results
             gaibs.getSolrServer().commit();
 
             // todo - now test that all the docs we'd expect were created
-
-
         }
         catch (Exception e) {
             e.printStackTrace();

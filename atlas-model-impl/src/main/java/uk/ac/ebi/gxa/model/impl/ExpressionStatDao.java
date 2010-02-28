@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.model.impl;
 
+import org.apache.solr.common.params.FacetParams;
 import uk.ac.ebi.gxa.model.*;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -170,7 +171,7 @@ public class ExpressionStatDao {
             solrq.setFacetMinCount(2);
             solrq.setFacetLimit(100);
 
-            solrq.setFacetSort(true);
+            solrq.setFacetSort(FacetParams.FACET_SORT_COUNT);
             for(String factor : autoFactors) {
                 solrq.addFacetField("efvs_up_" + factor);
                 solrq.addFacetField("efvs_ud_" + factor);

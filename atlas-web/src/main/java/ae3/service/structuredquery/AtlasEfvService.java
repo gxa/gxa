@@ -6,6 +6,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -80,7 +81,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
             q.setFacet(true);
             q.setFacetLimit(-1);
             q.setFacetMinCount(1);
-            q.setFacetSort(true);
+            q.setFacetSort(FacetParams.FACET_SORT_COUNT);
             try {
                 QueryResponse qr = solrServerProp.query(q);
                 if(qr.getFacetFields().get(0).getValues() != null) 
@@ -104,7 +105,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
                 q.setFacet(true);
                 q.setFacetMinCount(1);
                 q.setFacetLimit(-1);
-                q.setFacetSort(true);
+                q.setFacetSort(FacetParams.FACET_SORT_COUNT);
 
                 try {
                     Map<String,String> valMap = new HashMap<String,String>();
