@@ -13,6 +13,10 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.requesthandlers.experimentpage.result.SimilarityResultSet;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
@@ -55,7 +59,12 @@ public class SimilarGeneListTest extends TestCase {
         try {
             sim = svc.computeTask(new ComputeTask<RDataFrame>() {
                 public RDataFrame compute(RServices R) throws RemoteException {
-                    R.sourceFromResource("sim.R");
+                    try {
+                        R.sourceFromBuffer(getRCodeFromResource("sim.R"));
+                    } catch (IOException e) {
+                        fail("Couldn't read sim.R");
+                    }
+
                     return (RDataFrame) R.getObject(callSim);
                 }
             });
@@ -73,5 +82,21 @@ public class SimilarGeneListTest extends TestCase {
         else {
             fail("Similarity search returned null");
         }
+    }
+
+    private String getRCodeFromResource(String resourcePath) throws IOException {
+        // open a stream to the resource
+        InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
+
+        // create a reader to read in code
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+
+        StringBuffer sb = new StringBuffer();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+
+        return sb.toString();
     }
 }
