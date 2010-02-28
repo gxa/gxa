@@ -55,11 +55,11 @@ public class ExpressionStatDao {
 
             final String valuesString = EscapeUtil.escapeSolrValueList(values);
             if("".equals(property)) {
-                queryPart.append("(gene_ids:(").append(valuesString).append(")")
-                        .append(" gene_desc:(").append(valuesString).append("))");
+                queryPart.append("(id:(").append(valuesString).append(")")
+                        .append(" alltext:(").append(valuesString).append("))");
             } else {
                 // TODO: rewrite this part
-                final String field = "id".equals(property) ? "gene_id" : GeneProperties.convertPropertyToSearchField(property);
+                final String field = "id".equals(property) ? "id" : GeneProperties.convertPropertyToSearchField(property);
                 if(field == null)
                     throw new NullPointerException("Can't find property");
 
@@ -238,7 +238,7 @@ public class ExpressionStatDao {
                     private CountCache countCache = null;
 
                     public String getGene() {
-                        return sd.getFirstValue("gene_id").toString();
+                        return sd.getFirstValue("id").toString();
                     }
 
                     public Float getRank() {
@@ -462,9 +462,9 @@ public class ExpressionStatDao {
             QueryResponse response = geneServer.query(solrq);
             List<Gene> genes = new ArrayList<Gene>();
             for(SolrDocument document : response.getResults()) {
-                final String species = getSafeSolrFieldValue(document, "gene_species");
-                final String id = getSafeSolrFieldValue(document, "gene_id");
-                final String accession = getSafeSolrFieldValue(document, "gene_name");
+                final String species = getSafeSolrFieldValue(document, "species");
+                final String id = getSafeSolrFieldValue(document, "id");
+                final String accession = getSafeSolrFieldValue(document, "name");
 
                 final Map<String,Property> propertiesMap = new HashMap<String,Property>();
 

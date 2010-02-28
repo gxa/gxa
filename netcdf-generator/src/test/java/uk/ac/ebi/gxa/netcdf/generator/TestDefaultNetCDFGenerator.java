@@ -4,6 +4,7 @@ import org.dbunit.dataset.ITable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
 
@@ -36,9 +37,7 @@ public class TestDefaultNetCDFGenerator extends AtlasDAOTestCase {
         netCDFGenerator.shutdown();
 
         // delete the repo
-        if (repoLocation.exists() && !deleteDirectory(repoLocation)) {
-//            fail("Failed to delete " + indexLocation.getAbsolutePath());
-            // fail is to strict; just log
+        if (repoLocation.exists() && !FileUtil.deleteDirectory(repoLocation)) {
             log.warn("Failed to delete " + repoLocation.getAbsolutePath());
         }
         repoLocation = null;
@@ -107,20 +106,5 @@ public class TestDefaultNetCDFGenerator extends AtlasDAOTestCase {
             e.printStackTrace();
             fail();
         }
-    }
-
-    private boolean deleteDirectory(File directory) {
-        boolean success = true;
-        if (directory.exists()) {
-            for (File file : directory.listFiles()) {
-                if (file.isDirectory()) {
-                    success = deleteDirectory(file) && success;
-                }
-                else {
-                    success = file.delete() && success;
-                }
-            }
-        }
-        return directory.delete() && success;
     }
 }

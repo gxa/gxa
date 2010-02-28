@@ -46,6 +46,14 @@
             <version>4.3</version>
         </dependency>
 
+        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+        </dependency>
+        
+
         <!-- also requires test scope dependency to reuse tests -->
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>

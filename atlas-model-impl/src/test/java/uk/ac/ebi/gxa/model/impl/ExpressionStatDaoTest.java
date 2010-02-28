@@ -245,23 +245,23 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
                 new ExpressionStatQuery().hasGene(new GeneQuery().hasProperty(
-                        new GenePropertyQuery().hasAccession("species").fullTextQuery("Homo"))
+                        new GenePropertyQuery().hasAccession("species").fullTextQuery("HOMO SAPIENS"))
                 ),
                 new PageSortParams()
         );
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(16, result.getNumberOfResults());
+        assertEquals(14, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 
         for(GeneExpressionStat stat : result.getItems()) {
-            SolrQuery q = new SolrQuery("gene_id:" + stat.getGene());
-            q.setFields("gene_species");
+            SolrQuery q = new SolrQuery("id:" + stat.getGene());
+            q.setFields("species");
             q.setRows(1);
             QueryResponse qr = geneServer.query(q);
-            assertEquals("HOMO SAPIENS", qr.getResults().get(0).getFieldValue("gene_species"));
+            assertEquals("HOMO SAPIENS", qr.getResults().get(0).getFieldValue("species"));
         }
     }
 
@@ -302,7 +302,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(10, result.getNumberOfResults());
+        assertEquals(12, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 
@@ -324,7 +324,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(11, result.getNumberOfResults());
+        assertEquals(12, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 

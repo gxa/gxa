@@ -97,7 +97,7 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
 
         List<AtlasExperiment> list2 = dao.getRankedGeneExperiments(r.getGene(), null, null, 1, 5);
         assertNotNull(list2);
-        assertEquals(5, list2.size());
+        assertEquals(4, list2.size());
 
         List<AtlasExperiment> list3 = dao.getRankedGeneExperiments(r.getGene(), "cellline", "BT474", -1, -1);
         assertNotNull(list3);
