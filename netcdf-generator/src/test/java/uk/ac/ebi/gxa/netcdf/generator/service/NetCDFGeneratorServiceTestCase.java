@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.netcdf.generator.service;
 
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.netcdf.generator.service.NetCDFGeneratorService;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
 
@@ -42,25 +43,10 @@ public abstract class NetCDFGeneratorServiceTestCase extends AtlasDAOTestCase {
     super.tearDown();
 
     // delete the index
-    if (!deleteDirectory(repoLocation)) {
+    if (!FileUtil.deleteDirectory(repoLocation)) {
       fail("Failed to delete " + repoLocation.getAbsolutePath());
     }
 
     repoLocation = null;
-  }
-
-  private boolean deleteDirectory(File directory) {
-    boolean success = true;
-    if (directory.exists()) {
-      for (File file : directory.listFiles()) {
-        if (file.isDirectory()) {
-          success = deleteDirectory(file) && success;
-        }
-        else {
-          success = file.delete() && success;
-        }
-      }
-    }
-    return directory.delete() && success;
   }
 }
