@@ -33,7 +33,7 @@ public abstract class NetCDFGeneratorServiceTestCase extends AtlasDAOTestCase {
     super.setUp();
 
     repoLocation = new File(
-        "target" + File.separator + "test" + File.separator + "netcdfs");
+        System.getProperty("java.io.tmpdir") + File.separator + "test" + File.separator + "netcdfs");
     if (!repoLocation.exists()) {
       repoLocation.mkdirs();
     }

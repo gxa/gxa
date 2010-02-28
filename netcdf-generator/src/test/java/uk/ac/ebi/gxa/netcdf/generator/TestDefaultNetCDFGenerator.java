@@ -24,7 +24,7 @@ public class TestDefaultNetCDFGenerator extends AtlasDAOTestCase {
         super.setUp();
 
         repoLocation = new File(
-                "target" + File.separator + "test" + File.separator + "netcdfs");
+                System.getProperty("java.io.tmpdir") + File.separator + "test" + File.separator + "netcdfs");
 
         netCDFGenerator = new DefaultNetCDFGenerator();
         netCDFGenerator.setAtlasDAO(getAtlasDAO());
