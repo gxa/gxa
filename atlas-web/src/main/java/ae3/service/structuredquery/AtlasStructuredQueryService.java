@@ -6,6 +6,7 @@ import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
 import ae3.util.AtlasProperties;
+import org.apache.solr.common.params.FacetParams;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringUtils;
@@ -946,7 +947,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
         q.setFacetLimit(5 + max);
 
         q.setFacetMinCount(2);
-        q.setFacetSort(true);
+        q.setFacetSort(FacetParams.FACET_SORT_COUNT);
 
         for(String p : drilldownGeneProperties) {
             q.addFacetField("property_f_" + p);
@@ -1070,7 +1071,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
             q.setFacet(true);
             q.setFacetLimit(-1);
             q.setFacetMinCount(1);
-            q.setFacetSort(true);
+            q.setFacetSort(FacetParams.FACET_SORT_COUNT);
             try {
                 QueryResponse qr = solrServerAtlas.query(q);
                 if (qr.getFacetFields().get(0).getValues() != null) {

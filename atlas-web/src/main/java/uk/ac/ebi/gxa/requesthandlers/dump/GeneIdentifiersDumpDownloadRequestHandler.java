@@ -86,7 +86,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
             core = getCoreContainer().getCore("atlas");
 
             RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
-            IndexReader r = searcher.get().getReader();
+            IndexReader r = searcher.get().getIndexReader();
 
             log.info("Writing gene ids file from index to " + dumpGeneIdsFile);
 

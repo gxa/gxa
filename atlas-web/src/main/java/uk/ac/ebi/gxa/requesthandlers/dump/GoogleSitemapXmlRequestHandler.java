@@ -102,7 +102,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             core = getCoreContainer().getCore("atlas");
 
             RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
-            IndexReader r = searcher.get().getReader();
+            IndexReader r = searcher.get().getIndexReader();
 
             log.info("Generating gene sitemap, index in " + sitemapIndexFile);
             BufferedOutputStream bfind = new BufferedOutputStream(new FileOutputStream(sitemapIndexFile));
