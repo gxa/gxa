@@ -16,6 +16,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -79,9 +80,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         }
 
         // delete the index
-        if (indexLocation.exists() && !deleteDirectory(indexLocation)) {
-//            fail("Failed to delete " + indexLocation.getAbsolutePath());
-            // fail is to strict; just log
+        if (indexLocation.exists() && !FileUtil.deleteDirectory(indexLocation)) {
             log.warn("Failed to delete " + indexLocation.getAbsolutePath());
         }
 
@@ -195,20 +194,5 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
             e.printStackTrace();
             fail();
         }
-    }
-
-    private boolean deleteDirectory(File directory) {
-        boolean success = true;
-        if (directory.exists()) {
-            for (File file : directory.listFiles()) {
-                if (file.isDirectory()) {
-                    success = deleteDirectory(file) && success;
-                }
-                else {
-                    success = file.delete() && success;
-                }
-            }
-        }
-        return directory.delete() && success;
     }
 }

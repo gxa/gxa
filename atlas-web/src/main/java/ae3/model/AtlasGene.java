@@ -152,7 +152,7 @@ public class AtlasGene {
     }
 
     public String getShortDiseases(){
-    	return getShortValue("property_DIEASE");
+    	return getShortValue("property_DISEASE");
     }
 
     public SolrDocument getGeneSolrDocument() {
@@ -160,12 +160,12 @@ public class AtlasGene {
     }
 
     public String getUniprotId(){
-    	return getValue("property_UNIPROTID");
+    	return getValue("property_UNIPROT");
     }
 
     @RestOut(name="uniprotIds", exposeEmpty = false)
     public Collection<String> getUniprotIds(){
-    	return getValues("property_UNIPROTID");
+    	return getValues("property_UNIPROT");
     }
 
     public String getSynonym(){

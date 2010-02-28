@@ -19,12 +19,12 @@ public class FileUtil {
         return path;
     }
 
-    public static void deleteDirectory(File dir){
+    public static boolean deleteDirectory(File dir){
 		if(dir.isDirectory()) {
             for (File file : dir.listFiles())
                 deleteDirectory(file);
 		}
-        dir.delete();
+        return dir.delete();
 	}
 
     public static void createDirectory(File path, String local) {

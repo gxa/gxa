@@ -6,6 +6,7 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.*;
 import java.util.logging.LogManager;
@@ -62,7 +63,7 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
         }
 
         // delete the index
-        if (!deleteDirectory(indexLocation)) {
+        if (!FileUtil.deleteDirectory(indexLocation)) {
             fail("Failed to delete " + indexLocation.getAbsolutePath());
         }
 
@@ -75,20 +76,5 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
 
     public SolrServer getAtlasSolrServer() {
         return atlasSolrServer;
-    }
-
-    private boolean deleteDirectory(File directory) {
-        boolean success = true;
-        if (directory.exists()) {
-            for (File file : directory.listFiles()) {
-                if (file.isDirectory()) {
-                    success = deleteDirectory(file) && success;
-                }
-                else {
-                    success = file.delete() && success;
-                }
-            }
-        }
-        return directory.delete() && success;
     }
 }

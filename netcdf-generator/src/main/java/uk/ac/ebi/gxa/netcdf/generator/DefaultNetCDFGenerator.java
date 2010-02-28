@@ -231,8 +231,14 @@ public class DefaultNetCDFGenerator implements NetCDFGenerator, InitializingBean
         else {
             // just slam through all tasks, ignoring the results
             while (true) {
-                if (buildingTasks.poll() == null) {
-                    break;
+                Future<Boolean> f = buildingTasks.poll();
+                if (f == null) break;
+                try {
+                    if(!f.get()) log.error("Failed to generate a NetCDF");
+                } catch (InterruptedException e) {
+                    log.info("Interrupted NetCDF generation", e);
+                } catch (ExecutionException e) {
+                    log.error("Error while generating NetCDF", e);
                 }
             }
         }
