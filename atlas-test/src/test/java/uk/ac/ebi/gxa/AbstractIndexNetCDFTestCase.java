@@ -16,9 +16,10 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
+import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,9 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.logging.LogManager;
 
 /**
@@ -39,10 +38,12 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private SolrServer exptServer;
     private SolrServer atlasServer;
     private DefaultIndexBuilder indexBuilder;
-    private boolean buildFinished;
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
     private DefaultNetCDFGenerator netCDFGenerator;
+
+    private boolean solrBuildFinished;
+    private boolean netcdfBuildFinished;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -96,7 +97,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         return atlasServer;
     }
 
-    private void generateNetCDFs() throws NetCDFGeneratorException {
+    private void generateNetCDFs() throws NetCDFGeneratorException, InterruptedException {
         netCDFRepoLocation = new File(
                 "target" + File.separator + "test" + File.separator + "netcdfs");
 
@@ -105,7 +106,22 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         netCDFGenerator.setRepositoryLocation(netCDFRepoLocation);
 
         netCDFGenerator.startup();
-        netCDFGenerator.generateNetCDFs();
+        netCDFGenerator.generateNetCDFs(new NetCDFGeneratorListener() {
+            public void buildSuccess(NetCDFGenerationEvent event) {
+                netcdfBuildFinished = true;
+            }
+
+            public void buildError(NetCDFGenerationEvent event) {
+                netcdfBuildFinished = true;
+                fail("Failed to build NetCDFs");
+            }
+
+            public void buildProgress(String progressStatus) {}
+        });
+
+        while(!netcdfBuildFinished) {
+            synchronized(this) { wait(100); };
+        }
     }
 
     private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException {
@@ -135,17 +151,18 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder.startup();
         indexBuilder.buildIndex(new IndexBuilderListener(){
             public void buildSuccess(IndexBuilderEvent event) {
-                buildFinished = true;
+                solrBuildFinished = true;
             }
 
             public void buildError(IndexBuilderEvent event) {
-                buildFinished = true;
+                solrBuildFinished = true;
+                fail("Failed to build Solr Indexes");
             }
 
             public void buildProgress(String progressStatus) {}
         });
 
-        while(!buildFinished) {
+        while(!solrBuildFinished) {
             synchronized(this) { wait(100); };
         }
     }
