@@ -11,8 +11,8 @@
 
     <scm>
         <developerConnection>scm:svn:svn://bar.ebi.ac.uk/branches/atlas-standalone</developerConnection>
-        <connection>scm:git:git://github.com/ostolop/gxa.git</connection>
-        <url>scm:git:git://github.com/ostolop/gxa.git</url>
+        <connection>scm:git:git://github.com/gxa/gxa.git</connection>
+        <url>scm:git:git://github.com/gxa/gxa.git</url>
     </scm>
 
     <build>
@@ -89,7 +89,7 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>http://github.com/ostolop/gxa/issues</url>
+        <url>http://github.com/gxa/gxa/issues</url>
     </issueManagement>
 
     <!-- Developer Listing -->
@@ -246,7 +246,7 @@
           <site>
             <id>gh-pages</id>
             <!-- This gets automatically pushed to the gh-pages branch. -->
-            <url>file:${project.basedir}/github-pages</url>
+	    <url>file:///ebi/work/trunk/github-pages</url>
           </site>
     </distributionManagement>
 

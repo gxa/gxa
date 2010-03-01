@@ -25,7 +25,7 @@ The ArrayExpress Gene Expression Atlas project is hosted at the EBI at:
 
 You can get the source code and read the installation instructions at our GitHub Repository at:
 
- http://github.com/ostolop/gxa.
+ http://github.com/gxa/gxa.
 
 The EBI data dumps are available at ftp://aexpress:aexpress@ftp1.ebi.ac.uk/atlas2.
 
@@ -38,7 +38,7 @@ You can subscribe to our mailing list and email your questions, feedback and sug
 You will need an Oracle database, an R/Bioconductor installation and a web server that can run Java Web Applications,
 e.g., Apache Tomcat. For more detail, read the instructions at:
 
-  http://wiki.github.com/ostolop/gxa/installation.
+  http://wiki.github.com/gxa/gxa/installation.
 
 * Authors
 
