@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
@@ -68,11 +69,92 @@
         </plugins>
     </reporting>
 
-    <scm>
-        <connection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</connection>
-        <developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</developerConnection>
-        <url>svn://dukkha.ebi.ac.uk/trunk/atlas/</url>
-    </scm>
+    <!-- Licensing -->
+    <!-- todo -->
+    <!--<licenses>-->
+        <!--<license>-->
+            <!--<name>GNU Lesser General Public License</name>-->
+            <!--<url>http://www.gnu.org/copyleft/lesser.html</url>-->
+            <!--<distribution>repo</distribution>-->
+        <!--</license>-->
+    <!--</licenses>-->
+
+    <!-- Mailing Lists -->
+    <mailingLists>
+        <mailingList>
+            <name>ArrayExpress Atlas</name>
+            <subscribe>arrayexpress-atlas@ebi.ac.uk</subscribe>
+            <unsubscribe>arrayexpress-atlas@ebi.ac.uk</unsubscribe>
+            <post>arrayexpress-atlas@ebi.ac.uk</post>
+        </mailingList>
+    </mailingLists>
+
+    <!-- Bug Tracker -->
+    <!-- todo -->
+    <!--<issueManagement>-->
+        <!--<system>sourceforge</system>-->
+        <!--<url>http://dukkha.ebi.ac.uk:8080/trac/query</url>-->
+    <!--</issueManagement>-->
+
+    <!-- Developer Listing -->
+    <developers>
+        <developer>
+            <id>ostolop</id>
+            <name>Misha Kapushesky</name>
+            <email>ostolop@ebi.ac.uk</email>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
+        </developer>
+        <developer>
+            <id>tburdett</id>
+            <name>Tony Burdett</name>
+            <email>tburdett@ebi.ac.uk</email>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
+        </developer>
+        <developer>
+            <id>pashky</id>
+            <name>Pavel Kurnosov</name>
+            <email>pashky@ebi.ac.uk</email>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
+        </developer>
+        <developer>
+            <id>azorin</id>
+            <name>Andrey Zorin</name>
+            <email>azorin@ebi.ac.uk</email>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
+        </developer>
+    </developers>
+
+    <!-- Source management, shoudl go via github -->
+    <!-- todo -->
+    <!--<scm>-->
+        <!--<connection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</connection>-->
+        <!--<developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</developerConnection>-->
+        <!--<url>svn://dukkha.ebi.ac.uk/trunk/atlas/</url>-->
+    <!--</scm>-->
 
     <modules>
         <module>atlas-index-api</module>
@@ -88,8 +170,8 @@
         <module>atlas-model-impl</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
-    <module>netcdf-reader</module>
-  </modules>
+        <module>netcdf-reader</module>
+    </modules>
 
     <dependencies>
         <!-- testing -->
@@ -140,6 +222,7 @@
     </dependencies>
 
     <repositories>
+        <!-- todo - update to sonatype repo -->
         <repository>
             <id>atlas-repo</id>
             <url>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</url>
@@ -159,11 +242,13 @@
 
     <distributionManagement>
         <downloadUrl>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</downloadUrl>
+        <!-- todo - update to sonatype repo -->
         <repository>
             <id>tony-repo</id>
             <name>Atlas Maven Repository (temp location)</name>
             <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/maven/atlas-repo/</url>
         </repository>
+        <!-- todo - update to github site scp URL -->
         <site>
             <id>tony-repo</id>
             <url>scp://dukkha.ebi.ac.uk/homes/tburdett/public_html/atlas-standalone</url>
@@ -173,6 +258,9 @@
     <!-- profile for building with java 5 -->
     <profiles>
         <profile>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
             <id>java-5</id>
             <build>
                 <plugins>
