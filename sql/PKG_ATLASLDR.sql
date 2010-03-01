@@ -200,6 +200,16 @@ begin
  dbms_output.put_line(' find orphane genes with same identifiers: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --create missed genes  
+   Insert into a2_Gene(GeneID, Name, Identifier)
+   select a2_Gene_Seq.nextval,'GENE:' || r.GeneIdentifier, r.GeneIdentifier
+   from tmp_DesignElementMap r
+   where GeneID is null;
+   
+   Update tmp_DesignElementMap 
+   set GeneID = (Select GeneID from a2_Gene where Identifier = tmp_DesignElementMap.GeneIdentifier) 
+   where GeneID is null;
+ 
+ /*
  for r in (select * from tmp_DesignElementMap where GeneID is null) loop
    select a2_Gene_Seq.nextval into TheGeneID from dual; 
     
@@ -209,6 +219,7 @@ begin
    update tmp_DesignElementMap set GeneID = TheGeneID 
    where DesignElementAccession = r.DesignElementAccession;
  end loop;
+ */ 
  dbms_output.put_line(' create missed genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --add properties (do not remove old properties from Gene) 
