@@ -112,8 +112,6 @@ PACKAGE BODY ATLASLDR AS
 
 --------------------------------------------------------
 --  DDL for Procedure A2_ARRAYDESIGNSET
-
-
 --------------------------------------------------------
 PROCEDURE A2_ARRAYDESIGNSET (
    Accession varchar2
@@ -181,7 +179,8 @@ begin
  MERGE into a2_GenePropertyValue p
  USING (select distinct p.GenePropertyID, EntryName, EntryValue 
         from table(CAST(LowerCaseDesignElements as DesignElementTable)) d 
-        join a2_GeneProperty p on p.Name = d.EntryName) t
+        join a2_GeneProperty p on p.Name = d.EntryName
+        where d.EntryValue is not null) t
  ON (p.GenePropertyID = t.GenePropertyID and p.Value = t.EntryValue)
  WHEN MATCHED THEN 
   Update set p.GenePropertyValueID = p.GenePropertyValueID --9i noop 
@@ -448,6 +447,9 @@ begin
   
   q := 'DROP INDEX IDX_EV_ASSAYID';
   EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "PK_EXPRESSIONVALUE"';  
+  EXECUTE IMMEDIATE q;
   
   q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "UQ_EXPRESSIONVALUE"';  
   EXECUTE IMMEDIATE q;
@@ -513,6 +515,10 @@ BEGIN
   
   q := 'CREATE INDEX "IDX_EV_ASSAYID" ON "A2_EXPRESSIONVALUE" ("ASSAYID") $INDEX_TABLESPACE';
   q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
+  dbms_output.put_line(q);
+  EXECUTE IMMEDIATE q;
+
+  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "PK_EXPRESSIONVALUE"';  
   dbms_output.put_line(q);
   EXECUTE IMMEDIATE q;
   
@@ -935,9 +941,11 @@ BEGIN
                                                          join a2_SamplePV spv on spv.SampleID = vwExperimentSample.SampleID
                                                          where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_SamplePV where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
-  Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Sample where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
 
+  --redundant call, assaysample must be deleted by CASCADE delete
+  Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  
   
   Delete from a2_AssayPVOntology where AssayPVID in (Select AssayPVID
                                                     from a2_AssayPV   

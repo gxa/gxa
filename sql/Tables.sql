@@ -102,7 +102,7 @@ ALTER TRIGGER "A2_ORGANISM_INSERT" ENABLE;
     UNIQUE("NAME") 
     ENABLE; 
 / 
-CREATE OR REPLACE TRIGGER "A2_GENEProperty_INSERT"  
+CREATE OR REPLACE TRIGGER A2_GENEPROPERTY_INSERT  
 before insert on A2_GENEProperty
 for each row
 begin
@@ -111,7 +111,7 @@ select A2_GENEProperty_seq.nextval into :new.GENEPropertyID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_GENEProperty_INSERT" ENABLE;      
+ALTER TRIGGER A2_GENEProperty_INSERT ENABLE;      
 /
 --------------------------------------------------------
 -- GENE PROPERTYVALUE
@@ -157,7 +157,7 @@ ALTER TRIGGER "A2_GENEProperty_INSERT" ENABLE;
     UNIQUE("GENEPROPERTYID","VALUE") 
     ENABLE; 
 /    
-CREATE OR REPLACE TRIGGER "A2_GENEPropertyValue_INSERT"  
+CREATE OR REPLACE TRIGGER A2_GENEPROPERTYVALUE_INSERT  
 before insert on A2_GENEPropertyValue
 for each row
 begin
@@ -166,7 +166,7 @@ select A2_GENEPropertyValue_seq.nextval into :new.GENEPropertyValueID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_GENEPropertyValue_INSERT" ENABLE;  
+ALTER TRIGGER A2_GENEPropertyValue_INSERT ENABLE;  
 /    
 --------------------------------------------------------
 -- GENE 
@@ -213,7 +213,7 @@ ALTER TRIGGER "A2_GENEPropertyValue_INSERT" ENABLE;
     UNIQUE("IDENTIFIER") 
     ENABLE;
 /    
-CREATE OR REPLACE TRIGGER "A2_GENE_INSERT"  
+CREATE OR REPLACE TRIGGER A2_GENE_INSERT  
 before insert on A2_GENE
 for each row
 begin
@@ -222,7 +222,7 @@ select A2_GENE_seq.nextval into :new.GENEID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_GENE_INSERT" ENABLE;  
+ALTER TRIGGER A2_GENE_INSERT ENABLE;  
 /    
 --------------------------------------------------------
 -- GENE GENEPROPERTYVALUE
@@ -279,7 +279,7 @@ ALTER TRIGGER "A2_GENE_INSERT" ENABLE;
     UNIQUE("GENEID","GENEPROPERTYVALUEID") 
     ENABLE;    
 /    
-CREATE OR REPLACE TRIGGER "A2_GENEGPV_INSERT"  
+CREATE OR REPLACE TRIGGER A2_GENEGPV_INSERT  
 before insert on A2_GENEGPV
 for each row
 begin
@@ -288,7 +288,7 @@ select A2_GENEGPV_seq.nextval into :new.GENEGPVID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_GENEGPV_INSERT" ENABLE;
+ALTER TRIGGER A2_GENEGPV_INSERT ENABLE;
 /   
     
 --------------------------------------------------------
@@ -335,7 +335,7 @@ ALTER TRIGGER "A2_GENEGPV_INSERT" ENABLE;
     UNIQUE("ACCESSION") 
     ENABLE;
 /
-CREATE OR REPLACE TRIGGER "A2_ArrayDesign_Insert"  
+CREATE OR REPLACE TRIGGER A2_ArrayDesign_Insert  
 before insert on A2_ArrayDesign
 for each row
 begin
@@ -344,7 +344,7 @@ select A2_ArrayDesign_seq.nextval into :new.ArrayDesignID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ArrayDesign_Insert" ENABLE;
+ALTER TRIGGER A2_ArrayDesign_Insert ENABLE;
 /
 --------------------------------------------------------
 -- DESIGN ELEMENT
@@ -407,7 +407,7 @@ ALTER TRIGGER "A2_ArrayDesign_Insert" ENABLE;
     UNIQUE("ARRAYDESIGNID","ACCESSION") 
     ENABLE;
 /
-CREATE OR REPLACE TRIGGER "A2_DesignElement_Insert"  
+CREATE OR REPLACE TRIGGER A2_DesignElement_Insert  
 before insert on A2_DesignElement
 for each row
 begin
@@ -416,7 +416,7 @@ select A2_DesignElement_seq.nextval into :new.DesignElementID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_DesignElement_Insert" ENABLE;
+ALTER TRIGGER A2_DesignElement_Insert ENABLE;
 /
 --------------------------------------------------------
 -- PROPERTY
@@ -458,7 +458,7 @@ ALTER TRIGGER "A2_DesignElement_Insert" ENABLE;
     UNIQUE("NAME") 
     ENABLE;
 /    
-CREATE OR REPLACE TRIGGER "A2_PROPERTY_INSERT"  
+CREATE OR REPLACE TRIGGER A2_PROPERTY_INSERT  
 before insert on A2_Property
 for each row
 begin
@@ -467,7 +467,7 @@ if(:new.PropertyID is null) then
 end if;
 end;
 /
-ALTER TRIGGER "A2_PROPERTY_INSERT" ENABLE; 
+ALTER TRIGGER A2_PROPERTY_INSERT ENABLE; 
 /
 --------------------------------------------------------
 -- PROPERTY VALUE
@@ -517,7 +517,7 @@ ALTER TRIGGER "A2_PROPERTY_INSERT" ENABLE;
     UNIQUE("PROPERTYID","NAME") 
     ENABLE;
 /  
-CREATE OR REPLACE TRIGGER "A2_PROPERTYVALUE_INSERT"  
+CREATE OR REPLACE TRIGGER A2_PROPERTYVALUE_INSERT  
 before insert on A2_PropertyValue
 for each row
 begin
@@ -526,7 +526,7 @@ if ( :new.PropertyValueID is null) then
 end if;
 end;
 /
-ALTER TRIGGER "A2_PROPERTYVALUE_INSERT" ENABLE; 
+ALTER TRIGGER A2_PROPERTYVALUE_INSERT ENABLE; 
 /  
 --------------------------------------------------------
 -- EXPERIMENT
@@ -568,7 +568,7 @@ ALTER TRIGGER "A2_PROPERTYVALUE_INSERT" ENABLE;
     UNIQUE("ACCESSION") 
     ENABLE;
 /
-CREATE OR REPLACE TRIGGER "A2_EXPERIMENT_INSERT"  
+CREATE OR REPLACE TRIGGER A2_EXPERIMENT_INSERT  
 before insert on A2_Experiment
 for each row
 begin
@@ -577,7 +577,7 @@ if(:new.ExperimentID is null) then
 end if;
 end;
 /
-ALTER TRIGGER "A2_EXPERIMENT_INSERT" ENABLE;
+ALTER TRIGGER A2_EXPERIMENT_INSERT ENABLE;
 /  
 --------------------------------------------------------
 -- ASSAY
@@ -635,7 +635,7 @@ ALTER TRIGGER "A2_EXPERIMENT_INSERT" ENABLE;
     UNIQUE("EXPERIMENTID","ACCESSION") 
     ENABLE;
 /
-CREATE OR REPLACE TRIGGER "A2_ASSAY_INSERT"  
+CREATE OR REPLACE TRIGGER A2_ASSAY_INSERT  
 before insert on A2_Assay
 for each row
 begin
@@ -644,7 +644,7 @@ select A2_Assay_seq.nextval into :new.AssayID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ASSAY_INSERT" ENABLE;
+ALTER TRIGGER A2_ASSAY_INSERT ENABLE;
 /
 --------------------------------------------------------
 -- SAMPLE
@@ -680,7 +680,7 @@ ALTER TRIGGER "A2_ASSAY_INSERT" ENABLE;
     UNIQUE("ACCESSION") 
     ENABLE;
 */
-CREATE OR REPLACE TRIGGER "A2_SAMPLE_INSERT"  
+CREATE OR REPLACE TRIGGER A2_SAMPLE_INSERT  
 before insert on A2_Sample
 for each row
 begin
@@ -689,7 +689,7 @@ select A2_Sample_seq.nextval into :new.SampleID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_SAMPLE_INSERT" ENABLE;
+ALTER TRIGGER A2_SAMPLE_INSERT ENABLE;
 /
 --------------------------------------------------------
 -- ASSAYSAMPLE
@@ -746,7 +746,7 @@ ALTER TRIGGER "A2_SAMPLE_INSERT" ENABLE;
     UNIQUE("ASSAYID","SAMPLEID") 
     ENABLE;  
 /
-CREATE OR REPLACE TRIGGER "A2_ASSAYSAMPLE_INSERT"  
+CREATE OR REPLACE TRIGGER A2_ASSAYSAMPLE_INSERT  
 before insert on A2_AssaySample
 for each row
 begin
@@ -755,7 +755,7 @@ select A2_AssaySample_seq.nextval into :new.AssaySampleID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ASSAYSAMPLE_INSERT" ENABLE;
+ALTER TRIGGER A2_ASSAYSAMPLE_INSERT ENABLE;
 /
 --------------------------------------------------------
 -- ASSAYPROPERTYVALUE
@@ -818,7 +818,7 @@ ALTER TRIGGER "A2_ASSAYSAMPLE_INSERT" ENABLE;
     UNIQUE(ASSAYID, PropertyValueID) 
     ENABLE;  
 /    
-CREATE OR REPLACE TRIGGER "A2_ASSAYPV_INSERT"  
+CREATE OR REPLACE TRIGGER A2_ASSAYPV_INSERT  
 before insert on A2_ASSAYPV
 for each row
 begin
@@ -827,7 +827,7 @@ select A2_ASSAYPV_seq.nextval into :new.ASSAYPVID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ASSAYPV_INSERT" ENABLE;
+ALTER TRIGGER A2_ASSAYPV_INSERT ENABLE;
 /
 --------------------------------------------------------
 -- SAMPLEPROPERTYVALUE
@@ -893,7 +893,7 @@ ALTER TRIGGER "A2_ASSAYPV_INSERT" ENABLE;
     UNIQUE(SAMPLEID, PropertyValueID) 
     ENABLE; 
 /    
-CREATE OR REPLACE TRIGGER "A2_SAMPLEPV_INSERT"  
+CREATE OR REPLACE TRIGGER A2_SAMPLEPV_INSERT  
 before insert on A2_SAMPLEPV
 for each row
 begin
@@ -902,7 +902,7 @@ select A2_SAMPLEPV_seq.nextval into :new.SAMPLEPVID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_SAMPLEPV_INSERT" ENABLE;   
+ALTER TRIGGER A2_SAMPLEPV_INSERT ENABLE;   
 /      
 --------------------------------------------------------
 -- ONTOLOGY
@@ -983,7 +983,7 @@ CREATE TABLE "A2_ONTOLOGYTERM" (
     UNIQUE(ONTOLOGYID, Term) 
     ENABLE;
 / 
-CREATE OR REPLACE TRIGGER "A2_ONTOLOGYTERM_INSERT"  
+CREATE OR REPLACE TRIGGER A2_ONTOLOGYTERM_INSERT  
 before insert on A2_OntologyTerm
 for each row
 begin
@@ -992,7 +992,7 @@ select A2_OntologyTerm_seq.nextval into :new.OntologyTermID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ONTOLOGYTERM_INSERT" ENABLE; 
+ALTER TRIGGER A2_ONTOLOGYTERM_INSERT ENABLE; 
 /
 --------------------------------------------------------
 -- ASSAYPROPERTYVALUEONTOLOGY 
@@ -1049,7 +1049,7 @@ ALTER TRIGGER "A2_ONTOLOGYTERM_INSERT" ENABLE;
     UNIQUE(ONTOLOGYTERMID, ASSAYPVID) 
     ENABLE; 
 / 
-CREATE OR REPLACE TRIGGER "A2_ASSAYPVONTOLOGY_INSERT"  
+CREATE OR REPLACE TRIGGER A2_ASSAYPVONTOLOGY_INSERT  
 before insert on A2_AssayPvOntology
 for each row
 begin
@@ -1058,7 +1058,7 @@ select A2_AssayPvOntology_seq.nextval into :new.AssayPvOntologyID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ASSAYPVONTOLOGY_INSERT" ENABLE;
+ALTER TRIGGER A2_ASSAYPVONTOLOGY_INSERT ENABLE;
 /
 --------------------------------------------------------
 -- SAMPLEPROPERTYVALUEONTOLOGY 
@@ -1115,7 +1115,7 @@ ALTER TRIGGER "A2_ASSAYPVONTOLOGY_INSERT" ENABLE;
     UNIQUE(ONTOLOGYTERMID, SAMPLEPVID) 
     ENABLE;  
 /
-CREATE OR REPLACE TRIGGER "A2_SAMPLEPVONTOLOGY_INSERT"  
+CREATE OR REPLACE TRIGGER A2_SAMPLEPVONTOLOGY_INSERT  
 before insert on A2_SamplePvOntology
 for each row
 begin
@@ -1124,7 +1124,7 @@ select A2_SamplePvOntology_seq.nextval into :new.SamplePvOntologyID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_SAMPLEPVONTOLOGY_INSERT" ENABLE;
+ALTER TRIGGER A2_SAMPLEPVONTOLOGY_INSERT ENABLE;
 /  
 --------------------------------------------------------
 -- EXPRESSIONVALUE
@@ -1176,6 +1176,20 @@ ALTER TRIGGER "A2_SAMPLEPVONTOLOGY_INSERT" ENABLE;
   /*
   CREATE INDEX "IDX_EV_DESIGNELEMENT" 
   ON "A2_EXPRESSIONVALUE" ("DESIGNELEMENTID") 
+  
+  DROP INDEX IDX_EV_ASSAYID 
+  COMMIT
+  
+  ALTER TABLE A2_EXPRESSIONVALUE
+  DROP CONSTRAINT UQ_EXPRESSIONVALUE 
+  
+  DROP TRIGGER "A2_ExpressionValue_Insert"
+  
+  DROP INDEX PK_EXPRESSIONVALUE
+  
+  ALTER TABLE A2_EXPRESSIONVALUE
+  DROP CONSTRAINT PK_EXPRESSIONVALUE
+  
   */
   
   ALTER TABLE "A2_EXPRESSIONVALUE" 
@@ -1197,7 +1211,7 @@ ALTER TRIGGER "A2_SAMPLEPVONTOLOGY_INSERT" ENABLE;
     UNIQUE("ASSAYID","DESIGNELEMENTID") 
     ENABLE;
 /    
-CREATE OR REPLACE TRIGGER "A2_ExpressionValue_Insert"  
+CREATE OR REPLACE TRIGGER A2_ExpressionValue_Insert  
 before insert on A2_ExpressionValue
 for each row
 begin
@@ -1206,7 +1220,7 @@ select A2_ExpressionValue_seq.nextval into :new.ExpressionValueID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE;
+ALTER TRIGGER A2_ExpressionValue_Insert ENABLE;
 /
 --------------------------------------------------------
 -- EXPRESSIONANALYTICS
@@ -1272,7 +1286,7 @@ ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE;
     UNIQUE(ExperimentID,DesignElementID,PropertyValueID) 
     ENABLE; 
 /    
-CREATE OR REPLACE TRIGGER "A2_ExpressionAnalytics_Insert"  
+CREATE OR REPLACE TRIGGER A2_ExpressionAnalytics_Insert  
 before insert on A2_ExpressionAnalytics
 for each row
 begin
@@ -1281,7 +1295,7 @@ select A2_ExpressionAnalytics_seq.nextval into :new.ExpressionID from dual;
 end if;
 end;
 /
-ALTER TRIGGER "A2_ExpressionAnalytics_Insert" ENABLE;   
+ALTER TRIGGER A2_ExpressionAnalytics_Insert ENABLE;   
 /     
 --------------------------------------------------------
 --  LOAD MONITOR
