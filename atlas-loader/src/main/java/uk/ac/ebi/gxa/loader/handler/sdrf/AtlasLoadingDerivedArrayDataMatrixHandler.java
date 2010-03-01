@@ -111,9 +111,9 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                                 // collect all the possible 'assay' forming nodes
                                 Collection<HybridizationNode> hybTypeNodes = SDRFUtils.findUpstreamNodes(
-                                        investigation.SDRF, refNode, HybridizationNode.class);
+                                        refNode, HybridizationNode.class);
                                 Collection<AssayNode> assayTypeNodes = SDRFUtils.findUpstreamNodes(
-                                        investigation.SDRF, refNode, AssayNode.class);
+                                        refNode, AssayNode.class);
 
                                 // lump the two together
                                 Collection<SDRFNode> assayNodes = new HashSet<SDRFNode>();

@@ -214,7 +214,7 @@ public class SDRFWritingUtils {
                         }
                         else {
                             // generate error item and throw exception
-                            String message = "Inconsistent characteristic values for assay " + assay.getAccession() +
+                            String message = "Inconsistent factor values for assay " + assay.getAccession() +
                                     ": property " + ap.getName() + " has values " + ap.getValue() + " and " +
                                     factorValueAttribute.getNodeName() + " in different rows. Second value (" +
                                     factorValueAttribute + ") will be ignored";

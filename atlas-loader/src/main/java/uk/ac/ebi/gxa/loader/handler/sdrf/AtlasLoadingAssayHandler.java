@@ -102,7 +102,7 @@ public class AtlasLoadingAssayHandler extends AssayHandler {
 
                     // finally, assays must be linked to their upstream samples
                     Collection<SourceNode> upstreamSources =
-                            SDRFUtils.findUpstreamNodes(investigation.SDRF, assayNode, SourceNode.class);
+                            SDRFUtils.findUpstreamNodes(assayNode, SourceNode.class);
 
                     for (SourceNode source : upstreamSources) {
                         // retrieve the samples with the matching accession
