@@ -1,0 +1,1852 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css" media="all">
+            @import url("./css/maven-base.css");
+            @import url("./css/default.css");
+        </style>
+	</head>
+	<body>
+		<div id="mainOuter">
+			<div id="headerOuter">
+                <div id="logo">
+                                <a href="index.html" id="bannerLeft">
+    
+                                            <img src="images/atlas-ebi-logo.png" alt="" />
+    
+            </a>
+                      </div>
+				<div id="topNav">
+                    <div id="title">Gene Expression Atlas</div>
+                    <div id="toplinks">
+					                        <a href="index.html">Home</a>
+                          <a href="getting-started.html">Getting Started</a>
+                          <a href="installation.html">Installation</a>
+                          <a href="documentation.html">Documentation</a>
+                            </div>
+					<!-- 										    																    											    											    											    																    											    											    																    											    																                                                                                                                                                                                                                                                                                                                                                                                                                                                                            									<ul>
+													<li><a href="project-info.html">Project Information</a></li>
+													    								    								    												<li>/</li><li>Dependencies</li>
+												    								    								    								    								    								    								    								    								    																	</ul>
+										 -->
+				</div>
+            </div>
+			<div id="centerOuter">
+				<!--content-->
+				<div id="contentOuter">
+					<a name="Project_Dependencies"></a>
+<div class="section"><h2>Project Dependencies</h2>
+<a name="compile"></a>
+<div class="section"><h3>compile</h3>
+<p>The following is a list of compile dependencies for this project. These dependencies are required to compile and run the application:</p>
+<table class="bodyTable"><tr class="a"><th>GroupId</th>
+<th>ArtifactId</th>
+<th>Version</th>
+<th>Type</th>
+</tr>
+<tr class="b"><td>commons-lang</td>
+<td><a href="http://jakarta.apache.org/commons/lang/" class="externalLink">commons-lang</a>
+</td>
+<td>2.3</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>edu.ucar</td>
+<td>netcdf</td>
+<td>2.2.22</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.solr</td>
+<td><a href="http://lucene.apache.org/solr/solr-core" class="externalLink">solr-core</a>
+</td>
+<td>1.4.0</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.solr</td>
+<td><a href="http://lucene.apache.org/solr/solr-solrj" class="externalLink">solr-solrj</a>
+</td>
+<td>1.4.0</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.slf4j</td>
+<td><a href="http://www.slf4j.org" class="externalLink">jcl-over-slf4j</a>
+</td>
+<td>1.5.6</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.slf4j</td>
+<td><a href="http://www.slf4j.org" class="externalLink">jul-to-slf4j</a>
+</td>
+<td>1.5.6</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.slf4j</td>
+<td><a href="http://www.slf4j.org" class="externalLink">slf4j-api</a>
+</td>
+<td>1.5.6</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.springframework</td>
+<td><a href="http://www.springframework.org" class="externalLink">spring</a>
+</td>
+<td>2.5.5</td>
+<td>jar</td>
+</tr>
+</table>
+</div>
+<a name="test"></a>
+<div class="section"><h3>test</h3>
+<p>The following is a list of test dependencies for this project. These dependencies are only required to compile and run unit tests for the application:</p>
+<table class="bodyTable"><tr class="b"><th>GroupId</th>
+<th>ArtifactId</th>
+<th>Version</th>
+<th>Type</th>
+<th>Optional</th>
+</tr>
+<tr class="a"><td>junit</td>
+<td><a href="http://junit.org" class="externalLink">junit</a>
+</td>
+<td>4.3</td>
+<td>jar</td>
+<td>No</td>
+</tr>
+<tr class="b"><td>log4j</td>
+<td><a href="http://logging.apache.org/log4j/docs/" class="externalLink">log4j</a>
+</td>
+<td>1.2.14</td>
+<td>jar</td>
+<td>Yes</td>
+</tr>
+<tr class="a"><td>org.slf4j</td>
+<td><a href="http://www.slf4j.org" class="externalLink">slf4j-log4j12</a>
+</td>
+<td>1.5.6</td>
+<td>jar</td>
+<td>Yes</td>
+</tr>
+</table>
+</div>
+</div>
+<a name="Project_Transitive_Dependencies"></a>
+<div class="section"><h2>Project Transitive Dependencies</h2>
+<p>The following is a list of transitive dependencies for this project. Transitive dependencies are the dependencies of the project dependencies.</p>
+<a name="compile"></a>
+<div class="section"><h3>compile</h3>
+<p>The following is a list of compile dependencies for this project. These dependencies are required to compile and run the application:</p>
+<table class="bodyTable"><tr class="b"><th>GroupId</th>
+<th>ArtifactId</th>
+<th>Version</th>
+<th>Type</th>
+</tr>
+<tr class="a"><td>commons-codec</td>
+<td><a href="http://jakarta.apache.org/commons/codec/" class="externalLink">commons-codec</a>
+</td>
+<td>1.3</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>commons-fileupload</td>
+<td><a href="http://commons.apache.org/fileupload/" class="externalLink">commons-fileupload</a>
+</td>
+<td>1.2.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>commons-httpclient</td>
+<td><a href="http://jakarta.apache.org/httpcomponents/httpclient-3.x/" class="externalLink">commons-httpclient</a>
+</td>
+<td>3.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>commons-io</td>
+<td><a href="http://commons.apache.org/io/" class="externalLink">commons-io</a>
+</td>
+<td>1.4</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>commons-logging</td>
+<td><a href="http://commons.apache.org/logging" class="externalLink">commons-logging</a>
+</td>
+<td>1.1.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.geronimo.specs</td>
+<td><a href="http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec" class="externalLink">geronimo-stax-api_1.0_spec</a>
+</td>
+<td>1.0.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-analyzers" class="externalLink">lucene-analyzers</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-core" class="externalLink">lucene-core</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-highlighter" class="externalLink">lucene-highlighter</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-memory" class="externalLink">lucene-memory</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-misc" class="externalLink">lucene-misc</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-queries" class="externalLink">lucene-queries</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-snowball" class="externalLink">lucene-snowball</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.apache.lucene</td>
+<td><a href="http://lucene.apache.org/java/lucene-contrib/lucene-spellchecker" class="externalLink">lucene-spellchecker</a>
+</td>
+<td>2.9.1</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>org.apache.solr</td>
+<td><a href="http://lucene.apache.org/solr/solr-commons-csv" class="externalLink">solr-commons-csv</a>
+</td>
+<td>1.4.0</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>org.codehaus.woodstox</td>
+<td><a href="http://woodstox.codehaus.org" class="externalLink">wstx-asl</a>
+</td>
+<td>3.2.7</td>
+<td>jar</td>
+</tr>
+<tr class="a"><td>stax</td>
+<td><a href="http://stax.codehaus.org/" class="externalLink">stax-api</a>
+</td>
+<td>1.0.1</td>
+<td>jar</td>
+</tr>
+<tr class="b"><td>woodstox</td>
+<td>wstx-asl</td>
+<td>3.2.7</td>
+<td>jar</td>
+</tr>
+</table>
+</div>
+</div>
+<a name="Project_Dependency_Graph"></a>
+<div class="section"><h2>Project Dependency Graph</h2>
+<script language="javascript" type="text/javascript">
+      function toggleDependencyDetail( divId, imgId )
+      {
+        var div = document.getElementById( divId );
+        var img = document.getElementById( imgId );
+        if( div.style.display == '' )
+        {
+          div.style.display = 'none';
+          img.src='./images/icon_info_sml.gif';
+        }
+        else
+        {
+          div.style.display = '';
+          img.src='./images/close.gif';
+        }
+      }
+</script>
+<a name="Dependency_Tree"></a>
+<div class="section"><h3>Dependency Tree</h3>
+<ul><li>uk.ac.ebi.gxa:netcdf-reader:jar:2.0-SNAPSHOT <img id="_1019455564" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_635264508', '_1019455564' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_635264508" style="display:none"><table class="bodyTable"><tr class="a"><th>Gene Expression Atlas NetCDF Reader Utility</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+There is currently no description associated with this project.</p>
+<p><b>URL: </b>
+<a href="http://maven.apache.org" class="externalLink">http://maven.apache.org</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0" class="externalLink">Apache Software License 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>edu.ucar:netcdf:jar:2.2.22 (compile) <img id="_634404825" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1995429645', '_634404825' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1995429645" style="display:none"><table class="bodyTable"><tr class="a"><th>Unnamed - edu.ucar:netcdf:jar:2.2.22</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+There is currently no description associated with this project.</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.slf4j:slf4j-log4j12:jar:1.5.6 (test) <img id="_882670969" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_550674591', '_882670969' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_550674591" style="display:none"><table class="bodyTable"><tr class="a"><th>SLF4J LOG4J-12 Binding</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The slf4j log4j-12 binding</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.slf4j:slf4j-api:jar:1.5.6 (compile) <img id="_1715697723" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1206674363', '_1715697723' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1206674363" style="display:none"><table class="bodyTable"><tr class="a"><th>SLF4J API Module</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The slf4j API</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>log4j:log4j:jar:1.2.14 (test) <img id="_761004986" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1334916841', '_761004986' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1334916841" style="display:none"><table class="bodyTable"><tr class="a"><th>Log4j</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Log4j</p>
+<p><b>URL: </b>
+<a href="http://logging.apache.org/log4j/docs/" class="externalLink">http://logging.apache.org/log4j/docs/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>log4j:log4j:jar:1.2.14 (test) <img id="_1085725316" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1965549851', '_1085725316' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1965549851" style="display:none"><table class="bodyTable"><tr class="a"><th>Log4j</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Log4j</p>
+<p><b>URL: </b>
+<a href="http://logging.apache.org/log4j/docs/" class="externalLink">http://logging.apache.org/log4j/docs/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>junit:junit:jar:4.3 (test) <img id="_871238598" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1245463163', '_871238598' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1245463163" style="display:none"><table class="bodyTable"><tr class="a"><th>JUnit</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+JUnit is a regression testing framework written by Erich Gamma and Kent Beck. It is used by the developer who implements unit tests in Java.</p>
+<p><b>URL: </b>
+<a href="http://junit.org" class="externalLink">http://junit.org</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.opensource.org/licenses/cpl1.0.txt" class="externalLink">Common Public License Version 1.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.slf4j:jul-to-slf4j:jar:1.5.6 (compile) <img id="_913616999" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_465147753', '_913616999' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_465147753" style="display:none"><table class="bodyTable"><tr class="a"><th>JUL to SLF4J bridge</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+JUL to SLF4J bridge</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.slf4j:slf4j-api:jar:1.5.6 (compile) <img id="_536080571" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1207034618', '_536080571' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1207034618" style="display:none"><table class="bodyTable"><tr class="a"><th>SLF4J API Module</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The slf4j API</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.slf4j:jcl-over-slf4j:jar:1.5.6 (compile) <img id="_1445925851" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_390799673', '_1445925851' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_390799673" style="display:none"><table class="bodyTable"><tr class="a"><th>JCL 1.1.1 implemented over SLF4J</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+JCL 1.1.1 implementation over SLF4J</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.slf4j:slf4j-api:jar:1.5.6 (compile) <img id="_2092808507" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_719333834', '_2092808507' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_719333834" style="display:none"><table class="bodyTable"><tr class="a"><th>SLF4J API Module</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The slf4j API</p>
+<p><b>URL: </b>
+<a href="http://www.slf4j.org" class="externalLink">http://www.slf4j.org</a>
+</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.apache.solr:solr-solrj:jar:1.4.0 (compile) <img id="_933642813" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1967639355', '_933642813' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1967639355" style="display:none"><table class="bodyTable"><tr class="a"><th>Apache Solr Solrj</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Solr Solrj</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/solr/solr-solrj" class="externalLink">http://lucene.apache.org/solr/solr-solrj</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>commons-httpclient:commons-httpclient:jar:3.1 (compile) <img id="_485675094" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_166782813', '_485675094' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_166782813" style="display:none"><table class="bodyTable"><tr class="a"><th>HttpClient</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The HttpClient  component supports the client-side of RFC 1945 (HTTP/1.0)  and RFC 2616 (HTTP/1.1) , several related specifications (RFC 2109 (Cookies) , RFC 2617 (HTTP Authentication) , etc.), and provides a framework by which new request types (methods) or HTTP extensions can be created easily.</p>
+<p><b>URL: </b>
+<a href="http://jakarta.apache.org/httpcomponents/httpclient-3.x/" class="externalLink">http://jakarta.apache.org/httpcomponents/httpclient-3.x/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0" class="externalLink">Apache License</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-codec:commons-codec:jar:1.3 (compile) <img id="_1993667349" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1490713697', '_1993667349' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1490713697" style="display:none"><table class="bodyTable"><tr class="a"><th>Codec</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The codec package contains simple encoder and decoders for
+   various formats such as Base64 and Hexadecimal.  In addition to these
+   widely used encoders and decoders, the codec package also maintains a
+   collection of phonetic encoding utilities.</p>
+<p><b>URL: </b>
+<a href="http://jakarta.apache.org/commons/codec/" class="externalLink">http://jakarta.apache.org/commons/codec/</a>
+</p>
+<p><b>Project License: </b>
+<a href="/LICENSE.txt">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-io:commons-io:jar:1.4 (compile) <img id="_1857231027" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1231531704', '_1857231027' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1231531704" style="display:none"><table class="bodyTable"><tr class="a"><th>Commons IO</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Commons-IO contains utility classes, stream implementations, file filters, file comparators and endian classes.</p>
+<p><b>URL: </b>
+<a href="http://commons.apache.org/io/" class="externalLink">http://commons.apache.org/io/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-fileupload:commons-fileupload:jar:1.2.1 (compile) <img id="_280670686" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_361024776', '_280670686' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_361024776" style="display:none"><table class="bodyTable"><tr class="a"><th>Commons FileUpload</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The FileUpload component provides a simple yet flexible means of adding support for multipart
+    file upload functionality to servlets and web applications.</p>
+<p><b>URL: </b>
+<a href="http://commons.apache.org/fileupload/" class="externalLink">http://commons.apache.org/fileupload/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.codehaus.woodstox:wstx-asl:jar:3.2.7 (compile) <img id="_1883950840" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1467285027', '_1883950840' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1467285027" style="display:none"><table class="bodyTable"><tr class="a"><th>Woodstox</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Woodstox is a high-performance XML processor that implements Stax (JSR-173) API</p>
+<p><b>URL: </b>
+<a href="http://woodstox.codehaus.org" class="externalLink">http://woodstox.codehaus.org</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>stax:stax-api:jar:1.0.1 (compile) <img id="_1136366150" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1743035857', '_1136366150' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1743035857" style="display:none"><table class="bodyTable"><tr class="a"><th>StAX API</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+StAX API is the standard java XML processing API defined by JSR-173</p>
+<p><b>URL: </b>
+<a href="http://stax.codehaus.org/" class="externalLink">http://stax.codehaus.org/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.geronimo.specs:geronimo-stax-api_1.0_spec:jar:1.0.1 (compile) <img id="_623671697" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1826847840', '_623671697' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1826847840" style="display:none"><table class="bodyTable"><tr class="a"><th>Streaming API for XML (STAX API 1.0)</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Provides open-source implementations of Sun specifications.</p>
+<p><b>URL: </b>
+<a href="http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec" class="externalLink">http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.solr:solr-core:jar:1.4.0 (compile) <img id="_852450813" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_310672106', '_852450813' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_310672106" style="display:none"><table class="bodyTable"><tr class="a"><th>Apache Solr Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Solr Server</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/solr/solr-core" class="externalLink">http://lucene.apache.org/solr/solr-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.solr:solr-solrj:jar:1.4.0 (compile) <img id="_351400559" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1400948461', '_351400559' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1400948461" style="display:none"><table class="bodyTable"><tr class="a"><th>Apache Solr Solrj</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Solr Solrj</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/solr/solr-solrj" class="externalLink">http://lucene.apache.org/solr/solr-solrj</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.apache.lucene:lucene-analyzers:jar:2.9.1 (compile) <img id="_1777346329" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_151296927', '_1777346329' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_151296927" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Analyzers</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Additional Analyzers</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-analyzers" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-analyzers</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_714509497" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_559749424', '_714509497' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_559749424" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-highlighter:jar:2.9.1 (compile) <img id="_107060372" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_347237419', '_107060372' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_347237419" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Highlighter</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+This is the highlighter for apache lucene java</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-highlighter" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-highlighter</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-memory:jar:2.9.1 (compile) <img id="_948381750" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1831248341', '_948381750' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1831248341" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Memory</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+High-performance single-document index to compare against Query</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-memory" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-memory</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_782251887" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_240236837', '_782251887' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_240236837" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-queries:jar:2.9.1 (compile) <img id="_949860011" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_35866813', '_949860011' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_35866813" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Queries</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Queries - various query object exotica not in core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-queries" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-queries</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_703895280" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_259785377', '_703895280' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_259785377" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-snowball:jar:2.9.1 (compile) <img id="_1569023274" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1107924874', '_1569023274' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1107924874" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Snowball</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Snowball Analyzers</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-snowball" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-snowball</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_1318749395" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_294677020', '_1318749395' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_294677020" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-memory:jar:2.9.1 (compile) <img id="_2062695042" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_258735183', '_2062695042' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_258735183" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Memory</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+High-performance single-document index to compare against Query</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-memory" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-memory</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_1608344258" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_2044849116', '_1608344258' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_2044849116" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-misc:jar:2.9.1 (compile) <img id="_1094869326" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1432667196', '_1094869326' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1432667196" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Miscellaneous</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Miscellaneous Lucene extensions</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-misc" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-misc</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_1608859765" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_984321393', '_1608859765' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_984321393" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>org.apache.lucene:lucene-spellchecker:jar:2.9.1 (compile) <img id="_1339450419" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1362768079', '_1339450419' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1362768079" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Spellchecker</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Spell Checker</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-contrib/lucene-spellchecker" class="externalLink">http://lucene.apache.org/java/lucene-contrib/lucene-spellchecker</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>org.apache.lucene:lucene-core:jar:2.9.1 (compile) <img id="_1141992448" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_202587576', '_1141992448' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_202587576" style="display:none"><table class="bodyTable"><tr class="a"><th>Lucene Core</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Apache Lucene Java Core</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/java/lucene-core" class="externalLink">http://lucene.apache.org/java/lucene-core</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>commons-httpclient:commons-httpclient:jar:3.1 (compile) <img id="_1251197388" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_805329067', '_1251197388' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_805329067" style="display:none"><table class="bodyTable"><tr class="a"><th>HttpClient</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The HttpClient  component supports the client-side of RFC 1945 (HTTP/1.0)  and RFC 2616 (HTTP/1.1) , several related specifications (RFC 2109 (Cookies) , RFC 2617 (HTTP Authentication) , etc.), and provides a framework by which new request types (methods) or HTTP extensions can be created easily.</p>
+<p><b>URL: </b>
+<a href="http://jakarta.apache.org/httpcomponents/httpclient-3.x/" class="externalLink">http://jakarta.apache.org/httpcomponents/httpclient-3.x/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0" class="externalLink">Apache License</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-codec:commons-codec:jar:1.3 (compile) <img id="_1828688163" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_609588267', '_1828688163' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_609588267" style="display:none"><table class="bodyTable"><tr class="a"><th>Codec</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The codec package contains simple encoder and decoders for
+   various formats such as Base64 and Hexadecimal.  In addition to these
+   widely used encoders and decoders, the codec package also maintains a
+   collection of phonetic encoding utilities.</p>
+<p><b>URL: </b>
+<a href="http://jakarta.apache.org/commons/codec/" class="externalLink">http://jakarta.apache.org/commons/codec/</a>
+</p>
+<p><b>Project License: </b>
+<a href="/LICENSE.txt">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-io:commons-io:jar:1.4 (compile) <img id="_617877618" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1090660382', '_617877618' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1090660382" style="display:none"><table class="bodyTable"><tr class="a"><th>Commons IO</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Commons-IO contains utility classes, stream implementations, file filters, file comparators and endian classes.</p>
+<p><b>URL: </b>
+<a href="http://commons.apache.org/io/" class="externalLink">http://commons.apache.org/io/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>commons-fileupload:commons-fileupload:jar:1.2.1 (compile) <img id="_357163391" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1530910236', '_357163391' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1530910236" style="display:none"><table class="bodyTable"><tr class="a"><th>Commons FileUpload</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+The FileUpload component provides a simple yet flexible means of adding support for multipart
+    file upload functionality to servlets and web applications.</p>
+<p><b>URL: </b>
+<a href="http://commons.apache.org/fileupload/" class="externalLink">http://commons.apache.org/fileupload/</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.apache.solr:solr-commons-csv:jar:1.4.0 (compile) <img id="_245549485" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1462383568', '_245549485' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1462383568" style="display:none"><table class="bodyTable"><tr class="a"><th>Solr Specific Commons CSV</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Solr Specific Commons CSV</p>
+<p><b>URL: </b>
+<a href="http://lucene.apache.org/solr/solr-commons-csv" class="externalLink">http://lucene.apache.org/solr/solr-commons-csv</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">Apache 2</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>woodstox:wstx-asl:jar:3.2.7 (compile) <img id="_813296414" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_2069723883', '_813296414' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_2069723883" style="display:none"><table class="bodyTable"><tr class="a"><th>Unnamed - woodstox:wstx-asl:pom:3.2.7</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+There is currently no description associated with this project.</p>
+<p><b>Project License: </b>
+No project license is defined for this project.</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.apache.geronimo.specs:geronimo-stax-api_1.0_spec:jar:1.0.1 (compile) <img id="_1699549495" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_429497984', '_1699549495' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_429497984" style="display:none"><table class="bodyTable"><tr class="a"><th>Streaming API for XML (STAX API 1.0)</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Provides open-source implementations of Sun specifications.</p>
+<p><b>URL: </b>
+<a href="http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec" class="externalLink">http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+<li>commons-lang:commons-lang:jar:2.3 (compile) <img id="_1208419277" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_766685471', '_1208419277' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_766685471" style="display:none"><table class="bodyTable"><tr class="a"><th>Lang</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Commons.Lang, a package of Java utility classes for the
+        classes that are in java.lang's hierarchy, or are considered to be so
+        standard as to justify existence in java.lang.</p>
+<p><b>URL: </b>
+<a href="http://jakarta.apache.org/commons/lang/" class="externalLink">http://jakarta.apache.org/commons/lang/</a>
+</p>
+<p><b>Project License: </b>
+<a href="/LICENSE.txt">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+<li>org.springframework:spring:jar:2.5.5 (compile) <img id="_1726984581" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_1005992082', '_1726984581' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_1005992082" style="display:none"><table class="bodyTable"><tr class="a"><th>Spring Framework</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Spring Framework</p>
+<p><b>URL: </b>
+<a href="http://www.springframework.org" class="externalLink">http://www.springframework.org</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div><ul><li>commons-logging:commons-logging:jar:1.1.1 (compile) <img id="_931551132" src="./images/icon_info_sml.gif" alt="Information" onclick="toggleDependencyDetail( '_55675204', '_931551132' );" style="cursor: pointer;vertical-align:text-bottom;"></img><div id="_55675204" style="display:none"><table class="bodyTable"><tr class="a"><th>Commons Logging</th>
+</tr>
+<tr class="b"><td><p><b>Description: </b>
+Commons Logging is a thin adapter allowing configurable bridging to other,
+    well known logging systems.</p>
+<p><b>URL: </b>
+<a href="http://commons.apache.org/logging" class="externalLink">http://commons.apache.org/logging</a>
+</p>
+<p><b>Project License: </b>
+<a href="http://www.apache.org/licenses/LICENSE-2.0.txt" class="externalLink">The Apache Software License, Version 2.0</a>
+</p>
+</td>
+</tr>
+</table>
+</div></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<a name="Licenses"></a>
+<div class="section"><h2>Licenses</h2>
+<p><b>Apache Software License 2.0: </b>
+Gene Expression Atlas NetCDF Reader Utility</p>
+<p><b>Unknown: </b>
+JCL 1.1.1 implemented over SLF4J, JUL to SLF4J bridge, SLF4J API Module, SLF4J LOG4J-12 Binding, Unnamed - edu.ucar:netcdf:jar:2.2.22, Unnamed - woodstox:wstx-asl:pom:3.2.7</p>
+<p><b>The Apache Software License, Version 2.0: </b>
+Codec, Commons FileUpload, Commons IO, Commons Logging, Lang, Log4j, Spring Framework, StAX API, Streaming API for XML (STAX API 1.0), Woodstox</p>
+<p><b>Common Public License Version 1.0: </b>
+JUnit</p>
+<p><b>Apache License: </b>
+HttpClient</p>
+<p><b>Apache 2: </b>
+Apache Solr Core, Apache Solr Solrj, Lucene Analyzers, Lucene Core, Lucene Highlighter, Lucene Memory, Lucene Miscellaneous, Lucene Queries, Lucene Snowball, Lucene Spellchecker, Solr Specific Commons CSV</p>
+</div>
+<a name="Dependency_File_Details"></a>
+<div class="section"><h2>Dependency File Details</h2>
+<table class="bodyTable"><tbody><tr class="a"><th align="left">Filename</th>
+<th align="right">Size</th>
+<th align="right">Entries</th>
+<th align="right">Classes</th>
+<th align="right">Packages</th>
+<th align="center">JDK Rev</th>
+<th align="center">Debug</th>
+</tr>
+<tr class="b"><td align="left">commons-codec-1.3.jar</td>
+<td align="right">45.63 kB</td>
+<td align="right">42</td>
+<td align="right">25</td>
+<td align="right">5</td>
+<td align="center">1.2</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">commons-fileupload-1.2.1.jar</td>
+<td align="right">56.42 kB</td>
+<td align="right">60</td>
+<td align="right">43</td>
+<td align="right">5</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">commons-httpclient-3.1.jar</td>
+<td align="right">297.85 kB</td>
+<td align="right">183</td>
+<td align="right">167</td>
+<td align="right">8</td>
+<td align="center">1.2</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">commons-io-1.4.jar</td>
+<td align="right">106.49 kB</td>
+<td align="right">93</td>
+<td align="right">76</td>
+<td align="right">5</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">commons-lang-2.3.jar</td>
+<td align="right">239.53 kB</td>
+<td align="right">140</td>
+<td align="right">124</td>
+<td align="right">9</td>
+<td align="center">1.1</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">commons-logging-1.1.1.jar</td>
+<td align="right">59.26 kB</td>
+<td align="right">42</td>
+<td align="right">28</td>
+<td align="right">2</td>
+<td align="center">1.1</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">netcdf-2.2.22.jar</td>
+<td align="right">2.27 MB</td>
+<td align="right">1,147</td>
+<td align="right">1,031</td>
+<td align="right">63</td>
+<td align="center">1.5</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">junit-4.3.jar</td>
+<td align="right">243.31 kB</td>
+<td align="right">313</td>
+<td align="right">290</td>
+<td align="right">16</td>
+<td align="center">1.5</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">geronimo-stax-api_1.0_spec-1.0.1.jar</td>
+<td align="right">28.13 kB</td>
+<td align="right">48</td>
+<td align="right">34</td>
+<td align="right">3</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">lucene-analyzers-2.9.1.jar</td>
+<td align="right">196.85 kB</td>
+<td align="right">159</td>
+<td align="right">127</td>
+<td align="right">22</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">lucene-core-2.9.1.jar</td>
+<td align="right">1.05 MB</td>
+<td align="right">762</td>
+<td align="right">741</td>
+<td align="right">15</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">lucene-highlighter-2.9.1.jar</td>
+<td align="right">46.55 kB</td>
+<td align="right">38</td>
+<td align="right">29</td>
+<td align="right">1</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">lucene-memory-2.9.1.jar</td>
+<td align="right">54.82 kB</td>
+<td align="right">38</td>
+<td align="right">29</td>
+<td align="right">1</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">lucene-misc-2.9.1.jar</td>
+<td align="right">58.50 kB</td>
+<td align="right">39</td>
+<td align="right">26</td>
+<td align="right">5</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">lucene-queries-2.9.1.jar</td>
+<td align="right">34.57 kB</td>
+<td align="right">27</td>
+<td align="right">18</td>
+<td align="right">2</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">lucene-snowball-2.9.1.jar</td>
+<td align="right">113.05 kB</td>
+<td align="right">39</td>
+<td align="right">26</td>
+<td align="right">3</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">lucene-spellchecker-2.9.1.jar</td>
+<td align="right">19.79 kB</td>
+<td align="right">21</td>
+<td align="right">12</td>
+<td align="right">1</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">solr-commons-csv-1.4.0.jar</td>
+<td align="right">21.50 kB</td>
+<td align="right">23</td>
+<td align="right">11</td>
+<td align="right">2</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">solr-core-1.4.0.jar</td>
+<td align="right">1.07 MB</td>
+<td align="right">719</td>
+<td align="right">690</td>
+<td align="right">20</td>
+<td align="center">1.5</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">solr-solrj-1.4.0.jar</td>
+<td align="right">244.48 kB</td>
+<td align="right">173</td>
+<td align="right">155</td>
+<td align="right">10</td>
+<td align="center">1.5</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">wstx-asl-3.2.7.jar</td>
+<td align="right">508.76 kB</td>
+<td align="right">261</td>
+<td align="right">251</td>
+<td align="right">20</td>
+<td align="center">1.2</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">jcl-over-slf4j-1.5.6.jar</td>
+<td align="right">16.33 kB</td>
+<td align="right">23</td>
+<td align="right">9</td>
+<td align="right">2</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">jul-to-slf4j-1.5.6.jar</td>
+<td align="right">4.36 kB</td>
+<td align="right">11</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="center">1.4</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">slf4j-api-1.5.6.jar</td>
+<td align="right">21.81 kB</td>
+<td align="right">32</td>
+<td align="right">21</td>
+<td align="right">3</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">spring-2.5.5.jar</td>
+<td align="right">2.81 MB</td>
+<td align="right">2,356</td>
+<td align="right">2,138</td>
+<td align="right">182</td>
+<td align="center">1.5</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">stax-api-1.0.1.jar</td>
+<td align="right">25.89 kB</td>
+<td align="right">48</td>
+<td align="right">40</td>
+<td align="right">5</td>
+<td align="center">1.2</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">wstx-asl-3.2.7.jar</td>
+<td align="right">508.76 kB</td>
+<td align="right">261</td>
+<td align="right">251</td>
+<td align="right">20</td>
+<td align="center">1.2</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><td align="left">log4j-1.2.14.jar</td>
+<td align="right">358.83 kB</td>
+<td align="right">288</td>
+<td align="right">256</td>
+<td align="right">19</td>
+<td align="center">1.1</td>
+<td align="center">debug</td>
+</tr>
+<tr class="b"><td align="left">slf4j-log4j12-1.5.6.jar</td>
+<td align="right">9.45 kB</td>
+<td align="right">16</td>
+<td align="right">6</td>
+<td align="right">1</td>
+<td align="center">1.3</td>
+<td align="center">debug</td>
+</tr>
+<tr class="a"><th align="left">Total</th>
+<th align="right">Size</th>
+<th align="right">Entries</th>
+<th align="right">Classes</th>
+<th align="right">Packages</th>
+<th align="center">JDK Rev</th>
+<th align="center">Debug</th>
+</tr>
+<tr class="b"><td align="right">29</td>
+<td align="right">10.45 MB</td>
+<td align="right">7,402</td>
+<td align="right">6,655</td>
+<td align="right">451</td>
+<td align="center">1.5</td>
+<td align="right">29</td>
+</tr>
+<tr class="a"><td align="right">compile: 26</td>
+<td align="right">compile: 9.85 MB</td>
+<td align="right">compile: 6,785</td>
+<td align="right">compile: 6,103</td>
+<td align="right">compile: 415</td>
+<td align="center">-</td>
+<td align="right">compile: 26</td>
+</tr>
+<tr class="b"><td align="right">test: 3</td>
+<td align="right">test: 611.60 kB</td>
+<td align="right">test: 617</td>
+<td align="right">test: 552</td>
+<td align="right">test: 36</td>
+<td align="center">-</td>
+<td align="right">test: 3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<a name="Dependency_Repository_Locations"></a>
+<div class="section"><h2>Dependency Repository Locations</h2>
+<table class="bodyTable"><tbody><tr class="a"><th align="left">Repo ID</th>
+<th align="left">URL</th>
+<th align="center">Release</th>
+<th align="center">Snapshot</th>
+</tr>
+<tr class="b"><td align="left">central</td>
+<td align="left"><a href="http://repo1.maven.org/maven2" class="externalLink">http://repo1.maven.org/maven2</a>
+</td>
+<td align="center">Yes</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">java.net</td>
+<td align="left"><a href="http://download.java.net/maven/2/" class="externalLink">http://download.java.net/maven/2/</a>
+</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+</tr>
+<tr class="b"><td align="left">codehaus</td>
+<td align="left"><a href="http://repository.codehaus.org" class="externalLink">http://repository.codehaus.org</a>
+</td>
+<td align="center">Yes</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">apache.snapshots</td>
+<td align="left"><a href="http://people.apache.org/repo/m2-snapshot-repository" class="externalLink">http://people.apache.org/repo/m2-snapshot-repository</a>
+</td>
+<td align="center">-</td>
+<td align="center">Yes</td>
+</tr>
+<tr class="b"><td align="left">apache-snapshots</td>
+<td align="left"><a href="http://people.apache.org/repo/m2-snapshot-repository" class="externalLink">http://people.apache.org/repo/m2-snapshot-repository</a>
+</td>
+<td align="center">-</td>
+<td align="center">Yes</td>
+</tr>
+<tr class="a"><td align="left">codehaus-snapshots</td>
+<td align="left"><a href="http://snapshots.repository.codehaus.org" class="externalLink">http://snapshots.repository.codehaus.org</a>
+</td>
+<td align="center">-</td>
+<td align="center">Yes</td>
+</tr>
+<tr class="b"><td align="left">apache-incubator</td>
+<td align="left"><a href="http://people.apache.org/repo/m2-incubating-repository/" class="externalLink">http://people.apache.org/repo/m2-incubating-repository/</a>
+</td>
+<td align="center">Yes</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">geotools</td>
+<td align="left"><a href="http://maven.geotools.fr/repository" class="externalLink">http://maven.geotools.fr/repository</a>
+</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+</tr>
+</tbody>
+</table>
+<p>Repository locations for each of the Dependencies.</p>
+<table class="bodyTable"><tbody><tr class="b"><th align="left">Artifact</th>
+<th align="center">central</th>
+<th align="center">java.net</th>
+<th align="center">codehaus</th>
+<th align="center">apache.snapshots</th>
+<th align="center">apache-snapshots</th>
+<th align="center">codehaus-snapshots</th>
+<th align="center">apache-incubator</th>
+<th align="center">geotools</th>
+</tr>
+<tr class="a"><td align="left">commons-codec:commons-codec:jar:1.3</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-codec/commons-codec/1.3/commons-codec-1.3.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">commons-fileupload:commons-fileupload:jar:1.2.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.2.1/commons-fileupload-1.2.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">commons-httpclient:commons-httpclient:jar:3.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">commons-io:commons-io:jar:1.4</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-io/commons-io/1.4/commons-io-1.4.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">commons-lang:commons-lang:jar:2.3</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-lang/commons-lang/2.3/commons-lang-2.3.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">commons-logging:commons-logging:jar:1.1.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">edu.ucar:netcdf:jar:2.2.22</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">junit:junit:jar:4.3</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/junit/junit/4.3/junit-4.3.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.geronimo.specs:geronimo-stax-api_1.0_spec:jar:1.0.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.lucene:lucene-analyzers:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-analyzers/2.9.1/lucene-analyzers-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.lucene:lucene-core:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.lucene:lucene-highlighter:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-highlighter/2.9.1/lucene-highlighter-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.lucene:lucene-memory:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-memory/2.9.1/lucene-memory-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.lucene:lucene-misc:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-misc/2.9.1/lucene-misc-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.lucene:lucene-queries:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-queries/2.9.1/lucene-queries-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.lucene:lucene-snowball:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-snowball/2.9.1/lucene-snowball-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.lucene:lucene-spellchecker:jar:2.9.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/lucene/lucene-spellchecker/2.9.1/lucene-spellchecker-2.9.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.solr:solr-commons-csv:jar:1.4.0</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/solr/solr-commons-csv/1.4.0/solr-commons-csv-1.4.0.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.apache.solr:solr-core:jar:1.4.0</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/solr/solr-core/1.4.0/solr-core-1.4.0.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.apache.solr:solr-solrj:jar:1.4.0</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/apache/solr/solr-solrj/1.4.0/solr-solrj-1.4.0.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.codehaus.woodstox:wstx-asl:jar:3.2.7</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/codehaus/woodstox/wstx-asl/3.2.7/wstx-asl-3.2.7.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center"><a href="http://repository.codehaus.org/org/codehaus/woodstox/wstx-asl/3.2.7/wstx-asl-3.2.7.jar" class="externalLink"><img alt="Found at http://repository.codehaus.org" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.slf4j:jcl-over-slf4j:jar:1.5.6</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.5.6/jcl-over-slf4j-1.5.6.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.slf4j:jul-to-slf4j:jar:1.5.6</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.5.6/jul-to-slf4j-1.5.6.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">org.slf4j:slf4j-api:jar:1.5.6</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.6/slf4j-api-1.5.6.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.springframework:spring:jar:2.5.5</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/springframework/spring/2.5.5/spring-2.5.5.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">stax:stax-api:jar:1.0.1</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/stax/stax-api/1.0.1/stax-api-1.0.1.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">woodstox:wstx-asl:jar:3.2.7</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/woodstox/wstx-asl/3.2.7/wstx-asl-3.2.7.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><td align="left">log4j:log4j:jar:1.2.14</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/log4j/log4j/1.2.14/log4j-1.2.14.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="a"><td align="left">org.slf4j:slf4j-log4j12:jar:1.5.6</td>
+<td align="center"><a href="http://repo1.maven.org/maven2/org/slf4j/slf4j-log4j12/1.5.6/slf4j-log4j12-1.5.6.jar" class="externalLink"><img alt="Found at http://repo1.maven.org/maven2" src="images/icon_success_sml.gif" /></a>
+</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr class="b"><th align="left">Total</th>
+<th align="center">central</th>
+<th align="center">java.net</th>
+<th align="center">codehaus</th>
+<th align="center">apache.snapshots</th>
+<th align="center">apache-snapshots</th>
+<th align="center">codehaus-snapshots</th>
+<th align="center">apache-incubator</th>
+<th align="center">geotools</th>
+</tr>
+<tr class="a"><td align="left">29 (compile: 26, test: 3)</td>
+<td align="center">28</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+				</div>
+				<!--~content-->
+				<div id="menuOuter">
+					            <ul>
+                                  <li><span>Parent Project</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="http://www.ebi.ac.uk/gxa/index.html">Gene Expression Atlas</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>User Documentation</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="index.html">Home</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="getting-started.html">Getting Started</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="installation.html">Installation</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="documentation.html">Documentation</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Release Info</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="alpha-release.html">Alpha release</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="beta-release.html">Beta release</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="beta2-release.html">Beta 2 release</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Project Links</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="http://www.ebi.ac.uk/gxa">GXA at EBI</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="http://github.com/ostolop/gxa">GXA at GitHub</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Project Documentation</span>
+                                <ul>
+                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                            
+     <li class ="expanded">
+
+              <a href="project-info.html" class ="active">Project Information</a>
+     
+              <ul>
+                                
+     
+     <li>
+
+              <a href="index.html">About</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="integration.html">Continuous Integration</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="dependencies.html" class="active">Dependencies</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="dependency-convergence.html">Dependency Convergence</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="issue-tracking.html">Issue Tracking</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="mail-lists.html">Mailing Lists</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="plugin-management.html">Plugin Management</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="license.html">Project License</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="plugins.html">Project Plugins</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="project-summary.html">Project Summary</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="team-list.html">Project Team</a>
+     
+     </li>
+                                
+     
+     <li>
+
+              <a href="source-repository.html">Source Repository</a>
+     
+     </li>
+            </ul>
+              </li>
+                  </ul>
+              </li>
+                      
+        <li class="blank">&#xA0;</li></ul>
+    					<div id="poweredBy">
+						<a href="http://maven.apache.org/" title="Built by Maven">
+        		    		<img alt="Built by Maven" src="images/maven-feather.png">
+				        </a>
+					</div>
+				</div>
+			</div>
+			<div class="clear">&#xA0;</div>
+		</div>
+		<div id="footerOuter">
+			<span>            2010
+    	&#169;
+      </span>
+		</div>
+	</body>
+</html>
