@@ -32,6 +32,7 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -225,9 +226,9 @@ public class Efo implements InitializingBean {
 
             for(EfoNode n : getMap().values()) {
                 Document doc = new Document();
-                doc.add(new Field("id", n.id, Field.Store.YES,  Field.Index.UN_TOKENIZED));
-                doc.add(new Field("text", n.id, Field.Store.NO, Field.Index.TOKENIZED));
-                doc.add(new Field("text", n.term, Field.Store.NO, Field.Index.TOKENIZED));
+                doc.add(new Field("id", n.id, Field.Store.YES,  Field.Index.NOT_ANALYZED));
+                doc.add(new Field("text", n.id, Field.Store.NO, Field.Index.ANALYZED));
+                doc.add(new Field("text", n.term, Field.Store.NO, Field.Index.ANALYZED));
                 writer.addDocument(doc);
             }
 
@@ -254,11 +255,11 @@ public class Efo implements InitializingBean {
             try {
                 if(indexSearcher == null) {
                     rebuildIndex();
-                    indexReader = IndexReader.open(indexDirectory);
+                    indexReader = IndexReader.open(indexDirectory, true);
                     indexSearcher = new IndexSearcher(indexReader);
                 }
 
-                QueryParser parser = new QueryParser("text", new LowercaseAnalyzer());
+                QueryParser parser = new QueryParser(Version.LUCENE_CURRENT, "text", new LowercaseAnalyzer());
                 Query query = parser.parse(text);
                 TopDocs hits = indexSearcher.search(query, 10000);
 
