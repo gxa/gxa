@@ -4,7 +4,7 @@
     <skin>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas-skin</artifactId>
-        <version>1.0</version>
+        <version>2.0-SNAPSHOT</version>
     </skin>
 
     <bannerLeft>
@@ -36,8 +36,8 @@
         </menu>
 
         <menu name="Project Links">
-            <item name="GXA@EBI" href="http://www.ebi.ac.uk/gxa"/>
-            <item name="Atlas Maven Repository" href="http://www.ebi.ac.uk/~tburdett/maven/atlas-repo"/>
+            <item name="GXA at EBI" href="http://www.ebi.ac.uk/gxa"/>
+            <item name="GXA at GitHub" href="http://github.com/ostolop/gxa"/>
         </menu>
 
       <menu ref="reports"/>
