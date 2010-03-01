@@ -21,6 +21,8 @@
  */
 
 var atlas;
+var resultEfvs;
+var resultGenes;
 
 if(!atlas)
     atlas = {};
@@ -294,7 +296,7 @@ if(!atlas)
                      'table.oneplot': {
                          'ef <- experiment.efs': {
                              '.efname': 'ef.eftext',
-                             '.@id+': function(a) { return 'oneplot_' + a.context.counter++; },
+                             '.@id': function(a) { return 'oneplot_' + a.context.counter++; },
                              'a.proflink@href': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}'
                          }
                      },

@@ -276,11 +276,11 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript">
 
     $("#loading_display").hide();
-    var resultGenes = [
+    resultGenes = [
             <c:forEach var="row" varStatus="s" items="${result.results}">${u:escapeJS(row.gene.geneId)}<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
 
-    var resultEfvs = [
+    resultEfvs = [
             <c:forEach var="e" varStatus="s" items="${result.resultEfvs.nameSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
 </script>
