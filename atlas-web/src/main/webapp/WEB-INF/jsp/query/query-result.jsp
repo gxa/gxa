@@ -22,7 +22,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.mod.js"></script>
 <!-- >script type="text/javascript" src="scripts/jquery.tablesorter.pager.js"></script-->
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.collapsible.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/pure.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/pure2.js"></script>
 
 <jsp:include page="../includes/start_body_no_menus.jsp"></jsp:include>
 
@@ -677,34 +677,32 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 </div><!-- /id="ae_pagecontainer" -->
 </div><!-- /id="contents" -->
 
-<div style="display:none">
-    <div id="experimentsTemplate">
-        <div class="head">
-            <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
-            overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> experiments(s)
-        </div>
-        <div class="exptable">
-            <table>
-                <tr class="experRows">
-                    <td class="explot">
-                        <b class="expaccession">E-ACC</b>:
-                        <span class="expname"></span>
+<div id="experimentsTemplate">
+    <div class="head">
+        <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
+        overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> experiments(s)
+    </div>
+    <div class="exptable">
+        <table>
+            <tr class="experRows">
+                <td class="explot">
+                    <b class="expaccession">E-ACC</b>:
+                    <span class="expname"></span>
 
-                        <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                            <td><img src="${pageContext.request.contextPath}/images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
-                                                                                                                       style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
-                            <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
-                        </tr></table>
+                    <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
+                        <td><img src="${pageContext.request.contextPath}/images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
+                                                                                                                                             style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
+                        <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
+                    </tr></table>
 
-                        <div style="margin-top:5px;font-size:10px;">
-                            Show <a class="proflink2" title="Show expression profile" href="">expression profile</a>
-                            &nbsp;/&nbsp;
-                            <a class="detailink" target="_blank" title="Show experiment details in ArrayExpress Archive" href="">experiment details</a>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                    <div style="margin-top:5px;font-size:10px;">
+                        Show <a class="proflink2" title="Show expression profile" href="">expression profile</a>
+                        &nbsp;/&nbsp;
+                        <a class="detailink" target="_blank" title="Show experiment details in ArrayExpress Archive" href="">experiment details</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 
