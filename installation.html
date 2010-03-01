@@ -1,0 +1,265 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css" media="all">
+            @import url("./css/maven-base.css");
+            @import url("./css/default.css");
+        </style>
+	</head>
+	<body>
+		<div id="mainOuter">
+			<div id="headerOuter">
+                <div id="logo">
+                                <a href="index.html" id="bannerLeft">
+    
+                                            <img src="images/atlas-ebi-logo.png" alt="" />
+    
+            </a>
+                      </div>
+				<div id="topNav">
+                    <div id="title">Gene Expression Atlas</div>
+                    <div id="toplinks">
+					                        <a href="index.html">Home</a>
+                          <a href="getting-started.html">Getting Started</a>
+                          <a href="installation.html">Installation</a>
+                          <a href="documentation.html">Documentation</a>
+                            </div>
+					<!-- 															    											    											    									<ul>
+													<li>Installation</li>
+											</ul>
+											    																    											    											    																    											    																                                                                                                                                                                                                                                                                                                                                                                                                                            											                                                                                        										 -->
+				</div>
+            </div>
+			<div id="centerOuter">
+				<!--content-->
+				<div id="contentOuter">
+					<div class="section"><h2>Installation Instructions for the Gene Expression Atlas</h2>
+<p>Before installing the Atlas, there are several required dependencies you need to install.</p>
+<div class="section"><h3>GXA Dependencies</h3>
+<div class="section"><h4>Atlas 2 Database</h4>
+<p>Firstly, you need a local installation of a database, in the Atlas 2 schema, that can be used as a store for Atlas data and is used to generate SOLR indexes and NetCDF views over the data. Any data you load into the Atlas will go into this database.</p>
+<p>This database must be an Oracle database (preferrably a recent release - we use 11g). If you have an oracle database ready, you can download and install the Atlas 2 schema using the bundle of SQL scripts provided here: <a href="http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz" class="externalLink">http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz</a>
+, or alternatively grab the database export from FTP. There are instructions on how to do that provided here: <a href="beta-release.html">beta-release.html</a>
+.</p>
+</div>
+<div class="section"><h4>SOLR Index and NetCDF Repository</h4>
+<p>The Atlas uses extensive indices of the data in order to optimise data display in the web interface. These indices are a combination of a SOLR index for experimental and gene metadata, and NetCDF files for expression data. If you are not familiar with these technologies, you need not worry as they are installed and maintained by the Atlas software suite. However, you will need to make sure you have allocated sufficient diskspace for these indices to be stored. On the filesystem where you intend to install the Atlas, you will need to directories available - one for the SOLR index and one for the NetCDF repository. As a guide, the EBI installation of Atlas of around 1000 experiments and 200,000 genes consumes 6GB of diskspace for the SOLR index and about 8GB of data for NetCDFs.</p>
+</div>
+<div class="section"><h4>R</h4>
+<p>Atlas utilises the R workbench to perform statistical analyses of loaded data. It can be configured to perform local R analyses (i.e. on the same machine the atlas is running on) or remote analyses (on a different dedicated machine, or a compute cluster). In the latter case it is possible to run R analyses through a biocep cloud. You should pick one of these options before install, bearing in mind that running analyses locally may slow down the interface.</p>
+<p>An installation guide to R and/or biocep is outside the scope of this document.</p>
+<p>-- Update with details of how to configure analyses].</p>
+</div>
+<div class="section"><h4>Tomcat</h4>
+<p>To run Atlas you will need a Tomcat server installed and running. Atlas should work on any tomcat version after 4.0. We use 5.5.29, but it has been tested on later versions up to 6.0. The Atlas web application will be deployed here. Tomcat can be downloaded <a href="http://tomcat.apache.org/" class="externalLink">here</a>
+.</p>
+<p>The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat. For this reason, you will need to make Oracle database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or $CATALINA_HOME/common/lib directory, depending on your version of Tomcat. See <a href="http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html" class="externalLink">http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html</a>
+ for more information on setting up JNDI resources.</p>
+<p>Make sure that you have the latest version of the Oracle Java 5 drivers installed in the tomcat library directory. We recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers here: <a href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html" class="externalLink">http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html</a>
+</p>
+</div>
+<div class="section"><h4>Maven</h4>
+<p>To download, install and build a localised mirror of the Atlas, you will need to install the Maven software management tool. Maven is available <a href="http://maven.apache.org/" class="externalLink">here</a>
+.</p>
+<p>If you are familiar with Maven, and Atlas archetype is available that can be configured to your local environment and contains all the dependencies required to build the full software suite.</p>
+<p>If you have not used Maven before, don't worry, no special knowledge is required. Using Maven to build your local Atlas simply means we can download and install all the modules required to create a customised version with a couple of simple commands.</p>
+</div>
+</div>
+<div class="section"><h3>Installing Gene Expression Atlas</h3>
+<p>Before we start, you need to know a couple of configuration options.</p>
+<ul><li>The URL of the database and schema you will use for the Atlas.<ul><li>This should be an Oracle JDBC connection URL, of the form jdbc:oracle:thin:@<i>SERVER</i>
+:<i>PORT</i>
+:<i>SCHEMA_NAME</i>
+</li>
+<li>Remember, this schema must be an Atlas2 database schema.</li>
+</ul>
+</li>
+<li>The username and password to connect to the Atlas 2 schema.</li>
+<li>The absolute path to the directory where you wish to store the SOLR index.<ul><li>This does not have to exist in advance, but you will need permissions to write to the location where you want to install it.</li>
+</ul>
+</li>
+<li>The absolute path to the directory where you wish to store the NetCDF repository.<ul><li>Again, it doesn't need to exist already but you do need write permissions.</li>
+</ul>
+</li>
+</ul>
+<p>Now, switch to the directory where you wish to create the Atlas (note - this is NOT where you want Atlas to be installed) and run the following (Maven) command:</p>
+<div class="source"><pre>&gt;: mvn archetype:generate -DarchetypeCatalog=http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</pre>
+</div>
+<p>Pick the option &quot;atlas-archetype&quot; and follow on screen prompts.</p>
+<p>You will be asked for each of the configuration options highlighted above, plus a couple of other standard Maven options. Again, if you have used Maven before you will be familiar with these.</p>
+<p>If you have not used Maven before, lookout for:</p>
+<ul><li>group id<ul><li>describes your software artifact &quot;group&quot;. Similar to a java package name, but at a higher level of abstraction.</li>
+<li>often used to identify the company or team producing the software (e.g. com.mycompany).</li>
+<li>at the EBI, Atlas modules use the group id &quot;uk.ac.ebi.gxa&quot;.</li>
+</ul>
+</li>
+<li>artifact id<ul><li>identifies this software artifact - a &quot;module id&quot;.</li>
+<li>should uniquely identify the module - avoid having modules with the same group and artifact id.</li>
+</ul>
+</li>
+<li>version<ul><li>the version of this software artifact.</li>
+</ul>
+</li>
+</ul>
+<p>You are free to choose your own group id, artifact id and version. These will simply identify different local installations of the Atlas.</p>
+<p>Once you have entered all the configuration options, Maven will start downloading all the software modules required to configure the Atlas and it will create your localised copy and required configuration files. Once done, you should see a new directory under your current location with the artifact id you entered.</p>
+<p>Switch to this directory, and run</p>
+<div class="source"><pre>&gt;: mvn package</pre>
+</div>
+<p>This command will download lots of dependencies, including the template web application for the Atlas, and it will assemble your local copy of the Atlas given your configuration options. You should now see a .war file in the <tt>target/</tt>
+ directory, with the artifact id specified. This is your local Atlas installation. Deploy this file into a running Tomcat and you're done!</p>
+<div class="section"><h4>Further Configuration Options</h4>
+<p>After generating your localised Atlas archetype, if you delve into the structure of the directory created you should see some files that encapsulate the configuration. Assuming an artifact id &quot;my-atlas-artifact&quot; the directory structure should look like this:</p>
+<div class="source"><pre>my-atlas-artifact
+|-- pom.xml
+`-- src
+    `-- main
+        |-- resources
+        |   |-- atlas.properties
+        |   `-- biocep.properties
+        `-- webapp
+            `-- context.xml</pre>
+</div>
+<p>If you examine these files, you will see that atlas.properties contains some standard configuration governing how the Atlas functions - you will normally not need to change these. Likewise, biocep.properties controls the R analysis infrastructure.</p>
+<p>The context.xml file is the most relevant one for controlling how your standalone Atlas works. This is a standard webapp context file, and you will see five key components. The first three represent Atlas database schemas. These are, by default, all pointing to the same location, but you can change this to create two different main copies of the Atlas 2 schema, along with a development/test copy, if you require a finer granularity or you need the ability to switch between database instances (for example, if you want to maintain a mirror).</p>
+<p>The last two options point to the SOLR Index and NetCDF locations on the local filesystem. Remember, these locations need to be accessible from the Tomcat where you intend to deploy the Atlas.</p>
+<p>If you change any of these options, you can simply rerun</p>
+<div class="source"><pre>&gt;: mvn package</pre>
+</div>
+<p>to rebuild your standalone Atlas.</p>
+</div>
+</div>
+</div>
+
+				</div>
+				<!--~content-->
+				<div id="menuOuter">
+					            <ul>
+                                                        <li><span>User Documentation</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="index.html">Home</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="getting-started.html">Getting Started</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="installation.html" class="active">Installation</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="documentation.html">Documentation</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Release Info</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="alpha-release.html">Alpha release</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="beta-release.html">Beta release</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="beta2-release.html">Beta 2 release</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Project Links</span>
+                                <ul>
+                                            
+     
+     <li>
+
+              <a href="">GXA@EBI</a>
+     
+     </li>
+                                            
+     
+     <li>
+
+              <a href="../~tburdett/maven/atlas-repo">Atlas Maven Repository</a>
+     
+     </li>
+                  </ul>
+              </li>
+                                                <li><span>Project Documentation</span>
+                                <ul>
+                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                            
+     <li class ="collapsed">
+
+              <a href="project-info.html">Project Information</a>
+     
+                   </li>
+                                                            
+                                                                                                                     
+                            
+     <li class ="collapsed">
+
+              <a href="project-reports.html">Project Reports</a>
+     
+                   </li>
+                  </ul>
+              </li>
+                      
+        <li class="blank">&#xA0;</li></ul>
+    					<div id="poweredBy">
+						<a href="http://maven.apache.org/" title="Built by Maven">
+        		    		<img alt="Built by Maven" src="images/maven-feather.png">
+				        </a>
+					</div>
+				</div>
+			</div>
+			<div class="clear">&#xA0;</div>
+		</div>
+		<div id="footerOuter">
+			<span>            2010
+    	&#169;
+      </span>
+		</div>
+	</body>
+</html>
