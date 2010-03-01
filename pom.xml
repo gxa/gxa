@@ -69,15 +69,13 @@
         </plugins>
     </reporting>
 
-    <!-- Licensing -->
-    <!-- todo -->
-    <!--<licenses>-->
-        <!--<license>-->
-            <!--<name>GNU Lesser General Public License</name>-->
-            <!--<url>http://www.gnu.org/copyleft/lesser.html</url>-->
-            <!--<distribution>repo</distribution>-->
-        <!--</license>-->
-    <!--</licenses>-->
+    <licenses>
+        <license>
+            <name>Apache Software License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <!-- Mailing Lists -->
     <mailingLists>
@@ -89,12 +87,10 @@
         </mailingList>
     </mailingLists>
 
-    <!-- Bug Tracker -->
-    <!-- todo -->
-    <!--<issueManagement>-->
-        <!--<system>sourceforge</system>-->
-        <!--<url>http://dukkha.ebi.ac.uk:8080/trac/query</url>-->
-    <!--</issueManagement>-->
+    <issueManagement>
+        <system>GitHub</system>
+        <url>http://github.com/ostolop/gxa/issues</url>
+    </issueManagement>
 
     <!-- Developer Listing -->
     <developers>
@@ -105,7 +101,7 @@
             <organization>EBI</organization>
             <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
-                <role>Developer</role>
+                <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
             <properties/>
@@ -148,13 +144,10 @@
         </developer>
     </developers>
 
-    <!-- Source management, shoudl go via github -->
-    <!-- todo -->
-    <!--<scm>-->
-        <!--<connection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</connection>-->
-        <!--<developerConnection>scm:svn:svn://dukkha.ebi.ac.uk/trunk/atlas/</developerConnection>-->
-        <!--<url>svn://dukkha.ebi.ac.uk/trunk/atlas/</url>-->
-    <!--</scm>-->
+    <scm>
+        <connection>scm:git:git://github.com/ostolop/gxa.git</connection>
+        <url>scm:git:git://github.com/ostolop/gxa.git</url>
+    </scm>
 
     <modules>
         <module>atlas-index-api</module>
