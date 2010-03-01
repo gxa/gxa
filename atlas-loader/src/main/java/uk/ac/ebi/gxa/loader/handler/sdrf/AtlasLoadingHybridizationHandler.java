@@ -111,7 +111,7 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
 
                     // finally, assays must be linked to their upstream samples
                     Collection<SourceNode> upstreamSources = SDRFUtils.findUpstreamNodes(
-                            investigation.SDRF, hybridizationNode, SourceNode.class);
+                            hybridizationNode, SourceNode.class);
 
                     for (SourceNode source : upstreamSources) {
                         // retrieve the samples with the matching accession
