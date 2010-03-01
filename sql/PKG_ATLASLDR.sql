@@ -33,11 +33,11 @@ PROCEDURE A2_ASSAYSET(
   --,UnknownAccessionThreshold int default 75  
 );
 
-PROCEDURE A2_AssaySetBegin(
+PROCEDURE A2_ASSAYSETBEGIN(
    ExperimentAccession  IN varchar2 --null if many
 );
 
-PROCEDURE A2_AssaySetEnd(
+PROCEDURE A2_ASSAYSETEND(
    ExperimentAccession  IN varchar2 --null if many
 );
 
@@ -49,22 +49,22 @@ PROCEDURE A2_SAMPLESET(
   , Channel varchar2
 ); 
 
-PROCEDURE A2_AnalyticsSet(
+PROCEDURE A2_ANALYTICSSET(
     ExperimentAccession      IN   varchar2  
    ,Property                 IN   varchar2
    ,PropertyValue            IN   varchar2
    ,ExpressionAnalytics ExpressionAnalyticsTable
 );
 
-PROCEDURE A2_AnalyticsDelete(
+PROCEDURE A2_ANALYTICSDELETE(
     ExperimentAccession      IN   varchar2  
 );
 
-PROCEDURE A2_AnalyticsSetBegin(
+PROCEDURE A2_ANALYTICSSETBEGIN(
     ExperimentAccession      IN   varchar2  
 );
 
-PROCEDURE A2_AnalyticsSetEnd(
+PROCEDURE A2_ANALYTICSSETEND(
     ExperimentAccession      IN   varchar2  
 );
 
@@ -407,7 +407,7 @@ begin
 
 end;
 
-PROCEDURE A2_AssaySetBegin(
+PROCEDURE A2_ASSAYSETBEGIN(
    ExperimentAccession  IN varchar2 --null if many
 )
 AS
@@ -465,7 +465,7 @@ end if;
   COMMIT WORK;
 END;
 
-PROCEDURE A2_AssaySetEnd(
+PROCEDURE A2_ASSAYSETEND(
    ExperimentAccession  IN varchar2 --null if many
 )
 AS
@@ -635,7 +635,7 @@ end;
 --------------------------------------------------------
 --  DDL for Procedure A2_AnalyticsSet
 --------------------------------------------------------
-PROCEDURE A2_AnalyticsSet(
+PROCEDURE A2_ANALYTICSSET(
     ExperimentAccession      IN   varchar2  
    ,Property                 IN   varchar2
    ,PropertyValue            IN   varchar2
@@ -690,7 +690,7 @@ END;
 --------------------------------------------------------
 --  DDL for Procedure A2_AnalyticsDelete 
 --------------------------------------------------------
-PROCEDURE A2_AnalyticsSetBegin(
+PROCEDURE A2_ANALYTICSSETBEGIN(
     ExperimentAccession      IN   varchar2  
  )
 as
@@ -750,7 +750,7 @@ END;
 --------------------------------------------------------
 --  DDL for Procedure A2_AnalyticsDelete 
 --------------------------------------------------------
-PROCEDURE A2_AnalyticsSetEnd(
+PROCEDURE A2_ANALYTICSSETEND(
     ExperimentAccession      IN   varchar2  
  )
 as
@@ -799,7 +799,7 @@ END;
 --------------------------------------------------------
 --  DDL for Procedure A2_AnalyticsDelete !!!OBSOLETE!!!
 --------------------------------------------------------
-PROCEDURE A2_AnalyticsDelete(
+PROCEDURE A2_ANALYTICSDELETE(
     ExperimentAccession      IN   varchar2  
  )
  as
