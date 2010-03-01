@@ -257,24 +257,32 @@ if(!atlas)
                               lastquery.genes[i].not);
          }
 
-         $('#experimentsTemplate').compile('experimentsTemplate', {
-             'div.head a[href]': 'gene?gid=#{gene.identifier}',
+         atlas.experimentsTemplate = $('#experimentsTemplate').compile({
+             '.@id+': function () { return Math.random(10000); },
+             'div.head a@href': 'gene?gid=#{gene.identifier}',
              '.gname': 'gene.name',
              '.numup': 'numUp',
              '.numdn': 'numDn',
              '.ef': 'eftext',
              '.efv': 'efv',
-             '.experRows': 'experiment <- experiments',
-             '.experRows[class]+': function(a) { return (a.pos != a.items.length - 1) ? 'notlast' : ''; },
-             '.expaccession': 'experiment.accession',
-             '.expname': 'experiment.name',
-             'table.oneplot': 'ef <- experiment.efs',
-             'table.oneplot[id]+': function(a) { return 'oneplot_' + a.context.counter++; },
-             '.efname': 'ef.eftext',
-             'a.proflink[href]': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
-             'a.proflink2[href]': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
-             'a.detailink[href]': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
-         }).parent().remove();
+             '.experRows': {
+                 'experiment <- experiments': {
+                     '.expaccession': 'experiment.accession',
+                     '.expname': 'experiment.name',
+                     'table.oneplot': {
+                         'ef <- experiment.efs': {
+                             '.efname': 'ef.eftext',
+                             '.@id+': function(a) { return 'oneplot_' + a.context.counter++; },
+                             'a.proflink@href': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}'
+                         }
+                     },
+                     '.@class+': function(a) { return (a.pos != a.items.length - 1) ? ' notlast' : ''; },
+                     'a.proflink2@href': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
+                     'a.detailink@href': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
+                 }
+             }
+         });
+         $('#experimentsTemplate').remove();
      };
 
      atlas.structSubmit = function() {
@@ -439,20 +447,22 @@ if(!atlas)
                             return;
                         }
                         resp.counter = 0;
+                        var tpl = $('<div/>');
                         var popup = $('<div id="expopup" />')
-                            .html($p.render('experimentsTemplate', resp))
-                            .prepend($("<div/>").addClass('closebox')
+                            .append($("<div/>").addClass('closebox')
                                      .click(
                                          function(e) {
                                              popup.remove();
                                              e.stopPropagation();
                                              return false;
                                          }).text('close'))
+                            .append(tpl)
                             .click(function(e){e.stopPropagation();})
                             .attr('title','')
                             .css({ left: left + 'px', top: top + 'px' });
 
                         $('body').append(popup);
+                        tpl.render(resp, atlas.experimentsTemplate);
 
                         // adjust for viewport
                         adjustPosition(popup);
