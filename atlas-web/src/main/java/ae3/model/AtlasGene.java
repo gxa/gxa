@@ -28,11 +28,11 @@ import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.gxa.index.Experiment;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
@@ -40,7 +40,7 @@ public class AtlasGene {
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
     private ArrayList<AtlasGene> orthoGenes = new ArrayList<AtlasGene>();
-    private ExperimentsTable expTable;
+    private GeneExpressionAnalyticsTable expTable;
 
     public AtlasGene(SolrDocument geneDoc) {
         this.geneSolrDocument = geneDoc;
@@ -330,16 +330,16 @@ public class AtlasGene {
 		return this.orthoGenes;
 	}
 
-    public ExperimentsTable getExperimentsTable() {
+    public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
         if(expTable != null)
             return expTable;
-        return expTable = ExperimentsTable.deserialize((String)geneSolrDocument.getFieldValue("exp_info"));
+        return expTable = GeneExpressionAnalyticsTable.deserialize((byte[])geneSolrDocument.getFieldValue("exp_info"));
     }
 
     public int getNumberOfExperiments() {
-        Set<Long> exps = new HashSet<Long>();
-        for(Experiment e : getExperimentsTable().getAll())
-            exps.add(e.getId());
+        Set<Integer> exps = new HashSet<Integer>();
+        for(ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
+            exps.add(e.getExperimentID());
         return exps.size();
     }
 
@@ -354,15 +354,15 @@ public class AtlasGene {
 
     private static final String omittedEFs = "age,individual,time,dose,V1";
 
-    private Map<Long,AtlasExperiment> experimentsMap;
+    private Map<Integer,AtlasExperiment> experimentsMap;
 
     public void loadGeneExperiments(AtlasDao dao) {
-        experimentsMap = new HashMap<Long, AtlasExperiment>();
-        for(Experiment exp : getExperimentsTable().getAll())
-            if(!experimentsMap.containsKey(exp.getId())) {
-                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(exp.getId()));
+        experimentsMap = new HashMap<Integer, AtlasExperiment>();
+        for(ExpressionAnalysis exp : getExpressionAnalyticsTable().getAll())
+            if(!experimentsMap.containsKey(exp.getExperimentID())) {
+                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(exp.getExperimentID()));
                 if(aexp != null)
-                    experimentsMap.put(exp.getId(), aexp);
+                    experimentsMap.put(exp.getExperimentID(), aexp);
             }
     }
 
@@ -383,13 +383,14 @@ public class AtlasGene {
 
                         if(experimentsMap != null) {
                             List<ListResultRowExperiment> exps = new ArrayList<ListResultRowExperiment>();
-                            for(Experiment exp : getExperimentsTable().findByEfEfv(ef, efv)) {
-                                AtlasExperiment aexp = experimentsMap.get(exp.getId());
+                            for(ExpressionAnalysis exp : getExpressionAnalyticsTable().findByEfEfv(ef, efv)) {
+                                AtlasExperiment aexp = experimentsMap.get(exp.getExperimentID());
                                 if(aexp != null) {
-                                    exps.add(new ListResultRowExperiment(exp.getId(), 
+                                    exps.add(new ListResultRowExperiment(exp.getExperimentID(), 
                                             aexp.getAccession(),
                                             aexp.getDescription(),
-                                            exp.getPvalue(), exp.getExpression()));
+                                            exp.getPValAdjusted(),
+                                            exp.isUp() ? Expression.UP : Expression.DOWN));
                                 }
                             }
                             heatmapRow.setExp_list(exps);
@@ -405,22 +406,22 @@ public class AtlasGene {
         return heatmap;
     }
 
-    public List<Experiment> getTopFVs(long exp_id_key) {
-        List<Experiment> result = new ArrayList<Experiment>();
-        for(Experiment e : getExperimentsTable().findByExperimentId(exp_id_key)) {
+    public List<ExpressionAnalysis> getTopFVs(long exp_id_key) {
+        List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
+        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)) {
             result.add(e);
         }
-        Collections.sort(result, new Comparator<Experiment>() {
-            public int compare(Experiment o1, Experiment o2) {
-                return Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
+        Collections.sort(result, new Comparator<ExpressionAnalysis>() {
+            public int compare(ExpressionAnalysis o1, ExpressionAnalysis o2) {
+                return Double.valueOf(o1.getPValAdjusted()).compareTo(o2.getPValAdjusted());
             }
         });
         return result;
     }
 
-    public List<Experiment> getAtlasResultsForExperiment(long exp_id_key){
-        ArrayList<Experiment> result = new ArrayList<Experiment>();
-        for(Experiment e : getExperimentsTable().findByExperimentId(exp_id_key)){
+    public List<ExpressionAnalysis> getAtlasResultsForExperiment(long exp_id_key){
+        ArrayList<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
+        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)){
             result.add(e);
         }
         return result;
@@ -429,10 +430,10 @@ public class AtlasGene {
     public Pair<String,Double> getHighestRankEF(long experimentId) {
         String ef = null;
         Double pvalue = null;
-        for(Experiment e : getExperimentsTable().findByExperimentId(experimentId))
-            if(pvalue == null || pvalue > e.getPvalue()) {
-                pvalue = e.getPvalue();
-                ef = e.getEf();
+        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(experimentId))
+            if(pvalue == null || pvalue > e.getPValAdjusted()) {
+                pvalue = e.getPValAdjusted();
+                ef = e.getEfName();
             }
         return new Pair<String,Double>(ef, pvalue);
     }

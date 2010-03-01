@@ -29,8 +29,8 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
-import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -319,16 +319,16 @@ public class ExpressionStatDao {
                                             }
 
                                             public Iterable<ExperimentExpressionStat> getDrillDown() {
-                                                final ExperimentsTable table = ExperimentsTable.deserialize((String)sd.getFieldValue("exp_info"));
+                                                final GeneExpressionAnalyticsTable table = GeneExpressionAnalyticsTable.deserialize((byte[])sd.getFieldValue("exp_info"));
                                                 return new Iterable<ExperimentExpressionStat>() {
                                                     public Iterator<ExperimentExpressionStat> iterator() {
-                                                        return new FilterIterator<Experiment, ExperimentExpressionStat>(table.findByEfEfv(factor, value).iterator()) {
+                                                        return new FilterIterator<ExpressionAnalysis, ExperimentExpressionStat>(table.findByEfEfv(factor, value).iterator()) {
                                                             @Override
-                                                            public ExperimentExpressionStat map(final Experiment experimentExpression) {
+                                                            public ExperimentExpressionStat map(final ExpressionAnalysis experimentExpression) {
                                                                 return new ExperimentExpressionStat() {
                                                                     public String getExperiment() {
                                                                         try {
-                                                                            return dao.getExperimentByAccession(new AccessionQuery<AccessionQuery>().hasId(String.valueOf(experimentExpression.getId()))).getAccession();
+                                                                            return dao.getExperimentByAccession(new AccessionQuery<AccessionQuery>().hasId(String.valueOf(experimentExpression.getExperimentID()))).getAccession();
                                                                         } catch(GxaException e) {
                                                                             throw new RuntimeException(e);
                                                                         }
@@ -338,15 +338,15 @@ public class ExpressionStatDao {
                                                                         return 2.0f - (float)(getUpPvalue() + getDnPvalue());
                                                                     }
 
-                                                                    public Integer getUpExperimentsCount() { return experimentExpression.getExpression().isUp() ? 1 : 0; }
-                                                                    public Integer getDnExperimentsCount() { return experimentExpression.getExpression().isUp() ? 0 : 1; }
+                                                                    public Integer getUpExperimentsCount() { return experimentExpression.getTStatistic() > 0 ? 1 : 0; }
+                                                                    public Integer getDnExperimentsCount() { return experimentExpression.getTStatistic() > 0 ? 0 : 1; }
 
                                                                     public Double getUpPvalue() {
-                                                                        return experimentExpression.getPvalue();
+                                                                        return experimentExpression.getPValAdjusted();
                                                                     }
 
                                                                     public Double getDnPvalue() {
-                                                                        return experimentExpression.getPvalue();
+                                                                        return experimentExpression.getPValAdjusted();
                                                                     }
 
                                                                     public Iterable<ExpressionStat> getDrillDown() { return null; }

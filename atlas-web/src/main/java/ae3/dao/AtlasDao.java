@@ -37,9 +37,9 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.Experiment;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
@@ -311,11 +311,11 @@ public class AtlasDao {
                                                           int maxRows) {
         List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
 
-        ExperimentsTable etable = atlasGene.getExperimentsTable();
-        Map<Long, Double> exps = new HashMap<Long, Double>();
-        for (Experiment e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
-            if (exps.get(e.getId()) == null || exps.get(e.getId()) > e.getPvalue()) {
-                exps.put(e.getId(), e.getPvalue());
+        GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
+        Map<Integer, Double> exps = new HashMap<Integer, Double>();
+        for (ExpressionAnalysis e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
+            if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
+                exps.put(e.getExperimentID(), e.getPValAdjusted());
             }
         }
 
@@ -334,7 +334,7 @@ public class AtlasDao {
         for (int i = minRows > 0 ? minRows - 1 : 0;
              i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
             @SuppressWarnings("unchecked")
-            Long experimentId = ((Map.Entry<Long, Double>) aexps[i]).getKey();
+            Integer experimentId = ((Map.Entry<Integer, Double>) aexps[i]).getKey();
             AtlasExperiment atlasExperiment = getExperimentById(experimentId);
             if (atlasExperiment != null) {
                 atlasExperiment

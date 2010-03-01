@@ -24,7 +24,7 @@ package ae3.model;
 
 import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.utils.StringUtil;
-import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +59,8 @@ public class AtlasGeneExperimentDescription {
 
             return efs.get(efs.size()-1);
         }
-        public void AddEfv(Experiment r){
-            getCurrentEf().AddEfv(r.getEfv(), r.getExpression().isUp() );
+        public void AddEfv(ExpressionAnalysis r){
+            getCurrentEf().AddEfv(r.getEfvName(), r.getTStatistic() > 0 );
         }
         public void AddEf(String name){
            Ef ef = new Ef();
@@ -134,12 +134,12 @@ public class AtlasGeneExperimentDescription {
         if(null==atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId()))
             throw new Exception("getAtlasResultsForExperiment returns null for geneid="+ atlasGene.getGeneId());
 
-        for(Experiment r : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
-           if(r.getEf().equals(writer.getCurrentEfName())){
+        for(ExpressionAnalysis r : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
+           if(r.getEfName().equals(writer.getCurrentEfName())){
                writer.AddEfv(r);
            }
            else{
-               writer.AddEf(r.getEf());
+               writer.AddEf(r.getEfName());
                writer.AddEfv(r);
            }
         }
@@ -175,10 +175,10 @@ public class AtlasGeneExperimentDescription {
 
         int iCount = 0;
 
-        for(Experiment la : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
-            if(la.getEf().equals(HighestRankExperimentalFactor)){
+        for(ExpressionAnalysis la : atlasGene.getAtlasResultsForExperiment(atlasExperiment.getId())){
+            if(la.getEfName().equals(HighestRankExperimentalFactor)){
                 if(iCount<=MAX_EXP_FACTOR_VALUES)
-                    result += (StringUtil.quoteComma(la.getEfv()) + (la.getExpression().isUp() ? " [up]" : " [dn]") + ", ");
+                    result += (StringUtil.quoteComma(la.getEfvName()) + (la.isUp() ? " [up]" : " [dn]") + ", ");
 
                 iCount++;
             }

@@ -6,23 +6,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import uk.ac.ebi.gxa.utils.Base64;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 
 /**
  * XML Builder is a utility that creates simple XML documents using relatively
@@ -122,31 +113,6 @@ public class XMLBuilder {
     }
 
     /**
-     * Construct a builder from an existing XML document. The provided XML
-     * document will be parsed and an XMLBuilder object referencing the
-     * document's root element will be returned.
-     *
-     * @param inputSource
-     * an XML document input source that will be parsed into a DOM.
-     * @return
-     * a builder node that can be used to add more nodes to the XML document.
-     * @throws ParserConfigurationException
-     *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     */
-    public static XMLBuilder parse(InputSource inputSource)
-    	throws ParserConfigurationException, SAXException, IOException
-    {
-        DocumentBuilder builder =
-            DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = builder.parse(inputSource);
-        return new XMLBuilder(document);
-    }
-
-    /**
      * @return
      * true if the XML Document and Element objects wrapped by this
      * builder are equal to the other's wrapped objects.
@@ -173,7 +139,7 @@ public class XMLBuilder {
      * @return
      * the builder node representing the root element of the XML document.
      * In other words, the same builder node returned by the initial
-     * {@link #create(String)} or {@link #parse(InputSource)} method.
+     * {@link #create(String)}  method.
      */
     public XMLBuilder root() {
         return new XMLBuilder(getDocument());
@@ -185,33 +151,6 @@ public class XMLBuilder {
      */
     public Document getDocument() {
     	return this.xmlDocument;
-    }
-
-    /**
-     * Find the first element in the builder's DOM matching the given
-     * XPath expression.
-     *
-     * @param xpath
-     * An XPath expression that *must* resolve to an existing Element within
-     * the document object model.
-     *
-     * @return
-     * a builder node representing the first Element that matches the
-     * XPath expression.
-     *
-     * @throws XPathExpressionException
-     * If the XPath is invalid, or if does not resolve to at least one
-     */
-    public XMLBuilder xpathFind(String xpath) throws XPathExpressionException {
-    	XPathFactory xpathFactory = XPathFactory.newInstance();
-    	XPathExpression xpathExp = xpathFactory.newXPath().compile(xpath);
-    	Node foundNode = (Node) xpathExp.evaluate(this.xmlElement, XPathConstants.NODE);
-    	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
-    		throw new XPathExpressionException("XPath expression \""
-				+ xpath + "\" does not resolve to an Element in context "
-				+ this.xmlElement + ": " + foundNode);
-    	}
-    	return new XMLBuilder((Element) foundNode, null);
     }
 
     /**
@@ -228,7 +167,7 @@ public class XMLBuilder {
      * if you attempt to add a child element to an XML node that already
      * contains a text node value.
      */
-    public XMLBuilder element(String name) {
+    public XMLBuilder e(String name) {
         // Ensure we don't create sub-elements in Elements that already have text node values.
         Node textNode = null;
         NodeList childNodes = xmlElement.getChildNodes();
@@ -248,40 +187,6 @@ public class XMLBuilder {
     }
 
     /**
-     * Synonym for {@link #element(String)}.
-     *
-     * @param name
-     * the name of the XML element.
-     *
-     * @return
-     * a builder node representing the new child.
-     *
-     * @throws IllegalStateException
-     * if you attempt to add a child element to an XML node that already
-     * contains a text node value.
-     */
-    public XMLBuilder elem(String name) {
-        return element(name);
-    }
-
-    /**
-     * Synonym for {@link #element(String)}.
-     *
-     * @param name
-     * the name of the XML element.
-     *
-     * @return
-     * a builder node representing the new child.
-     *
-     * @throws IllegalStateException
-     * if you attempt to add a child element to an XML node that already
-     * contains a text node value.
-     */
-    public XMLBuilder e(String name) {
-        return element(name);
-    }
-
-    /**
      * Add a named attribute value to the element represented by this builder
      * node, and return the node representing the element to which the
      * attribute was added (<strong>not</strong> the new attribute node).
@@ -295,41 +200,9 @@ public class XMLBuilder {
      * the builder node representing the element to which the attribute was
      * added.
      */
-    public XMLBuilder attribute(String name, String value) {
+    public XMLBuilder a(String name, String value) {
         xmlElement.setAttribute(name, value);
         return this;
-    }
-
-    /**
-     * Synonym for {@link #attribute(String, String)}.
-     *
-     * @param name
-     * the attribute's name.
-     * @param value
-     * the attribute's value.
-     *
-     * @return
-     * the builder node representing the element to which the attribute was
-     * added.
-     */
-    public XMLBuilder attr(String name, String value) {
-        return attribute(name, value);
-    }
-
-    /**
-     * Synonym for {@link #attribute(String, String)}.
-     *
-     * @param name
-     * the attribute's name.
-     * @param value
-     * the attribute's value.
-     *
-     * @return
-     * the builder node representing the element to which the attribute was
-     * added.
-     */
-    public XMLBuilder a(String name, String value) {
-        return attribute(name, value);
     }
 
     /**
@@ -343,73 +216,13 @@ public class XMLBuilder {
      * @return
      * the builder node representing the element to which the text was added.
      */
-    public XMLBuilder text(String value) {
+    public XMLBuilder t(String value) {
         xmlElement.appendChild(getDocument().createTextNode(value));
         return this;
     }
 
-    /**
-     * Synonmy for {@link #text(String)}.
-     *
-     * @param value
-     * the text value to add to the element.
-     *
-     * @return
-     * the builder node representing the element to which the text was added.
-     */
-    public XMLBuilder t(String value) {
-        return text(value);
-    }
-
     public XMLBuilder t(Object value) {
-        return text(value.toString());
-    }
-
-    /**
-     * Add a CDATA value to the element represented by this builder node, and
-     * return the node representing the element to which the data
-     * was added (<strong>not</strong> the new CDATA node).
-     *
-     * @param data
-     * the data value that will be Base64-encoded and added to a CDATA element.
-     *
-     * @return
-     * the builder node representing the element to which the data was added.
-     * @throws IOException in disaster
-     */
-    public XMLBuilder cdata(byte[] data) throws IOException {
-        xmlElement.appendChild(
-                getDocument().createCDATASection(
-                        Base64.encodeBytes(data, Base64.NO_OPTIONS)));
-        return this;
-    }
-
-    /**
-     * Synonym for {@link #cdata(byte[])}.
-     *
-     * @param data
-     * the data value to add to the element.
-     *
-     * @return
-     * the builder node representing the element to which the data was added.
-     * @throws IOException in disaster
-     */
-    public XMLBuilder data(byte[] data) throws IOException {
-        return cdata(data);
-    }
-
-    /**
-     * Synonym for {@link #cdata(byte[])}.
-     *
-     * @param data
-     * the data value to add to the element.
-     *
-     * @return
-     * the builder node representing the element to which the data was added.
-     * @throws IOException in disaster
-     */
-    public XMLBuilder d(byte[] data) throws IOException {
-        return cdata(data);
+        return t(value.toString());
     }
 
     /**
@@ -423,35 +236,9 @@ public class XMLBuilder {
      * @return
      * the builder node representing the element to which the comment was added.
      */
-    public XMLBuilder comment(String comment) {
+    public XMLBuilder c(String comment) {
         xmlElement.appendChild(getDocument().createComment(comment));
         return this;
-    }
-
-    /**
-     * Synonym for {@link #comment(String)}.
-     *
-     * @param comment
-     * the comment to add to the element.
-     *
-     * @return
-     * the builder node representing the element to which the comment was added.
-     */
-    public XMLBuilder cmnt(String comment) {
-        return comment(comment);
-    }
-
-    /**
-     * Synonym for {@link #comment(String)}.
-     *
-     * @param comment
-     * the comment to add to the element.
-     *
-     * @return
-     * the builder node representing the element to which the comment was added.
-     */
-    public XMLBuilder c(String comment) {
-        return comment(comment);
     }
 
     /**
@@ -468,41 +255,9 @@ public class XMLBuilder {
      * the builder node representing the element to which the instruction was
      * added.
      */
-    public XMLBuilder instruction(String target, String data) {
+    public XMLBuilder i(String target, String data) {
         xmlElement.appendChild(getDocument().createProcessingInstruction(target, data));
         return this;
-    }
-
-    /**
-     * Synonym for {@link #instruction(String, String)}.
-     *
-     * @param target
-     * the target value for the instruction.
-     * @param data
-     * the data value for the instruction
-     *
-     * @return
-     * the builder node representing the element to which the instruction was
-     * added.
-     */
-    public XMLBuilder inst(String target, String data) {
-        return instruction(target, data);
-    }
-
-    /**
-     * Synonym for {@link #instruction(String, String)}.
-     *
-     * @param target
-     * the target value for the instruction.
-     * @param data
-     * the data value for the instruction
-     *
-     * @return
-     * the builder node representing the element to which the instruction was
-     * added.
-     */
-    public XMLBuilder i(String target, String data) {
-        return instruction(target, data);
     }
 
     /**
@@ -517,37 +272,9 @@ public class XMLBuilder {
      * the builder node representing the element to which the reference was
      * added.
      */
-    public XMLBuilder reference(String name) {
+    public XMLBuilder r(String name) {
         xmlElement.appendChild(getDocument().createEntityReference(name));
         return this;
-    }
-
-    /**
-     * Synonym for {@link #reference(String)}.
-     *
-     * @param name
-     * the name value for the reference.
-     *
-     * @return
-     * the builder node representing the element to which the reference was
-     * added.
-     */
-    public XMLBuilder ref(String name) {
-        return reference(name);
-    }
-
-    /**
-     * Synonym for {@link #reference(String)}.
-     *
-     * @param name
-     * the name value for the reference.
-     *
-     * @return
-     * the builder node representing the element to which the reference was
-     * added.
-     */
-    public XMLBuilder r(String name) {
-        return reference(name);
     }
 
     /**
@@ -585,32 +312,7 @@ public class XMLBuilder {
     }
 
     /**
-     * Serialize the XML document to the given writer using the default
-     * {@link TransformerFactory} and {@link Transformer} classes. If output
-     * options are provided, these options are provided to the
-     * {@link Transformer} serializer.
-     *
-     * @param writer
-     * a writer to which the serialized document is written.
-     * @param indent indent or not
-     * @param indentAmount how much
-     * @throws IOException if can't write
-     *
-     */
-    public void toWriter(Writer writer, boolean indent, int indentAmount)
-        throws IOException
-    {
-        OutputFormat of = new OutputFormat("XML","utf-8",true);
-        of.setIndent(indentAmount);
-        of.setIndenting(indent);
-        XMLSerializer serializer = new XMLSerializer(writer, of);
-        serializer.asDOMSerializer();
-        serializer.serialize(getDocument());
-    }
-
-    /**
-     * Serialize the XML document to a string by delegating to the
-     * {@link #toWriter(Writer, boolean, int)} method. If output options are
+     * Serialize the XML document to a string. If output options are
      * provided, these options are provided to the {@link Transformer}
      * serializer.
      *
@@ -626,7 +328,12 @@ public class XMLBuilder {
         throws IOException
     {
         StringWriter writer = new StringWriter();
-        toWriter(writer, indent, indentAmount);
+        OutputFormat of = new OutputFormat("XML","utf-8",true);
+        of.setIndent(indentAmount);
+        of.setIndenting(indent);
+        XMLSerializer serializer = new XMLSerializer(writer, of);
+        serializer.asDOMSerializer();
+        serializer.serialize(getDocument());
         return writer.toString();
     }
 

@@ -30,7 +30,7 @@ import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
-import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -94,17 +94,17 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
-            for (Experiment exp : isEfo ?
-                    gene.getExperimentsTable().findByEfoSet(efo.getTermAndAllChildrenIds(factorValue)) :
-                    gene.getExperimentsTable().findByEfEfv(factor, factorValue)) {
-                Map<String, List<Experiment>> efmap = exmap.get(exp.getId());
+            Map<Integer, Map<String, List<ExpressionAnalysis>>> exmap = new HashMap<Integer, Map<String, List<ExpressionAnalysis>>>();
+            for (ExpressionAnalysis exp : isEfo ?
+                    gene.getExpressionAnalyticsTable().findByEfoSet(efo.getTermAndAllChildrenIds(factorValue)) :
+                    gene.getExpressionAnalyticsTable().findByEfEfv(factor, factorValue)) {
+                Map<String, List<ExpressionAnalysis>> efmap = exmap.get(exp.getExperimentID());
                 if (efmap == null) {
-                    exmap.put(exp.getId(), efmap = new HashMap<String, List<Experiment>>());
+                    exmap.put(exp.getExperimentID(), efmap = new HashMap<String, List<ExpressionAnalysis>>());
                 }
-                List<Experiment> list = efmap.get(exp.getEf());
+                List<ExpressionAnalysis> list = efmap.get(exp.getEfName());
                 if (list == null) {
-                    efmap.put(exp.getEf(), list = new ArrayList<Experiment>());
+                    efmap.put(exp.getEfName(), list = new ArrayList<ExpressionAnalysis>());
                 }
 
                 list.add(exp);
@@ -112,11 +112,11 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             }
 
 
-            for (Map<String, List<Experiment>> ef : exmap.values()) {
-                for (List<Experiment> e : ef.values()) {
-                    Collections.sort(e, new Comparator<Experiment>() {
-                        public int compare(Experiment o1, Experiment o2) {
-                            return o1.getPvalue() - o2.getPvalue() < 0 ? -1 : 1;
+            for (Map<String, List<ExpressionAnalysis>> ef : exmap.values()) {
+                for (List<ExpressionAnalysis> e : ef.values()) {
+                    Collections.sort(e, new Comparator<ExpressionAnalysis>() {
+                        public int compare(ExpressionAnalysis o1, ExpressionAnalysis o2) {
+                            return o1.getPValAdjusted() - o2.getPValAdjusted() < 0 ? -1 : 1;
                         }
                     });
                 }
@@ -124,18 +124,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             @SuppressWarnings("unchecked")
 
-            List<Map.Entry<Long, Map<String, List<Experiment>>>> exps =
-                    new ArrayList<Map.Entry<Long, Map<String, List<Experiment>>>>(exmap.entrySet());
-            Collections.sort(exps, new Comparator<Map.Entry<Long, Map<String, List<Experiment>>>>() {
-                public int compare(Map.Entry<Long, Map<String, List<Experiment>>> o1,
-                                   Map.Entry<Long, Map<String, List<Experiment>>> o2) {
+            List<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>> exps =
+                    new ArrayList<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>>(exmap.entrySet());
+            Collections.sort(exps, new Comparator<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>>() {
+                public int compare(Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> o1,
+                                   Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> o2) {
                     double minp1 = 1;
-                    for (Map.Entry<String, List<Experiment>> ef : o1.getValue().entrySet()) {
-                        minp1 = Math.min(minp1, ef.getValue().get(0).getPvalue());
+                    for (Map.Entry<String, List<ExpressionAnalysis>> ef : o1.getValue().entrySet()) {
+                        minp1 = Math.min(minp1, ef.getValue().get(0).getPValAdjusted());
                     }
                     double minp2 = 1;
-                    for (Map.Entry<String, List<Experiment>> ef : o2.getValue().entrySet()) {
-                        minp2 = Math.min(minp2, ef.getValue().get(0).getPvalue());
+                    for (Map.Entry<String, List<ExpressionAnalysis>> ef : o2.getValue().entrySet()) {
+                        minp2 = Math.min(minp2, ef.getValue().get(0).getPValAdjusted());
                     }
                     return minp1 < minp2 ? -1 : 1;
                 }
@@ -144,7 +144,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             int numUp = 0, numDn = 0;
 
             List<Map> jsExps = new ArrayList<Map>();
-            for (Map.Entry<Long, Map<String, List<Experiment>>> e : exps) {
+            for (Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> e : exps) {
                 AtlasExperiment aexp = dao.getExperimentById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
@@ -155,20 +155,20 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     boolean wasup = false;
                     boolean wasdn = false;
                     List<Map> jsEfs = new ArrayList<Map>();
-                    for (Map.Entry<String, List<Experiment>> ef : e.getValue().entrySet()) {
+                    for (Map.Entry<String, List<ExpressionAnalysis>> ef : e.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
                         jsEf.put("ef", ef.getKey());
                         jsEf.put("eftext", CuratedTexts.get("head.ef." + ef.getKey()));
 
                         List<Map> jsEfvs = new ArrayList<Map>();
-                        for (Experiment exp : ef.getValue()) {
+                        for (ExpressionAnalysis exp : ef.getValue()) {
                             Map<String, Object> jsEfv = new HashMap<String, Object>();
-                            jsEfv.put("efv", exp.getEfv());
-                            jsEfv.put("isup", exp.getExpression().isUp());
-                            jsEfv.put("pvalue", exp.getPvalue());
+                            jsEfv.put("efv", exp.getEfvName());
+                            jsEfv.put("isup", exp.isUp());
+                            jsEfv.put("pvalue", exp.getPValAdjusted());
                             jsEfvs.add(jsEfv);
 
-                            if (exp.getExpression().isUp()) {
+                            if (exp.isUp()) {
                                 wasup = true;
                             }
                             else {

@@ -93,6 +93,7 @@ lexicographic ordering isn't equal to the numeric ordering) ]]> -->
         <fieldtype name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="true"/>
         <fieldtype name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="true"/>
         <fieldtype name="sdouble" class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="true"/>
+        <fieldtype name="binary" class="solr.BinaryField"/>
 
 
         <!-- <![CDATA[ The format for this date field is of the form 1995-12-31T23:59:59Z, and
@@ -298,7 +299,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <field name="alltext" type="text" indexed="true" stored="false" multiValued="true" />
 
-        <field name="exp_info" type="string" indexed="false" stored="true" />
+        <field name="exp_info" type="binary" indexed="false" stored="true" />
     </fields>
 
     <uniqueKey>id</uniqueKey>

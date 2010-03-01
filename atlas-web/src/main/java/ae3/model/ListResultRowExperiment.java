@@ -23,7 +23,6 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.index.Expression;
 
 /**
  * @author pashky

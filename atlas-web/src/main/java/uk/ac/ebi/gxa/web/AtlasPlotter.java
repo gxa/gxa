@@ -28,13 +28,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.index.Experiment;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.CountIterator;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -203,11 +203,11 @@ public class AtlasPlotter {
 
                     Set<String> topFVs = new HashSet<String>();
 
-                    List<Experiment> atlasTuples = genes.get(0).getTopFVs(Long.valueOf(experimentID));
+                    List<ExpressionAnalysis> atlasTuples = genes.get(0).getTopFVs(Long.valueOf(experimentID));
 
-                    for (Experiment at : atlasTuples) {
-                        if (at.getEf().equals(efToPlot) && !at.getEfv().equals("V1")) {
-                            topFVs.add(at.getEfv().toLowerCase());
+                    for (ExpressionAnalysis at : atlasTuples) {
+                        if (at.getEfName().equals(efToPlot) && !at.getEfvName().equals("V1")) {
+                            topFVs.add(at.getEfvName().toLowerCase());
                         }
                     }
                     return createBarPlot(proxy, efToPlot, topFVs, deIndex);

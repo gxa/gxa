@@ -28,9 +28,7 @@ import ae3.util.CuratedTexts;
 import ae3.util.HtmlHelper;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.gxa.index.Experiment;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
-import uk.ac.ebi.gxa.index.Expression;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
@@ -38,6 +36,7 @@ import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
 import uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException;
 import uk.ac.ebi.mydas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.ServletContext;
 import java.net.MalformedURLException;
@@ -203,18 +202,17 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
             notes = "[" + row.getCount_up() + " up/" + row.getCount_dn() + " dn] - ";
 
-            ExperimentsTable tbl = atlasGene.getExperimentsTable();
-            for (Experiment e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
+            GeneExpressionAnalyticsTable tbl = atlasGene.getExpressionAnalyticsTable();
+            for (ExpressionAnalysis e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
                 // lookup search service from context
-                AtlasExperiment atlasExperiment = dao.getExperimentById(e.getId());
+                AtlasExperiment atlasExperiment = dao.getExperimentById(e.getExperimentID());
 
                 if (null == atlasExperiment) {
                     continue;
                 }
 
                 try {
-                    notes += (new AtlasGeneExperimentDescription(atlasGene, atlasExperiment,
-                                                                 (Expression.UP == e.getExpression()))).toShortString();
+                    notes += (new AtlasGeneExperimentDescription(atlasGene, atlasExperiment, e.isUp())).toShortString();
                 }
                 catch (Exception Ex) {
                     throw new DataSourceException(Ex.getMessage(), Ex);
