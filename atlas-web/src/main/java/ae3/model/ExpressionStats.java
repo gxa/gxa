@@ -23,7 +23,6 @@
 package ae3.model;
 
 import ae3.service.structuredquery.EfvTree;
-import uk.ac.ebi.gxa.index.Expression;
 
 /**
  * Expression statistics interface

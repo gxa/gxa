@@ -19,19 +19,13 @@
  *
  * http://ostolop.github.com/gxa/
  */
-
-package uk.ac.ebi.gxa.index;
+package ae3.model;
 
 /**
  * @author pashky
  */
 public enum Expression {
-    UP { public boolean isUp() { return true; } },
-    DOWN { public boolean isUp() { return false; } };
-
-    abstract public boolean isUp();
-
-    public static Expression valueOf(boolean isUp) {
-        return isUp ? Expression.UP : Expression.DOWN;        
-    }
+    UP { public boolean isUp() { return true; }},
+    DOWN { public boolean isUp() { return false; }};
+    public abstract boolean isUp();
 }

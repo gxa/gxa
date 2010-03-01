@@ -23,10 +23,7 @@
 package ae3.service.structuredquery;
 
 import ae3.dao.AtlasDao;
-import ae3.model.AtlasExperiment;
-import ae3.model.AtlasGene;
-import ae3.model.ListResultRow;
-import ae3.model.ListResultRowExperiment;
+import ae3.model.*;
 import ae3.util.AtlasProperties;
 import org.apache.solr.common.params.FacetParams;
 import uk.ac.ebi.gxa.utils.MappingIterator;
@@ -43,8 +40,7 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.Experiment;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -52,6 +48,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
@@ -828,8 +825,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
      * @param experiments
      */
     private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
-        Iterable<Experiment> exps = null;
-        ExperimentsTable table = gene.getExperimentsTable();
+        Iterable<ExpressionAnalysis> exps = null;
+        GeneExpressionAnalyticsTable table = gene.getExpressionAnalyticsTable();
 
         if(efvTree.getNumEfvs() + efoTree.getNumExplicitEfos() > 0) {
             Iterable<String> efviter = new Iterable<String>() {
@@ -871,18 +868,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler {
         }
 
         Map<Pair<String,String>,List<ListResultRowExperiment>> map = new HashMap<Pair<String,String>, List<ListResultRowExperiment>>();
-        for(Experiment exp : exps) {
-        	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getId())))
+        for(ExpressionAnalysis exp : exps) {
+        	if(!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getExperimentID())))
         		continue;
-            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getId());
+            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentID());
             if(aexp != null) {
-                Pair<String,String> key = new Pair<String,String>(exp.getEf(), exp.getEfv());
+                Pair<String,String> key = new Pair<String,String>(exp.getEfName(), exp.getEfvName());
                 if(!map.containsKey(key))
                     map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getId(), 
+                map.get(key).add(new ListResultRowExperiment(exp.getExperimentID(),
                         aexp.getAccession(),
                         aexp.getDescription(),
-                        exp.getPvalue(), exp.getExpression()));
+                        exp.getPValAdjusted(), exp.isUp() ? Expression.UP : Expression.DOWN));
             }
         }
 

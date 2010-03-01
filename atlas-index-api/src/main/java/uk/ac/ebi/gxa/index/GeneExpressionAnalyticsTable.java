@@ -23,7 +23,8 @@
 package uk.ac.ebi.gxa.index;
 
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.Base64;
+import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.*;
 import java.util.*;
@@ -31,26 +32,25 @@ import java.util.*;
 /**
  * @author pashky
  */
-public class ExperimentsTable implements Serializable {
-    private ArrayList<Experiment> experiments = new ArrayList<Experiment>();
+public class GeneExpressionAnalyticsTable implements Serializable {
+    private ArrayList<ExpressionAnalysis> expas = new ArrayList<ExpressionAnalysis>();
     private HashMap<String, BitSet> byEfEfvId = new HashMap<String, BitSet>();
     private HashMap<String, BitSet> byEfoId = new HashMap<String, BitSet>();
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
-    public void add(String ef, String efv, String[] efo, long experimentId, boolean isUp, double pvalue) {
-        Experiment exp = new Experiment(Expression.valueOf(isUp), experimentId, ef, efv, efo, pvalue);
-        experiments.add(exp);
+    public void add(ExpressionAnalysis analysis) {
+        expas.add(analysis);
 
-        int pos = experiments.size() - 1;
+        int pos = expas.size() - 1;
 
-        String efefvId = EscapeUtil.encode(ef, efv);
+        String efefvId = EscapeUtil.encode(analysis.getEfName(), analysis.getEfvName());
         if(!byEfEfvId.containsKey(efefvId))
             byEfEfvId.put(efefvId, new BitSet());
 
         byEfEfvId.get(efefvId).set(pos);
 
-        if(efo != null)
-            for(String oneefo : efo) {
+        if(analysis.getEfoAccessions() != null)
+            for(String oneefo : analysis.getEfoAccessions()) {
                 String efoId = EscapeUtil.encode(oneefo);
                 if(!byEfoId.containsKey(efoId))
                     byEfoId.put(efoId, new BitSet());
@@ -59,20 +59,20 @@ public class ExperimentsTable implements Serializable {
 
     }
 
-    private Iterable<Experiment> makeIterable(final BitSet bs) {
-        return new Iterable<Experiment>() {
-            public Iterator<Experiment> iterator() {
-                return new Iterator<Experiment>() {
+    private Iterable<ExpressionAnalysis> makeIterable(final BitSet bs) {
+        return new Iterable<ExpressionAnalysis>() {
+            public Iterator<ExpressionAnalysis> iterator() {
+                return new Iterator<ExpressionAnalysis>() {
                     int pos = bs.nextSetBit(0);
 
                     public boolean hasNext() {
                         return pos >= 0; 
                     }
 
-                    public Experiment next() {
+                    public ExpressionAnalysis next() {
                         int curr = pos;
                         pos = bs.nextSetBit(pos + 1);
-                        return experiments.get(curr);
+                        return expas.get(curr);
                     }
 
                     public void remove() { }
@@ -81,21 +81,21 @@ public class ExperimentsTable implements Serializable {
         };
     }
 
-    public Iterable<Experiment> findByEfEfv(String ef, String efv) {
-        List<Experiment> result = new ArrayList<Experiment>();
+    public Iterable<ExpressionAnalysis> findByEfEfv(String ef, String efv) {
+        List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
 
         BitSet bs = byEfEfvId.get(EscapeUtil.encode(ef, efv));
         if(bs == null)
             return result;
 
         for(int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            result.add(experiments.get(i));
+            result.add(expas.get(i));
         }
         
         return makeIterable(bs);
     }
 
-    public Iterable<Experiment> findByEfEfvEfoSet(Iterable<String> efefvs, Iterable<String> efos) {
+    public Iterable<ExpressionAnalysis> findByEfEfvEfoSet(Iterable<String> efefvs, Iterable<String> efos) {
         final BitSet bs = new BitSet();
         for(String efefv : efefvs) {
             BitSet other = byEfEfvId.get(efefv);
@@ -111,7 +111,7 @@ public class ExperimentsTable implements Serializable {
         return makeIterable(bs);
     }
 
-    public Iterable<Experiment> findByEfoSet(Iterable<String> efos) {
+    public Iterable<ExpressionAnalysis> findByEfoSet(Iterable<String> efos) {
 
         BitSet bs = new BitSet();
         for(String efo : efos) {
@@ -123,63 +123,40 @@ public class ExperimentsTable implements Serializable {
         return makeIterable(bs);
     }
 
-    public Iterable<Experiment> getAll() {
-        return experiments;
+    public Iterable<ExpressionAnalysis> getAll() {
+        return expas;
     }
 
 
-    public Iterable<Experiment> findByExperimentId(final long experimentId) {
-        return new Iterable<Experiment>() {
-            public Iterator<Experiment> iterator() {
-                return new Iterator<Experiment>() {
-                    private final Iterator<Experiment> all = experiments.iterator();
-                    private Experiment next;
-                    private boolean hasNext;
-
-                    public boolean hasNext() {
-                        if (hasNext)
-                            return true;
-                        return advance();
-                    }
-
-                    public Experiment next() {
-                        if (!hasNext) {
-                            if (!advance())
-                                throw new NoSuchElementException();
-                        }
-                        hasNext = false;
-                        return next;
-                    }
-
-                    public void remove() { }
-
-                    private boolean advance() {
-                        while (all.hasNext()) {
-                            final Experiment nnext = all.next();
-                            if (nnext.getId() == experimentId) {
-                                next = nnext;
-                                hasNext = true;
-                                return true;
-                            }
-                        }
-                        return false;
+    public Iterable<ExpressionAnalysis> findByExperimentId(final long experimentId) {
+        return new Iterable<ExpressionAnalysis>() {
+            public Iterator<ExpressionAnalysis> iterator() {
+                return new FilterIterator<ExpressionAnalysis, ExpressionAnalysis>(expas.iterator()) {
+                    @Override
+                    public ExpressionAnalysis map(ExpressionAnalysis from) {
+                        return from.getExperimentID() == experimentId ? from : null;
                     }
                 };
             }
         };
     }
 
-    public String serialize() {
+    public byte[] serialize() {
         try {
-            return Base64.encodeObject(this, Base64.GZIP);
+            ByteArrayOutputStream bstream = new ByteArrayOutputStream();
+            ObjectOutputStream ostream = new ObjectOutputStream(bstream);
+            ostream.writeObject(this);
+            return bstream.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static ExperimentsTable deserialize(String from) {
+    public static GeneExpressionAnalyticsTable deserialize(byte[] from) {
         try {
-            return (ExperimentsTable)Base64.decodeToObject(from);
+            ByteArrayInputStream bstream = new ByteArrayInputStream(from);
+            ObjectInputStream ostream = new ObjectInputStream(bstream);
+            return (GeneExpressionAnalyticsTable)ostream.readObject();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {

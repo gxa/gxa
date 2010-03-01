@@ -22,21 +22,24 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import java.io.Serializable;
+
 /**
  * Javadocs go here!
  *
  * @author Tony Burdett
  * @date 24-Sep-2009
  */
-public class ExpressionAnalysis {
+public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
     private String efName;
     private String efvName;
     private int experimentID;
-    private int designElementID;
+    private transient int designElementID;  // we don't care about it
     private double tStatistic;
     private double pValAdjusted;
-    private int efId;
-    private int efvId;
+    private transient int efId;  // TODO: make it properly
+    private transient int efvId; // TODO: make it properly
+    private String[] efoAccessions;
 
     public String getEfName() {
         return efName;
@@ -100,6 +103,22 @@ public class ExpressionAnalysis {
 
     public void setEfvId(int efvId) {
         this.efvId = efvId;
+    }
+
+    public String[] getEfoAccessions() {
+        return efoAccessions;
+    }
+
+    public void setEfoAccessions(String[] efoAccessions) {
+        this.efoAccessions = efoAccessions;
+    }
+
+    public int compareTo(ExpressionAnalysis o) {
+        return Double.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
+    }
+
+    public boolean isUp() {
+        return getTStatistic() > 0;
     }
 
     @Override

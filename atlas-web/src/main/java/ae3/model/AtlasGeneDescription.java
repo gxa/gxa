@@ -25,7 +25,7 @@ package ae3.model;
 import ae3.service.GxaDasDataSource;
 import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.utils.StringUtil;
-import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
@@ -199,12 +199,7 @@ public class AtlasGeneDescription {
 
         EfWriter writer = new EfWriter();
 
-        Set<Long> experiments = new HashSet<Long>();
-        for(Experiment e : gene.getExperimentsTable().getAll()){
-            if(!experiments.contains(e.getId()))
-                experiments.add(e.getId());
-        };
-        writer.setTotalExperiments(experiments.size());
+        writer.setTotalExperiments(gene.getNumberOfExperiments());
 
         for(ListResultRow r : efs){
            if(r.getEf().equals(writer.getCurrentEfName())){

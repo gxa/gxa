@@ -31,9 +31,9 @@ import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.index.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.Iterator;
 
@@ -87,20 +87,20 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             public Iterator<ListResultRowExperiment> getExperiments() {
-                return new FilterIterator<Experiment, ListResultRowExperiment>(expiter()) {
-                    public ListResultRowExperiment map(Experiment e) {
-                        AtlasExperiment aexp = dao.getExperimentById(e.getId());
+                return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
+                    public ListResultRowExperiment map(ExpressionAnalysis e) {
+                        AtlasExperiment aexp = dao.getExperimentById(e.getExperimentID());
                         if (aexp == null) {
                             return null;
                         }
-                        return new ListResultRowExperiment(e.getId(), aexp.getAccession(),
-                                                           aexp.getDescription(), e.getPvalue(),
-                                                           e.getExpression());
+                        return new ListResultRowExperiment(e.getExperimentID(), aexp.getAccession(),
+                                                           aexp.getDescription(), e.getPValAdjusted(),
+                                                           e.isUp() ? ae3.model.Expression.UP : ae3.model.Expression.DOWN);
                     }
                 };
             }
 
-            abstract Iterator<Experiment> expiter();
+            abstract Iterator<ExpressionAnalysis> expiter();
         }
 
         public class EfvExp extends ResultRow.Expression {
@@ -119,8 +119,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efefv.getEfv();
             }
 
-            Iterator<Experiment> expiter() {
-                return row.getGene().getExperimentsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
+            Iterator<ExpressionAnalysis> expiter() {
+                return row.getGene().getExpressionAnalyticsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
             }
         }
 
@@ -140,8 +140,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efoItem.getId();
             }
 
-            Iterator<Experiment> expiter() {
-                return row.getGene().getExperimentsTable()
+            Iterator<ExpressionAnalysis> expiter() {
+                return row.getGene().getExpressionAnalyticsTable()
                         .findByEfoSet(efo.getTermAndAllChildrenIds(efoItem.getId())).iterator();
             }
         }

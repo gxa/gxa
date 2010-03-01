@@ -23,10 +23,10 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
-import uk.ac.ebi.gxa.index.Experiment;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import ae3.dao.AtlasDao;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
@@ -171,7 +171,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 */
     @Test
     public void test_getExpermientsTable() {
-        ExperimentsTable et = gene.getExperimentsTable();
+        GeneExpressionAnalyticsTable et = gene.getExpressionAnalyticsTable();
         assertTrue(et.getAll().iterator().hasNext());
     }
 
@@ -198,13 +198,13 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getTopFVs() {
-        Collection<Experiment> efvs = gene.getTopFVs(204778371);
+        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(204778371);
         assertNotNull(efvs);
 
         double pv = 0;
-        for(Experiment t : efvs) {
-            assertTrue(pv <= t.getPvalue());
-            pv = t.getPvalue();
+        for(ExpressionAnalysis t : efvs) {
+            assertTrue(pv <= t.getPValAdjusted());
+            pv = t.getPValAdjusted();
         }
     }
 

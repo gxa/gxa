@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.index.ExperimentsTable;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -246,7 +246,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
         Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
 
-        ExperimentsTable expTable = new ExperimentsTable();
+        GeneExpressionAnalyticsTable expTable = new GeneExpressionAnalyticsTable();
         getLog().debug("Fetching expression analytics for gene: " + geneId);
         List<ExpressionAnalysis> expressionAnalytics =
                 getAtlasDAO().getExpressionAnalyticsByGeneID(geneId);
@@ -320,14 +320,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 dnexp.add(experimentId);
             }
 
-            String[] accs;
-            if (accessions != null) {
-                accs = accessions.toArray(new String[accessions.size()]);
-            }
-            else {
-                accs = new String[0];
-            }
-            expTable.add(ef, efv, accs, experimentId, isUp, pval);
+            expressionAnalytic.setEfoAccessions(accessions != null ? accessions.toArray(new String[accessions.size()]) : new String[0]);
+            expTable.add(expressionAnalytic);
         }
 
         solrDoc.addField("exp_info", expTable.serialize());
