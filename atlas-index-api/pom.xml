@@ -49,8 +49,8 @@
     <dependencies>
         <dependency>
             <groupId>net.sourceforge.fluxion</groupId>
-            <artifactId>utils</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>fluxion-utils</artifactId>
+            <version>1.0-alpha</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
