@@ -149,6 +149,7 @@
                     <li><a href="#tab-exp">Experiments</a></li>
                     <li><a href="#tab-que">Queue</a></li>
                     <li><a href="#tab-log">Logs</a></li>
+                    <li><a href="#tab-load">Load</a></li>
                 </ul>
                 <div id="tab-exp">
                     <fieldset>
@@ -231,7 +232,7 @@
                     </fieldset>
                     <div id="taskList">
                         <table class="results">
-                            <tr class="task state">
+                            <tr class="task">
                                 <td class="state">WORKING</td>
                                 <td class="runMode">RESTART</td>
                                 <td class="type">experiment</td>
@@ -248,8 +249,19 @@
                 <div id="tab-log">
                     <h1>Logs</h1>
                 </div>
+                <div id="tab-load">
+                    <fieldset>
+                        <legend>Load experiment</legend>
+                        <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
+                        <input type="button" value="Load" id="loadExperimentButton">
+                    </fieldset>
+                    <fieldset>
+                        <legend>Load array design</legend>
+                        <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
+                        <input type="button" value="Load" id="loadArrayDesignButton">
+                    </fieldset>
+                </div>
             </div>
-
         </div>
     </body>
 </html>

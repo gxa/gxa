@@ -110,8 +110,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             }
         }
         catch (AtlasRServicesException e) {
-            e.printStackTrace();
-            throw new RuntimeException("R computation environment not valid/present: " + e.getMessage());
+            throw new RuntimeException("R computation environment not valid/present: ", e);
         }
 
         // discover our datasource URL from the database metadata
@@ -125,8 +124,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             DataSourceUtils.releaseConnection(c, atlasDataSource);
         }
         catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL");
+            throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL", e);
         }
 
         // read versioning info

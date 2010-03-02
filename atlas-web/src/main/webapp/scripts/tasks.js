@@ -84,6 +84,10 @@ function taskmanCall(op, params, func) {
         }});
 }
 
+function switchToQueue() {
+    $('#tabs').tabs('select', 1);
+}
+
 function updateBrowseExperiments() {
     taskmanCall('searchexp', {
 
@@ -151,10 +155,6 @@ function updateBrowseExperiments() {
             if(window.confirm('Do you really want to ' + mode.toLowerCase() + ' '
                     + (selectAll ? result.numTotal : accessions.length)
                     + ' experiment(s)?')) {
-                function afterEnqueue() {
-                    $('#tabs').tabs('select', 1);
-                }
-
                 if(selectAll) {
                     taskmanCall('enqueuesearchexp', {
                         runMode: mode,
@@ -163,14 +163,14 @@ function updateBrowseExperiments() {
                         toDate: $('#dateTo').val(),
                         pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0,
                         autoDepends: 'true'
-                    }, afterEnqueue);
+                    }, switchToQueue);
                 } else {
                     taskmanCall('enqueue', {
                         runMode: mode,
                         accession: accessions,
                         type: 'experiment',
                         autoDepends: 'true'
-                    }, afterEnqueue);
+                    }, switchToQueue);
                 }
                 
                 selectedExperiments = {};
@@ -269,7 +269,8 @@ function redrawCurrentState() {
         updateQueue();
     } else if(currentState['tab'] == 2) {
         $('#tabs').tabs('select', 2);
-
+    } else if(currentState['tab'] == 3) {
+        $('#tabs').tabs('select', 3);
     } else {
         $('#tabs').tabs('select', 0);
         $('#experimentSearch').val('');
@@ -323,7 +324,7 @@ function compileTemplates() {
                 '.runMode': 'task.runMode',
                 '.progress': 'task.progress',
                 'input@class+': 'task.id',
-                '.@class+': 'task.state'
+                '.@class+': ' state#{task.state} mode#{task.runMode} type#{task.type}'
             }
         }
     });
@@ -382,6 +383,26 @@ $(document).ready(function () {
                 updateBrowseExperiments();
             }, $options.searchDelay);
         }
+    });
+
+    $('#loadExperimentButton').click(function () {
+        var url = $('#loadExperimentUrl').val();
+        taskmanCall('enqueue', {
+            runMode: 'RESTART',
+            accession: url,
+            type: 'loadexperiment',
+            autoDepends: 'true'
+        }, switchToQueue);
+    });
+
+    $('#loadArrayDesignButton').click(function () {
+        var url = $('#loadArrayDesignUrl').val();
+        taskmanCall('enqueue', {
+            runMode: 'RESTART',
+            accession: url,
+            type: 'loadarraydesign',
+            autoDepends: 'true'
+        }, switchToQueue);
     });
 
     updatePauseButton(false);

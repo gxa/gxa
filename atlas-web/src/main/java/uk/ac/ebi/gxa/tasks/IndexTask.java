@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -112,10 +113,10 @@ public class IndexTask implements WorkingTask {
                 if(result.get().getStatus() == IndexBuilderEvent.Status.SUCCESS) {
                     queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.FINISHED, "");
                     queue.updateTaskStage(spec, TaskStage.DONE);
+                    currentStage = TaskStage.DONE;
                 } else {
                     queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                 }
-                currentStage = TaskStage.DONE;
                 queue.notifyTaskFinished(IndexTask.this); // it's waiting for this
             }
         });
@@ -141,7 +142,11 @@ public class IndexTask implements WorkingTask {
         }
 
         public boolean isBlockedBy(TaskSpec by) {
-            return ExperimentTask.TYPE.equals(by.getType());
+            return Arrays.asList(
+                    ExperimentTask.TYPE,
+                    LoaderTask.TYPE_EXPERIMENT,
+                    LoaderTask.TYPE_ARRAYDESIGN
+            ).contains(by.getType());
         }
 
         public Collection<TaskSpec> autoAddAfter(TaskSpec taskSpec) {

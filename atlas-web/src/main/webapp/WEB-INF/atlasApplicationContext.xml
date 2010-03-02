@@ -221,6 +221,7 @@
         <property name="analyticsGenerator" ref="analyticsGenerator"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="netcdfGenerator" ref="netCDFGenerator"/>
+        <property name="loader" ref="atlasLoader"/>
         <property name="storage" ref="taskManagerStorage"/>
         <property name="maxWorkingTasks" value="16" />
     </bean>
