@@ -77,8 +77,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
         }
         catch (Exception e) {
             log.error("Critical R whilst trying to bridge to local R install - " +
-                    "check R is installed and required libraries present");
-            e.printStackTrace();
+                    "check R is installed and required libraries present", e);
             return false;
         }
 

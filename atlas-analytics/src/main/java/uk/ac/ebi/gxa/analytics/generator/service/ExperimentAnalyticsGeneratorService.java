@@ -179,11 +179,10 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             }
             catch (InterruptedException e) {
-                e.printStackTrace();
                 //noinspection ThrowFromFinallyBlock
                 throw new AnalyticsGeneratorException(
                         "Failed to terminate service for " + getClass().getSimpleName() +
-                                " cleanly - suspended tasks were found");
+                                " cleanly - suspended tasks were found", e);
             }
         }
     }
@@ -260,8 +259,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                             return null;
                         }
                         catch (IOException e) {
-                            e.printStackTrace();
-                            throw new RemoteException("Unable to load R source from R/analytics.R");
+                            throw new RemoteException("Unable to load R source from R/analytics.R", e);
                         }
                     }
                 };
@@ -302,8 +300,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                             catch (RuntimeException e) {
                                 success = false;
                                 getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
-                                        "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage());
-                                e.printStackTrace();
+                                        "EF: " + ef + "; EFV: " + efv + " failed with errors: ", e);
                             }
                         }
 
@@ -313,14 +310,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
                 catch (IOException e) {
                     success = false;
-                    getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath());
-                    e.printStackTrace();
+                    getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
                 }
                 catch (ComputeException e) {
                     success = false;
-                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " +
-                            e.getMessage());
-                    e.printStackTrace();
+                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: ", e);
                 }
                 catch (Exception e) {
                     success = false;

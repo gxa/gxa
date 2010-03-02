@@ -125,8 +125,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             return rServices;
         }
         catch (Exception e) {
-            e.printStackTrace();
-            log.debug("borrowObject() threw an exception: {}", e.getMessage());
+            log.error("borrowObject() threw an exception: {}", e);
             throw new AtlasRServicesException(
                     "Failed to borrow an RServices object from the pool of workers", e);
         }
@@ -154,7 +153,6 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
             throw new AtlasRServicesException(
                     "Failed to release an RServices object back into the pool of workers", e);
         }
@@ -172,8 +170,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                 workerPool.close();
             }
             catch (Exception e) {
-                e.printStackTrace();
-                log.error("Problem shutting down compute service", e.getMessage());
+                log.error("Problem shutting down compute service", e);
             }
         }
     }
@@ -280,11 +277,11 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                 }
             }
             catch (RemoteException e) {
-                log.error("R worker does not respond to ping correctly ({}). Invalidated.", e.getMessage());
+                log.error("R worker does not respond to ping correctly ({}). Invalidated.", e);
                 return false;
             }
             catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error.", e);
                 return false;
             }
         }
