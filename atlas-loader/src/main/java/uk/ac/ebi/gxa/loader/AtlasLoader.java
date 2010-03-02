@@ -43,41 +43,7 @@ import java.util.List;
  * @author Tony Burdett
  * @date 27-Nov-2009
  */
-public interface AtlasLoader<R, L> {
-    /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database during data
-     * loading.
-     *
-     * @param atlasDAO the DAO that is used to obtain access to the database
-     */
-    void setAtlasDAO(AtlasDAO atlasDAO);
-
-    /**
-     * Set the {@link uk.ac.ebi.gxa.dao.AtlasDAO} that will be used to read and write to the database during data
-     * loading.
-     *
-     * @return the DAO that is used to obtain access to the database
-     */
-    AtlasDAO getAtlasDAO();
-
-    /**
-     * Set the location for the experiment repository, that new experiments can be loaded from.  Note that
-     * implementations do not necessarily have to do anything with this repository - some implementations may choose to
-     * force load operations to specify the full path to the resource being loaded, rather than resolving an accession
-     * number against the repository or automatically polling for changes.
-     *
-     * @param repositoryLocation the location of the experiment repository
-     */
-    void setRepositoryLocation(R repositoryLocation);
-
-    /**
-     * Get the location of the experiment repository.  This may be used, in some implementations, to automate loading or
-     * in some cases to resolve accession numbers against.
-     *
-     * @return the location of the experiment repository
-     */
-    R getRepositoryLocation();
-
+public interface AtlasLoader<L> {
     /**
      * Sets the percentage of design elements that are allowed to be "missing" in the database before this load fails.
      * The percentage value - e.g. 0.25 - should be supplied here. Missing design elements occur when the data in the

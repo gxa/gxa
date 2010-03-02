@@ -37,17 +37,26 @@ public class AtlasLoaderEvent {
     private TimeUnit timeUnit;
     private Status status;
     private List<Throwable> errors;
+    private List<String> accessions;
 
+    private AtlasLoaderEvent() {
+
+    }
     /**
      * An AtlasLoaderEvent that represents a completion with a successful outcome
      *
      * @param runTime  the total running time to load the resource
      * @param timeUnit the units used in the running time of this loader
+     * @param accessions successfully created objects' accessions
+     * @return constructed event
      */
-    public AtlasLoaderEvent(long runTime, TimeUnit timeUnit) {
-        this.runTime = runTime;
-        this.timeUnit = timeUnit;
-        this.status = Status.SUCCESS;
+    public static AtlasLoaderEvent success(long runTime, TimeUnit timeUnit, List<String> accessions) {
+        AtlasLoaderEvent event = new AtlasLoaderEvent();
+        event.runTime = runTime;
+        event.timeUnit = timeUnit;
+        event.status = Status.SUCCESS;
+        event.accessions = accessions;
+        return event;
     }
 
     /**
@@ -57,12 +66,15 @@ public class AtlasLoaderEvent {
      * @param runTime  the total running time to load the resource
      * @param timeUnit the units used in the running time of this loader
      * @param errors   the list of errors that occurred, causing the fail
+     * @return constructed event
      */
-    public AtlasLoaderEvent(long runTime, TimeUnit timeUnit, List<Throwable> errors) {
-        this.runTime = runTime;
-        this.timeUnit = timeUnit;
-        this.status = Status.FAIL;
-        this.errors = errors;
+    public static AtlasLoaderEvent error(long runTime, TimeUnit timeUnit, List<Throwable> errors) {
+        AtlasLoaderEvent event = new AtlasLoaderEvent();
+        event.runTime = runTime;
+        event.timeUnit = timeUnit;
+        event.status = Status.FAIL;
+        event.errors = errors;
+        return event;
     }
 
     public long getRunTime() {
@@ -79,6 +91,10 @@ public class AtlasLoaderEvent {
 
     public List<Throwable> getErrors() {
         return errors;
+    }
+
+    public List<String> getAccessions() {
+        return accessions;
     }
 
     public enum Status {

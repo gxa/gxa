@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.net.URL;
@@ -47,9 +48,8 @@ import java.util.concurrent.*;
  * @author Tony Burdett
  * @date 27-Nov-2009
  */
-public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBean {
+public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     private AtlasDAO atlasDAO;
-    private URL repositoryLocation;
     private double missingDesignElementsCutoff = -1;
     private boolean allowReloading = false;
     private List<String> geneIdentifierPriority = new ArrayList<String>();
@@ -69,14 +69,6 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public URL getRepositoryLocation() {
-        return repositoryLocation;
-    }
-
-    public void setRepositoryLocation(URL repositoryLocation) {
-        this.repositoryLocation = repositoryLocation;
     }
 
     public double getMissingDesignElementsCutoff() {
@@ -192,26 +184,35 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
         loadExperiment(experimentResource, null);
     }
 
+    public static class LoadResult {
+        public List<String> accessions = new ArrayList<String>();
+        public boolean success = false;
+    }
+
     public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
         final long startTime = System.currentTimeMillis();
-        final List<Future<Boolean>> buildingTasks =
-                new ArrayList<Future<Boolean>>();
+        final List<Future<LoadResult>> buildingTasks =
+                new ArrayList<Future<LoadResult>>();
 
-        buildingTasks.add(service.submit(new Callable<Boolean>() {
-            public Boolean call() throws AtlasLoaderException {
+        buildingTasks.add(service.submit(new Callable<LoadResult>() {
+            public LoadResult call() throws AtlasLoaderException {
                 try {
                     log.info("Starting load operation on " + experimentResource.toString());
 
-                    boolean result = experimentLoaderService.load(experimentResource);
+                    final LoadResult result = new LoadResult();
+                    result.success = experimentLoaderService.load(experimentResource, new AtlasLoaderService.AccessionListener() {
+                        public void setAccession(String accession) {
+                            result.accessions.add(accession);
+                        }
+                    });
 
                     log.debug("Finished load operation on " + experimentResource.toString());
 
                     return result;
                 }
                 catch (Exception e) {
-                    log.error("Caught unchecked exception: " + e.getMessage());
-                    e.printStackTrace();
-                    return false;
+                    log.error("Caught unchecked exception: ", e);
+                    return new LoadResult();
                 }
             }
         }));
@@ -222,11 +223,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
                 public void run() {
                     boolean success = true;
                     List<Throwable> observedErrors = new ArrayList<Throwable>();
+                    List<String> successfulAccessions = new ArrayList<String>();
 
                     // wait for expt and gene indexes to build
-                    for (Future<Boolean> buildingTask : buildingTasks) {
+                    for (Future<LoadResult> buildingTask : buildingTasks) {
                         try {
-                            success = buildingTask.get() && success;
+                            LoadResult r = buildingTask.get();
+                            success = r.success && success;
+                            successfulAccessions.addAll(r.accessions);
                         }
                         catch (Exception e) {
                             observedErrors.add(e);
@@ -240,11 +244,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
                     // create our completion event
                     if (success) {
-                        listener.loadSuccess(new AtlasLoaderEvent(
-                                runTime, TimeUnit.SECONDS));
+                        listener.loadSuccess(AtlasLoaderEvent.success(
+                                runTime, TimeUnit.SECONDS, successfulAccessions));
                     }
                     else {
-                        listener.loadError(new AtlasLoaderEvent(
+                        listener.loadError(AtlasLoaderEvent.error(
                                 runTime, TimeUnit.SECONDS, observedErrors));
                     }
                 }
@@ -258,24 +262,28 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
     public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
                 final long startTime = System.currentTimeMillis();
-        final List<Future<Boolean>> buildingTasks =
-                new ArrayList<Future<Boolean>>();
+        final List<Future<LoadResult>> buildingTasks =
+                new ArrayList<Future<LoadResult>>();
 
-        buildingTasks.add(service.submit(new Callable<Boolean>() {
-            public Boolean call() throws AtlasLoaderException {
+        buildingTasks.add(service.submit(new Callable<LoadResult>() {
+            public LoadResult call() throws AtlasLoaderException {
                 try {
                     log.info("Starting load operation on " + arrayDesignResource.toString());
 
-                    boolean result = arrayLoaderService.load(arrayDesignResource);
+                    final LoadResult result = new LoadResult();
+                    result.success = arrayLoaderService.load(arrayDesignResource, new AtlasLoaderService.AccessionListener() {
+                        public void setAccession(String accession) {
+                            result.accessions.add(accession);
+                        }
+                    });
 
                     log.debug("Finished load operation on " + arrayLoaderService.toString());
 
                     return result;
                 }
                 catch (Exception e) {
-                    log.error("Caught unchecked exception: " + e.getMessage());
-                    e.printStackTrace();
-                    return false;
+                    log.error("Caught unchecked exception: ", e);
+                    return new LoadResult();
                 }
             }
         }));
@@ -286,11 +294,13 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
                 public void run() {
                     boolean success = true;
                     List<Throwable> observedErrors = new ArrayList<Throwable>();
+                    List<String> successfulAccessions = new ArrayList<String>();
 
                     // wait for expt and gene indexes to build
-                    for (Future<Boolean> buildingTask : buildingTasks) {
+                    for (Future<LoadResult> buildingTask : buildingTasks) {
                         try {
-                            success = buildingTask.get() && success;
+                            LoadResult r = buildingTask.get();
+                            success = r.success && success;
                         }
                         catch (Exception e) {
                             observedErrors.add(e);
@@ -304,11 +314,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL, URL>, InitializingBe
 
                     // create our completion event
                     if (success) {
-                        listener.loadSuccess(new AtlasLoaderEvent(
-                                runTime, TimeUnit.SECONDS));
+                        listener.loadSuccess(AtlasLoaderEvent.success(
+                                runTime, TimeUnit.SECONDS, successfulAccessions));
                     }
                     else {
-                        listener.loadError(new AtlasLoaderEvent(
+                        listener.loadError(AtlasLoaderEvent.error(
                                 runTime, TimeUnit.SECONDS, observedErrors));
                     }
                 }

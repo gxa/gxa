@@ -93,9 +93,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
      *
      * @param idfFileLocation the location of the idf part of the MAGETAB document you want to load.
+     * @param accessionListener
      * @return true if loading suceeded, false if loading failed
      */
-    public boolean load(URL idfFileLocation) {
+    public boolean load(URL idfFileLocation, AccessionListener accessionListener) {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -156,7 +157,15 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
 
             // parsing completed, so now write the objects in the cache
-            return writeObjects(cache);
+            boolean result = writeObjects(cache);
+
+            if(accessionListener != null && result) {
+                for(Experiment experiment : cache.fetchAllExperiments()) {
+                    accessionListener.setAccession(experiment.getAccession());
+                }
+            }
+
+            return result;
         }
         finally {
             AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);

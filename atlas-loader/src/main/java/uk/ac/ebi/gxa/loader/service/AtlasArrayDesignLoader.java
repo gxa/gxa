@@ -72,7 +72,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         this.geneIdentifierPriority = geneIdentifierPriority;
     }
 
-    public boolean load(URL adfFileLocation) {
+    public boolean load(URL adfFileLocation, AccessionListener accessionListener) {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -133,7 +133,15 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             }
 
             // parsing completed, so now write the objects in the cache
-            return writeObjects(cache);
+            boolean result = writeObjects(cache);
+
+            if(accessionListener != null && result) {
+                for(ArrayDesignBundle adb : cache.fetchAllArrayDesignBundles()) {
+                    accessionListener.setAccession(adb.getAccession());
+                }
+            }
+
+            return true;
         }
         finally {
             AtlasLoadCacheRegistry.getRegistry().deregisterArrayDesign(arrayDesign);
