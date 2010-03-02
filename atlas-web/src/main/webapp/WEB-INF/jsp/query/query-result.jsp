@@ -22,7 +22,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   --%>
 
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>

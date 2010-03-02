@@ -18,7 +18,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   -->
 
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -42,11 +42,12 @@
       <artifactId>atlas-dao</artifactId>
       <version>2.0-SNAPSHOT</version>
     </dependency>
+
     <!-- NetCDF library -->
     <dependency>
-      <groupId>edu.ucar</groupId>
-      <artifactId>netcdf</artifactId>
-      <version>2.2.22</version>
+      <groupId>essi-unidata</groupId>
+      <artifactId>netcdf-java</artifactId>
+      <version>4.0.41</version>
     </dependency>
 
     <!-- test scope dependency on ae2-dao tests -->

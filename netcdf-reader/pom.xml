@@ -18,7 +18,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   -->
 
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -38,10 +38,11 @@
     <dependencies>
         <!-- NetCDF library -->
         <dependency>
-            <groupId>edu.ucar</groupId>
-            <artifactId>netcdf</artifactId>
-            <version>2.2.22</version>
+          <groupId>essi-unidata</groupId>
+          <artifactId>netcdf-java</artifactId>
+          <version>4.0.41</version>
         </dependency>
+
 
         <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
             <groupId>org.slf4j</groupId>
