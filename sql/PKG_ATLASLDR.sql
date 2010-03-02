@@ -136,7 +136,7 @@ begin
  --DO NOT convert all property names to lowercase
  if(LowerCaseDesignElements is not null) then 
   for j in LowerCaseDesignElements.first..LowerCaseDesignElements.last loop
-    null;--LowerCaseDesignElements(j).EntryName := LOWER(LowerCaseDesignElements(j).EntryName);
+    LowerCaseDesignElements(j).EntryName := LOWER(LowerCaseDesignElements(j).EntryName);
   end loop;
   end if;
  
@@ -460,7 +460,7 @@ begin
   q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY"';
   EXECUTE IMMEDIATE q;
   
-  q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" DISABLE';
+  q := 'ALTER TRIGGER "A2_EXPRESSIONVALUE_INSERT" DISABLE';
   EXECUTE IMMEDIATE q;
 exception
   WHEN OTHERS THEN NULL;
@@ -534,7 +534,7 @@ BEGIN
   dbms_output.put_line(q);
   EXECUTE IMMEDIATE q;
 
-  q := 'ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE';
+  q := 'ALTER TRIGGER "A2_EXPRESSIONVALUE_INSERT" ENABLE';
   dbms_output.put_line(q);
   EXECUTE IMMEDIATE q;
   
@@ -941,10 +941,12 @@ BEGIN
                                                          join a2_SamplePV spv on spv.SampleID = vwExperimentSample.SampleID
                                                          where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_SamplePV where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
-  Delete from a2_Sample where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  --Delete from a2_Sample where SampleID in (Select SampleID from vwExperimentSample where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
 
   --redundant call, assaysample must be deleted by CASCADE delete
   Delete from a2_AssaySample where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  
+  Delete from a2_Sample where not exists(select 1 from a2_AssaySample where a2_AssaySample.SampleID = a2_Sample.SampleID);
   
   
   Delete from a2_AssayPVOntology where AssayPVID in (Select AssayPVID

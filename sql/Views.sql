@@ -235,11 +235,18 @@ CREATE OR REPLACE VIEW vwExperimentSample as
   join a2_AssaySample ass on ass.SampleID = s.SampleID
   join a2_Assay a on a.AssayID = ass.AssayID;
 /  
-
+--select * from vwGeneIDProperty
 CREATE OR REPLACE VIEW vwGeneIDProperty as 
-  Select Name, GenePropertyID Priority 
+  Select 'ENSGENE' as Name, 1 as Priority from dual
+  UNION ALL
+  Select 'UNIPROT' as Name, 2 as Priority from dual
+  UNION ALL
+  Select 'ENSEMBL' as Name, 3 as Priority from dual;
+  
+  
+  /*Select Name, GenePropertyID Priority 
   from a2_GeneProperty
-  where name in ('EMBL','ENSGENE');
+  where name in ('EMBL','ENSGENE');*/
 /
 
 CREATE OR REPLACE VIEW vwGeneIDs as
@@ -333,6 +340,21 @@ AS
   ON de.designelementid=a.designelementid
   WHERE a.pvaladj      <= 0.05;
 /
+
+select * from VWGENEPROPERTIES
+
+CREATE OR REPLACE VIEW VWGENEPROPERTIES
+AS
+ Select 
+   g.GeneID
+  ,g.Identifier
+  ,p.name
+  ,pv.value
+  from a2_Gene g
+  left outer join a2_GeneGPV ggpv on ggpv.GeneID = g.GeneID
+  join a2_GenePropertyValue pv on pv.GenePropertyValueID = ggpv.GenePropertyValueID 
+  join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID;
+/  
 
 quit;
 /
