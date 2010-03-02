@@ -44,11 +44,16 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.net.URL;
 
 /**
  * Task manager AJAX servlet
@@ -204,6 +209,65 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
             }
         });
 
+        taskManager.setLoader(new AtlasLoader<URL>() {
+            boolean shouldFail = false;
+            public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) { }
+            public double getMissingDesignElementsCutoff() { return 0; }
+            public void setAllowReloading(boolean allowReloading) { }
+            public boolean getAllowReloading() { return false; }
+            public List<String> getGeneIdentifierPriority() { return null; }
+            public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) { }
+
+            public void startup() throws AtlasLoaderException {
+                shouldFail = false; // a hack
+            }
+            public void shutdown() throws AtlasLoaderException {
+                shouldFail = true; // a hack
+            }
+
+            public void loadExperiment(URL experimentResource) { }
+            public void loadArrayDesign(URL arrayDesignResource) { }
+
+            public void loadExperiment(final URL url, final AtlasLoaderListener listener) {
+                log.info("Loading experiment " + url);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        int cnt = DONOTHINGNUM();
+                        for(int i = 0; i < cnt; ++i) {
+                            log.info("Loading experiment " + url + " " + i);
+                            listener.loadProgress(i*100/ cnt);
+                            delay();
+                        }
+                        if(shouldFail)
+                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
+                        else
+                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
+                                    Collections.singletonList(url.getPath().substring(1))));
+                    }
+                }.start();
+            }
+
+            public void loadArrayDesign(final URL url, final AtlasLoaderListener listener) {
+                log.info("Loading array design " + url);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        int cnt = DONOTHINGNUM();
+                        for(int i = 0; i < cnt; ++i) {
+                            log.info("Loading array design " + url + " " + i);
+                            listener.loadProgress(i*100/ cnt);
+                            delay();
+                        }
+                        if(shouldFail)
+                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
+                        else
+                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
+                                    Collections.singletonList(url.getPath().substring(1))));
+                    }
+                }.start();
+            }
+        });
     }
 
     public void setDao(AtlasDAO dao) {

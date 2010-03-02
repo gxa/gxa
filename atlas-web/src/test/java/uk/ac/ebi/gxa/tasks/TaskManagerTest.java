@@ -39,9 +39,14 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.*;
+import java.net.URL;
 
 import static junit.framework.Assert.*;
 
@@ -259,6 +264,64 @@ public class TaskManagerTest {
             }
 
             public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+            }
+        });
+
+        manager.setLoader(new AtlasLoader<URL>() {
+            boolean shouldFail = false;
+            public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) { }
+            public double getMissingDesignElementsCutoff() { return 0; }
+            public void setAllowReloading(boolean allowReloading) { }
+            public boolean getAllowReloading() { return false; }
+            public List<String> getGeneIdentifierPriority() { return null; }
+            public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) { }
+
+            public void startup() throws AtlasLoaderException {
+                shouldFail = false; // a hack
+            }
+            public void shutdown() throws AtlasLoaderException {
+                shouldFail = true; // a hack
+            }
+
+            public void loadExperiment(URL experimentResource) { }
+            public void loadArrayDesign(URL arrayDesignResource) { }
+
+            public void loadExperiment(final URL url, final AtlasLoaderListener listener) {
+                log.info("Loading experiment " + url);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        for(int i = 0; i < DONOTHINGNUM; ++i) {
+                            log.info("Loading experiment " + url + " " + i);
+                            listener.loadProgress(i*100/DONOTHINGNUM);
+                            delay();
+                        }
+                        if(shouldFail)
+                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
+                        else
+                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
+                                    Collections.singletonList(url.getPath().substring(1))));
+                    }
+                }.start();
+            }
+
+            public void loadArrayDesign(final URL url, final AtlasLoaderListener listener) {
+                log.info("Loading array design " + url);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        for(int i = 0; i < DONOTHINGNUM; ++i) {
+                            log.info("Loading array design " + url + " " + i);
+                            listener.loadProgress(i*100/DONOTHINGNUM);
+                            delay();
+                        }
+                        if(shouldFail)
+                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
+                        else
+                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
+                                    Collections.singletonList(url.getPath().substring(1))));
+                    }
+                }.start();
             }
         });
 
@@ -514,5 +577,43 @@ public class TaskManagerTest {
         // TODO: check logs for correct running order - experiments 1 & 2 in parallel and index after
     }
 
+    @Test
+    public void test_loadArrayDesign() {
+        TaskSpec specld = new TaskSpec("loadarraydesign", "http://host/AD-AAAA-1");
+
+        manager.enqueueTask(specld, TaskRunMode.RESTART, defaultUser, true);
+        waitForManager();
+
+        assertEquals(2, storage.operLog.size()); // 1 load, 1 index
+        assertEquals(TaskStage.DONE, storage.taskStages.get(specld));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(new TaskSpec("index", "")));
+    }
+
+    @Test
+    public void test_loadExperiment() {
+        TaskSpec specld = new TaskSpec("loadexperiment", "http://host/E-AN-1");
+
+        manager.enqueueTask(specld, TaskRunMode.RESTART, defaultUser, true);
+        waitForManager();
+
+        assertEquals(3, storage.operLog.size()); // 1 load, 1 index
+        assertEquals(TaskStage.DONE, storage.taskStages.get(specld)); // all three should be complete
+        assertEquals(TaskStage.DONE, storage.taskStages.get(new TaskSpec("experiment", "E-AN-1")));
+        assertEquals(TaskStage.DONE, storage.taskStages.get(new TaskSpec("index", "")));
+    }
+
+    @Test
+    public void test_loadExperimentFail() throws Exception {
+        TaskSpec specld = new TaskSpec("loadexperiment", "http://host/E-AN-1");
+        manager.getLoader().shutdown(); // loading will fail
+
+        manager.enqueueTask(specld, TaskRunMode.RESTART, defaultUser, true);
+        waitForManager();
+
+        assertEquals(1, storage.operLog.size()); // 1 load, 1 index
+        assertEquals(LoaderTask.STAGE, storage.taskStages.get(specld)); // failed
+        assertNull(storage.taskStages.get(new TaskSpec("experiment", "E-AN-1"))); // didn't run
+        assertNull(storage.taskStages.get(new TaskSpec("index", ""))); // same
+    }
 
 }

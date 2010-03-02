@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * @author pashky
@@ -54,7 +55,7 @@ public class ExperimentTask implements WorkingTask {
                 task.queue.getNetcdfGenerator().generateNetCDFsForExperiment(task.taskSpec.getAccession(),
                         new NetCDFGeneratorListener() {
                             public void buildSuccess(NetCDFGenerationEvent event) {
-                                synchronized (task) {
+                               synchronized (task) {
                                     result.set(event);
                                     task.notifyAll();
                                 }
@@ -233,7 +234,9 @@ public class ExperimentTask implements WorkingTask {
         }
 
         public boolean isBlockedBy(TaskSpec by) {
-            return false;
+            return Arrays.asList(
+                    LoaderTask.TYPE_EXPERIMENT
+            ).contains(by.getType());
         }
 
         public Collection<TaskSpec> autoAddAfter(TaskSpec taskSpec) {
