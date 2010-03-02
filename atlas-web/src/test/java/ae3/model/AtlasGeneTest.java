@@ -60,6 +60,11 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
+    public void test_getGene() {
+        assertNotNull(gene);
+    }
+
+    @Test
     public void test_getGeneIds() {
         assertNotNull(gene.getGeneId());
         assertTrue(gene.getGeneId().matches("^[0-9]+$"));
