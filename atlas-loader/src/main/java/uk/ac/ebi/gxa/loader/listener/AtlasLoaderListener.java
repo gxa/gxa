@@ -42,4 +42,9 @@ public interface AtlasLoaderListener {
      * @param event the event representing this build failure
      */
     public void loadError(AtlasLoaderEvent event);
+
+    /**
+     * Updates loader with current progress
+     */
+    public void loadProgress(int progress);
 }

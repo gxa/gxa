@@ -200,11 +200,16 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                     log.info("Starting load operation on " + experimentResource.toString());
 
                     final LoadResult result = new LoadResult();
-                    result.success = experimentLoaderService.load(experimentResource, new AtlasLoaderService.AccessionListener() {
-                        public void setAccession(String accession) {
-                            result.accessions.add(accession);
-                        }
-                    });
+                    result.success = experimentLoaderService.load(experimentResource,
+                            listener != null ? new AtlasLoaderService.Listener() {
+                                public void setAccession(String accession) {
+                                    result.accessions.add(accession);
+                                }
+
+                                public void setProgress(int percent) {
+                                    listener.loadProgress(percent);
+                                }
+                            } : null);
 
                     log.debug("Finished load operation on " + experimentResource.toString());
 
@@ -271,9 +276,13 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                     log.info("Starting load operation on " + arrayDesignResource.toString());
 
                     final LoadResult result = new LoadResult();
-                    result.success = arrayLoaderService.load(arrayDesignResource, new AtlasLoaderService.AccessionListener() {
+                    result.success = arrayLoaderService.load(arrayDesignResource, new AtlasLoaderService.Listener() {
                         public void setAccession(String accession) {
                             result.accessions.add(accession);
+                        }
+
+                        public void setProgress(int percent) {
+                            listener.loadProgress(percent);
                         }
                     });
 

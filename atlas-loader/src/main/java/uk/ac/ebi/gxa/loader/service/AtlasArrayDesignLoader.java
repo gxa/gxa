@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.dao.LoadType;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.adf.*;
+import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
@@ -72,12 +73,12 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         this.geneIdentifierPriority = geneIdentifierPriority;
     }
 
-    public boolean load(URL adfFileLocation, AccessionListener accessionListener) {
+    public boolean load(final URL adfFileLocation, final Listener listener) {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
         // create an investigation ready to parse to
-        MAGETABArrayDesign arrayDesign = new MAGETABArrayDesign();
+        final MAGETABArrayDesign arrayDesign = new MAGETABArrayDesign();
 
         // pair this cache and this investigation in the registry
         AtlasLoadCacheRegistry.getRegistry().registerArrayDesign(arrayDesign, cache);
@@ -123,6 +124,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             });
 
             try {
+                AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
                 parser.parse(adfFileLocation, arrayDesign);
                 getLog().debug("Parsing finished");
             }
@@ -135,9 +137,9 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
 
-            if(accessionListener != null && result) {
+            if(listener != null && result) {
                 for(ArrayDesignBundle adb : cache.fetchAllArrayDesignBundles()) {
-                    accessionListener.setAccession(adb.getAccession());
+                    listener.setAccession(adb.getAccession());
                 }
             }
 
