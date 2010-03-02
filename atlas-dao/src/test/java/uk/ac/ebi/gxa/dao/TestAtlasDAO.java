@@ -17,7 +17,7 @@
  * For further details of the Gene Expression Atlas project, including source code,
  * downloads and documentation, please see:
  *
- * http://ostolop.github.com/gxa/
+ * http://gxa.github.com/gxa
  */
 
 package uk.ac.ebi.gxa.dao;

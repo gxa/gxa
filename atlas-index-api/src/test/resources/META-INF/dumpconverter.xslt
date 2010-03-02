@@ -18,7 +18,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   -->
 
 <xsl:stylesheet version='2.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>

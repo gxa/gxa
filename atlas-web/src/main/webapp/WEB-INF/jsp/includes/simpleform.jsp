@@ -21,7 +21,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   --%>
 
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>

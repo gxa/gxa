@@ -22,7 +22,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   --%>
 
 <jsp:include page="../includes/start_head.jsp"/>

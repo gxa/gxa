@@ -18,7 +18,7 @@
   ~ For further details of the Gene Expression Atlas project, including source code,
   ~ downloads and documentation, please see:
   ~
-  ~ http://ostolop.github.com/gxa/
+  ~ http://gxa.github.com/gxa
   -->
 
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -84,6 +84,12 @@
             <artifactId>ojdbc5</artifactId>
             <version>11.1.0.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+        </dependency>
+
 
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>
