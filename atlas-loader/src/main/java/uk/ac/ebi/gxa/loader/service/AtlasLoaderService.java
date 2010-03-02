@@ -67,12 +67,17 @@ public abstract class AtlasLoaderService<T> {
         this.allowReloading = allowReloading;
     }
 
+    public interface AccessionListener {
+        void setAccession(String accession);
+    }
+
     /**
      * Perform a load on the given loader resource.  Normally, experiment and array design loaders will be separate
      * implementations of this class so there is not a requirement to separate out the load methods.
      *
      * @param loaderResource the resource to load
+     * @param accessionHandler
      * @return true if this load succeeds, false otherwise
      */
-    public abstract boolean load(T loaderResource);
+    public abstract boolean load(T loaderResource, AccessionListener accessionHandler);
 }
