@@ -151,8 +151,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
-                getLog().error("There was a problem whilst trying to parse " + idfFileLocation);
-                e.printStackTrace();
+                getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
                 return false;
             }
 
@@ -317,8 +316,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
         catch (Exception e) {
             getLog().error("Writing " + numOfObjects + " objects failed: " + e.getMessage() +
-                    "\nData may be left in an inconsistent state: rerun this load to overwrite.");
-            e.printStackTrace();
+                    "\nData may be left in an inconsistent state: rerun this load to overwrite.", e);
             return success = false;
         }
         finally {
