@@ -29,12 +29,15 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.Handler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
+import uk.ac.ebi.arrayexpress2.magetab.lang.Progressible;
+import uk.ac.ebi.arrayexpress2.magetab.lang.AbstractStatifiable;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -340,5 +343,27 @@ public class AtlasLoaderUtils {
         else {
             return false;
         }
+    }
+
+    public static <T extends AbstractStatifiable & Progressible>
+    void createProgressWatcher(final T target, final AtlasLoaderService.Listener listener) {
+        if(listener == null)
+            return;
+        
+        new Thread() {
+            @Override
+            public void run() {
+                int progress = target.getProgress();
+                while(progress < 100 && target.getStatus() != Status.FAILED) {
+                    listener.setProgress(progress);
+                    try {
+                        Thread.sleep(1000);
+                    } catch(InterruptedException e) {
+                        // 
+                    }
+                }
+                listener.setProgress(100);
+            }
+        }.start();
     }
 }

@@ -67,8 +67,9 @@ public abstract class AtlasLoaderService<T> {
         this.allowReloading = allowReloading;
     }
 
-    public interface AccessionListener {
+    public interface Listener {
         void setAccession(String accession);
+        void setProgress(int percent);
     }
 
     /**
@@ -79,5 +80,5 @@ public abstract class AtlasLoaderService<T> {
      * @param accessionHandler
      * @return true if this load succeeds, false otherwise
      */
-    public abstract boolean load(T loaderResource, AccessionListener accessionHandler);
+    public abstract boolean load(T loaderResource, Listener accessionHandler);
 }

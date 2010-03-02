@@ -112,6 +112,10 @@ public class LoaderDriver {
                         e.printStackTrace();
                     }
                 }
+
+                public void loadProgress(int progress) {
+                    //To change body of implemented methods use File | Settings | File Templates.
+                }
             });
         }
         catch (MalformedURLException e) {

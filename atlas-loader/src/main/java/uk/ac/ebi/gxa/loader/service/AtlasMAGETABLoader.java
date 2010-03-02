@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -93,10 +94,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
      *
      * @param idfFileLocation the location of the idf part of the MAGETAB document you want to load.
-     * @param accessionListener
+     * @param listener
      * @return true if loading suceeded, false if loading failed
      */
-    public boolean load(URL idfFileLocation, AccessionListener accessionListener) {
+    public boolean load(URL idfFileLocation, Listener listener) {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -147,6 +148,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             });
 
             try {
+                AtlasLoaderUtils.createProgressWatcher(investigation, listener);
                 parser.parse(idfFileLocation, investigation);
                 getLog().debug("Parsing finished");
             }
@@ -159,9 +161,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
 
-            if(accessionListener != null && result) {
+            if(listener != null && result) {
                 for(Experiment experiment : cache.fetchAllExperiments()) {
-                    accessionListener.setAccession(experiment.getAccession());
+                    listener.setAccession(experiment.getAccession());
                 }
             }
 
