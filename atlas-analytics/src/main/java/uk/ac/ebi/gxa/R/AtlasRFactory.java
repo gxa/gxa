@@ -22,10 +22,10 @@
 
 package uk.ac.ebi.gxa.R;
 
-import org.kchine.r.server.RServices;
+import uk.ac.ebi.rcloud.server.RServices;
 
 /**
- * A factory for generating {@link org.kchine.r.server.RServices}.
+ * A factory for generating {@link uk.ac.ebi.rcloud.server.RServices}.
  *
  * @author Tony Burdett
  * @date 17-Nov-2009
@@ -33,7 +33,7 @@ import org.kchine.r.server.RServices;
 public interface AtlasRFactory {
     /**
      * Assertains whether the current R environment is valid, and can be used to acquire {@link
-     * org.kchine.r.server.RServices} objects.  This will return false if the current R setup cannot be used, for
+     * uk.ac.ebi.rcloud.server.RServices} objects.  This will return false if the current R setup cannot be used, for
      * example if a JNI bridge is missing in the case of a local R installation, or if required system properties or
      * environment variables are absent.  If validation checks pass and it appears that the R setup is sound, this will
      * return true.  An exception may be thrown when trying to access the underlying environment; the exception should
@@ -45,7 +45,7 @@ public interface AtlasRFactory {
     boolean validateEnvironment() throws AtlasRServicesException;
 
     /**
-     * Generates an {@link org.kchine.r.server.RServices} object that can be used to perform R calculations.
+     * Generates an {@link uk.ac.ebi.rcloud.server.RServices} object that can be used to perform R calculations.
      *
      * @return an RServices object, to which calculations can be submitted.
      * @throws AtlasRServicesException if this factory cannot create RServices using default properties

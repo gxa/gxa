@@ -22,10 +22,10 @@
 
 package uk.ac.ebi.gxa.analytics.compute;
 
-import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.rcloud.server.RServices;
 
 /**
  * Provides access to R computational infrastructure via an AtlasRFactory. To use, pass a {@link ComputeTask} to the

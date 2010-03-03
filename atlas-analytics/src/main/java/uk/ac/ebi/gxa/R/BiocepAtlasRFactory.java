@@ -24,16 +24,16 @@ package uk.ac.ebi.gxa.R;
 
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.kchine.r.RNumeric;
-import org.kchine.r.server.RConsoleAction;
-import org.kchine.r.server.RConsoleActionListener;
-import org.kchine.r.server.RServices;
-import org.kchine.rpf.RemoteLogListener;
-import org.kchine.rpf.ServantProvider;
-import org.kchine.rpf.ServantProviderFactory;
-import org.kchine.rpf.db.ServantProxyPoolSingletonDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.rcloud.rpf.RemoteLogListener;
+import uk.ac.ebi.rcloud.rpf.ServantProvider;
+import uk.ac.ebi.rcloud.rpf.ServantProviderFactory;
+import uk.ac.ebi.rcloud.rpf.db.ServantProxyPoolSingletonDB;
+import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RNumeric;
+import uk.ac.ebi.rcloud.server.callback.RAction;
+import uk.ac.ebi.rcloud.server.callback.RActionListener;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -99,8 +99,8 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             log.warn("pools.dbmode.driver not set");
             return false;
         }
-        if (System.getProperty("pools.dbmode.defaultpoolname") == null) {
-            log.warn("pools.dbmode.defaultpoolname not set");
+        if (System.getProperty("pools.dbmode.defaultpool") == null) {
+            log.warn("pools.dbmode.defaultpool not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.killused") == null) {
@@ -224,8 +224,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             // add output listener
             rServices.addRConsoleActionListener(new MyRConsoleActionListener());
             MyRemoteLogListener listener = new MyRemoteLogListener();
-            rServices.addOutListener(listener);
-            rServices.addErrListener(listener);
+            rServices.addLogListener(listener);
 
 
             log.debug("Acquired biocep worker " + rServices.getServantName());
@@ -330,12 +329,12 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
 
     public class MyRConsoleActionListener
             extends UnicastRemoteObject
-            implements RConsoleActionListener, Serializable {
+            implements RActionListener, Serializable {
         public MyRConsoleActionListener() throws RemoteException {
             super();
         }
 
-        public void rConsoleActionPerformed(RConsoleAction consoleAction) throws RemoteException {
+        public void notify(RAction consoleAction) throws RemoteException {
             BiocepAtlasRFactory.this.log.trace(
                     "R console said:\n\t" + consoleAction.getAttributes().get("log"));
         }
@@ -348,19 +347,8 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             super();
         }
 
-        public void write(final byte[] b) throws RemoteException {
-            BiocepAtlasRFactory.this.log.trace(new String(b));
-        }
-
-        public void write(final byte[] b, final int off, final int len) throws RemoteException {
-            BiocepAtlasRFactory.this.log.trace(new String(b, off, len));
-        }
-
-        public void write(final int b) throws RemoteException {
-            BiocepAtlasRFactory.this.log.trace(new String(new byte[]{(byte) b, (byte) (b >> 8)}));
-        }
-
-        public void flush() throws RemoteException {
+        public void write(String text) throws RemoteException {
+            BiocepAtlasRFactory.this.log.trace(text);
         }
     }
 }

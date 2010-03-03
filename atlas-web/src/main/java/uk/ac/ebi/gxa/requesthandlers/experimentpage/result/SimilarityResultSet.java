@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.experimentpage.result;
 
-import org.kchine.r.*;
+import uk.ac.ebi.rcloud.server.RType.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -237,7 +237,7 @@ public class SimilarityResultSet {
             RObject[] values = d.getValue();
             RArray gnIds = (RArray) values[0];
             RArray deIds = (RArray) values[1];
-            org.kchine.r.RNumeric scores = (org.kchine.r.RNumeric) values[2];
+            RNumeric scores = (RNumeric) values[2];
             for (int i = 0; i < rdf.getRowNames().length; i++) {
                 SimilarityResult sr = new SimilarityResult();
 

@@ -49,7 +49,7 @@
         <dependency>
             <groupId>uk.ac.ebi.arrayexpress2</groupId>
             <artifactId>limpopo</artifactId>
-            <version>1.0-beta-SNAPSHOT</version>
+            <version>1.0-beta</version>
         </dependency>
         <!-- loader API and db utils -->
         <dependency>

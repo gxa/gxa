@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
-import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -32,6 +31,7 @@ import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.*;
 import java.rmi.RemoteException;

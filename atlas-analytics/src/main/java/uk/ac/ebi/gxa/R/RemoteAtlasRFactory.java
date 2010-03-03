@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.R;
 
-import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.rcloud.server.RServices;
 
 /**
  * A concrete implementation of {@link uk.ac.ebi.gxa.R.AtlasRFactory} that generates RServices that run on a remote

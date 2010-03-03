@@ -25,13 +25,13 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.util.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.experimentpage.result.SimilarityResultSet;
-import org.kchine.r.RDataFrame;
-import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
