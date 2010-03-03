@@ -521,6 +521,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         Sample sample = new Sample();
         sample.setAccession("enee menee");
 
-       getAtlasDAO().writeSample(sample);
+       getAtlasDAO().writeSample(sample,"E-ABCD-1234");
     }
 }

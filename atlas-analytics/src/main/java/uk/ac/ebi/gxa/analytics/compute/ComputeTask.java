@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.analytics.compute;
 
-import org.kchine.r.server.RServices;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.rmi.RemoteException;
 

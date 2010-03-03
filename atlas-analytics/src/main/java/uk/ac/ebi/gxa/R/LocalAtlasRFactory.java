@@ -22,10 +22,10 @@
 
 package uk.ac.ebi.gxa.R;
 
-import org.kchine.r.server.RServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.DirectJNI;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.File;
 import java.util.concurrent.Semaphore;

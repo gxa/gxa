@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.R;
 
 import junit.framework.TestCase;
-import org.kchine.r.server.RServices;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.util.ArrayList;
 import java.util.List;

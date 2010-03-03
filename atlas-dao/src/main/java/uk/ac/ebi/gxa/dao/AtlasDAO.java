@@ -1191,7 +1191,7 @@ public class AtlasDAO {
      *
      * @param sample the sample to write
      */
-    public void writeSample(final Sample sample) {
+    public void writeSample(final Sample sample, final String experimentAccession) {
         // execute this procedure...
         /*
         PROCEDURE "A2_SAMPLESET" (
@@ -1206,13 +1206,16 @@ public class AtlasDAO {
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_SAMPLESET")
                         .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("ACCESSION")
+                        .useInParameterNames("EXPERIMENTACCESSION")
+                        .useInParameterNames("SAMPLEACCESSION")
                         .useInParameterNames("ASSAYS")
                         .useInParameterNames("PROPERTIES")
                         .useInParameterNames("SPECIES")
                         .useInParameterNames("CHANNEL")
                         .declareParameters(
-                                new SqlParameter("ACCESSION", Types.VARCHAR))
+                                new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("SAMPLEACCESSION", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("ASSAYS", OracleTypes.ARRAY, "ACCESSIONTABLE"))
                         .declareParameters(
@@ -1232,7 +1235,8 @@ public class AtlasDAO {
                         ? null
                         : convertPropertiesToOracleARRAY(sample.getProperties());
 
-        params.addValue("ACCESSION", sample.getAccession())
+        params.addValue("EXPERIMENTACCESSION", experimentAccession)
+                .addValue("SAMPLEACCESSION", sample.getAccession())
                 .addValue("ASSAYS", accessionsParam, OracleTypes.ARRAY, "ACCESSIONTABLE")
                 .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
                 .addValue("SPECIES", sample.getSpecies())
@@ -1241,12 +1245,13 @@ public class AtlasDAO {
         int assayCount = sample.getAssayAccessions() == null ? 0 : sample.getAssayAccessions().size();
         int propertiesCount = sample.getProperties() == null ? 0 : sample.getProperties().size();
         log.debug("Invoking A2_SAMPLESET with the following parameters..." +
-                "\n\tsample accession: {}" +
-                "\n\tassays count:     {}" +
-                "\n\tproperties count: {}" +
-                "\n\tspecies:          {}" +
-                "\n\tchannel:          {}",
-                  new Object[]{sample.getAccession(), assayCount, propertiesCount, sample.getSpecies(),
+                "\n\texperiment accession: {}" +
+                "\n\tsample accession:     {}" +
+                "\n\tassays count:         {}" +
+                "\n\tproperties count:     {}" +
+                "\n\tspecies:              {}" +
+                "\n\tchannel:              {}",
+                  new Object[]{experimentAccession, sample.getAccession(), assayCount, propertiesCount, sample.getSpecies(),
                           sample.getChannel()});
 
         // and execute

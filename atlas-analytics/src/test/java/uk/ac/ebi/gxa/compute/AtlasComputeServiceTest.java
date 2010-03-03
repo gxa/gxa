@@ -25,13 +25,13 @@ package uk.ac.ebi.gxa.compute;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.kchine.r.RNumeric;
-import org.kchine.r.server.RServices;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RNumeric;
 
 import java.rmi.RemoteException;
 

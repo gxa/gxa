@@ -265,13 +265,13 @@ public class AtlasRFactoryBuilder {
         System.setProperty(
                 "pools.dbmode.driver",
                 biocepProps.getProperty("biocep.db.driver"));
-        if (biocepProps.getProperty("biocep.defaultpoolname") == null) {
+        if (biocepProps.getProperty("biocep.defaultpool") == null) {
             throw new InstantiationException(
-                    "Supplied properties don't contain required property 'biocep.defaultpoolname'");
+                    "Supplied properties don't contain required property 'biocep.defaultpool'");
         }
         System.setProperty(
-                "pools.dbmode.defaultpoolname",
-                biocepProps.getProperty("biocep.defaultpoolname"));
+                "pools.dbmode.defaultpool",
+                biocepProps.getProperty("biocep.defaultpool"));
         if (biocepProps.getProperty("biocep.killused") == null) {
             throw new InstantiationException("Supplied properties don't contain required property 'biocep.killused'");
         }

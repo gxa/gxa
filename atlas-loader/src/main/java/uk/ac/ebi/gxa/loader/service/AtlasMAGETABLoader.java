@@ -321,8 +321,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().debug("Writing " + cache.fetchAllSamples().size() + " samples");
             System.out.print("Writing samples...");
             for (Sample sample : cache.fetchAllSamples()) {
-                getAtlasDAO().writeSample(sample);
-                System.out.print(".");
+                if (sample.getAssayAccessions().size() > 0) {
+                    String experimentAccession = cache.fetchAssay(sample.getAssayAccessions().get(0))
+                            .getExperimentAccession();
+                    getAtlasDAO().writeSample(sample, experimentAccession);
+                    System.out.print(".");
+                } else {
+                    return success = false;
+                }
             }
             System.out.println("done!");
             end = System.currentTimeMillis();
