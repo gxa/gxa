@@ -27,7 +27,7 @@
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
     <name>Gene Expression Atlas customized for ${groupId}</name>
-    <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+    <url>http://www.ebi.ac.uk/gxa</url>
     <packaging>war</packaging>
 
     <dependencies>
@@ -40,13 +40,11 @@
     </dependencies>
 
     <repositories>
-        <repository>
-            <id>atlas-repo</id>
-            <url>http://www.ebi.ac.uk/~tburdett/maven/atlas-repo</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
+	    <repository>
+		    <id>sonatype-nexus-staging</id>
+		    <name>Nexus Release Repository</name>
+		    <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+	    </repository>
     </repositories>
 
 </project>

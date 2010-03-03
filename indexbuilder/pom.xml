@@ -34,7 +34,7 @@
     <version>2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Gene Expression Atlas Indexbuilder</name>
-    <url>http://www.ebi.ac.uk/microarray-as/atlas/</url>
+    <url>http://www.ebi.ac.uk/gxa/</url>
 
 
     <dependencies>
