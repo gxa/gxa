@@ -71,6 +71,7 @@ ALTER TRIGGER "A2_ORGANISM_INSERT" ENABLE;
 /
 --------------------------------------------------------
 -- GENE PROPERTY
+-- ALTER TABLE A2_GENEPROPERTY ADD "IDENTIFIERPRIORITY" NUMBER(22,0)
 --------------------------------------------------------
  CREATE SEQUENCE  "A2_GENEPROPERTY_SEQ"  
     MINVALUE 1 MAXVALUE 1.00000000000000E+27 
@@ -80,7 +81,8 @@ ALTER TRIGGER "A2_ORGANISM_INSERT" ENABLE;
   CREATE TABLE "A2_GENEPROPERTY" (
     "GENEPROPERTYID" NUMBER(22,0)
   , "NAME" VARCHAR2(255)
-  , "AE2TABLENAME" VARCHAR2(255));    
+  , "AE2TABLENAME" VARCHAR2(255)
+  , "IDENTIFIERPRIORITY" NUMBER(22,0)); --If property used as identifier - then its priority    
 /
   ALTER TABLE "A2_GENEPROPERTY" 
   ADD CONSTRAINT "PK_GENEPROPERTY" 
@@ -113,6 +115,23 @@ end;
 /
 ALTER TRIGGER A2_GENEProperty_INSERT ENABLE;      
 /
+
+Insert into A2_GENEPROPERTY (GenePropertyID,Name,IDENTIFIERPRIORITY)
+Select A2_GENEPROPERTY_SEQ.nextval,'ensembl',1 from dual
+where not exists(select 1 from a2_geneproperty where Name = 'ensembl');
+
+Insert into A2_GENEPROPERTY (GenePropertyID,Name,IDENTIFIERPRIORITY)
+Select A2_GENEPROPERTY_SEQ.nextval,'ensgene',2 from dual
+where not exists(select 1 from a2_geneproperty where Name = 'ensgene');
+
+Insert into A2_GENEPROPERTY (GenePropertyID,Name,IDENTIFIERPRIORITY)
+Select A2_GENEPROPERTY_SEQ.nextval,'uniprot',3 from dual
+where not exists(select 1 from a2_geneproperty where Name = 'uniprot');
+
+--update a2_geneproperty set IDENTIFIERPRIORITY = 2 where name = 'uniprot'
+--select * from a2_GeneProperty
+--delete from a2_GeneProperty
+commit
 --------------------------------------------------------
 -- GENE PROPERTYVALUE
 --------------------------------------------------------

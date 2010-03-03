@@ -237,16 +237,16 @@ CREATE OR REPLACE VIEW vwExperimentSample as
 /  
 --select * from vwGeneIDProperty
 CREATE OR REPLACE VIEW vwGeneIDProperty as 
-  Select 'ENSGENE' as Name, 1 as Priority from dual
-  UNION ALL
-  Select 'UNIPROT' as Name, 2 as Priority from dual
-  UNION ALL
-  Select 'ENSEMBL' as Name, 3 as Priority from dual;
-  
+  Select Name, IdentifierPriority as Priority 
+  from a2_GeneProperty
+  where IdentifierPriority is not null; 
   
   /*Select Name, GenePropertyID Priority 
   from a2_GeneProperty
   where name in ('EMBL','ENSGENE');*/
+  
+  --select * from a2_GeneProperty
+  --update a2_GeneProperty set IdentifierPriority = GenePropertyID where Name in ('ensgene','ensembl','uniprot')
 /
 
 CREATE OR REPLACE VIEW vwGeneIDs as
@@ -340,8 +340,6 @@ AS
   ON de.designelementid=a.designelementid
   WHERE a.pvaladj      <= 0.05;
 /
-
-select * from VWGENEPROPERTIES
 
 CREATE OR REPLACE VIEW VWGENEPROPERTIES
 AS
