@@ -64,7 +64,8 @@ PROCEDURE A2_ASSAYSETEND(
 );
 
 PROCEDURE A2_SAMPLESET(
-    Accession varchar2
+    ExperimentAccession varchar2
+  , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
   , Species varchar2
@@ -561,6 +562,8 @@ PROCEDURE A2_EXPERIMENTSET (
 )
 AS
 begin
+  A2_EXPERIMENTDELETE(Accession);
+
   update a2_Experiment e
   set e.Description = A2_EXPERIMENTSET.description
   ,e.Performer = A2_EXPERIMENTSET.performer
@@ -587,7 +590,8 @@ end;
 --  DDL for Procedure A2_SAMPLESET
 --------------------------------------------------------
 PROCEDURE A2_SAMPLESET (
-    Accession varchar2
+    ExperimentAccession varchar2
+  , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
   , Species varchar2
@@ -600,6 +604,7 @@ as
   ArrayDesignID int := 0;
   UnknownDesignElementAccession varchar2(255) := NULL;
   LowerCaseProperties PropertyTable := A2_SAMPLESET.Properties;
+  AssayFound int := 0; 
 begin
 
  dbms_output.put_line('checking sample accession'); 
@@ -608,13 +613,14 @@ begin
       from a2_Sample s
       join a2_AssaySample ass on ass.SampleID = s.SampleID
       join a2_Assay a on a.AssayID = ass.AssayID
-      where a.Accession in (select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t) --join may be faster
-      and s.Accession = A2_SAMPLESET.Accession;
+      join a2_Experiment e on e.ExperimentID = a.ExperimentID
+      where e.Accession = A2_SAMPLESET.ExperimentAccession
+      and s.Accession = A2_SAMPLESET.SampleAccession;
   exception
      when NO_DATA_FOUND then
      begin
       insert into A2_Sample(Accession,Species,Channel)
-      values (A2_SAMPLESET.Accession,A2_SAMPLESET.Species,A2_SAMPLESET.Channel);
+      values (A2_SAMPLESET.SampleAccession,A2_SAMPLESET.Species,A2_SAMPLESET.Channel);
       
       Select a2_Sample_seq.currval into SampleID from dual;
      end;
@@ -622,18 +628,35 @@ begin
       RAISE;    
   end;
 
+  
+  select count(1) into AssayFound from a2_Assay a
+                         join a2_Experiment e on a.ExperimentID = e.ExperimentID
+                         where a.Accession in ( select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t)
+                         and e.accession = A2_SAMPLESET.ExperimentAccession;
+               
+  if (AssayFound < 1) then
+  RAISE_APPLICATION_ERROR(-20001, 'no assays found for sample');    
+  end if;   
+  
  --convert properties to lowercase 
   if(LowerCaseProperties is not null) then 
   for j in LowerCaseProperties.first..LowerCaseProperties.last loop
     LowerCaseProperties(j).name := LOWER(LowerCaseProperties(j).name);
   end loop;
   end if;
-
+  
   dbms_output.put_line('linking sample and assay'); 
   Insert into a2_AssaySample(AssayID, SampleID)
-  Select AssayID, SampleID
+  Select a.AssayID, A2_SAMPLESET.SampleID
   from a2_Assay a
-  where a.Accession in (select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t);
+  where a.Accession in (select * from table(CAST(A2_SAMPLESET.Assays as AccessionTable)) t)
+  and a.ExperimentID = (Select ExperimentID from a2_Experiment where Accession = A2_SAMPLESET.ExperimentAccession)
+  and not exists(select 1 from a2_AssaySample a2 
+                  where a2.SampleID = A2_SAMPLESET.SampleID 
+                  and a2.AssayID = a.AssayID);
+  
+  --select * from a2_AssaySample
+  --select * from a2_Assay
   
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
@@ -928,7 +951,8 @@ BEGIN
  exception 
     when NO_DATA_FOUND then
       dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment not found');
+      --RAISE_APPLICATION_ERROR(-20001, 'experiment not found');
+      return;
     when others then 
       RAISE;
   end; 
@@ -955,6 +979,8 @@ BEGIN
                                                     where a2_Assay.ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_AssayPV where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
+ 
+  Delete from LOAD_MONITOR where accession = A2_EXPERIMENTDELETE.Accession;
  
   Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
   
