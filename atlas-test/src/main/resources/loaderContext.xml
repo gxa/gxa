@@ -57,8 +57,8 @@
 
     <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:AE2TST"/>
-        <property name="username" value="atlas2"/>
+        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASTST"/>
+        <property name="username" value="ATLAS2"/>
         <property name="password" value="atlas2"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="initialSize" value="32"/>
