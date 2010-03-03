@@ -22,14 +22,20 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import org.apache.commons.cli.*;
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
@@ -50,7 +56,140 @@ import java.util.logging.LogManager;
  * @date 09-Sep-2009
  */
 public class LoaderDriver {
+    // Tony's canned urls
+    // "file:///home/tburdett/Documents/MAGE-TAB/A-AFFY-33/A-AFFY-33.adf.txt"
+    // "file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt"
+
+    private static String magetab_file_url = "";
+    private static String load_type = "";
+
+    private static String accession = "ALL";
+    private static boolean do_load = false;
+    private static boolean do_delete = false;
+    private static boolean do_index = false;
+    private static boolean do_netcdfs = false;
+    private static boolean do_analytics = false;
+
     public static void main(String[] args) {
+        parseArgs(args);
+
+        execute();
+    }
+
+    private static void parseArgs(String[] args) {
+        // Create a commons-cli parser
+        CommandLineParser parser = new BasicParser();
+        Options options = new Options();
+
+        options.addOption("h", "help", false, "Print this usage information");
+
+        OptionGroup coreOptions = new OptionGroup();
+        Option load = new Option("load", false, "Load a MAGE-TAB format file into the Atlas - requires -f");
+        Option delete = new Option("delete", false, "Remove an experiment from the Atlas - requires -a");
+        Option index = new Option("index", false, "Run the Atlas index builder - requires one of -a/-all");
+        Option netcdf = new Option("netcdf", false, "Run the Atlas NetCDF generator - requires one of -a/-all");
+        Option analytics =
+                new Option("analytics", false, "Run the Atlas Analytics generator - requires one of -a/-all");
+
+        coreOptions.addOption(load).addOption(delete).addOption(index).addOption(netcdf).addOption(analytics);
+
+        coreOptions.setRequired(true);
+        options.addOptionGroup(coreOptions);
+
+        OptionGroup modifierOptions = new OptionGroup();
+        Option file = new Option("f", "file", true, "the MAGE-TAB file to load into atlas - use the absolute path");
+        file.setArgName("absolute path");
+        Option acc = new Option("a", "accession", true, "the accession of an experiment in the Atlas - " +
+                "the specified action will be performed on this experiment");
+        acc.setArgName("accession");
+        Option all = new Option("all", false, "perform the specified action on ALL available experiments");
+
+        modifierOptions.addOption(file).addOption(acc).addOption(all);
+
+        modifierOptions.setRequired(true);
+        options.addOptionGroup(modifierOptions);
+
+        Option type = new Option("t", "type", true, "the type of load to perform - use 'experiment' or 'array'");
+        type.setArgName("experiment|array");
+        type.setOptionalArg(true);
+        options.addOption(type);
+
+        // Parse the arguments
+        try {
+            CommandLine commandLine = parser.parse(options, args);
+
+            if (commandLine.hasOption('h')) {
+                printUsage(options);
+                System.exit(0);
+            }
+            if (commandLine.hasOption("load")) {
+                do_load = true;
+                if (commandLine.hasOption('f') && commandLine.getOptionValue('f').startsWith("/") &&
+                        commandLine.hasOption('t')) {
+                    magetab_file_url = "file://" + commandLine.getOptionValue('f');
+                    if (commandLine.getOptionValue('t').equals("experiment")) {
+                        load_type = "experiment";
+                    }
+                    else if (commandLine.getOptionValue('t').equals("array")) {
+                        load_type = "array";
+                    }
+                    else {
+                        throw new ParseException("Valid types to load are 'experiment' or 'array'");
+                    }
+                }
+                else {
+                    throw new ParseException("In order to load, you must provide an absolute path to a MAGE-TAB file " +
+                            "and the type of load to carry out");
+                }
+            }
+            if (commandLine.hasOption("delete")) {
+                do_delete = true;
+                if (commandLine.hasOption('a')) {
+                    accession = commandLine.getOptionValue('a');
+                }
+                else {
+                    throw new ParseException("You must specify the accession to delete");
+                }
+            }
+            if (commandLine.hasOption("index")) {
+                do_index = true;
+                if (!commandLine.hasOption("all")) {
+                    throw new ParseException("You must specify -all to build the index");
+                }
+            }
+            if (commandLine.hasOption("netcdf")) {
+                do_netcdfs = true;
+                if (commandLine.hasOption('a')) {
+                    accession = commandLine.getOptionValue('a');
+                }
+                else if (commandLine.hasOption("all")) {
+                    accession = null;
+                }
+                else {
+                    throw new ParseException("You must specify the accession or 'all' to generate NetCDFs");
+                }
+            }
+            if (commandLine.hasOption("analytics")) {
+                do_analytics = true;
+                if (commandLine.hasOption('a')) {
+                    accession = commandLine.getOptionValue('a');
+                }
+                else if (commandLine.hasOption("all")) {
+                    accession = null;
+                }
+                else {
+                    throw new ParseException("You must specify the accession or 'all' to generate analytics");
+                }
+            }
+        }
+        catch (ParseException e) {
+            System.out.println(e.getMessage());
+            printUsage(options);
+            System.exit(1);
+        }
+    }
+
+    private static void execute() {
         // configure logging
         try {
             LogManager.getLogManager()
@@ -65,6 +204,8 @@ public class LoaderDriver {
         BeanFactory factory =
                 new ClassPathXmlApplicationContext("loaderContext.xml");
 
+        // DAO
+        final AtlasDAO atlasDAO = (AtlasDAO) factory.getBean("atlasDAO");
         // loader
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
         // index
@@ -77,245 +218,257 @@ public class LoaderDriver {
         final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
 
         // run the loader
-        try {
-//            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt").toURL();
-            final URL url = URI.create("file:///home/tburdett/Documents/MAGE-TAB/A-AFFY-33/A-AFFY-33.adf.txt").toURL();
-            final long indexStart = System.currentTimeMillis();
-            loader.loadArrayDesign(url, new AtlasLoaderListener() {
+        if (do_load) {
+            try {
+                final URL url = URI.create(magetab_file_url).toURL();
+                final long indexStart = System.currentTimeMillis();
+                AtlasLoaderListener listener = new AtlasLoaderListener() {
 
-                public void loadSuccess(AtlasLoaderEvent event) {
+                    public void loadSuccess(AtlasLoaderEvent event) {
+                        final long indexEnd = System.currentTimeMillis();
+
+                        String total = new DecimalFormat("#.##").format(
+                                (indexEnd - indexStart) / 60000);
+                        System.out.println(
+                                "Load completed successfully in " + total + " mins.");
+
+                        try {
+                            loader.shutdown();
+                        }
+                        catch (AtlasLoaderException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void loadError(AtlasLoaderEvent event) {
+                        System.out.println("Load failed");
+                        for (Throwable t : event.getErrors()) {
+                            t.printStackTrace();
+                        }
+
+                        try {
+                            loader.shutdown();
+                        }
+                        catch (AtlasLoaderException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void loadProgress(int progress) {
+                        // ignore
+                    }
+                };
+
+                if (load_type.equals("experiment")) {
+                    loader.loadExperiment(url, listener);
+                }
+                else if (load_type.equals("array")) {
+                    loader.loadArrayDesign(url, listener);
+                }
+            }
+            catch (MalformedURLException e) {
+                e.printStackTrace();
+                System.out.println("Load failed - inaccessible URL");
+            }
+        }
+        else {
+            // in case we don't run loader
+            try {
+                loader.shutdown();
+            }
+            catch (AtlasLoaderException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (do_delete) {
+            // in case we want to delete an experiment
+            System.out.println("Deleting experiment...");
+            atlasDAO.deleteExperiment(accession);
+            System.out.println("Experiment deleted!");
+        }
+
+        // run the index builder
+        if (do_index) {
+            final long indexStart = System.currentTimeMillis();
+            IndexBuilderListener listener = new IndexBuilderListener() {
+
+                public void buildSuccess(IndexBuilderEvent event) {
                     final long indexEnd = System.currentTimeMillis();
 
                     String total = new DecimalFormat("#.##").format(
                             (indexEnd - indexStart) / 60000);
                     System.out.println(
-                            "Load completed successfully in " + total + " mins.");
+                            "Index built successfully in " + total + " mins.");
 
                     try {
-                        loader.shutdown();
+                        builder.shutdown();
+                        solrContainer.shutdown();
                     }
-                    catch (AtlasLoaderException e) {
+                    catch (IndexBuilderException e) {
                         e.printStackTrace();
                     }
                 }
 
-                public void loadError(AtlasLoaderEvent event) {
-                    System.out.println("Load failed");
+                public void buildError(IndexBuilderEvent event) {
+                    System.out.println("Index failed to build");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                    }
+
+
+                    try {
+                        builder.shutdown();
+                        solrContainer.shutdown();
+                    }
+                    catch (IndexBuilderException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void buildProgress(String progressStatus) {
+                    System.out.println("Index progress now: " + progressStatus);
+                }
+            };
+
+            builder.buildIndex(listener);
+        }
+        else {
+            // in case we don't run index
+            try {
+                builder.shutdown();
+                solrContainer.shutdown();
+            }
+            catch (IndexBuilderException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // run the NetCDFGenerator
+        if (do_netcdfs) {
+            final long netStart = System.currentTimeMillis();
+            NetCDFGeneratorListener listener = new NetCDFGeneratorListener() {
+                public void buildSuccess(NetCDFGenerationEvent event) {
+                    final long netEnd = System.currentTimeMillis();
+
+                    String total = new DecimalFormat("#.##").format(
+                            (netEnd - netStart) / 60000);
+                    System.out.println(
+                            "NetCDFs generated successfully in " + total + " mins.");
+
+                    try {
+                        generator.shutdown();
+                    }
+                    catch (NetCDFGeneratorException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void buildError(NetCDFGenerationEvent event) {
+                    System.out.println("NetCDF Generation failed!");
                     for (Throwable t : event.getErrors()) {
                         t.printStackTrace();
                     }
 
                     try {
-                        loader.shutdown();
+                        generator.shutdown();
                     }
-                    catch (AtlasLoaderException e) {
+                    catch (NetCDFGeneratorException e) {
                         e.printStackTrace();
                     }
                 }
 
-                public void loadProgress(int progress) {
-                    //To change body of implemented methods use File | Settings | File Templates.
+                public void buildProgress(String progressStatus) {
+                    System.out.println("NetCDF progress now: " + progressStatus);
                 }
-            });
+            };
+
+            if (accession.equals("ALL")) {
+                generator.generateNetCDFs(listener);
+            }
+            else {
+                generator.generateNetCDFsForExperiment(accession, listener);
+            }
         }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-            System.out.println("Load failed - inaccessible URL");
-        }
-
-        // in case we don't run loader
-//        try {
-//            loader.shutdown();
-//        }
-//        catch (AtlasLoaderException e) {
-//            e.printStackTrace();
-//        }
-
-        // run the index builder
-//        final long indexStart = System.currentTimeMillis();
-//        builder.buildIndex(new IndexBuilderListener() {
-//
-//            public void buildSuccess(IndexBuilderEvent event) {
-//                final long indexEnd = System.currentTimeMillis();
-//
-//                String total = new DecimalFormat("#.##").format(
-//                        (indexEnd - indexStart) / 60000);
-//                System.out.println(
-//                        "Index built successfully in " + total + " mins.");
-//
-//                try {
-//                    builder.shutdown();
-//                    solrContainer.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            public void buildError(IndexBuilderEvent event) {
-//                System.out.println("Index failed to build");
-//                for (Throwable t : event.getErrors()) {
-//                    t.printStackTrace();
-//                }
-//
-//
-//                try {
-//                    builder.shutdown();
-//                    solrContainer.shutdown();
-//                }
-//                catch (IndexBuilderException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-
-        // in case we don't run index
-        try {
-            builder.shutdown();
-            solrContainer.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-        }
-
-        // run the NetCDFGenerator
-//        final long netStart = System.currentTimeMillis();
-//        generator.generateNetCDFs(
-//                new NetCDFGeneratorListener() {
-//                    public void buildSuccess(NetCDFGenerationEvent event) {
-//                        final long netEnd = System.currentTimeMillis();
-//
-//                        String total = new DecimalFormat("#.##").format(
-//                                (netEnd - netStart) / 60000);
-//                        System.out.println(
-//                                "NetCDFs generated successfully in " + total + " mins.");
-//
-//                        try {
-//                            generator.shutdown();
-//                        }
-//                        catch (NetCDFGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    public void buildError(NetCDFGenerationEvent event) {
-//                        System.out.println("NetCDF Generation failed!");
-//                        for (Throwable t : event.getErrors()) {
-//                            t.printStackTrace();
-//                        }
-//
-//                        try {
-//                            generator.shutdown();
-//                        }
-//                        catch (NetCDFGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
-
-        // iteratively invoke netcdf generator
-//        iterativelyInvokeNetCDFs(generator, 0, 5);
-
-        // in case we don't run netCDF generator
-        try {
-            generator.shutdown();
-        }
-        catch (NetCDFGeneratorException e) {
-            e.printStackTrace();
+        else {
+            // in case we don't run netCDF generator
+            try {
+                generator.shutdown();
+            }
+            catch (NetCDFGeneratorException e) {
+                e.printStackTrace();
+            }
         }
 
         // run the analytics
-//        final long netStart = System.currentTimeMillis();
-//        analytics.generateAnalytics(
-//                new AnalyticsGeneratorListener() {
-//                    public void buildSuccess(AnalyticsGenerationEvent event) {
-//                        final long netEnd = System.currentTimeMillis();
-//
-//                        String total = new DecimalFormat("#.##").format(
-//                                (netEnd - netStart) / 60000);
-//                        System.out.println(
-//                                "Analytics generated successfully in " + total + " mins.");
-//
-//                        try {
-//                            analytics.shutdown();
-//                        }
-//                        catch (AnalyticsGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    public void buildError(AnalyticsGenerationEvent event) {
-//                        System.out.println("Analytics Generation failed!");
-//                        for (Throwable t : event.getErrors()) {
-//                            t.printStackTrace();
-//                        }
-//
-//                        try {
-//                            analytics.shutdown();
-//                        }
-//                        catch (AnalyticsGeneratorException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
+        if (do_analytics) {
+            final long netStart = System.currentTimeMillis();
+            AnalyticsGeneratorListener listener = new AnalyticsGeneratorListener() {
+                public void buildSuccess(AnalyticsGenerationEvent event) {
+                    final long netEnd = System.currentTimeMillis();
 
-        // in case we don't run analytics
-        try {
-            analytics.shutdown();
+                    String total = new DecimalFormat("#.##").format(
+                            (netEnd - netStart) / 60000);
+                    System.out.println(
+                            "Analytics generated successfully in " + total + " mins.");
+
+                    try {
+                        analytics.shutdown();
+                    }
+                    catch (AnalyticsGeneratorException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void buildError(AnalyticsGenerationEvent event) {
+                    System.out.println("Analytics Generation failed!");
+                    for (Throwable t : event.getErrors()) {
+                        t.printStackTrace();
+                    }
+
+                    try {
+                        analytics.shutdown();
+                    }
+                    catch (AnalyticsGeneratorException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void buildProgress(String progressStatus) {
+                    System.out.println("Analytics progress now: " + progressStatus);
+                }
+            };
+            if (accession.equals("ALL")) {
+                analytics.generateAnalytics(listener);
+            }
+            else {
+                analytics.generateAnalyticsForExperiment(accession, listener);
+            }
         }
-        catch (AnalyticsGeneratorException e) {
-            e.printStackTrace();
+        else {
+            // in case we don't run analytics
+            try {
+                analytics.shutdown();
+            }
+            catch (AnalyticsGeneratorException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private static void iterativelyInvokeNetCDFs(final NetCDFGenerator generator,
-                                                 final int iteration,
-                                                 final int maxTimes) {
-        System.out.println("Invoking generator, iteration " + iteration);
+    private static void printUsage(Options options) {
+        String usage = "atlas";
 
-        // run the NetCDFGenerator
-        final long netStart = System.currentTimeMillis();
-        generator.generateNetCDFsForExperiment(
-                "E-TABM-199",
-                new NetCDFGeneratorListener() {
-                    public void buildSuccess(NetCDFGenerationEvent event) {
-                        int it = iteration + 1;
-                        final long netEnd = System.currentTimeMillis();
+        String header = "Atlas Test Workbench";
+        StringBuilder footer = new StringBuilder();
+        footer.append("\n");
+        footer.append("This is an application for interacting with various aspects of the Atlas internal ");
+        footer.append("functionality without the overhead of deploying as a full web application.  ");
+        footer.append("You can use it as an Atlas 'Workbench'.");
+        footer.toString();
 
-                        String total = new DecimalFormat("#.##").format(
-                                (netEnd - netStart) / 60000);
-                        System.out.println(
-                                "NetCDFs generated successfully in " + total + " mins.");
-
-                        if (it <= maxTimes) {
-                            iterativelyInvokeNetCDFs(generator, it, maxTimes);
-                        }
-                        else {
-                            try {
-                                generator.shutdown();
-                            }
-                            catch (NetCDFGeneratorException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    public void buildError(NetCDFGenerationEvent event) {
-                        System.out.println("NetCDF Generation failed!");
-                        for (Throwable t : event.getErrors()) {
-                            t.printStackTrace();
-                            try {
-                                generator.shutdown();
-                            }
-                            catch (NetCDFGeneratorException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    public void buildProgress(String progressStatus) {
-                        //To change body of implemented methods use File | Settings | File Templates.
-                    }
-                });
+        HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.setWidth(80);
+        helpFormatter.printHelp(usage, header, options, footer.toString(), true);
     }
 }
