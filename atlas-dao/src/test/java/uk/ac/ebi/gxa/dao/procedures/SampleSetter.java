@@ -36,7 +36,8 @@ import java.sql.Statement;
  */
 public class SampleSetter {
   public static void call(Connection conn,
-                          String accession,
+                          String experimentAccession,
+                          String sampleAccession,
                           Object assays, Object properties,
                           String species, String channel) throws SQLException {
     // this mimics the stored procedure A2_SAMPLESET in the actual DB
@@ -47,7 +48,7 @@ public class SampleSetter {
 
     stmt.executeQuery(
         "INSERT INTO A2_SAMPLE(sampleid, accession, species, channel) " +
-            "values (" + sampleid + ", '" + accession + "', '" + species +
+            "values (" + sampleid + ", '" + sampleAccession + "', '" + species +
             "', '" + channel + "');");
   }
 }
