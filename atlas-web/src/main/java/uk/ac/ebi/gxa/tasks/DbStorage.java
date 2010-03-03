@@ -69,8 +69,11 @@ public class DbStorage implements PersistentStorage {
             if(jdbcTemplate.update(
                     "MERGE INTO A2_TASKMAN_TASKSTAGE ts USING DUAL ON (ts.type = :1 and ts.accession = :2) " +
                             "WHEN MATCHED THEN UPDATE SET stage = :3 " +
-                            "WHEN NOT MATCHED THEN INSERT (type,accession,stage) values (:1, :2, :3)",
+                            "WHEN NOT MATCHED THEN INSERT (type,accession,stage) values (:4, :5, :6)",
                     new Object[] {
+                            task.getType(),
+                            encodeAccession(task.getAccession()),
+                            stage.toString(),
                             task.getType(),
                             encodeAccession(task.getAccession()),
                             stage.toString()

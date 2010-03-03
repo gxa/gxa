@@ -505,7 +505,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             stmt.executeQuery(
                     "CALL A2_ASSAYSET('accession', 'E-ABCD-1234', 'A-ABCD-1234')");
             stmt.executeQuery(
-                    "CALL A2_SAMPLESET('accession', null, null, 'species', 'channel')");
+                    "CALL A2_SAMPLESET('E-ABCD-1234', 'accession', null, null, 'species', 'channel')");
 
             // cleanup
             stmt.close();

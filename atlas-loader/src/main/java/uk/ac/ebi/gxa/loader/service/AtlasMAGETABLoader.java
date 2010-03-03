@@ -150,7 +150,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             try {
                 Thread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
                 parser.parse(idfFileLocation, investigation);
-                watcher.join();
+                if (watcher != null)
+                    watcher.join();
                 getLog().debug("Parsing finished");
             }
             catch (ParseException e) {
