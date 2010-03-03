@@ -26,11 +26,11 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0-rc1</version>
+        <version>2.0-rc2-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-skin</artifactId>
-    <version>2.0-rc1</version>
+    <version>2.0-rc2-SNAPSHOT</version>
     <name>Gene Expression Atlas Maven Site Skin</name>
     <description>Maven skin to generate site documentation with Atlas look and feel</description>
     <url>http://www.ebi.ac.uk/gxa</url>
