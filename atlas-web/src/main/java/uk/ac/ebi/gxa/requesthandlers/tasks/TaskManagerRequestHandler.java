@@ -54,6 +54,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 
 /**
  * Task manager AJAX servlet
@@ -112,7 +114,6 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     @Override
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM(); ++i) {
-                            log.info("Heavy analytics calculations " + i + " for " + experimentAccession);
                             listener.buildProgress("Heavy analytics calculations " + i + " for " + experimentAccession);
                             delay();
                         }
@@ -152,7 +153,6 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     @Override
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM(); ++i) {
-                            log.info("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
                             listener.buildProgress("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
                             delay();
                         }
@@ -242,7 +242,6 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     public void run() {
                         int cnt = DONOTHINGNUM();
                         for(int i = 0; i < cnt; ++i) {
-                            log.info("Loading experiment " + url + " " + i);
                             listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
                             delay();
                         }
@@ -262,7 +261,6 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     public void run() {
                         int cnt = DONOTHINGNUM();
                         for(int i = 0; i < cnt; ++i) {
-                            log.info("Loading array design " + url + " " + i);
                             listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
                             delay();
                         }
@@ -412,6 +410,11 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         };
     }
 
+    private static SimpleDateFormat FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private static String formatTimeStamp(Timestamp ts) {
+        return FORMAT.format(ts);
+    }
+
     private Object processOperationLog(String numStr) {
         int num = Integer.valueOf(numStr);
         return makeMap("items", new MappingIterator<DbStorage.OperationLogItem, Map>(dbStorage.getLastOperationLogItems(num).iterator()) {
@@ -423,7 +426,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                         "accession", li.taskSpec.getAccession(),
                         "user", li.user.getUserName(),
                         "message", li.message,
-                        "time", li.timestamp.toString()
+                        "time", formatTimeStamp(li.timestamp)
                 );
             }
         });
@@ -439,7 +442,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                         "message", li.message,
                         "stage", li.stage.getStage(),
                         "event", li.event,
-                        "time", li.timestamp.toString()
+                        "time", formatTimeStamp(li.timestamp)
                 );
             }
         });
