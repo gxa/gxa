@@ -270,6 +270,39 @@ function updateTaskLog() {
     });
 }
 
+function updateLoadList() {
+    taskmanCall('loadlist', {}, function (result) {
+        renderTpl('loadListExp', result);
+        renderTpl('loadListAD', result);
+        $('#loadListExp input').each(function (i, e) {
+            $(this).click(function () {
+                var url = result.experiments[i].url;
+                if(confirm('Do you really want to reload experiment from URL ' + url + '?')) {
+                    taskmanCall('enqueue', {
+                        runMode: 'RESTART',
+                        accession: url,
+                        type: 'loadexperiment',
+                        autoDepends: 'true'
+                    }, switchToQueue);
+                }
+            });
+        });
+        $('#loadListAD input').each(function (i, e) {
+            $(this).click(function () {
+                var url = result.experiments[i].url;
+                if(confirm('Do you really want to reload array design from URL ' + url + '?')) {
+                    taskmanCall('enqueue', {
+                        runMode: 'RESTART',
+                        accession: url,
+                        type: 'loadarraydesign',
+                        autoDepends: 'true'
+                    }, switchToQueue);
+                }
+            });
+        });
+    });
+}
+
 function redrawCurrentState() {
     if(currentState['exp-s'] != null)
         $('#experimentSearch').val(currentState['exp-s']);
@@ -288,6 +321,7 @@ function redrawCurrentState() {
         $('#tabs').tabs('select', $tab.que);
         updateQueue();
     } else if(currentState['tab'] == $tab.load) {
+        updateLoadList();
         $('#tabs').tabs('select', $tab.load);
     } else if(currentState['tab'] == $tab.olog) {
         updateOperLog();
@@ -384,6 +418,26 @@ function compileTemplates() {
            }
        }
     });
+
+    compileTpl('loadListExp', {
+        'tr' : {
+            'exp <- experiments': {
+                '.url': 'exp.url',
+                '.done': function (r) { return r.item.done ? 'Successful' : 'Failed'; },
+                '.@class+': function (r) { return r.item.done ? 'successful' : ''; }
+            }
+        }
+    });
+
+    compileTpl('loadListAD', {
+        'tr' : {
+            'ad <- arraydesigns': {
+                '.url': 'exp.url',
+                '.done': function (r) { return r.item.done ? 'Successful' : 'Failed'; },
+                '.@class+': function (r) { return r.item.done ? 'successful' : ''; }
+            }
+        }
+    });
 }
 
 $(document).ready(function () {
@@ -394,7 +448,8 @@ $(document).ready(function () {
         $tab[$(a).attr('href').substr(5)] = i;
     });
 
-    console.log($tab);
+    for(var k in $options)
+        $('.option-'+k).text($options[k]);
 
     $('#tabs').tabs({
         show: function(event, ui) {

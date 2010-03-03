@@ -49,13 +49,13 @@
                 color: #005555;
             }
 
-            #experimentList table.results, #taskList table, #operLog table, #taskLog table {
+            #experimentList table.results, #taskList table, #operLog table, #taskLog table, #loadListExp table {
                 border-collapse:collapse;
                 margin: 10px 0;                
                 width: 100%;
             }
 
-            #experimentList table.results td, #taskList td, #operLog td, #taskLog td {
+            #experimentList table.results td, #taskList td, #operLog td, #taskLog td, #loadListExp td {
                 border: 1px solid #cdcdcd;
                 padding: 3px;
             }
@@ -145,6 +145,19 @@
             #taskLog td.event, #taskLog td.stage {
                 color: #005555; font-weight: bold;
             }
+
+            #operLog td.message, #taskLog td.message { width: 50%; }
+            
+            #loadListAD tr.successful td.done, #loadListExp tr.successful td.done {
+                color: #005555; font-weight: bold;
+            }
+
+            #loadListAD td.done, #loadListExp td.done {
+                color: #aaaaaa; font-weight: bold;
+            }
+
+            #loadListAD td.url, #loadListExp td.url { width: 80%; }
+            td.accession, td.time, td.url { white-space:nowrap; }
         </style>
     </head>
     <body>
@@ -259,7 +272,7 @@
                     </div>
                 </div>
                 <div id="tab-olog">
-                    Displaying last records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
                     <div id="operLog">
                         <table>
                             <tr>
@@ -276,7 +289,7 @@
                     </div>
                 </div>
                 <div id="tab-tlog">
-                    Displaying last records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
                     <div id="taskLog">
                         <table>
                             <tr>
@@ -298,12 +311,35 @@
                             <legend>Load experiment</legend>
                             <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
                             <input type="button" value="Load" id="loadExperimentButton">
+
                         </fieldset>
+                        <div id="loadListExp">
+                            <table>
+                                <tr>
+                                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
+                                    <td class="done">Successful</td>
+                                    <td>
+                                        <input class="reloadButton" value="Reload" type="button">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                         <fieldset>
                             <legend>Load array design</legend>
                             <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
                             <input type="button" value="Load" id="loadArrayDesignButton">
                         </fieldset>
+                        <div id="loadListAD">
+                            <table>
+                                <tr>
+                                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
+                                    <td class="done">Successful</td>
+                                    <td>
+                                        <input class="reloadButton" value="Reload" type="button">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
