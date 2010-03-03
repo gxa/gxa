@@ -50,10 +50,15 @@ public class Efo implements InitializingBean {
     private IndexSearcher indexSearcher;
     private IndexReader indexReader;
     private URI uri;
+    private Loader loader;
 
     Map<String,EfoNode> efomap;
     String version;
     String versionInfo;
+
+    public Efo() {
+        loader = new Loader();
+    }
 
     public URI getUri() {
         return uri;
@@ -85,7 +90,6 @@ public class Efo implements InitializingBean {
     }
 
     public void load() {
-        Loader loader = new Loader();
         efomap = new HashMap<String,EfoNode>();
         loader.load(this, uri);
 

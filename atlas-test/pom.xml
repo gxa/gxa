@@ -54,6 +54,14 @@
     </build>
 
     <dependencies>
+        <!-- command line parser -->
+        <dependency>
+          <groupId>commons-cli</groupId>
+          <artifactId>commons-cli</artifactId>
+          <version>1.2</version>
+        </dependency>
+
+        <!-- core deps -->
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-loader</artifactId>
@@ -84,12 +92,13 @@
             <artifactId>ojdbc5</artifactId>
             <version>11.1.0.6.0</version>
         </dependency>
+
+        <!-- servlet api req'd for SOLR -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.4</version>
         </dependency>
-
 
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>

@@ -154,11 +154,10 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                                         source.getNodeName() + " but this sample is not due to be loaded. " +
                                         "This assay will not be linked to a sample";
 
-                                getLog().warn(message);
-//                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-//                                    .generateErrorItem(message, 511, this.getClass());
-//
-//                            throw new ObjectConversionException(error, false);
+                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(message, 511, this.getClass());
+
+                            throw new ObjectConversionException(error, false);
                             }
                         }
                         catch (LookupException e) {
@@ -167,11 +166,10 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
                                     source.getNodeName() + " but this sample is not due to be loaded. " +
                                     "This assay will not be linked to a sample";
 
-                            getLog().warn(message);
-//                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-//                                    .generateErrorItem(message, 511, this.getClass());
-//
-//                            throw new ObjectConversionException(error, false);
+                            ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(message, 511, this.getClass());
+
+                            throw new ObjectConversionException(error, false);
                         }
                     }
                 }

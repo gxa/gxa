@@ -44,12 +44,13 @@ import java.util.regex.Pattern;
  */
 class Loader {
     final private Logger log = LoggerFactory.getLogger(getClass());
+    private ReasonerSessionManager sessionManager;
     private OWLOntology ontology;
-//    private OWLReasoner reasoner;
     private Map<String, EfoNode> efomap;
 
     Loader() {
-
+        sessionManager = ReasonerSessionManager.createManager();
+//        sessionManager.setRecycleAfter(0);
     }
 
     private static class ClassAnnoVisitor implements OWLAnnotationVisitor {
@@ -140,7 +141,7 @@ class Loader {
         }
 
         // acquire a reasoner session and use fluxion utils to build the partonomy
-        ReasonerSession session = ReasonerSessionManager.createManager().acquireReasonerSession(ontology);
+        ReasonerSession session = sessionManager.acquireReasonerSession(ontology);
         try {
             // first, load each class
             this.efomap = efo.efomap;
