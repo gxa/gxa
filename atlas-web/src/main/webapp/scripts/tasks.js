@@ -26,9 +26,11 @@ var selectedExperiments = {};
 var selectAll = false;
 var $time = {};
 var $tpl = {};
+var $tab = {};
 var $options = {
     queueRefreshRate: 2000,
-    searchDelay: 500
+    searchDelay: 500,
+    logNumItems: 20
 };
 
 function storeState() {
@@ -85,7 +87,7 @@ function taskmanCall(op, params, func) {
 }
 
 function switchToQueue() {
-    $('#tabs').tabs('select', 1);
+    $('#tabs').tabs('select', $tab.que);
 }
 
 function updateBrowseExperiments() {
@@ -110,7 +112,7 @@ function updateBrowseExperiments() {
                 $('#experimentList input.continue, #experimentList input.restart').attr('disabled', 'disabled');
         }
 
-        $('#experimentList').render(result, $tpl.experimentList);
+        renderTpl('experimentList', result);
         $('#experimentList tr input.selector').click(function () {
             if($(this).is(':checked'))
                 selectedExperiments[this.value] = 1;
@@ -193,9 +195,7 @@ function updateBrowseExperiments() {
                     accession: '',
                     type: 'index',
                     autoDepends: 'true'
-                }, function(result) {
-                    $('#tabs').tabs('select', 1);
-                });
+                }, switchToQueue);
             }
         });
     });
@@ -220,7 +220,7 @@ function updatePauseButton(isRunning) {
 function updateQueue() {
     clearTimeout($time.queue);
     taskmanCall('tasklist', {}, function (result) {
-        $('#taskList').render(result, $tpl.taskList);
+        renderTpl('taskList', result);
 
         for(var i in result.tasks) {
             (function (task) {
@@ -250,6 +250,26 @@ function updateQueue() {
     });
 }
 
+function updateOperLog() {
+    clearTimeout($time.queue);
+    taskmanCall('operlog', { num: $options.logNumItems }, function (result) {
+        renderTpl('operLog', result);
+        $time.queue = setTimeout(function () {
+            updateOperLog();
+        }, $options.queueRefreshRate);
+    });
+}
+
+function updateTaskLog() {
+    clearTimeout($time.queue);
+    taskmanCall('tasklog', { num: $options.logNumItems }, function (result) {
+        renderTpl('taskLog', result);
+        $time.queue = setTimeout(function () {
+            updateTaskLog();
+        }, $options.queueRefreshRate);
+    });
+}
+
 function redrawCurrentState() {
     if(currentState['exp-s'] != null)
         $('#experimentSearch').val(currentState['exp-s']);
@@ -259,20 +279,24 @@ function redrawCurrentState() {
         $('#dateTo').val(currentState['exp-dt']);
     if(currentState['exp-io'] != null)
         $('#incompleteOnly').attr('checked', currentState['exp-io'] == 1);
-    if(currentState['tab'] == 0) {
+    if(currentState['tab'] == $tab.exp) {
         clearTimeout($time.queue);
-        $('#tabs').tabs('select', 0);
+        $('#tabs').tabs('select', $tab.exp);
         updateBrowseExperiments();
-    } else if(currentState['tab'] == 1) {
+    } else if(currentState['tab'] == $tab.que) {
         clearTimeout($time.search);
-        $('#tabs').tabs('select', 1);
+        $('#tabs').tabs('select', $tab.que);
         updateQueue();
-    } else if(currentState['tab'] == 2) {
-        $('#tabs').tabs('select', 2);
-    } else if(currentState['tab'] == 3) {
-        $('#tabs').tabs('select', 3);
+    } else if(currentState['tab'] == $tab.load) {
+        $('#tabs').tabs('select', $tab.load);
+    } else if(currentState['tab'] == $tab.olog) {
+        updateOperLog();
+        $('#tabs').tabs('select', $tab.olog);
+    } else if(currentState['tab'] == $tab.tlog) {
+        updateTaskLog();
+        $('#tabs').tabs('select', $tab.tlog);
     } else {
-        $('#tabs').tabs('select', 0);
+        $('#tabs').tabs('select', $tab.exp);
         $('#experimentSearch').val('');
         updateBrowseExperiments();
     }
@@ -284,6 +308,10 @@ function storeExperimentsFormState() {
     currentState['exp-dt'] = $('#dateTo').val();
     currentState['exp-io'] = $('#incompleteOnly').is(':checked') ? 1 : 0;
     storeState();
+}
+
+function renderTpl(name, data) {
+    $('#'+name).render(data, $tpl[name]);
 }
 
 function compileTemplates() {
@@ -328,11 +356,45 @@ function compileTemplates() {
             }
         }
     });
+
+    compileTpl('operLog', {
+       'tr' : {
+           'litem <- items': {
+               '.type': 'litem.type',
+               '.accession': 'litem.accession',
+               '.runMode': 'litem.runMode',
+               '.operation': 'litem.operation',
+               '.message': 'litem.message',
+               '.time': 'litem.time',
+               '.@class+': ' operation#{litem.operation} mode#{litem.runMode} type#{litem.type}'
+           }
+       }
+    });
+
+    compileTpl('taskLog', {
+       'tr' : {
+           'litem <- items': {
+               '.type': 'litem.type',
+               '.accession': 'litem.accession',
+               '.stage': 'litem.stage',
+               '.event': 'litem.event',
+               '.message': 'litem.message',
+               '.time': 'litem.time',
+               '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
+           }
+       }
+    });
 }
 
 $(document).ready(function () {
 
     compileTemplates();
+    
+    $('#tabs li a').each(function (i, a) {
+        $tab[$(a).attr('href').substr(5)] = i;
+    });
+
+    console.log($tab);
 
     $('#tabs').tabs({
         show: function(event, ui) {

@@ -28,7 +28,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 
 /**
  * Oracle DB-backed storage for {@link TaskManager} class
@@ -46,6 +55,15 @@ public class DbStorage implements PersistentStorage {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private static String decodeAccession(String accession) {
+        return " ".equals(accession) ? "" : accession;
+    }
+
+    private static String encodeAccession(String accession) {
+        return "".equals(accession) ? " " : accession;
+    }
+
+
     public void updateTaskStage(TaskSpec task, TaskStage stage) {
         try {
             if(jdbcTemplate.update(
@@ -54,7 +72,7 @@ public class DbStorage implements PersistentStorage {
                             "WHEN NOT MATCHED THEN INSERT (type,accession,stage) values (:1, :2, :3)",
                     new Object[] {
                             task.getType(),
-                            "".equals(task.getAccession()) ? " " : task.getAccession(),
+                            encodeAccession(task.getAccession()),
                             stage.toString()
                     }) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
@@ -69,7 +87,7 @@ public class DbStorage implements PersistentStorage {
                     "SELECT stage FROM A2_TASKMAN_TASKSTAGE ts WHERE ts.type = :1 AND ts.accession = :2",
                     new Object[] {
                             task.getType(),
-                            "".equals(task.getAccession()) ? " " : task.getAccession()
+                            encodeAccession(task.getAccession())
                     }, String.class).toString());
         } catch (EmptyResultDataAccessException e) {
             return TaskStage.NONE;
@@ -85,7 +103,7 @@ public class DbStorage implements PersistentStorage {
                     "INSERT INTO A2_TASKMAN_TASKSTAGELOG (TYPE, ACCESSION, STAGE, EVENT, MESSAGE) VALUES (?,?,?,?,?)",
                     new Object[] {
                             task.getType(),
-                            "".equals(task.getAccession()) ? " " : task.getAccession(),
+                            encodeAccession(task.getAccession()),
                             stage.getStage(),
                             event.toString(),
                             message == null ? "" : message
@@ -102,7 +120,7 @@ public class DbStorage implements PersistentStorage {
                     "INSERT INTO A2_TASKMAN_OPERATIONLOG (TYPE, ACCESSION, RUNMODE, USERNAME, OPERATION, MESSAGE) VALUES (?,?,?,?,?,?)",
                     new Object[] {
                             task.getType(),
-                            "".equals(task.getAccession()) ? " " : task.getAccession(),
+                            encodeAccession(task.getAccession()),
                             runMode == null ? "" : runMode.toString(),
                             user.getUserName(),
                             operation.toString(),
@@ -112,5 +130,92 @@ public class DbStorage implements PersistentStorage {
         } catch (DataAccessException e) {
             log.error("Can't store task operation log " + task + " " + runMode + " " + operation + " " + " " + user + " " + message, e);
         }
+    }
+
+    public static class OperationLogItem {
+        public final TaskSpec taskSpec;
+        public final TaskRunMode runMode;
+        public final TaskUser user;
+        public final TaskOperation operation;
+        public final String message;
+        public final Timestamp timestamp;
+
+        public OperationLogItem(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message, Timestamp timestamp) {
+            this.taskSpec = taskSpec;
+            this.runMode = runMode;
+            this.user = user;
+            this.operation = operation;
+            this.message = message != null ? message : "";
+            this.timestamp = timestamp;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<OperationLogItem> getLastOperationLogItems(int number) {
+        return (List<OperationLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,RUNMODE,USERNAME,OPERATION,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_OPERATIONLOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
+                new Object[] { number },
+                new RowMapper() {
+                    public Object mapRow(ResultSet rs, int i) throws SQLException {
+                        return new OperationLogItem(
+                                new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
+                                TaskRunMode.valueOf(rs.getString(3)),
+                                new TaskUser(rs.getString(4)),
+                                TaskOperation.valueOf(rs.getString(5)),
+                                rs.getString(6),
+                                rs.getTimestamp(7)
+                        );
+                    }
+                });
+    }
+
+    public static class TaskEventLogItem {
+        public final TaskSpec taskSpec;
+        public final TaskStage stage;
+        public final TaskStageEvent event;
+        public final String message;
+        public final Timestamp timestamp;
+
+        public TaskEventLogItem(TaskSpec taskSpec, TaskStage stage, TaskStageEvent event, String message, Timestamp timestamp) {
+            this.taskSpec = taskSpec;
+            this.stage = stage;
+            this.event = event;
+            this.message = message != null ? message : "";
+            this.timestamp = timestamp;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<TaskEventLogItem> getLastTaskEventLogItems(int number) {
+        return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,STAGE,EVENT,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_TASKSTAGELOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
+                new Object[] { number },
+                new RowMapper() {
+                    public Object mapRow(ResultSet rs, int i) throws SQLException {
+                        return new TaskEventLogItem(
+                                new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
+                                TaskStage.valueOf(rs.getString(3)),
+                                TaskStageEvent.valueOf(rs.getString(4)),
+                                rs.getString(5),
+                                rs.getTimestamp(6)
+                        );
+                    }
+                });
+    }
+
+    public Map<TaskSpec,TaskStage> getTaskStagesByType(final String type) {
+        final Map<TaskSpec,TaskStage> result = new HashMap<TaskSpec, TaskStage>();
+        jdbcTemplate.query("SELECT TYPE,ACCESSION,STAGE FROM A2_TASKMAN_TASKSTAGE WHERE TYPE = ?",
+                new Object[] { type },
+                new ResultSetExtractor() {
+                    public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
+                        while(rs.next()) {
+                            result.put(
+                                    new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
+                                    TaskStage.valueOf(rs.getString(3))
+                            );
+                        }
+                        return null;
+                    }
+                });
+        return result;
     }
 }
