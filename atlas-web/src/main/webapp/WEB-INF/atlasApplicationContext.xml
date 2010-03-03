@@ -338,6 +338,7 @@
     <bean name="taskManagerRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.TaskManagerRequestHandler">
         <property name="taskManager" ref="taskManager" />
         <property name="dao" ref="atlasInterfaceDAO"/>
+        <property name="dbStorage" ref="taskManagerStorage"/>
     </bean>
 
     <!-- JMX -->

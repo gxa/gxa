@@ -30,12 +30,7 @@
         <link rel="stylesheet" href="atlas.css" type="text/css" />
         <link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css"/>
         <style type="text/css">
-            #experimentsTable {
-                
-            }
-
             #tabs {
-                width: 850px;
             }
 
             fieldset { border:1px solid #DEDEDE; margin:10px 0 0 0; padding: 10px; }
@@ -54,13 +49,13 @@
                 color: #005555;
             }
 
-            #experimentList table.results, #taskList table {
+            #experimentList table.results, #taskList table, #operLog table, #taskLog table {
                 border-collapse:collapse;
                 margin: 10px 0;                
                 width: 100%;
             }
 
-            #experimentList table.results td, #taskList td {
+            #experimentList table.results td, #taskList td, #operLog td, #taskLog td {
                 border: 1px solid #cdcdcd;
                 padding: 3px;
             }
@@ -138,86 +133,103 @@
             #taskList td.state { border-right: none; }
             #taskList td.runMode { border-left: none; }
             #taskList td.type { border-right: none; }
+
+            #operLog tr.modeRESTART td.runMode, #operLog tr.operationENQUEUE td.operation {
+                color: #005555; font-weight: bold;
+            }
+
+            #operLog tr.modeCONTINUE td.runMode, #operLog tr.operationCANCEL td.operation {
+                color: #aaaaaa; font-weight: bold;
+            }
+
+            #taskLog td.event, #taskLog td.stage {
+                color: #005555; font-weight: bold;
+            }
         </style>
     </head>
     <body>
         <div id="ae_pagecontainer" style="font-size: 9pt;">
-            <h1>Atlas admin</h1>
+            <div style="margin-bottom: 10px">
+                <a href=""><img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas" border="0"></a>
+            </div>
 
             <div id="tabs">
                 <ul>
                     <li><a href="#tab-exp">Experiments</a></li>
-                    <li><a href="#tab-que">Queue</a></li>
-                    <li><a href="#tab-log">Logs</a></li>
                     <li><a href="#tab-load">Load</a></li>
+                    <li><a href="#tab-que">Queue</a></li>
+                    <li><a href="#tab-olog">Operations Log</a></li>
+                    <li><a href="#tab-tlog">Executions Log</a></li>
                 </ul>
                 <div id="tab-exp">
-                    <fieldset>
-                        <form action="#" id="experimentBrowseForm">
-                            <table>
-                            <tr>
-                                <td class="label"><label for="experimentSearch">Experiment:</label></td>
-                                <td>
-                                    <input type="text" id="experimentSearch" class="value" style="width:400px;">
-                                </td>
-                                <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
-                                <td><input type="checkbox" id="incompleteOnly" value="1"></td>
-                            </tr>
-                            <tr>
-                                <td class="label"><label for="dateFrom">Load date:</label></td>
-                                <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
-                                <td style="padding-left:20px;">
-                                    <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                                </td>
-                                <td></td>
-                            </tr>
-                            </table>
-                        </form>
-                    </fieldset>
-
-                    <div id="experimentList">
-                        <fieldset class="rebuildIndex">
+                    <div style="width:850px;">
+                        <fieldset>
+                            <form action="#" id="experimentBrowseForm">
                                 <table>
-                                <tr>
-                                    <td class="label">Index build is incomplete</td>
-                                    <td>
-                                        <input type="button" value="Rebuild index">
+                                    <tr>
+                                        <td class="label"><label for="experimentSearch">Experiment:</label></td>
+                                        <td>
+                                            <input type="text" id="experimentSearch" class="value" style="width:400px;">
+                                        </td>
+                                        <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
+                                        <td><input type="checkbox" id="incompleteOnly" value="1"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label"><label for="dateFrom">Load date:</label></td>
+                                        <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
+                                        <td style="padding-left:20px;">
+                                            <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </fieldset>
+
+                        <div id="experimentList">
+                            <fieldset class="rebuildIndex">
+                                <table>
+                                    <tr>
+                                        <td class="label">Index build is incomplete</td>
+                                        <td>
+                                            <input type="button" value="Rebuild index">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+                            <table class="results">
+                                <tr class="exprow">
+                                    <td class="sel">
+                                        <input class="selector" type="checkbox" value="" id="selExp">
+                                    </td>
+                                    <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
+                                    <td class="stage">NETCDF</td>
+                                </tr>
+                                <tr class="expcoll">
+                                    <td class="sel">
+                                        <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                                    </td>
+                                    <td colspan="2" class="selall">
+                                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
                                     </td>
                                 </tr>
-                                </table>
-                        </fieldset>
-                        <table class="results">
-                            <tr class="exprow">
-                                <td class="sel">
-                                    <input class="selector" type="checkbox" value="" id="selExp">
-                                </td>
-                                <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
-                                <td class="stage">NETCDF</td>
-                            </tr>
-                            <tr class="expcoll">
-                                <td class="sel">
-                                    <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
-                                </td>
-                                <td colspan="2" class="selall">
-                                    <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
-                                </td>
-                            </tr>
-                            <tr class="expall">
-                                <td class="sel">
-                                    <input id="selectAll" type="checkbox">
-                                </td>
-                                <td colspan="2" class="selall">
-                                    <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
-                                </td>
-                            </tr>
-                        </table>
-                        <fieldset class="expall">
-                            <input type="button" value="Continue processing selection" class="continue">
-                            <input type="button" value="Restart processing selection" class="restart">
-                        </fieldset>
+                                <tr class="expall">
+                                    <td class="sel">
+                                        <input id="selectAll" type="checkbox">
+                                    </td>
+                                    <td colspan="2" class="selall">
+                                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
+                                    </td>
+                                </tr>
+                            </table>
+                            <fieldset class="expall">
+                                <input type="button" value="Continue processing selection" class="continue">
+                                <input type="button" value="Restart processing selection" class="restart">
+                            </fieldset>
 
-                        <div class="expnone">
-                            No matching experiments found! Please check your query.
+                            <div class="expnone">
+                                No matching experiments found! Please check your query.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -246,20 +258,53 @@
                         </table>
                     </div>
                 </div>
-                <div id="tab-log">
-                    <h1>Logs</h1>
+                <div id="tab-olog">
+                    Displaying last records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    <div id="operLog">
+                        <table>
+                            <tr>
+                                <td class="time">10:34</td>
+                                <td class="operation">ENQUEUE</td>
+                                <td class="runMode">RESTART</td>
+                                <td class="type">experiment</td>
+                                <td class="accession">E-TABM-1</td>
+                                <td class="message">
+                                    Blah...
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="tab-tlog">
+                    Displaying last records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    <div id="taskLog">
+                        <table>
+                            <tr>
+                                <td class="time">10:34</td>
+                                <td class="event">STARTED</td>
+                                <td class="type">experiment</td>
+                                <td class="accession">E-TABM-1</td>
+                                <td class="stage">NETCDF</td>
+                                <td class="message">
+                                    Blah...
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
                 <div id="tab-load">
-                    <fieldset>
-                        <legend>Load experiment</legend>
-                        <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
-                        <input type="button" value="Load" id="loadExperimentButton">
-                    </fieldset>
-                    <fieldset>
-                        <legend>Load array design</legend>
-                        <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
-                        <input type="button" value="Load" id="loadArrayDesignButton">
-                    </fieldset>
+                    <div style="width:850px">
+                        <fieldset>
+                            <legend>Load experiment</legend>
+                            <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
+                            <input type="button" value="Load" id="loadExperimentButton">
+                        </fieldset>
+                        <fieldset>
+                            <legend>Load array design</legend>
+                            <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
+                            <input type="button" value="Load" id="loadArrayDesignButton">
+                        </fieldset>
+                    </div>
                 </div>
             </div>
         </div>

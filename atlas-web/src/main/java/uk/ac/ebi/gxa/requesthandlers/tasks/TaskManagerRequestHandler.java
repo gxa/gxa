@@ -65,11 +65,16 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
     private TaskManager taskManager;
     private AtlasDAO dao;
+    private DbStorage dbStorage;
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
 
 //        installTestProcessors();
+    }
+
+    public void setDbStorage(DbStorage dbStorage) {
+        this.dbStorage = dbStorage;
     }
 
     static void delay() {
@@ -409,6 +414,39 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         };
     }
 
+    private Object processOperationLog(String numStr) {
+        int num = Integer.valueOf(numStr);
+        return makeMap("items", new MappingIterator<DbStorage.OperationLogItem, Map>(dbStorage.getLastOperationLogItems(num).iterator()) {
+            public Map map(DbStorage.OperationLogItem li) {
+                return makeMap(
+                        "runMode", li.runMode,
+                        "operation", li.operation,
+                        "type", li.taskSpec.getType(),
+                        "accession", li.taskSpec.getAccession(),
+                        "user", li.user.getUserName(),
+                        "message", li.message,
+                        "time", li.timestamp.toString()
+                );
+            }
+        });
+    }
+
+    private Object processTaskEventLog(String numStr) {
+        int num = Integer.valueOf(numStr);
+        return makeMap("items", new MappingIterator<DbStorage.TaskEventLogItem, Map>(dbStorage.getLastTaskEventLogItems(num).iterator()) {
+            public Map map(DbStorage.TaskEventLogItem li) {
+                return makeMap(
+                        "type", li.taskSpec.getType(),
+                        "accession", li.taskSpec.getAccession(),
+                        "message", li.message,
+                        "stage", li.stage.getStage(),
+                        "event", li.event,
+                        "time", li.timestamp.toString()
+                );
+            }
+        });
+    }
+
     public Object process(HttpServletRequest request) {
         String op = request.getParameter("op");
 
@@ -454,6 +492,12 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                     request.getParameter("pendingOnly"),
                     request.getParameter("runMode"),
                     request.getParameter("autoDepends"));
+
+        else if("operlog".equals(op))
+            return processOperationLog(request.getParameter("num"));
+
+        else if("tasklog".equals(op))
+            return processTaskEventLog(request.getParameter("num"));
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
