@@ -21,18 +21,16 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.0-rc1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-web</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0-rc1</version>
     <packaging>war</packaging>
     <name>Gene Expression Atlas WebApp</name>
     <url>http://www.ebi.ac.uk/gxa</url>
@@ -144,17 +142,17 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-index-api</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.mydas</groupId>
@@ -178,27 +176,27 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>indexbuilder</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>netcdf-generator</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>netcdf-reader</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-analytics</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-loader</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
 
         <!-- spring webmvc for admin servlet -->
@@ -303,13 +301,13 @@
             <artifactId>atlas-index-api</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-	    <version>2.0-SNAPSHOT</version>
+	    <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-test</artifactId>
             <scope>test</scope>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>
@@ -329,14 +327,14 @@
             <artifactId>atlas-dao</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-test</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -388,6 +386,6 @@
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
-        <atlas.googleanalytics.script/>
+        <atlas.googleanalytics.script />
     </properties>
 </project>
