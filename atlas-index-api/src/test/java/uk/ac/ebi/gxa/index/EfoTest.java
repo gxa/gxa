@@ -22,20 +22,24 @@
 
 package uk.ac.ebi.gxa.index;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoTerm;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.StringTokenizer;
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.ServerSocket;
-import java.net.Socket;
 
-import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoTerm;
-import uk.ac.ebi.gxa.utils.FileUtil;
-import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
@@ -47,7 +51,7 @@ public class EfoTest {
 
     @BeforeClass
     public static void before() throws URISyntaxException {
-        
+
         efo = new Efo();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
     }
@@ -66,11 +70,12 @@ public class EfoTest {
 
         public ResourceHttpServer(int startPort, String resource) {
             this.resource = resource;
-            for(port = startPort; port < startPort + 1000; ++port) {
+            for (port = startPort; port < startPort + 1000; ++port) {
                 try {
                     serverSocket = new ServerSocket(port);
                     break;
-                } catch(IOException e) {
+                }
+                catch (IOException e) {
                     // continue
                 }
             }
@@ -83,13 +88,13 @@ public class EfoTest {
         @Override
         public void run() {
             try {
-                while(!stop){
+                while (!stop) {
                     Socket sock = serverSocket.accept();
 
                     BufferedReader in
                             = new BufferedReader(
                             new InputStreamReader(
-                                    sock.getInputStream() ) );
+                                    sock.getInputStream()));
                     String first = in.readLine();
 
                     String status = "HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n";
@@ -99,7 +104,7 @@ public class EfoTest {
                     InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
                     buf = new byte[1024];
                     int len = 0;
-                    while((len = is.read(buf)) >= 0) {
+                    while ((len = is.read(buf)) >= 0) {
                         sock.getOutputStream().write(buf, 0, len);
                     }
                     sock.getOutputStream().flush();
@@ -107,7 +112,7 @@ public class EfoTest {
                 }
                 serverSocket.close();
             }
-            catch( Exception e ){
+            catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -128,6 +133,36 @@ public class EfoTest {
         assertTrue(efo.getAllTerms().size() > 0);
 
         server.kill();
+    }
+
+    @Test
+    public void testLoadTwice() {
+        try {
+            Efo efo = new Efo();
+            efo.setUri(new URI("resource:META-INF/efo.owl"));
+            int termSize = efo.getAllTerms().size();
+            assertNotNull(efo);
+            assertEquals(1640, termSize);
+
+            // wait a bit
+            synchronized (this) {
+                try {
+                    wait(2000);
+                }
+                catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+
+            // load again
+            efo.load();
+            assertNotNull(efo);
+            assertEquals(1640, termSize);
+        }
+        catch (URISyntaxException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     @Test
@@ -202,7 +237,7 @@ public class EfoTest {
             assertEquals(1, result.size());
             assertTrue(isTermInCollection(result, "EFO_0000321"));
         }
-        
+
         {
             final Collection<EfoTerm> result = efo.searchTerm("efo_0000321");
             assertEquals(1, result.size());
@@ -232,11 +267,13 @@ public class EfoTest {
         assertTrue(isTermInCollection(result, "EFO_0000635"));
         assertTrue(!isTermInCollection(result, "EFO_0000001"));
     }
-    
+
     private boolean isTermInCollection(Collection<EfoTerm> coll, String id) {
-        for(EfoTerm t : coll)
-            if(id.equals(t.getId()))
+        for (EfoTerm t : coll) {
+            if (id.equals(t.getId())) {
                 return true;
+            }
+        }
         return false;
     }
 }
