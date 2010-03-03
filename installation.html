@@ -53,7 +53,7 @@
 <div class="section"><h3>GXA Dependencies</h3>
 <div class="section"><h4>Atlas 2 Database</h4>
 <p>Firstly, you need a local installation of a database, in the Atlas 2 schema, that can be used as a store for Atlas data and is used to generate SOLR indexes and NetCDF views over the data. Any data you load into the Atlas will go into this database.</p>
-<p>This database must be an Oracle database (preferrably a recent release - we use 11g). If you have an oracle database ready, you can download and install the Atlas 2 schema using the bundle of SQL scripts provided here: <a href="http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz" class="externalLink">http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz</a>
+<p>This database must be an Oracle database (preferrably a recent release - we use 11g). If you have an oracle database ready, you can download and install the Atlas 2 schema using the bundle of SQL scripts provided here: <a class="externalLink" href="http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz">http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz</a>
 , or alternatively grab the database export from FTP. There are instructions on how to do that provided here: <a href="beta-release.html">beta-release.html</a>
 .</p>
 </div>
@@ -66,15 +66,15 @@
 <p>-- Update with details of how to configure analyses].</p>
 </div>
 <div class="section"><h4>Tomcat</h4>
-<p>To run Atlas you will need a Tomcat server installed and running. Atlas should work on any tomcat version after 4.0. We use 5.5.29, but it has been tested on later versions up to 6.0. The Atlas web application will be deployed here. Tomcat can be downloaded <a href="http://tomcat.apache.org/" class="externalLink">here</a>
+<p>To run Atlas you will need a Tomcat server installed and running. Atlas should work on any tomcat version after 4.0. We use 5.5.29, but it has been tested on later versions up to 6.0. The Atlas web application will be deployed here. Tomcat can be downloaded <a class="externalLink" href="http://tomcat.apache.org/">here</a>
 .</p>
-<p>The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat. For this reason, you will need to make Oracle database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or $CATALINA_HOME/common/lib directory, depending on your version of Tomcat. See <a href="http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html" class="externalLink">http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html</a>
+<p>The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat. For this reason, you will need to make Oracle database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or $CATALINA_HOME/common/lib directory, depending on your version of Tomcat. See <a class="externalLink" href="http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html">http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html</a>
  for more information on setting up JNDI resources.</p>
-<p>Make sure that you have the latest version of the Oracle Java 5 drivers installed in the tomcat library directory. We recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers here: <a href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html" class="externalLink">http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html</a>
+<p>Make sure that you have the latest version of the Oracle Java 5 drivers installed in the tomcat library directory. We recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers here: <a class="externalLink" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html">http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html</a>
 </p>
 </div>
 <div class="section"><h4>Maven</h4>
-<p>To download, install and build a localised mirror of the Atlas, you will need to install the Maven software management tool. Maven is available <a href="http://maven.apache.org/" class="externalLink">here</a>
+<p>To download, install and build a localised mirror of the Atlas, you will need to install the Maven software management tool. Maven is available <a class="externalLink" href="http://maven.apache.org/">here</a>
 .</p>
 <p>If you are familiar with Maven, and Atlas archetype is available that can be configured to your local environment and contains all the dependencies required to build the full software suite.</p>
 <p>If you have not used Maven before, don't worry, no special knowledge is required. Using Maven to build your local Atlas simply means we can download and install all the modules required to create a customised version with a couple of simple commands.</p>
@@ -213,14 +213,14 @@
      
      <li>
 
-              <a href="">GXA@EBI</a>
+              <a href="">GXA at EBI</a>
      
      </li>
                                             
      
      <li>
 
-              <a href="../~tburdett/maven/atlas-repo">Atlas Maven Repository</a>
+              <a href="http://github.com/ostolop/gxa">GXA at GitHub</a>
      
      </li>
                   </ul>

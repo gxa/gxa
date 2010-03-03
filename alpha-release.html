@@ -61,17 +61,17 @@
 <p>The installer requires an Atlas 2 database to be installed locally, and also requires sufficient diskspace allocated to build the NetCDF and SOLR index files. It also requires a local installation of R; more notes on this below.</p>
 <div class="section"><h4>Notes on the Data Loading</h4>
 <p>Before installing the standalone Atlas, you will need to have created a database that conforms to the Atlas 2 specification [link required]. The loader also requires certain data to be prepopulated, so you will also need a dump of some of the data already in the ArrayExpress Atlas before you can start loading data.</p>
-<p>You will also need your data stored in MAGE-TAB format. The MAGE-TAB specification is <a href="http://www.mged.org/mage-tab/MAGE-TABv1.0.pdf" class="externalLink">here</a>
-. Please contact me (<a href="mailto:tburdett@ebi.ac.uk" class="externalLink">tburdett@ebi.ac.uk</a>
+<p>You will also need your data stored in MAGE-TAB format. The MAGE-TAB specification is <a class="externalLink" href="http://www.mged.org/mage-tab/MAGE-TABv1.0.pdf">here</a>
+. Please contact me (<a class="externalLink" href="mailto:tburdett@ebi.ac.uk">tburdett@ebi.ac.uk</a>
 ) if you need advice on how to reformat your current data.</p>
 </div>
 <div class="section"><h4>Notes on R</h4>
 <p>Currently, there is a bug in the alpha that is blocking startup of the interface. This is caused by some code in the interface that expects a biocep installation to be present in order to compute analytics. The interface was previously quite tied to the local (EBI) installation, and therefore contained references to a database tracking R worker status, that haven't been fully isolated yet. A patch that fixes this bug is coming soon. Until this bug is fixed, it won't be possible to actually start up the web interface.</p>
 </div>
 <div class="section"><h4>Notes on Interface/Admin tools</h4>
-<p>I have updated the interface to work with all the new tooling - this meant several quite significant changes, and these have likely introduced one or two subtle bugs that I haven't yet found. I've definitely noticed one bug that I still have to fix. Again, I'll release a patch to fix this asap. Please let me know of any further bugs (<a href="mailto:tburdett@ebi.ac.uk" class="externalLink">tburdett@ebi.ac.uk</a>
+<p>I have updated the interface to work with all the new tooling - this meant several quite significant changes, and these have likely introduced one or two subtle bugs that I haven't yet found. I've definitely noticed one bug that I still have to fix. Again, I'll release a patch to fix this asap. Please let me know of any further bugs (<a class="externalLink" href="mailto:tburdett@ebi.ac.uk">tburdett@ebi.ac.uk</a>
 ).</p>
-<p>I've also added an &quot;admin page&quot; for interacting with the various components of the standalone atlas. This is located at /admin/admin.jsp under the atlas interface, on startup. On this page there is a facility for invoking loads, netcdf generations, index rebuilds, etc. There is no link to this on the main page yet, because this is in a very early stage (it wasn't in our priorities for the alpha). More functionality needs to be added before it is safe to use (for example, preventing duplicate loads, tracking job completion etc.). The full version of this app will probably go into the beta version, but these things may be required before then in order to run loads and indexing operations. Please contact me for updates on this (<a href="mailto:tburdett@ebi.ac.uk" class="externalLink">tburdett@ebi.ac.uk</a>
+<p>I've also added an &quot;admin page&quot; for interacting with the various components of the standalone atlas. This is located at /admin/admin.jsp under the atlas interface, on startup. On this page there is a facility for invoking loads, netcdf generations, index rebuilds, etc. There is no link to this on the main page yet, because this is in a very early stage (it wasn't in our priorities for the alpha). More functionality needs to be added before it is safe to use (for example, preventing duplicate loads, tracking job completion etc.). The full version of this app will probably go into the beta version, but these things may be required before then in order to run loads and indexing operations. Please contact me for updates on this (<a class="externalLink" href="mailto:tburdett@ebi.ac.uk">tburdett@ebi.ac.uk</a>
 ).</p>
 <p>Thanks, Tony.</p>
 </div>
@@ -145,14 +145,14 @@
      
      <li>
 
-              <a href="">GXA@EBI</a>
+              <a href="">GXA at EBI</a>
      
      </li>
                                             
      
      <li>
 
-              <a href="../~tburdett/maven/atlas-repo">Atlas Maven Repository</a>
+              <a href="http://github.com/ostolop/gxa">GXA at GitHub</a>
      
      </li>
                   </ul>
