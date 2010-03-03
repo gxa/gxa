@@ -293,7 +293,7 @@ public class TaskManagerTest {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM; ++i) {
                             log.info("Loading experiment " + url + " " + i);
-                            listener.loadProgress(i*100/DONOTHINGNUM);
+                            listener.loadProgress("Parsing " + (i*100/DONOTHINGNUM) + "%");
                             delay();
                         }
                         if(shouldFail)
@@ -312,7 +312,7 @@ public class TaskManagerTest {
                     public void run() {
                         for(int i = 0; i < DONOTHINGNUM; ++i) {
                             log.info("Loading array design " + url + " " + i);
-                            listener.loadProgress(i*100/DONOTHINGNUM);
+                            listener.loadProgress("Parsing " + (i*100/DONOTHINGNUM) + "%");
                             delay();
                         }
                         if(shouldFail)

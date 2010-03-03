@@ -69,7 +69,7 @@ public abstract class AtlasLoaderService<T> {
 
     public interface Listener {
         void setAccession(String accession);
-        void setProgress(int percent);
+        void setProgress(String progress);
     }
 
     /**

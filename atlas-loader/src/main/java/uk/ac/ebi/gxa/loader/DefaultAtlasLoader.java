@@ -22,20 +22,23 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A default implementation of {@link uk.ac.ebi.gxa.loader.AtlasLoader} that loads experiments and array designs
@@ -184,154 +187,56 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         loadExperiment(experimentResource, null);
     }
 
-    public static class LoadResult {
-        public List<String> accessions = new ArrayList<String>();
-        public boolean success = false;
-    }
-
-    public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
-        final long startTime = System.currentTimeMillis();
-        final List<Future<LoadResult>> buildingTasks =
-                new ArrayList<Future<LoadResult>>();
-
-        buildingTasks.add(service.submit(new Callable<LoadResult>() {
-            public LoadResult call() throws AtlasLoaderException {
-                try {
-                    log.info("Starting load operation on " + experimentResource.toString());
-
-                    final LoadResult result = new LoadResult();
-                    result.success = experimentLoaderService.load(experimentResource,
-                            listener != null ? new AtlasLoaderService.Listener() {
-                                public void setAccession(String accession) {
-                                    result.accessions.add(accession);
-                                }
-
-                                public void setProgress(int percent) {
-                                    listener.loadProgress(percent);
-                                }
-                            } : null);
-
-                    log.debug("Finished load operation on " + experimentResource.toString());
-
-                    return result;
-                }
-                catch (Exception e) {
-                    log.error("Caught unchecked exception: ", e);
-                    return new LoadResult();
-                }
-            }
-        }));
-
-        // this tracks completion, if a listener was supplied
-        if (listener != null) {
-            new Thread(new Runnable() {
-                public void run() {
-                    boolean success = true;
-                    List<Throwable> observedErrors = new ArrayList<Throwable>();
-                    List<String> successfulAccessions = new ArrayList<String>();
-
-                    // wait for expt and gene indexes to build
-                    for (Future<LoadResult> buildingTask : buildingTasks) {
-                        try {
-                            LoadResult r = buildingTask.get();
-                            success = r.success && success;
-                            successfulAccessions.addAll(r.accessions);
-                        }
-                        catch (Exception e) {
-                            observedErrors.add(e);
-                            success = false;
-                        }
-                    }
-
-                    // now we've finished - get the end time, calculate runtime and fire the event
-                    long endTime = System.currentTimeMillis();
-                    long runTime = (endTime - startTime) / 1000;
-
-                    // create our completion event
-                    if (success) {
-                        listener.loadSuccess(AtlasLoaderEvent.success(
-                                runTime, TimeUnit.SECONDS, successfulAccessions));
-                    }
-                    else {
-                        listener.loadError(AtlasLoaderEvent.error(
-                                runTime, TimeUnit.SECONDS, observedErrors));
-                    }
-                }
-            }).start();
-        }
-    }
-
     public void loadArrayDesign(URL arrayDesignResource) {
         loadArrayDesign(arrayDesignResource, null);
     }
 
+    public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
+        loadByService(experimentLoaderService, experimentResource, listener);
+    }
+
     public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
-                final long startTime = System.currentTimeMillis();
-        final List<Future<LoadResult>> buildingTasks =
-                new ArrayList<Future<LoadResult>>();
+        loadByService(arrayLoaderService, arrayDesignResource, listener);
+    }
 
-        buildingTasks.add(service.submit(new Callable<LoadResult>() {
-            public LoadResult call() throws AtlasLoaderException {
+    private void loadByService(final AtlasLoaderService<URL> loaderService, final URL experimentResource, final AtlasLoaderListener listener) {
+        final long startTime = System.currentTimeMillis();
+        service.submit(new Runnable() {
+            public void run() {
+                final List<String> accessions = new ArrayList<String>();
+                final List<Throwable> errors = new ArrayList<Throwable>();
                 try {
-                    log.info("Starting load operation on " + arrayDesignResource.toString());
+                    log.info("Starting load operation on " + experimentResource.toString());
 
-                    final LoadResult result = new LoadResult();
-                    result.success = arrayLoaderService.load(arrayDesignResource, new AtlasLoaderService.Listener() {
-                        public void setAccession(String accession) {
-                            result.accessions.add(accession);
-                        }
+                    boolean success = loaderService.load(experimentResource,
+                            listener != null ? new AtlasLoaderService.Listener() {
+                                public void setAccession(String accession) {
+                                    accessions.add(accession);
+                                }
 
-                        public void setProgress(int percent) {
-                            listener.loadProgress(percent);
-                        }
-                    });
+                                public void setProgress(String progress) {
+                                    listener.loadProgress(progress);
+                                }
+                            } : null);
 
-                    log.debug("Finished load operation on " + arrayLoaderService.toString());
-
-                    return result;
+                    log.info("Finished load operation on " + experimentResource.toString());
+                    if(!success)
+                        errors.add(new RuntimeException("Errors while storing " + StringUtils.join(accessions, ' ') + " to database"));
                 }
                 catch (Exception e) {
-                    log.error("Caught unchecked exception: ", e);
-                    return new LoadResult();
+                    log.error("Loading error", e);
+                    errors.add(e);
                 }
-            }
-        }));
-
-        // this tracks completion, if a listener was supplied
-        if (listener != null) {
-            new Thread(new Runnable() {
-                public void run() {
-                    boolean success = true;
-                    List<Throwable> observedErrors = new ArrayList<Throwable>();
-                    List<String> successfulAccessions = new ArrayList<String>();
-
-                    // wait for expt and gene indexes to build
-                    for (Future<LoadResult> buildingTask : buildingTasks) {
-                        try {
-                            LoadResult r = buildingTask.get();
-                            success = r.success && success;
-                        }
-                        catch (Exception e) {
-                            observedErrors.add(e);
-                            success = false;
-                        }
-                    }
-
-                    // now we've finished - get the end time, calculate runtime and fire the event
+                if(listener != null) {
                     long endTime = System.currentTimeMillis();
                     long runTime = (endTime - startTime) / 1000;
-
-                    // create our completion event
-                    if (success) {
-                        listener.loadSuccess(AtlasLoaderEvent.success(
-                                runTime, TimeUnit.SECONDS, successfulAccessions));
-                    }
-                    else {
-                        listener.loadError(AtlasLoaderEvent.error(
-                                runTime, TimeUnit.SECONDS, observedErrors));
-                    }
+                    if(errors.isEmpty())
+                        listener.loadSuccess(AtlasLoaderEvent.success(runTime, TimeUnit.SECONDS, accessions));
+                    else
+                        listener.loadError(AtlasLoaderEvent.error(runTime, TimeUnit.SECONDS, errors));
                 }
-            }).start();
-        }
+            }
+        });
     }
+
 }

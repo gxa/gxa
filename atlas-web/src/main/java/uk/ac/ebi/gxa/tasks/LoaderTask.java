@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.tasks;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 
@@ -15,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author pashky
  */
 public class LoaderTask implements WorkingTask {
+    private static Logger log = LoggerFactory.getLogger(LoaderTask.class);
     public static final String TYPE_EXPERIMENT = "loadexperiment";
     public static final String TYPE_ARRAYDESIGN = "loadarraydesign";
     
@@ -80,8 +83,10 @@ public class LoaderTask implements WorkingTask {
                             }
                         }
 
-                        public void loadProgress(int progress) {
-                            currentProgress = progress + "%";
+                        public void loadProgress(String progress) {
+                            if(progress.length() > 0)
+                                log.info(progress);
+                            currentProgress = progress;
                         }
                     };
                     if(TYPE_EXPERIMENT.equals(spec.getType()))
@@ -120,6 +125,9 @@ public class LoaderTask implements WorkingTask {
                         queue.updateTaskStage(spec, TaskStage.DONE);
                         currentStage = TaskStage.DONE;
                     } else {
+                        for(Throwable e : result.get().getErrors()) {
+                            log.error("Task failed because of:", e);
+                        }
                         queue.writeTaskLog(spec, STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     }
 

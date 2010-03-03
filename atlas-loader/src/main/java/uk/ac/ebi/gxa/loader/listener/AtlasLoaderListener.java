@@ -46,5 +46,5 @@ public interface AtlasLoaderListener {
     /**
      * Updates loader with current progress
      */
-    public void loadProgress(int progress);
+    public void loadProgress(String progress);
 }

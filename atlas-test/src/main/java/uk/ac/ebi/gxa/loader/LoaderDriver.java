@@ -224,6 +224,10 @@ public class LoaderDriver {
                 final long indexStart = System.currentTimeMillis();
                 AtlasLoaderListener listener = new AtlasLoaderListener() {
 
+                    public void loadProgress(String progress) {
+                        System.out.println(progress);
+                    }
+
                     public void loadSuccess(AtlasLoaderEvent event) {
                         final long indexEnd = System.currentTimeMillis();
 

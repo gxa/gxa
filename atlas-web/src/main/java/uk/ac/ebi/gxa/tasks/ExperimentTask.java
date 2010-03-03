@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.tasks;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
@@ -37,6 +39,7 @@ import java.util.Arrays;
  * @author pashky
  */
 public class ExperimentTask implements WorkingTask {
+    private static Logger log = LoggerFactory.getLogger(ExperimentTask.class);
     public static final String TYPE = "experiment";
 
     private final TaskManager queue;
@@ -69,6 +72,8 @@ public class ExperimentTask implements WorkingTask {
                             }
 
                             public void buildProgress(String progressStatus) {
+                                if(progressStatus.length() > 0)
+                                    log.info(progressStatus);
                                 task.currentProgress = progressStatus;
                             }
                         });
@@ -84,7 +89,10 @@ public class ExperimentTask implements WorkingTask {
                     task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "");
                     return true;
                 } else {
-                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, "");
+                    for(Throwable e : result.get().getErrors()) {
+                        log.error("Task failed because of:", e);
+                    }
+                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     return false;
                 }
             }
@@ -111,6 +119,8 @@ public class ExperimentTask implements WorkingTask {
                             }
 
                             public void buildProgress(String progressStatus) {
+                                if(progressStatus.length() > 0)
+                                    log.info(progressStatus);
                                 task.currentProgress = progressStatus;
                             }
                         });
@@ -126,6 +136,9 @@ public class ExperimentTask implements WorkingTask {
                     task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "Successfully");
                     return true;
                 } else {
+                    for(Throwable e : result.get().getErrors()) {
+                        log.error("Task failed because of:", e);
+                    }
                     task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     return false;
                 }

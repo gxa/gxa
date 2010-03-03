@@ -148,8 +148,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             });
 
             try {
-                AtlasLoaderUtils.createProgressWatcher(investigation, listener);
+                Thread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
                 parser.parse(idfFileLocation, investigation);
+                watcher.join();
                 getLog().debug("Parsing finished");
             }
             catch (ParseException e) {
@@ -157,11 +158,18 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
                 return false;
             }
+            catch(InterruptedException e) {
+                //
+            }
+
+            if(listener != null)
+                listener.setProgress("Storing experiment to DB");
 
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
 
             if(listener != null && result) {
+                listener.setProgress("Done");
                 for(Experiment experiment : cache.fetchAllExperiments()) {
                     listener.setAccession(experiment.getAccession());
                 }
@@ -326,7 +334,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             return success = true;
         }
         catch (Exception e) {
-            getLog().error("Writing " + numOfObjects + " objects failed: " + e.getMessage() +
+            getLog().error("Writing " + numOfObjects + " objects failed. " +
                     "\nData may be left in an inconsistent state: rerun this load to overwrite.", e);
             return success = false;
         }
