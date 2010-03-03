@@ -69,8 +69,6 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
-
-//        installTestProcessors();
     }
 
     public void setDbStorage(DbStorage dbStorage) {
@@ -447,7 +445,26 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         });
     }
 
+    private Object processLoadList() {
+        return makeMap(
+                "experiments",
+                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(dbStorage.getTaskStagesByType("loadexperiment").entrySet().iterator()) {
+                    public Map map(Map.Entry<TaskSpec, TaskStage> load) {
+                        return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()));
+                    }
+                },
+
+                "arraydesigns",
+                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(dbStorage.getTaskStagesByType("loadarraydesign").entrySet().iterator()) {
+                    public Map map(Map.Entry<TaskSpec, TaskStage> load) {
+                        return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()) ? "1" : null);
+                    }
+                }
+        );
+    }
+
     public Object process(HttpServletRequest request) {
+//        installTestProcessors();
         String op = request.getParameter("op");
 
         if("pause".equals(op))
@@ -498,6 +515,9 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
         else if("tasklog".equals(op))
             return processTaskEventLog(request.getParameter("num"));
+
+        else if("loadlist".equals(op))
+            return processLoadList();
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
