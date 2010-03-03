@@ -348,6 +348,11 @@ public class TaskManager implements InitializingBean {
     }
 
     void writeTaskLog(TaskSpec taskSpec, TaskStage stage, TaskStageEvent event, String message) {
+        String logmsg = "Task " + taskSpec + " " + event + " at stage " + stage + " " + message;
+        if(event == TaskStageEvent.FAILED)
+            log.error(logmsg);
+        else
+            log.info(logmsg);
         storage.logTaskStageEvent(taskSpec, stage, event, message);
     }
 

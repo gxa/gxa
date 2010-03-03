@@ -31,11 +31,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author pashky
  */
 public class IndexTask implements WorkingTask {
+    private static Logger log = LoggerFactory.getLogger(IndexTask.class);
     public static final String TYPE = "index";
     public static final TaskStage INDEX_STAGE = TaskStage.valueOf("INDEX"); // we have only one non-done stage here
     private final TaskSpec spec;
@@ -96,6 +99,8 @@ public class IndexTask implements WorkingTask {
                     }
 
                     public void buildProgress(String progressStatus) {
+                        if(progressStatus.length() > 0)
+                            log.info(progressStatus);
                         currentProgress = progressStatus;
                     }
                 });
@@ -115,6 +120,9 @@ public class IndexTask implements WorkingTask {
                     queue.updateTaskStage(spec, TaskStage.DONE);
                     currentStage = TaskStage.DONE;
                 } else {
+                    for(Throwable e : result.get().getErrors()) {
+                        log.error("Task failed because of:", e);
+                    }
                     queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                 }
                 queue.notifyTaskFinished(IndexTask.this); // it's waiting for this

@@ -66,6 +66,12 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
     private TaskManager taskManager;
     private AtlasDAO dao;
 
+    public void setTaskManager(TaskManager taskManager) {
+        this.taskManager = taskManager;
+
+//        installTestProcessors();
+    }
+
     static void delay() {
         try { Thread.sleep(1000); } catch(Exception e) {/**/}
     }
@@ -74,9 +80,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         return (int)Math.round(Math.random() * 20) + 5;
     }
 
-    public void setTaskManager(TaskManager taskManager) {
-        this.taskManager = taskManager;
-
+    private void installTestProcessors() {
         final List<Throwable> ERRORS = Collections.<Throwable>singletonList(new Exception("Your biggest mistake"));
         taskManager.setAnalyticsGenerator(new AnalyticsGenerator() {
             boolean fixEverything = true;
@@ -236,7 +240,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                         int cnt = DONOTHINGNUM();
                         for(int i = 0; i < cnt; ++i) {
                             log.info("Loading experiment " + url + " " + i);
-                            listener.loadProgress(i*100/ cnt);
+                            listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
                             delay();
                         }
                         if(shouldFail)
@@ -256,7 +260,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
                         int cnt = DONOTHINGNUM();
                         for(int i = 0; i < cnt; ++i) {
                             log.info("Loading array design " + url + " " + i);
-                            listener.loadProgress(i*100/ cnt);
+                            listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
                             delay();
                         }
                         if(shouldFail)

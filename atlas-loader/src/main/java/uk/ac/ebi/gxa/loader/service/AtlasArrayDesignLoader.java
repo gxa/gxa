@@ -124,8 +124,9 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             });
 
             try {
-                AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
+                Thread watcher = AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
                 parser.parse(adfFileLocation, arrayDesign);
+                watcher.join();
                 getLog().debug("Parsing finished");
             }
             catch (ParseException e) {
@@ -133,6 +134,13 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
                 return false;
             }
+            catch(InterruptedException e) {
+                //
+            }
+            
+
+            if(listener != null)
+                listener.setProgress("Storing array design to DB");
 
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
