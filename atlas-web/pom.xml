@@ -124,7 +124,7 @@
                                 <artifactItem>
                                     <groupId>net.sourceforge.fluxion.ajax</groupId>
                                     <artifactId>fluxion-ajax-js</artifactId>
-                                    <version>1.0-SNAPSHOT</version>
+                                    <version>1.0-alpha</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                 </artifactItem>
@@ -212,12 +212,12 @@
         <dependency>
             <groupId>net.sourceforge.fluxion.ajax</groupId>
             <artifactId>fluxion-ajax</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0-alpha</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.fluxion.ajax</groupId>
             <artifactId>fluxion-ajax-js</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0-alpha</version>
         </dependency>
 
         <!-- web processing tech dependencies -->
