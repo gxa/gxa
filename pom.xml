@@ -26,14 +26,14 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0-rc2</version>
+    <version>2.0-rc3-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <scm>
-        <developerConnection>scm:svn:svn://bar.ebi.ac.uk/tags/atlas-2.0-rc2</developerConnection>
-        <connection>scm:svn:svn://bar.ebi.ac.uk/tags/atlas-2.0-rc2</connection>
-        <url>scm:svn:svn://bar.ebi.ac.uk/tags/atlas-2.0-rc2</url>
+        <developerConnection>scm:svn:svn://bar.ebi.ac.uk/branches/atlas-standalone</developerConnection>
+        <connection>scm:git:git://github.com/gxa/gxa.git</connection>
+        <url>scm:git:git://github.com/gxa/gxa.git</url>
     </scm>
 
     <build>
