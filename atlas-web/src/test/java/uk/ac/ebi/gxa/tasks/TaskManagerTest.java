@@ -371,7 +371,7 @@ public class TaskManagerTest {
         waitForManager();
 
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
-        assertEquals(IndexTask.INDEX_STAGE, storage.taskStages.get(speci));
+        assertEquals(IndexTask.STAGE, storage.taskStages.get(speci));
     }
 
     /**
@@ -439,7 +439,6 @@ public class TaskManagerTest {
         assertEquals(TaskOperation.ENQUEUE, storage.operLog.get(0).operation);
         assertEquals(speci, storage.operLog.get(1).task);
         assertEquals(defaultUser, storage.operLog.get(1).user);
-        assertEquals(TaskRunMode.RESTART, storage.operLog.get(1).runMode);
         assertEquals(TaskOperation.ENQUEUE, storage.operLog.get(1).operation);
     }
 
@@ -460,14 +459,14 @@ public class TaskManagerTest {
 
         manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, true);
         waitForManager();
-        assertEquals(4, storage.operLog.size()); // check we've logged the request, +1 for exp, +1 for auto-index
+        assertEquals(3, storage.operLog.size()); // check we've logged the request, +1 for exp, but no auto-index as no experiment actually happened
         assertEquals(6, storage.taskLog.size()); // ...but done nothing, as it's already done (including auto-added index task!)
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
         assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
 
         manager.enqueueTask(spec, TaskRunMode.RESTART, defaultUser, true);
         waitForManager();
-        assertEquals(6, storage.operLog.size()); // check we've logged the request, +1 for exp, +1 for auto-index
+        assertEquals(5, storage.operLog.size()); // check we've logged the request, +1 for exp, +1 for auto-index
         assertEquals(12, storage.taskLog.size()); // ...and did it once again
         assertEquals(TaskStage.DONE, storage.taskStages.get(spec));
         assertEquals(TaskStage.DONE, storage.taskStages.get(speci));
@@ -537,21 +536,15 @@ public class TaskManagerTest {
         manager.pause();
         TaskSpec spece1 = new TaskSpec("experiment", "EXP-AN-1");
         manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true);
-
-        // find auto-added index task
         TaskSpec specidx = new TaskSpec("index", "");
-        int taskIdxId = -1;
-        for(Task task : manager.getQueuedTasks())
-            if(task.getTaskSpec().equals(specidx))
-                taskIdxId = task.getTaskId();
-
+        int taskIdxId = manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true);
         manager.start();
         delay(); // let it do something
         manager.cancelTask(taskIdxId, defaultUser); // change our mind, cancel auto-added task
         waitForManager();
-        assertEquals(3, storage.operLog.size()); // 2 q's and 1 cancel
-        assertEquals(4, storage.taskLog.size()); // first task is completed succesfully, but no trace of second task
-        assertEquals(TaskStage.DONE, storage.taskStages.get(spece1)); // ...and no analytics is here
+        assertEquals(3, storage.operLog.size()); // 2 enqueues and 1 cancel
+        assertEquals(3, storage.taskLog.size()); // first task is completed succesfully, but no trace of second task
+        assertNotSame(TaskStage.DONE, storage.taskStages.get(spece1)); // ...and no analytics is here
         assertNotSame(TaskStage.DONE, storage.taskStages.get(specidx)); // indexing was not run!
     }
 
