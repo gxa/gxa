@@ -33,4 +33,8 @@ public interface Task {
     TaskStage getCurrentStage();
 
     TaskRunMode getRunMode();
+
+    TaskUser getUser();
+
+    boolean isRunningAutoDependencies();
 }

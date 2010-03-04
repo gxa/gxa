@@ -64,12 +64,18 @@ public class TaskManager implements InitializingBean {
         private final TaskSpec taskSpec;
         private TaskRunMode runMode;
         private final TaskStage stage;
+        private final TaskUser user;
+        private final boolean runningAutoDependencies;
 
-        QueuedTask(int taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskStage stage) {
+        QueuedTask(int taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskStage stage,
+                   TaskUser user, boolean runningAutoDependencies) {
             this.taskId = taskId;
             this.taskSpec = taskSpec;
             this.runMode = runMode;
             this.stage = stage;
+            this.user = user;
+            this.runningAutoDependencies = runningAutoDependencies;
+
         }
 
         public int getTaskId() {
@@ -86,6 +92,14 @@ public class TaskManager implements InitializingBean {
 
         public TaskRunMode getRunMode() {
             return runMode;
+        }
+
+        public TaskUser getUser() {
+            return user;
+        }
+
+        public boolean isRunningAutoDependencies() {
+            return runningAutoDependencies;
         }
 
         public void setRunMode(TaskRunMode runMode) {
@@ -187,25 +201,9 @@ public class TaskManager implements InitializingBean {
 
             // okay, we should run it propbably
             int taskId = getNextId();
-
-            QueuedTask proposedTask = new QueuedTask(taskId, taskSpec, runMode, getTaskStage(taskSpec));
-            WorkingTaskFactory factory = getFactoryBySpec(taskSpec);
+            QueuedTask proposedTask = new QueuedTask(taskId, taskSpec, runMode, getTaskStage(taskSpec), user, autoAddDependent);
 
             insertTaskToQueue(proposedTask);
-            if(autoAddDependent) {
-                for(TaskSpec autoTaskSpec : factory.autoAddAfter(taskSpec)) {
-                    log.info("Automatically queuing dependent task " + autoTaskSpec + " in mode " + runMode);
-
-                    alreadyThere = getTaskInQueue(autoTaskSpec);
-                    if(alreadyThere == null) {
-                        storage.logTaskOperation(autoTaskSpec, runMode, user, TaskOperation.ENQUEUE, "Automatically added as dependency for " + taskSpec);
-                        insertTaskToQueue(new QueuedTask(getNextId(), autoTaskSpec, runMode, getTaskStage(autoTaskSpec)));
-                    } else {
-                        if(alreadyThere.getRunMode() == TaskRunMode.CONTINUE && runMode == TaskRunMode.RESTART)
-                            alreadyThere.setRunMode(runMode); // adjust run mode to more deep
-                    }
-                }
-            }
 
             if(running)
                 runNextTask();

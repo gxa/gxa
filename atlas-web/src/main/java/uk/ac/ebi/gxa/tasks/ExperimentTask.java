@@ -30,32 +30,25 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author pashky
  */
-public class ExperimentTask implements WorkingTask {
+public class ExperimentTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(ExperimentTask.class);
+    
     public static final String TYPE = "experiment";
 
-    private final TaskManager queue;
-    private final TaskRunMode runMode;
-    private final TaskSpec taskSpec;
     private volatile boolean stop;
-    private volatile TaskStage currentStage;
-    private final int taskId;
-    private volatile String currentProgress = "";
 
     private enum Stage {
         NETCDF {
             public boolean run(final ExperimentTask task) {
                 final AtomicReference<NetCDFGenerationEvent> result = new AtomicReference<NetCDFGenerationEvent>(null);
-                task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.STARTED, "");
-                task.queue.getNetcdfGenerator().generateNetCDFsForExperiment(task.taskSpec.getAccession(),
+                task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.STARTED, "");
+                task.taskMan.getNetcdfGenerator().generateNetCDFsForExperiment(task.getTaskSpec().getAccession(),
                         new NetCDFGeneratorListener() {
                             public void buildSuccess(NetCDFGenerationEvent event) {
                                synchronized (task) {
@@ -86,13 +79,13 @@ public class ExperimentTask implements WorkingTask {
                         }
                 }
                 if(result.get().getStatus() == NetCDFGenerationEvent.Status.SUCCESS) {
-                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "");
+                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "");
                     return true;
                 } else {
                     for(Throwable e : result.get().getErrors()) {
                         log.error("Task failed because of:", e);
                     }
-                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     return false;
                 }
             }
@@ -101,8 +94,8 @@ public class ExperimentTask implements WorkingTask {
         ANALYTICS {
             public boolean run(final ExperimentTask task) {
                 final AtomicReference<AnalyticsGenerationEvent> result = new AtomicReference<AnalyticsGenerationEvent>(null);
-                task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.STARTED, "");
-                task.queue.getAnalyticsGenerator().generateAnalyticsForExperiment(task.taskSpec.getAccession(),
+                task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.STARTED, "");
+                task.taskMan.getAnalyticsGenerator().generateAnalyticsForExperiment(task.getTaskSpec().getAccession(),
                         new AnalyticsGeneratorListener() {
                             public void buildSuccess(AnalyticsGenerationEvent event) {
                                 synchronized (task) {
@@ -133,13 +126,13 @@ public class ExperimentTask implements WorkingTask {
                         }
                 }
                 if(result.get().getStatus() == AnalyticsGenerationEvent.Status.SUCCESS) {
-                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "Successfully");
+                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "Successfully");
                     return true;
                 } else {
                     for(Throwable e : result.get().getErrors()) {
                         log.error("Task failed because of:", e);
                     }
-                    task.queue.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     return false;
                 }
             }
@@ -158,15 +151,8 @@ public class ExperimentTask implements WorkingTask {
     public void start() {
 
         final Stage fromStage;
-        if(runMode == TaskRunMode.CONTINUE) {
-            if(TaskStage.DONE.equals(currentStage)) {
-                new Thread() { // TODO: that's awful, but let's leave for the moment 
-                    public void run() {
-                        queue.notifyTaskFinished(ExperimentTask.this);
-                    }
-                }.start();
-                return; // do nothing, "continue" fired on finished task by mistake
-            }
+
+        if(getRunMode() == TaskRunMode.CONTINUE) {
             if(TaskStage.NONE.equals(currentStage))
                 fromStage = Stage.values()[0]; // continue from nothing = start from scratch
             else
@@ -175,71 +161,51 @@ public class ExperimentTask implements WorkingTask {
             fromStage = Stage.values()[0];
 
         stop = false;
-        if(fromStage == Stage.DONE)
-            return;
 
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                for(int stageId = fromStage.ordinal(); stageId < Stage.values().length; ++stageId) {
-                    Stage stage = Stage.values()[stageId];
-                    currentStage = TaskStage.valueOf(stage);
-                    ExperimentTask.this.queue.updateTaskStage(getTaskSpec(), currentStage); // here we are, setting stage which is about to start
-                    if(stop) {
-                        // we've been stopped in the meanwhile, so do not continue and generate a "fail" event
-                        queue.writeTaskLog(getTaskSpec(), currentStage, TaskStageEvent.STOPPED, "Stopped by user request");
-                        break;
-                    }
+                if(fromStage != Stage.DONE) {
+                    for(int stageId = fromStage.ordinal(); stageId < Stage.values().length; ++stageId) {
+                        Stage stage = Stage.values()[stageId];
+                        ExperimentTask.this.taskMan.updateTaskStage(getTaskSpec(), currentStage = TaskStage.valueOf(stage)); // here we are, setting stage which is about to start
+                        if(stop) {
+                            // we've been stopped in the meanwhile, so do not continue and generate a "fail" event
+                            taskMan.writeTaskLog(getTaskSpec(), getCurrentStage(), TaskStageEvent.STOPPED, "Stopped by user request");
+                            break;
+                        }
 
-                    boolean doContinue = stage.run(ExperimentTask.this);
-                    if(!doContinue)
-                        break;
+                        boolean doContinue = stage.run(ExperimentTask.this);
+                        if(!doContinue)
+                            break;
+                    }
+                    if(TaskStage.DONE.equals(getCurrentStage())) {
+                        // reset index to "dirty" stage
+                        TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
+                        taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
+                        if(isRunningAutoDependencies()) {
+                            taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true);
+                        }
+                    }
                 }
-                if(TaskStage.DONE.equals(currentStage)) {
-                    // reset index to "dirty" stage
-                    queue.updateTaskStage(new TaskSpec(IndexTask.TYPE, ""), IndexTask.INDEX_STAGE);
-                }
-                queue.notifyTaskFinished(ExperimentTask.this); // it's waiting for this
+                taskMan.notifyTaskFinished(ExperimentTask.this);
             }
         });
+
         thread.setName("ExperimentTaskThread-" + getTaskSpec() + "-" + getTaskId());
         thread.start();
     }
 
-    private ExperimentTask(final TaskManager queue, final int taskId, final TaskSpec taskSpec, final TaskRunMode runMode) {
-        this.queue = queue;
-        this.taskId = taskId;
-        this.taskSpec = taskSpec;
-        this.runMode = runMode;
-        this.currentStage = queue.getTaskStage(getTaskSpec());
-    }
-
-    public TaskSpec getTaskSpec() {
-        return taskSpec;
-    }
-
-    public TaskStage getCurrentStage() {
-        return currentStage;
-    }
-
-    public TaskRunMode getRunMode() {
-        return runMode;
-    }
-
-    public int getTaskId() {
-        return taskId;
+    private ExperimentTask(final TaskManager queue, final Task prototype) {
+        super(queue, prototype);
     }
 
     public void stop() {
         stop = true;
     }
 
-    public String getCurrentProgress() {
-        return currentProgress;
-    }
-
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
         public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new ExperimentTask(queue, prototype.getTaskId(), prototype.getTaskSpec(), prototype.getRunMode());
+            return new ExperimentTask(queue, prototype);
         }
 
         public boolean isForType(TaskSpec taskSpec) {
@@ -250,10 +216,6 @@ public class ExperimentTask implements WorkingTask {
             return Arrays.asList(
                     LoaderTask.TYPE_EXPERIMENT
             ).contains(by.getType());
-        }
-
-        public Collection<TaskSpec> autoAddAfter(TaskSpec taskSpec) {
-            return Collections.singletonList(new TaskSpec(IndexTask.TYPE, ""));
         }
     };
 

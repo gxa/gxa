@@ -22,68 +22,36 @@
 
 package uk.ac.ebi.gxa.tasks;
 
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
+
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author pashky
  */
-public class IndexTask implements WorkingTask {
+public class IndexTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(IndexTask.class);
+    
     public static final String TYPE = "index";
-    public static final TaskStage INDEX_STAGE = TaskStage.valueOf("INDEX"); // we have only one non-done stage here
-    private final TaskSpec spec;
-    private final TaskManager queue;
-    private final TaskRunMode runMode;
-    private volatile TaskStage currentStage;
-    private final int taskId;
-    private volatile String currentProgress = "";
-
-    private IndexTask(final TaskManager queue, final int taskId, final TaskSpec spec, final TaskRunMode runMode) {
-        this.taskId = taskId;
-        this.spec = spec;
-        this.queue = queue;
-        this.runMode = runMode;
-        this.currentStage = queue.getTaskStage(spec);
-    }
-
-    public TaskSpec getTaskSpec() {
-        return spec;
-    }
-
-    public TaskStage getCurrentStage() {
-        return currentStage;
-    }
-
-    public TaskRunMode getRunMode() {
-        return runMode;
-    }
-
-    public int getTaskId() {
-        return taskId;
-    }
+    public static final TaskStage STAGE = TaskStage.valueOf("INDEX"); // we have only one non-done stage here
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(runMode == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
-                    queue.notifyTaskFinished(IndexTask.this);
+                if(getRunMode() == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
+                    taskMan.notifyTaskFinished(IndexTask.this);
                     return;
                 }
 
-                queue.updateTaskStage(spec, INDEX_STAGE);
-                queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.STARTED, "");
+                taskMan.updateTaskStage(getTaskSpec(), STAGE);
+                taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
                 final AtomicReference<IndexBuilderEvent> result = new AtomicReference<IndexBuilderEvent>(null);
-                queue.getIndexBuilder().buildIndex(new IndexBuilderListener() {
+                taskMan.getIndexBuilder().buildIndex(new IndexBuilderListener() {
                     public void buildSuccess(IndexBuilderEvent event) {
                         synchronized (IndexTask.this) {
                             result.set(event);
@@ -116,16 +84,16 @@ public class IndexTask implements WorkingTask {
                 }
 
                 if(result.get().getStatus() == IndexBuilderEvent.Status.SUCCESS) {
-                    queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.FINISHED, "");
-                    queue.updateTaskStage(spec, TaskStage.DONE);
+                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FINISHED, "");
+                    taskMan.updateTaskStage(getTaskSpec(), TaskStage.DONE);
                     currentStage = TaskStage.DONE;
                 } else {
                     for(Throwable e : result.get().getErrors()) {
                         log.error("Task failed because of:", e);
                     }
-                    queue.writeTaskLog(spec, INDEX_STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                 }
-                queue.notifyTaskFinished(IndexTask.this); // it's waiting for this
+                taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
             }
         });
         thread.setName("IndexTaskThread-" + getTaskSpec() + "-" + getTaskId());
@@ -136,13 +104,13 @@ public class IndexTask implements WorkingTask {
         // can't stop this task as there's no stages and no control of index builder when it's running
     }
 
-    public String getCurrentProgress() {
-        return currentProgress;
+    private IndexTask(final TaskManager queue, final Task prototype) {
+        super(queue, prototype);
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
         public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new IndexTask(queue, prototype.getTaskId(), prototype.getTaskSpec(), prototype.getRunMode());
+            return new IndexTask(queue, prototype);
         }
 
         public boolean isForType(TaskSpec taskSpec) {
@@ -155,10 +123,6 @@ public class IndexTask implements WorkingTask {
                     LoaderTask.TYPE_EXPERIMENT,
                     LoaderTask.TYPE_ARRAYDESIGN
             ).contains(by.getType());
-        }
-
-        public Collection<TaskSpec> autoAddAfter(TaskSpec taskSpec) {
-            return new ArrayList<TaskSpec>();
         }
     };
 }
