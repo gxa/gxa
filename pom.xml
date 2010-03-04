@@ -238,6 +238,10 @@
             <id>ulisse</id>
 	    <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
+	<repository>
+		<id>gxa.github</id>
+		<url>http://gxa.github.com/maven/repo</url>
+	</repository>
     </repositories>
 
     <distributionManagement>
