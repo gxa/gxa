@@ -1,0 +1,152 @@
+/*
+ * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
+#tabs {
+}
+
+fieldset { border:1px solid #DEDEDE; margin:10px 0 0 0; padding: 10px; }
+fieldset table { border: none;margin:0;padding:0; }
+fieldset table td { border: none;padding:2px; }
+
+input.date { width: 70px; }
+#tab-exp form .label { text-align: right; }
+#tab-exp form .label2 { text-align: right;padding-left:20px; }
+
+#experimentBrowseForm { margin: 0; }
+
+#tab-exp .expnone {
+    padding: 20px 3px;
+    font-weight: bold;
+    color: #005555;
+}
+
+#experimentList table.results, #taskList table, #operLog table, #taskLog table, #loadListExp table {
+    border-collapse:collapse;
+    margin: 10px 0;
+    width: 100%;
+}
+
+#experimentList table.results td, #taskList td, #operLog td, #taskLog td, #loadListExp td {
+    border: 1px solid #cdcdcd;
+    padding: 3px;
+}
+
+#experimentList table.results td.sel {
+    border-right: none;
+}
+
+#experimentList table.results td.accession {
+    padding-left: 10px;
+    border-right: none; border-left: none;
+    font-weight: bold;
+    color: #005555;
+    white-space:nowrap;
+}
+
+#experimentList table.results td.stage {
+    padding-left: 20px;
+    padding-right: 10px;
+    border-left: none;
+    width: 80%;
+}
+
+#experimentList table.results td.selall {
+    padding-left: 10px;
+    border-left: none;
+    color: #005555;
+    font-weight: bold;
+}
+
+#experimentList table.results tr.expcoll td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    color: #aaaaaa;
+    font-weight: bold;
+}
+
+#tab-que .taskmanPaused {
+    font-weight: bold;
+    color: #005555;
+}
+
+#taskList td.accession {
+    border-left: none;
+    font-weight: bold;
+    color: #005555;
+    white-space:nowrap;
+}
+
+#taskList td.state {
+}
+
+#taskList td.cancel {
+    text-align: right;
+}
+
+#taskList tr.statePENDING {
+}
+
+#taskList tr.stateWORKING {
+    background-color: #EEF5F5;
+}
+
+#taskList tr.stateWORKING td.state {
+    color: #005555; font-weight: bold;
+}
+
+#taskList tr.statePENDING td.state {
+    color: #aaaaaa; font-weight: bold;
+}
+
+#taskList td.progress {
+    width: 50%;
+}
+#taskList td.state { border-right: none; }
+#taskList td.runMode { border-left: none; }
+#taskList td.type { border-right: none; }
+
+#operLog tr.modeRESTART td.runMode, #operLog tr.operationENQUEUE td.operation {
+    color: #005555; font-weight: bold;
+}
+
+#operLog tr.modeCONTINUE td.runMode, #operLog tr.operationCANCEL td.operation {
+    color: #aaaaaa; font-weight: bold;
+}
+
+#taskLog td.event, #taskLog td.stage {
+    color: #005555; font-weight: bold;
+}
+
+#operLog td.message, #taskLog td.message { width: 50%; }
+
+#loadListAD tr.successful td.done, #loadListExp tr.successful td.done {
+    color: #005555; font-weight: bold;
+}
+
+#loadListAD td.done, #loadListExp td.done {
+    color: #aaaaaa; font-weight: bold;
+}
+
+#loadListAD td.url, #loadListExp td.url { width: 80%; }
+td.accession, td.time, td.url { white-space:nowrap; }
+
+fieldset legend { font-weight: bold; }
