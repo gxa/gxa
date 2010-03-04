@@ -257,11 +257,10 @@
           <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
 
-          <site>
-            <id>gh-pages</id>
-            <!-- This gets automatically pushed to the gh-pages branch. -->
-	    <url>file:///ebi/work/trunk/github-pages</url>
-          </site>
+        <site>
+	   <id>gxa</id>
+	   <url>${site.location}/site</url>
+        </site>
     </distributionManagement>
 
     <!-- profile for building with java 5 -->
