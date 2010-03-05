@@ -29,6 +29,22 @@ Gene Expression Atlas, Beta Release
 
  []
 
+ Also, in later versions of the beta release there were some extra fixes:
+
+ * Fixed errors in NetCDF generation
+
+ * Improved NetCDF generation scalability, so now all NetCDF generations can be run in parallel in shorter time.
+
+ * Fixed errors and issues in Index generation
+
+ * Analytics should now work via a JRI bridge to an R installation on a local machine, or over a biocep cluster
+
+ * Improved Admin page
+
+ * New EBI data dump
+
+ []
+
  The installer requires an Atlas 2 database to be installed locally, and also requires sufficient diskspace allocated to
  build the NetCDF and SOLR index files.  It also requires a local installation of R; more notes on this below.
 

@@ -64,7 +64,7 @@ public class TestBiocepAtlasRFactory extends TestCase {
 
     public void testMultipleCreateRServices() {
         // test 8 iterations
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 4; i++) {
             try {
                 rServicesList.add(rFactory.createRServices());
             }

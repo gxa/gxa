@@ -12,22 +12,50 @@ Installation Instructions for the Gene Expression Atlas
 
 * GXA Dependencies
 
-** Atlas 2 Database
+** Atlas 2 Oracle Database
 
  Firstly, you need a local installation of a database, in the Atlas 2 schema, that can be used as a store for Atlas data
  and is used to generate SOLR indexes and NetCDF views over the data.  Any data you load into the Atlas will go into
  this database.
 
- This database must be an Oracle database (preferrably a recent release - we use 11g).  If you have an oracle database
- ready, you can download and install the Atlas 2 schema using the bundle of SQL scripts provided here: {{{http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}http://www.ebi.ac.uk/~tburdett/atlas-standalone/atlas2-db.tar.gz}},
- or alternatively grab the database export from FTP.  There are instructions on how to do that provided here:
- {{{beta-release.html}beta-release.html}}.
+ This database must be an Oracle database (preferrably a recent release – we use 11g). You will need to download and
+ install the Atlas 2 schema from the EBI FTP site, ftp://aexpress:aexpress@ftp1.ebi.ac.uk, in the atlas2 directory
+ (note, directory listings are disabled at the top level on the FTP site, so you will need to cd atlas2 before you see
+ any files). The FTP site contains combined Atlas Schema and EBI Data releases, using the numbering scheme
+ AtlasData-X.Yrel-W.tar.Z, where X.Y is the Data Release and W is the Schema release. Retrieve the latest release and
+ unpack it. It will unpack to four files:
+
++------------
+ install.sh - installation script
+ Schema.tar.Z - archive with scripts for schema object creation
+ Data.tar.Z - archive with all data and sqlldr control files, except for ExpressionValues
+ Expression.tar.Z - expression values data archive
++------------
+
+ The install.sh script accepts two parameters: INSTALL_STAGE and an Oracle connection string:
+
++------------
+ install.sh Schema|ArrayDesign|Data|Expression user/password@tns_name
++------------
+
+ and stops after completing the requested install stage:
+
+     * Schema – create types, tables, views, packages
+
+     * ArrayDesign – create Schema and load ArrayDesign, DesignElements, Organisms and Genes data
+
+     * Data – create Schema, load ArrayDesign data and load all other data, except for ExpressionValues
+
+     * Expression – do all of the above and load ExpressionValues data
+
+     []
 
 ** SOLR Index and NetCDF Repository
 
  The Atlas uses extensive indices of the data in order to optimise data display in the web interface.  These indices are
  a combination of a SOLR index for experimental and gene metadata, and NetCDF files for expression data.  If you are not
  familiar with these technologies, you need not worry as they are installed and maintained by the Atlas software suite.
+ 
  However, you will need to make sure you have allocated sufficient diskspace for these indices to be stored.  On the
  filesystem where you intend to install the Atlas, you will need to directories available - one for the SOLR index and
  one for the NetCDF repository.  As a guide, the EBI installation of Atlas of around 1000 experiments and 200,000 genes
@@ -40,7 +68,7 @@ Installation Instructions for the Gene Expression Atlas
  compute cluster).  In the latter case it is possible to run R analyses through a biocep cloud.  You should pick one of
  these options before install, bearing in mind that running analyses locally may slow down the interface.
 
- An installation guide to R and/or biocep is outside the scope of this document.
+ An installation guide to R and/or biocep is outside the scope of this document. * TBC *
 
  -- Update with details of how to configure analyses].
 
@@ -53,12 +81,12 @@ Installation Instructions for the Gene Expression Atlas
  The Atlas uses JNDI to obtain connections to the atlas schema database from within tomcat.  For this reason, you will
  need to make Oracle database drivers available to Tomcat by installing them in the $CATALINA_HOME/lib or
  $CATALINA_HOME/common/lib directory, depending on your version of Tomcat.  See
- {{{http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}}
+ {{{Tomcat JNDI howto}http://tomcat.apache.org/tomcat-5.5-doc/jndi-resources-howto.html}}
  for more information on setting up JNDI resources.
 
  Make sure that you have the latest version of the Oracle Java 5 drivers installed in the tomcat library directory.  We
- recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers here:
- {{{http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html}http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html}}
+ recommend using ojdbc5.jar version 11.1.0.7.0 or later - you can download these drivers from
+ {{{Oracle}http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/htdocs/jdbc_111060.html}}
 
 ** Maven
 
@@ -98,7 +126,7 @@ Installation Instructions for the Gene Expression Atlas
  installed) and run the following (Maven) command:
 
 +----------
->: mvn archetype:generate -DarchetypeCatalog=http://www.ebi.ac.uk/~tburdett/maven/atlas-repo
+>: mvn archetype:generate -DarchetypeCatalog=http://gxa.github.com/maven/repo
 +----------
 
  Pick the option "atlas-archetype" and follow on screen prompts.
