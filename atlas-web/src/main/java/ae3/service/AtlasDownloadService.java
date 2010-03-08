@@ -38,6 +38,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+
 /**
  * Manages Atlas download requests for list results.
  * @author iemam
@@ -51,6 +53,7 @@ public class AtlasDownloadService {
 
 	private Map<String, Map<Integer,Download>> downloads;
     private final ExecutorService downloadThreadPool;
+    private AtlasProperties atlasProperties;
 
     public AtlasDownloadService() {
         downloadThreadPool = Executors.newFixedThreadPool(5);
@@ -63,6 +66,10 @@ public class AtlasDownloadService {
 
     public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {
         this.atlasQueryService = atlasQueryService;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     /**
@@ -105,7 +112,8 @@ public class AtlasDownloadService {
                 }
             }
 
-            final Download download = new Download(countDownloads.incrementAndGet(), query, atlasQueryService);
+            final Download download = new Download(countDownloads.incrementAndGet(), query, atlasQueryService,
+                    atlasProperties.getDataRelease());
 
             downloadList.put(download.getId(), download);
             downloads.put(session.getId(), downloadList);

@@ -27,6 +27,7 @@
 
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
 <jsp:include page="../includes/start_head.jsp"></jsp:include>
 Gene Expression Atlas Search Results - Gene Expression Atlas
@@ -345,7 +346,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <div id = "result_cont">
 <table id="twocol" style="margin-top:20px">
 <tr class="top">
-<c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+<c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
     <td id="drilldowns">
         <div style="font-size:11px">
             <b>REFINE YOUR QUERY</b>
@@ -395,7 +396,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
-    <c:if test="${result.total >= u:getIntProp('atlas.drilldowns.mingenes')}">
+    <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
         <span>(you can <a href="query-result.jsp#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
     &nbsp;•&nbsp;

@@ -19,31 +19,16 @@
  *
  * http://gxa.github.com/gxa
  */
-
-package ae3.util;
-
-import java.io.IOException;
-import java.util.Properties;
+package uk.ac.ebi.gxa.properties;
 
 /**
+ * Atlas properties listener interface used to notify subscribed listeners about properties updates
  * @author pashky
  */
-public class CuratedTexts {
-    private static Properties props = new Properties();
-    static {
-        try {
-            props.load(CuratedTexts.class.getResourceAsStream("/Curated.properties"));
-        } catch (IOException e) {
-            throw new RuntimeException("Can't read properties file Curated.properties from resources!", e);
-        }
-    }
-
-    public static String get(String key) {
-        return props.getProperty(key) != null ? props.getProperty(key) : key;
-    }
-    
-    public static String getCurated(String key){
-    	return props.getProperty("head.ef."+key) != null ? props.getProperty("head.ef."+key) : key;
-    }
-
+public interface AtlasPropertiesListener {
+    /**
+     * Called when any property values are updated
+     * @param atlasProperties atlasProperties container reference
+     */
+    void onAtlasPropertiesUpdate(AtlasProperties atlasProperties);
 }

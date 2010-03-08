@@ -30,6 +30,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -42,10 +43,13 @@ import java.util.*;
  * EFO value list helper class, implementing autocompletion and value listing for EFO
  * @author pashky
  */
-public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler {
+public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
     final private Logger log = LoggerFactory.getLogger(getClass());
+
     private SolrServer solrServerAtlas;
     private Efo efo;
+    private IndexBuilder indexBuilder;
+
     private final Map<String,Long> counts = new HashMap<String,Long>();
 
     /**
@@ -68,6 +72,11 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler 
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
+        indexBuilder.registerIndexBuildEventHandler(this);
     }
 
     /**
@@ -329,15 +338,16 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler 
         return result;
     }
 
-    public void setIndexBuilder(IndexBuilder indexBuilder) {
-        indexBuilder.registerIndexBuildEventHandler(this);
-    }
-
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         counts.clear();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
 
+    }
+
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

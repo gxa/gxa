@@ -28,7 +28,6 @@ import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
-import ae3.util.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +58,17 @@ public class Download implements Runnable {
     private long totalResults = 0;
     private long resultsRetrieved = 0;
     private static final int FRAME_SIZE = 50;
+    private String dataVersion;
 
-    public Download(int id, AtlasStructuredQuery query, AtlasStructuredQueryService queryService) throws IOException {
+    public Download(int id, AtlasStructuredQuery query, AtlasStructuredQueryService queryService, String dataVersion) throws IOException {
 		this.query = query;
         this.queryService = queryService;
         this.id = id;
 
         this.outputFile =  File.createTempFile("listdl", ".zip", new File(System.getProperty("java.io.tmpdir")));
         this.outputFile.deleteOnExit();
-	}
+        this.dataVersion = dataVersion;
+    }
 
 	public String getQuery() {
 		return query.toString();
@@ -135,7 +136,7 @@ public class Download implements Runnable {
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
         StringBuilder strBuf = new StringBuilder();
 
-		strBuf.append("# Atlas data version: ").append(AtlasProperties.getProperty("atlas.data.release")).append("\n");
+		strBuf.append("# Atlas data version: ").append(dataVersion).append("\n");
 		strBuf.append("# Query: ").append(query.toString()).append("\n");
 		strBuf.append("# Timestamp: ").append( formatter.format(today)).append("\n");
 		

@@ -25,10 +25,10 @@ package ae3.service;
 import ae3.service.structuredquery.AtlasGenePropertyService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
-import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -48,8 +48,9 @@ import java.util.Comparator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler {
+public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler, DisposableBean {
     public static final int PAGE_SIZE = 1000;
 
     public static boolean done = false;
@@ -57,7 +58,9 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private AtlasGenePropertyService genePropertyService;
-    private boolean autoGenerate = AtlasProperties.getBoolProperty("atlas.gene.list.cache.autogenerate");
+    private AtlasProperties atlasProperties;
+    private Boolean autoGenerate;
+    private IndexBuilder indexBuilder;
 
     public AtlasGenePropertyService getGenePropertyService() {
         return genePropertyService;
@@ -76,7 +79,12 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     }
 
     public void setIndexBuilder(IndexBuilder builder) {
+        this.indexBuilder = builder;
         builder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
@@ -88,6 +96,9 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     }
 
     public void afterPropertiesSet() {
+        if(autoGenerate == null)
+            autoGenerate = atlasProperties != null && atlasProperties.isGeneListCacheAutoGenerate();
+
         if(autoGenerate)
             new Thread() {
                 @Override
@@ -222,6 +233,11 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         }
 
         return result;
+    }
+
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }
 

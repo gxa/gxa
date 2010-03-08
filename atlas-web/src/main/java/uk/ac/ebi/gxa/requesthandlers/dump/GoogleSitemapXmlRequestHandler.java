@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import ae3.util.AtlasProperties;
 import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.beans.factory.DisposableBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -52,15 +52,19 @@ import java.util.zip.GZIPOutputStream;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 
 /**
  * Prepares for and allows downloading of Google Sitemap XML files
  */
-public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler {
+public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private CoreContainer coreContainer;
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
+    
     private File sitemapIndexFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "geneSitemapIndex.xml");
 
     public CoreContainer getCoreContainer() {
@@ -80,7 +84,12 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasProperties(uk.ac.ebi.gxa.properties.AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
@@ -132,8 +141,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             bfind.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
             bfind.write("<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n".getBytes("UTF-8"));
 
-            List<String> geneids =
-                    Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
+            List<String> geneids = atlasProperties.getDumpGeneIdFields();
 
             TermEnum terms = r.terms();
 
@@ -196,5 +204,10 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             if(core != null)
                 core.close();
         }
+    }
+
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

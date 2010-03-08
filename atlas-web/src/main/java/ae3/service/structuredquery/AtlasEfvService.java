@@ -31,25 +31,28 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
 
-import ae3.util.AtlasProperties;
 
 /**
  * EFVs listing and autocompletion helper implementation
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler {
+public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
     private SolrServer solrServerProp;
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -80,6 +83,10 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
         this.solrServerProp = solrServerProp;
     }
 
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
+
     public void preloadData() {
         for(String property : allFactors) {
             treeGetOrLoad(property);
@@ -91,7 +98,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
     {
         Set<String> result = new TreeSet<String>();
         result.addAll(getAllFactors());
-        result.removeAll(AtlasProperties.getListProperty("atlas." + category + ".ignore.efs"));
+        result.removeAll(atlasProperties.getIgnoredEfs(category));
         return result;
     }
 
@@ -227,6 +234,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
     }
 
@@ -239,4 +247,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler 
         
     }
 
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
 }

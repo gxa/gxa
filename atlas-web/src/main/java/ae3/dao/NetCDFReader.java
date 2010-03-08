@@ -24,7 +24,6 @@ package ae3.dao;
 
 import ae3.model.*;
 import ae3.service.structuredquery.EfvTree;
-import ae3.util.AtlasProperties;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
@@ -44,22 +43,6 @@ import java.util.Map;
  * @author pashky
  */
 public class NetCDFReader {
-
-    /**
-     * Default NetCDF path
-     */
-    final static String DEFAULT_LOCATION = AtlasProperties.getProperty("atlas.netCDFlocation");
-
-    /**
-     * Load experimental data using default path
-     * @param experimentId experiment id
-     * @return either constructed object or null, if no data files was found for this id
-     * @throws IOException if i/o error occurs
-     */
-    public static ExperimentalData loadExperiment(final long experimentId) throws IOException {
-        return loadExperiment(DEFAULT_LOCATION, experimentId);
-    }
-
     /**
      * Load experimental data using default path
      * @param netCdfLocation
@@ -199,7 +182,7 @@ public class NetCDFReader {
                 {
                     int k = 0;
                     ArrayChar.StringIterator efvi = ((ArrayChar)varUEFV.read()).getStringIterator();
-                    IndexIterator efvNumi = varUEFVNUM.read().getIndexIteratorFast();
+                    IndexIterator efvNumi = varUEFVNUM.read().getIndexIterator();
                     for(ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext(); ) {
                         String efStr = efi.next();
                         String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
@@ -241,7 +224,7 @@ public class NetCDFReader {
                 }
             });
 
-        IndexIterator mappingI = varBS2AS.read().getIndexIteratorFast();
+        IndexIterator mappingI = varBS2AS.read().getIndexIterator();
         for(int sampleI = 0; sampleI < numSamples; ++sampleI)
             for(int assayI = 0; assayI < numAssays; ++assayI)
                 if(mappingI.hasNext() && mappingI.getIntNext() > 0)

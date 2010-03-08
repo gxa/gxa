@@ -25,11 +25,12 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
 import ae3.service.XML4dbDumps;
-import ae3.util.AtlasProperties;
 import ae3.util.FileDownloadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -42,23 +43,18 @@ import java.util.List;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
-public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler {
+public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private File dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + AtlasProperties.getProperty("atlas.dump.ebeye.filename"));
+    private File dumpGeneIdsFile;
     private AtlasDao dao;
-
-    public File getDumpGeneIdsFile() {
-        return dumpGeneIdsFile;
-    }
-
-    public void setDumpGeneIdsFile(File dumpGeneIdsFile) {
-        this.dumpGeneIdsFile = dumpGeneIdsFile;
-    }
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
 
     public AtlasDao getDao() {
         return dao;
@@ -69,7 +65,17 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
+
+    public void afterPropertiesSet() throws Exception {
+        if(dumpGeneIdsFile == null)
+            dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpEbeyeFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
@@ -108,8 +114,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 e1.setId(g.getGeneIdentifier());
                 e1.setAccessionNumber(g.getGeneName());
                 e1.setName(g.getGeneName());
-                e1.setDateCreated(AtlasProperties.getProperty("atlas.data.release"));
-                e1.setDateModified(AtlasProperties.getProperty("atlas.data.release"));
+                e1.setDateCreated(atlasProperties.getDataRelease());
+                e1.setDateModified(atlasProperties.getDataRelease());
 
                 e1.setDescription("");
                 e1.setAuthors("");
@@ -163,5 +169,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);
         }
+    }
+
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

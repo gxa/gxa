@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import ae3.util.AtlasProperties;
 import ae3.util.FileDownloadServer;
 import ae3.dao.AtlasDao;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -52,15 +53,19 @@ import java.util.List;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
-public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler {
+public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private File dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + AtlasProperties.getProperty("atlas.dump.geneidentifiers.filename"));
+    private File dumpGeneIdsFile;
     private CoreContainer coreContainer;
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
+
     private static final String PROPERTY = "property_f_";
 
     public CoreContainer getCoreContainer() {
@@ -80,7 +85,17 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasProperties(uk.ac.ebi.gxa.properties.AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
+
+    public void afterPropertiesSet() throws Exception {
+        if(dumpGeneIdsFile == null)
+            dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpGeneIdentifiersFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
@@ -114,8 +129,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
 
             BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
 
-            List<String> geneids =
-                    Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
+            List<String> geneids = atlasProperties.getDumpGeneIdFields();
 
             TermEnum terms = r.terms();
 
@@ -141,5 +155,10 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
             if(core != null)
                 core.close();
         }
+    }
+
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

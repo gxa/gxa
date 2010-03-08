@@ -32,6 +32,7 @@ import java.io.FilenameFilter;
 import static org.junit.Assert.*;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * @author ostolop
@@ -61,6 +62,7 @@ public class GoogleSitemapXmlRequestHandlerTest extends AbstractOnceIndexTest {
     public void testWriteGeneSitemap() {
         GoogleSitemapXmlRequestHandler svt = new GoogleSitemapXmlRequestHandler();
         svt.setCoreContainer(getContainer());
+        svt.setAtlasProperties(new AtlasProperties());
 
         File sitemapIndexFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "geneSitemapIndex.xml");
         svt.setSitemapIndexFile(sitemapIndexFile);

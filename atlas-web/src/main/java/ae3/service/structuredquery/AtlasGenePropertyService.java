@@ -22,7 +22,6 @@
 
 package ae3.service.structuredquery;
 
-import ae3.util.AtlasProperties;
 import ae3.util.HtmlHelper;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -33,10 +32,13 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 
 import java.util.*;
 
@@ -45,14 +47,14 @@ import java.util.*;
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEventHandler {
+public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEventHandler, AtlasPropertiesListener, DisposableBean {
     private SolrServer solrServerAtlas;
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
 
-    private final Set<String> idProperties;
-    private final Set<String> descProperties;
-    private final List<String> nameFields;
-    private final int nameLimit;
-    private final int idLimit;
+    private Set<String> idProperties;
+    private Set<String> descProperties;
+    private List<String> nameFields;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -66,18 +68,30 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         this.solrServerAtlas = solrServiceAtlas;
     }
 
-    public AtlasGenePropertyService()
-    {
-        this.idProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.ids").split(",")));
-        this.descProperties = new HashSet<String>(Arrays.asList(AtlasProperties.getProperty("atlas.gene.autocomplete.descs").split(",")));
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+        atlasProperties.registerListener(this);
+        loadProperties();
+    }
 
-        this.idLimit = AtlasProperties.getIntProperty("atlas.gene.autocomplete.ids.limit");
-        this.nameLimit = AtlasProperties.getIntProperty("atlas.gene.autocomplete.names.limit");
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
+        indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
+        loadProperties();
+    }
+
+    private void loadProperties()
+    {
+        this.idProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteIdFields());
+        this.descProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteDescFields());
 
         this.nameFields = new ArrayList<String>();
         nameFields.add("identifier");
         nameFields.add("name_f");
-        for(String nameProp : AtlasProperties.getProperty("atlas.gene.autocomplete.names").split(","))
+        for(String nameProp : atlasProperties.getGeneAutocompleteNameFields())
             nameFields.add("property_f_" + nameProp);
     }
 
@@ -160,12 +174,12 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         if(anyProp) {
 
             for(String p : idProperties)
-                result.addAll(treeAutocomplete(p, query, idLimit));
+                result.addAll(treeAutocomplete(p, query, atlasProperties.getGeneAutocompleteNameLimit()));
             Collections.sort(result);
-            if(result.size() > idLimit)
-                result = result.subList(0, idLimit);
+            if(result.size() > atlasProperties.getGeneAutocompleteNameLimit())
+                result = result.subList(0, atlasProperties.getGeneAutocompleteNameLimit());
 
-            result.addAll(joinGeneNames(query, speciesFilter, nameLimit));
+            result.addAll(joinGeneNames(query, speciesFilter, atlasProperties.getGeneAutocompleteIdLimit()));
 
             for(String p : descProperties)
                 result.addAll(treeAutocomplete(p, query, limit > 0 ? limit - result.size() : -1));
@@ -268,10 +282,6 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         }
     }
 
-    public void setIndexBuilder(IndexBuilder indexBuilder) {
-        indexBuilder.registerIndexBuildEventHandler(this);
-    }
-
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         prefixTrees.clear();
     }
@@ -280,4 +290,8 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         
     }
 
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
 }

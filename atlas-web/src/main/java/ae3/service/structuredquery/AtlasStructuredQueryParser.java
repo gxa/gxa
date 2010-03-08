@@ -22,11 +22,11 @@
 
 package ae3.service.structuredquery;
 
-import ae3.util.AtlasProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -170,7 +170,8 @@ public class AtlasStructuredQueryParser {
      * @param httpRequest HTTP servlet request
      * @return extended request made of succesfully parsed conditions
      */
-    static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest) {
+    static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest,
+                                                    final AtlasProperties atlasProperties) {
         AtlasStructuredQuery request = new AtlasStructuredQuery();
         request.setGeneConditions(parseGeneConditions(httpRequest));
 
@@ -181,10 +182,10 @@ public class AtlasStructuredQueryParser {
 
         if(!request.isNone()){
         	if(request.getViewType() == ViewType.HEATMAP)
-            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.pagesize"));
+            	request.setRowsPerPage(atlasProperties.getQueryPageSize());
             else{ 
-            	request.setRowsPerPage(AtlasProperties.getIntProperty("atlas.query.listsize"));
-            	request.setExpsPerGene(AtlasProperties.getIntProperty("atlas.query.expsPerGene"));
+            	request.setRowsPerPage(atlasProperties.getQueryListSize());
+            	request.setExpsPerGene(atlasProperties.getQueryExperimentsPerGene());
             }
         }
         
