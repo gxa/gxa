@@ -21,11 +21,9 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.ArrayList;
-import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Atlas properties container class
@@ -33,35 +31,52 @@ import java.io.IOException;
  */
 public class AtlasProperties {
 
-    private Properties props;
-    private Properties versionProps;
+    private Storage storage;
 
-    private List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
+    /**
+     * Set storage for use
+     * @param storage storage reference
+     */
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
+
+    private final Set<String> propertyNames = new HashSet<String>();
+    private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
 
     public AtlasProperties() {
-        loadProperties();
+        storage = new Storage() {
+            public String getProperty(String name) {
+                propertyNames.add(name);
+                return "";
+            }
+
+            public void setProperty(String name, String value) { }
+            public boolean isWritePersistent() { return false; }
+            public void reload() { }
+        };
+
+        for (Method m : getClass().getMethods())
+            if (m.isAnnotationPresent(ExportProperty.class))
+                try {
+                    m.invoke(this);
+                } catch (Throwable ex) {
+                    //
+                }
+
+        storage = null;
     }
 
     /**
-     * Causes properties to reload
+     * Returns available properties names list, calculated in constructor
+     * @return set of property names
      */
-    public void loadProperties() {
-        try {
-            props = new Properties();
-            props.load(AtlasProperties.class.getResourceAsStream("/atlas.properties"));
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Can't read properties file atlas.properties from resources!", e);
-        }
+    public Set<String> getAvailablePropertyNames() {
+        return propertyNames;
+    }
 
-        try {
-            versionProps = new Properties();
-            versionProps.load(getClass().getClassLoader().getResourceAsStream("atlas.version"));
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Cannot load atlas version properties - " +
-                    "META-INF/atlas.version may be missing or invalid", e);
-        }
+    public void reload() {
+        storage.reload();
         notifyListeners();
     }
 
@@ -71,7 +86,7 @@ public class AtlasProperties {
      * @param newValue property value
      */
     public void setProperty(String key, String newValue) {
-        props.setProperty(key, newValue);
+        storage.setProperty(key, newValue);
         notifyListeners();
     }
 
@@ -81,7 +96,7 @@ public class AtlasProperties {
      * @return property value string or empty string if not found
      */
     public String getProperty(String key) {
-        return props.getProperty(key) != null ? props.getProperty(key) : "";
+        return storage.getProperty(key) != null ? storage.getProperty(key) : "";
     }
 
     private List<String> getListProperty(String key) {
@@ -94,7 +109,7 @@ public class AtlasProperties {
                 return -1; // fixme: actually read this from DB somewhere
             }
             else {
-                return Integer.valueOf(props.getProperty(key));
+                return Integer.valueOf(storage.getProperty(key));
             }
         }
         catch (Exception e) {
@@ -103,11 +118,8 @@ public class AtlasProperties {
     }
 
     private boolean getBoolProperty(String key) {
-        return props.containsKey(key)
-                && !"".equals(props.getProperty(key))
-                && !"no".equals(props.getProperty(key))
-                && !"false".equals(props.getProperty(key))
-                && !"0".equals(props.getProperty(key));
+        String value = storage.getProperty(key);
+        return !"".equals(value) && !"no".equals(value) && !"false".equals(value) && !"0".equals(value);
     }
 
     /**
@@ -135,111 +147,137 @@ public class AtlasProperties {
     /* Version properties */
 
     public String getSoftwareVersion() {
-        String s = props.getProperty("atlas.software.version");
-        if(s != null)
-            return s;
-        s = versionProps.getProperty("atlas.software.version");
-        if(s != null)
-            return s;
-        return "unknown";
+        return storage.getProperty("atlas.software.version");
     }
 
     public String getSoftwareBuildNumber() {
-        String s = props.getProperty("atlas.buildNumber");
-        if(s != null)
-            return s;
-        s = versionProps.getProperty("atlas.buildNumber");
-        if(s != null)
-            return s;
-        return "unknown";
+        return storage.getProperty("atlas.buildNumber");
     }
 
+    /**
+     * Marker annotation
+     */
+    @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+    private @interface ExportProperty { }
+
+    /* Data release */
+
+    @ExportProperty
     public String getDataRelease() {
         return getProperty("atlas.data.release");
     }
 
     /* Gene autocompleter properties */
 
+    @ExportProperty
     public boolean isGeneListCacheAutoGenerate() {
         return getBoolProperty("atlas.gene.list.cache.autogenerate");
     }
 
+    @ExportProperty
     public int getGeneAutocompleteIdLimit() {
         return getIntProperty("atlas.gene.autocomplete.ids.limit");
     }
 
+    @ExportProperty
     public int getGeneAutocompleteNameLimit() {
         return getIntProperty("atlas.gene.autocomplete.names.limit");
     }
 
+    @ExportProperty
     public List<String> getGeneAutocompleteIdFields() {
         return getListProperty("atlas.gene.autocomplete.ids");
     }
 
+    @ExportProperty
     public List<String> getGeneAutocompleteNameFields() {
         return getListProperty("atlas.gene.autocomplete.names");        
     }
 
+    @ExportProperty
     public List<String> getGeneAutocompleteDescFields() {
         return getListProperty("atlas.gene.autocomplete.descs");
     }
 
     /* Query properties */
 
+    @ExportProperty
     public int getQueryDrilldownMinGenes() {
         return getIntProperty("atlas.drilldowns.mingenes");
     }
 
+    @ExportProperty
     public int getQueryPageSize() {
         return getIntProperty("atlas.query.pagesize");
     }
 
+    @ExportProperty
     public int getQueryListSize() {
         return getIntProperty("atlas.query.listsize");
     }
 
+    @ExportProperty
     public int getQueryExperimentsPerGene() {
         return getIntProperty("atlas.query.expsPerGene");
     }
 
+    @ExportProperty
     public List<String> getQueryDrilldownGeneFields() {
         return getListProperty("atlas.gene.drilldowns");
     }
 
     /* Dump properties */
 
+    @ExportProperty
     public List<String> getDumpGeneIdFields() {
         return getListProperty("atlas.dump.geneidentifiers");
     }
 
+    @ExportProperty
     public String getDumpGeneIdentifiersFilename() {
         return getProperty("atlas.dump.geneidentifiers.filename");
     }
 
+    @ExportProperty
     public String getDumpEbeyeFilename() {
         return getProperty("atlas.dump.ebeye.filename");
     }
 
     /* EFs */
 
-    public List<String> getIgnoredEfs(String category) {
-        return getListProperty("atlas." + category + ".ignore.efs");
+    @ExportProperty
+    public List<String> getOptionsIgnoredEfs() {
+        return getListProperty("atlas.options.ignore.efs");
+    }
+
+    @ExportProperty
+    public List<String> getAnyConditionIgnoredEfs() {
+        return getListProperty("atlas.anycondition.ignore.efs");
+    }
+
+    @ExportProperty
+    public List<String> getFacetIgnoredEfs() {
+        return getListProperty("atlas.facet.ignore.efs");
     }
 
     /* Feedback mail */
 
+    @ExportProperty
     public String getFeedbackSmtpHost() {
         return getProperty("atlas.feedback.smtp.host");
     }
 
+    @ExportProperty
     public String getFeedbackFromAddress() {
         return getProperty("atlas.feedback.from.address");
     }
 
+    @ExportProperty
     public String getFeedbackToAddress() {
         return getProperty("atlas.feedback.to.address");
     }
 
+    @ExportProperty
     public String getFeedbackSubject() {
         return getProperty("atlas.feedback.subject");
     }

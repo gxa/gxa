@@ -67,8 +67,30 @@
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
     </bean>
 
+    
+    <!-- Atlas properties -->
+    <bean name="atlasPropertiesDbStorage" class="uk.ac.ebi.gxa.properties.DbStorage">
+        <property name="jdbcTemplate" ref="interfaceTemplate"/>
+    </bean>
+
     <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
-        
+        <property name="storage">
+            <bean class="uk.ac.ebi.gxa.properties.ChainedStorage">
+                <property name="storages">
+                    <util:list>
+                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
+                            <property name="resourcePath" value="atlas.version"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
+                            <property name="resourcePath" value="atlas.properties"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.DbStorage">
+                            <property name="jdbcTemplate" ref="interfaceTemplate"/>
+                        </bean>
+                    </util:list>
+                </property>
+            </bean>
+        </property>
     </bean>
 
     <!-- Loader component -->
