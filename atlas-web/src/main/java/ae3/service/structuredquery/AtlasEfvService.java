@@ -94,11 +94,23 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         treeGetOrLoad(Constants.EXP_FACTOR_NAME);
     }
 
-    public Set<String> getConfiguredFactors(String category)
+    public Set<String> getOptionsFactors() {
+        return getFilteredFactors(atlasProperties.getOptionsIgnoredEfs());
+    }
+
+    public Set<String> getAnyConditionFactors() {
+        return getFilteredFactors(atlasProperties.getAnyConditionIgnoredEfs());
+    }
+
+    public Set<String> getFacetFactors() {
+        return getFilteredFactors(atlasProperties.getAnyConditionIgnoredEfs());
+    }
+
+    private Set<String> getFilteredFactors(Collection<String> ignored)
     {
         Set<String> result = new TreeSet<String>();
         result.addAll(getAllFactors());
-        result.removeAll(atlasProperties.getIgnoredEfs(category));
+        result.removeAll(ignored);
         return result;
     }
 
@@ -207,12 +219,12 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         Collection<AutoCompleteItem> result;
         if(anyProp) {
             result = new TreeSet<AutoCompleteItem>();
-            for(final String prop : getConfiguredFactors("options"))
+            for(final String prop : getOptionsFactors())
                 treeAutocomplete(prop, query, limit, result);
             treeAutocomplete(Constants.EXP_FACTOR_NAME, query, limit, result);
         } else {
             result = new ArrayList<AutoCompleteItem>();
-            if(getConfiguredFactors("options").contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
+            if(getOptionsFactors().contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
                 treeAutocomplete(property, query, limit, result);
         }
         return result;

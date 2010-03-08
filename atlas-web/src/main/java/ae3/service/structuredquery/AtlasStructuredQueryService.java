@@ -704,7 +704,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
             public Integer make() { return num++; }
         };
 
-        Iterable<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getConfiguredFactors("anycondition");
+        Iterable<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
 
         for(SolrDocument doc : docs) {
             Integer id = (Integer)doc.getFieldValue("id");
@@ -991,7 +991,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         q.addFacetField("exp_up_ids");
         q.addFacetField("exp_dn_ids");
 
-        for(String ef : efvService.getConfiguredFactors("facet"))
+        for(String ef : efvService.getFacetFactors())
         {
             q.addFacetField("efvs_up_" + ef);
             q.addFacetField("efvs_dn_" + ef);
@@ -1084,7 +1084,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
      */
     public Collection<String> getExperimentalFactorOptions() {
         List<String> factors = new ArrayList<String>();
-        factors.addAll(efvService.getConfiguredFactors("options"));
+        factors.addAll(efvService.getOptionsFactors());
         factors.add(Constants.EXP_FACTOR_NAME);
         Collections.sort(factors, String.CASE_INSENSITIVE_ORDER);
         return factors;
