@@ -81,9 +81,9 @@ public class AtlasProperties {
     }
 
     /**
-     * Sets new property value
+     * Sets new (or removes) property value
      * @param key property name
-     * @param newValue property value
+     * @param newValue property value or null if property customization should be deleted
      */
     public void setProperty(String key, String newValue) {
         storage.setProperty(key, newValue);
