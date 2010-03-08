@@ -42,12 +42,15 @@ public class DbStorage implements Storage {
     }
 
     public void setProperty(String name, String value) {
+        log.info("Setting property " + name + " to new value " + value);
         try {
             if(jdbcTemplate.update(
                     "MERGE INTO A2_CONFIG_PROPERTY t USING DUAL ON (t.name = ?) " +
                             "WHEN MATCHED THEN UPDATE SET value = ? " +
                             "WHEN NOT MATCHED THEN INSERT (name,value) values (?,?)",
                     new Object[] {
+                            name,
+                            value,
                             name,
                             value
                     }) != 1)
@@ -60,7 +63,7 @@ public class DbStorage implements Storage {
     public String getProperty(String name) {
         try {
             return jdbcTemplate.queryForObject(
-                    "SELECT stage FROM A2_CONFIG_PROPERTY t WHERE ts.name = ?",
+                    "SELECT value FROM A2_CONFIG_PROPERTY t WHERE t.name = ?",
                     new Object[] { name }, String.class).toString();
         } catch (EmptyResultDataAccessException e) {
             return null;
