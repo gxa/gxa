@@ -252,6 +252,7 @@ function updateQueue() {
 
 function updateOperLog() {
     clearTimeout($time.queue);
+    $time.queue = null;
     adminCall('operlog', { num: $options.logNumItems }, function (result) {
         renderTpl('operLog', result);
         $time.queue = setTimeout(function () {
@@ -262,6 +263,7 @@ function updateOperLog() {
 
 function updateTaskLog() {
     clearTimeout($time.queue);
+    $time.queue = null;
     adminCall('tasklog', { num: $options.logNumItems }, function (result) {
         renderTpl('taskLog', result);
         $time.queue = setTimeout(function () {
@@ -332,6 +334,10 @@ function saveProperties() {
 }
 
 function redrawCurrentState() {
+    for(var timeout in $time) {
+        clearTimeout($time[timeout]);
+        delete $time[timeout];
+    }
     if(currentState['exp-s'] != null)
         $('#experimentSearch').val(currentState['exp-s']);
     if(currentState['exp-df'] != null)
@@ -341,11 +347,9 @@ function redrawCurrentState() {
     if(currentState['exp-io'] != null)
         $('#incompleteOnly').attr('checked', currentState['exp-io'] == 1);
     if(currentState['tab'] == $tab.exp) {
-        clearTimeout($time.queue);
         $('#tabs').tabs('select', $tab.exp);
         updateBrowseExperiments();
     } else if(currentState['tab'] == $tab.que) {
-        clearTimeout($time.search);
         $('#tabs').tabs('select', $tab.que);
         updateQueue();
     } else if(currentState['tab'] == $tab.load) {
@@ -525,6 +529,7 @@ $(document).ready(function () {
         var keycode = event.keyCode;
         if(keycode == 13) {
             clearTimeout($time.search);
+            $time.search = null;
             storeExperimentsFormState();
             updateBrowseExperiments();
         } else if((keycode == 8 || keycode == 46 ||
