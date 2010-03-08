@@ -32,6 +32,7 @@ var $options = {
     searchDelay: 500,
     logNumItems: 20
 };
+var currentStateHash;
 
 function storeState() {
     var urlParts = window.location.href.split('#');
@@ -44,8 +45,10 @@ function storeState() {
             stateString += key + '=' + value;
         }
     }
-    if(stateString != urlParts[1])
+    if(stateString != urlParts[1]) {
         window.location.href = urlParts[0] + '#' + stateString;
+        currentStateHash = stateString;
+    }
 }
 
 function restoreState() {
@@ -62,6 +65,7 @@ function restoreState() {
         }
     }
 
+    currentStateHash = urlParts[1];
     currentState = newState;
     redrawCurrentState();
 }
@@ -572,4 +576,11 @@ $(document).ready(function () {
 
     updatePauseButton(false);
     restoreState();
+
+    setInterval(function () {
+        if(document.location.href.indexOf('#') && currentStateHash && currentStateHash != document.location.href.substring(document.location.href.indexOf('#') + 1)) {
+            console.log(document.location.href.substring(document.location.href.indexOf('#') + 1) + " " + currentStateHash);
+            restoreState();
+        }
+    }, 500);
 });
