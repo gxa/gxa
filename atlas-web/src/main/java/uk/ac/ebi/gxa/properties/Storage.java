@@ -27,9 +27,9 @@ package uk.ac.ebi.gxa.properties;
  */
 public interface Storage {
     /**
-     * Sets property by name
+     * Sets (or deletes) property value by name
      * @param name property name
-     * @param value new property value
+     * @param value new property value, or null if storage should delete property customization
      */
     void setProperty(String name, String value);
 

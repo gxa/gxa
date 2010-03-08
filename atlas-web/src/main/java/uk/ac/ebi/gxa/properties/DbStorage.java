@@ -42,6 +42,12 @@ public class DbStorage implements Storage {
     }
 
     public void setProperty(String name, String value) {
+        if(value == null) {
+            log.info("Deleting customization for property " + name);
+            jdbcTemplate.update("DELETE FROM A2_CONFIG_PROPERTY t WHERE t.name = ?", new Object[] { name });
+            return;
+        }
+        
         log.info("Setting property " + name + " to new value " + value);
         try {
             if(jdbcTemplate.update(
@@ -62,9 +68,10 @@ public class DbStorage implements Storage {
 
     public String getProperty(String name) {
         try {
-            return jdbcTemplate.queryForObject(
+            String value = (String)jdbcTemplate.queryForObject(
                     "SELECT value FROM A2_CONFIG_PROPERTY t WHERE t.name = ?",
-                    new Object[] { name }, String.class).toString();
+                    new Object[] { name }, String.class);
+            return value == null ? "" : value;
         } catch (EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
