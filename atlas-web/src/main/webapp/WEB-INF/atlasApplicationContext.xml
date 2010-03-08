@@ -78,14 +78,14 @@
             <bean class="uk.ac.ebi.gxa.properties.ChainedStorage">
                 <property name="storages">
                     <util:list>
-                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
-                            <property name="resourcePath" value="atlas.version"/>
+                        <bean class="uk.ac.ebi.gxa.properties.DbStorage">
+                            <property name="jdbcTemplate" ref="interfaceTemplate"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="atlas.properties"/>
                         </bean>
-                        <bean class="uk.ac.ebi.gxa.properties.DbStorage">
-                            <property name="jdbcTemplate" ref="interfaceTemplate"/>
+                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
+                            <property name="resourcePath" value="atlas.version"/>
                         </bean>
                     </util:list>
                 </property>
@@ -372,10 +372,11 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <bean name="taskManagerRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.TaskManagerRequestHandler">
+    <bean name="adminRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.AdminRequestHandler">
         <property name="taskManager" ref="taskManager" />
         <property name="dao" ref="atlasInterfaceDAO"/>
-        <property name="dbStorage" ref="taskManagerStorage"/>
+        <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <!-- JMX -->

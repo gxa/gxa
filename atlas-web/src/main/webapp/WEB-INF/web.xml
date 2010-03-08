@@ -360,14 +360,14 @@
 
 
     <servlet>
-        <display-name>Task Manager</display-name>
-        <servlet-name>taskManagerRequestHandler</servlet-name>
+        <display-name>Admin AJAX</display-name>
+        <servlet-name>adminRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>taskManagerRequestHandler</servlet-name>
-        <url-pattern>/tasks</url-pattern>
+        <servlet-name>adminRequestHandler</servlet-name>
+        <url-pattern>/admin</url-pattern>
     </servlet-mapping>
 
 

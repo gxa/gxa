@@ -39,13 +39,26 @@ input.date { width: 70px; }
     color: #005555;
 }
 
-#experimentList table.results, #taskList table, #operLog table, #taskLog table, #loadListExp table {
+#experimentList table.results,
+    #taskList table,
+    #operLog table,
+    #taskLog table,
+    #loadListExp table,
+    #propList table
+{
     border-collapse:collapse;
     margin: 10px 0;
     width: 100%;
 }
 
-#experimentList table.results td, #taskList td, #operLog td, #taskLog td, #loadListExp td {
+#experimentList table.results td,
+    #taskList td,
+    #operLog td,
+    #taskLog td,
+    #loadListExp td,
+    #propList td,
+    #propList th
+{
     border: 1px solid #cdcdcd;
     padding: 3px;
 }
@@ -150,3 +163,6 @@ input.date { width: 70px; }
 td.accession, td.time, td.url { white-space:nowrap; }
 
 fieldset legend { font-weight: bold; }
+
+#propList th { font-size: 12px;font-weight:bold;text-align:left; }
+#propList td input.value { width: 90%; }

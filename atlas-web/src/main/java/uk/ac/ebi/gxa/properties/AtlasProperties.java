@@ -146,10 +146,12 @@ public class AtlasProperties {
 
     /* Version properties */
 
+    @ExportProperty
     public String getSoftwareVersion() {
         return storage.getProperty("atlas.software.version");
     }
 
+    @ExportProperty
     public String getSoftwareBuildNumber() {
         return storage.getProperty("atlas.buildNumber");
     }
