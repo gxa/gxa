@@ -29,6 +29,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import ae3.dao.AtlasDao;
 
 import java.net.URI;
@@ -47,7 +48,10 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
 
+        ResourceFileStorage storage = new ResourceFileStorage();
+        storage.setResourcePath("atlas.properties");
         AtlasProperties atlasProperties = new AtlasProperties();
+        atlasProperties.setStorage(storage);       
 
         Efo efo = new Efo();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
