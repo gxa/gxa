@@ -127,35 +127,11 @@
       </function-signature>
     </function>
 
-    <function>
-        <name>getProp</name>
-        <function-class>ae3.util.AtlasProperties</function-class>
-        <function-signature>
-            java.lang.String getProperty(java.lang.String)
-        </function-signature>
-    </function>
-    
      <function>
         <name>getCurated</name>
         <function-class>ae3.util.CuratedTexts</function-class>
         <function-signature>
             java.lang.String getCurated(java.lang.String)
-        </function-signature>
-    </function>
-
-    <function>
-        <name>getIntProp</name>
-        <function-class>ae3.util.AtlasProperties</function-class>
-        <function-signature>
-            int getIntProperty(java.lang.String)
-        </function-signature>
-    </function>
-
-    <function>
-        <name>hasProp</name>
-        <function-class>ae3.util.AtlasProperties</function-class>
-        <function-signature>
-            boolean hasProperty(java.lang.String)
         </function-signature>
     </function>
 

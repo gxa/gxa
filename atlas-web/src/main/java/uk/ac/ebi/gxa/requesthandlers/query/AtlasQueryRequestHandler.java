@@ -26,6 +26,7 @@ import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.beans.factory.DisposableBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -36,14 +37,18 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * @author pashky
  */
-public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler {
+public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, DisposableBean {
 
     private AtlasStructuredQueryService queryService;
     private AtlasDownloadService downloadService;
+    private AtlasProperties atlasProperties;
+    private IndexBuilder indexBuilder;
+
     private boolean disableQueries = false;
 
     public AtlasStructuredQueryService getQueryService() {
@@ -63,7 +68,12 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
@@ -74,6 +84,11 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         disableQueries = true;
     }
 
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
+
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if(disableQueries) {
             ErrorResponseHelper.errorUnavailable(request, response, "Index building is in progress, please wait");
@@ -82,7 +97,7 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
 
         long startTime = HtmlHelper.currentTime();
 
-        AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request);
+        AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
 
         if (!atlasQuery.isNone()) {
             if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {

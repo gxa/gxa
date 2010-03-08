@@ -31,6 +31,7 @@ import java.io.File;
 
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * @author ostolop
@@ -47,6 +48,7 @@ public class GeneIdentifiersDumpDownloadRequestHandlerTest extends AbstractOnceI
 
         svt.setCoreContainer(getContainer());
         svt.setDumpGeneIdsFile(testDumpFile);
+        svt.setAtlasProperties(new AtlasProperties());
 
         svt.dumpGeneIdentifiers();
 

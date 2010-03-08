@@ -23,13 +23,13 @@
 package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
 import ae3.service.structuredquery.AtlasStructuredQueryService;
-import ae3.util.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.experimentpage.result.SimilarityResultSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
@@ -41,10 +41,10 @@ import java.rmi.RemoteException;
 
 public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     final private Logger log = LoggerFactory.getLogger(getClass());
-    private static final int NUM_GENES = AtlasProperties.getIntProperty("atlas.query.listsize");
 
-    AtlasStructuredQueryService queryService;
-    AtlasComputeService computeService;
+    private AtlasStructuredQueryService queryService;
+    private AtlasComputeService computeService;
+    private AtlasProperties atlasProperties;
 
     public AtlasStructuredQueryService getQueryService() {
         return queryService;
@@ -60,6 +60,10 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
 
     public void setComputeService(AtlasComputeService computeService) {
         this.computeService = computeService;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -112,7 +116,8 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         }
 
         if(geneQuery != null) {
-            request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, eid, start, NUM_GENES));
+            request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, eid, start,
+                    atlasProperties.getQueryListSize()));
         }
 
         request.setAttribute("eid", eid);

@@ -67,6 +67,10 @@
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
     </bean>
 
+    <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
+        
+    </bean>
+
     <!-- Loader component -->
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
@@ -154,6 +158,7 @@
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -167,6 +172,7 @@
 
     <bean name="atlasGenePropertyService" class="ae3.service.structuredquery.AtlasGenePropertyService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -180,6 +186,7 @@
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
@@ -198,7 +205,9 @@
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
           destroy-method="shutdown">
         <property name="atlasQueryService" ref="atlasQueryService"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
+
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
@@ -210,6 +219,7 @@
     <bean name="geneListCacheService" class="ae3.service.GeneListCacheService">
         <property name="genePropertyService" ref="atlasGenePropertyService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <!-- Task manager -->
@@ -232,6 +242,7 @@
         <property name="queryService" ref="atlasQueryService"/>
         <property name="downloadService" ref="atlasDownloadService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="autocompleterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FactorValuesRequestHandler">
@@ -283,23 +294,27 @@
           class="uk.ac.ebi.gxa.requesthandlers.experimentpage.GeneListWidgetRequestHandler">
         <property name="queryService" ref="atlasQueryService"/>
         <property name="computeService" ref="atlasComputeService"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="sitemapDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="listviewDownloadRequestHandler"
@@ -332,7 +347,7 @@
     </bean>
 
     <bean name="feedbackRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.FeedbackRequestHandler">
-
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="taskManagerRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.TaskManagerRequestHandler">
@@ -362,6 +377,7 @@
         <property name="netCDFRepo" ref="atlasNetCDFRepo"/>
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <!-- Required spring driven data access configuration for web interface -->

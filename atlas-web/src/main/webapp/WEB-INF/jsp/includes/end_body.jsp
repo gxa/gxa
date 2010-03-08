@@ -1,5 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -33,7 +34,7 @@
 
       </td>
         <script type="text/javascript">
-           document.getElementById("divFooter").innerHTML = "Gene Expression Atlas ${u:getProp('atlas.software.version')} Build <c:out value="${u:getProp('atlas.buildNumber')}"/>";
+           document.getElementById("divFooter").innerHTML = "Gene Expression Atlas ${atlasProperties.softwareVersion} Build <c:out value="${atlasProperties.softwareBuildNumber}"/>";
         </script>
     </tr>
 </table>

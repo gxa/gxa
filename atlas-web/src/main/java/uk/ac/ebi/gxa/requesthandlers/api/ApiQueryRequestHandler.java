@@ -47,15 +47,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.springframework.beans.factory.DisposableBean;
+
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  *
  * @author pashky
  */
-public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler {
+public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
     private AtlasDao dao;
     private Efo efo;
+    private IndexBuilder indexBuilder;
+
     private String netCDFPath;
     boolean disableQueries = false;
 
@@ -92,6 +96,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     }
 
     public void setIndexBuilder(IndexBuilder builder) {
+        this.indexBuilder = builder;
         builder.registerIndexBuildEventHandler(this);
     }
 
@@ -183,4 +188,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         }
     }
 
+    public void destroy() throws Exception {
+        if(indexBuilder != null)
+            indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
 }

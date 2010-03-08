@@ -28,6 +28,7 @@ import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.Iterator;
 
@@ -42,6 +43,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
     public static  void initContainer() throws Exception {
         service = new AtlasGenePropertyService();
         service.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
+        service.setAtlasProperties(new AtlasProperties());
     }
 
     @AfterClass

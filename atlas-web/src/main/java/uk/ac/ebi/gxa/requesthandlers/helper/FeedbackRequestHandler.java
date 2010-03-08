@@ -35,19 +35,26 @@ import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.util.Properties;
 
-import ae3.util.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+
 
 /**
  * @author pashky
  */
 public class FeedbackRequestHandler implements HttpRequestHandler {
+    private AtlasProperties atlasProperties;
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
+
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             boolean debug = false;
 
              //Set the host smtp address
             Properties props = new Properties();
-            props.put("mail.smtp.host", AtlasProperties.getProperty("atlas.feedback.smtp.host"));
+            props.put("mail.smtp.host", atlasProperties.getFeedbackSmtpHost());
 
             // create some properties and get the default Session
             Session smtpSession = Session.getDefaultInstance(props, null);
@@ -57,16 +64,16 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             Message msg = new MimeMessage(smtpSession);
 
             // set the from and to address
-            InternetAddress addressFrom = new InternetAddress(AtlasProperties.getProperty("atlas.feedback.from.address"));
+            InternetAddress addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
             msg.setFrom(addressFrom);
-            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress(AtlasProperties.getProperty("atlas.feedback.to.address")) });
+            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress(atlasProperties.getFeedbackToAddress()) });
 
             String email = request.getParameter("e");
             if (null != email && !email.equals(""))
                 msg.setReplyTo(new InternetAddress[] {new InternetAddress(request.getParameter("e"))});
 
             // Setting the Subject and Content Type
-            msg.setSubject(AtlasProperties.getProperty("atlas.feedback.subject"));
+            msg.setSubject(atlasProperties.getFeedbackSubject());
             msg.setContent(request.getParameter("f"), "text/plain");
 
             Transport.send(msg);

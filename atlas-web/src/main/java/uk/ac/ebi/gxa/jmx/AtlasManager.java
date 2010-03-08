@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.sql.DataSource;
 import javax.servlet.ServletContext;
@@ -41,7 +42,6 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.LogManager;
 
-import ae3.util.AtlasProperties;
 
 /**
  * @author pashky
@@ -55,6 +55,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     private DataSource dataSource;
     private Efo efo;
     private ServletContext servletContext;
+    private AtlasProperties atlasProperties;
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
@@ -74,6 +75,10 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void setServletContext(ServletContext servletContext) {
@@ -105,14 +110,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getVersion() {
-        try {
-            Properties versionProps = new Properties();
-            versionProps.load(getClass().getClassLoader().getResourceAsStream("atlas.version"));
-            return versionProps.getProperty("atlas.software.version") + " " + versionProps.getProperty("atlas.buildNumber");
-        }
-        catch (Exception e) {
-            return "unknown";
-        }
+        return atlasProperties.getSoftwareVersion() + " " + atlasProperties.getSoftwareBuildNumber();
     }
 
     public String getIndexPath() {
@@ -142,12 +140,12 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getAtlasProperty(String property) {
-        return AtlasProperties.getProperty(property);
+        return atlasProperties.getProperty(property);
     }
 
     public void setAtlasProperty(String property, String newValue) {
         log.info("JMX: Setting property " + property + " to " + newValue);
-        AtlasProperties.setProperty(property, newValue);
+        atlasProperties.setProperty(property, newValue);
     }
 
     public String getWebappPath() {
