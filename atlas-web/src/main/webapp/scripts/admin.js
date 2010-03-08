@@ -66,11 +66,11 @@ function restoreState() {
     redrawCurrentState();
 }
 
-function taskmanCall(op, params, func) {
+function adminCall(op, params, func) {
     $('.loadIndicator').css('visibility', 'visible');
     return $.ajax({
         type: "GET",
-        url: atlas.homeUrl + "tasks",
+        url: atlas.homeUrl + "admin",
         dataType: "json",
         data: $.extend(params, { op : op }),
         success: function (json) {
@@ -91,7 +91,7 @@ function switchToQueue() {
 }
 
 function updateBrowseExperiments() {
-    taskmanCall('searchexp', {
+    adminCall('searchexp', {
 
         search: $('#experimentSearch').val(),
         fromDate: $('#dateFrom').val(),
@@ -158,7 +158,7 @@ function updateBrowseExperiments() {
                     + (selectAll ? result.numTotal : accessions.length)
                     + ' experiment(s)?')) {
                 if(selectAll) {
-                    taskmanCall('enqueuesearchexp', {
+                    adminCall('enqueuesearchexp', {
                         runMode: mode,
                         search: $('#experimentSearch').val(),
                         fromDate: $('#dateFrom').val(),
@@ -167,7 +167,7 @@ function updateBrowseExperiments() {
                         autoDepends: 'true'
                     }, switchToQueue);
                 } else {
-                    taskmanCall('enqueue', {
+                    adminCall('enqueue', {
                         runMode: mode,
                         accession: accessions,
                         type: 'experiment',
@@ -190,7 +190,7 @@ function updateBrowseExperiments() {
 
         $('#experimentList .rebuildIndex input').click(function () {
             if(window.confirm('Do you really want to rebuild index?')) {
-                taskmanCall('enqueue', {
+                adminCall('enqueue', {
                     runMode: 'RESTART',
                     accession: '',
                     type: 'index',
@@ -203,13 +203,13 @@ function updateBrowseExperiments() {
 
 function updatePauseButton(isRunning) {
     function unpauseTaskman() {
-        taskmanCall('restart', {}, function () {
+        adminCall('restart', {}, function () {
             updatePauseButton(true);
         });
     }
 
     function pauseTaskman() {
-        taskmanCall('pause', {}, function () {
+        adminCall('pause', {}, function () {
             updatePauseButton(true);
         });
     }
@@ -219,14 +219,14 @@ function updatePauseButton(isRunning) {
 
 function updateQueue() {
     clearTimeout($time.queue);
-    taskmanCall('tasklist', {}, function (result) {
+    adminCall('tasklist', {}, function (result) {
         renderTpl('taskList', result);
 
         for(var i in result.tasks) {
             (function (task) {
                 $('#taskList .cancelButton' + task.id).click(function () {
                     if(confirm('Do you really want to cancel task ' + task.type + ' ' + task.accession + '?')) {
-                        taskmanCall('cancel', { id: task.id }, function () {
+                        adminCall('cancel', { id: task.id }, function () {
                             updateQueue();
                         });
                     }
@@ -236,7 +236,7 @@ function updateQueue() {
 
         $('#taskList .cancelAllButton').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
             if(confirm('Do you really want to cancel all tasks?')) {
-                taskmanCall('cancelall', {}, function () {
+                adminCall('cancelall', {}, function () {
                     updateQueue();
                 });
             }
@@ -252,7 +252,7 @@ function updateQueue() {
 
 function updateOperLog() {
     clearTimeout($time.queue);
-    taskmanCall('operlog', { num: $options.logNumItems }, function (result) {
+    adminCall('operlog', { num: $options.logNumItems }, function (result) {
         renderTpl('operLog', result);
         $time.queue = setTimeout(function () {
             updateOperLog();
@@ -262,7 +262,7 @@ function updateOperLog() {
 
 function updateTaskLog() {
     clearTimeout($time.queue);
-    taskmanCall('tasklog', { num: $options.logNumItems }, function (result) {
+    adminCall('tasklog', { num: $options.logNumItems }, function (result) {
         renderTpl('taskLog', result);
         $time.queue = setTimeout(function () {
             updateTaskLog();
@@ -271,14 +271,14 @@ function updateTaskLog() {
 }
 
 function updateLoadList() {
-    taskmanCall('loadlist', {}, function (result) {
+    adminCall('loadlist', {}, function (result) {
         renderTpl('loadListExp', result);
         renderTpl('loadListAD', result);
         $('#loadListExp input').each(function (i, e) {
             $(this).click(function () {
                 var url = result.experiments[i].url;
                 if(confirm('Do you really want to reload experiment from URL ' + url + '?')) {
-                    taskmanCall('enqueue', {
+                    adminCall('enqueue', {
                         runMode: 'RESTART',
                         accession: url,
                         type: 'loadexperiment',
@@ -291,7 +291,7 @@ function updateLoadList() {
             $(this).click(function () {
                 var url = result.experiments[i].url;
                 if(confirm('Do you really want to reload array design from URL ' + url + '?')) {
-                    taskmanCall('enqueue', {
+                    adminCall('enqueue', {
                         runMode: 'RESTART',
                         accession: url,
                         type: 'loadarraydesign',
@@ -301,6 +301,34 @@ function updateLoadList() {
             });
         });
     });
+}
+
+function updateProperties() {
+    adminCall('proplist', {}, function (result) {
+        renderTpl('propList', result);
+        $('#propList tr.property td.value').each(function (i, o) {
+            var pr = result.properties[i];
+            $(o).click(function () {
+                var i = $('<input type="text"/>').attr('name', pr.name).addClass('value').val("" + pr.value);
+                $(this).empty().append(i).unbind('click');
+                i.focus();
+                $('#savePropsButton,#cancelPropsButton').removeAttr('disabled');
+            });
+        });
+        $('#propList form').submit(function () {
+            saveProperties();
+            return false;
+        });
+        $('#savePropsButton,#cancelPropsButton').attr('disabled', 'disabled');
+    });
+}
+
+function saveProperties() {
+    var newValues = {};
+    $('#propList table input.value').each(function (i, o) {
+        newValues[$(o).attr('name')] = $(o).val();
+    });
+    adminCall('propset', newValues, updateProperties);
 }
 
 function redrawCurrentState() {
@@ -329,6 +357,9 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.tlog) {
         updateTaskLog();
         $('#tabs').tabs('select', $tab.tlog);
+    } else if(currentState['tab'] == $tab.prop) {
+        updateProperties();
+        $('#tabs').tabs('select', $tab.prop);
     } else {
         $('#tabs').tabs('select', $tab.exp);
         $('#experimentSearch').val('');
@@ -438,6 +469,15 @@ function compileTemplates() {
             }
         }
     });
+
+    compileTpl('propList', {
+        'tr.property' : {
+            'property <- properties': {
+                '.name': 'property.name',
+                '.value': 'property.value'
+            }
+        }
+    });
 }
 
 $(document).ready(function () {
@@ -504,7 +544,7 @@ $(document).ready(function () {
 
     $('#loadExperimentButton').click(function () {
         var url = $('#loadExperimentUrl').val();
-        taskmanCall('enqueue', {
+        adminCall('enqueue', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadexperiment',
@@ -514,13 +554,16 @@ $(document).ready(function () {
 
     $('#loadArrayDesignButton').click(function () {
         var url = $('#loadArrayDesignUrl').val();
-        taskmanCall('enqueue', {
+        adminCall('enqueue', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadarraydesign',
             autoDepends: 'true'
         }, switchToQueue);
     });
+
+    $('#cancelPropsButton').click(updateProperties);
+    $('#savePropsButton').click(saveProperties);
 
     updatePauseButton(false);
     restoreState();

@@ -48,6 +48,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,24 +58,31 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Task manager AJAX servlet
  * @author pashky
  */
-public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
+public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static final Map<Object,Object> EMPTY = makeMap();
     private static TaskUser defaultUser = new TaskUser("user");
 
     private TaskManager taskManager;
     private AtlasDAO dao;
-    private DbStorage dbStorage;
+    private DbStorage taskManagerDbStorage;
+    private AtlasProperties atlasProperties;
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
 
-    public void setDbStorage(DbStorage dbStorage) {
-        this.dbStorage = dbStorage;
+    public void setTaskManagerDbStorage(DbStorage dbStorage) {
+        this.taskManagerDbStorage = dbStorage;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     static void delay() {
@@ -417,7 +425,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
     private Object processOperationLog(String numStr) {
         int num = Integer.valueOf(numStr);
-        return makeMap("items", new MappingIterator<DbStorage.OperationLogItem, Map>(dbStorage.getLastOperationLogItems(num).iterator()) {
+        return makeMap("items", new MappingIterator<DbStorage.OperationLogItem, Map>(taskManagerDbStorage.getLastOperationLogItems(num).iterator()) {
             public Map map(DbStorage.OperationLogItem li) {
                 return makeMap(
                         "runMode", li.runMode,
@@ -434,7 +442,7 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
     private Object processTaskEventLog(String numStr) {
         int num = Integer.valueOf(numStr);
-        return makeMap("items", new MappingIterator<DbStorage.TaskEventLogItem, Map>(dbStorage.getLastTaskEventLogItems(num).iterator()) {
+        return makeMap("items", new MappingIterator<DbStorage.TaskEventLogItem, Map>(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()) {
             public Map map(DbStorage.TaskEventLogItem li) {
                 return makeMap(
                         "type", li.taskSpec.getType(),
@@ -451,14 +459,14 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
     private Object processLoadList() {
         return makeMap(
                 "experiments",
-                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(dbStorage.getTaskStagesByType("loadexperiment").entrySet().iterator()) {
+                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(taskManagerDbStorage.getTaskStagesByType("loadexperiment").entrySet().iterator()) {
                     public Map map(Map.Entry<TaskSpec, TaskStage> load) {
                         return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()));
                     }
                 },
 
                 "arraydesigns",
-                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(dbStorage.getTaskStagesByType("loadarraydesign").entrySet().iterator()) {
+                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(taskManagerDbStorage.getTaskStagesByType("loadarraydesign").entrySet().iterator()) {
                     public Map map(Map.Entry<TaskSpec, TaskStage> load) {
                         return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()) ? "1" : null);
                     }
@@ -466,6 +474,26 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
         );
     }
 
+    private Object processPropertyList() {
+        List<String> names = new ArrayList<String>(atlasProperties.getAvailablePropertyNames());
+        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+        return makeMap("properties", new MappingIterator<String,Map>(names.iterator()) {
+            public Map map(String name) {
+                return makeMap("name", name, "value", atlasProperties.getProperty(name));
+            }
+        });
+    }
+
+    private Object processPropertySet(Map<String,String[]> paramMap) {
+        Set<String> names = atlasProperties.getAvailablePropertyNames();
+        for(Map.Entry<String,String[]> e : paramMap.entrySet()) {
+            if(names.contains(e.getKey()))
+                atlasProperties.setProperty(e.getKey(), StringUtils.join(e.getValue(), ","));
+        }
+        return EMPTY;
+    }
+
+    @SuppressWarnings("unchecked")
     public Object process(HttpServletRequest request) {
 //        installTestProcessors();
         String op = request.getParameter("op");
@@ -521,6 +549,12 @@ public class TaskManagerRequestHandler extends AbstractRestRequestHandler {
 
         else if("loadlist".equals(op))
             return processLoadList();
+
+        else if("proplist".equals(op))
+            return processPropertyList();
+
+        else if("propset".equals(op))
+            return processPropertySet((Map<String,String[]>)request.getParameterMap());
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
