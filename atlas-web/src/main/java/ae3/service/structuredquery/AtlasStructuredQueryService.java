@@ -1094,6 +1094,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         List<String> result = new ArrayList<String>();
         result.addAll(otherGeneProperties);
         result.add(Constants.GENE_PROPERTY_NAME);
+        Collections.sort(result, new Comparator<String>() {
+            public int compare(String o1, String o2) {
+                return atlasProperties.getCuratedGeneProperty(o1).compareToIgnoreCase(atlasProperties.getCuratedGeneProperty(o2));
+            }
+        });
         return result;
     }
 
