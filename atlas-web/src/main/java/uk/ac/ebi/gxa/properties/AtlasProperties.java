@@ -125,7 +125,7 @@ public class AtlasProperties  {
     }
 
     public String getSoftwareBuildNumber() {
-        return storage.getProperty("atlas.buildNumber");
+        return storage.getProperty("atlas.software.buildnumber");
     }
 
     /* Data release */
