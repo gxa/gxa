@@ -234,19 +234,14 @@ CREATE OR REPLACE VIEW vwExperimentSample as
   from a2_Sample s
   join a2_AssaySample ass on ass.SampleID = s.SampleID
   join a2_Assay a on a.AssayID = ass.AssayID;
+
 /  
 --select * from vwGeneIDProperty
 CREATE OR REPLACE VIEW vwGeneIDProperty as 
   Select Name, IdentifierPriority as Priority 
   from a2_GeneProperty
   where IdentifierPriority is not null; 
-  
-  /*Select Name, GenePropertyID Priority 
-  from a2_GeneProperty
-  where name in ('EMBL','ENSGENE');*/
-  
-  --select * from a2_GeneProperty
-  --update a2_GeneProperty set IdentifierPriority = GenePropertyID where Name in ('ensgene','ensembl','uniprot')
+
 /
 
 CREATE OR REPLACE VIEW vwGeneIDs as
@@ -258,9 +253,8 @@ CREATE OR REPLACE VIEW vwGeneIDs as
  join a2_GenePropertyValue pv on pv.genepropertyvalueid = gpv.genepropertyvalueid
  join a2_geneproperty p on p.genepropertyid = pv.genepropertyid
  where p.name in (select Name from vwGeneIDProperty);
-/
 
---select * from vwGeneIDs order by GeneID
+/
 
 CREATE OR REPLACE VIEW vwCheck as
  select 'Experiments w/o assay' as Name
