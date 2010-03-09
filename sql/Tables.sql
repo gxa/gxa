@@ -75,6 +75,14 @@ end;
 ALTER TRIGGER "A2_ORGANISM_INSERT" ENABLE;
 
 /
+
+Insert into A2_Organism(OrganismID,Name)
+select a2_organism_seq.nextval,'Unknown' from dual
+where not exists(select 1 from a2_Organism where name = 'Unknown');
+--select * from a2_Organism
+/
+
+
 --------------------------------------------------------
 -- GENE PROPERTY
 -- ALTER TABLE A2_GENEPROPERTY ADD "IDENTIFIERPRIORITY" NUMBER(22,0)
@@ -89,7 +97,7 @@ ALTER TRIGGER "A2_ORGANISM_INSERT" ENABLE;
     "GENEPROPERTYID" NUMBER(22,0)
   , "NAME" VARCHAR2(255)
   , "AE2TABLENAME" VARCHAR2(255)
-  , "IDENTIFIERPRIORITY" NUMBER(22,0)); --If property used as identifier - then its priority    
+  , "IDENTIFIERPRIORITY" NUMBER(22,0));
 
 /
   ALTER TABLE "A2_GENEPROPERTY" 
@@ -267,6 +275,11 @@ begin
 if(:new.GENEID is null) then
 select A2_GENE_seq.nextval into :new.GENEID from dual;
 end if;
+
+if(:new.OrganismID is null) then
+select OrganismID into :new.OrganismID from a2_Organism where Name = 'Unknown';
+end if;
+
 end;
 
 /
