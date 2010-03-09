@@ -485,7 +485,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processPropertySet(Map<String,String[]> paramMap) {
-        Set<String> names = atlasProperties.getAvailablePropertyNames();
+        Collection<String> names = atlasProperties.getAvailablePropertyNames();
         for(Map.Entry<String,String[]> e : paramMap.entrySet()) {
             if(names.contains(e.getKey())) {
                 String newValue = StringUtils.join(e.getValue(), ",");

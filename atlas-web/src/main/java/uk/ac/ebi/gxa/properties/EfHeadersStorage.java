@@ -21,45 +21,36 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.io.IOException;
-import java.util.*;
+import ae3.service.structuredquery.AtlasEfvService;
+import uk.ac.ebi.gxa.utils.StringUtil;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Resource .properties file storage implementation. Can set property values, but just for the duration of current session
+ * A fake "storage" class which just enumerates possible EF headers curated properties. Can't store anything,
+ * but can return some default value as well as available keys
  * @author pashky
  */
-public class ResourceFileStorage implements Storage {
+public class EfHeadersStorage implements Storage {
 
-    private Properties props;
-    private String resourcePath;
+    private final static String PREFIX = "head.ef.";
+    private static final int SUFFIXPOS = PREFIX.length();
 
-    public String getResourcePath() {
-        return resourcePath;
-    }
+    private AtlasEfvService efvService;
 
-    public void setResourcePath(String resourcePath) {
-        this.resourcePath = resourcePath;
-    }
-
-    public void reload() {
-        this.props = new Properties();
-        try {
-            this.props.load(getClass().getClassLoader().getResourceAsStream(resourcePath));
-        } catch(IOException e) {
-            throw new RuntimeException("Can't load properties file " + resourcePath, e);
-        }
+    public void setEfvService(AtlasEfvService efvService) {
+        this.efvService = efvService;
     }
 
     public void setProperty(String name, String value) {
-        if(props == null)
-            reload();
-        props.setProperty(name, value);
+        // do nothing
     }
 
     public String getProperty(String name) {
-        if(props == null)
-            reload();
-        return props.getProperty(name);
+        return name.startsWith(PREFIX) 
+                ? StringUtil.upcaseFirst(name.substring(SUFFIXPOS)) : null;
     }
 
     public boolean isWritePersistent() {
@@ -67,12 +58,13 @@ public class ResourceFileStorage implements Storage {
     }
 
     public Collection<String> getAvailablePropertyNames() {
-        if(props == null)
-            reload();
-        
         List<String> result = new ArrayList<String>();
-        for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
-            result.add(keyi.nextElement().toString());
+        for(String ef : efvService.getAllFactors())
+            result.add(PREFIX + ef);
         return result;
+    }
+
+    public void reload() {
+        // do nothing
     }
 }

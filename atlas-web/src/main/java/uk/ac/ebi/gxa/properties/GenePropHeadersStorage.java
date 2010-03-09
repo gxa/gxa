@@ -21,45 +21,33 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.io.IOException;
-import java.util.*;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.utils.StringUtil;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Resource .properties file storage implementation. Can set property values, but just for the duration of current session
  * @author pashky
  */
-public class ResourceFileStorage implements Storage {
+public class GenePropHeadersStorage implements Storage {
+    private final static String PREFIX = "head.gene.";
+    private static final int SUFFIXPOS = PREFIX.length();
 
-    private Properties props;
-    private String resourcePath;
+    private AtlasDAO dao;
 
-    public String getResourcePath() {
-        return resourcePath;
-    }
-
-    public void setResourcePath(String resourcePath) {
-        this.resourcePath = resourcePath;
-    }
-
-    public void reload() {
-        this.props = new Properties();
-        try {
-            this.props.load(getClass().getClassLoader().getResourceAsStream(resourcePath));
-        } catch(IOException e) {
-            throw new RuntimeException("Can't load properties file " + resourcePath, e);
-        }
+    public void setDao(AtlasDAO dao) {
+        this.dao = dao;
     }
 
     public void setProperty(String name, String value) {
-        if(props == null)
-            reload();
-        props.setProperty(name, value);
+        // do nothing
     }
 
     public String getProperty(String name) {
-        if(props == null)
-            reload();
-        return props.getProperty(name);
+        return name.startsWith(PREFIX) // do not check property name for speed
+                ? StringUtil.upcaseFirst(name.substring(SUFFIXPOS)) : null;
     }
 
     public boolean isWritePersistent() {
@@ -67,12 +55,13 @@ public class ResourceFileStorage implements Storage {
     }
 
     public Collection<String> getAvailablePropertyNames() {
-        if(props == null)
-            reload();
-        
         List<String> result = new ArrayList<String>();
-        for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
-            result.add(keyi.nextElement().toString());
+        for(String v : dao.getAllGenePropertyNames())
+            result.add(PREFIX + v);
         return result;
+    }
+
+    public void reload() {
+        // do nothing
     }
 }

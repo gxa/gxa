@@ -22,6 +22,8 @@
 package uk.ac.ebi.gxa.properties;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * A meta-storage containing a list of other storages serving values using first-matching basis
@@ -63,6 +65,13 @@ public class ChainedStorage implements Storage {
             if(storage.isWritePersistent())
                 return true;
         return false;
+    }
+
+    public Collection<String> getAvailablePropertyNames() {
+        Set<String> result = new HashSet<String>();
+        for(Storage storage : storages)
+            result.addAll(storage.getAvailablePropertyNames());
+        return result;
     }
 
     public void reload() {

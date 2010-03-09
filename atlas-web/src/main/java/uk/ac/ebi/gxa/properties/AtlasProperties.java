@@ -21,15 +21,13 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.lang.annotation.Retention;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
  * Atlas properties container class
  * @author pashky
  */
-public class AtlasProperties {
+public class AtlasProperties  {
 
     private Storage storage;
 
@@ -41,38 +39,14 @@ public class AtlasProperties {
         this.storage = storage;
     }
 
-    private final Set<String> propertyNames = new HashSet<String>();
     private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
-
-    public AtlasProperties() {
-        storage = new Storage() {
-            public String getProperty(String name) {
-                propertyNames.add(name);
-                return "";
-            }
-
-            public void setProperty(String name, String value) { }
-            public boolean isWritePersistent() { return false; }
-            public void reload() { }
-        };
-
-        for (Method m : getClass().getMethods())
-            if (m.isAnnotationPresent(ExportProperty.class))
-                try {
-                    m.invoke(this);
-                } catch (Throwable ex) {
-                    //
-                }
-
-        storage = null;
-    }
 
     /**
      * Returns available properties names list, calculated in constructor
      * @return set of property names
      */
-    public Set<String> getAvailablePropertyNames() {
-        return propertyNames;
+    public Collection<String> getAvailablePropertyNames() {
+        return storage.getAvailablePropertyNames();
     }
 
     public void reload() {
@@ -146,142 +120,120 @@ public class AtlasProperties {
 
     /* Version properties */
 
-    @ExportProperty
     public String getSoftwareVersion() {
         return storage.getProperty("atlas.software.version");
     }
 
-    @ExportProperty
     public String getSoftwareBuildNumber() {
         return storage.getProperty("atlas.buildNumber");
     }
 
-    /**
-     * Marker annotation
-     */
-    @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-    private @interface ExportProperty { }
-
     /* Data release */
 
-    @ExportProperty
     public String getDataRelease() {
         return getProperty("atlas.data.release");
     }
 
     /* Gene autocompleter properties */
 
-    @ExportProperty
     public boolean isGeneListCacheAutoGenerate() {
         return getBoolProperty("atlas.gene.list.cache.autogenerate");
     }
 
-    @ExportProperty
     public int getGeneAutocompleteIdLimit() {
         return getIntProperty("atlas.gene.autocomplete.ids.limit");
     }
 
-    @ExportProperty
     public int getGeneAutocompleteNameLimit() {
         return getIntProperty("atlas.gene.autocomplete.names.limit");
     }
 
-    @ExportProperty
     public List<String> getGeneAutocompleteIdFields() {
         return getListProperty("atlas.gene.autocomplete.ids");
     }
 
-    @ExportProperty
     public List<String> getGeneAutocompleteNameFields() {
         return getListProperty("atlas.gene.autocomplete.names");        
     }
 
-    @ExportProperty
     public List<String> getGeneAutocompleteDescFields() {
         return getListProperty("atlas.gene.autocomplete.descs");
     }
 
     /* Query properties */
 
-    @ExportProperty
     public int getQueryDrilldownMinGenes() {
         return getIntProperty("atlas.drilldowns.mingenes");
     }
 
-    @ExportProperty
     public int getQueryPageSize() {
         return getIntProperty("atlas.query.pagesize");
     }
 
-    @ExportProperty
     public int getQueryListSize() {
         return getIntProperty("atlas.query.listsize");
     }
 
-    @ExportProperty
     public int getQueryExperimentsPerGene() {
         return getIntProperty("atlas.query.expsPerGene");
     }
 
-    @ExportProperty
     public List<String> getQueryDrilldownGeneFields() {
         return getListProperty("atlas.gene.drilldowns");
     }
 
     /* Dump properties */
 
-    @ExportProperty
     public List<String> getDumpGeneIdFields() {
         return getListProperty("atlas.dump.geneidentifiers");
     }
 
-    @ExportProperty
     public String getDumpGeneIdentifiersFilename() {
         return getProperty("atlas.dump.geneidentifiers.filename");
     }
 
-    @ExportProperty
     public String getDumpEbeyeFilename() {
         return getProperty("atlas.dump.ebeye.filename");
     }
 
     /* EFs */
 
-    @ExportProperty
     public List<String> getOptionsIgnoredEfs() {
         return getListProperty("atlas.options.ignore.efs");
     }
 
-    @ExportProperty
     public List<String> getAnyConditionIgnoredEfs() {
         return getListProperty("atlas.anycondition.ignore.efs");
     }
 
-    @ExportProperty
     public List<String> getFacetIgnoredEfs() {
         return getListProperty("atlas.facet.ignore.efs");
     }
 
     /* Feedback mail */
 
-    @ExportProperty
     public String getFeedbackSmtpHost() {
         return getProperty("atlas.feedback.smtp.host");
     }
 
-    @ExportProperty
     public String getFeedbackFromAddress() {
         return getProperty("atlas.feedback.from.address");
     }
 
-    @ExportProperty
     public String getFeedbackToAddress() {
         return getProperty("atlas.feedback.to.address");
     }
 
-    @ExportProperty
     public String getFeedbackSubject() {
         return getProperty("atlas.feedback.subject");
+    }
+
+    public String getCuratedEf(String ef) {
+        return getProperty("head.ef." + ef);
+    }
+
+    public String getCuratedGeneProperty(String geneProperty) {
+        return getProperty("head.gene." + geneProperty);
     }
 
 }

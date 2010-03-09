@@ -24,11 +24,11 @@ package ae3.service;
 
 import ae3.dao.AtlasDao;
 import ae3.model.*;
-import ae3.util.CuratedTexts;
 import ae3.util.HtmlHelper;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
@@ -63,6 +63,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
     Map<String, String> globalParameters;
     DataSourceConfiguration config;
     AtlasDao dao;
+    AtlasProperties atlasProperties;
 
 
     /**
@@ -96,6 +97,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(svCon);
         dao = (AtlasDao)context.getBean("atlasSolrDAO");
+        atlasProperties = (AtlasProperties)context.getBean("atlasProperties");
     }
 
     /**
@@ -149,9 +151,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
     public DasFeature GeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            AtlasGeneDescription description = new AtlasGeneDescription(gene);
-
-            String notes = description.toString();
+            String notes = gene.getGeneDescription();
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
@@ -212,7 +212,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                 }
 
                 try {
-                    notes += (new AtlasGeneExperimentDescription(atlasGene, atlasExperiment, e.isUp())).toShortString();
+                    notes += (new AtlasGeneExperimentDescription(atlasProperties, atlasGene, atlasExperiment, e.isUp())).toShortString();
                 }
                 catch (Exception Ex) {
                     throw new DataSourceException(Ex.getMessage(), Ex);
@@ -250,7 +250,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                     FactorValue,
                     "efv",
                     "efv",
-                    getSortableCaption(CuratedTexts.get("head.ef." + ExperimentFactor)),
+                    getSortableCaption(atlasProperties.getCuratedEf(ExperimentFactor)),
                     "ExperimentalFactor",
                     "Experimental Factor",
                     0,
@@ -274,7 +274,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
     public DasFeature ExperimentDasFeature(AtlasGene atlasGene, AtlasExperiment experiment) throws DataSourceException {
         try {
-            String notes = (new AtlasGeneExperimentDescription(atlasGene, experiment, null).toLongString());
+            String notes = (new AtlasGeneExperimentDescription(atlasProperties, atlasGene, experiment, null).toLongString());
 
             return (new DasFeature(
                     atlasGene.getGeneIdentifier() + " " + experiment.getAccession(),
@@ -359,8 +359,8 @@ public class GxaDasDataSource implements AnnotationDataSource {
         Collections.sort(heatmaps, new Comparator<ListResultRow>() {
             public int compare(ListResultRow o1, ListResultRow o2) {
 
-                String o1_ef = CuratedTexts.get("head.ef." + o1.getEf());
-                String o2_ef = CuratedTexts.get("head.ef." + o2.getEf());
+                String o1_ef = atlasProperties.getCuratedEf(o1.getEf());
+                String o2_ef = atlasProperties.getCuratedEf(o2.getEf());
 
                 int result = SortOrd(o1_ef) - SortOrd(o2_ef);
 

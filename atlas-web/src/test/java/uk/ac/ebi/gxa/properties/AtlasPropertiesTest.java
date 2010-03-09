@@ -45,7 +45,7 @@ public class AtlasPropertiesTest {
 
     @Test
     public void test_getAvailablePropertyNames() {
-        Set<String> propnames = props.getAvailablePropertyNames();
+        Collection<String> propnames = props.getAvailablePropertyNames();
         assertNotNull(propnames);
         assertFalse(propnames.isEmpty());
         assertTrue(propnames.containsAll(Arrays.asList("atlas.feedback.from.address,atlas.drilldowns.mingenes,atlas.dump.geneidentifiers.filename,atlas.gene.autocomplete.ids.limit,atlas.gene.drilldowns,atlas.query.pagesize,atlas.gene.autocomplete.names.limit,atlas.dump.geneidentifiers,atlas.query.expsPerGene,atlas.gene.list.cache.autogenerate,atlas.feedback.subject,atlas.data.release,atlas.gene.autocomplete.names,atlas.gene.autocomplete.ids,atlas.feedback.smtp.host,atlas.gene.autocomplete.descs,atlas.query.listsize,atlas.feedback.to.address,atlas.dump.ebeye.filename".split(","))));

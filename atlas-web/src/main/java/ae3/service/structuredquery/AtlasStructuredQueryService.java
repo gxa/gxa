@@ -711,7 +711,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
             if(id == null)
                 continue;
 
-            AtlasGene gene = new AtlasGene(doc);
+            AtlasGene gene = new AtlasGene(atlasProperties, doc);
             if(response.getHighlighting() != null)
                 gene.setGeneHighlights(response.getHighlighting().get(id.toString()));
 

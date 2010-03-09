@@ -32,17 +32,20 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
 public class AtlasGene {
+    private AtlasProperties atlasProperties;
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
     private ArrayList<AtlasGene> orthoGenes = new ArrayList<AtlasGene>();
     private GeneExpressionAnalyticsTable expTable;
 
-    public AtlasGene(SolrDocument geneDoc) {
+    public AtlasGene(AtlasProperties atlasProperties, SolrDocument geneDoc) {
+        this.atlasProperties = atlasProperties;
         this.geneSolrDocument = geneDoc;
     }
 
@@ -450,11 +453,8 @@ public class AtlasGene {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
     }
 
-    public String getGeneDescription(){
-       return (new AtlasGeneDescription(this)).toString();
+    public String getGeneDescription() {
+       return new AtlasGeneDescription(atlasProperties, this).toString();
     }
 
-    public String getGeneDescriptionHtml(){
-       return (new AtlasGeneDescription(this)).toString();
-    }
 }

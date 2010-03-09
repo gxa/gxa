@@ -26,10 +26,10 @@ import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.structuredquery.Constants;
-import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +42,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
     private AtlasDao dao;
     private Efo efo;
+    private AtlasProperties atlasProperties;
 
     public AtlasDao getDao() {
         return dao;
@@ -59,6 +60,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.efo = efo;
     }
 
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
+
     public Object process(HttpServletRequest request) {
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
@@ -70,7 +75,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             boolean isEfo = Constants.EFO_FACTOR_NAME.equals(factor);
 
             jsResult.put("ef", factor);
-            jsResult.put("eftext", CuratedTexts.get("head.ef." + factor));
+            jsResult.put("eftext", atlasProperties.getCuratedEf(factor));
             jsResult.put("efv", factorValue);
 
             if (isEfo) {
@@ -158,7 +163,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     for (Map.Entry<String, List<ExpressionAnalysis>> ef : e.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
                         jsEf.put("ef", ef.getKey());
-                        jsEf.put("eftext", CuratedTexts.get("head.ef." + ef.getKey()));
+                        jsEf.put("eftext", atlasProperties.getCuratedEf(ef.getKey()));
 
                         List<Map> jsEfvs = new ArrayList<Map>();
                         for (ExpressionAnalysis exp : ef.getValue()) {

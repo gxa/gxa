@@ -23,8 +23,8 @@
 package ae3.model;
 
 import ae3.service.GxaDasDataSource;
-import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
@@ -45,6 +45,7 @@ public class AtlasGeneDescription {
     final public static int MAX_EF = 5;
 
     private String text;
+    private final AtlasProperties atlasProperties;
 
     class Ef {
         class Efv{
@@ -86,7 +87,7 @@ public class AtlasGeneDescription {
             return result;
         }
         public String toShortText(){
-            return "" + efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + this.Name)));
+            return "" + efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(this.Name)));
         }
     }
 
@@ -173,7 +174,9 @@ public class AtlasGeneDescription {
      *
      * @param   gene    <STRONG>must</STRONG> be initialized
      */
-    public AtlasGeneDescription(AtlasGene gene){
+    public AtlasGeneDescription(AtlasProperties atlasProp, AtlasGene gene){
+
+        this.atlasProperties = atlasProp;
 
         List<ListResultRow> efs = gene.getHeatMapRows();
 
@@ -181,8 +184,8 @@ public class AtlasGeneDescription {
             public int compare(ListResultRow o1, ListResultRow o2) {
                 int result;
 
-                String Ef1 = CuratedTexts.get("head.ef." + o1.getEf());
-                String Ef2 = CuratedTexts.get("head.ef." + o2.getEf());
+                String Ef1 = atlasProperties.getCuratedEf(o1.getEf());
+                String Ef2 = atlasProperties.getCuratedEf(o2.getEf());
 
                 result = GxaDasDataSource.SortOrd(Ef1) - GxaDasDataSource.SortOrd(Ef2);
 

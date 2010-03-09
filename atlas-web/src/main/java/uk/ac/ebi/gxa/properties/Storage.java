@@ -21,6 +21,8 @@
  */
 package uk.ac.ebi.gxa.properties;
 
+import java.util.Collection;
+
 /**
  * Atlas properties storage backend interface
  * @author pashky
@@ -45,6 +47,12 @@ public interface Storage {
      * @return true if yes
      */
     boolean isWritePersistent();
+
+    /**
+     * Lists all available property names
+     * @return collection of available property names
+     */
+    Collection<String> getAvailablePropertyNames();
 
     /**
      * Asks storage to reload its sources
