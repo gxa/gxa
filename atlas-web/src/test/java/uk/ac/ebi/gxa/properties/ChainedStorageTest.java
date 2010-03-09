@@ -25,94 +25,64 @@ import static junit.framework.Assert.*;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.Collections;
 
 /**
  * @author pashky
  */
 public class ChainedStorageTest {
 
+    public static class TestStorage implements Storage {
+        public void setProperty(String name, String value) {
+            fail();
+        }
+
+        public String getProperty(String name) {
+            fail();
+            return null;
+        }
+
+        public boolean isWritePersistent() {
+            fail();
+            return false;
+        }
+
+        public void reload() {
+            fail();
+        }
+    }
+
     @Test
     public void test_getProperty() {
         ChainedStorage storage = new ChainedStorage();
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
+                new TestStorage() {
                     public String getProperty(String name) {
                         assertEquals("dummy", name);
                         return null;
                     }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;
-                    }
-
-                    public void reload() {
-                        fail();
-                    }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
+                new TestStorage() {
                     public String getProperty(String name) {
                         assertEquals("dummy", name);
                         return "abc";
-                    }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;  //To change body of implemented methods use File | Settings | File Templates.
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
         assertEquals("abc", storage.getProperty("dummy"));
 
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
+                new TestStorage() {
                     public String getProperty(String name) {
                         assertEquals("dummy", name);
                         return null;
-                    }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
+                new TestStorage() {
                     public String getProperty(String name) {
                         assertEquals("dummy", name);
                         return null;
-                    }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;  //To change body of implemented methods use File | Settings | File Templates.
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
@@ -125,41 +95,18 @@ public class ChainedStorageTest {
 
         // check if only write persistent storage gets the value
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return false;
                     }
-
-                    public void reload() {
-                        fail();
-                    }
                 },
-                new Storage() {
+                new TestStorage() {
                     public void setProperty(String name, String value) {
                         assertEquals("dummy", name);
                         assertEquals("hoppa", value);
                     }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
                     public boolean isWritePersistent() {
                         return true;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
@@ -167,41 +114,18 @@ public class ChainedStorageTest {
 
         // check if first storage gets the value, if there're no persistent ones
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
+                new TestStorage() {
                     public void setProperty(String name, String value) {
                         assertEquals("dummy", name);
                         assertEquals("hoppa", value);
                     }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
                     public boolean isWritePersistent() {
                         return false;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return false;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
@@ -212,80 +136,28 @@ public class ChainedStorageTest {
     public void test_isWritePersistent() {
         ChainedStorage storage = new ChainedStorage();
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return false;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return false;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
         assertFalse(storage.isWritePersistent());
 
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return false;
                     }
-
-                    public void reload() {
-                        fail();
-                    }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
+                new TestStorage() {
                     public boolean isWritePersistent() {
                         return true;
-                    }
-
-                    public void reload() {
-                        fail();
                     }
                 }
         ));
@@ -298,40 +170,12 @@ public class ChainedStorageTest {
         final int[] counter = new int[1];
         counter[0] = 0;
         storage.setStorages(Arrays.<Storage>asList(
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;
-                    }
-
+                new TestStorage() {
                     public void reload() {
                         ++counter[0];
                     }
                 },
-                new Storage() {
-                    public void setProperty(String name, String value) {
-                        fail();
-                    }
-
-                    public String getProperty(String name) {
-                        fail();
-                        return null;
-                    }
-
-                    public boolean isWritePersistent() {
-                        fail();
-                        return false;
-                    }
-
+                new TestStorage() {
                     public void reload() {
                         ++counter[0];
                     }
