@@ -82,10 +82,19 @@
                             <property name="jdbcTemplate" ref="interfaceTemplate"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
+                            <property name="resourcePath" value="Curated.properties"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="atlas.properties"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="atlas.version"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.EfHeadersStorage">
+                            <property name="efvService" ref="atlasEfvService"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.GenePropHeadersStorage">
+                            <property name="dao" ref="atlasInterfaceDAO"/>
                         </bean>
                     </util:list>
                 </property>
@@ -174,6 +183,7 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasDao">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -310,6 +320,7 @@
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="expGeneListRequestHandler"

@@ -27,6 +27,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.Collections;
+import java.util.Collection;
 
 /**
  * @author pashky
@@ -46,6 +47,11 @@ public class ChainedStorageTest {
         public boolean isWritePersistent() {
             fail();
             return false;
+        }
+
+        public Collection<String> getAvailablePropertyNames() {
+            fail();
+            return null;
         }
 
         public void reload() {
@@ -185,4 +191,22 @@ public class ChainedStorageTest {
         assertEquals(2, counter[0]);
     }
 
+    @Test
+    public void test_getAvailablePropertyNames() {
+        ChainedStorage storage = new ChainedStorage();
+        storage.setStorages(Arrays.<Storage>asList(
+                new TestStorage() {
+                    public Collection<String> getAvailablePropertyNames() {
+                        return Collections.singleton("1");
+                    }
+                },
+                new TestStorage() {
+                    public Collection<String> getAvailablePropertyNames() {
+                        return Collections.singleton("2");
+                    }
+                }
+        ));
+        assertEquals(2, storage.getAvailablePropertyNames().size());
+        assertTrue(storage.getAvailablePropertyNames().containsAll(Arrays.asList("1","2")));
+    }
 }

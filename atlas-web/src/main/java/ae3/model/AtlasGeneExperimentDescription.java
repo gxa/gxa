@@ -22,8 +22,8 @@
 
 package ae3.model;
 
-import ae3.util.CuratedTexts;
 import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.ArrayList;
@@ -41,6 +41,7 @@ public class AtlasGeneExperimentDescription {
 
     private AtlasGene atlasGene;
     private AtlasExperiment atlasExperiment;
+    private AtlasProperties atlasProperties;
     private Boolean overExpressed;
 
     public EfWriter writer = null;
@@ -88,9 +89,9 @@ public class AtlasGeneExperimentDescription {
                 String result = "";
 
                 if(efv.size()<2)
-                 result+= StringUtil.decapitalise(CuratedTexts.get("head.ef." + Name));
+                 result+= StringUtil.decapitalise(atlasProperties.getCuratedEf(Name));
                 else
-                 result+= StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + Name)));
+                 result+= StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(Name)));
 
                 boolean first = true;
 
@@ -115,8 +116,9 @@ public class AtlasGeneExperimentDescription {
             }
         }
 
-    public AtlasGeneExperimentDescription(AtlasGene atlasGene, AtlasExperiment atlasExperiment, Boolean overExpressed) throws Exception{
-          this.atlasGene = atlasGene;
+    public AtlasGeneExperimentDescription(AtlasProperties atlasProperties, AtlasGene atlasGene, AtlasExperiment atlasExperiment, Boolean overExpressed) throws Exception{
+        this.atlasProperties = atlasProperties;
+        this.atlasGene = atlasGene;
           this.atlasExperiment = atlasExperiment;
           this.overExpressed = overExpressed;
 
@@ -190,9 +192,9 @@ public class AtlasGeneExperimentDescription {
             result += " and "+ (iCount-MAX_EXP_FACTOR_VALUES) + " other ";
 
         if(iCount==1)
-            result += " " + StringUtil.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor));
+            result += " " + StringUtil.decapitalise(atlasProperties.getCuratedEf(HighestRankExperimentalFactor));
         else
-            result += " " + StringUtil.pluralize(StringUtil.decapitalise(CuratedTexts.get("head.ef." + HighestRankExperimentalFactor)));
+            result += " " + StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(HighestRankExperimentalFactor)));
 
         return result;
     }
@@ -214,7 +216,7 @@ public class AtlasGeneExperimentDescription {
             if(!result.endsWith(": "))
                 result += ", ";
 
-            result += StringUtil.decapitalise(CuratedTexts.get("head.ef." + f.Name));
+            result += StringUtil.decapitalise(atlasProperties.getCuratedEf(f.Name));
         }
 
         result += ". ";

@@ -28,6 +28,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Oracle DB - backed storage. Can store value permanently.
  * @author pashky
@@ -82,6 +85,20 @@ public class DbStorage implements Storage {
 
     public boolean isWritePersistent() {
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<String> getAvailablePropertyNames() {
+        try {
+            return (List<String>)jdbcTemplate.queryForList(
+                    "SELECT name FROM A2_CONFIG_PROPERTY t",
+                    new Object[] { }, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        } catch (DataAccessException e) {
+            log.error("Can't retrieve available property names", e);
+            return null;
+        }
     }
 
     public void reload() {

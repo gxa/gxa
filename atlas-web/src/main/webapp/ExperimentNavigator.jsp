@@ -3,6 +3,7 @@
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
+<%@ page import="uk.ac.ebi.gxa.properties.AtlasProperties" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%--
@@ -31,6 +32,7 @@
 
 <%
     AtlasDao dao = (AtlasDao) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
+    AtlasProperties atlasProperties = (AtlasProperties) application.getAttribute("atlasProperties");
     List<AtlasExperiment> expz = dao.getExperiments();
     request.setAttribute("allexpts", expz);
 %>
@@ -157,8 +159,7 @@ Gene Expression Atlas - Experiment Index
                 </td>
                 <td>
                     <%for (String f : i.getExperimentFactors()) {%>
-                    <%=ae3.util.CuratedTexts.getCurated(f) + " [" + i.getFactorValuesForEF().get(f).size() +
-                            " FVs]<br/> "%>
+                    <u:curatedName escape="xml" ef="<%=f%>"/> [<%=i.getFactorValuesForEF().get(f).size()%> FVs]<br/>
                     <%}%>
                     <!-- <%=org.apache.commons.lang.StringUtils.join(i.getExperimentFactors(), ", ")%>-->
                 </td>

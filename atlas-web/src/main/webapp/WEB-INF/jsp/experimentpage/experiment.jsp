@@ -74,10 +74,10 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
 
     <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
-    curatedSCs['${char}'] = '${u:getCurated(char)}';
+    curatedSCs['${char}'] = '<u:curatedName ef="${char}" escape="js" />';
     </c:forEach>
     <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
-    curatedEFs['${ef}'] = '${u:getCurated(ef)}';
+    curatedEFs['${ef}'] = '<u:curatedName ef="${ef}" escape="js" />';
     </c:forEach>
 
     $(document).ready(function()
@@ -135,8 +135,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                             <div id="EFpagination" class="pagination_ie">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <a id="efpage${EF}"
-                                       onclick="redrawForEF('${EF}')"><fmt:message
-                                            key="head.ef.${EF}"/></a>
+                                       onclick="redrawForEF('${EF}')"><u:curatedName ef="${EF}" escape="xml"/></a>
                                 </c:forEach>
                             </div>
                         </div>
@@ -239,7 +238,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                         <c:forEach var="char" items="${exp.sampleCharacteristics}">
                                             <li style="list-style-type: none; padding-left: 0px"
                                                 id="${char}_title"><a class="sample_attr_title" href="#">
-                                                <fmt:message key="head.ef.${char}"/>
+                                                <u:curatedName ef="${char}" escape="xml"/>
                                                 <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
                                             </li>
                                             <div id="${char}_values" class="sample_attr_values">
@@ -257,7 +256,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                             <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
                                                 <li style="list-style-type: none; padding-left: 0px"
                                                     id="${EF}_title"><a class="sample_attr_title" href="#">
-                                                    <fmt:message key="head.ef.${EF}"/>&nbsp;(EF)</a>
+                                                    <u:curatedName ef="${EF}" escape="xml"/>&nbsp;(EF)</a>
                                                 </li>
                                                 <div id="${EF}_values" class="sample_attr_values">
                                                     <c:forEach var="value"

@@ -160,7 +160,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="" selected="selected">Gene property</option>
                                 <option value="">(any)</option>
                                 <c:forEach var="i" items="${atlasQueryService.genePropertyOptions}">
-                                    <option value="${f:escapeXml(i)}"><fmt:message key="head.gene.${i}"/></option>
+                                    <option value="${f:escapeXml(i)}"><u:curatedName geneProp="${i}" escape="html"/></option>
                                 </c:forEach>
                             </select>
                         </td>
@@ -170,7 +170,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="">(any)</option>
                                 <option value="efo">EFO</option>
                                 <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
-                                    <option value="${f:escapeXml(i)}"><fmt:message key="head.ef.${i}"/></option>
+                                    <option value="${f:escapeXml(i)}"><u:curatedName ef="${i}" escape="xml"/></option>
                                 </c:forEach>
                             </select>
                         </td>
@@ -208,7 +208,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
         <c:if test="${c.ignored}"><fieldset class="ignoretext top">
-            <span class="ignored">Ignoring condition &quot;<b><fmt:message key="head.ef.${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
+            <span class="ignored">Ignoring condition &quot;<b><u:curatedName escape="xml" ef="${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
         </fieldset></c:if>
     </c:forEach>
 </div><!-- /id=topcontainer -->
@@ -354,7 +354,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         <div id="drill" style="padding:0px;">
             <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                 <div class="drillsect">
-                    <c:set var="efname"><fmt:message key="head.ef.${ef.ef}"/></c:set>
+                    <c:set var="efname"><u:curatedName escape="xml" ef="${ef.ef}"/></c:set>
                     <div class="name">${efname}</div>
                     <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
                         <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="Filter for genes up or down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>
@@ -377,7 +377,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:forEach var="facet" items="${result.geneFacets}">
                 <c:if test="${!empty facet.key && facet.key!='species'}">
                     <div class="drillsect">
-                        <c:set var="gpname"><fmt:message key="head.gene.${facet.key}"/></c:set>
+                        <c:set var="gpname"><u:curatedName escape="xml" ef="${facet.key}"/></c:set>
                         <div class="name">${gpname}</div>
                         <ul>
                             <c:forEach var="fv" items="${facet.value}" varStatus="s">
@@ -489,7 +489,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <th colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}">&nbsp;</th>
             </c:if>
             <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
-                <c:set var="eftitle"><fmt:message key="head.ef.${c.ef}"/></c:set>
+                <c:set var="eftitle"><u:curatedName escape="xml" ef="${c.ef}"/></c:set>
                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
@@ -609,7 +609,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     </div>
                 </td>
                 <td class="padded wrapok">${row.gene_species}</td>
-                <td class="padded wrapok"><fmt:message key="head.ef.${row.ef}"/></td>
+                <td class="padded wrapok"><u:curatedName escape="xml" ef="${row.ef}"/></td>
                 <td class="padded wrapok lvrowefv">${row.fv}</td>
                 <td class="acounter">
                     <c:choose>

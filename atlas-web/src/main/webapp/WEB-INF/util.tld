@@ -39,6 +39,27 @@
         <body-content>empty</body-content>
     </tag>
 
+    <tag>
+        <name>curatedName</name>
+        <tag-class>ae3.util.CuratedNameTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>ef</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>geneProp</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>escape</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+
     <function>
       <name>escapeJS</name>
       <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
@@ -125,14 +146,6 @@
       <function-signature>
         java.lang.String truncateLine(java.lang.String,int)
       </function-signature>
-    </function>
-
-     <function>
-        <name>getCurated</name>
-        <function-class>ae3.util.CuratedTexts</function-class>
-        <function-signature>
-            java.lang.String getCurated(java.lang.String)
-        </function-signature>
     </function>
 
     <function>

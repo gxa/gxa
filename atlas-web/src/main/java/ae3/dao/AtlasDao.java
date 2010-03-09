@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
@@ -54,21 +55,18 @@ public class AtlasDao {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
-
-    public SolrServer getSolrServerAtlas() {
-        return solrServerAtlas;
-    }
+    private AtlasProperties atlasProperties;
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
     }
 
-    public SolrServer getSolrServerExpt() {
-        return solrServerExpt;
-    }
-
     public void setSolrServerExpt(SolrServer solrServerExpt) {
         this.solrServerExpt = solrServerExpt;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     /**
@@ -249,7 +247,7 @@ public class AtlasDao {
                 return new AtlasGeneResult(null, false);
             }
 
-            return new AtlasGeneResult(new AtlasGene(documentList.get(0)), documentList.getNumFound() > 1);
+            return new AtlasGeneResult(new AtlasGene(atlasProperties, documentList.get(0)), documentList.getNumFound() > 1);
         }
         catch (SolrServerException e) {
             throw new RuntimeException("Error querying for gene " + query, e);
@@ -267,7 +265,7 @@ public class AtlasDao {
             SolrDocumentList documentList = queryResponse.getResults();
 
             for (SolrDocument d : documentList) {
-                AtlasGene g = new AtlasGene(d);
+                AtlasGene g = new AtlasGene(atlasProperties, d);
                 result.add(g);
             }
 
