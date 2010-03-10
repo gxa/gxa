@@ -75,7 +75,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
                 WebApplicationContextUtils.getWebApplicationContext(application);
 
         // fetch services from the context
-        AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasInterfaceDAO");
+        AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
         AtlasComputeService computeService = (AtlasComputeService) context.getBean("atlasComputeService");
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
         AtlasDao atlasSolrDAO = (AtlasDao) context.getBean("atlasSolrDAO");

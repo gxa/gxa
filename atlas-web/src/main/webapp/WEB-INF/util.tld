@@ -165,18 +165,19 @@
     </function>
 
     <function>
-        <name>GeneUrl</name>
-        <function-class>ae3.util.URLUtil</function-class>
+        <name>join</name>
+        <function-class>org.apache.commons.lang.StringUtils</function-class>
         <function-signature>
-            java.lang.String getGeneURL(javax.servlet.http.HttpServletRequest, java.lang.String)
+            java.lang.String join(java.util.Collection, java.lang.String)
         </function-signature>
     </function>
 
     <function>
-        <name>Experiment</name>
-        <function-class>ae3.util.URLUtil</function-class>
+        <name>limitedJoin</name>
+        <function-class>uk.ac.ebi.gxa.utils.StringUtil</function-class>
         <function-signature>
-            java.lang.String getGeneURL(javax.servlet.http.HttpServletRequest, java.lang.String)
+            java.lang.String limitedJoin(java.util.Collection, int, java.lang.String, java.lang.String)
         </function-signature>
     </function>
+
 </taglib>

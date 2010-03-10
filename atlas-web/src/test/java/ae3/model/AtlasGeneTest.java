@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -90,33 +91,26 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getGoTerm() {
-        assertNotNull(gene.getGoTerm());
-        assertTrue(gene.getGoTerm().matches(".*\\S+.*"));
+        assertNotNull(gene.getGoTerms());
+        assertFalse(gene.getGoTerms().isEmpty());
     }
 
     @Test
     public void test_getInterProTerm() {
-        assertNotNull(gene.getInterProTerm());
-        assertTrue(gene.getInterProTerm().matches(".*\\S+.*"));
+        assertNotNull(gene.getInterProTerms());
+        assertFalse(gene.getInterProTerms().isEmpty());
     }
 
     @Test
     public void test_getKeyword() {
-        assertNotNull(gene.getKeyword());
-        assertTrue(gene.getKeyword().matches(".*\\S+.*"));
+        assertNotNull(gene.getKeywords());
+        assertFalse(gene.getKeywords().isEmpty());
     }
 
     @Test
     public void test_getDisesase() {
-        assertNotNull(gene.getDisease());
-        assertTrue(gene.getDisease().matches(".*\\S+.*"));
-    }
-
-    @Test
-    public void test_shortValues() {
-        assertTrue(gene.getShortGOTerms().length() <= gene.getGoTerm().length());
-        assertTrue(gene.getShortInterProTerms().length() <= gene.getInterProTerm().length());
-        assertTrue(gene.getShortDiseases().length() <= gene.getDisease().length());
+        assertNotNull(gene.getDiseases());
+        assertFalse(gene.getDiseases().isEmpty());
     }
 
     @Test
@@ -128,26 +122,24 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getUniprotIds(){
-        assertNotNull(gene.getUniprotId());
-        assertFalse("Uniprot ID is an empty string", gene.getUniprotId().equals(""));
-        assertTrue(gene.getUniprotId().matches("^[A-Z0-9, ]+$"));
+        assertNotNull(gene.getUniprotIds());
+        assertFalse("Uniprot ID is an empty string", gene.getUniprotIds().isEmpty());
+        assertTrue(StringUtils.join(gene.getUniprotIds(), ",").matches("^[A-Z0-9, ]+$"));
     }
 
     @Test
     public void getSynonyms(){
-        assertNotNull(gene.getSynonym());
-        assertFalse("Synonym is an empty string", gene.getSynonym().equals(""));
-        assertTrue(gene.getSynonym().contains("ASPM"));
+        assertNotNull(gene.getSynonyms());
+        assertFalse("Synonym is an empty string", gene.getSynonyms().isEmpty());
+        assertTrue(gene.getSynonyms().contains("ASPM"));
     }
 
     @Test
     public void test_highlighting() {
         Map<String, List<String>> highlights = new HashMap<String, List<String>>();
-        highlights.put("property_SYNONYM", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
+        highlights.put("property_synonim", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
         gene.setGeneHighlights(highlights);
         assertTrue(gene.getHilitSynonym().matches(".*<em>.*"));
-        assertNotNull(gene.getGeneHighlightStringForHtml());
-        assertTrue(gene.getGeneHighlightStringForHtml().matches(".*<em>.*"));
     }
 
     @Test
@@ -158,23 +150,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
         assertTrue(efvs.contains("BT474"));
 	}
 
-    /*
-    @Test
-	public void test_orthologs() {
-        gene.getOrthologs();
-        gene.getOrthologsIds();
-        public void addOrthoGene(AtlasGene ortho){
-        public ArrayList<AtlasGene> getOrthoGenes(){
-
-	}
-
-    @Test
-    public void test_getCounts() {
-
-        }
-    }
-*/
-    @Test
+   @Test
     public void test_getExpermientsTable() {
         GeneExpressionAnalyticsTable et = gene.getExpressionAnalyticsTable();
         assertTrue(et.getAll().iterator().hasNext());

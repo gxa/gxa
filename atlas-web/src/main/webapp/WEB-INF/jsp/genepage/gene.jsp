@@ -305,26 +305,28 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
     <tr>
         <td class="geneAnnotHeader">Synonyms</td>
-        <td align="left">${atlasGene.synonym}</td>
+        <td align="left">${u:join(atlasGene.synonyms, ", ")}</td>
     </tr>
 
-    <c:if test="${!empty atlasGene.orthologs}">
+    <c:if test="${!empty orthologs}">
         <tr>
         </tr>
         <tr>
             <td class="geneAnnotHeader">Orthologs</td>
 
             <td align="left">
-                <c:forEach var="ortholog" items="${atlasGene.orthoGenes}">
-                    <a href="${u:GeneUrl(pageContext.request,ortholog.geneEnsembl)}" target="_self" title="Gene Atlas Data For ${ortholog.geneName} (${ortholog.geneSpecies})">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
+                <c:set var="orthoIds" value=""/>
+                <c:forEach var="ortholog" items="${orthologs}">
+                    <a href="${pageContext.request.contextPath}/gene/${ortholog.geneIdentifier}" target="_self" title="Gene Atlas Data For ${ortholog.geneName} (${ortholog.geneSpecies})">${ortholog.geneName} (${ortholog.geneSpecies})</a>&nbsp;
+                    <c:set var="orthoIds" value="${orthoIds}${ortholog.geneIdentifier}+"/>
                 </c:forEach>
-                (<a href="${pageContext.request.contextPath}/qrs?gprop_0=&gval_0=${atlasGene.orthologsIds}+${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+                (<a href="${pageContext.request.contextPath}/qrs?gprop_0=&gval_0=${orthoIds}${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
                     target="_self">Compare orthologs</a>)
             </td>
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.interProTerm}">
+    <c:if test="${!empty atlasGene.interProTerms}">
         <tr>
             <td></td>
             <td>
@@ -333,11 +335,11 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </tr>
         <tr>
             <td class="geneAnnotHeader">InterPro Term</td>
-            <td align="left">${atlasGene.shortInterProTerms}</td>
+            <td align="left">${u:limitedJoin(atlasGene.interProTerms, 5, ", ", "...")}</td>
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.disease}">
+    <c:if test="${!empty atlasGene.diseases}">
         <tr>
             <td></td>
             <td>
@@ -345,11 +347,11 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </tr>
         <tr>
             <td class="geneAnnotHeader">Diseases</td>
-            <td align="left">${atlasGene.shortDiseases}</td>
+            <td align="left">${u:limitedJoin(atlasGene.diseases, 5, ", ", "...")}</td>
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.goTerm}">
+    <c:if test="${!empty atlasGene.goTerms}">
         <tr>
             <td></td>
             <td>
@@ -358,11 +360,11 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </tr>
         <tr>
             <td class="geneAnnotHeader">GO Terms</td>
-            <td align="left">${atlasGene.shortGOTerms}</td>
+            <td align="left">${u:limitedJoin(atlasGene.goTerms, 5, ", ", "...")}</td>
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.uniprotId}">
+    <c:if test="${!empty atlasGene.uniprotIds}">
         <tr>
             <td></td>
             <td>

@@ -33,12 +33,14 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.SequenceIterator;
 
 import java.util.*;
 
@@ -47,13 +49,19 @@ import java.util.*;
  * @author pashky
  * @see AutoCompleter
  */
-public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEventHandler, AtlasPropertiesListener, DisposableBean {
+public class AtlasGenePropertyService implements AutoCompleter,
+        IndexBuilderEventHandler,
+        AtlasPropertiesListener,
+        DisposableBean {
     private SolrServer solrServerAtlas;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
 
+    private final Set<String> allProperties = new HashSet<String>();
     private Set<String> idProperties;
     private Set<String> descProperties;
+    private Set<String> drillDownProperties;
+    private Set<String> nameProperties;
     private List<String> nameFields;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -71,7 +79,6 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
         atlasProperties.registerListener(this);
-        loadProperties();
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -81,17 +88,26 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
 
     public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
         loadProperties();
+        prefixTrees.clear();
     }
 
     private void loadProperties()
     {
+        Set<String> available = getAllProperties();
+
         this.idProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteIdFields());
+        this.idProperties.retainAll(available);
         this.descProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteDescFields());
+        this.descProperties.retainAll(available);
+        this.drillDownProperties = new HashSet<String>(atlasProperties.getQueryDrilldownGeneFields());
+        this.drillDownProperties.retainAll(available);
+        this.nameProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteNameFields());
+        this.nameProperties.retainAll(available);
 
         this.nameFields = new ArrayList<String>();
         nameFields.add("identifier");
         nameFields.add("name_f");
-        for(String nameProp : atlasProperties.getGeneAutocompleteNameFields())
+        for(String nameProp : nameProperties)
             nameFields.add("property_f_" + nameProp);
     }
 
@@ -110,15 +126,6 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
             });
         }
         return result;
-    }
-
-    public void preloadData() {
-        for(String property : idProperties)
-            treeGetOrLoad("property_f_" + property + "_f");
-        for(String property : descProperties)
-            treeGetOrLoad("property_f_" + property + "_f");
-        for(String field : nameFields)
-            treeGetOrLoad(field);
     }
 
     private PrefixNode treeGetOrLoad(String field) {
@@ -156,6 +163,8 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
     }
 
     public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String,String> filters) {
+        if(idProperties == null)
+            loadProperties();
 
         boolean hasPrefix = query != null && !"".equals(query);
         if(hasPrefix)
@@ -174,12 +183,12 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
         if(anyProp) {
 
             for(String p : idProperties)
-                result.addAll(treeAutocomplete(p, query, atlasProperties.getGeneAutocompleteNameLimit()));
+                result.addAll(treeAutocomplete(p, query, atlasProperties.getGeneAutocompleteIdLimit()));
             Collections.sort(result);
-            if(result.size() > atlasProperties.getGeneAutocompleteNameLimit())
-                result = result.subList(0, atlasProperties.getGeneAutocompleteNameLimit());
+            if(result.size() > atlasProperties.getGeneAutocompleteIdLimit())
+                result = result.subList(0, atlasProperties.getGeneAutocompleteIdLimit());
 
-            result.addAll(joinGeneNames(query, speciesFilter, atlasProperties.getGeneAutocompleteIdLimit()));
+            result.addAll(0, joinGeneNames(query, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit()));
 
             for(String p : descProperties)
                 result.addAll(treeAutocomplete(p, query, limit > 0 ? limit - result.size() : -1));
@@ -284,6 +293,8 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         prefixTrees.clear();
+        allProperties.clear();
+        loadProperties();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
@@ -293,5 +304,66 @@ public class AtlasGenePropertyService implements AutoCompleter, IndexBuilderEven
     public void destroy() throws Exception {
         if(indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
+        if(atlasProperties != null)
+            atlasProperties.unregisterListener(this);
+    }
+
+    public Collection<String> getDrilldownProperties() {
+        if(idProperties == null)
+            loadProperties();
+        return drillDownProperties;
+    }
+
+    public Collection<String> getIdProperties() {
+        if(idProperties == null)
+            loadProperties();
+        return idProperties;
+    }
+
+    public Collection<String> getDescProperties() {
+        if(idProperties == null)
+            loadProperties();
+        return descProperties;
+    }
+
+    public Collection<String> getNameProperties() {
+        if(idProperties == null)
+            loadProperties();
+        return nameProperties;
+    }
+
+    public Iterable<String> getIdNameDescProperties() {
+        if(idProperties == null)
+            loadProperties();
+        return new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return new SequenceIterator<String>(
+                        nameProperties.iterator(),
+                        descProperties.iterator(),
+                        idProperties.iterator()
+                );
+            }
+        };
+    }
+
+    public Set<String> getAllProperties() {
+        if(allProperties.isEmpty()) {
+            SolrQuery q = new SolrQuery("*:*");
+            q.setRows(0);
+            q.addFacetField("properties");
+            q.setFacet(true);
+            q.setFacetLimit(-1);
+            q.setFacetMinCount(1);
+            try {
+                QueryResponse qr = solrServerAtlas.query(q);
+                if(qr.getFacetFields().get(0).getValues() != null)
+                    for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                        allProperties.add(ffc.getName());
+                    }
+            } catch(SolrServerException e) {
+                throw new RuntimeException("Can't fetch all factors", e);
+            }
+        }
+        return allProperties;
     }
 }

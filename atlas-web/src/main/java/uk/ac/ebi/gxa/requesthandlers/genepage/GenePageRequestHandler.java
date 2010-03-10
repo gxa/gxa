@@ -60,8 +60,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
 
             if(result.isFound()) {
                 AtlasGene gene = result.getGene();
-                atlasSolrDao.retrieveOrthoGenes(gene);
-
+                request.setAttribute("orthologs", atlasSolrDao.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMapRows());
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());

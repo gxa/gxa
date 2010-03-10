@@ -19,24 +19,38 @@
  *
  * http://gxa.github.com/gxa
  */
+package uk.ac.ebi.gxa.utils;
 
-package ae3.util;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Andrey
- * Date: Jul 6, 2009
- * Time: 11:39:15 AM
- * To change this template use File | Settings | File Templates.
+ * Similar to {@link JoinIterator}, but iterates over any number of iterators of the same type not doing
+ * any mapping/filtering. Bascially, unites several iterators into one big sequence. 
+ * @author pashky
  */
-public class URLUtil {
+public class SequenceIterator<Type> implements Iterator<Type> {
+    private Iterator<Type> iters[];
+    private int i = 0;
 
-    public static String getDasUrl(HttpServletRequest request)
-    {
-       return request.getRequestURL().toString();
-//       return "http://" + AtlasProperties.getProperty("atlas.host") + request.getContextPath() + "/das/" + AtlasProperties.getProperty("atlas.dasdsn");
+    public SequenceIterator(Iterator<Type>... iters) {
+        this.iters = iters;
+        skip();
+    }
+
+    public boolean hasNext() {
+        return i < iters.length && iters[i].hasNext();
+    }
+
+    public Type next() {
+        Type result = iters[i].next();
+        skip();
+        return result;
+    }
+
+    private void skip() {
+        for(; i < iters.length && !iters[i].hasNext(); ++i);
+    }
+
+    public void remove() {
     }
 }
-

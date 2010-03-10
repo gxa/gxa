@@ -46,7 +46,7 @@
     </bean>
 
     <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.web.controller.AtlasReschedulerController">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 

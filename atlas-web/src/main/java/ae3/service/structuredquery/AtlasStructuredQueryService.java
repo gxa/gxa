@@ -47,9 +47,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
@@ -58,7 +56,7 @@ import java.util.*;
  * Structured query support class
  * @author pashky
  */
-public class AtlasStructuredQueryService implements IndexBuilderEventHandler, AtlasPropertiesListener, DisposableBean {
+public class AtlasStructuredQueryService implements IndexBuilderEventHandler, DisposableBean {
 
     private static final int MAX_EFV_COLUMNS = 120;
 
@@ -72,18 +70,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
 
     private AtlasEfvService efvService;
     private AtlasEfoService efoService;
+    private AtlasGenePropertyService genePropService;
 
     private AtlasDao atlasSolrDAO;
-    private AtlasDAO atlasDbDAO;
 
     private CoreContainer coreContainer;
 
     private Efo efo;
 
     private final Set<String> cacheFill = new HashSet<String>();
-    private Set<String> otherGeneProperties;
-    private Set<String> nameGeneProperties;
-    private Set<String> drilldownGeneProperties;
     private SortedSet<String> allSpecies = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 
     /**
@@ -167,14 +162,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         this.atlasSolrDAO = solrAtlasDAO;
     }
 
-    public AtlasDAO getAtlasDbDAO() {
-        return atlasDbDAO;
-    }
-
-    public void setAtlasDbDAO(AtlasDAO atlasDbDAO) {
-        this.atlasDbDAO = atlasDbDAO;
-    }
-
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
@@ -188,26 +175,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         this.efo = efo;
     }
 
+    public void setGenePropService(AtlasGenePropertyService genePropService) {
+        this.genePropService = genePropService;
+    }
+
     public AtlasProperties getAtlasProperties() {
         return atlasProperties;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
-        atlasProperties.registerListener(this);
-        loadProperties();
-    }
-
-    public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
-        loadProperties();
-    }
-
-    private void loadProperties() {
-        this.otherGeneProperties = new HashSet<String>();
-        this.otherGeneProperties.addAll(atlasProperties.getGeneAutocompleteDescFields());
-        this.otherGeneProperties.addAll(atlasProperties.getGeneAutocompleteIdFields());
-        this.nameGeneProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteNameFields());
-        this.drilldownGeneProperties = new HashSet<String>(atlasProperties.getQueryDrilldownGeneFields());
     }
 
     private static class SolrQueryBuilder {
@@ -378,7 +355,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
 
                 if(response.getFacetFields() != null) {
                     result.setEfvFacet(getEfvFacet(response, qstate));
-                    for(String p : drilldownGeneProperties) {
+                    for(String p : genePropService.getDrilldownProperties()) {
                         Set<String> hasVals = new HashSet<String>();
                         for(GeneQueryCondition qc : query.getGeneConditions())
                             if(qc.getFactor().equals(p))
@@ -596,10 +573,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
             } else if(Constants.GENE_PROPERTY_NAME.equals(geneQuery.getFactor())) {
                 solrq.append("(name:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
                 solrq.append("identifier:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
-                for(String nameProp : nameGeneProperties)
+                for(String nameProp : genePropService.getNameProperties())
                     solrq.append("property_" + nameProp + ":(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
                 solrq.append(")");
-            } else if(otherGeneProperties.contains(geneQuery.getFactor())) {
+            } else if(genePropService.getDescProperties().contains(geneQuery.getFactor())
+                    || genePropService.getIdProperties().contains(geneQuery.getFactor())) {
                 String field = "property_" + geneQuery.getFactor();
                 solrq.append(field).append(":(").append(geneQuery.getSolrEscapedFactorValues()).append(")");
             }
@@ -971,9 +949,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
             q.addField("identifier");
             q.addField("species");
             q.addField("exp_info");
-            for(String p : otherGeneProperties)
-                q.addField("property_" + p);
-            for(String p : nameGeneProperties)
+            for(String p : genePropService.getIdNameDescProperties())
                 q.addField("property_" + p);
         } else {
             q.addField("*");
@@ -983,7 +959,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         q.setFacetMinCount(2);
         q.setFacetSort(FacetParams.FACET_SORT_COUNT);
 
-        for(String p : drilldownGeneProperties) {
+        for(String p : genePropService.getDrilldownProperties()) {
             q.addFacetField("property_f_" + p);
         }
 
@@ -1006,9 +982,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         q.addHighlightField("name");
         q.addHighlightField("synonym");
         q.addHighlightField("identifier");
-        for(String p : otherGeneProperties)
-            q.addHighlightField("property_" + p);
-        for(String p : nameGeneProperties)
+        for(String p : genePropService.getIdNameDescProperties())
             q.addHighlightField("property_" + p);
         return q;
     }
@@ -1086,13 +1060,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
         List<String> factors = new ArrayList<String>();
         factors.addAll(efvService.getOptionsFactors());
         factors.add(Constants.EXP_FACTOR_NAME);
-        Collections.sort(factors, String.CASE_INSENSITIVE_ORDER);
+        Collections.sort(factors, new Comparator<String>() {
+            public int compare(String o1, String o2) {
+                return atlasProperties.getCuratedEf(o1).compareToIgnoreCase(atlasProperties.getCuratedGeneProperty(o2));
+            }
+        });
         return factors;
     }
 
     public List<String> getGenePropertyOptions() {
         List<String> result = new ArrayList<String>();
-        result.addAll(otherGeneProperties);
+        for(String v :  genePropService.getIdNameDescProperties())
+            result.add(v);
         result.add(Constants.GENE_PROPERTY_NAME);
         Collections.sort(result, new Comparator<String>() {
             public int compare(String o1, String o2) {
@@ -1136,7 +1115,5 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, At
     public void destroy() throws Exception {
         if(indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
-        if(atlasProperties != null)
-            atlasProperties.unregisterListener(this);
     }
 }
