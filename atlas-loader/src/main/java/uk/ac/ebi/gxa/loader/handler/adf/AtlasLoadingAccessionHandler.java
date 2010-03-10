@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.loader.handler.adf;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.AccessionHandler;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -47,7 +46,7 @@ public class AtlasLoadingAccessionHandler extends AccessionHandler {
             // add the experiment to the cache
             AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
                     .retrieveAtlasLoadCache(arrayDesign);
-            cache.addArrayDesignBundle(arrayBundle);
+            cache.setArrayDesignBundle(arrayBundle);
             synchronized (arrayDesign) {
                 arrayDesign.notifyAll();
             }

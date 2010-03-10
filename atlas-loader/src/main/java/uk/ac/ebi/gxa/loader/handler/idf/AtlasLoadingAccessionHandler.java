@@ -51,7 +51,7 @@ public class AtlasLoadingAccessionHandler extends AccessionHandler {
             // add the experiment to the cache
             AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry()
                     .retrieveAtlasLoadCache(investigation);
-            cache.addExperiment(experiment);
+            cache.setExperiment(experiment);
             synchronized (investigation) {
                 investigation.notifyAll();
             }

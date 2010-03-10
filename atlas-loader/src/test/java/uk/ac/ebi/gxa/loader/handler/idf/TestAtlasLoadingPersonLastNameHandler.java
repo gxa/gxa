@@ -115,16 +115,12 @@ public class TestAtlasLoadingPersonLastNameHandler extends TestCase {
       fail();
     }
 
-    // parsing finished, look in our cache...
-    assertEquals("Local cache doesn't contain only one experiment",
-                 cache.fetchAllExperiments().size(), 1);
+      // parsing finished, look in our cache...
+      assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
 
     // get the title of the experiment
     String expected = "Lesley Jones Angela Hodges";
-    String actual = "";
-    for (Experiment exp : cache.fetchAllExperiments()) {
-      actual = exp.getPerformer();
-    }
+    String actual = cache.fetchExperiment().getPerformer();
 
     assertEquals("Names don't match", expected, actual);
   }

@@ -120,43 +120,44 @@ public class TestAtlasLoadCacheRegistry extends TestCase {
     }
   }
 
-  public void testMerge() {
-    // attempt to register cache, no objects in this
-    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-        investigation,
-        cache);
-
-    assertSame("The fetched cache has experiments",
-               cache.fetchAllExperiments().size(), 0);
-
-    try {
-      // try and register a different cache to the same investigation
-      AtlasLoadCache cache2 = new AtlasLoadCache();
-
-      Experiment exp = new Experiment();
-      exp.setAccession("TEST-EXP");
-      cache2.addExperiment(exp);
-
-      AtlasLoadCacheRegistry.getRegistry().mergeExperiments(
-          investigation,
-          cache2);
-
-      // now check we can retrieve cache
-      AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
-          .retrieveAtlasLoadCache(investigation);
-
-      // now check the cache we retrieve is cache, not cache 2
-      assertSame("The fetched cache is not the same as the " +
-          "originally registered cache", fetched, cache);
-      assertNotSame("The fetched cache is the same as the " +
-          "merged cache", fetched, cache2);
-
-      assertSame("Fetched cache contains wrong number of experiments",
-                 fetched.fetchAllExperiments().size(), 1);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      fail();
-    }
-  }
+    // note - merging is deprecated 
+//  public void testMerge() {
+//    // attempt to register cache, no objects in this
+//    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
+//        investigation,
+//        cache);
+//
+//    assertNotNull("The fetched cache has an experiments",
+//               cache.fetchExperiment().size(), 0);
+//
+//    try {
+//      // try and register a different cache to the same investigation
+//      AtlasLoadCache cache2 = new AtlasLoadCache();
+//
+//      Experiment exp = new Experiment();
+//      exp.setAccession("TEST-EXP");
+//      cache2.setExperiment(exp);
+//
+//      AtlasLoadCacheRegistry.getRegistry().mergeExperiments(
+//          investigation,
+//          cache2);
+//
+//      // now check we can retrieve cache
+//      AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
+//          .retrieveAtlasLoadCache(investigation);
+//
+//      // now check the cache we retrieve is cache, not cache 2
+//      assertSame("The fetched cache is not the same as the " +
+//          "originally registered cache", fetched, cache);
+//      assertNotSame("The fetched cache is the same as the " +
+//          "merged cache", fetched, cache2);
+//
+//      assertSame("Fetched cache contains wrong number of experiments",
+//                 fetched.fetchExperiment().size(), 1);
+//    }
+//    catch (Exception e) {
+//      e.printStackTrace();
+//      fail();
+//    }
+//  }
 }

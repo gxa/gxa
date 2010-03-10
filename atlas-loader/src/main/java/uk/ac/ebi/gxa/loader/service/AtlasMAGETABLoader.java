@@ -39,7 +39,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -47,6 +46,7 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.*;
+import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
@@ -150,8 +150,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             try {
                 Thread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
                 parser.parse(idfFileLocation, investigation);
-                if (watcher != null)
+                if (watcher != null) {
                     watcher.join();
+                }
                 getLog().debug("Parsing finished");
             }
             catch (ParseException e) {
@@ -159,20 +160,21 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
                 return false;
             }
-            catch(InterruptedException e) {
+            catch (InterruptedException e) {
                 //
             }
 
-            if(listener != null)
+            if (listener != null) {
                 listener.setProgress("Storing experiment to DB");
+            }
 
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
 
-            if(listener != null && result) {
+            if (listener != null && result) {
                 listener.setProgress("Done");
-                for(Experiment experiment : cache.fetchAllExperiments()) {
-                    listener.setAccession(experiment.getAccession());
+                if (cache.fetchExperiment() != null) {
+                    listener.setAccession(cache.fetchExperiment().getAccession());
                 }
             }
 
@@ -209,20 +211,17 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
-        int numOfObjects = cache.fetchAllExperiments().size() +
-                cache.fetchAllSamples().size() +
-                cache.fetchAllAssays().size();
+        int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
+                + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
-        if (!validateLoad(cache.fetchAllExperiments(), cache.fetchAllAssays())) {
+        if (!validateLoad(cache.fetchExperiment(), cache.fetchAllAssays())) {
             return false;
         }
 
         // start the load(s)
         boolean success = false;
-        for (Experiment exp : cache.fetchAllExperiments()) {
-            startLoad(exp.getAccession());
-        }
+        startLoad(cache.fetchExperiment().getAccession());
 
         try {
             // prior to writing, do some data cleanup to handle missing design elements.
@@ -292,16 +291,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
             // first, load experiments
             start = System.currentTimeMillis();
-            getLog().debug("Writing " + cache.fetchAllExperiments().size() + " experiment(s)");
+            getLog().debug("Writing experiment " + cache.fetchExperiment().getAccession());
             System.out.print("Writing experiments...");
-            for (Experiment experiment : cache.fetchAllExperiments()) {
-                getAtlasDAO().writeExperiment(experiment);
-                System.out.print(".");
-            }
+            getAtlasDAO().writeExperiment(cache.fetchExperiment());
+            System.out.print(".");
             System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote {} experiments in {}s.", cache.fetchAllExperiments().size(), total);
+            getLog().debug("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
 
 
             // next, write assays
@@ -323,11 +320,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             System.out.print("Writing samples...");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions().size() > 0) {
-                    String experimentAccession = cache.fetchAssay(sample.getAssayAccessions().get(0))
-                            .getExperimentAccession();
+                    String experimentAccession = cache.fetchExperiment().getAccession();
                     getAtlasDAO().writeSample(sample, experimentAccession);
                     System.out.print(".");
-                } else {
+                }
+                else {
                     return success = false;
                 }
             }
@@ -347,17 +344,18 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
         finally {
             // end the load(s)
-            for (Experiment exp : cache.fetchAllExperiments()) {
-                endLoad(exp.getAccession(), success);
-            }
+            endLoad(cache.fetchExperiment().getAccession(), success);
         }
     }
 
-    private boolean validateLoad(Collection<Experiment> experiments, Collection<Assay> assays) {
-        for (Experiment exp : experiments) {
-            if (!checkExperiment(exp.getAccession())) {
-                return false;
-            }
+    private boolean validateLoad(Experiment experiment, Collection<Assay> assays) {
+        if (experiment == null) {
+            getLog().error("Cannot load without an experiment");
+            return false;
+        }
+
+        if (!checkExperiment(experiment.getAccession())) {
+            return false;
         }
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : assays) {
