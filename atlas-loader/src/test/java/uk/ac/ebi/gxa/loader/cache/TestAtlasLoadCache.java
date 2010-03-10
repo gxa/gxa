@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 
 /**
  * Tests for AtlasLoadCache
@@ -35,104 +34,103 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
  * @date 07-10-2009
  */
 public class TestAtlasLoadCache extends TestCase {
-  private AtlasLoadCache cache;
+    private AtlasLoadCache cache;
 
-  public void setUp() {
-    cache = new AtlasLoadCache();
-  }
-
-  public void tearDown() {
-    cache = null;
-  }
-
-  public void testAddThenFetchAssay() {
-    String accession = "TEST-ASSAY";
-
-    // create an assay
-    Assay a = new Assay();
-    a.setAccession(accession);
-
-    // add to cache
-    cache.addAssay(a);
-
-    // check cache now contains 1 assay with matching accession
-    assertEquals("Cache has wrong number of assays",
-                 cache.fetchAllAssays().size(), 1);
-    for (Assay fetched : cache.fetchAllAssays()) {
-      assertEquals("Assay has wrong accession", fetched.getAccession(),
-                   accession);
+    public void setUp() {
+        cache = new AtlasLoadCache();
     }
 
-    assertNotNull("Can't fetch assay by accession",
-                  cache.fetchAssay(accession));
-  }
-
-  public void testAddThenFetchSample() {
-    String accession = "TEST-SAMPLE";
-
-    // create an sample
-    Sample s = new Sample();
-    s.setAccession(accession);
-
-    // add to cache
-    cache.addSample(s);
-
-    // check cache now contains 1 sample with matching accession
-    assertEquals("Cache has wrong number of samples",
-                 cache.fetchAllSamples().size(), 1);
-    for (Sample fetched : cache.fetchAllSamples()) {
-      assertEquals("Sample has wrong accession", fetched.getAccession(),
-                   accession);
+    public void tearDown() {
+        cache = null;
     }
 
-    assertNotNull("Can't fetch sample by accession",
-                  cache.fetchSample(accession));
-  }
+    public void testAddThenFetchAssay() {
+        String accession = "TEST-ASSAY";
 
-  public void testAddThenFetchExperiment() {
-    String accession = "TEST-EXPERIMENT";
+        // create an assay
+        Assay a = new Assay();
+        a.setAccession(accession);
 
-    // create an Experiment
-    Experiment exp = new Experiment();
-    exp.setAccession(accession);
+        // add to cache
+        cache.addAssay(a);
 
-    // add to cache
-    cache.addExperiment(exp);
+        // check cache now contains 1 assay with matching accession
+        assertEquals("Cache has wrong number of assays",
+                     cache.fetchAllAssays().size(), 1);
+        for (Assay fetched : cache.fetchAllAssays()) {
+            assertEquals("Assay has wrong accession", fetched.getAccession(),
+                         accession);
+        }
 
-    // check cache now contains 1 Experiment with matching accession
-    assertEquals("Cache has wrong number of experiments",
-                 cache.fetchAllExperiments().size(), 1);
-    for (Experiment fetched : cache.fetchAllExperiments()) {
-      assertEquals("Experiment has wrong accession", fetched.getAccession(),
-                   accession);
+        assertNotNull("Can't fetch assay by accession",
+                      cache.fetchAssay(accession));
     }
 
-    assertNotNull("Can't fetch experiment by accession",
-                  cache.fetchExperiment(accession));
-  }
+    public void testAddThenFetchSample() {
+        String accession = "TEST-SAMPLE";
 
-  public void testClear() {
-    // add some objects
-    String accession = "TEST-ASSAY";
-    Assay a = new Assay();
-    a.setAccession(accession);
-    cache.addAssay(a);
+        // create an sample
+        Sample s = new Sample();
+        s.setAccession(accession);
 
-    accession = "TEST-SAMPLE";
-    Sample s = new Sample();
-    s.setAccession(accession);
-    cache.addSample(s);
+        // add to cache
+        cache.addSample(s);
 
-    accession = "TEST-EXPERIMENT";
-    Experiment exp = new Experiment();
-    exp.setAccession(accession);
-    cache.addExperiment(exp);
+        // check cache now contains 1 sample with matching accession
+        assertEquals("Cache has wrong number of samples",
+                     cache.fetchAllSamples().size(), 1);
+        for (Sample fetched : cache.fetchAllSamples()) {
+            assertEquals("Sample has wrong accession", fetched.getAccession(),
+                         accession);
+        }
 
-    // now clear
-    cache.clear();
+        assertNotNull("Can't fetch sample by accession",
+                      cache.fetchSample(accession));
+    }
 
-    assertEquals("Too many assays", cache.fetchAllAssays().size(), 0);
-    assertEquals("Too many samples", cache.fetchAllSamples().size(), 0);
-    assertEquals("Too many experiments", cache.fetchAllExperiments().size(), 0);
-  }
+    public void testAddThenFetchExperiment() {
+        String accession = "TEST-EXPERIMENT";
+
+        // create an Experiment
+        Experiment exp = new Experiment();
+        exp.setAccession(accession);
+
+        // add to cache
+        cache.setExperiment(exp);
+
+        // parsing finished, look in our cache...
+        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+        Experiment fetched = cache.fetchExperiment();
+        assertEquals("Experiment has wrong accession", fetched.getAccession(),
+                     accession);
+
+        assertNotNull("Can't fetch experiment by accession",
+                      cache.fetchExperiment(accession));
+    }
+
+    public void testClear() {
+        // add some objects
+        String accession = "TEST-ASSAY";
+        Assay a = new Assay();
+        a.setAccession(accession);
+        cache.addAssay(a);
+
+        accession = "TEST-SAMPLE";
+        Sample s = new Sample();
+        s.setAccession(accession);
+        cache.addSample(s);
+
+        accession = "TEST-EXPERIMENT";
+        Experiment exp = new Experiment();
+        exp.setAccession(accession);
+        cache.setExperiment(exp);
+
+        // now clear
+        cache.clear();
+
+        assertEquals("Too many assays", cache.fetchAllAssays().size(), 0);
+        assertEquals("Too many samples", cache.fetchAllSamples().size(), 0);
+        // parsing finished, look in our cache...
+        assertNull("Cache contains an experiment", cache.fetchExperiment());
+    }
 }

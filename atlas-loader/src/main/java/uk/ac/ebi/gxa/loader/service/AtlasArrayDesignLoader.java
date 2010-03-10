@@ -49,7 +49,6 @@ import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -134,20 +133,21 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
                 return false;
             }
-            catch(InterruptedException e) {
+            catch (InterruptedException e) {
                 //
             }
-            
 
-            if(listener != null)
+
+            if (listener != null) {
                 listener.setProgress("Storing array design to DB");
+            }
 
             // parsing completed, so now write the objects in the cache
             boolean result = writeObjects(cache);
 
-            if(listener != null && result) {
-                for(ArrayDesignBundle adb : cache.fetchAllArrayDesignBundles()) {
-                    listener.setAccession(adb.getAccession());
+            if (listener != null && result) {
+                if (cache.fetchArrayDesignBundle() != null) {
+                    listener.setAccession(cache.fetchArrayDesignBundle().getAccession());
                 }
             }
 
@@ -175,18 +175,16 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
     }
 
     protected boolean writeObjects(AtlasLoadCache cache) {
-        int numOfObjects = cache.fetchAllArrayDesignBundles().size();
+        int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
-        if (!validateLoad(cache.fetchAllArrayDesignBundles())) {
+        if (!validateLoad(cache.fetchArrayDesignBundle())) {
             return false;
         }
 
         // start the load(s)
         boolean success = false;
-        for (ArrayDesignBundle bundle : cache.fetchAllArrayDesignBundles()) {
-            startLoad(bundle.getAccession());
-        }
+        startLoad(cache.fetchArrayDesignBundle().getAccession());
 
         try {
             // write the data
@@ -197,19 +195,17 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // load array design bundles
             start = System.currentTimeMillis();
-            getLog().debug("Writing " + cache.fetchAllArrayDesignBundles().size() + " array design(s)");
+            getLog().debug("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
             System.out.print("Writing array designs...");
-            for (ArrayDesignBundle arrayBundle : cache.fetchAllArrayDesignBundles()) {
-                // first, update the bundle with the identifier preferences
-                arrayBundle.setGeneIdentifierNamesInPriorityOrder(getGeneIdentifierPriority());
+            // first, update the bundle with the identifier preferences
+            cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(getGeneIdentifierPriority());
 
-                getAtlasDAO().writeArrayDesignBundle(arrayBundle);
-                System.out.print(".");
-            }
+            getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
+            System.out.print(".");
             System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote {} array designs in {}s.", cache.fetchAllArrayDesignBundles().size(), total);
+            getLog().debug("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
@@ -222,17 +218,18 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         }
         finally {
             // end the load(s)
-            for (ArrayDesignBundle bundle : cache.fetchAllArrayDesignBundles()) {
-                endLoad(bundle.getAccession(), success);
-            }
+            endLoad(cache.fetchArrayDesignBundle().getAccession(), success);
         }
     }
 
-    private boolean validateLoad(Collection<ArrayDesignBundle> arrayDesignBundles) {
-        for (ArrayDesignBundle adb : arrayDesignBundles) {
-            if (!checkArrayDesign(adb.getAccession())) {
-                return false;
-            }
+    private boolean validateLoad(ArrayDesignBundle arrayDesignBundle) {
+        if (arrayDesignBundle == null) {
+            getLog().error("No array design created - unable to load");
+            return false;
+        }
+
+        if (!checkArrayDesign(arrayDesignBundle.getAccession())) {
+            return false;
         }
 
         // all checks passed if we got here

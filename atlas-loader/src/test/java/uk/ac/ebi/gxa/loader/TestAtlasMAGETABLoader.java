@@ -164,13 +164,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         }
 
         // parsing finished, look in our cache...
-        assertEquals("Local cache doesn't contain only one experiment",
-                     cache.fetchAllExperiments().size(), 1);
-
-        assertEquals("Registered cache doesn't contain only one experiment",
-                     AtlasLoadCacheRegistry.getRegistry()
-                             .retrieveAtlasLoadCache(investigation)
-                             .fetchAllExperiments().size(), 1);
+        assertNotNull("Local cache doesn't contain an experiment",
+                     AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);

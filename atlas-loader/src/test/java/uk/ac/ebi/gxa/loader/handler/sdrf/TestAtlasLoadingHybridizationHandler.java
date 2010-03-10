@@ -23,7 +23,10 @@
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import junit.framework.TestCase;
+import org.mged.magetab.error.ErrorCode;
+import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
@@ -34,10 +37,14 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Javadocs go here.
@@ -87,53 +94,52 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
-//        // fixme: note that I've stopped rejected links from generating error items, it was a crazy overhead
-//        parser.addErrorItemListener(new ErrorItemListener() {
-//
-//            public void errorOccurred(ErrorItem item) {
-//                // update counter
-//                counter++;
-//
-//                // lookup message
-//                String message = "";
-//                for (ErrorCode ec : ErrorCode.values()) {
-//                    if (item.getErrorCode() == ec.getIntegerValue()) {
-//                        message = ec.getErrorMessage();
-//                        break;
-//                    }
-//                }
-//                if (message.equals("")) {
-//                    // try and load from properties
-//                    try {
-//                        Properties props = new Properties();
-//                        Enumeration<URL> urls =
-//                                getClass().getClassLoader().getResources("META-INF/magetab/errorcodes.properties");
-//                        while (urls.hasMoreElements()) {
-//                            props.load(urls.nextElement().openStream());
-//                        }
-//
-//                        String em = props.getProperty(Integer.toString(item.getErrorCode()));
-//                        if (em != null) {
-//                            message = em;
-//                        }
-//                        else {
-//                            message = "Unknown error";
-//                        }
-//                    }
-//                    catch (IOException e) {
-//                        message = "Unknown error";
-//                    }
-//                }
-//
-//                // log the error - but this isn't a fail on its own
-//                System.err.println(
-//                        "Parser reported:\n\t" +
-//                                item.getErrorCode() + ": " + message + " (" +
-//                                item.getComment() + ")\n\t\t - " +
-//                                "occurred in parsing " + item.getParsedFile() + " " +
-//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-//            }
-//        });
+        parser.addErrorItemListener(new ErrorItemListener() {
+
+            public void errorOccurred(ErrorItem item) {
+                // update counter
+                counter++;
+
+                // lookup message
+                String message = "";
+                for (ErrorCode ec : ErrorCode.values()) {
+                    if (item.getErrorCode() == ec.getIntegerValue()) {
+                        message = ec.getErrorMessage();
+                        break;
+                    }
+                }
+                if (message.equals("")) {
+                    // try and load from properties
+                    try {
+                        Properties props = new Properties();
+                        Enumeration<URL> urls =
+                                getClass().getClassLoader().getResources("META-INF/magetab/errorcodes.properties");
+                        while (urls.hasMoreElements()) {
+                            props.load(urls.nextElement().openStream());
+                        }
+
+                        String em = props.getProperty(Integer.toString(item.getErrorCode()));
+                        if (em != null) {
+                            message = em;
+                        }
+                        else {
+                            message = "Unknown error";
+                        }
+                    }
+                    catch (IOException e) {
+                        message = "Unknown error";
+                    }
+                }
+
+                // log the error - but this isn't a fail on its own
+                System.err.println(
+                        "Parser reported:\n\t" +
+                                item.getErrorCode() + ": " + message + " (" +
+                                item.getComment() + ")\n\t\t - " +
+                                "occurred in parsing " + item.getParsedFile() + " " +
+                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+            }
+        });
 
         try {
             parser.parse(parseURL, investigation);

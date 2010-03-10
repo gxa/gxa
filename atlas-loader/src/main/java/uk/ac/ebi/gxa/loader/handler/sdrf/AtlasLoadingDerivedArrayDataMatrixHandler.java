@@ -43,10 +43,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A dedicated handler that parses expression data from a specified data matrix file, referenced in the SDRF.  This
@@ -97,15 +94,11 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         String refNodeName = buffer.readReferenceColumnName();
 
                         // fetch the references from the buffer
-                        Set<String> refNames = buffer.readReferences();
-
-                        // prefetch the map of all expression values in this file
-                        Map<String, Map<String, Float>> expressionValues =
-                                buffer.readExpressionValues(refNames.toArray(new String[refNames.size()]));
+                        String[] refNames = buffer.readReferences();
 
                         // for each refName, identify the assay the expression values relate to
                         int done = 0;
-                        int total = refNames.size();
+                        int total = refNames.length;
                         for (String refName : refNames) {
                             getLog().debug("Attempting to attach expression values to next reference " + refName);
                             String assayName;
@@ -200,13 +193,31 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                             done++;
                             if (assay != null) {
-                                // extract twice, cos we're reading only one node at a time
-                                assay.setExpressionValuesByDesignElementReference(
-                                        buffer.readExpressionValues(refName).get(refName));
+                                float[][] expressionValues = buffer.readExpressionValues(refName);
+                                if (expressionValues.length == 1) {
+                                    // read expression values from buffer into a map - todo: gah, memory hog
+                                    Map<String, Float> assayExpressionValues = new HashMap<String, Float>();
+                                    for (int i = 0; i< expressionValues[0].length; i++) {
+                                        String designElementName = buffer.readDesignElements()[i];
+                                        assayExpressionValues.put(designElementName, expressionValues[0][i]);
+                                    }
 
-                                getLog().debug("Updated assay " + assayName + " with " +
-                                        expressionValues.get(refName).size() + " expression values. " +
-                                        "Now done " + done + "/" + total + " expression value updates");
+                                    // now we've read everything, set on assay
+                                    assay.setExpressionValuesByDesignElementReference(assayExpressionValues);
+                                    getLog().debug("Updated assay " + assayName + " with " +
+                                            expressionValues[0].length + " expression values. " +
+                                            "Now done " + done + "/" + total + " expression value updates");
+                                }
+                                else {
+                                    // generate error item and throw exception
+                                    String message =
+                                            "SDRF file references elements that are not present in the data file";
+                                    ErrorItem error =
+                                            ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                    .generateErrorItem(message, 511, this.getClass());
+
+                                    throw new ObjectConversionException(error, true);
+                                }
                             }
                             else {
                                 // generate error item and throw exception

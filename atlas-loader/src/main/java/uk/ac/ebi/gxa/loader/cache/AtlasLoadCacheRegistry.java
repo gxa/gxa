@@ -26,9 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.HashMap;
@@ -192,7 +190,9 @@ public class AtlasLoadCacheRegistry {
      *
      * @param investigation the investigation keying the cache of objects to merge
      * @param cache         the new cache, containing objects that will be merged into the existing cache
+     * @deprecated
      */
+    @Deprecated
     public synchronized void mergeExperiments(MAGETABInvestigation investigation,
                                               AtlasLoadCache cache) {
         if (!investigationRegistry.containsKey(investigation)) {
@@ -202,11 +202,9 @@ public class AtlasLoadCacheRegistry {
         else {
             AtlasLoadCache existingCache = investigationRegistry.get(investigation);
 
+            existingCache.setExperiment(cache.fetchExperiment());
             for (Assay assay : cache.fetchAllAssays()) {
                 existingCache.addAssay(assay);
-            }
-            for (Experiment experiment : cache.fetchAllExperiments()) {
-                existingCache.addExperiment(experiment);
             }
             for (Sample sample : cache.fetchAllSamples()) {
                 existingCache.addSample(sample);
@@ -217,9 +215,11 @@ public class AtlasLoadCacheRegistry {
     /**
      * Merges any objects in the given cache into the cache already registered to the given investigation
      *
+     * @deprecated
      * @param arrayDesign the investigation keying the cache of objects to merge
      * @param cache       the new cache, containing objects that will be merged into the existing cache
      */
+    @Deprecated
     public synchronized void mergeArrayDesigns(MAGETABArrayDesign arrayDesign,
                                                AtlasLoadCache cache) {
         if (!arrayRegistry.containsKey(arrayDesign)) {
@@ -228,10 +228,7 @@ public class AtlasLoadCacheRegistry {
         }
         else {
             AtlasLoadCache existingCache = arrayRegistry.get(arrayDesign);
-
-            for (ArrayDesignBundle arrayDesignBundle : cache.fetchAllArrayDesignBundles()) {
-                existingCache.addArrayDesignBundle(arrayDesignBundle);
-            }
+            existingCache.setArrayDesignBundle(cache.fetchArrayDesignBundle());
         }
     }
 
