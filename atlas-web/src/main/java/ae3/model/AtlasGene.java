@@ -41,21 +41,12 @@ public class AtlasGene {
     private AtlasProperties atlasProperties;
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
-    private ArrayList<AtlasGene> orthoGenes = new ArrayList<AtlasGene>();
     private GeneExpressionAnalyticsTable expTable;
+    private static final String PROPERTY_PREFIX = "property_";
 
     public AtlasGene(AtlasProperties atlasProperties, SolrDocument geneDoc) {
         this.atlasProperties = atlasProperties;
         this.geneSolrDocument = geneDoc;
-    }
-
-    public String getGeneSpecies() {
-        Collection fval = geneSolrDocument.getFieldValues("species");
-        if(fval != null && fval.size() > 0) {
-            String species = (String)fval.iterator().next();
-            return StringUtil.upcaseFirst(species);
-        }
-        return "";
     }
 
     private String getValue(String name)
@@ -66,13 +57,60 @@ public class AtlasGene {
         return "";
     }
 
+    @SuppressWarnings("unchecked")
     private Collection<String> getValues(String name)
     {
-        return (Collection)geneSolrDocument.getFieldValues(name);
+        Collection<Object> r = geneSolrDocument.getFieldValues(name);
+        return r == null ? new ArrayList<String>() : (Collection)r;
+    }
+
+    private String getHilitValue(String name) {
+        List<String> val = geneHighlights.get(name);
+        if(val == null || val.size() == 0)
+            return StringEscapeUtils.escapeHtml(getValue(name));
+        return StringUtils.join(val, ", ");
+    }
+
+    public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
+        this.geneHighlights = geneHighlights;
+    }
+
+    public SolrDocument getGeneSolrDocument() {
+        return geneSolrDocument;
+    }
+
+    public Map<String,Collection<String>> getGeneProperties() {
+        Map<String,Collection<String>> result = new HashMap<String, Collection<String>>();
+        for(String name : geneSolrDocument.getFieldNames())
+            if(name.startsWith(PROPERTY_PREFIX)) {
+                String property = name.substring(PROPERTY_PREFIX.length());
+                result.put(property, getValues(name));
+            }
+        return result;
     }
 
     public String getGeneId() {
         return getValue("id");
+    }
+
+    public String getHilitInterProTerm() {
+        return getHilitValue("property_interproterm");
+    }
+
+    public String getHilitGoTerm() {
+        return getHilitValue("property_goterm");
+    }
+
+    public String getHilitGeneName() {
+        return getHilitValue("name");
+    }
+
+    public String getHilitKeyword() {
+        return getHilitValue("property_keyword");
+    }
+
+    public String getHilitSynonym(){
+    	return getHilitValue("property_synonim");
     }
 
     @RestOut(name="name")
@@ -85,213 +123,116 @@ public class AtlasGene {
         return getValue("identifier");
     }
 
-    @RestOut(name="ensemblGeneId", exposeEmpty = false)
-    public String getGeneEnsembl() {
-        return getValue("property_ENSGENE");
+    @RestOut(name="organism")
+    public String getGeneSpecies() {
+        return StringUtil.upcaseFirst(getValue("species"));
     }
 
-    public String getGoTerm() {
-        return getValue("property_GOTERM");
+    @RestOut(name="ensemblGeneId", exposeEmpty = false)
+    public String getGeneEnsembl() {
+        return getValue("property_ensgene");
     }
 
     @RestOut(name="goTerms", exposeEmpty = false)
     public Collection<String> getGoTerms() {
-        return getValues("property_GOTERM");
-    }
-
-    public String getShortValue(String name){
-    	ArrayList fval = (ArrayList)geneSolrDocument.getFieldValues(name);
-        if(fval == null)
-            return "";
-    	if(fval.size()>5)
-    		return StringUtils.join(fval.subList(0, 5),", ");
-    	else
-    		return StringUtils.join(fval,", ");
-    }
-
-    public String getInterProTerm() {
-        return getValue("property_INTERPROTERM");
+        return getValues("property_goterm");
     }
 
     @RestOut(name="interProIds", exposeEmpty = false)
     public Collection<String> getInterProIds() {
-        return getValues("property_INTERPRO");
+        return getValues("property_interpro");
     }
 
     @RestOut(name="interProTerms", exposeEmpty = false)
     public Collection<String> getInterProTerms() {
-        return getValues("property_INTERPRO");
-    }
-
-    public String getKeyword() {
-        return getValue("property_KEYWORD");
+        return getValues("property_interpro");
     }
 
     @RestOut(name="keywords", exposeEmpty = false)
     public Collection<String> getKeywords() {
-        return getValues("property_KEYWORD");
-    }
-
-    public String getDisease(){
-    	return getValue("property_DISEASE");
+        return getValues("property_keyword");
     }
 
     @RestOut(name="diseases", exposeEmpty = false)
     public Collection<String> getDiseases(){
-    	return getValues("property_DISEASE");
-    }
-
-    public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
-        this.geneHighlights = geneHighlights;
-    }
-
-    private String getHilitValue(String name) {
-        List<String> val = geneHighlights.get(name);
-        if(val == null || val.size() == 0)
-            return StringEscapeUtils.escapeHtml(getValue(name));
-        return StringUtils.join(val, ", ");
-    }
-
-    public String getHilitInterProTerm() {
-        return getHilitValue("property_INTERPROTERM");
-    }
-
-    public String getHilitGoTerm() {
-        return getHilitValue("property_GOTERM");
-    }
-
-    public String getHilitGeneName() {
-        return getHilitValue("name");
-    }
-
-    public String getHilitKeyword() {
-        return getHilitValue("property_KEYWORD");
-    }
-
-    public String getShortGOTerms(){
-    	return getShortValue("property_GOTERM");
-    }
-
-    public String getShortInterProTerms(){
-    	return getShortValue("property_INTERPROTERM");
-    }
-
-    public String getShortDiseases(){
-    	return getShortValue("property_DISEASE");
-    }
-
-    public SolrDocument getGeneSolrDocument() {
-        return geneSolrDocument;
-    }
-
-    public String getUniprotId(){
-    	return getValue("property_UNIPROT");
+    	return getValues("property_disease");
     }
 
     @RestOut(name="uniprotIds", exposeEmpty = false)
     public Collection<String> getUniprotIds(){
-    	return getValues("property_UNIPROT");
-    }
-
-    public String getSynonym(){
-    	return getValue("property_SYNONYM");
+    	return getValues("property_uniprot");
     }
 
     @RestOut(name="synonyms", exposeEmpty = false)
     public Collection<String> getSynonyms(){
-    	return getValues("property_SYNONYM");
+    	return getValues("property_synonim");
     }
-
-    public String getHilitSynonym(){
-    	return getHilitValue("property_SYNONYM");
-    }
-
-    public String getGeneHighlightStringForHtml() {
-
-        if(geneHighlights == null)
-            return "";
-
-        Set<String> hls = new HashSet<String>();
-        for (String hlf : geneHighlights.keySet()) {
-            hls.add(hlf + ": " + StringUtils.join(geneHighlights.get(hlf), ";"));
-        }
-
-        if(hls.size() > 0)
-            return StringUtils.join(hls,"<br/>");
-
-        return "";
-    }
-
-    public Set<String> getAllFactorValues(String ef) {
-		Set<String> efvs = new HashSet<String>();;
-
-		Collection<String> fields = (Collection)geneSolrDocument.getFieldValues("efvs_up_" + EscapeUtil.encode(ef));
-		if(fields!=null)
-			efvs.addAll(fields);
-		fields = (Collection)geneSolrDocument.getFieldValues("efvs_dn_" + EscapeUtil.encode(ef));
-		if(fields!=null)
-			efvs.addAll(fields);
-		return efvs;
-	}
-
-	public String getOrthologsIds() {
-		ArrayList orths = (ArrayList)geneSolrDocument.getFieldValues("property_ORTHOLOG");
-		return StringUtils.join(orths, "+");
-	}
 
     @RestOut(name="orthologs", exposeEmpty = false)
-	public List<String> getOrthologs() {
-        Collection orths = geneSolrDocument.getFieldValues("property_ORTHOLOG");
-		return orths == null ? new ArrayList<String>() : new ArrayList<String>(orths);
+	public Collection<String> getOrthologs() {
+        return getValues("orthologs");
 	}
 
     @RestOut(name="proteins", exposeEmpty = false)
-	public Collection<String> getProteins() { return getValues("property_PROTEINNAME"); }
+	public Collection<String> getProteins() { return getValues("property_proteinname"); }
 
     @RestOut(name="goIds", exposeEmpty = false)
-	public Collection<String> getGoIds() { return getValues("property_GO"); }
+	public Collection<String> getGoIds() { return getValues("property_go"); }
 
     @RestOut(name="dbxrefs", exposeEmpty = false)
-	public Collection<String> getDbxRefs() { return getValues("property_DBXREF"); }
+	public Collection<String> getDbxRefs() { return getValues("property_dbxref"); }
 
     @RestOut(name="emblIds", exposeEmpty = false)
-	public Collection<String> getEmblIds() { return getValues("property_EMBL"); }
+	public Collection<String> getEmblIds() { return getValues("property_embl"); }
 
     @RestOut(name="ensemblFamilyIds", exposeEmpty = false)
-	public Collection<String> getEnsFamilies() { return getValues("property_ENSFAMILY"); }
+	public Collection<String> getEnsFamilies() { return getValues("property_ensfamily"); }
 
     @RestOut(name="ensemblProteinIds", exposeEmpty = false)
-	public Collection<String> getEnsProteins() { return getValues("property_ENSPROTEIN"); }
+	public Collection<String> getEnsProteins() { return getValues("property_ensprotein"); }
 
     @RestOut(name="images", exposeEmpty = false)
-	public Collection<String> getImages() { return getValues("property_IMAGE"); }
+	public Collection<String> getImages() { return getValues("property_image"); }
 
     @RestOut(name="locuslinks", exposeEmpty = false)
-	public Collection<String> getLocuslinks() { return getValues("property_LOCUSLINK"); }
+	public Collection<String> getLocuslinks() { return getValues("property_locuslink"); }
 
     @RestOut(name="omimiIds", exposeEmpty = false)
-	public Collection<String> getOmimiIds() { return getValues("property_OMIM"); }
+	public Collection<String> getOmimiIds() { return getValues("property_omim"); }
 
     @RestOut(name="orfIds", exposeEmpty = false)
-	public Collection<String> getOrfs() { return getValues("property_ORF"); }
+	public Collection<String> getOrfs() { return getValues("property_orf"); }
 
     @RestOut(name="refseqIds", exposeEmpty = false)
-	public Collection<String> getRefseqIds() { return getValues("property_REFSEQ"); }
+	public Collection<String> getRefseqIds() { return getValues("property_refseq"); }
 
     @RestOut(name="unigeneIds", exposeEmpty = false)
-	public Collection<String> getUnigeneIds() { return getValues("property_UNIGENE"); }
+	public Collection<String> getUnigeneIds() { return getValues("property_unigene"); }
 
     @RestOut(name="hmdbIds", exposeEmpty = false)
-	public Collection<String> getHmdbIds() { return getValues("property_HMDB"); }
+	public Collection<String> getHmdbIds() { return getValues("property_hmdb"); }
 
     @RestOut(name="cas", exposeEmpty = false)
-	public Collection<String> getCass() { return getValues("property_CAS"); }
+	public Collection<String> getCass() { return getValues("property_cas"); }
 
     @RestOut(name="uniprotMetenzs", exposeEmpty = false)
-	public Collection<String> getUniprotMetenzIds() { return getValues("property_UNIPROTMETENZ"); }
+	public Collection<String> getUniprotMetenzIds() { return getValues("property_uniprometenz"); }
 
     @RestOut(name="chebiIds", exposeEmpty = false)
-	public Collection<String> getChebiIds() { return getValues("property_CHEBI"); }
+	public Collection<String> getChebiIds() { return getValues("property_chebi"); }
+
+    @SuppressWarnings("unchecked")
+    public Set<String> getAllFactorValues(String ef) {
+        Set<String> efvs = new HashSet<String>();
+
+        Collection<String> fields = getValues("efvs_up_" + EscapeUtil.encode(ef));
+        if(fields!=null)
+            efvs.addAll(fields);
+        fields = getValues("efvs_dn_" + EscapeUtil.encode(ef));
+        if(fields!=null)
+            efvs.addAll(fields);
+        return efvs;
+    }
 
     public int getCount_up(String ef, String efv) {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_up"));
@@ -324,14 +265,6 @@ public class AtlasGene {
     public double getMin_dn(String efo) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
-
-	public void addOrthoGene(AtlasGene ortho){
-		this.orthoGenes.add(ortho);
-	}
-
-	public ArrayList<AtlasGene> getOrthoGenes(){
-		return this.orthoGenes;
-	}
 
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
         if(expTable != null)

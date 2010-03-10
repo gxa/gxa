@@ -123,14 +123,23 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             solrInputDoc.addField("name", gene.getName());
                             solrInputDoc.addField("identifier", gene.getIdentifier());
 
+                            Set<String> propNames = new HashSet<String>();
                             for (Property prop : gene.getProperties()) {
-                                String p = "property_" + prop.getName();
                                 String pv = prop.getValue();
-
-                                getLog().trace("Updating index, gene property " + p + " = " + pv);
-                                if(pv != null)
-                                    solrInputDoc.addField(p, pv);
+                                String p = prop.getName();
+                                if(pv == null)
+                                    continue;
+                                if(p.toLowerCase().contains("ortholog")) {
+                                    solrInputDoc.addField("orthologs", pv);
+                                } else {
+                                    getLog().trace("Updating index, gene property " + p + " = " + pv);
+                                    solrInputDoc.addField("property_" + p, pv);
+                                    propNames.add(p);
+                                }
                             }
+                            if(!propNames.isEmpty())
+                                solrInputDoc.setField("properties", propNames);
+
                             getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
                             // add EFO counts for this gene

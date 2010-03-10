@@ -45,14 +45,14 @@
 				</a>
 				</td>
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px; white-space:nowrap"
-					class="padded" ><a class="genename" href="${u:GeneUrl(pageContext.request, row.gene.geneIdentifier)}">${row.gene_name}</a>
+					class="padded" ><a class="genename" href="${pageContext.request.contextPath}/gene/${row.gene.geneIdentifier}">${row.gene_name}</a>
 					<div class="gtooltip" style="display: none;">
-						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.synonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
-						<c:if test="${!empty row.gene.keyword}">
+						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.hilitSynonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
+						<c:if test="${!empty row.gene.hilitKeyword}">
 							<b>Keyword:</b> ${row.gene.hilitKeyword}<br>
-						</c:if> <c:if test="${!empty row.gene.goTerm}">
+						</c:if> <c:if test="${!empty row.gene.hilitGoTerm}">
 							<b>Go Term:</b> ${row.gene.hilitGoTerm}<br>
-						</c:if> <c:if test="${!empty row.gene.interProTerm}">
+						</c:if> <c:if test="${!empty row.gene.hilitInterProTerm}">
 							<b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br>
 						</c:if>
 					</div>

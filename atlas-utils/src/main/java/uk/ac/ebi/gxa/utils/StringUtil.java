@@ -22,6 +22,10 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Collection;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Andrey
@@ -65,5 +69,20 @@ public class StringUtil {
             return string.substring(0, 1).toUpperCase() + string.substring(1, string.length()).toLowerCase();
         else
             return string.toUpperCase();
+    }
+    
+    public static String limitedJoin(Collection objs, int num, String separator, String etc) {
+        StringBuilder sb = new StringBuilder();
+        for(Object o : objs) {
+            if(sb.length() > 0)
+                sb.append(separator);
+            if(num == 0) {
+                sb.append(etc);
+                break;
+            }
+            sb.append(o);
+            --num;    
+        }
+        return sb.toString();
     }
 }

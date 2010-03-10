@@ -26,10 +26,10 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="loadDetailsExporter" class="uk.ac.ebi.gxa.web.export.LoadDetailsExporter">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <bean id="experimentAccessionsExporter" class="uk.ac.ebi.gxa.web.export.ExperimentAccessionsExporter">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 </beans>

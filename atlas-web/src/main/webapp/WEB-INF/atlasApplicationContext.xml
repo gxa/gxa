@@ -70,7 +70,7 @@
     
     <!-- Atlas properties -->
     <bean name="atlasPropertiesDbStorage" class="uk.ac.ebi.gxa.properties.DbStorage">
-        <property name="jdbcTemplate" ref="interfaceTemplate"/>
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
@@ -79,7 +79,7 @@
                 <property name="storages">
                     <util:list>
                         <bean class="uk.ac.ebi.gxa.properties.DbStorage">
-                            <property name="jdbcTemplate" ref="interfaceTemplate"/>
+                            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="Curated.properties"/>
@@ -94,7 +94,7 @@
                             <property name="efvService" ref="atlasEfvService"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.GenePropHeadersStorage">
-                            <property name="dao" ref="atlasInterfaceDAO"/>
+                            <property name="genePropService" ref="atlasGenePropertyService"/>
                         </bean>
                     </util:list>
                 </property>
@@ -106,7 +106,7 @@
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="missingDesignElementsCutoff" value="1.0"/>
         <property name="allowReloading" value="true"/>
         <property name="geneIdentifierPriority">
@@ -120,18 +120,18 @@
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
 
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
     </bean>
@@ -160,7 +160,7 @@
     <bean name="netCDFGenerator" class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator"
           destroy-method="shutdown">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
         <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
         <!-- the number of NetCDFs that can be generated in parallel.  May need tweaking based on memory constraints -->
@@ -171,7 +171,7 @@
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasLoaderDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <!-- repository of NetCDFs, local filesystem directory -->
         <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
         <!-- atlasRFactory provides access to RServices independent of environment -->
@@ -214,9 +214,9 @@
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
-        <property name="atlasDbDAO" ref="atlasInterfaceDAO"/>
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
+        <property name="genePropService" ref="atlasGenePropertyService"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
 
@@ -242,7 +242,7 @@
 
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
-        <property name="atlasDatabaseDAO" ref="atlasInterfaceDAO"/>
+        <property name="atlasDatabaseDAO" ref="atlasDAO"/>
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
     </bean>
@@ -256,7 +256,7 @@
 
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
-        <property name="jdbcTemplate" ref="interfaceTemplate"/>
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
@@ -385,7 +385,7 @@
 
     <bean name="adminRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.AdminRequestHandler">
         <property name="taskManager" ref="taskManager" />
-        <property name="dao" ref="atlasInterfaceDAO"/>
+        <property name="dao" ref="atlasDAO"/>
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
@@ -414,32 +414,18 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <!-- Required spring driven data access configuration for web interface -->
+    <!-- Required spring driven data access configuration  -->
 
     <!-- Spring JDBC template for database queries -->
-    <bean name="interfaceTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
     <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasInterfaceDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="interfaceTemplate"/>
-    </bean>
-
-    <!-- Required spring driven data access configuration for loader components -->
-
-    <!-- Spring JDBC template for database queries -->
-    <bean name="loaderTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource2"/>
-        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
-    </bean>
-
-    <!-- Configure AtlasDAO for this datasource -->
-    <bean name="atlasLoaderDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="loaderTemplate"/>
+    <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->
@@ -457,10 +443,6 @@
 
     <!-- Configuration for JNDI resource lookup -->
     <jee:jndi-lookup id="atlasDataSource"
-                     jndi-name="/jdbc/ATLAS1"
-                     resource-ref="true"/>
-
-    <jee:jndi-lookup id="atlasDataSource2"
                      jndi-name="/jdbc/ATLAS2"
                      resource-ref="true"/>
 

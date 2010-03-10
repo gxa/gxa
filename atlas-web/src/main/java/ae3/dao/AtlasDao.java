@@ -289,11 +289,12 @@ public class AtlasDao {
         return getGeneByQuery("id:" + id + " identifier:" + id);
     }
 
-    public void retrieveOrthoGenes(AtlasGene atlasGene) {
+    public List<AtlasGene> getOrthoGenes(AtlasGene atlasGene) {
+        List<AtlasGene> result = new ArrayList<AtlasGene>();
         for (String orth : atlasGene.getOrthologs()) {
             AtlasGeneResult orthoGene = getGeneByIdentifier(orth);
             if (orthoGene.isFound()) {
-                atlasGene.addOrthoGene(orthoGene.getGene());
+                result.add(orthoGene.getGene());
             }
             else {
                 log.error("Could not find ortholog " + orth + " of " + atlasGene.getGeneIdentifier());
@@ -303,6 +304,7 @@ public class AtlasDao {
                 log.error("Multiple genes found for ortholog " + orth + " of " + atlasGene.getGeneIdentifier());
             }
         }
+        return result;
     }
 
     public List<AtlasExperiment> getRankedGeneExperiments(AtlasGene atlasGene, String ef, String efv, int minRows,

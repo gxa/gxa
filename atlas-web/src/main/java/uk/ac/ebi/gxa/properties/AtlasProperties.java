@@ -40,6 +40,7 @@ public class AtlasProperties  {
     }
 
     private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
+    private final Map<String,String> cache = new HashMap<String, String>();
 
     /**
      * Returns available properties names list, calculated in constructor
@@ -51,6 +52,7 @@ public class AtlasProperties  {
 
     public void reload() {
         storage.reload();
+        cache.clear();
         notifyListeners();
     }
 
@@ -61,6 +63,7 @@ public class AtlasProperties  {
      */
     public void setProperty(String key, String newValue) {
         storage.setProperty(key, newValue);
+        cache.put(key, newValue);
         notifyListeners();
     }
 
@@ -70,7 +73,12 @@ public class AtlasProperties  {
      * @return property value string or empty string if not found
      */
     public String getProperty(String key) {
-        return storage.getProperty(key) != null ? storage.getProperty(key) : "";
+        String cached = cache.get(key);
+        if(cached != null)
+            return cached;
+        String result = storage.getProperty(key) != null ? storage.getProperty(key) : "";
+        cache.put(key, result);
+        return result;
     }
 
     private List<String> getListProperty(String key) {

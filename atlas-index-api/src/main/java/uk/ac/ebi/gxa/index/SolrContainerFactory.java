@@ -34,6 +34,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.*;
 import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Spring-friendly factory class, allowing to create CoreContainer's configured by index path represented as java.io.File
@@ -81,9 +83,37 @@ public class SolrContainerFactory {
             if(getTemplatePath() != null)
                 deployIndex();
             else
-                throw new IOException("SOLR index not found and don't have template to create a new one");
+                throw new IOException("SOLR index not found and there's no template to create a new one");
+        } else if(getTemplatePath() != null && !compareIndex()) {
+            throw new RuntimeException("\nERROR! Index exists, but it has configuration files incompatible with this software.\n" +
+                    "It's probably an outdated version, which must be removed before next start.\n" +
+                    "Then, the software will deploy a new index template and you'll have to re-build index using administrative interface.\n\n\n");
         }
         return new CoreContainer(atlasIndex.getAbsolutePath(), new File(atlasIndex, "solr.xml"));
+    }
+
+    private List<String> getCorePaths() throws IOException {
+        List<String> result = new ArrayList<String>();
+        try {
+            javax.xml.parsers.DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = builder.parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                    getTemplatePath() + "/solr.xml"));
+            XPathFactory xpathFactory = XPathFactory.newInstance();
+            XPath xpath = xpathFactory.newXPath();
+            NodeList cores = (NodeList)xpath.evaluate("//cores/core", doc, XPathConstants.NODESET);
+            for(int i = 0; i < cores.getLength(); ++i) {
+                Node node = cores.item(i);
+                String path = node.getAttributes().getNamedItem("instanceDir").getTextContent();
+                result.add(path);
+            }
+        } catch (ParserConfigurationException e) {
+
+        } catch (SAXException e) {
+
+        } catch (XPathExpressionException e) {
+
+        }
+        return result;
     }
 
     /**
@@ -107,35 +137,29 @@ public class SolrContainerFactory {
         else {
             // unpack configuration files
             writeResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml"));
-
-            try {
-                javax.xml.parsers.DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                Document doc = builder.parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(
-                        getTemplatePath() + "/solr.xml"));
-                XPathFactory xpathFactory = XPathFactory.newInstance();
-                XPath xpath = xpathFactory.newXPath();
-                NodeList cores = (NodeList)xpath.evaluate("//cores/core", doc, XPathConstants.NODESET);
-                for(int i = 0; i < cores.getLength(); ++i) {
-                    Node node = cores.item(i);
-                    String path = node.getAttributes().getNamedItem("instanceDir").getTextContent();
-                    for(String file : CONF_FILES) {
-                        String filePath = path + "/conf/" + file;
-                        writeResourceToFile(getTemplatePath() + "/" + filePath,
-                                new File(atlasIndex, filePath.replaceAll("/", File.separator)));
-                    }
-
+            for(String path : getCorePaths()) {
+                for(String file : CONF_FILES) {
+                    String filePath = path + "/conf/" + file;
+                    writeResourceToFile(getTemplatePath() + "/" + filePath,
+                            new File(atlasIndex, filePath.replaceAll("/", File.separator)));
                 }
-
-            } catch (ParserConfigurationException e) {
-
-            } catch (SAXException e) {
-
-            } catch (XPathExpressionException e) {
-
             }
         }
     }
 
+    private boolean compareIndex() throws IOException {
+        if(!compareResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml")))
+            return false;
+        for(String path : getCorePaths()) {
+            for(String file : CONF_FILES) {
+                String filePath = path + "/conf/" + file;
+                if(!compareResourceToFile(getTemplatePath() + "/" + filePath,
+                        new File(atlasIndex, filePath.replaceAll("/", File.separator))))
+                    return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Writes a classpath resource to a file in the specified location.  You should not use this to overwrite files - if
@@ -177,4 +201,28 @@ public class SolrContainerFactory {
         writer.close();
     }
 
+    private boolean compareResourceToFile(String resourceName, File file) throws IOException {
+        Reader reader1 = new BufferedReader(new InputStreamReader(
+                Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                        resourceName)));
+        try {
+            Reader reader2 = new BufferedReader(new FileReader(file));
+            try {
+                while(true) {
+                    int c1 = reader1.read();
+                    int c2 = reader2.read();
+                    if(c1 == c2 && c1 == -1)
+                        return true;
+                    if(c1 != c2)
+                        return false;
+                }
+            } finally {
+                reader1.close();
+                reader2.close();
+            }
+        } catch(FileNotFoundException e) {
+            reader1.close();
+            return false;
+        }
+    }
 }

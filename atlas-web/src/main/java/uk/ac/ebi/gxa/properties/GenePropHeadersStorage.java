@@ -21,12 +21,13 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import ae3.service.structuredquery.AtlasGenePropertyService;
 
 /**
  * @author pashky
@@ -35,10 +36,10 @@ public class GenePropHeadersStorage implements Storage {
     private final static String PREFIX = "head.gene.";
     private static final int SUFFIXPOS = PREFIX.length();
 
-    private AtlasDAO dao;
+    private AtlasGenePropertyService genePropService;
 
-    public void setDao(AtlasDAO dao) {
-        this.dao = dao;
+    public void setGenePropService(AtlasGenePropertyService genePropService) {
+        this.genePropService = genePropService;
     }
 
     public void setProperty(String name, String value) {
@@ -56,7 +57,7 @@ public class GenePropHeadersStorage implements Storage {
 
     public Collection<String> getAvailablePropertyNames() {
         List<String> result = new ArrayList<String>();
-        for(String v : dao.getAllGenePropertyNames())
+        for(String v : genePropService.getIdNameDescProperties())
             result.add(PREFIX + v);
         return result;
     }

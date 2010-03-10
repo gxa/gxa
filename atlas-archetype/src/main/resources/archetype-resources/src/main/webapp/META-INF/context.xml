@@ -23,20 +23,6 @@
 
 <Context swallowOutput="true">
   <Resource
-      name="jdbc/ATLAS1"
-      type="javax.sql.DataSource"
-      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
-      driverClassName="oracle.jdbc.OracleDriver"
-      url="${atlasDatasourceURL}"
-      username="${atlasUser}"
-      password="${atlasPassword}"
-      initialSize="32"
-      maxIdle="32"
-      maxActive="100"
-      maxWait="-1"
-      />
-
-  <Resource
       name="jdbc/ATLAS2"
       type="javax.sql.DataSource"
       factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"

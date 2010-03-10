@@ -64,12 +64,9 @@ public class AtlasDaoTest extends AbstractOnceIndexTest
         assertNotNull(result.getGene());
 
         AtlasGene atlasGene = result.getGene();
-        assertNotNull(atlasGene.getOrthologsIds());
+        assertFalse(atlasGene.getOrthologs().isEmpty());
 
-        dao.retrieveOrthoGenes(atlasGene);
-
-        assertNotNull(atlasGene.getOrthoGenes());
-        ArrayList<AtlasGene> orthos = atlasGene.getOrthoGenes();
+        List<AtlasGene> orthos = dao.getOrthoGenes(atlasGene);
 
         //Test successful retrieval of gene documents from the index corresponding to the gene's list of orthologs
         assertNotNull(orthos);
