@@ -19,6 +19,25 @@
  *
  * http://gxa.github.com/gxa
  */
+body { padding:0;margin:0; }
+
+#ae_pagecontainer { font-size: 9pt;margin:10px 20px 50px 20px; }
+
+#menu { border:none; margin-bottom:5px; }
+#menu td { padding: 0; vertical-align:bottom; }
+#menu img { position:relative;top:1px; }
+
+#footer { border-top: 1px solid #bfbfbf;
+    border-bottom: 1px solid #bfbfbf;
+    border-left: 0; border-right: 0;
+    background-color: #dedede;
+    height: 22px;
+    text-align: left;
+    padding:0 15px;
+    font-size:12px;
+    position:fixed;
+    bottom:0;
+    width:100% }
 
 #tabs {
 }
