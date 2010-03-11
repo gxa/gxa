@@ -186,10 +186,10 @@ public class TaskManager implements InitializingBean {
         return null;
     }
 
-    public int enqueueTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent) {
+    public int enqueueTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
         synchronized(this) {
             log.info("Queuing task " + taskSpec + " in mode " + runMode + " as user " + user);
-            storage.logTaskOperation(taskSpec, runMode, user, TaskOperation.ENQUEUE, "");
+            storage.logTaskOperation(taskSpec, runMode, user, TaskOperation.ENQUEUE, message);
 
             QueuedTask alreadyThere = getTaskInQueue(taskSpec);
             if(alreadyThere != null) {
@@ -242,22 +242,22 @@ public class TaskManager implements InitializingBean {
         throw new IllegalStateException("Can't find factory for task " + taskSpec);
     }
 
-    public void cancelAllTasks(TaskUser user) {
+    public void cancelAllTasks(TaskUser user, String message) {
         synchronized (this) {
             log.info("Cancelling all tasks");
 
             for(WorkingTask workingTask : workingTasks) {
-                storage.logTaskOperation(workingTask.getTaskSpec(), null, user, TaskOperation.CANCEL, "");
+                storage.logTaskOperation(workingTask.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
                 workingTask.stop();
             }
             for(QueuedTask queuedTask : queuedTasks) {
-                storage.logTaskOperation(queuedTask.getTaskSpec(), null, user, TaskOperation.CANCEL, "");
+                storage.logTaskOperation(queuedTask.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
             }
             queuedTasks.clear();
         }
     }
 
-    public void cancelTask(int taskId, TaskUser user) {
+    public void cancelTask(int taskId, TaskUser user, String message) {
         synchronized (this) {
             log.info("Cancelling taskId " + taskId + " as user " + user);
             Task task = getTaskById(taskId);
@@ -266,7 +266,7 @@ public class TaskManager implements InitializingBean {
                 return;
             }
 
-            storage.logTaskOperation(task.getTaskSpec(), null, user, TaskOperation.CANCEL, "");
+            storage.logTaskOperation(task.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
             for(WorkingTask workingTask : workingTasks)
                 if(workingTask == task) { // identity check is intentional
                     log.info("It's working now, requesting to stop");

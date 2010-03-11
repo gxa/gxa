@@ -72,6 +72,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private AtlasDAO dao;
     private DbStorage taskManagerDbStorage;
     private AtlasProperties atlasProperties;
+    private static final String WEB_REQ_MESSAGE = "By web request from ";
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -325,7 +326,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend) {
+    private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId) {
         Map<String,Integer> result = new HashMap<String, Integer>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
@@ -334,7 +335,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             int id = taskManager.enqueueTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
                     defaultUser,
-                    toBoolean(autoDepend));
+                    toBoolean(autoDepend),
+                    WEB_REQ_MESSAGE + remoteId);
             result.put(accession,  id);
         }
         if(wasRunning)
@@ -346,14 +348,14 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return "1".equals(stringValue) || "true".equalsIgnoreCase(stringValue) || "yes".equalsIgnoreCase(stringValue);
     }
 
-    private Object processCancel(String[] taskIds) {
+    private Object processCancel(String[] taskIds, String remoteId) {
         for(String taskId : taskIds)
-            taskManager.cancelTask(Integer.valueOf(taskId), defaultUser);
+            taskManager.cancelTask(Integer.valueOf(taskId), defaultUser, WEB_REQ_MESSAGE + remoteId);
         return EMPTY;
     }
 
-    private Object processCancelAll() {
-        taskManager.cancelAllTasks(defaultUser);
+    private Object processCancelAll(String remoteId) {
+        taskManager.cancelAllTasks(defaultUser, WEB_REQ_MESSAGE + remoteId);
         return EMPTY;
     }
 
@@ -372,7 +374,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             int id = taskManager.enqueueTask(new TaskSpec("experiment", accession),
                     TaskRunMode.valueOf(runMode),
                     defaultUser,
-                    toBoolean(autoDepend));
+                    toBoolean(autoDepend), "");
             result.put(accession,  id);
         }        
         if(wasRunning)
@@ -500,6 +502,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 //        installTestProcessors();
         String op = request.getParameter("op");
 
+        String remoteId = request.getRemoteHost();
+        if(remoteId == null || "".equals(remoteId))
+            remoteId = request.getRemoteAddr();
+        if(remoteId == null || "".equals(remoteId))
+            remoteId = "unknown";
+
         if("pause".equals(op))
             return processPause();
 
@@ -514,13 +522,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     request.getParameter("type"),
                     request.getParameterValues("accession"),
                     request.getParameter("runMode"),
-                    request.getParameter("autoDepends"));
+                    request.getParameter("autoDepends"),
+                    remoteId);
 
         else if("cancel".equals(op))
-            return processCancel(request.getParameterValues("id"));
+            return processCancel(request.getParameterValues("id"),
+                    remoteId);
 
         else if("cancelall".equals(op))
-            return processCancelAll();
+            return processCancelAll(remoteId);
 
         else if("getstage".equals(op))
             return processGetStage(

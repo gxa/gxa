@@ -80,13 +80,14 @@ public class LoaderTask extends AbstractWorkingTask {
                                         new TaskSpec(ExperimentTask.TYPE, accession),
                                         TaskRunMode.RESTART,
                                         getUser(),
-                                        true
-                                );
+                                        true,
+                                        "Automatically added by experiment " + getTaskSpec().getAccession() + " loading task");
                             } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType())) {
                                 TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
                                 taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
                                 if(isRunningAutoDependencies()) {
-                                    taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true);
+                                    taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                                            "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                                 }
                             } else
                                 throw new TaskInternalError();
