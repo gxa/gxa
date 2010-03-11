@@ -60,7 +60,7 @@ public class AtlasPropertiesTest {
         List<String> vals = props.getQueryDrilldownGeneFields();
         assertNotNull(vals);
         assertFalse(vals.isEmpty());
-        assertTrue(vals.containsAll(Arrays.asList("DISEASE,GOTERM,INTERPROTERM,KEYWORD,PROTEINNAME".split(","))));
+        assertTrue(vals.containsAll(Arrays.asList("disease,goterm,interproterm,keyword,proteinname".split(","))));
 
         assertEquals("", props.getProperty("unknwonnonexistentneverever"));
     }

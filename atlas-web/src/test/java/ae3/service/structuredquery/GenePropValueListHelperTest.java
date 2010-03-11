@@ -60,7 +60,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteLimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("INTERPROTERM", "p53", 1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", 1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -68,13 +68,13 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
         AutoCompleteItem aci = i.next();
         assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
         assertTrue(aci.getCount() > 0);
-        assertTrue(aci.getProperty().equals("INTERPROTERM"));
+        assertTrue(aci.getProperty().equals("interproterm"));
         assertFalse(i.hasNext());
     }
 
     @Test
     public void testAutocompleteUnlimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("INTERPROTERM", "p53", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -82,12 +82,12 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
         AutoCompleteItem aci = i.next();
         assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
         assertTrue(aci.getCount() > 0);
-        assertTrue(aci.getProperty().equals("INTERPROTERM"));
+        assertTrue(aci.getProperty().equals("interproterm"));
         assertTrue(i.hasNext());
         aci = i.next();
         assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
         assertTrue(aci.getCount() > 0);
-        assertTrue(aci.getProperty().equals("INTERPROTERM"));
+        assertTrue(aci.getProperty().equals("interproterm"));
     }
 
     @Test
