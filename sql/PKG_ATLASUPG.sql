@@ -100,14 +100,14 @@ CREATE OR REPLACE PACKAGE BODY ATLASUPG AS
 PROCEDURE CreateLink(ID varchar2)
 AS
 BEGIN
-  update a2_Spec set name = name where 1=0;
+  update a2_Organism set name = name where 1=0;
 END;
 
 --------------------------------------------------------------------------------
 PROCEDURE LoadSpecies
 AS
 BEGIN
-  Insert into a2_Spec (Name) 
+  Insert into a2_Organism (Name) 
   select distinct Value from ae2__Gene_Species__dm@dwprd
   where value is not null;
 END;
@@ -116,11 +116,11 @@ END;
 PROCEDURE LoadGenes
 AS
 BEGIN
-  Insert into a2_Gene(GeneID, SpecID, Identifier, Name) 
-  select a.GENE_ID_KEY, s.SpecID, a.GENE_IDENTIFIER, a.GENE_NAME
+  Insert into a2_Gene(GeneID, OrganismID, Identifier, Name) 
+  select a.GENE_ID_KEY, s.OrganismID, a.GENE_IDENTIFIER, a.GENE_NAME
   from AE2__GENE__MAIN@dwprd a
   left outer join AE2__GENE_SPECIES__DM@dwprd gs on gs.Gene_ID_KEY = a.GENE_ID_KEY
-  join a2_Spec s on s.name = gs.Value;
+  join a2_Organism s on s.name = gs.Value;
 END;
 --------------------------------------------------------------------------------
 PROCEDURE LoadGeneProperties
@@ -358,7 +358,7 @@ begin
  for rec in c1
  loop
     --dbms_output.put_line('--' || rec.Ae1TableName_Assay);
-    q := 'insert into a2_AssayPropertyValue(AssayID,PropertyValueID) select v.Assay_id_key, ' || rec.PropertyValueID || ' from ' || rec.Ae1TableName_Assay || '@dwprd v where v.Value = ''' || REPLACE(rec.Name,'''','''''') || '''' ;
+    q := 'insert into a2_AssayPV(AssayID,PropertyValueID) select v.Assay_id_key, ' || rec.PropertyValueID || ' from ' || rec.Ae1TableName_Assay || '@dwprd v where v.Value = ''' || REPLACE(rec.Name,'''','''''') || '''' ;
     --Insert into a2_GenePropertyValue(GenePropertyID,Name,Ae2TableName) 
     --dbms_output.put_line(q);
     EXECUTE immediate q;
@@ -383,7 +383,7 @@ begin
  for rec in c1
  loop
     --dbms_output.put_line('--' || rec.Ae1TableName_Assay);
-    q := 'insert into a2_SamplePropertyValue(SampleID,PropertyValueID) select v.sample_id_key, ' || rec.PropertyValueID || ' from ' || rec.Ae1TableName_Sample || '@dwprd v where v.Value = ''' || REPLACE(REPLACE(rec.Name,'''',''''''),'&',' ') || ''' and v.sample_id_key in (select SampleID from a2_Sample)';
+    q := 'insert into a2_SamplePV(SampleID,PropertyValueID) select v.sample_id_key, ' || rec.PropertyValueID || ' from ' || rec.Ae1TableName_Sample || '@dwprd v where v.Value = ''' || REPLACE(REPLACE(rec.Name,'''',''''''),'&',' ') || ''' and v.sample_id_key in (select SampleID from a2_Sample)';
     
     --Insert into a2_GenePropertyValue(GenePropertyID,Name,Ae2TableName) 
     --dbms_output.put_line(q);
@@ -405,9 +405,9 @@ END;
 PROCEDURE LoadOntologyTerm
 AS
 BEGIN
-Insert into a2_ontologyterm(OntologyTermID, OntologyID, Term , Accession, Description, ORIG_VALUE, orig_value_src ) 
-select a2_ontologyterm_seq.nextval, Ontology_id_key, Term, Accession, Description, ORIG_VALUE, ORIG_VALUE_SRC
-from (select distinct Ontology_id_key, Term, Accession, Description, ORIG_VALUE, ORIG_VALUE_SRC from ontology_annotation@dwprd);
+Insert into a2_ontologyterm(OntologyTermID, OntologyID, Term , Accession, Description) 
+select a2_ontologyterm_seq.nextval, Ontology_id_key, Term, Accession, Description
+from (select distinct Ontology_id_key, Term, Accession, Description from ontology_annotation@dwprd);
 END;
 --------------------------------------------------------------------------------
 PROCEDURE LoadSampleOntology
@@ -423,8 +423,8 @@ FROM (select oa.sample_id_key as SampleID
                               and ot.term = oa.Term
                               and ot.Accession = oa.Accession
                               --and ot.Description = oa.Description
-                              and ot.Orig_Value = oa.Orig_Value
-                              and ot.Orig_Value_Src = oa.Orig_Value_Src
+                              --and ot.Orig_Value = oa.Orig_Value
+                              --and ot.Orig_Value_Src = oa.Orig_Value_Src
       where oa.sample_id_key is not null  );                      
 END;
 --------------------------------------------------------------------------------
@@ -478,7 +478,7 @@ AS
 
 BEGIN
   LoadSpecies();
-  dbms_output.put_line('species: ' || CountRows('a2_Spec') || ' in ' || ElapsedSec());
+  dbms_output.put_line('species: ' || CountRows('a2_Organism') || ' in ' || ElapsedSec());
   
   LoadGenes();
   dbms_output.put_line('genes: ' || CountRows('a2_Gene') || ' in ' || ElapsedSec());  
@@ -514,10 +514,10 @@ BEGIN
   dbms_output.put_line('property value: ' || CountRows('a2_PropertyValue') || ' in ' || ElapsedSec());  
 
   LoadAssayPropertyValue();
-  dbms_output.put_line('assay property: ' || CountRows('a2_AssayPropertyValue') || ' in ' || ElapsedSec());  
+  dbms_output.put_line('assay property: ' || CountRows('a2_AssayPV') || ' in ' || ElapsedSec());  
 
   LoadSamplePropertyValue();
-  dbms_output.put_line('sample property: ' || CountRows('a2_SamplePropertyValue') || ' in ' || ElapsedSec());  
+  dbms_output.put_line('sample property: ' || CountRows('a2_SamplePV') || ' in ' || ElapsedSec());  
 
   LoadOntology();
   dbms_output.put_line('ontology: ' || CountRows('a2_Ontology') || ' in ' || ElapsedSec());  
@@ -544,12 +544,12 @@ PROCEDURE Clean
 AS
 BEGIN
   dbms_output.put_line('delete property ALL - assay');
-  Delete from a2_AssayPropertyValue
+  Delete from a2_AssayPV
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));
   
   dbms_output.put_line('delete property ALL - sample');                          
-  Delete from a2_SamplePropertyValue
+  Delete from a2_SamplePV
   where PropertyValueID in (select PropertyValueID from a2_PropertyValue 
                             where PropertyID = (select PropertyID from a2_Property where Name = 'ALL'));                            
 
@@ -589,7 +589,7 @@ join a2_OntologyTerm ot on ot.OntologyTermID = sa.OntologyTermID
 join ontology_annotation@dwprd oa on oa.Sample_ID_key = sa.SampleID and oa.Accession = ot.accession
 join a2_PropertyValue pv on pv.name = ot.orig_value
 join a2_property p on p.propertyid = pv.PropertyID and p.ae1tablename_sample = oa.ORIG_VALUE_SRC
-join a2_samplepropertyvalue spv on spv.SampleID = sa.SampleID and spv.propertyvalueid = pv.propertyvalueid';
+join a2_samplepv spv on spv.SampleID = sa.SampleID and spv.propertyvalueid = pv.propertyvalueid';
 
 EXECUTE IMMEDIATE 'Insert into tmp_SourceMappingAssay(AssayOntologyID, AssayPropertyValueID)
 Select sa.AssayOntologyID, MIN(spv.AssayPropertyValueID)
@@ -598,7 +598,7 @@ join a2_OntologyTerm ot on ot.OntologyTermID = sa.OntologyTermID
 join ontology_annotation@dwprd oa on oa.Assay_ID_key = sa.AssayID and oa.Accession = ot.accession
 join a2_PropertyValue pv on pv.name = ot.orig_value
 join a2_property p on p.propertyid = pv.PropertyID and p.ae1tablename_assay = oa.ORIG_VALUE_SRC
-join a2_Assaypropertyvalue spv on spv.AssayID = sa.AssayID and spv.propertyvalueid = pv.propertyvalueid
+join a2_AssayPV spv on spv.AssayID = sa.AssayID and spv.propertyvalueid = pv.propertyvalueid
 group by sa.AssayOntologyID';
 
 EXECUTE IMMEDIATE 'create index IDX_tmp_AssayOntologyID on tmp_SourceMappingAssay(AssayOntologyID)'; 
@@ -618,7 +618,7 @@ END;
 PROCEDURE FixFactorValue
 AS
 BEGIN
-  UPDATE a2_AssayPropertyValue set IsFactorValue = 1 where 1=1;
+  UPDATE a2_AssayPV set IsFactorValue = 1 where 1=1;
   COMMIT;
 END;
   
