@@ -183,7 +183,8 @@ public class ExperimentTask extends AbstractWorkingTask {
                         TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
                         taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
                         if(isRunningAutoDependencies()) {
-                            taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true);
+                            taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                                    "Automatically added by experiment " + getTaskSpec().getAccession() + " processing task");
                         }
                     }
                 }
