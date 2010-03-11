@@ -509,10 +509,9 @@ public class DataMatrixFileBuffer {
 
             // we've now read all the data
             // truncate the design element names and expression value arrays to the correct size
-            designElementNames = Arrays.copyOf(designElementNames, deIndex);
+            designElementNames = resizeArray(designElementNames, deIndex);
             for (int i = 0; i < expressionValues.length; i++) {
-                float[] assayExpressionValues = expressionValues[i];
-                expressionValues[i] = Arrays.copyOf(assayExpressionValues, deIndex);
+                expressionValues[i] = resizeArray(expressionValues[i], deIndex);
             }
         }
         catch (IOException e) {
@@ -541,6 +540,18 @@ public class DataMatrixFileBuffer {
                 // ignore
             }
         }
+    }
+
+    private String[] resizeArray(String[] array, int size) {
+        String[] newarray = new String[size];
+        System.arraycopy(array, 0, newarray, 0, Math.min(size, array.length));
+        return newarray;
+    }
+
+    private float[] resizeArray(float[] array, int size) {
+        float[] newarray = new float[size];
+        System.arraycopy(array, 0, newarray, 0, Math.min(size, array.length));
+        return newarray;
     }
 
     private Header[] parseHeaders(BufferedReader reader)
