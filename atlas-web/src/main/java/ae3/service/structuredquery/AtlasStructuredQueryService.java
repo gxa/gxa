@@ -754,7 +754,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             Iterator<EfoTree.EfoItem<Integer>> itEfo = efoList.iterator();
             EfvTree.EfEfv<Integer> efv = null;
             EfoTree.EfoItem<Integer> efo = null;
-            while(itEfv.hasNext() || itEfo.hasNext())
+            while(itEfv.hasNext() || itEfo.hasNext() || efv != null || efo != null)
             {
                 if(itEfv.hasNext() && efv == null)
                     efv = itEfv.next();
