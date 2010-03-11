@@ -569,7 +569,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 solrq.append(" NOT ");
 
             if(geneQuery.isAnyFactor()) {
-                solrq.append("(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
+                String escapedQ = geneQuery.getSolrEscapedFactorValues();
+                solrq.append("(name:").append(escapedQ).append(" species:").append(escapedQ);
+                for(String p : genePropService.getIdNameDescProperties())
+                    solrq.append(" property_").append(p).append(":").append(escapedQ);
+                solrq.append(") ");
             } else if(Constants.GENE_PROPERTY_NAME.equals(geneQuery.getFactor())) {
                 solrq.append("(name:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
                 solrq.append("identifier:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
@@ -977,7 +981,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.setHighlightSnippets(100);
         q.setParam("hl.usePhraseHighlighter", "true");
         q.setParam("hl.mergeContiguous", "true");
-        q.setHighlightRequireFieldMatch(false);
+        q.setHighlightRequireFieldMatch(true);
         q.addHighlightField("id");
         q.addHighlightField("name");
         q.addHighlightField("synonym");
