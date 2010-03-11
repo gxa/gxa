@@ -20,227 +20,251 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<html>
-    <head>
-        <title>Atlas Maintenance Tasks</title>
-        <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
-        <script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
-        <script type="text/javascript" src="scripts/pure2.js"></script>
-        <script type="text/javascript" src="scripts/admin.js"></script>
-        <link rel="stylesheet" href="atlas.css" type="text/css" />
-        <link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css"/>
-        <link rel="stylesheet" href="admin.css" type="text/css" />
-    </head>
-    <body>
-        <div id="ae_pagecontainer" style="font-size: 9pt;">
-            <div style="margin-bottom: 10px">
-                <a href=""><img src="images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas" border="0"></a>
-            </div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="EBI Microarray Informatics Team" />
+    <meta http-equiv="Content-Language" content="en-GB" />
+    <meta http-equiv="Window-target" content="_top" />
+    <meta name="no-email-collection" content="http://www.unspam.com/noemailcollection/" />
+    <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
+    <meta name="y_key" content="fcb0c3c66fb1ff11">
+    <title>Atlas Administration - Gene Expression Atlas</title>
+    <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+    <script type="text/javascript" src="scripts/pure2.js"></script>
+    <script type="text/javascript" src="scripts/admin.js"></script>
+    <link rel="stylesheet" href="atlas.css" type="text/css" />
+    <link rel="stylesheet" href="jquery-ui-1.7.2.atlas.css" type="text/css"/>
+    <link rel="stylesheet" href="admin.css" type="text/css" />
+</head>
+<body>
+<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="z-index: 10; height: 57px;"></iframe>
+<div id="ae_pagecontainer">
+<table id="menu">
+    <tr>
+        <td>
+            <a href="./" title="Gene Expression Atlas Homepage"><img border="0" src="images/atlas-logo.png" width="70" alt="Gene Expression Atlas"/></a>
+        </td>
+        <td>
+            &nbsp;
+            <b>administration</b> |
+            <a href="./">home</a> |
+            <a href="help">help</a>
+        </td>
+    </tr>
+</table>
 
-            <div id="tabs">
-                <ul>
-                    <li><a href="#tab-exp">Experiments</a></li>
-                    <li><a href="#tab-load">Load</a></li>
-                    <li><a href="#tab-que">Queue</a></li>
-                    <li><a href="#tab-olog">Operations Log</a></li>
-                    <li><a href="#tab-tlog">Executions Log</a></li>
-                    <li><a href="#tab-prop">Configuration</a></li>
-                </ul>
+<div id="tabs">
+<ul>
+    <li><a href="#tab-exp">Experiments</a></li>
+    <li><a href="#tab-load">Load</a></li>
+    <li><a href="#tab-que">Queue</a></li>
+    <li><a href="#tab-olog">Operations Log</a></li>
+    <li><a href="#tab-tlog">Executions Log</a></li>
+    <li><a href="#tab-prop">Configuration</a></li>
+</ul>
 
-                <div id="tab-exp">
-                    <div style="width:850px;">
-                        <fieldset>
-                            <form action="#" id="experimentBrowseForm">
-                                <table>
-                                    <tr>
-                                        <td class="label"><label for="experimentSearch">Experiment:</label></td>
-                                        <td>
-                                            <input type="text" id="experimentSearch" class="value" style="width:400px;">
-                                        </td>
-                                        <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
-                                        <td><input type="checkbox" id="incompleteOnly" value="1"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label"><label for="dateFrom">Load date:</label></td>
-                                        <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
-                                        <td style="padding-left:20px;">
-                                            <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </table>
-                            </form>
-                        </fieldset>
+<div id="tab-exp">
+    <div style="width:850px;">
+        <fieldset>
+            <form action="#" id="experimentBrowseForm">
+                <table>
+                    <tr>
+                        <td class="label"><label for="experimentSearch">Experiment:</label></td>
+                        <td>
+                            <input type="text" id="experimentSearch" class="value" style="width:400px;">
+                        </td>
+                        <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
+                        <td><input type="checkbox" id="incompleteOnly" value="1"></td>
+                    </tr>
+                    <tr>
+                        <td class="label"><label for="dateFrom">Load date:</label></td>
+                        <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
+                        <td style="padding-left:20px;">
+                            <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                        </td>
+                        <td></td>
+                    </tr>
+                </table>
+            </form>
+        </fieldset>
 
-                        <div id="experimentList">
-                            <fieldset class="rebuildIndex">
-                                <table>
-                                    <tr>
-                                        <td class="label">Index build is incomplete</td>
-                                        <td>
-                                            <input type="button" value="Rebuild index">
-                                        </td>
-                                    </tr>
-                                </table>
-                            </fieldset>
-                            <table class="results">
-                                <tr class="exprow">
-                                    <td class="sel">
-                                        <input class="selector" type="checkbox" value="" id="selExp">
-                                    </td>
-                                    <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
-                                    <td class="stage">NETCDF</td>
-                                </tr>
-                                <tr class="expcoll">
-                                    <td class="sel">
-                                        <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
-                                    </td>
-                                    <td colspan="2" class="selall">
-                                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
-                                    </td>
-                                </tr>
-                                <tr class="expall">
-                                    <td class="sel">
-                                        <input id="selectAll" type="checkbox">
-                                    </td>
-                                    <td colspan="2" class="selall">
-                                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
-                                    </td>
-                                </tr>
-                            </table>
-                            <fieldset class="expall">
-                                <input type="button" value="Continue processing selection" class="continue">
-                                <input type="button" value="Restart processing selection" class="restart">
-                            </fieldset>
+        <div id="experimentList">
+            <fieldset class="rebuildIndex">
+                <table>
+                    <tr>
+                        <td class="label">Index build is incomplete</td>
+                        <td>
+                            <input type="button" value="Rebuild index">
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+            <table class="results">
+                <tr class="exprow">
+                    <td class="sel">
+                        <input class="selector" type="checkbox" value="" id="selExp">
+                    </td>
+                    <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
+                    <td class="stage">NETCDF</td>
+                </tr>
+                <tr class="expcoll">
+                    <td class="sel">
+                        <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                    </td>
+                    <td colspan="2" class="selall">
+                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
+                    </td>
+                </tr>
+                <tr class="expall">
+                    <td class="sel">
+                        <input id="selectAll" type="checkbox">
+                    </td>
+                    <td colspan="2" class="selall">
+                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
+                    </td>
+                </tr>
+            </table>
+            <fieldset class="expall">
+                <input type="button" value="Continue processing selection" class="continue">
+                <input type="button" value="Restart processing selection" class="restart">
+            </fieldset>
 
-                            <div class="expnone">
-                                No matching experiments found! Please check your query.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tab-que">
-                    <fieldset>
-                        <input type="button" value="Pause task execution" id="pauseButton">
-                        <input class="cancelAllButton" type="button" value="Cancel all tasks">
-                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    </fieldset>
-                    <fieldset class="taskmanPaused">
-                        Task manager is now paused. All currently working tasks will finish, but no new tasks will be started.
-                    </fieldset>
-                    <div id="taskList">
-                        <table class="results">
-                            <tr class="task">
-                                <td class="state">WORKING</td>
-                                <td class="runMode">RESTART</td>
-                                <td class="type">experiment</td>
-                                <td class="accession">E-TABM-1</td>
-                                <td class="stage">NETCDF</td>
-                                <td class="progress">Wasting time...</td>
-                                <td class="cancel">
-                                    <input class="cancelButton" type="button" value="Cancel">
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div id="tab-olog">
-                    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    <div id="operLog">
-                        <table>
-                            <tr>
-                                <td class="time">10:34</td>
-                                <td class="operation">ENQUEUE</td>
-                                <td class="runMode">RESTART</td>
-                                <td class="type">experiment</td>
-                                <td class="accession">E-TABM-1</td>
-                                <td class="message">
-                                    Blah...
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-tlog">
-                    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    <div id="taskLog">
-                        <table>
-                            <tr>
-                                <td class="time">10:34</td>
-                                <td class="event">STARTED</td>
-                                <td class="type">experiment</td>
-                                <td class="accession">E-TABM-1</td>
-                                <td class="stage">NETCDF</td>
-                                <td class="message">
-                                    Blah...
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-load">
-                    <div style="width:850px">
-                        <fieldset>
-                            <legend>Load experiment</legend>
-                            <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
-                            <input type="button" value="Load" id="loadExperimentButton">
-
-                        </fieldset>
-                        <div id="loadListExp">
-                            <table>
-                                <tr>
-                                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
-                                    <td class="done">Successful</td>
-                                    <td>
-                                        <input class="reloadButton" value="Reload" type="button">
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <fieldset>
-                            <legend>Load array design</legend>
-                            <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
-                            <input type="button" value="Load" id="loadArrayDesignButton">
-                        </fieldset>
-                        <div id="loadListAD">
-                            <table>
-                                <tr>
-                                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
-                                    <td class="done">Successful</td>
-                                    <td>
-                                        <input class="reloadButton" value="Reload" type="button">
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tab-prop">
-                    <div id="propList">
-                        <form action="#">
-                            <table>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Value</th>
-                                </tr>
-                                <tr class="property">
-                                    <td class="name">atlas.blah.balh</td>
-                                    <td class="value">some value</td>
-                                </tr>
-                            </table>
-                        </form>
-                    </div>
-                    <fieldset>
-                        <input type="button" value="Save" id="savePropsButton">
-                        <input type="button" value="Cancel" id="cancelPropsButton">
-                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                    </fieldset>
-                </div>
+            <div class="expnone">
+                No matching experiments found! Please check your query.
             </div>
         </div>
-    </body>
+    </div>
+</div>
+
+<div id="tab-que">
+    <fieldset>
+        <input type="button" value="Pause task execution" id="pauseButton">
+        <input class="cancelAllButton" type="button" value="Cancel all tasks">
+        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+    </fieldset>
+    <fieldset class="taskmanPaused">
+        Task manager is now paused. All currently working tasks will finish, but no new tasks will be started.
+    </fieldset>
+    <div id="taskList">
+        <table class="results">
+            <tr class="task">
+                <td class="state">WORKING</td>
+                <td class="runMode">RESTART</td>
+                <td class="type">experiment</td>
+                <td class="accession">E-TABM-1</td>
+                <td class="stage">NETCDF</td>
+                <td class="progress">Wasting time...</td>
+                <td class="cancel">
+                    <input class="cancelButton" type="button" value="Cancel">
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div id="tab-olog">
+    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+    <div id="operLog">
+        <table>
+            <tr>
+                <td class="time">10:34</td>
+                <td class="operation">ENQUEUE</td>
+                <td class="runMode">RESTART</td>
+                <td class="type">experiment</td>
+                <td class="accession">E-TABM-1</td>
+                <td class="message">
+                    Blah...
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div id="tab-tlog">
+    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+    <div id="taskLog">
+        <table>
+            <tr>
+                <td class="time">10:34</td>
+                <td class="event">STARTED</td>
+                <td class="type">experiment</td>
+                <td class="accession">E-TABM-1</td>
+                <td class="stage">NETCDF</td>
+                <td class="message">
+                    Blah...
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div id="tab-load">
+    <div style="width:850px">
+        <fieldset>
+            <legend>Load experiment</legend>
+            <input type="text" class="value" style="width:400px;" id="loadExperimentUrl">
+            <input type="button" value="Load" id="loadExperimentButton">
+
+        </fieldset>
+        <div id="loadListExp">
+            <table>
+                <tr>
+                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
+                    <td class="done">Successful</td>
+                    <td>
+                        <input class="reloadButton" value="Reload" type="button">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <fieldset>
+            <legend>Load array design</legend>
+            <input type="text" class="value" style="width:400px;" id="loadArrayDesignUrl">
+            <input type="button" value="Load" id="loadArrayDesignButton">
+        </fieldset>
+        <div id="loadListAD">
+            <table>
+                <tr>
+                    <td class="url">file://dfsfdsfdsf/dsfsdfds</td>
+                    <td class="done">Successful</td>
+                    <td>
+                        <input class="reloadButton" value="Reload" type="button">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-prop">
+    <div id="propList">
+        <form action="#">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+                <tr class="property">
+                    <td class="name">atlas.blah.balh</td>
+                    <td class="value">some value</td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <fieldset>
+        <input type="button" value="Save" id="savePropsButton">
+        <input type="button" value="Cancel" id="cancelPropsButton">
+        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+    </fieldset>
+</div>
+
+</div><!-- tabs -->
+
+</div><!-- ae_pagecontainer -->
+<div id="footer" >
+    <iframe src="http://www.ebi.ac.uk/inc/foot.html" name="foot" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  height="22px" width="100%"  style="z-index:2;"></iframe>
+</div>
+</body>
 </html>
