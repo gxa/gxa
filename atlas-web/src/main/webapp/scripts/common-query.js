@@ -348,9 +348,30 @@ if(!atlas)
         }
     };
 
-    atlas.onAjaxError = function() {
-        alert('Ajax HTTP error');
+    atlas.ajaxCall = function (url, data, successFunc) {
+        $.ajax({
+            type: "GET",
+            url: atlas.homeUrl + url,
+            dataType: "json",
+            data: data,
+            success: function(resp) {
+                $('#waiter,.waiter').remove();
+                if(resp.error) {
+                    if(console && typeof(console.log) == 'function')
+                       console.log('AJAX Execution Error url=' + url + ': ' + resp.error);
+                    return;
+                }
+                if(successFunc)
+                    successFunc(resp);
+            },
+            error: function() {
+                if(console && typeof(console.log) == 'function')
+                   console.log('AJAX Error url=' + url);
+
+            }
+        });
     };
+
 
 })(jQuery);
 
