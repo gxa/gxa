@@ -70,6 +70,10 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         efoService.setEfo(efo);
         efoService.setSolrServerAtlas(solrServerAtlas);
 
+        AtlasGenePropertyService gpService = new AtlasGenePropertyService();
+        gpService.setAtlasProperties(atlasProperties);
+        gpService.setSolrServerAtlas(solrServerAtlas);
+
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
         service.setSolrServerExpt(expt);
@@ -79,6 +83,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setEfvService(efvService);
         service.setEfo(efo);
         service.setAtlasProperties(atlasProperties);
+        service.setGenePropService(gpService);
     }
 
     @After
@@ -99,8 +104,8 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Iterable<String> gprops = service.getGenePropertyOptions();
         assertTrue(gprops.iterator().hasNext());
         assertTrue(containsString(gprops, "gene"));
-        assertTrue(containsString(gprops, "KEYWORD"));
-        assertTrue(containsString(gprops, "GOTERM"));
+        assertTrue(containsString(gprops, "keyword"));
+        assertTrue(containsString(gprops, "goterm"));
     }
 
 
