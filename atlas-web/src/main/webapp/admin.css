@@ -81,7 +81,7 @@ input.date { width: 70px; }
     #propList th
 {
     border: 1px solid #cdcdcd;
-    padding: 3px;
+    padding: 3px 7px;
 }
 
 #experimentList table.results td.sel {

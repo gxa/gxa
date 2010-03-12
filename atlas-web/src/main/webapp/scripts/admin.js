@@ -47,6 +47,12 @@ var $msg = {
         RESTART: 'Restart',
         CONTINUE: 'Continue'
     },
+    event: {
+        STARTED: 'Started',
+        FINISHED: 'Finished',
+        FAILED: 'Failed',
+        STOPPED: 'Stopped'
+    },
     expStage: {
         NONE: 'Nothing is done',
         NETCDF: 'NetCDF failed, No analytics',
@@ -508,7 +514,7 @@ function compileTemplates() {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'litem.accession',
                 '.stage': taskStageMsgMapper,
-                '.event': 'litem.event',
+                '.event': msgMapper('event', 'event'),
                 '.message': 'litem.message',
                 '.time': 'litem.time',
                 '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
