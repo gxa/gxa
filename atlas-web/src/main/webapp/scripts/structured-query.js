@@ -455,67 +455,48 @@ if(!atlas)
          $('body').append(waiter);
          adjustPosition(waiter);
 
-         $.ajax({
-                    type: "GET",
-                    url: 'experiments',
-                    dataType: "json",
-                    data: {
-                        gene:gene,
-                        ef: efo ? 'efo' : efv.ef,
-                        efv: efo ? efo : efv.efv
-                    },
-                    success: function(resp) {
-                        $('#waiter').remove();
-                        if(resp.error) {
-                            alert(resp.error);
-                            return;
-                        }
-                        resp.counter = 0;
-                        var tpl = $('<div/>');
-                        var popup = $('<div id="expopup" />')
-                            .append($("<div/>").addClass('closebox')
-                                     .click(
-                                         function(e) {
-                                             popup.remove();
-                                             e.stopPropagation();
-                                             return false;
-                                         }).text('close'))
-                            .append(tpl)
-                            .click(function(e){e.stopPropagation();})
-                            .attr('title','')
-                            .css({ left: left + 'px', top: top + 'px' });
+         atlas.ajaxCall('experiments', {
+             gene:gene,
+             ef: efo ? 'efo' : efv.ef,
+             efv: efo ? efo : efv.efv
+         }, function(resp) {
+             resp.counter = 0;
+             var tpl = $('<div/>');
+             var popup = $('<div id="expopup" />')
+                     .append($("<div/>").addClass('closebox')
+                     .click(
+                     function(e) {
+                         popup.remove();
+                         e.stopPropagation();
+                         return false;
+                     }).text('close'))
+                     .append(tpl)
+                     .click(function(e){e.stopPropagation();})
+                     .attr('title','')
+                     .css({ left: left + 'px', top: top + 'px' });
 
-                        $('body').append(popup);
-                        tpl.render(resp, atlas.experimentsTemplate);
+             $('body').append(popup);
+             tpl.render(resp, atlas.experimentsTemplate);
 
-                        // adjust for viewport
-                        adjustPosition(popup);
+             // adjust for viewport
+             adjustPosition(popup);
 
-                        var plots = popup.find('.oneplot');
-                        var c = 0;
-                        var iexp, ief;
-                        for(iexp = 0; iexp < resp.experiments.length; ++iexp)
-                            for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
-                                $.ajax({
-                                    type: "GET",
-                                    url: atlas.homeUrl + "plot",
-                                    data: {
-                                        gid: gene,
-                                        eid: resp.experiments[iexp].id,
-                                        ef: resp.experiments[iexp].efs[ief].ef,
-                                        plot: 'bar' 
-                                    },
-                                    dataType: "json",
-                                    success: (function(x,cc) { return function(o) {
-                                        if(o.error)
-                                            alert(o.error);
-                                        else
-                                            drawPlot(o, plots.filter(cc), x);
-                                    }; })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
-                                });
-                            }
-                    }
-                });
+             var plots = popup.find('.oneplot');
+             var c = 0;
+             var iexp, ief;
+             for(iexp = 0; iexp < resp.experiments.length; ++iexp)
+                 for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
+                     atlas.ajaxCall("plot", {
+                         gid: gene,
+                         eid: resp.experiments[iexp].id,
+                         ef: resp.experiments[iexp].efs[ief].ef,
+                         plot: 'bar'
+                     }, (function(x,cc) { return function(o) {
+                         drawPlot(o, plots.filter(cc), x);
+                     }; })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                     );
+                 }
+         });
      };
 
      atlas.structMode = function() {
@@ -559,110 +540,99 @@ if(!atlas)
         var waiter = $('<div />').append($('<img/>').attr('src','images/indicator.gif'))
                 .css({ left: offset.left + 'px', top: offset.top + 'px' }).appendTo(document.body);
 
-        $.ajax({
-            type: "GET",
-            url: 'efo',
-            dataType: "json",
-            data: { parentsOf: id },
-            success: function(resp) {
-                waiter.remove();
-                if(resp.error) {
-                    alert(resp.error);
-                    return;
+        atlas.ajaxCall('efo', { parentsOf: id }, function(resp) {
+            var entered = false;
+            var timeout;
+            var popup = $('<div/>').addClass('tokeninputdrop')
+                    .css({ width: 'auto', top: offset.top + 'px', left: offset.left + 'px' })
+                    .appendTo(document.body)
+                    .mouseleave(function (e) {
+                timeout = setTimeout(function () { popup.remove(); }, 300);
+            })
+                    .mouseenter(function () {
+                if(timeout) {
+                    clearTimeout(timeout);
+                    timeout = null;
                 }
+                entered = true;
+            });
 
-                var entered = false;
-                var timeout;
-                var popup = $('<div/>').addClass('tokeninputdrop')
-                        .css({ width: 'auto', top: offset.top + 'px', left: offset.left + 'px' })
-                        .appendTo(document.body)
-                        .mouseleave(function (e) {
-                            timeout = setTimeout(function () { popup.remove(); }, 300);
-                        })
-                        .mouseenter(function () {
-                            if(timeout) {
-                                clearTimeout(timeout);
-                                timeout = null;
-                            }
-                            entered = true;
-                        });
-
-                var ul = $('<ul/>')
+            var ul = $('<ul/>')
                     .mouseover(function (e) {
-                        var t = $(e.target);
-                        var li = t.is('li') ? t : t.parents('li:first');
-                        if(li.length) {
-                            var d = $.data(li.get(0), "efoup");
-                            ul.find('li').removeClass('tokendropitemsel');
-                            li.addClass('tokendropitemsel');
-                        }
-                    })
+                var t = $(e.target);
+                var li = t.is('li') ? t : t.parents('li:first');
+                if(li.length) {
+                    var d = $.data(li.get(0), "efoup");
+                    ul.find('li').removeClass('tokendropitemsel');
+                    li.addClass('tokendropitemsel');
+                }
+            })
                     .click(function (e) {
-                        var t = $(e.target);
-                        var li = t.is('li') ? t : t.parents('li:first');
-                        if(li.length) {
-                            var d = $.data(li.get(0), "efoup");
-                            popup.remove();
+                var t = $(e.target);
+                var li = t.is('li') ? t : t.parents('li:first');
+                if(li.length) {
+                    var d = $.data(li.get(0), "efoup");
+                    popup.remove();
 
-                            if(lastquery) {
-                                var url = 'qrs?';
-                                var i;
-                                for(i = 0; i < lastquery.genes.length; ++i) {
-                                    url += 'gnot_' + i + '=' + escape(lastquery.genes[i].not) + '&';
-                                    url += 'gprop_' + i + '=' + escape(lastquery.genes[i].property) + '&';
-                                    url += 'gval_' + i + '=' + escape(lastquery.genes[i].query) + '&';
-                                }
-                                for(i = 0; i < lastquery.species.length; ++i)
-                                    url += 'specie_' + i + '=' + escape(lastquery.species[i]) + '&';
-
-                                var shouldadd = true;
-                                for(i = 0; i < lastquery.conditions.length; ++i) {
-                                    var fval = lastquery.conditions[i].values;
-                                    if(fval.indexOf(d.id) == -1)
-                                        for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
-                                            if(lastquery.conditions[i].efos[j] == id) {
-                                                fval += ' ' + d.id;
-                                                shouldadd = false;
-                                                break;
-                                            }
-                                        }
-                                    url += 'fexp_' + i + '=' + escape(lastquery.conditions[i].expression) + '&';
-                                    url += 'fval_' + i + '=' + escape(fval) + '&';
-                                    url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
-                                }
-
-                                if(shouldadd) {
-                                    i = lastquery.conditions.length;
-                                    url += 'fexp_' + i + '=UP_DOWN&fact_' + i + '=&';
-                                    url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
-                                }
-
-                                url += 'view=' + escape(lastquery.view);
-                                
-                                atlas.startSearching($('#simpleform:visible,#structform:visible'));
-                                window.location.href = url;
-                            }
+                    if(lastquery) {
+                        var url = 'qrs?';
+                        var i;
+                        for(i = 0; i < lastquery.genes.length; ++i) {
+                            url += 'gnot_' + i + '=' + escape(lastquery.genes[i].not) + '&';
+                            url += 'gprop_' + i + '=' + escape(lastquery.genes[i].property) + '&';
+                            url += 'gval_' + i + '=' + escape(lastquery.genes[i].query) + '&';
                         }
-                    });
+                        for(i = 0; i < lastquery.species.length; ++i)
+                            url += 'specie_' + i + '=' + escape(lastquery.species[i]) + '&';
 
-                var k = 0;
-                for(var i in resp.tree) {
-                    var indent = '';
-                    for(var j = 0; j < resp.tree[i].depth; ++j)
-                        indent += '&nbsp;&nbsp;&nbsp;';
+                        var shouldadd = true;
+                        for(i = 0; i < lastquery.conditions.length; ++i) {
+                            var fval = lastquery.conditions[i].values;
+                            if(fval.indexOf(d.id) == -1)
+                                for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
+                                    if(lastquery.conditions[i].efos[j] == id) {
+                                        fval += ' ' + d.id;
+                                        shouldadd = false;
+                                        break;
+                                    }
+                                }
+                            url += 'fexp_' + i + '=' + escape(lastquery.conditions[i].expression) + '&';
+                            url += 'fval_' + i + '=' + escape(fval) + '&';
+                            url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
+                        }
 
-                    var li = $('<li />')
+                        if(shouldadd) {
+                            i = lastquery.conditions.length;
+                            url += 'fexp_' + i + '=UP_DOWN&fact_' + i + '=&';
+                            url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
+                        }
+
+                        url += 'view=' + escape(lastquery.view);
+                                
+                        atlas.startSearching($('#simpleform:visible,#structform:visible'));
+                        window.location.href = url;
+                    }
+                }
+            });
+
+            var k = 0;
+            for(var i in resp.tree) {
+                var indent = '';
+                for(var j = 0; j < resp.tree[i].depth; ++j)
+                    indent += '&nbsp;&nbsp;&nbsp;';
+
+                var li = $('<li />')
                         .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
                         .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
                         .appendTo(ul);
-                    $.data(li.get(0), "efoup", resp.tree[i]);
-                }
+                $.data(li.get(0), "efoup", resp.tree[i]);
+            }
 
-                ul.find('li:first').addClass('tokendropitemsel');
+            ul.find('li:first').addClass('tokendropitemsel');
 
-                popup.append(ul);
+            popup.append(ul);
 
-            }});
+        });
     };
 
     atlas.showListThumbs = function (row) {
@@ -678,20 +648,10 @@ if(!atlas)
             var tokens = plot_id.split('_');
             var eid = tokens[0];
             var divEle = $(this);
-            $.ajax({
-                type: "GET",
-                url: atlas.homeUrl + "plot",
-                data: { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' },
-                dataType:"json",
-
-                success: function(jsonObj){
-                    if(jsonObj.error)
-                        alert(jsonObj.error);
-                    else if(jsonObj.series){
-                        $.plot(divEle, jsonObj.series, jsonObj.options);
-                    }
-                },
-                error: atlas.onAjaxError
+            atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
+                if(jsonObj.series){
+                    $.plot(divEle, jsonObj.series, jsonObj.options);
+                }
             });
 
             $(this).addClass("done");

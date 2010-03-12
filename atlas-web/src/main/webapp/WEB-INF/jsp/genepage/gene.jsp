@@ -92,36 +92,19 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
             var tokens = plot_id.split('_');
             var eid = tokens[0];
             var gid = tokens[1];
-            $.ajax({
-                type: "GET",
-                url: atlas.homeUrl + "plot",
-                data: { gid: gid, eid: eid, plot: 'bar' },
-                dataType:"json",
-                success: function(o){
-                    if(o.error)
-                        alert(o.error);
-                    else
-                        drawPlot(o,plot_id);
-                },
-                error: atlas.onAjaxError
+            atlas.ajaxCall("plot", { gid: gid, eid: eid, plot: 'bar' }, function(o){
+                drawPlot(o,plot_id);
             });
         });
     }
 
     function redrawPlotForFactor(eid,gid,ef,mark,efv){
         var plot_id = eid+"_"+gid+"_plot";
-        $.ajax({
-            type: "GET",
-            url: atlas.homeUrl + "plot",
-            data: { gid: gid, eid: eid, ef: ef, plot: 'bar' },
-            dataType:"json",
-            success: function(o){
+        atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, plot: 'bar' }, function(o){
                 var plot = drawPlot(o,plot_id);
                 if(mark){
                     markClicked(eid, gid, ef, efv, plot, o);
                 }
-            },
-            error: atlas.onAjaxError
         });
         drawEFpagination(eid,gid,ef);
     }

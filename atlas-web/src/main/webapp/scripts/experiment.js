@@ -172,12 +172,8 @@ function highlightPoints(sc, scv, assay, self){
 function plotBigPlot() {
 
     var geneids = $.map(genesToPlot, function (e) { return e.id; }).join(',');
-    $.ajax({
-        type: "GET",
-        url: atlas.homeUrl + "plot",
-        data: { gid: geneids, eid: experiment.id, ef: currentEF, plot: 'large' },
-        dataType:"json",
-        success: function(jsonObj){
+    atlas.ajaxCall("plot", { gid: geneids, eid: experiment.id, ef: currentEF, plot: 'large' },
+            function(jsonObj){
             if(jsonObj.series){
 
                 jsonObj.options.legend.labelFormatter = function (gene) {
@@ -222,9 +218,7 @@ function plotBigPlot() {
                     removeGene($(this).attr('id').substring(6));
                 });
             }
-        },
-        error: atlas.onAjaxError
-    });
+        });
 }
 
 function removeGene(geneId) {
@@ -420,14 +414,14 @@ function bindGeneMenus() {
     $("#simForm").submit(function() {
         $("#simResult").empty();
         var name = $('select option:selected').text();
-        $("#simHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Searching for profiles similar to " +
+        $("#simHeader").html("<img src='"+atlas.homeUrl+"images/indicator.gif' />&nbsp;Searching for profiles similar to " +
                              name + "...");
         $("#simHeader").show();
         var DEid_ADid = $("select option:selected").val();
         var tokens = DEid_ADid.split('_');
         var DEid = tokens[0];
         var ADid = tokens[1];
-        $("#simResult").load("${pageContext.request.contextPath}/expGenes", {eid: experiment.id, deid: DEid, adid: ADid, query:'sim'}, function() {
+        $("#simResult").load(atlas.homeUrl + "expGenes", {eid: experiment.id, deid: DEid, adid: ADid, query:'sim'}, function() {
             $("#simHeader").hide();
             addGeneToolTips();
         });
@@ -436,8 +430,8 @@ function bindGeneMenus() {
 
     $("#searchForm").submit(function() {
         var qry = $("#geneInExp_qry").fullVal();
-        $("#qryHeader").html("<img src='${pageContext.request.contextPath}/images/indicator.gif' />&nbsp;Loading...");
-        $("#qryResult").load("${pageContext.request.contextPath}/expGenes", {eid: experiment.id, gene: qry, query:'search'}, function() {
+        $("#qryHeader").html("<img src='"+atlas.homeUrl+"images/indicator.gif' />&nbsp;Loading...");
+        $("#qryResult").load(atlas.homeUrl + "expGenes", {eid: experiment.id, gene: qry, query:'search'}, function() {
             $("#qryHeader").hide()
             addGeneToolTips();
         });
