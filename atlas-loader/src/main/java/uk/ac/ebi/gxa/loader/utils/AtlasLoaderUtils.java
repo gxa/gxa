@@ -345,20 +345,35 @@ public class AtlasLoaderUtils {
         }
     }
 
+    public abstract static class WatcherThread extends Thread {
+        public abstract void stopWatching();
+    }
+
     public static <T extends AbstractStatifiable & Progressible>
-    Thread createProgressWatcher(final T target, final AtlasLoaderService.Listener listener) {
+    WatcherThread createProgressWatcher(final T target, final AtlasLoaderService.Listener listener) {
         if(listener == null)
             return null;
         
-        Thread result = new Thread() {
+        WatcherThread result = new WatcherThread() {
+            private boolean running = true;
+
+            public void stopWatching() {
+                running = false;
+                try {
+                    join();
+                } catch(InterruptedException e) {
+                    // 
+                }
+            }
+
             @Override
             public void run() {
-                while(target.getProgress() < 100 && target.getStatus() != Status.FAILED) {
+                while(running && target.getProgress() < 100 && target.getStatus() != Status.FAILED) {
                     listener.setProgress("Parsed " + target.getProgress() + "%");
                     try {
                         Thread.sleep(1000);
                     } catch(InterruptedException e) {
-                        // 
+                        //
                     }
                 }
                 listener.setProgress("Parsed");
