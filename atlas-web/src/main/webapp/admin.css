@@ -154,7 +154,7 @@ input.date { width: 70px; }
 }
 #taskList td.state { border-right: none; }
 #taskList td.runMode { border-left: none; }
-#taskList td.type { border-right: none; }
+#taskList td.type { border-right: none;white-space:nowrap; }
 
 #operLog tr.modeRESTART td.runMode, #operLog tr.operationENQUEUE td.operation {
     color: #005555; font-weight: bold;
@@ -167,6 +167,8 @@ input.date { width: 70px; }
 #taskLog td.event, #taskLog td.stage {
     color: #005555; font-weight: bold;
 }
+
+#operLog td.type, #taskLog td.type { white-space: nowrap; }
 
 #operLog td.message, #taskLog td.message { width: 50%; }
 
@@ -183,5 +185,5 @@ td.accession, td.time, td.url { white-space:nowrap; }
 
 fieldset legend { font-weight: bold; }
 
-thead td { font-weight:bold;text-align:left; }
+thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 #propList td input.value { width: 90%; }
