@@ -30,7 +30,7 @@ public class LoaderTask extends AbstractWorkingTask {
                     return;
                 }
 
-                taskMan.updateTaskStage(getTaskSpec(), STAGE);
+                taskMan.updateTaskStage(getTaskSpec(), currentStage = STAGE);
                 taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
                 final AtomicReference<AtlasLoaderEvent> result = new AtomicReference<AtlasLoaderEvent>(null);
 
