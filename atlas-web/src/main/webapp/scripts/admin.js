@@ -64,6 +64,9 @@ var $msg = {
         loadexperiment: {
             LOAD: 'Loading'
         },
+        loadarraydesign: {
+            LOAD: 'Loading'
+        },
         NONE: 'Nothing',
         DONE: 'Complete'
     },
