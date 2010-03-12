@@ -61,8 +61,8 @@
     <li><a href="#tab-exp">Experiments</a></li>
     <li><a href="#tab-load">Load</a></li>
     <li><a href="#tab-que">Queue</a></li>
-    <li><a href="#tab-olog">Operations Log</a></li>
-    <li><a href="#tab-tlog">Executions Log</a></li>
+    <li><a href="#tab-olog">Actions Audit</a></li>
+    <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
 </ul>
 
@@ -103,29 +103,31 @@
                 </table>
             </fieldset>
             <table class="results">
-                <tr class="exprow">
-                    <td class="sel">
-                        <input class="selector" type="checkbox" value="" id="selExp">
-                    </td>
-                    <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
-                    <td class="stage">NETCDF</td>
-                </tr>
-                <tr class="expcoll">
-                    <td class="sel">
-                        <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
-                    </td>
-                    <td colspan="2" class="selall">
-                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
-                    </td>
-                </tr>
-                <tr class="expall">
-                    <td class="sel">
-                        <input id="selectAll" type="checkbox">
-                    </td>
-                    <td colspan="2" class="selall">
-                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
-                    </td>
-                </tr>
+                <tbody>
+                    <tr class="exprow">
+                        <td class="sel">
+                            <input class="selector" type="checkbox" value="" id="selExp">
+                        </td>
+                        <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
+                        <td class="stage">NETCDF</td>
+                    </tr>
+                    <tr class="expcoll whenanything">
+                        <td class="sel">
+                            <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                        </td>
+                        <td colspan="2" class="selall">
+                            <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
+                        </td>
+                    </tr>
+                    <tr class="expall">
+                        <td class="sel">
+                            <input id="selectAll" type="checkbox">
+                        </td>
+                        <td colspan="2" class="selall">
+                            <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
             <fieldset class="expall">
                 <input type="button" value="Continue processing selection" class="continue">
@@ -150,17 +152,30 @@
     </fieldset>
     <div id="taskList">
         <table class="results">
-            <tr class="task">
-                <td class="state">WORKING</td>
-                <td class="runMode">RESTART</td>
-                <td class="type">experiment</td>
-                <td class="accession">E-TABM-1</td>
-                <td class="stage">NETCDF</td>
-                <td class="progress">Wasting time...</td>
-                <td class="cancel">
-                    <input class="cancelButton" type="button" value="Cancel">
-                </td>
-            </tr>
+            <thead>
+                <tr>
+                    <td>State</td>
+                    <td>Running Mode</td>
+                    <td>Task Type</td>
+                    <td>Accession/URL</td>
+                    <td>Current Stage</td>
+                    <td>Progress</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="task">
+                    <td class="state">WORKING</td>
+                    <td class="runMode">RESTART</td>
+                    <td class="type">experiment</td>
+                    <td class="accession">E-TABM-1</td>
+                    <td class="stage">NETCDF</td>
+                    <td class="progress">Wasting time...</td>
+                    <td class="cancel">
+                        <input class="cancelButton" type="button" value="Cancel">
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -168,16 +183,28 @@
     Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
     <div id="operLog">
         <table>
-            <tr>
-                <td class="time">10:34</td>
-                <td class="operation">ENQUEUE</td>
-                <td class="runMode">RESTART</td>
-                <td class="type">experiment</td>
-                <td class="accession">E-TABM-1</td>
-                <td class="message">
-                    Blah...
-                </td>
-            </tr>
+            <thead>
+                <tr>
+                    <td>Time</td>
+                    <td>Action</td>
+                    <td>Running Mode</td>
+                    <td>Task Type</td>
+                    <td>Accession/URL</td>
+                    <td>Comment</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time">10:34</td>
+                    <td class="operation">ENQUEUE</td>
+                    <td class="runMode">RESTART</td>
+                    <td class="type">experiment</td>
+                    <td class="accession">E-TABM-1</td>
+                    <td class="message">
+                        Blah...
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -186,16 +213,28 @@
     Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
     <div id="taskLog">
         <table>
-            <tr>
-                <td class="time">10:34</td>
-                <td class="event">STARTED</td>
-                <td class="type">experiment</td>
-                <td class="accession">E-TABM-1</td>
-                <td class="stage">NETCDF</td>
-                <td class="message">
-                    Blah...
-                </td>
-            </tr>
+            <thead>
+                <tr>
+                    <td>Time</td>
+                    <td>Event</td>
+                    <td>Task Type</td>
+                    <td>Accession/URL</td>
+                    <td>Stage</td>
+                    <td>Comment</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time">10:34</td>
+                    <td class="event">STARTED</td>
+                    <td class="type">experiment</td>
+                    <td class="accession">E-TABM-1</td>
+                    <td class="stage">NETCDF</td>
+                    <td class="message">
+                        Blah...
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -242,14 +281,18 @@
     <div id="propList">
         <form action="#">
             <table>
-                <tr>
-                    <th>Name</th>
-                    <th>Value</th>
-                </tr>
-                <tr class="property">
-                    <td class="name">atlas.blah.balh</td>
-                    <td class="value">some value</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Value</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="property">
+                        <td class="name">atlas.blah.balh</td>
+                        <td class="value">some value</td>
+                    </tr>
+                </tbody>
             </table>
         </form>
     </div>

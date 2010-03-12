@@ -183,5 +183,5 @@ td.accession, td.time, td.url { white-space:nowrap; }
 
 fieldset legend { font-weight: bold; }
 
-#propList th { font-size: 12px;font-weight:bold;text-align:left; }
+thead td { font-weight:bold;text-align:left; }
 #propList td input.value { width: 90%; }

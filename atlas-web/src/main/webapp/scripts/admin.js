@@ -32,6 +32,58 @@ var $options = {
     searchDelay: 500,
     logNumItems: 20
 };
+var $msg = {
+    operation: {
+        ENQUEUE: 'Scheduled',
+        CANCEL: 'Cancelled'
+    },
+    taskType: {
+        experiment: 'Process experiment',
+        loadexperiment: 'Load experiment',
+        loadarraydesign: 'Load array design',
+        'index': 'Build index'
+    },
+    runMode: {
+        RESTART: 'Restart',
+        CONTINUE: 'Continue'
+    },
+    expStage: {
+        NONE: 'Nothing is done',
+        NETCDF: 'NetCDF failed, No analytics',
+        ANALYTICS: 'NetCDF complete, Not computed or Failed Analytics',
+        DONE: 'Complete'
+    },
+    stage: {
+        experiment: {
+            NETCDF: 'Writing NetCDFs',
+            ANALYTICS: 'Computing Analytics'
+        },
+        index: {
+            INDEX: 'Indexing'
+        },
+        loadexperiment: {
+            LOAD: 'Loading'
+        },
+        NONE: 'Nothing',
+        DONE: 'Complete'
+    },
+    taskState: {
+        WORKING: 'Working',
+        PENDING: 'Pending'
+    }
+};
+
+function msgMapper(field, dict) {
+    return function (r) { return $msg[dict][r.item[field]]; };
+}
+
+function taskStageMsgMapper(r) {
+    var m = $msg.stage[r.item.type][r.item.stage];
+    if(!m)
+        m = $msg.stage[r.item.stage];
+    return m ? m : r.item.stage;
+}
+
 var currentStateHash;
 
 function storeState() {
@@ -397,7 +449,7 @@ function compileTemplates() {
         '.exprow': {
             'experiment <- experiments' : {
                 'label.accession': 'experiment.accession',
-                '.stage': 'experiment.stage',
+                '.stage': msgMapper('stage', 'expStage'),
                 '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
                 '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },
                 '.selector@value': 'experiment.accession',
@@ -412,17 +464,18 @@ function compileTemplates() {
         '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
         '.numcoll': 'numCollapsed',
 
-        '.rebuildIndex@style': function (r) { return r.context.indexStage == 'DONE' ? 'display:none' : ''; }
+        '.rebuildIndex .label': function (r) { return r.context.indexStage == 'DONE' ? 'Index build is complete' : 'Index build is incomplete'; }
     });
 
     compileTpl('taskList', {
+        'thead@style': function(r) { return r.context.tasks.length ? '' : 'display:none'; },
         'tr.task': {
             'task <- tasks': {
-                '.state': 'task.state',
-                '.type': 'task.type',
+                '.state': msgMapper('state', 'taskState'),
+                '.type': msgMapper('type', 'taskType'),
                 '.accession': 'task.accession',
-                '.stage': 'task.stage',
-                '.runMode': 'task.runMode',
+                '.stage': taskStageMsgMapper,
+                '.runMode': msgMapper('runMode', 'runMode'),
                 '.progress': 'task.progress',
                 'input@class+': 'task.id',
                 '.@class+': ' state#{task.state} mode#{task.runMode} type#{task.type}'
@@ -431,31 +484,33 @@ function compileTemplates() {
     });
 
     compileTpl('operLog', {
-       'tr' : {
-           'litem <- items': {
-               '.type': 'litem.type',
-               '.accession': 'litem.accession',
-               '.runMode': 'litem.runMode',
-               '.operation': 'litem.operation',
-               '.message': 'litem.message',
-               '.time': 'litem.time',
-               '.@class+': ' operation#{litem.operation} mode#{litem.runMode} type#{litem.type}'
-           }
-       }
+        'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
+        'tbody tr' : {
+            'litem <- items': {
+                '.type': msgMapper('type', 'taskType'),
+                '.accession': 'litem.accession',
+                '.runMode': msgMapper('runMode', 'runMode'),
+                '.operation': msgMapper('operation', 'operation'),
+                '.message': 'litem.message',
+                '.time': 'litem.time',
+                '.@class+': ' operation#{litem.operation} mode#{litem.runMode} type#{litem.type}'
+            }
+        }
     });
 
     compileTpl('taskLog', {
-       'tr' : {
-           'litem <- items': {
-               '.type': 'litem.type',
-               '.accession': 'litem.accession',
-               '.stage': 'litem.stage',
-               '.event': 'litem.event',
-               '.message': 'litem.message',
-               '.time': 'litem.time',
-               '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
-           }
-       }
+        'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
+        'tbody tr' : {
+            'litem <- items': {
+                '.type': msgMapper('type', 'taskType'),
+                '.accession': 'litem.accession',
+                '.stage': taskStageMsgMapper,
+                '.event': 'litem.event',
+                '.message': 'litem.message',
+                '.time': 'litem.time',
+                '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
+            }
+        }
     });
 
     compileTpl('loadListExp', {
