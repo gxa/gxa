@@ -193,17 +193,14 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // load array design bundles
             start = System.currentTimeMillis();
-            getLog().debug("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
-            System.out.print("Writing array designs...");
+            getLog().info("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
             // first, update the bundle with the identifier preferences
             cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(getGeneIdentifierPriority());
 
             getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
-            System.out.print(".");
-            System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
+            getLog().info("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
