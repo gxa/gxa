@@ -116,7 +116,7 @@ public class AtlasLoadCache {
             throw new NullPointerException("Cannot add array design bundle without first setting the accession");
         }
 
-        if (this.arrayDesignBundle.getAccession() != null) {
+        if (this.arrayDesignBundle != null && this.arrayDesignBundle.getAccession() != null) {
             throw new IllegalArgumentException("Attempting to override experiment already set");
         }
         else {
