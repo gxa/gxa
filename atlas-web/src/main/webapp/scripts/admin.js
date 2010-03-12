@@ -350,7 +350,7 @@ function updateLoadList() {
         });
         $('#loadListAD input').each(function (i, e) {
             $(this).click(function () {
-                var url = result.experiments[i].url;
+                var url = result.arraydesigns[i].url;
                 if(confirm('Do you really want to reload array design from URL ' + url + '?')) {
                     adminCall('enqueue', {
                         runMode: 'RESTART',
@@ -529,7 +529,7 @@ function compileTemplates() {
     compileTpl('loadListAD', {
         'tr' : {
             'ad <- arraydesigns': {
-                '.url': 'exp.url',
+                '.url': 'ad.url',
                 '.done': function (r) { return r.item.done ? 'Successful' : 'Failed'; },
                 '.@class+': function (r) { return r.item.done ? 'successful' : ''; }
             }
