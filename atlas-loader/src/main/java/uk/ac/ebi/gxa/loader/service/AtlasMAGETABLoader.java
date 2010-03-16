@@ -97,7 +97,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
      * @param listener
      * @return true if loading suceeded, false if loading failed
      */
-    public boolean load(URL idfFileLocation, Listener listener) {
+    public void load(URL idfFileLocation, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -155,7 +155,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
-                return false;
+                throw new AtlasLoaderServiceException("Parse error: " + e.getErrorItem().toString(), e);
             } finally {
                 if(watcher != null)
                     watcher.stopWatching();
@@ -166,16 +166,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
 
             // parsing completed, so now write the objects in the cache
-            boolean result = writeObjects(cache);
+            try {
+                writeObjects(cache);
 
-            if (listener != null && result) {
-                listener.setProgress("Done");
-                if (cache.fetchExperiment() != null) {
-                    listener.setAccession(cache.fetchExperiment().getAccession());
+                if (listener != null) {
+                    listener.setProgress("Done");
+                    if (cache.fetchExperiment() != null) {
+                        listener.setAccession(cache.fetchExperiment().getAccession());
+                    }
                 }
+            } catch (AtlasLoaderServiceException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new AtlasLoaderServiceException(e);
             }
-
-            return result;
         }
         finally {
             AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
@@ -207,13 +211,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                                  AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
 
-    protected boolean writeObjects(AtlasLoadCache cache) {
+    protected void writeObjects(AtlasLoadCache cache) throws AtlasLoaderServiceException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
         if (!validateLoad(cache.fetchExperiment(), cache.fetchAllAssays())) {
-            return false;
+            throw new AtlasLoaderServiceException("Can't validate load");
         }
 
         // start the load(s)
@@ -235,10 +239,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
                 // check that this array design is loaded
                 if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
-                    getLog().error(
-                            "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
-                                    "MUST be loaded before experiments using this array can be loaded.");
-                    return success = false;
+                    String message = "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
+                            "MUST be loaded before experiments using this array can be loaded.";
+                    getLog().error(message);
+                    throw new AtlasLoaderServiceException(message);
                 }
 
                 // get the missing design elements - either DB lookup or fetch from map
@@ -270,7 +274,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 }
                 catch (AtlasLoaderException e) {
                     // this occurs if we exceed the cutoff, so just return false
-                    return success = false;
+                    throw new AtlasLoaderServiceException(e);
                 }
 
                 // finally, trim the missing design elements from this assay
@@ -288,56 +292,41 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
             // first, load experiments
             start = System.currentTimeMillis();
-            getLog().debug("Writing experiment " + cache.fetchExperiment().getAccession());
-            System.out.print("Writing experiments...");
+            getLog().info("Writing experiment " + cache.fetchExperiment().getAccession());
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
-            System.out.print(".");
-            System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
+            getLog().info("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
 
 
             // next, write assays
             start = System.currentTimeMillis();
-            getLog().debug("Writing " + cache.fetchAllAssays().size() + " assays");
-            System.out.print("Writing assays...");
+            getLog().info("Writing " + cache.fetchAllAssays().size() + " assays");
             for (Assay assay : cache.fetchAllAssays()) {
                 getAtlasDAO().writeAssay(assay);
-                System.out.print(".");
             }
-            System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), total);
+            getLog().info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), total);
 
             // finally, load samples
             start = System.currentTimeMillis();
-            getLog().debug("Writing " + cache.fetchAllSamples().size() + " samples");
-            System.out.print("Writing samples...");
+            getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions().size() > 0) {
                     String experimentAccession = cache.fetchExperiment().getAccession();
                     getAtlasDAO().writeSample(sample, experimentAccession);
-                    System.out.print(".");
                 }
                 else {
-                    return success = false;
+                    throw new AtlasLoaderServiceException("No assays for sample found");
                 }
             }
-            System.out.println("done!");
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().debug("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
+            getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
-            return success = true;
-        }
-        catch (Exception e) {
-            getLog().error("Writing " + numOfObjects + " objects failed. " +
-                    "\nData may be left in an inconsistent state: rerun this load to overwrite.", e);
-            return success = false;
         }
         finally {
             // end the load(s)

@@ -37,7 +37,7 @@ import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingAssayHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingDerivedArrayDataMatrixHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingHybridizationHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.AtlasLoadingSourceHandler;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -351,7 +351,7 @@ public class AtlasLoaderUtils {
     }
 
     public static <T extends AbstractStatifiable & Progressible>
-    WatcherThread createProgressWatcher(final T target, final AtlasLoaderService.Listener listener) {
+    WatcherThread createProgressWatcher(final T target, final AtlasLoaderServiceListener listener) {
         if(listener == null)
             return null;
         
