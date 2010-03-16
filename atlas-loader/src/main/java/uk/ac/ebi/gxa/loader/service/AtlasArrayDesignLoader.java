@@ -122,17 +122,18 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 }
             });
 
+            AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
             try {
-                AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
                 parser.parse(adfFileLocation, arrayDesign);
-                if(watcher != null)
-                    watcher.stopWatching();
                 getLog().info("Parsing finished");
             }
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
                 return false;
+            } finally {
+                if(watcher != null)
+                    watcher.stopWatching();
             }
 
 

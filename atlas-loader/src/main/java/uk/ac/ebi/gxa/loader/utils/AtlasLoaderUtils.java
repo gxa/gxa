@@ -44,6 +44,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Set;
+import java.lang.ref.WeakReference;
 
 /**
  * Simple utilities classes dealing with common functions that are required in loading to the Atlas DB.
@@ -355,6 +356,7 @@ public class AtlasLoaderUtils {
             return null;
         
         WatcherThread result = new WatcherThread() {
+            private WeakReference<T> targetRef = new WeakReference<T>(target);
             private boolean running = true;
 
             public void stopWatching() {
@@ -368,8 +370,16 @@ public class AtlasLoaderUtils {
 
             @Override
             public void run() {
-                while(running && target.getProgress() < 100 && target.getStatus() != Status.FAILED) {
-                    listener.setProgress("Parsed " + target.getProgress() + "%");
+                while(running) {
+                    T t = targetRef.get();
+                    if(t == null || t.getStatus() == Status.FAILED)
+                        break;
+
+                    int progress = t.getProgress();
+                    if(progress >= 100)
+                        break;
+
+                    listener.setProgress("Parsed " + progress + "%");
                     try {
                         Thread.sleep(1000);
                     } catch(InterruptedException e) {
