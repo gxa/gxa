@@ -216,9 +216,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
-        if (!validateLoad(cache.fetchExperiment(), cache.fetchAllAssays())) {
-            throw new AtlasLoaderServiceException("Can't validate load");
-        }
+        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays());
 
         // start the load(s)
         boolean success = false;
@@ -326,7 +324,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
 
             // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " objects completed successfully");
+            getLog().info("Writing " + numOfObjects + " objec" +
+                    "ts completed successfully");
+            success = true;
         }
         finally {
             // end the load(s)
@@ -334,23 +334,24 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private boolean validateLoad(Experiment experiment, Collection<Assay> assays) {
+    private void validateLoad(Experiment experiment, Collection<Assay> assays) throws AtlasLoaderServiceException {
         if (experiment == null) {
-            getLog().error("Cannot load without an experiment");
-            return false;
+            String msg = "Cannot load without an experiment";
+            getLog().error(msg);
+            throw new AtlasLoaderServiceException(msg);
         }
 
-        if (!checkExperiment(experiment.getAccession())) {
-            return false;
-        }
+        checkExperiment(experiment.getAccession());
+
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : assays) {
             if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
                 if (!checkArray(assay.getArrayDesignAccession())) {
-                    getLog().error("The array design " + assay.getArrayDesignAccession() + " was not found in the " +
+                    String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
                             "database: it is prerequisite that referenced arrays are present prior to " +
-                            "loading experiments");
-                    return false;
+                            "loading experiments";
+                    getLog().error(msg);
+                    throw new AtlasLoaderServiceException(msg);
                 }
 
                 referencedArrayDesigns.add(assay.getArrayDesignAccession());
@@ -358,10 +359,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
 
         // all checks passed if we got here
-        return true;
     }
 
-    private boolean checkExperiment(String accession) {
+    private void checkExperiment(String accession) throws AtlasLoaderServiceException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
@@ -372,12 +372,16 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 getLog().info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
+                if(pending)
+                    throw new AtlasLoaderServiceException("Experiment is in PENDING state");
+
                 boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
                 if (priorFailure) {
-                    getLog().warn("Experiment " + accession + " was previously loaded, but failed.  " +
-                            "Any bad data will be overwritten");
+                    String msg = "Experiment " + accession + " was previously loaded, but failed.  " +
+                            "Any bad data will be overwritten";
+                    getLog().warn(msg);
+                    throw new AtlasLoaderServiceException(msg);
                 }
-                return pending || priorFailure;
             }
             else {
                 // not suppressing reloads, so continue
@@ -390,14 +394,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     getLog().info("Deleting existing version of experiment " + accession);
                     getAtlasDAO().deleteExperiment(accession);
                 }
-
-                return true;
             }
         }
         else {
             // no experiment present in load_monitor table
             getLog().debug("No load details obtained");
-            return true;
         }
     }
 
