@@ -181,9 +181,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
-        if (!validateLoad(cache.fetchArrayDesignBundle())) {
-            throw new AtlasLoaderServiceException("Can't validate load");
-        }
+        validateLoad(cache.fetchArrayDesignBundle());
 
         // start the load(s)
         boolean success = false;
@@ -209,6 +207,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
+            success = true;
         }
         catch (Exception e) {
             throw new AtlasLoaderServiceException(e);
@@ -219,21 +218,19 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private boolean validateLoad(ArrayDesignBundle arrayDesignBundle) {
+    private void validateLoad(ArrayDesignBundle arrayDesignBundle) throws AtlasLoaderServiceException {
         if (arrayDesignBundle == null) {
-            getLog().error("No array design created - unable to load");
-            return false;
+            String msg = "No array design created - unable to load";
+            getLog().error(msg);
+            throw new AtlasLoaderServiceException(msg);
         }
 
-        if (!checkArrayDesign(arrayDesignBundle.getAccession())) {
-            return false;
-        }
+        checkArrayDesign(arrayDesignBundle.getAccession());
 
         // all checks passed if we got here
-        return true;
     }
 
-    private boolean checkArrayDesign(String accession) {
+    private void checkArrayDesign(String accession) throws AtlasLoaderServiceException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForArrayDesignsByAccession(accession);
@@ -244,24 +241,26 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 getLog().info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
+                if(pending)
+                    throw new AtlasLoaderServiceException("Array design is in PENDING state");
+
                 boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
                 if (priorFailure) {
-                    getLog().warn("Array Design " + accession + " was previously loaded, but failed.  " +
-                            "Any bad data will be overwritten");
+                    String msg = "Array Design " + accession + " was previously loaded, but failed.  " +
+                            "Any bad data will be overwritten";
+                    getLog().warn(msg);
+                    throw new AtlasLoaderServiceException(msg);
                 }
-                return pending || priorFailure;
             }
             else {
                 // not suppressing reloads, so continue
                 getLog().warn("Array Design " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
-                return true;
             }
         }
         else {
             // no experiment present in load_monitor table
             getLog().debug("No load details obtained");
-            return true;
         }
     }
 
