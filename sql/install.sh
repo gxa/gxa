@@ -1,7 +1,8 @@
 #!/bin/bash
 # Installing Atlas2 database
+# 16 Mar 2010 - not using sed -i
 
-INDEX_TABLESPACE= #make blank for database default
+INDEX_TABLESPACE=#make blank for database default
 ORACLE_CONNECTION=
 PARALLEL_LOAD=0 #zero for singlethreaded load
 #scripts which must be executed first, in given order
@@ -72,7 +73,7 @@ for ARCHIVE_NAME in $ARCHIVE_NAMES
 do
 
 if [ ! -r $ARCHIVE_NAME ]; then
-        echo "file is not found or insufficient privilegies" $ARCHIVE_NAME; exit -1
+       echo "file is not found or insufficient privilegies" $ARCHIVE_NAME; exit -1
 fi
 
 zcat $ARCHIVE_NAME | tar xvf -
@@ -82,7 +83,7 @@ fi
 done
 
 if [ ! -z "$INDEX_TABLESPACE" ]; then
-sed -i '' "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE $INDEX_TABLESPACE/" Schema/Tables.sql
+sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE $INDEX_TABLESPACE/" Schema/Tables.sql > Schema/TablesTablespace.sql
 fi
 
 for SCRIPT_NAME in $CORE_SCRIPTS
@@ -91,6 +92,12 @@ do
         	echo "required script not found in Schema folder:" $SCRIPT_NAME; exit -1
 	fi
 	
+	if [ "$SCRIPT_NAME" == "Tables.sql" ]; then
+		if [ ! -z "$INDEX_TABLESPACE" ]; then
+			SCRIPT_NAME=TablesTablespace.sql 
+		fi
+	fi
+
 	echo "executing " $SCRIPT_NAME
 
 	sqlplus -L -S $ORACLE_CONNECTION @Schema/$SCRIPT_NAME
