@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -208,8 +209,8 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                 try {
                     log.info("Starting load operation on " + experimentResource.toString());
 
-                    boolean success = loaderService.load(experimentResource,
-                            listener != null ? new AtlasLoaderService.Listener() {
+                    loaderService.load(experimentResource,
+                            listener != null ? new AtlasLoaderServiceListener() {
                                 public void setAccession(String accession) {
                                     accessions.add(accession);
                                 }
@@ -220,8 +221,6 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                             } : null);
 
                     log.info("Finished load operation on " + experimentResource.toString());
-                    if(!success)
-                        errors.add(new RuntimeException("Loading error (" + StringUtils.join(accessions, ' ') + ")"));
                 }
                 catch (Exception e) {
                     log.error("Loading error", e);

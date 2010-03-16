@@ -72,7 +72,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         this.geneIdentifierPriority = geneIdentifierPriority;
     }
 
-    public boolean load(final URL adfFileLocation, final Listener listener) {
+    public void load(final URL adfFileLocation, final AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -130,7 +130,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
-                return false;
+                throw new AtlasLoaderServiceException(e);
             } finally {
                 if(watcher != null)
                     watcher.stopWatching();
@@ -142,15 +142,19 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             }
 
             // parsing completed, so now write the objects in the cache
-            boolean result = writeObjects(cache);
+            try {
+                writeObjects(cache);
 
-            if (listener != null && result) {
-                if (cache.fetchArrayDesignBundle() != null) {
-                    listener.setAccession(cache.fetchArrayDesignBundle().getAccession());
+                if (listener != null) {
+                    if (cache.fetchArrayDesignBundle() != null) {
+                        listener.setAccession(cache.fetchArrayDesignBundle().getAccession());
+                    }
                 }
+            } catch (AtlasLoaderServiceException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new AtlasLoaderServiceException(e);
             }
-
-            return true;
         }
         finally {
             AtlasLoadCacheRegistry.getRegistry().deregisterArrayDesign(arrayDesign);
@@ -173,12 +177,12 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                                  AtlasLoadingTypeHandler.class);
     }
 
-    protected boolean writeObjects(AtlasLoadCache cache) {
+    protected void writeObjects(AtlasLoadCache cache) throws AtlasLoaderServiceException {
         int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
         if (!validateLoad(cache.fetchArrayDesignBundle())) {
-            return false;
+            throw new AtlasLoaderServiceException("Can't validate load");
         }
 
         // start the load(s)
@@ -205,12 +209,9 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
-            return success = true;
         }
         catch (Exception e) {
-            getLog().error("Writing " + numOfObjects + " objects failed: " + e.getMessage() +
-                    "\nData may be left in an inconsistent state: rerun this load to overwrite.", e);
-            return success = false;
+            throw new AtlasLoaderServiceException(e);
         }
         finally {
             // end the load(s)
