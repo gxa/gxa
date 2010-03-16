@@ -166,7 +166,7 @@ begin
  dbms_output.put_line(' create ArrayDesignID: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
 
  --update properties 
- MERGE into a2_GeneProperty p 
+ MERGE /*+ parallel(a2_GeneProperty,10) append */ into a2_GeneProperty p 
  USING (select distinct EntryName from table(CAST(LowerCaseDesignElements as DesignElementTable))) t
  ON (t.EntryName = p.Name)
  WHEN MATCHED THEN 
@@ -177,7 +177,7 @@ begin
  dbms_output.put_line(' update properties: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --update propertyvalues
- MERGE into a2_GenePropertyValue p
+ MERGE /*+ parallel(a2_GenePropertyValue,10) append */ into a2_GenePropertyValue p
  USING (select distinct p.GenePropertyID, EntryName, EntryValue 
         from table(CAST(LowerCaseDesignElements as DesignElementTable)) d 
         join a2_GeneProperty p on p.Name = d.EntryName
@@ -191,7 +191,7 @@ begin
  dbms_output.put_line(' update propertyvalues: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --map DesignElementAccessions to existing genes
- Insert into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
+ Insert /*+ _parallel(tmp_DesignElementMap, 12) append */ into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
  select t.Accession, min(GeneID), null
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
  join vwGeneIDs IDs on ids.name = t.EntryName and ids.value = t.EntryValue
@@ -199,7 +199,7 @@ begin
  dbms_output.put_line(' map DesignElementAccessions to existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
 
  --add accessions for non-existing genes
- Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
+ Insert /*+ _parallel(tmp_DesignElementMap, 12) append */ into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
  select Accession, null, EntryValue
  from (
  select t.Accession, EntryValue, RowNum r 
@@ -230,22 +230,16 @@ begin
    Update tmp_DesignElementMap 
    set GeneID = (Select GeneID from a2_Gene where Identifier = tmp_DesignElementMap.GeneIdentifier) 
    where GeneID is null;
- 
- /*
- for r in (select * from tmp_DesignElementMap where GeneID is null) loop
-   select a2_Gene_Seq.nextval into TheGeneID from dual; 
-    
-   Insert into a2_Gene(GeneID, Name, Identifier)
-   select TheGeneID,'GENE:' || r.GeneIdentifier, r.GeneIdentifier from dual;
-      
-   update tmp_DesignElementMap set GeneID = TheGeneID 
-   where DesignElementAccession = r.DesignElementAccession;
- end loop;
- */ 
  dbms_output.put_line(' create missed genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
+ /*
+ for r in (select * from tmp_DesignElementMap) loop
+   dbms_output.put_line('GENE:' || r.GeneID || ' ' || r.GeneIdentifier);
+ end loop;
+ */
+ 
  --add properties (do not remove old properties from Gene) 
- MERGE INTO a2_GeneGPV gpv
+ MERGE /*+ parallel(a2_GeneGPV,12) append */ INTO a2_GeneGPV gpv
  USING (select distinct m.GeneID, pv.genepropertyvalueid 
         from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
         join tmp_DesignElementMap m on m.designelementaccession = t.Accession
@@ -568,14 +562,15 @@ begin
   set e.Description = A2_EXPERIMENTSET.description
   ,e.Performer = A2_EXPERIMENTSET.performer
   ,e.Lab = A2_EXPERIMENTSET.lab
+  ,e.LOADDATE = SYSDATE
   where e.accession = A2_EXPERIMENTSET.Accession;
   
   dbms_output.put_line('updated ' || sql%rowcount || ' rows' );
   
   if ( sql%rowcount = 0 )
   then
-     insert into a2_Experiment(Accession,Description,Performer,Lab)
-     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab);
+     insert into a2_Experiment(Accession,Description,Performer,Lab,Loaddate)
+     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab,sysdate);
      
      dbms_output.put_line('inserted');
   else
