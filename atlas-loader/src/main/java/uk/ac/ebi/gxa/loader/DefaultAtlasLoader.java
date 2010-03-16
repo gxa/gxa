@@ -221,7 +221,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
 
                     log.info("Finished load operation on " + experimentResource.toString());
                     if(!success)
-                        errors.add(new RuntimeException("Errors while storing " + StringUtils.join(accessions, ' ') + " to database"));
+                        errors.add(new RuntimeException("Loading error (" + StringUtils.join(accessions, ' ') + ")"));
                 }
                 catch (Exception e) {
                     log.error("Loading error", e);

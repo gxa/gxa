@@ -143,21 +143,22 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                             "Parser reported:\n\t" +
                                     item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
                                     "occurred in parsing " + item.getParsedFile() + " " +
-                                    "[line " + item.getLine() + ", column " + item.getCol() + "].");
+                                    "[line " + item.getLine() + ", column " + item.getCol() + "].", item);
                 }
             });
 
+            AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
             try {
-                AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
                 parser.parse(idfFileLocation, investigation);
-                if(watcher != null)
-                    watcher.stopWatching();
                 getLog().info("Parsing finished");
             }
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
                 return false;
+            } finally {
+                if(watcher != null)
+                    watcher.stopWatching();
             }
 
             if (listener != null) {

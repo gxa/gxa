@@ -41,10 +41,10 @@ import java.util.*;
  * accomplished by use of a factory method to generate a single DataMatrixFileBuffer object per-file.  On construction,
  * the buffer is initialized - this starts a process that runs in a new thread, parsing the file for headers and doing a
  * dictionary lookup for quantitation types in the file. Once initialization has completed, data can be quickly and
- * easily read out of the file by calling the {@link #readExpressionValues(String...)} method, passing in the id of the
+ * easily read out of the file by calling the {@link #readExpressionValues(String[])}  method, passing in the id of the
  * referenced value (usually an assay, but sometimes the associated scan) you wish to read (which should be obtained
  * from the SDRF file, and binds to particular columns in the data matrix file).  You can call {@link
- * #readExpressionValues(String...)} immediately once your bufer object is returned, but this method blocks until
+ * #readExpressionValues(String[])} immediately once your bufer object is returned, but this method blocks until
  * initialization has completed.
  *
  * @author Tony Burdett
@@ -394,7 +394,7 @@ public class DataMatrixFileBuffer {
                     catch (ParseException e) {
                         initFailed = e;
                     }
-                    catch (IOException e) {
+                    catch (Throwable e) {
                         // generate error item and throw exception
                         String message =
                                 "An error occurred whilst attempting to read from the " +
@@ -407,8 +407,8 @@ public class DataMatrixFileBuffer {
                                                 1023,
                                                 this.getClass());
 
-                        initFailed = new ParseException(error, true);
-                        e.printStackTrace();
+                        initFailed = new ParseException(error, true, e);
+                        log.error("Error", e);
                     }
                     finally {
                         if (reader != null) {
@@ -527,7 +527,8 @@ public class DataMatrixFileBuffer {
                                     1023,
                                     this.getClass());
 
-            throw new ParseException(error, true);
+            log.error("Error", e);
+            throw new ParseException(error, true, e);
         }
         finally {
             try {
