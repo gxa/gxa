@@ -1,3 +1,6 @@
+/*
+call UT_ARRAYDESIGNSET();
+*/
 create or replace procedure UT_ARRAYDESIGNSET
 as
  ACCESSION1 VARCHAR2(32767);
@@ -44,7 +47,7 @@ BEGIN
 
  END LOOP;
 
- /*ATLASLDR.*/A2_ARRAYDESIGNSET ( ACCESSION1
+ ATLASLDR.A2_ARRAYDESIGNSET ( ACCESSION1
                              , TYPE1
                              , NAME1
                              , PROVIDER1

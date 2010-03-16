@@ -191,7 +191,7 @@ begin
  dbms_output.put_line(' update propertyvalues: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --map DesignElementAccessions to existing genes
- Insert /*+ _parallel(tmp_DesignElementMap, 12) append */ into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
+ Insert into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
  select t.Accession, min(GeneID), null
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
  join vwGeneIDs IDs on ids.name = t.EntryName and ids.value = t.EntryValue
@@ -199,7 +199,7 @@ begin
  dbms_output.put_line(' map DesignElementAccessions to existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
 
  --add accessions for non-existing genes
- Insert /*+ _parallel(tmp_DesignElementMap, 12) append */ into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
+ Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
  select Accession, null, EntryValue
  from (
  select t.Accession, EntryValue, RowNum r 
