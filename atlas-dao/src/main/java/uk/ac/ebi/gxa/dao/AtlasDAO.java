@@ -281,6 +281,7 @@ public class AtlasDAO {
                     "WHERE a.designelementid=?";
     public static final String ONTOLOGY_MAPPINGS_SELECT =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
+                    "ontologytermname, ontologytermid, ontologyname, " +
                     "issampleproperty, isassayproperty, isfactorvalue, experimentid " +
                     "FROM a2_ontologymapping";
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
@@ -289,6 +290,9 @@ public class AtlasDAO {
     public static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE accession=?";
+    public static final String ONTOLOGY_MAPPINGS_BY_PROPERTY_VALUE =
+            ONTOLOGY_MAPPINGS_SELECT + " " +
+                    "WHERE propertyvalue=?";
 
     // queries for atlas interface
     public static final String ATLAS_RESULTS_SELECT =
@@ -938,6 +942,14 @@ public class AtlasDAO {
             String experimentAccession) {
         List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
                                       new Object[]{experimentAccession},
+                                      new OntologyMappingMapper());
+        return (List<OntologyMapping>) results;
+    }
+
+    public List<OntologyMapping> getOntologyMappingsByPropertyValue(
+            String propertyValue) {
+        List results = template.query(ONTOLOGY_MAPPINGS_BY_PROPERTY_VALUE,
+                                      new Object[]{propertyValue},
                                       new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
     }
@@ -2099,10 +2111,13 @@ public class AtlasDAO {
             mapping.setProperty(resultSet.getString(2));
             mapping.setPropertyValue(resultSet.getString(3));
             mapping.setOntologyTerm(resultSet.getString(4));
-            mapping.setSampleProperty(resultSet.getBoolean(5));
-            mapping.setAssayProperty(resultSet.getBoolean(6));
-            mapping.setFactorValue(resultSet.getBoolean(7));
-            mapping.setExperimentId(resultSet.getLong(8));
+            mapping.setOntologyTermName(resultSet.getString(5));
+            mapping.setOntologyTermID(resultSet.getString(6));
+            mapping.setOntologyName(resultSet.getString(7));
+            mapping.setSampleProperty(resultSet.getBoolean(8));
+            mapping.setAssayProperty(resultSet.getBoolean(9));
+            mapping.setFactorValue(resultSet.getBoolean(10));
+            mapping.setExperimentId(resultSet.getLong(11));
 
             return mapping;
         }
