@@ -218,6 +218,8 @@ class Loader {
                     annotation.accept(cannov);
                 }
                 String term = cannov.getTerm();
+                if(term == null)
+                    term = "undefined";
                 boolean branchRoot = cannov.isBranchRoot();
                 en = new EfoNode(id, term, branchRoot);
                 Set<Set<OWLClass>> children = reasoner.getSubClasses(cls);
