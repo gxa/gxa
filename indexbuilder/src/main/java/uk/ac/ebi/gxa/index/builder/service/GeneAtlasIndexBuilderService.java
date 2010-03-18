@@ -304,20 +304,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             if (accessions != null) {
                 for (String acc : accessions) {
-                    String accId = EscapeUtil.encode(acc);
 
-                    if (!efoupdn.containsKey(accId)) {
-                        efoupdn.put(accId, new UpDnSet());
+                    if (!efoupdn.containsKey(acc)) {
+                        efoupdn.put(acc, new UpDnSet());
                     }
                     if (isUp) {
-                        efoupdn.get(accId).up.add(experimentId);
-                        efoupdn.get(accId).minpvalUp =
-                                Math.min(efoupdn.get(accId).minpvalUp, pval);
+                        efoupdn.get(acc).up.add(experimentId);
+                        efoupdn.get(acc).minpvalUp =
+                                Math.min(efoupdn.get(acc).minpvalUp, pval);
                     }
                     else {
-                        efoupdn.get(accId).dn.add(experimentId);
-                        efoupdn.get(accId).minpvalDn =
-                                Math.min(efoupdn.get(accId).minpvalDn, pval);
+                        efoupdn.get(acc).dn.add(experimentId);
+                        efoupdn.get(acc).minpvalDn =
+                                Math.min(efoupdn.get(acc).minpvalDn, pval);
                     }
                 }
             }
