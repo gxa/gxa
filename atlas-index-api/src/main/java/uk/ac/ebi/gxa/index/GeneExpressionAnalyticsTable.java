@@ -51,10 +51,9 @@ public class GeneExpressionAnalyticsTable implements Serializable {
 
         if(analysis.getEfoAccessions() != null)
             for(String oneefo : analysis.getEfoAccessions()) {
-                String efoId = EscapeUtil.encode(oneefo);
-                if(!byEfoId.containsKey(efoId))
-                    byEfoId.put(efoId, new BitSet());
-                byEfoId.get(efoId).set(pos);
+                if(!byEfoId.containsKey(oneefo))
+                    byEfoId.put(oneefo, new BitSet());
+                byEfoId.get(oneefo).set(pos);
             }
 
     }
