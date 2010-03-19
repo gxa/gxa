@@ -41,7 +41,8 @@ var $msg = {
         experiment: 'Process experiment',
         loadexperiment: 'Load experiment',
         loadarraydesign: 'Load array design',
-        'index': 'Build index'
+        index: 'Build index',
+        unloadexperiment: 'Unload experiment'
     },
     runMode: {
         RESTART: 'Restart',
@@ -72,6 +73,9 @@ var $msg = {
         },
         loadarraydesign: {
             LOAD: 'Loading'
+        },
+        unloadexperiment: {
+            UNLOAD: 'Unloading'
         },
         NONE: 'Nothing',
         DONE: 'Complete'
@@ -172,9 +176,9 @@ function updateBrowseExperiments() {
                 break;
             }
             if(cando)
-                $('#experimentList input.continue, #experimentList input.restart').removeAttr('disabled');
+                $('#experimentList .opbuttons input').removeAttr('disabled');
             else
-                $('#experimentList input.continue, #experimentList input.restart').attr('disabled', 'disabled');
+                $('#experimentList .opbuttons input').attr('disabled', 'disabled');
         }
 
         renderTpl('experimentList', result);
@@ -211,7 +215,7 @@ function updateBrowseExperiments() {
         if(selectAll)
             $('#selectAll').attr('checked', 'checked');
 
-        function startSelectedTasks(mode) {
+        function startSelectedTasks(type, mode, title) {
             var accessions = [];
             for(var accession in selectedExperiments)
                 accessions.push(accession);
@@ -219,12 +223,13 @@ function updateBrowseExperiments() {
             if(accessions.length == 0 && !selectAll)
                 return;
 
-            if(window.confirm('Do you really want to ' + mode.toLowerCase() + ' '
+            if(window.confirm('Do you really want to ' + title + ' '
                     + (selectAll ? result.numTotal : accessions.length)
                     + ' experiment(s)?')) {
                 if(selectAll) {
                     adminCall('enqueuesearchexp', {
                         runMode: mode,
+                        type: type,
                         search: $('#experimentSearch').val(),
                         fromDate: $('#dateFrom').val(),
                         toDate: $('#dateTo').val(),
@@ -235,7 +240,7 @@ function updateBrowseExperiments() {
                     adminCall('enqueue', {
                         runMode: mode,
                         accession: accessions,
-                        type: 'experiment',
+                        type: type,
                         autoDepends: 'true'
                     }, switchToQueue);
                 }
@@ -246,11 +251,15 @@ function updateBrowseExperiments() {
         }
 
         $('#experimentList input.continue').click(function () {
-            startSelectedTasks('CONTINUE');
+            startSelectedTasks('experiment', 'CONTINUE', 'continue processing of');
         });
 
         $('#experimentList input.restart').click(function () {
-            startSelectedTasks('RESTART');
+            startSelectedTasks('experiment', 'RESTART', 'restart processing of');
+        });
+
+        $('#experimentList input.unload').click(function () {
+            startSelectedTasks('unloadexperiment', 'RESTART', 'unload');
         });
 
         $('#experimentList .rebuildIndex input').click(function () {

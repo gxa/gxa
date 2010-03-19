@@ -117,7 +117,7 @@ public class IndexTask extends AbstractWorkingTask {
             return TYPE.equals(taskSpec.getType());
         }
 
-        public boolean isBlockedBy(TaskSpec by) {
+        public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
             return Arrays.asList(
                     ExperimentTask.TYPE,
                     LoaderTask.TYPE_EXPERIMENT,
