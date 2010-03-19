@@ -117,6 +117,11 @@
         </property>
     </bean>
 
+    <bean name="atlasUnloader" class="uk.ac.ebi.gxa.unloader.DefaultAtlasUnloader">
+        <property name="atlasDao" ref="atlasDAO"/>
+        <property name="netcdfPath" ref="atlasNetCDFRepo"/>
+    </bean>
+
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
@@ -264,6 +269,7 @@
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="netcdfGenerator" ref="netCDFGenerator"/>
         <property name="loader" ref="atlasLoader"/>
+        <property name="unloader" ref="atlasUnloader"/>
         <property name="storage" ref="taskManagerStorage"/>
         <property name="maxWorkingTasks" value="16" />
     </bean>

@@ -19,16 +19,24 @@
  *
  * http://gxa.github.com/gxa
  */
-
-package uk.ac.ebi.gxa.tasks;
-
-import java.util.Collection;
+package uk.ac.ebi.gxa.unloader;
 
 /**
  * @author pashky
  */
-public interface WorkingTaskFactory {
-    public WorkingTask createTask(TaskManager queue, Task prototype);
-    public boolean isForType(TaskSpec taskSpec);
-    public boolean isBlockedBy(TaskSpec what, TaskSpec by);
+public interface AtlasUnloader {
+
+    /**
+     * Unloads an experiment by accession cleaning up all related resources
+     * @param accession experiment's accession
+     * @throws AtlasUnloaderException if anything goes wrong
+     */
+    void unloadExperiment(String accession) throws AtlasUnloaderException;
+
+    /**
+     * Unloads an array design by accession cleaning up all related resources
+     * @param accession arraydesigns's accession
+     * @throws AtlasUnloaderException if anything goes wrong
+     */
+    void unloadArrayDesign(String accession) throws AtlasUnloaderException;
 }

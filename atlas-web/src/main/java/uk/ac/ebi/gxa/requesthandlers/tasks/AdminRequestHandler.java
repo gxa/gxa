@@ -49,6 +49,8 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.unloader.AtlasUnloader;
+import uk.ac.ebi.gxa.unloader.AtlasUnloaderException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -283,6 +285,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 }.start();
             }
         });
+
+        taskManager.setUnloader(new AtlasUnloader() {
+            public void unloadExperiment(String accession) throws AtlasUnloaderException {
+                log.info("Unloading experiment " + accession);
+            }
+
+            public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
+                log.info("Unloading array design " + accession);
+           }
+        });
     }
 
     public void setDao(AtlasDAO dao) {
@@ -365,17 +377,19 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("stage", stage.toString());
     }
 
-    private Object processEnqueueSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr, String runMode, String autoDepend) {
+    private Object processEnqueueSearchExperiments(String type,
+                                                   String searchText, String fromDate, String toDate, String pendingOnlyStr,
+                                                   String runMode, String autoDepend, String remoteId) {
         Map<String,Integer> result = new HashMap<String, Integer>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
         for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
             Experiment experiment = i.next().getFirst();
-            int id = taskManager.enqueueTask(new TaskSpec("experiment", experiment.getAccession()),
+            int id = taskManager.enqueueTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     defaultUser,
-                    toBoolean(autoDepend), "");
+                    toBoolean(autoDepend), WEB_REQ_MESSAGE + remoteId);
             result.put(experiment.getAccession(),  id);
         }        
         if(wasRunning)
@@ -587,12 +601,14 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("enqueuesearchexp".equals(op))
             return processEnqueueSearchExperiments(
+                    request.getParameter("type"),
                     request.getParameter("search"),
                     request.getParameter("fromDate"),
                     request.getParameter("toDate"),
                     request.getParameter("pendingOnly"),
                     request.getParameter("runMode"),
-                    request.getParameter("autoDepends"));
+                    request.getParameter("autoDepends"),
+                    remoteId);
 
         else if("operlog".equals(op))
             return processOperationLog(request.getParameter("num"));

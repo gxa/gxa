@@ -19,16 +19,25 @@
  *
  * http://gxa.github.com/gxa
  */
-
-package uk.ac.ebi.gxa.tasks;
-
-import java.util.Collection;
+package uk.ac.ebi.gxa.unloader;
 
 /**
+ * Unloader exception class
  * @author pashky
  */
-public interface WorkingTaskFactory {
-    public WorkingTask createTask(TaskManager queue, Task prototype);
-    public boolean isForType(TaskSpec taskSpec);
-    public boolean isBlockedBy(TaskSpec what, TaskSpec by);
+public class AtlasUnloaderException extends Exception {
+    public AtlasUnloaderException() {
+    }
+
+    public AtlasUnloaderException(String message) {
+        super(message);
+    }
+
+    public AtlasUnloaderException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AtlasUnloaderException(Throwable cause) {
+        super(cause);
+    }
 }

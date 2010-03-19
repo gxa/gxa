@@ -26,6 +26,8 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.unloader.AtlasUnloader;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +47,7 @@ public class TaskManager implements InitializingBean {
     private IndexBuilder indexBuilder;
     private NetCDFGenerator netcdfGenerator;
     private AtlasLoader<URL> loader;
+    private AtlasUnloader unloader;
 
     private PersistentStorage storage;
     private volatile boolean running = true;
@@ -57,6 +60,7 @@ public class TaskManager implements InitializingBean {
         taskFactories.add(ExperimentTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
+        taskFactories.add(UnloadExperimentTask.FACTORY);
     }
 
     private static class QueuedTask implements Task {
@@ -147,6 +151,14 @@ public class TaskManager implements InitializingBean {
         this.loader = loader;
     }
 
+    public AtlasUnloader getUnloader() {
+        return unloader;
+    }
+
+    public void setUnloader(AtlasUnloader unloader) {
+        this.unloader = unloader;
+    }
+
     public int getMaxWorkingTasks() {
         return maxWorkingTasks;
     }
@@ -169,7 +181,7 @@ public class TaskManager implements InitializingBean {
         int i = 0;
         WorkingTaskFactory factory = getFactoryBySpec(task.getTaskSpec());
         for(QueuedTask queuedTask : queuedTasks) {
-            if(factory.isBlockedBy(queuedTask.getTaskSpec())) {
+            if(factory.isBlockedBy(task.getTaskSpec(), queuedTask.getTaskSpec())) {
                 insertTo = i + 1;
             }
             ++i;
@@ -314,7 +326,7 @@ public class TaskManager implements InitializingBean {
                 WorkingTaskFactory nextFactory = getFactoryBySpec(nextTask.getTaskSpec());
                 boolean blocked = false;
                 for(WorkingTask workingTask : workingTasks) {
-                    blocked |= nextFactory.isBlockedBy(workingTask.getTaskSpec());
+                    blocked |= nextFactory.isBlockedBy(nextTask.getTaskSpec(), workingTask.getTaskSpec());
                     blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
                 }
                 if(!blocked) {
