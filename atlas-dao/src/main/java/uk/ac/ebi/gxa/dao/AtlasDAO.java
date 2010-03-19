@@ -53,6 +53,7 @@ import java.util.*;
  * @author Tony Burdett
  * @date 21-Sep-2009
  */
+@SuppressWarnings("unchecked")
 public class AtlasDAO {
     // load monitor
     public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
@@ -82,22 +83,31 @@ public class AtlasDAO {
             "SELECT COUNT(*) FROM a2_experiment";
 
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
                     "FROM a2_experiment";
+    public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment WHERE loaddate >= ?";
+    public static final String EXPERIMENTS_SELECT_BY_DATE_TO =
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment WHERE loaddate <= ?";
+    public static final String EXPERIMENTS_SELECT_BY_DATE_BETWEEN =
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment WHERE loaddate BETWEEN ? AND ?";
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
@@ -467,6 +477,26 @@ public class AtlasDAO {
         List results = template.query(EXPERIMENTS_SELECT,
                                       new ExperimentMapper());
         return (List<Experiment>) results;
+    }
+
+    public List<Experiment> getExperimentByLoadDate(Date from, Date to0) {
+        Date to = to0 != null ? new Date(to0.getTime() + 24*60*60*1000L) : null;
+        if(to == null && from != null)
+            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_FROM,
+                    new Object[] { from },
+                    new ExperimentMapper());
+        else if(from == null && to != null)
+            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_TO,
+                    new Object[] { to },
+                    new ExperimentMapper());
+        else if(from == null)
+            return getAllExperiments();
+        else if(to.after(from))
+            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_BETWEEN,
+                    new Object[] { from, to },
+                    new ExperimentMapper());
+        else
+            return new ArrayList<Experiment>(0);
     }
 
     public List<Experiment> getAllExperimentsPendingIndexing() {
@@ -1950,6 +1980,7 @@ public class AtlasDAO {
             experiment.setPerformer(resultSet.getString(3));
             experiment.setLab(resultSet.getString(4));
             experiment.setExperimentID(resultSet.getInt(5));
+            experiment.setLoadDate(resultSet.getDate(6));
 
             return experiment;
         }

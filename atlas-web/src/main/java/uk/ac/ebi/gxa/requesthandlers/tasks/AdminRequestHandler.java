@@ -73,6 +73,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private DbStorage taskManagerDbStorage;
     private AtlasProperties atlasProperties;
     private static final String WEB_REQ_MESSAGE = "By web request from ";
+    private static final String SESSION_ADMINUSER = "adminUserName";
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -400,11 +401,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 );
     }
 
-    private Iterator<Pair<String,TaskStage>> getSearchExperiments(String searchTextStr, String fromDate, String toDate, String pendingOnlyStr) {
+    private Iterator<Pair<String,TaskStage>> getSearchExperiments(String searchTextStr,
+                                                                  String fromDateStr, String toDateStr,
+                                                                  String pendingOnlyStr) {
         final String searchText = searchTextStr.toLowerCase();
         final boolean pendingOnly = toBoolean(pendingOnlyStr);
 
-        List<Experiment> experiments = dao.getAllExperiments();
+        final Date fromDate = parseDate(fromDateStr);
+        final Date toDate = parseDate(toDateStr);
+
+        List<Experiment> experiments = dao.getExperimentByLoadDate(fromDate, toDate);
 
         return new FilterIterator<Experiment, Pair<String, TaskStage>>(experiments.iterator()) {
             @Override
@@ -420,9 +426,19 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         };
     }
 
-    private static SimpleDateFormat FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private Date parseDate(String toDateStr) {
+        try {
+            return IN_DATE_FORMAT.parse(toDateStr);
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+
     private static String formatTimeStamp(Timestamp ts) {
-        return FORMAT.format(ts);
+        return OUT_DATE_FORMAT.format(ts);
     }
 
     private Object processOperationLog(String numStr) {
@@ -497,8 +513,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
+    public TaskUser checkLogin(String username, String password) {
+        if(username != null && username.matches(".*\\S.*") && "password".equals(password)) {
+            return new TaskUser(username);
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     public Object process(HttpServletRequest request) {
+
 //        installTestProcessors();
         String op = request.getParameter("op");
 
@@ -507,6 +531,20 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             remoteId = request.getRemoteAddr();
         if(remoteId == null || "".equals(remoteId))
             remoteId = "unknown";
+
+//        HttpSession session = request.getSession(true);
+//
+//        TaskUser authenticatedUser = null;
+//        if("login".equals(op)) {
+//            authenticatedUser = checkLogin(request.getParameter("userName"), request.getParameter("password"));
+//            if(authenticatedUser == null) {
+//                return makeMap("error", "Not authenticated", "notAuthenticated", true);
+//            }
+//            request.setAttribute(SESSION_ADMINUSER, authenticatedUser);
+//            return makeMap("success", true);
+//        } else if(session.getAttribute(SESSION_ADMINUSER) == null ) {
+//            return makeMap("error", "Not authenticated", "notAuthenticated", true);
+//        }
 
         if("pause".equals(op))
             return processPause();
