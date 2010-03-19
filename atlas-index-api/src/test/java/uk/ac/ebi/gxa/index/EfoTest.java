@@ -142,7 +142,7 @@ public class EfoTest {
             efo.setUri(new URI("resource:META-INF/efo.owl"));
             int termSize = efo.getAllTerms().size();
             assertNotNull(efo);
-            assertEquals(1640, termSize);
+            assertEquals(1641, termSize);
 
             // wait a bit
             synchronized (this) {
@@ -157,7 +157,7 @@ public class EfoTest {
             // load again
             efo.load();
             assertNotNull(efo);
-            assertEquals(1640, termSize);
+            assertEquals(1641, termSize);
         }
         catch (URISyntaxException e) {
             e.printStackTrace();
@@ -175,7 +175,7 @@ public class EfoTest {
     @Test
     public void testEfoLoaded() {
         assertNotNull(efo);
-        assertEquals(1640, efo.getAllTerms().size());
+        assertEquals(1641, efo.getAllTerms().size());
     }
 
     @Test
@@ -256,7 +256,7 @@ public class EfoTest {
 
     @Test
     public void testRoots() {
-        assertTrue(efo.getRootIds().contains("EFO_0000001"));
+        assertTrue(efo.getRootIds().contains("Other"));
     }
 
     @Test
