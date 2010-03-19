@@ -22,10 +22,12 @@
 
 package uk.ac.ebi.gxa.tasks;
 
+import java.io.Serializable;
+
 /**
  * @author pashky
  */
-public class TaskUser {
+public class TaskUser implements Serializable {
     private final String userName;
 
     public TaskUser(String userName) {

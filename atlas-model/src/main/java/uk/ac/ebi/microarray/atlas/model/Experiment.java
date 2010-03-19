@@ -22,64 +22,76 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import java.sql.Date;
+
 /**
  * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:31:54 AM
  * To change this template use File | Settings | File Templates.
  */
 public class Experiment {
-  private String accession;
-  private String description;
-  private String performer;
-  private String lab;
-  private int experimentID;
+    private String accession;
+    private String description;
+    private String performer;
+    private String lab;
+    private Date loadDate;
 
-  public String getAccession() {
-    return accession;
-  }
+    private int experimentID;
 
-  public void setAccession(String accession) {
-    this.accession = accession;
-  }
+    public String getAccession() {
+        return accession;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public void setAccession(String accession) {
+        this.accession = accession;
+    }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+    public String getDescription() {
+        return description;
+    }
 
-  public String getPerformer() {
-    return performer;
-  }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-  public void setPerformer(String performer) {
-    this.performer = performer;
-  }
+    public String getPerformer() {
+        return performer;
+    }
 
-  public String getLab() {
-    return lab;
-  }
+    public void setPerformer(String performer) {
+        this.performer = performer;
+    }
 
-  public void setLab(String lab) {
-    this.lab = lab;
-  }
+    public String getLab() {
+        return lab;
+    }
 
-  public int getExperimentID() {
-    return experimentID;
-  }
+    public void setLab(String lab) {
+        this.lab = lab;
+    }
 
-  public void setExperimentID(int experimentID) {
-    this.experimentID = experimentID;
-  }
+    public int getExperimentID() {
+        return experimentID;
+    }
 
-  @Override
-  public String toString() {
-    return "Experiment{" +
-        "accession='" + accession + '\'' +
-        ", description='" + description + '\'' +
-        ", performer='" + performer + '\'' +
-        ", lab='" + lab + '\'' +
-        '}';
-  }
+    public void setExperimentID(int experimentID) {
+        this.experimentID = experimentID;
+    }
+
+    public Date getLoadDate() {
+        return loadDate;
+    }
+
+    public void setLoadDate(Date loadDate) {
+        this.loadDate = loadDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Experiment{" +
+                "accession='" + accession + '\'' +
+                ", description='" + description + '\'' +
+                ", performer='" + performer + '\'' +
+                ", lab='" + lab + '\'' +
+                '}';
+    }
 }
