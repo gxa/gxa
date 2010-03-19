@@ -52,6 +52,7 @@
             <b>administration</b> |
             <a href="./">home</a> |
             <a href="help">help</a>
+            <span id="logout">| <a href="#">logout</a> (you are <span id="userName"></span>)</span>
         </td>
     </tr>
 </table>
@@ -156,7 +157,7 @@
 <div id="tab-que">
     <fieldset>
         <input type="button" value="Pause task execution" id="pauseButton">
-        <input class="cancelAllButton" type="button" value="Cancel all tasks">
+        <input id="cancelAllButton" type="button" value="Cancel all tasks">
         <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
     </fieldset>
     <fieldset class="taskmanPaused">
@@ -170,6 +171,7 @@
                     <td>Running Mode</td>
                     <td>Task Type</td>
                     <td>Accession/URL</td>
+                    <td>User</td>
                     <td>Current Stage</td>
                     <td>Progress</td>
                     <td></td>
@@ -181,6 +183,7 @@
                     <td class="runMode">RESTART</td>
                     <td class="type">experiment</td>
                     <td class="accession">E-TABM-1</td>
+                    <td class="user">foo</td>
                     <td class="stage">NETCDF</td>
                     <td class="progress">Wasting time...</td>
                     <td class="cancel">
@@ -202,6 +205,7 @@
                     <td>Running Mode</td>
                     <td>Task Type</td>
                     <td>Accession/URL</td>
+                    <td>User</td>
                     <td>Comment</td>
                 </tr>
             </thead>
@@ -212,6 +216,7 @@
                     <td class="runMode">RESTART</td>
                     <td class="type">experiment</td>
                     <td class="accession">E-TABM-1</td>
+                    <td class="user">foo</td>
                     <td class="message">
                         Blah...
                     </td>
@@ -316,6 +321,30 @@
 </div>
 
 </div><!-- tabs -->
+
+<div id="loginForm" style="display:none;">
+    <form action="#">
+        <fieldset>
+            <legend>Login</legend>
+            <table>
+                <tr>
+                    <td>Username:</td>
+                    <td><input type="text" id="loginUser" class="value"></td>
+                </tr>
+                <tr>
+                    <td>Password:</td>
+                    <td><input type="password" id="loginPassword" class="value"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="submit" id="loginButton" value="Login">
+                    </td>
+                    <td id="loginMessage"></td>
+                </tr>
+            </table>
+        </fieldset>
+    </form>
+</div>
 
 </div><!-- ae_pagecontainer -->
 <div id="footer" >

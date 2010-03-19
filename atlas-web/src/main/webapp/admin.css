@@ -192,3 +192,11 @@ fieldset legend { font-weight: bold; }
 
 thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 #propList td input.value { width: 90%; }
+
+#logout { display: none; }
+#userName { font-weight: bold; }
+
+#loginMessage { font-weight: bold; color: firebrick; white-space:nowrap; }
+#loginUser { width: 100px; }
+#loginPassword { width: 100px; }
+#loginForm { width: 400px; }
