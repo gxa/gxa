@@ -87,7 +87,7 @@ var $msg = {
 };
 
 function msgMapper(field, dict) {
-    return function (r) { return $msg[dict][r.item[field]]; };
+    return function (r) { return r.item[field] ? $msg[dict][r.item[field]] : ''; };
 }
 
 function taskStageMsgMapper(r) {
@@ -135,6 +135,31 @@ function restoreState() {
     redrawCurrentState();
 }
 
+function requireLogin(op, params, func) {
+    $('#loginMessage').text('');
+    $('#loginForm').show();
+    $('#tabs').hide();
+    $('#logout').hide();
+
+    $('#loginForm form').unbind('submit').submit(function () {
+        adminCall('login', { userName: $('#loginUser').val(), password: $('#loginPassword').val() }, function (resp) {
+            if(resp.success) {
+                $('#loginForm').hide();
+                $('#tabs').show();
+                $('#logout').show();
+                $('#userName').text(resp.userName);
+                if(op)
+                    adminCall(op, params, func);
+                else
+                    redrawCurrentState();
+            } else {
+                $('#loginMessage').text('Invalid username or password');
+            }
+        });
+        return false;
+    });
+}
+
 function adminCall(op, params, func) {
     $('.loadIndicator').css('visibility', 'visible');
     return $.ajax({
@@ -144,6 +169,16 @@ function adminCall(op, params, func) {
         data: $.extend(params, { op : op }),
         success: function (json) {
             $('.loadIndicator').css('visibility', 'hidden');
+            if(json.notAuthenticated) {
+                requireLogin(op, params, func);
+                return;
+            } else if(op != 'login' && !$('#logout').is(':visible')) {
+                adminCall('getuser', {}, function (r) {
+                    $('#userName').text(r.userName);
+                    $('#logout').show();
+                });
+            }
+
             if(json.error)
                 alert(json.error);
             else
@@ -279,12 +314,14 @@ function updatePauseButton(isRunning) {
     function unpauseTaskman() {
         adminCall('restart', {}, function () {
             updatePauseButton(true);
+            updateQueue();
         });
     }
 
     function pauseTaskman() {
         adminCall('pause', {}, function () {
             updatePauseButton(true);
+            updateQueue();
         });
     }
     $('#pauseButton').unbind('click').click(isRunning ? pauseTaskman : unpauseTaskman).val(isRunning ? 'Pause task execution' : 'Restart task execution');
@@ -308,7 +345,7 @@ function updateQueue() {
             })(result.tasks[i]);
         }
 
-        $('#taskList .cancelAllButton').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
+        $('#cancelAllButton').unbind('click').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
             if(confirm('Do you really want to cancel all tasks?')) {
                 adminCall('cancelall', {}, function () {
                     updateQueue();
@@ -493,6 +530,7 @@ function compileTemplates() {
                 '.state': msgMapper('state', 'taskState'),
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'task.accession',
+                '.user': 'task.user',
                 '.stage': taskStageMsgMapper,
                 '.runMode': msgMapper('runMode', 'runMode'),
                 '.progress': 'task.progress',
@@ -512,6 +550,7 @@ function compileTemplates() {
                 '.operation': msgMapper('operation', 'operation'),
                 '.message': 'litem.message',
                 '.time': 'litem.time',
+                '.user': 'litem.user',
                 '.@class+': ' operation#{litem.operation} mode#{litem.runMode} type#{litem.type}'
             }
         }
@@ -647,6 +686,13 @@ $(document).ready(function () {
 
     $('#cancelPropsButton').click(updateProperties);
     $('#savePropsButton').click(saveProperties);
+
+    $('#logout a').click(function () {
+        adminCall('logout', {}, function () {
+            requireLogin(null, {}, null);
+        });
+        return false;
+    });
 
     updatePauseButton(false);
     restoreState();

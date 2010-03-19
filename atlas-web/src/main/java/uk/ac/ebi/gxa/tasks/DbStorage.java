@@ -161,7 +161,7 @@ public class DbStorage implements PersistentStorage {
                     public Object mapRow(ResultSet rs, int i) throws SQLException {
                         return new OperationLogItem(
                                 new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
-                                TaskRunMode.valueOf(rs.getString(3)),
+                                rs.getString(3) != null ? TaskRunMode.valueOf(rs.getString(3)) : null,
                                 new TaskUser(rs.getString(4)),
                                 TaskOperation.valueOf(rs.getString(5)),
                                 rs.getString(6),

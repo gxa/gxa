@@ -54,6 +54,7 @@ import uk.ac.ebi.gxa.unloader.AtlasUnloaderException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.net.URL;
@@ -68,7 +69,6 @@ import org.apache.commons.lang.StringUtils;
  */
 public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static final Map<Object,Object> EMPTY = makeMap();
-    private static TaskUser defaultUser = new TaskUser("user");
 
     private TaskManager taskManager;
     private AtlasDAO dao;
@@ -318,6 +318,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "runMode", task.getRunMode(),
                 "stage", task.getCurrentStage().toString(),
                 "type", task.getTaskSpec().getType(),
+                "user", task.getUser().getUserName(),
                 "accession", task.getTaskSpec().getAccession(),
                 "progress", progress);
     }
@@ -339,7 +340,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId) {
+    private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId, TaskUser user) {
         Map<String,Integer> result = new HashMap<String, Integer>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
@@ -347,7 +348,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         for(String accession : accessions) {
             int id = taskManager.enqueueTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
-                    defaultUser,
+                    user,
                     toBoolean(autoDepend),
                     WEB_REQ_MESSAGE + remoteId);
             result.put(accession,  id);
@@ -361,14 +362,14 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return "1".equals(stringValue) || "true".equalsIgnoreCase(stringValue) || "yes".equalsIgnoreCase(stringValue);
     }
 
-    private Object processCancel(String[] taskIds, String remoteId) {
+    private Object processCancel(String[] taskIds, String remoteId, TaskUser user) {
         for(String taskId : taskIds)
-            taskManager.cancelTask(Integer.valueOf(taskId), defaultUser, WEB_REQ_MESSAGE + remoteId);
+            taskManager.cancelTask(Integer.valueOf(taskId), user, WEB_REQ_MESSAGE + remoteId);
         return EMPTY;
     }
 
-    private Object processCancelAll(String remoteId) {
-        taskManager.cancelAllTasks(defaultUser, WEB_REQ_MESSAGE + remoteId);
+    private Object processCancelAll(String remoteId, TaskUser user) {
+        taskManager.cancelAllTasks(user, WEB_REQ_MESSAGE + remoteId);
         return EMPTY;
     }
 
@@ -379,7 +380,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processEnqueueSearchExperiments(String type,
                                                    String searchText, String fromDate, String toDate, String pendingOnlyStr,
-                                                   String runMode, String autoDepend, String remoteId) {
+                                                   String runMode, String autoDepend, String remoteId, TaskUser user) {
         Map<String,Integer> result = new HashMap<String, Integer>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
@@ -388,7 +389,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             Experiment experiment = i.next().getFirst();
             int id = taskManager.enqueueTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
-                    defaultUser,
+                    user,
                     toBoolean(autoDepend), WEB_REQ_MESSAGE + remoteId);
             result.put(experiment.getAccession(),  id);
         }        
@@ -531,7 +532,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     public TaskUser checkLogin(String username, String password) {
-        if(username != null && username.matches(".*\\S.*") && "password".equals(password)) {
+        if(username != null && username.matches(".*\\S{3,}.*") && "password".equals(password)) {
             return new TaskUser(username);
         }
         return null;
@@ -549,19 +550,21 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         if(remoteId == null || "".equals(remoteId))
             remoteId = "unknown";
 
-//        HttpSession session = request.getSession(true);
-//
-//        TaskUser authenticatedUser = null;
-//        if("login".equals(op)) {
-//            authenticatedUser = checkLogin(request.getParameter("userName"), request.getParameter("password"));
-//            if(authenticatedUser == null) {
-//                return makeMap("error", "Not authenticated", "notAuthenticated", true);
-//            }
-//            request.setAttribute(SESSION_ADMINUSER, authenticatedUser);
-//            return makeMap("success", true);
-//        } else if(session.getAttribute(SESSION_ADMINUSER) == null ) {
-//            return makeMap("error", "Not authenticated", "notAuthenticated", true);
-//        }
+        HttpSession session = request.getSession(true);
+
+        TaskUser authenticatedUser = (TaskUser)session.getAttribute(SESSION_ADMINUSER);
+        if("login".equals(op)) {
+            authenticatedUser = checkLogin(request.getParameter("userName"), request.getParameter("password"));
+            if(authenticatedUser == null) {
+                return EMPTY;
+            }
+            log.info("Authenticated as user " + authenticatedUser);
+
+            session.setAttribute(SESSION_ADMINUSER, authenticatedUser);
+            return makeMap("success", true, "userName", authenticatedUser.getUserName());
+        } else if(authenticatedUser == null) {
+            return makeMap("notAuthenticated", true);
+        }
 
         if("pause".equals(op))
             return processPause();
@@ -578,14 +581,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     request.getParameterValues("accession"),
                     request.getParameter("runMode"),
                     request.getParameter("autoDepends"),
-                    remoteId);
+                    remoteId,
+                    authenticatedUser);
 
         else if("cancel".equals(op))
             return processCancel(request.getParameterValues("id"),
-                    remoteId);
+                    remoteId,
+                    authenticatedUser);
 
         else if("cancelall".equals(op))
-            return processCancelAll(remoteId);
+            return processCancelAll(remoteId, authenticatedUser);
 
         else if("getstage".equals(op))
             return processGetStage(
@@ -608,7 +613,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     request.getParameter("pendingOnly"),
                     request.getParameter("runMode"),
                     request.getParameter("autoDepends"),
-                    remoteId);
+                    remoteId,
+                    authenticatedUser);
 
         else if("operlog".equals(op))
             return processOperationLog(request.getParameter("num"));
@@ -624,6 +630,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("propset".equals(op))
             return processPropertySet((Map<String,String[]>)request.getParameterMap());
+
+        else if("logout".equals(op)) {
+            session.removeAttribute(SESSION_ADMINUSER);
+            return EMPTY;
+        }
+        else if("getuser".equals(op))
+            return makeMap("userName", authenticatedUser.getUserName());
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
