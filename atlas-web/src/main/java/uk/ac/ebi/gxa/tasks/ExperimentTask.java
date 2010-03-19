@@ -65,8 +65,6 @@ public class ExperimentTask extends AbstractWorkingTask {
                             }
 
                             public void buildProgress(String progressStatus) {
-                                if(progressStatus.length() > 0)
-                                    log.info(progressStatus);
                                 task.currentProgress = progressStatus;
                             }
                         });

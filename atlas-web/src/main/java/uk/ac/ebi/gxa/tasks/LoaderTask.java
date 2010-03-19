@@ -72,8 +72,6 @@ public class LoaderTask extends AbstractWorkingTask {
                         }
 
                         public void loadProgress(String progress) {
-                            if(progress.length() > 0)
-                                log.info(progress);
                             currentProgress = progress;
                         }
                     };
