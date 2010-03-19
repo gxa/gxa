@@ -96,8 +96,11 @@ input.date { width: 70px; }
     white-space:nowrap;
 }
 
+#experimentList table.results thead td.accession {
+    color: inherit;
+}
+
 #experimentList table.results td.stage {
-    padding-left: 20px;
     padding-right: 10px;
     border-left: none;
     width: 80%;
