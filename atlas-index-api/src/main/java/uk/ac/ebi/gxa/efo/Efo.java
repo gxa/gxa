@@ -93,10 +93,16 @@ public class Efo implements InitializingBean {
         efomap = new HashMap<String,EfoNode>();
         loader.load(this, uri);
 
+        EfoNode other = new EfoNode("Other", "other", true);
         for(EfoNode n : getMap().values()) {
             if(n.parents.isEmpty())
-                roots.add(n);
+                (n.branchRoot ? roots : other.children).add(n);
         }
+        
+        for(EfoNode n : other.children)
+            n.parents.add(other);
+        efomap.put(other.id, other);
+        roots.add(other);
 
         rebuildIndex();
     }
