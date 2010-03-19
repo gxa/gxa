@@ -28,7 +28,7 @@ var $time = {};
 var $tpl = {};
 var $tab = {};
 var $options = {
-    queueRefreshRate: 2000,
+    queueRefreshRate: 5000,
     searchDelay: 500,
     logNumItems: 20
 };
