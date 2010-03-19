@@ -60,7 +60,7 @@
 <ul>
     <li><a href="#tab-load">Load</a></li>
     <li><a href="#tab-que">Queue</a></li>
-    <li><a href="#tab-exp">Experiments</a></li>
+    <li><a href="#tab-exp">Loaded Experiments</a></li>
     <li><a href="#tab-olog">Actions Audit</a></li>
     <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
@@ -103,19 +103,30 @@
                 </table>
             </fieldset>
             <table class="results">
+                <thead>
+                    <tr>
+                        <td class="sel">
+
+                        </td>
+                        <td class="accession">Accession</td>
+                        <td>Load Date</td>
+                        <td class="stage">Status</td>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr class="exprow">
                         <td class="sel">
                             <input class="selector" type="checkbox" value="" id="selExp">
                         </td>
                         <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
+                        <td class="loaddate">10/10/2010</td>
                         <td class="stage">NETCDF</td>
                     </tr>
                     <tr class="expcoll whenanything">
                         <td class="sel">
                             <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
                         </td>
-                        <td colspan="2" class="selall">
+                        <td colspan="3" class="selall">
                             <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
                         </td>
                     </tr>
@@ -123,7 +134,7 @@
                         <td class="sel">
                             <input id="selectAll" type="checkbox">
                         </td>
-                        <td colspan="2" class="selall">
+                        <td colspan="3" class="selall">
                             <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
                         </td>
                     </tr>

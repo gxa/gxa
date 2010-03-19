@@ -370,13 +370,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
-        for(Iterator<Pair<String, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
-            String accession = i.next().getFirst();
-            int id = taskManager.enqueueTask(new TaskSpec("experiment", accession),
+        for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+            Experiment experiment = i.next().getFirst();
+            int id = taskManager.enqueueTask(new TaskSpec("experiment", experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     defaultUser,
                     toBoolean(autoDepend), "");
-            result.put(accession,  id);
+            result.put(experiment.getAccession(),  id);
         }        
         if(wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
@@ -386,10 +386,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr) {
         List<Map> results = new ArrayList<Map>();
         int numCollapsed = 0;
-        for(Iterator<Pair<String, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
-            Pair<String, TaskStage> e = i.next();
+        for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+            Pair<Experiment, TaskStage> e = i.next();
             if(results.size() < 20)
-                results.add(makeMap("accession", e.getFirst(), "stage", e.getSecond().toString()));
+                results.add(makeMap(
+                        "accession", e.getFirst().getAccession(),
+                        "stage", e.getSecond().toString(),
+                        "loadDate", IN_DATE_FORMAT.format(e.getFirst().getLoadDate())));
             else
                 ++numCollapsed;
         }
@@ -401,7 +404,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 );
     }
 
-    private Iterator<Pair<String,TaskStage>> getSearchExperiments(String searchTextStr,
+    private Iterator<Pair<Experiment,TaskStage>> getSearchExperiments(String searchTextStr,
                                                                   String fromDateStr, String toDateStr,
                                                                   String pendingOnlyStr) {
         final String searchText = searchTextStr.toLowerCase();
@@ -412,16 +415,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         List<Experiment> experiments = dao.getExperimentByLoadDate(fromDate, toDate);
 
-        return new FilterIterator<Experiment, Pair<String, TaskStage>>(experiments.iterator()) {
+        return new FilterIterator<Experiment, Pair<Experiment, TaskStage>>(experiments.iterator()) {
             @Override
-            public Pair<String, TaskStage> map(Experiment experiment) {
+            public Pair<Experiment, TaskStage> map(Experiment experiment) {
                 final TaskStage stage = taskManager.getTaskStage(new TaskSpec(ExperimentTask.TYPE, experiment.getAccession()));
                 boolean searchYes = "".equals(searchText)
                         || experiment.getAccession().toLowerCase().contains(searchText)
                         || experiment.getDescription().toLowerCase().contains(searchText);
                 boolean pendingYes = !pendingOnly
                         || !TaskStage.DONE.equals(stage);
-                return searchYes && pendingYes ? new Pair<String, TaskStage>(experiment.getAccession(), stage) : null;
+                return searchYes && pendingYes ? new Pair<Experiment, TaskStage>(experiment, stage) : null;
             }
         };
     }

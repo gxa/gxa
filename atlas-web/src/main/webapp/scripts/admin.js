@@ -54,7 +54,7 @@ var $msg = {
         STOPPED: 'Stopped'
     },
     expStage: {
-        NONE: 'Nothing is done',
+        NONE: 'Loaded, No NetCDF, No analytics',
         NETCDF: 'NetCDF failed, No analytics',
         ANALYTICS: 'NetCDF complete, Not computed or Failed Analytics',
         DONE: 'Complete'
@@ -459,6 +459,7 @@ function compileTemplates() {
             'experiment <- experiments' : {
                 'label.accession': 'experiment.accession',
                 '.stage': msgMapper('stage', 'expStage'),
+                '.loaddate': 'experiment.loadDate', 
                 '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
                 '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },
                 '.selector@value': 'experiment.accession',
