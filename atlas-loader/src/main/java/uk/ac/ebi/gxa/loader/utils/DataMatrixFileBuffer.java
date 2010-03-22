@@ -80,12 +80,9 @@ public class DataMatrixFileBuffer {
      */
     private float[][] expressionValues;
 
-    private boolean ready = false;
-    private ParseException initFailed = null;
-
     private Log log = LogFactory.getLog(this.getClass());
 
-    public DataMatrixFileBuffer(URL dataMatrixURL) {
+    public DataMatrixFileBuffer(URL dataMatrixURL) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
         this.refToEVColumn = new HashMap<String, Integer>();
         
@@ -100,19 +97,6 @@ public class DataMatrixFileBuffer {
      * @return the reference column name
      */
     public String readReferenceColumnName() {
-        // block until ready
-        synchronized (this) {
-            while (!ready && initFailed == null) {
-                try {
-                    log.debug("Blocking whilst buffer initializes...");
-                    wait();
-                }
-                catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
-
         return referenceColumnName;
     }
 
@@ -123,19 +107,6 @@ public class DataMatrixFileBuffer {
      * @return the 'references' in this data file, which should correspond to the e.g. hybridization name in the SDRF
      */
     public String[] readReferences() {
-        // block until ready
-        synchronized (this) {
-            while (!ready && initFailed == null) {
-                try {
-                    log.debug("Blocking whilst buffer initializes...");
-                    wait();
-                }
-                catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
-
         return referenceNames;
     }
 
@@ -149,19 +120,6 @@ public class DataMatrixFileBuffer {
      * @return the design element names listed in this file
      */
     public String[] readDesignElements() {
-        // block until ready
-        synchronized (this) {
-            while (!ready && initFailed == null) {
-                try {
-                    log.debug("Blocking whilst buffer initializes...");
-                    wait();
-                }
-                catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
-
         return designElementNames;
     }
 
@@ -180,222 +138,169 @@ public class DataMatrixFileBuffer {
      *
      * @param references the references of the assays you wish to find expression values for
      * @return an array of float expression values, with specific ordering
-     * @throws ParseException if the file could not be parsed, either at initialization or when reading expression
-     *                        values
      */
-    public float[][] readExpressionValues(String... references)
-            throws ParseException {
-        // block until ready
-        synchronized (this) {
-            while (!ready && initFailed == null) {
-                try {
-                    log.debug("Blocking whilst buffer initializes...");
-                    wait();
-                }
-                catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
+    public float[][] readExpressionValues(String... references) {
+        // buffer was initialized, so grab results from expression values buffer
 
-        // if initFailed is not null, failed to init so throw error
-        if (initFailed != null) {
-            throw initFailed;
-        }
-        else {
-            // buffer was initialized, so grab results from expression values buffer
+        // result is an array of float arrays, sized by the number of references passed
+        float[][] results = new float[references.length][designElementNames.length];
 
-            // result is an array of float arrays, sized by the number of references passed
-            float[][] results = new float[references.length][designElementNames.length];
-
-            // a set of references that aren't in our buffer
-            Set<String> missingRefNames = new HashSet<String>();
-
-            // loop over indices to match ref names
-            for (int resultIndex = 0; resultIndex < references.length; resultIndex++) {
-                String reference = references[resultIndex];
-                // get index of this reference
-                boolean found = false;
-                for (int bufferRefIndex = 0; bufferRefIndex < referenceNames.length; bufferRefIndex++) {
-                    if (referenceNames[bufferRefIndex].equals(reference) && expressionValues[bufferRefIndex] != null) {
-                        // update our result with the values that are already buffered
-                        results[resultIndex] = expressionValues[bufferRefIndex];
-                        // set the flag
-                        found = true;
-                        break;
-                    }
-                }
-
-                // if we didn't find this one, we haven't found them all
-                if (!found) {
-                    missingRefNames.add(reference);
+        // loop over indices to match ref names
+        for (int resultIndex = 0; resultIndex < references.length; resultIndex++) {
+            String reference = references[resultIndex];
+            // get index of this reference
+            for (int bufferRefIndex = 0; bufferRefIndex < referenceNames.length; bufferRefIndex++) {
+                if (referenceNames[bufferRefIndex].equals(reference) && expressionValues[bufferRefIndex] != null) {
+                    // update our result with the values that are already buffered
+                    results[resultIndex] = expressionValues[bufferRefIndex];
+                    break;
                 }
             }
-
-            return results;
         }
+
+        return results;
     }
 
     public void clear() {
     }
 
-    private void init() {
-        if (!ready && initFailed == null) {
-            // start thread to initialise reading things as this hasn't been initialised before
-            new Thread(new Runnable() {
-                public void run() {
-                    BufferedReader reader = null;
-                    try {
-                        // create a buffered reader
-                        reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
+    private void init() throws ParseException {
+        BufferedReader reader = null;
+        try {
+            // create a buffered reader
+            reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
 
-                        // parse the headers
-                        Header[] headers;
-                        try {
-                            headers = parseHeaders(reader);
-                        }
-                        catch (ParseException e) {
-                            // this occurs if the dataMatrixFile is badly formatted, set the file and rethrow
-                            e.getErrorItem().setParsedFile(dataMatrixURL.toString());
+            // parse the headers
+            Header[] headers;
+            try {
+                headers = parseHeaders(reader);
+            }
+            catch (ParseException e) {
+                // this occurs if the dataMatrixFile is badly formatted, set the file and rethrow
+                e.getErrorItem().setParsedFile(dataMatrixURL.toString());
+                throw e;
+            }
 
-                            initFailed = e;
-                            return;
-                        }
-
-                        // now, iterate over headers, doing dictionary lookup for qtTypes and setting the known reference names
-                        QuantitationTypeDictionary dictionary = QuantitationTypeDictionary.getQTDictionary();
-                        referenceNames = new String[headers.length];
-                        int referenceIndex = 0;
-                        for (Header header : headers) {
-                            // store next refName
-                            log.trace("Storing reference for " + header.assayRef);
-                            referenceNames[referenceIndex] = header.assayRef;
-                            referenceIndex++;
+            // now, iterate over headers, doing dictionary lookup for qtTypes and setting the known reference names
+            QuantitationTypeDictionary dictionary = QuantitationTypeDictionary.getQTDictionary();
+            referenceNames = new String[headers.length];
+            int referenceIndex = 0;
+            for (Header header : headers) {
+                // store next refName
+                log.trace("Storing reference for " + header.assayRef);
+                referenceNames[referenceIndex] = header.assayRef;
+                referenceIndex++;
 
 
-                            // locate the right QT for this data file
-                            List<String> possibleTypes = new ArrayList<String>();
-                            Collection<String> allTypes = header.getQuantitationTypes();
-                            for (String qtType : allTypes) {
-                                log.trace("Checking type (" + qtType + ") against dictionary " +
-                                        "for " + header.assayRef);
-                                if (dictionary.lookupTerm(qtType)) {
-                                    possibleTypes.add(qtType);
-                                }
-                            }
-
-                            // more than one possible type or not possible and more than one total
-                            if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
-                                StringBuffer sb = new StringBuffer();
-                                sb.append("[");
-                                for (String pt : possibleTypes) {
-                                    sb.append(pt).append(", ");
-                                }
-                                sb.append("]");
-
-                                String message =
-                                        "Unable to load - data matrix file contains " + possibleTypes.size() + " " +
-                                                "recognised candidate quantitation types to use for " +
-                                                "expression values.\n" +
-                                                "Ambiguity over which QT type should be used, from: " + sb.toString();
-                                ErrorItem error =
-                                        ErrorItemFactory
-                                                .getErrorItemFactory(getClass().getClassLoader())
-                                                .generateErrorItem(
-                                                        message,
-                                                        601,
-                                                        this.getClass());
-
-                                initFailed = new ParseException(error, true);
-                                initFailed.printStackTrace();
-                                return;
-                            }
-                            else if (allTypes.isEmpty()) {
-                                // zero possible types - dump dictionary to logs
-                                StringBuffer sb = new StringBuffer();
-                                sb.append("QuantitationTypeDictionary: [");
-                                for (String term : dictionary.listQTTypes()) {
-                                    sb.append(term).append(", ");
-                                }
-                                sb.append("]");
-                                log.error("No matching terms: " + sb.toString());
-
-                                String message =
-                                        "Unable to load - data matrix file contains 0 " +
-                                                "recognised candidate quantitation types to use for " +
-                                                "expression values";
-                                ErrorItem error =
-                                        ErrorItemFactory
-                                                .getErrorItemFactory(getClass().getClassLoader())
-                                                .generateErrorItem(
-                                                        message,
-                                                        601,
-                                                        this.getClass());
-
-                                initFailed = new ParseException(error, true);
-                                initFailed.printStackTrace();
-                                return;
-                            }
-
-                            // Use either possible (only one) or absolutely one qt type
-                            String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
-                            refToEVColumn.put(header.assayRef,
-                                    header.getIndexOfQuantitationType(
-                                            qtType));
-
-                        }
-
-                        // now we've sorted out our headers and the ref columns
-
-                        // do a quick read to count the number of lines in the file, so we can initialize other arrays
-                        int lineCount = countNumberOfLinesInFile(dataMatrixURL);
-
-                        // initialize arrays using this count - it may be a few too big, but we can trim later
-                        designElementNames = new String[lineCount];
-                        expressionValues = new float[referenceNames.length][designElementNames.length];
-
-                        // read all the data into the buffer...
-                        readFileIntoBuffer(reader);
-
-                        // and now we're done
-                        ready = true;
-                    }
-                    catch (ParseException e) {
-                        initFailed = e;
-                    }
-                    catch (Throwable e) {
-                        // generate error item and throw exception
-                        String message =
-                                "An error occurred whilst attempting to read from the " +
-                                        "derived array data matrix file at " + dataMatrixURL;
-                        ErrorItem error =
-                                ErrorItemFactory
-                                        .getErrorItemFactory(getClass().getClassLoader())
-                                        .generateErrorItem(
-                                                message,
-                                                1023,
-                                                this.getClass());
-
-                        initFailed = new ParseException(error, true, e);
-                        log.error("Error", e);
-                    }
-                    finally {
-                        if (reader != null) {
-                            try {
-                                reader.close();
-                            }
-                            catch (IOException e) {
-                                // ignore
-                            }
-                        }
-
-                        synchronized (DataMatrixFileBuffer.this) {
-                            DataMatrixFileBuffer.this.notifyAll();
-                        }
+                // locate the right QT for this data file
+                List<String> possibleTypes = new ArrayList<String>();
+                Collection<String> allTypes = header.getQuantitationTypes();
+                for (String qtType : allTypes) {
+                    log.trace("Checking type (" + qtType + ") against dictionary " +
+                            "for " + header.assayRef);
+                    if (dictionary.lookupTerm(qtType)) {
+                        possibleTypes.add(qtType);
                     }
                 }
-            }).start();
+
+                // more than one possible type or not possible and more than one total
+                if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("[");
+                    for (String pt : possibleTypes) {
+                        sb.append(pt).append(", ");
+                    }
+                    sb.append("]");
+
+                    String message =
+                            "Unable to load - data matrix file contains " + possibleTypes.size() + " " +
+                                    "recognised candidate quantitation types to use for " +
+                                    "expression values.\n" +
+                                    "Ambiguity over which QT type should be used, from: " + sb.toString();
+                    ErrorItem error =
+                            ErrorItemFactory
+                                    .getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(
+                                            message,
+                                            601,
+                                            this.getClass());
+
+                    throw new ParseException(error, true);
+                }
+                else if (allTypes.isEmpty()) {
+                    // zero possible types - dump dictionary to logs
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("QuantitationTypeDictionary: [");
+                    for (String term : dictionary.listQTTypes()) {
+                        sb.append(term).append(", ");
+                    }
+                    sb.append("]");
+                    log.error("No matching terms: " + sb.toString());
+
+                    String message =
+                            "Unable to load - data matrix file contains 0 " +
+                                    "recognised candidate quantitation types to use for " +
+                                    "expression values";
+                    ErrorItem error =
+                            ErrorItemFactory
+                                    .getErrorItemFactory(getClass().getClassLoader())
+                                    .generateErrorItem(
+                                            message,
+                                            601,
+                                            this.getClass());
+
+                    throw new ParseException(error, true);
+                }
+
+                // Use either possible (only one) or absolutely one qt type
+                String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
+                refToEVColumn.put(header.assayRef,
+                        header.getIndexOfQuantitationType(
+                                qtType));
+
+            }
+
+            // now we've sorted out our headers and the ref columns
+
+            // do a quick read to count the number of lines in the file, so we can initialize other arrays
+            int lineCount = countNumberOfLinesInFile(dataMatrixURL);
+
+            // initialize arrays using this count - it may be a few too big, but we can trim later
+            designElementNames = new String[lineCount];
+            expressionValues = new float[referenceNames.length][designElementNames.length];
+
+            // read all the data into the buffer...
+            readFileIntoBuffer(reader);
         }
+        catch (ParseException e) {
+            throw e;
+        }
+        catch (Throwable e) {
+            // generate error item and throw exception
+            String message =
+                    "An error occurred whilst attempting to read from the " +
+                            "derived array data matrix file at " + dataMatrixURL;
+            ErrorItem error =
+                    ErrorItemFactory
+                            .getErrorItemFactory(getClass().getClassLoader())
+                            .generateErrorItem(
+                                    message,
+                                    1023,
+                                    this.getClass());
+
+            log.error("Error", e);
+            throw new ParseException(error, true, e);
+        }
+        finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                }
+                catch (IOException e) {
+                    // ignore
+                }
+            }
+       }
     }
 
     private int countNumberOfLinesInFile(URL dataMatrixURL) throws IOException {
