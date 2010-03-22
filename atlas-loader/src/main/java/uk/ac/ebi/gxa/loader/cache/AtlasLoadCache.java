@@ -27,6 +27,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 
 import java.util.*;
 import java.net.URL;
@@ -192,10 +193,11 @@ public class AtlasLoadCache {
         return assaysByAcc.values();
     }
 
-    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url) {
+    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url) throws ParseException {
         DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url);
         if(buffer == null) {
-            dataMatrixBuffers.put(url, buffer = new DataMatrixFileBuffer(url));
+            buffer = new DataMatrixFileBuffer(url);
+            dataMatrixBuffers.put(url, buffer);
         }
         return buffer;
     }

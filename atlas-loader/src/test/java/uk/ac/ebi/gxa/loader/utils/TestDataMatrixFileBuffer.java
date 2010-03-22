@@ -115,7 +115,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
         }
     }
 
-    public void testReadDesignElementNames() {
+    public void testReadDesignElementNames() throws Exception {
         DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
 
         try {
@@ -141,7 +141,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
         }
     }
 
-    public void testReadReferenceNames() {
+    public void testReadReferenceNames() throws Exception {
         DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
 
         try {
