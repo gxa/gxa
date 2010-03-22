@@ -387,7 +387,7 @@ function updateTaskLog() {
                     {
                         var autoDep = window.confirm('Do you want to run further processing tasks automatically afterwards?');
                         adminCall('enqueue', {
-                            runMode: 'CONTINUE',
+                            runMode: 'RESTART',
                             accession: li.accession,
                             type: li.type,
                             autoDepends: autoDep
