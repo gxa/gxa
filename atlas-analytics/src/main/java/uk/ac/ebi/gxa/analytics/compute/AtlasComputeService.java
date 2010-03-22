@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.analytics.compute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.rcloud.server.RServices;
 
 /**
@@ -57,6 +58,20 @@ public class AtlasComputeService implements Compute {
         this.atlasRFactory = atlasRFactory;
     }
 
+    private Boolean valid = null;
+
+    public Boolean isValid() {
+        if(valid == null) {
+            try {
+                valid = getAtlasRFactory().validateEnvironment();
+            } catch(AtlasRServicesException e) {
+                log.error("R validate error", e);
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
     /**
      * Executes task on a borrowed worker. Returns type specified in generic type parameter T to the method.
      *
@@ -67,11 +82,17 @@ public class AtlasComputeService implements Compute {
     public <T> T computeTask(ComputeTask<T> task) throws ComputeException {
         RServices rService = null;
         try {
+            if(!isValid())
+                throw new ComputeException("Invalid R environment");
+            
             log.debug("Acquiring RServices");
             rService = getAtlasRFactory().createRServices();
 
             log.debug("Computing on " + rService.getServantName());
             return task.compute(rService);
+        }
+        catch (ComputeException e) {
+            throw e;
         }
         catch (Exception e) {
             log.error("Problem computing task!", e);
