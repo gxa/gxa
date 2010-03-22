@@ -29,6 +29,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.*;
+import java.net.URL;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
@@ -41,7 +42,7 @@ public class AtlasLoadCache {
     private ArrayDesignBundle arrayDesignBundle;
     private Map<String, Assay> assaysByAcc;
     private Map<String, Sample> samplesByAcc;
-    private Set<DataMatrixFileBuffer> dataMatrixBuffers;
+    private Map<URL, DataMatrixFileBuffer> dataMatrixBuffers;
 
 
     /**
@@ -50,7 +51,7 @@ public class AtlasLoadCache {
     public AtlasLoadCache() {
         this.assaysByAcc = new HashMap<String, Assay>();
         this.samplesByAcc = new HashMap<String, Sample>();
-        this.dataMatrixBuffers = new HashSet<DataMatrixFileBuffer>();
+        this.dataMatrixBuffers = new HashMap<URL, DataMatrixFileBuffer>();
     }
 
     /**
@@ -191,6 +192,14 @@ public class AtlasLoadCache {
         return assaysByAcc.values();
     }
 
+    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url) {
+        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url);
+        if(buffer == null) {
+            dataMatrixBuffers.put(url, buffer = new DataMatrixFileBuffer(url));
+        }
+        return buffer;
+    }
+
     /**
      * Adds an sample to the cache of objects to be loaded.  Samples are indexed by accession, so every sample in the
      * cache should have a unique accession. If an sample is passed to this method with an accession that is the same as
@@ -245,7 +254,7 @@ public class AtlasLoadCache {
         assaysByAcc.clear();
         samplesByAcc.clear();
         // clear all our data matrix file buffers
-        for (DataMatrixFileBuffer buffer : dataMatrixBuffers) {
+        for (DataMatrixFileBuffer buffer : dataMatrixBuffers.values()) {
             buffer.clear();
         }
         dataMatrixBuffers.clear();

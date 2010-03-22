@@ -182,8 +182,16 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
         }
         finally {
-            AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-            cache.clear();
+            try {
+                AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
+            } catch(Exception e) {
+                // skip
+            }
+            try {
+                cache.clear();
+            } catch(Exception e) {
+                // skip 
+            }
         }
     }
 

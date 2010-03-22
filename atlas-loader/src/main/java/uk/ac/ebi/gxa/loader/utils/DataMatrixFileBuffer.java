@@ -51,38 +51,6 @@ import java.util.*;
  * @date 03-Sep-2009
  */
 public class DataMatrixFileBuffer {
-    private static Map<URL, DataMatrixFileBuffer> buffers = new HashMap<URL, DataMatrixFileBuffer>();
-
-    /**
-     * Generate a DataMatrixFileBuffer object for the given data matrix file URL.
-     *
-     * @param dataMatrixFile the URL of the file you wish to buffer
-     * @return an object that can buffer data from the given file
-     */
-    public static DataMatrixFileBuffer getDataMatrixFileBuffer(
-            URL dataMatrixFile) {
-        if (buffers.containsKey(dataMatrixFile)) {
-            // reuse
-            return buffers.get(dataMatrixFile);
-        }
-        else {
-            // create a new buffer
-            DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixFile);
-
-            // initialize
-            buffer.init();
-
-            // insert into map
-            buffers.put(dataMatrixFile, buffer);
-
-            // and return
-            return buffer;
-        }
-    }
-
-    private static void clearBuffer(URL bufferURL) {
-        buffers.remove(bufferURL);
-    }
 
     private URL dataMatrixURL;
     private String referenceColumnName;
@@ -117,9 +85,11 @@ public class DataMatrixFileBuffer {
 
     private Log log = LogFactory.getLog(this.getClass());
 
-    private DataMatrixFileBuffer(URL dataMatrixURL) {
+    public DataMatrixFileBuffer(URL dataMatrixURL) {
         this.dataMatrixURL = dataMatrixURL;
         this.refToEVColumn = new HashMap<String, Integer>();
+        
+        init();
     }
 
     /**
@@ -267,7 +237,6 @@ public class DataMatrixFileBuffer {
     }
 
     public void clear() {
-        clearBuffer(dataMatrixURL);
     }
 
     private void init() {
@@ -302,27 +271,21 @@ public class DataMatrixFileBuffer {
                             log.trace("Storing reference for " + header.assayRef);
                             referenceNames[referenceIndex] = header.assayRef;
                             referenceIndex++;
+
+
                             // locate the right QT for this data file
                             List<String> possibleTypes = new ArrayList<String>();
-                            for (String qtType : header.getQuantitationTypes()) {
+                            Collection<String> allTypes = header.getQuantitationTypes();
+                            for (String qtType : allTypes) {
                                 log.trace("Checking type (" + qtType + ") against dictionary " +
                                         "for " + header.assayRef);
                                 if (dictionary.lookupTerm(qtType)) {
                                     possibleTypes.add(qtType);
-                                    if (!refToEVColumn.containsKey(header.assayRef)) {
-                                        log.trace("Term " + qtType +
-                                                " is in dictionary, inserting column " +
-                                                header.getIndexOfQuantitationType(qtType) +
-                                                " into map for " + header.assayRef);
-                                        refToEVColumn.put(header.assayRef,
-                                                          header.getIndexOfQuantitationType(
-                                                                  qtType));
-                                    }
                                 }
                             }
 
-                            // more than one possible type
-                            if (possibleTypes.size() > 1) {
+                            // more than one possible type or not possible and more than one total
+                            if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
                                 StringBuffer sb = new StringBuffer();
                                 sb.append("[");
                                 for (String pt : possibleTypes) {
@@ -347,7 +310,7 @@ public class DataMatrixFileBuffer {
                                 initFailed.printStackTrace();
                                 return;
                             }
-                            else if (possibleTypes.size() == 0) {
+                            else if (allTypes.isEmpty()) {
                                 // zero possible types - dump dictionary to logs
                                 StringBuffer sb = new StringBuffer();
                                 sb.append("QuantitationTypeDictionary: [");
@@ -372,8 +335,14 @@ public class DataMatrixFileBuffer {
                                 initFailed = new ParseException(error, true);
                                 initFailed.printStackTrace();
                                 return;
-
                             }
+
+                            // Use either possible (only one) or absolutely one qt type
+                            String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
+                            refToEVColumn.put(header.assayRef,
+                                    header.getIndexOfQuantitationType(
+                                            qtType));
+
                         }
 
                         // now we've sorted out our headers and the ref columns
@@ -493,9 +462,13 @@ public class DataMatrixFileBuffer {
                                     String reference = referenceNames[refIndex];
 
                                     // get the float value from the next ref column
-                                    float ev = Float.parseFloat(tokens[refToEVColumn.get(reference)]);
-                                    // and set the float at the appropriate coordinate
-                                    expressionValues[refIndex][deIndex] = ev;
+                                    try {
+                                        float ev = Float.parseFloat(tokens[refToEVColumn.get(reference)]);
+                                        // and set the float at the appropriate coordinate
+                                        expressionValues[refIndex][deIndex] = ev;
+                                    } catch(NumberFormatException e) {
+                                        expressionValues[refIndex][deIndex] = -1000000;
+                                    }
                                 }
 
 
