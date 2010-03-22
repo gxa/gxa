@@ -208,7 +208,7 @@ public class DataSlice {
     }
 
     /**
-     * Stores all the expression values for a data slcie (i.e. expression values for a pair of experiment and
+     * Stores all the expression values for a data slice (i.e. expression values for a pair of experiment and
      * arraydesign).
      *
      * @param expressionValues the expression values to store
