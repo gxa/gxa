@@ -163,7 +163,7 @@ function requireLogin(op, params, func) {
 function adminCall(op, params, func) {
     $('.loadIndicator').css('visibility', 'visible');
     return $.ajax({
-        type: "GET",
+        type: "POST",
         url: atlas.homeUrl + "admin",
         dataType: "json",
         data: $.extend(params, { op : op }),
