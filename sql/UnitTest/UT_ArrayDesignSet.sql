@@ -1,5 +1,11 @@
 /*
 call UT_ARRAYDESIGNSET();
+
+delete from a2_arraydesign
+delete from a2_gene
+delete from a2_genepropertyvalue
+select count(1) from a2_designelement
+commit
 */
 create or replace procedure UT_ARRAYDESIGNSET
 as
