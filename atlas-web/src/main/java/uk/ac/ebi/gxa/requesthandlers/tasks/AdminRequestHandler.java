@@ -407,7 +407,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 results.add(makeMap(
                         "accession", e.getFirst().getAccession(),
                         "stage", e.getSecond().toString(),
-                        "loadDate", IN_DATE_FORMAT.format(e.getFirst().getLoadDate())));
+                        "loadDate", e.getFirst().getLoadDate() != null ? IN_DATE_FORMAT.format(e.getFirst().getLoadDate()) : "unknown"));
             else
                 ++numCollapsed;
         }
