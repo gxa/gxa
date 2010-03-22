@@ -92,20 +92,15 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.setAttribute("atlasQueryService", queryService);
         application.setAttribute("atlasProperties", atlasProperties);
 
-        try {
-            // check that the AtlasRFactory associated with our search service is actually working
-            // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...  
-            // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
-            // that will bring down tomcat if R environment is not configured correctly, but variables are set
-            if (!computeService.getAtlasRFactory().validateEnvironment()) {
-                log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
-            }
-            else {
-                log.info("R environment validated, R services fully available");
-            }
+        // check that the AtlasRFactory associated with our search service is actually working
+        // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...
+        // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
+        // that will bring down tomcat if R environment is not configured correctly, but variables are set
+        if (!computeService.isValid()) {
+            log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
         }
-        catch (AtlasRServicesException e) {
-            throw new RuntimeException("R computation environment not valid/present: ", e);
+        else {
+            log.info("R environment validated, R services fully available");
         }
 
         // discover our datasource URL from the database metadata
