@@ -107,6 +107,7 @@
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
         <property name="missingDesignElementsCutoff" value="1.0"/>
         <property name="allowReloading" value="true"/>
         <property name="geneIdentifierPriority">

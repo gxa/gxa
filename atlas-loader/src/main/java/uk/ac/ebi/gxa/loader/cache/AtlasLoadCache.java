@@ -165,7 +165,7 @@ public class AtlasLoadCache {
         if (assaysByAcc.containsKey(assay.getAccession()) &&
                 assaysByAcc.get(assay.getAccession()) != assay) {
             throw new IllegalArgumentException("Attempting to store a new " +
-                    "experiment with a non-unique accession");
+                    "assay with a non-unique accession");
         }
         else {
             assaysByAcc.put(assay.getAccession(), assay);
