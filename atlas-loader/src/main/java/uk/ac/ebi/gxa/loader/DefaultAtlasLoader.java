@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     private AtlasDAO atlasDAO;
+    private File atlasNetCDFRepo;
     private double missingDesignElementsCutoff = -1;
     private boolean allowReloading = false;
     private List<String> geneIdentifierPriority = new ArrayList<String>();
@@ -108,7 +110,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
             // do some initialization...
 
             // create the experiment loading service
-            experimentLoaderService = new AtlasMAGETABLoader(getAtlasDAO());
+            experimentLoaderService = new AtlasMAGETABLoader(getAtlasDAO(), getAtlasNetCDFRepo());
             experimentLoaderService.setAllowReloading(getAllowReloading());
             // if we have set the cutoff for missing design elements, set on the service
             if (missingDesignElementsCutoff != -1) {
@@ -238,4 +240,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         });
     }
 
+    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
+        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    }
+
+    public File getAtlasNetCDFRepo() {
+        return atlasNetCDFRepo;
+    }
 }

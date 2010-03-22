@@ -194,6 +194,10 @@ public class AtlasDAO {
                     "WHERE apv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
                     "AND apv.assayid IN (:assayids)";
+    public static final String ASSAY_BY_EXPERIMENT_AND_ASSAY_ACCESSION =
+            ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
+                    "AND a.accession=?";
+
 
     // expression value queries
     public static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
@@ -716,6 +720,25 @@ public class AtlasDAO {
         return assays;
     }
 
+    public Assay getAssayByExperimentAndAssayAccession(String experimentAccession,
+                                                    String assayAccession) {
+        List results = template.query(ASSAY_BY_EXPERIMENT_AND_ASSAY_ACCESSION,
+                                      new Object[]{experimentAccession,
+                                              assayAccession},
+                                      new AssayMapper());
+
+        List<Assay> assays = (List<Assay>) results;
+
+        // populate the other info for these assays
+        if (assays.size() > 0) {
+            fillOutAssays(assays);
+        }
+
+        // and return
+        return assays.get(0);
+
+    }
+
     public void getPropertiesForAssays(List<Assay> assays) {
         // populate the other info for these assays
         if (assays.size() > 0) {
@@ -1190,9 +1213,10 @@ public class AtlasDAO {
         List<Property> props = assay.getProperties() == null
                 ? new ArrayList<Property>()
                 : assay.getProperties();
-        Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference() == null
-                ? new HashMap<String, Float>()
-                : assay.getExpressionValuesByDesignElementReference();
+        Map<String, Float> evs = new HashMap<String, Float>();
+//        Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference() == null
+//                ? new HashMap<String, Float>()
+//                : assay.getExpressionValuesByDesignElementReference();
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         StringBuffer sb = new StringBuffer();
@@ -1205,9 +1229,9 @@ public class AtlasDAO {
         SqlTypeValue propertiesParam =
                 props.isEmpty() ? null :
                         convertPropertiesToOracleARRAY(props);
-        SqlTypeValue expressionValuesParam =
-                evs.isEmpty() ? null :
-                        convertExpressionValuesToOracleARRAY(evs);
+        SqlTypeValue expressionValuesParam = null;
+//                evs.isEmpty() ? null :
+//                        convertExpressionValuesToOracleARRAY(evs);
 
         params.addValue("ACCESSION", assay.getAccession())
                 .addValue("EXPERIMENTACCESSION", assay.getExperimentAccession())

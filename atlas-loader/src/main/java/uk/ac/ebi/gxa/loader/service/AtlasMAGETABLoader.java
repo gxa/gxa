@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -47,8 +48,14 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlice;
+import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFFormatter;
+import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFWriter;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -68,9 +75,12 @@ import java.util.*;
  */
 public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     private double missingDesignElementsCutoff = 1.0;
+    private File atlasNetCDFRepo;
 
-    public AtlasMAGETABLoader(AtlasDAO atlasDAO) {
+    public AtlasMAGETABLoader(AtlasDAO atlasDAO, File atlasNetCDFRepo) {
         super(atlasDAO);
+
+        this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 
     protected double getMissingDesignElementsCutoff() {
@@ -237,58 +247,41 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Cleaning up data - removing any expression values linked " +
                     "to design elements missing from the database");
             long start = System.currentTimeMillis();
-            Map<String, Set<String>> designElementsByArray =
-                    new HashMap<String, Set<String>>();
-            int missingCount = 0;
-            for (Assay assay : cache.fetchAllAssays()) {
+
+            Map<String,Map<Integer, String>> deAccsByAD = new HashMap<String,Map<Integer,String>>();
+            Map<String,Map<Integer, String>> deNamesByAD = new HashMap<String,Map<Integer,String>>();
+
+            for(Assay assay : cache.fetchAllAssays()) {
                 // get the array design for this assay
-                String arrayDesignAcc = assay.getArrayDesignAccession();
+                String arrayDesignAccession = assay.getArrayDesignAccession();
 
-                // check that this array design is loaded
-                if (getAtlasDAO().getArrayDesignByAccession(arrayDesignAcc) == null) {
-                    String message = "The array design " + arrayDesignAcc + " is not present in the database.  This array " +
-                            "MUST be loaded before experiments using this array can be loaded.";
-                    getLog().error(message);
-                    throw new AtlasLoaderServiceException(message);
+                if(!deAccsByAD.containsKey(arrayDesignAccession)) {
+                    deAccsByAD.put(arrayDesignAccession,
+                        getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession));
+
+                    deNamesByAD.put(arrayDesignAccession,
+                        getAtlasDAO().getDesignElementNamesByArrayAccession(arrayDesignAccession));
                 }
 
-                // get the missing design elements - either DB lookup or fetch from map
-                Set<String> missingDesignElements;
-                try {
-                    if (!designElementsByArray.containsKey(arrayDesignAcc)) {
-                        if (assay.getExpressionValuesByDesignElementReference() == null) {
-                            getLog().debug("Assay " + assay.getAssayID() + " contains no expression values");
-                            missingDesignElements =
-                                    lookupMissingDesignElements(
-                                            new HashMap<String, Float>(),
-                                            assay.getArrayDesignAccession());
-                        }
-                        else {
-                            missingDesignElements =
-                                    lookupMissingDesignElements(
-                                            assay.getExpressionValuesByDesignElementReference(),
-                                            assay.getArrayDesignAccession());
+                // TODO: pretty dirty here, assumes all assays have the same DE content
+                Map<String, Float> evsByDEref = assay.getExpressionValuesByDesignElementReference();
+                Map<Integer,Float> evsByDEID = new HashMap<Integer,Float>();
 
-                            // add to our cache for known missing design elements
-                            designElementsByArray.put(arrayDesignAcc, missingDesignElements);
-
-                            missingCount += missingDesignElements.size();
-                        }
-                    }
-                    else {
-                        missingDesignElements = designElementsByArray.get(arrayDesignAcc);
-                    }
-                }
-                catch (AtlasLoaderException e) {
-                    // this occurs if we exceed the cutoff, so just return false
-                    throw new AtlasLoaderServiceException(e);
+                deAccsByAD.get(arrayDesignAccession).values().retainAll(evsByDEref.keySet());
+                for (Map.Entry<Integer, String> deAcc : deAccsByAD.get(arrayDesignAccession).entrySet()) {
+                    evsByDEID.put(deAcc.getKey(), evsByDEref.get(deAcc.getValue()));
                 }
 
-                // finally, trim the missing design elements from this assay
-                trimMissingDesignElements(assay, missingDesignElements);
+                deNamesByAD.get(arrayDesignAccession).values().retainAll(evsByDEref.keySet());
+                for (Map.Entry<Integer, String> deName : deNamesByAD.get(arrayDesignAccession).entrySet()) {
+                    evsByDEID.put(deName.getKey(), evsByDEref.get(deName.getValue()));
+                }
+
+                if(evsByDEID.size() == 0) {
+                    getLog().info("No design elements found in DB for array design " + arrayDesignAccession);
+                }
+                assay.setExpressionValues(evsByDEID);
             }
-            getLog().info("Removed all expression values for " + missingCount +
-                    " missing design elements from cache of assays to load");
             long end = System.currentTimeMillis();
 
             String total = new DecimalFormat("#.##").format((end - start) / 1000);
@@ -297,14 +290,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             // now write the cleaned up data
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
-            // first, load experiments
+            // first, load experiment
             start = System.currentTimeMillis();
             getLog().info("Writing experiment " + cache.fetchExperiment().getAccession());
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             getLog().info("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
-
 
             // next, write assays
             start = System.currentTimeMillis();
@@ -328,6 +320,16 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     throw new AtlasLoaderServiceException("No assays for sample found");
                 }
             }
+
+            // write data to netcdf
+            try {
+                writeExperimentNetCDF(cache);
+            } catch (NetCDFGeneratorException e) {
+                getLog().error("Failed to generate netcdf", e);
+            } catch (IOException e) {
+                getLog().error("Failed to generate netcdf", e);
+            }
+
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
@@ -340,6 +342,79 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         finally {
             // end the load(s)
             endLoad(cache.fetchExperiment().getAccession(), success);
+        }
+    }
+
+    private void writeExperimentNetCDF(AtlasLoadCache cache) throws NetCDFGeneratorException, IOException {
+        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
+
+        for(Assay assay : assays) {
+            Assay cacheAssay = cache.fetchAssay(assay.getAccession());
+            assay.setExpressionValues(cacheAssay.getExpressionValues());
+            assay.setExpressionValuesByDesignElementReference(cacheAssay.getExpressionValuesByDesignElementReference());
+        }
+
+        Map<String, List<Assay>> assaysByArrayDesign = new HashMap<String,List<Assay>>();
+
+        for(Assay assay : assays) {
+            String adAcc = assay.getArrayDesignAccession();
+            if(null != adAcc) {
+                if(!assaysByArrayDesign.containsKey(adAcc))
+                    assaysByArrayDesign.put(adAcc, new ArrayList<Assay>());
+
+                assaysByArrayDesign.get(adAcc).add(assay);
+            } else {
+                throw new NetCDFGeneratorException("ArrayDesign accession missing");
+            }
+        }
+
+        for(String adAcc : assaysByArrayDesign.keySet()) {
+            // create a data slicer to slice up this experiment
+            DataSlice dataSlice = new DataSlice(cache.fetchExperiment(),
+                                                getAtlasDAO().getArrayDesignByAccession(adAcc));
+
+            dataSlice.storeAssays(assaysByArrayDesign.get(adAcc));
+
+            for (Assay assay : assaysByArrayDesign.get(adAcc)) {
+                // fetch samples for this assay
+                List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(assay.getAccession());
+                for (Sample sample : samples) {
+                    // and store
+                    dataSlice.storeSample(assay, sample);
+                }
+            }
+
+            Map<Integer, Map<Integer,Float>> evs = new HashMap<Integer,Map<Integer,Float>>();
+
+            for(Assay assay : assaysByArrayDesign.get(adAcc)) {
+                evs.put(assay.getAssayID(),
+                        assay.getExpressionValues());
+            }
+
+            dataSlice.storeExpressionValues(evs);
+
+            NetcdfFileWriteable netCDF = createNetCDF(
+                    dataSlice.getExperiment(),
+                    dataSlice.getArrayDesign());
+
+            // format it with paramaters suitable for our data
+            NetCDFFormatter formatter = new NetCDFFormatter();
+            formatter.formatNetCDF(netCDF, dataSlice);
+
+            // actually create the netCDF
+            netCDF.create();
+
+            // write the data from our data slice to this netCDF
+            try {
+                NetCDFWriter writer = new NetCDFWriter();
+                writer.writeNetCDF(netCDF, dataSlice);
+            }
+            finally {
+                // save and close the netCDF
+                netCDF.close();
+            }
+            getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
+                    " and " + dataSlice.getArrayDesign().getAccession());
         }
     }
 
@@ -436,71 +511,58 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
-    private Set<String> lookupMissingDesignElements(Map<String, Float> expressionValues, String arrayDesignAccession)
-            throws AtlasLoaderException {
-        // use our dao to lookup design elements, instead of the writer class
-        Map<Integer, String> designElements =
-                getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession);
-        Map<Integer, String> designElementNames =
-                getAtlasDAO().getDesignElementNamesByArrayAccession(arrayDesignAccession);
+    private NetcdfFileWriteable createNetCDF(Experiment experiment,
+                                             ArrayDesign arrayDesign)
+            throws IOException {
 
-        // check off missing design elements against any present
-        Set<String> missingDesignElements = new HashSet<String>();
-
-        // for every expression value, check the design element ref is in database (first by accession, then name)
-        Set<String> expressionValuesKeys = new HashSet<String>();
-        expressionValuesKeys.addAll(expressionValues.keySet());
-        for (String deRef : expressionValuesKeys) {
-            if (!designElements.containsValue(deRef)) {
-                // no design element with matching accession, so check name
-                if (!designElementNames.containsValue(deRef)) {
-                    // no design element with matching name either.  Definitely missing
-                    // deAcc is missing - add to missing design elements and provide trace output
-                    missingDesignElements.add(deRef);
-                    getLog().trace("Design Element '" + deRef + "' is referenced in the data file, " +
-                            "but is not present in the database.  This may be a control spot missing in legacy data");
-                }
-                else {
-                    // the data we've obtained from the datafile reflects names, not accessions
-                    // but this is ok, stored procedure still accepts them
-                }
+        // repository location exists?
+        if (!getRepositoryLocation().exists()) {
+            if (!getRepositoryLocation().mkdirs()) {
+                throw new IOException("Could not read create directory at " +
+                        getRepositoryLocation().getAbsolutePath());
             }
         }
 
-        // grab the number of design elements - total and missing
-        int totalDEs = expressionValues.size();
-        int missingDEs = missingDesignElements.size();
+        String netcdfName =
+                experiment.getExperimentID() + "_" +
+                        arrayDesign.getArrayDesignID() + ".nc";
+        String netcdfPath =
+                new File(getRepositoryLocation(), netcdfName).getAbsolutePath();
+        NetcdfFileWriteable netcdfFile =
+                NetcdfFileWriteable.createNew(netcdfPath, false);
 
-        // log the number of missing DEs for this array design
-        double percentMissing = ((double) missingDEs / (double) totalDEs);
-        String percentMissingStr = new DecimalFormat("#.#").format(percentMissing * 100);
-        String percentCutoffStr = new DecimalFormat("#.#").format(getMissingDesignElementsCutoff() * 100);
+        // add metadata global attributes
+        netcdfFile.addGlobalAttribute(
+                "CreateNetCDF_VERSION",
+                "test");
+        netcdfFile.addGlobalAttribute(
+                "experiment_accession",
+                experiment.getAccession());
+//    netcdfFile.addGlobalAttribute(
+//        "quantitationType",
+//        qtType); // fixme: quantitation type lookup required
+        netcdfFile.addGlobalAttribute(
+                "ADaccession",
+                arrayDesign.getAccession());
+        netcdfFile.addGlobalAttribute(
+                "ADid",
+                arrayDesign.getArrayDesignID());
+        netcdfFile.addGlobalAttribute(
+                "ADname",
+                arrayDesign.getName());
 
-        // if there are missing design elements, warn
-        if (percentMissing > 0) {
-            getLog().warn("Missing design elements for " + arrayDesignAccession + ": " +
-                    missingDEs + "/" + totalDEs + " (" + percentMissingStr + " %)");
-        }
-
-        // check this percentage against the cut-off configured
-        if (percentMissing > getMissingDesignElementsCutoff()) {
-            String msg =
-                    "The total number of missing design elements for exceeds allowed cutoff: " + percentMissingStr +
-                            "% (max " + percentCutoffStr + "%)";
-            getLog().error(msg);
-            throw new AtlasLoaderException(msg);
-        }
-
-        return missingDesignElements;
+        return netcdfFile;
     }
 
-    private void trimMissingDesignElements(Assay assay, Set<String> missingDesignElements) {
-        for (String deAcc : missingDesignElements) {
-            if (assay.getExpressionValuesByDesignElementReference().containsKey(deAcc)) {
-                getLog().trace("Missing design element " + deAcc + " will be " +
-                        "removed from this assay - not in database.");
-                assay.getExpressionValuesByDesignElementReference().remove(deAcc);
-            }
-        }
+    private File getRepositoryLocation() {
+        return getAtlasNetCDFRepo();
+    }
+
+    public File getAtlasNetCDFRepo() {
+        return atlasNetCDFRepo;
+    }
+
+    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
+        this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 }
