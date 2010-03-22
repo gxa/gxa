@@ -87,7 +87,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
     private synchronized Long getCount(String id)
     {
         if(counts.isEmpty()) {
-            log.info("Getting counts for ontoltogy");
+            log.info("Getting counts for ontology");
             Set<String> availIds = getEfo().getAllTermIds();
 
             SolrQuery q = new SolrQuery("*:*");
