@@ -38,6 +38,7 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
@@ -88,7 +89,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                         // now, obtain a buffer for this dataMatrixFile
                         getLog().debug("Opening buffer of data matrix file at " + dataMatrixURL);
-                        DataMatrixFileBuffer buffer = DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
+                        DataMatrixFileBuffer buffer = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).getDataMatrixFileBuffer(dataMatrixURL);
 
                         // find the type of nodes we need - lookup from data matrix buffer
                         String refNodeName = buffer.readReferenceColumnName();

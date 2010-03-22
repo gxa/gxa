@@ -60,7 +60,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
     public void testReadAssayExpressionValues() {
         try {
             DataMatrixFileBuffer buffer =
-                    DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
+                    new DataMatrixFileBuffer(dataMatrixURL);
 
             long startTime = System.currentTimeMillis();
             float[][] evs = buffer.readExpressionValues(assayRef);
@@ -116,7 +116,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
     }
 
     public void testReadDesignElementNames() {
-        DataMatrixFileBuffer buffer = DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
+        DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
 
         try {
             Set<String> designElements = new HashSet<String>();
@@ -142,7 +142,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
     }
 
     public void testReadReferenceNames() {
-        DataMatrixFileBuffer buffer = DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
+        DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
 
         try {
             Set<String> refNames = new HashSet<String>();
@@ -175,7 +175,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
     public void testRepeatReads() {
         try {
             DataMatrixFileBuffer buffer =
-                    DataMatrixFileBuffer.getDataMatrixFileBuffer(dataMatrixURL);
+                    new DataMatrixFileBuffer(dataMatrixURL);
 
             // repeat reads
             for (int i = 0; i < 10; i++) {
@@ -191,7 +191,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
                         "Repeat read number " + i + " " +
                                 "took longer than 5ms (" + repeatTime + "ms), " +
                                 "just to return reference?",
-                        repeatTime < 5);
+                        i == 0 || repeatTime < 5);
             }
         }
         catch (ParseException e) {
