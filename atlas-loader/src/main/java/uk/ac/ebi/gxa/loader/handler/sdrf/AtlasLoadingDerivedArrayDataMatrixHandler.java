@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
@@ -89,7 +90,24 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                         // now, obtain a buffer for this dataMatrixFile
                         getLog().debug("Opening buffer of data matrix file at " + dataMatrixURL);
-                        DataMatrixFileBuffer buffer = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).getDataMatrixFileBuffer(dataMatrixURL);
+
+
+
+                        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+                        DataMatrixFileBuffer buffer;
+                        try {
+                            buffer = cache.getDataMatrixFileBuffer(dataMatrixURL);
+                        } catch(ParseException e) {
+                            if(e.getErrorItem().getErrorCode() != 1023)
+                                throw e;
+
+                            String zipUrl = ((DerivedArrayDataMatrixNode)node).comments != null ?
+                                    ((DerivedArrayDataMatrixNode)node).comments.get("Derived ArrayExpress FTP file") : null;
+                            if(zipUrl != null) {
+                                buffer = cache.getDataMatrixFileBuffer(new URL(zipUrl), node.getNodeName());
+                            } else
+                                throw e;
+                        }
 
                         // find the type of nodes we need - lookup from data matrix buffer
                         String refNodeName = buffer.readReferenceColumnName();

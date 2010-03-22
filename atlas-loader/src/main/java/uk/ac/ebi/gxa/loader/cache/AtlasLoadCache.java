@@ -202,6 +202,15 @@ public class AtlasLoadCache {
         return buffer;
     }
 
+    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws ParseException {
+        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url);
+        if(buffer == null) {
+            buffer = new DataMatrixFileBuffer(url, fileName);
+            dataMatrixBuffers.put(url, buffer);
+        }
+        return buffer;
+    }
+
     /**
      * Adds an sample to the cache of objects to be loaded.  Samples are indexed by accession, so every sample in the
      * cache should have a unique accession. If an sample is passed to this method with an accession that is the same as
