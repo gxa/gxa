@@ -62,8 +62,6 @@ input.date { width: 70px; }
     #taskList table,
     #operLog table,
     #taskLog table,
-    #loadListExp table,
-    #loadListAD table,
     #propList table
 {
     border-collapse:collapse;
@@ -75,13 +73,12 @@ input.date { width: 70px; }
     #taskList td,
     #operLog td,
     #taskLog td,
-    #loadListExp td,
-    #loadListAD td,
     #propList td,
     #propList th
 {
     border: 1px solid #cdcdcd;
     padding: 3px 7px;
+    vertical-align:top;
 }
 
 #experimentList table.results td.sel {
@@ -170,23 +167,15 @@ input.date { width: 70px; }
 }
 
 #taskLog td.event, #taskLog td.stage {
-    color: #005555; font-weight: bold;
+    color: #005555; font-weight: bold; white-space:nowrap;
 }
 
 #operLog td.type, #taskLog td.type { white-space: nowrap; }
 
 #operLog td.message, #taskLog td.message { width: 50%; }
 
-#loadListAD tr.successful td.done, #loadListExp tr.successful td.done {
-    color: #005555; font-weight: bold;
-}
-
-#loadListAD td.done, #loadListExp td.done {
-    color: #aaaaaa; font-weight: bold;
-}
-
-#loadListAD td.url, #loadListExp td.url { width: 80%; }
-td.accession, td.time, td.url { white-space:nowrap; }
+#taskLog td.message { border-right: none; }
+#taskLog td.retry { border-left:none; } 
 
 fieldset legend { font-weight: bold; }
 

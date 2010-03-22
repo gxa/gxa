@@ -492,24 +492,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         });
     }
 
-    private Object processLoadList() {
-        return makeMap(
-                "experiments",
-                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(taskManagerDbStorage.getTaskStagesByType("loadexperiment").entrySet().iterator()) {
-                    public Map map(Map.Entry<TaskSpec, TaskStage> load) {
-                        return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()));
-                    }
-                },
-
-                "arraydesigns",
-                new MappingIterator<Map.Entry<TaskSpec,TaskStage>, Map>(taskManagerDbStorage.getTaskStagesByType("loadarraydesign").entrySet().iterator()) {
-                    public Map map(Map.Entry<TaskSpec, TaskStage> load) {
-                        return makeMap("url", load.getKey().getAccession(), "done", TaskStage.DONE.equals(load.getValue()) ? "1" : null);
-                    }
-                }
-        );
-    }
-
     private Object processPropertyList() {
         List<String> names = new ArrayList<String>(atlasProperties.getAvailablePropertyNames());
         Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
@@ -621,9 +603,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("tasklog".equals(op))
             return processTaskEventLog(request.getParameter("num"));
-
-        else if("loadlist".equals(op))
-            return processLoadList();
 
         else if("proplist".equals(op))
             return processPropertyList();

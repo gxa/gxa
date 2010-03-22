@@ -258,9 +258,10 @@ function updateBrowseExperiments() {
             if(accessions.length == 0 && !selectAll)
                 return;
 
+            var autoDep = $('#experimentAutodep').is(':checked');
             if(window.confirm('Do you really want to ' + title + ' '
                     + (selectAll ? result.numTotal : accessions.length)
-                    + ' experiment(s)?')) {
+                    + ' experiment(s)' + (autoDep ? ' and rebuild index afterwards' : '') +'?')) {
                 if(selectAll) {
                     adminCall('enqueuesearchexp', {
                         runMode: mode,
@@ -269,14 +270,14 @@ function updateBrowseExperiments() {
                         fromDate: $('#dateFrom').val(),
                         toDate: $('#dateTo').val(),
                         pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0,
-                        autoDepends: 'true'
+                        autoDepends: autoDep
                     }, switchToQueue);
                 } else {
                     adminCall('enqueue', {
                         runMode: mode,
                         accession: accessions,
                         type: type,
-                        autoDepends: 'true'
+                        autoDepends: autoDep
                     }, switchToQueue);
                 }
                 
@@ -377,42 +378,28 @@ function updateTaskLog() {
     $time.queue = null;
     adminCall('tasklog', { num: $options.logNumItems }, function (result) {
         renderTpl('taskLog', result);
+        $('#taskLog .retry input').each(function (i,e) {
+            var li = result.items[i];
+            if(li.event == 'FAILED')
+                $(e).click(function() {
+                    if(window.confirm('Are you sure you want to re-try to '
+                            + $msg.taskType[li.type].toLowerCase() + (li.accession != '' ? ' ' + li.accession : '') +'?'))
+                    {
+                        var autoDep = window.confirm('Do you want to run further processing tasks automatically afterwards?');
+                        adminCall('enqueue', {
+                            runMode: 'CONTINUE',
+                            accession: li.accession,
+                            type: li.type,
+                            autoDepends: autoDep
+                        }, switchToQueue);
+                    }
+                });
+            else
+                $(e).remove();
+        });
         $time.queue = setTimeout(function () {
             updateTaskLog();
         }, $options.queueRefreshRate);
-    });
-}
-
-function updateLoadList() {
-    adminCall('loadlist', {}, function (result) {
-        renderTpl('loadListExp', result);
-        renderTpl('loadListAD', result);
-        $('#loadListExp input').each(function (i, e) {
-            $(this).click(function () {
-                var url = result.experiments[i].url;
-                if(confirm('Do you really want to reload experiment from URL ' + url + '?')) {
-                    adminCall('enqueue', {
-                        runMode: 'RESTART',
-                        accession: url,
-                        type: 'loadexperiment',
-                        autoDepends: 'true'
-                    }, switchToQueue);
-                }
-            });
-        });
-        $('#loadListAD input').each(function (i, e) {
-            $(this).click(function () {
-                var url = result.arraydesigns[i].url;
-                if(confirm('Do you really want to reload array design from URL ' + url + '?')) {
-                    adminCall('enqueue', {
-                        runMode: 'RESTART',
-                        accession: url,
-                        type: 'loadarraydesign',
-                        autoDepends: 'true'
-                    }, switchToQueue);
-                }
-            });
-        });
     });
 }
 
@@ -464,7 +451,6 @@ function redrawCurrentState() {
         $('#tabs').tabs('select', $tab.que);
         updateQueue();
     } else if(currentState['tab'] == $tab.load) {
-        updateLoadList();
         $('#tabs').tabs('select', $tab.load);
     } else if(currentState['tab'] == $tab.olog) {
         updateOperLog();
@@ -571,26 +557,6 @@ function compileTemplates() {
         }
     });
 
-    compileTpl('loadListExp', {
-        'tr' : {
-            'exp <- experiments': {
-                '.url': 'exp.url',
-                '.done': function (r) { return r.item.done ? 'Successful' : 'Failed'; },
-                '.@class+': function (r) { return r.item.done ? 'successful' : ''; }
-            }
-        }
-    });
-
-    compileTpl('loadListAD', {
-        'tr' : {
-            'ad <- arraydesigns': {
-                '.url': 'ad.url',
-                '.done': function (r) { return r.item.done ? 'Successful' : 'Failed'; },
-                '.@class+': function (r) { return r.item.done ? 'successful' : ''; }
-            }
-        }
-    });
-
     compileTpl('propList', {
         'tr.property' : {
             'property <- properties': {
@@ -666,21 +632,23 @@ $(document).ready(function () {
 
     $('#loadExperimentButton').click(function () {
         var url = $('#loadExperimentUrl').val();
+        var autoDep = $('#loadExperimentAutodep').is(':checked');
         adminCall('enqueue', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadexperiment',
-            autoDepends: 'true'
+            autoDepends: autoDep
         }, switchToQueue);
     });
 
     $('#loadArrayDesignButton').click(function () {
         var url = $('#loadArrayDesignUrl').val();
+        var autoDep = $('#loadArrayDesignAutodep').is(':checked');
         adminCall('enqueue', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadarraydesign',
-            autoDepends: 'true'
+            autoDepends: autoDep
         }, switchToQueue);
     });
 
