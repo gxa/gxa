@@ -29,12 +29,11 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipEntry;
 
 /**
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.  This is
@@ -53,6 +52,7 @@ import java.util.*;
 public class DataMatrixFileBuffer {
 
     private URL dataMatrixURL;
+    private String fileName;
     private String referenceColumnName;
 
     /**
@@ -82,10 +82,19 @@ public class DataMatrixFileBuffer {
 
     private Log log = LogFactory.getLog(this.getClass());
 
+    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName) throws ParseException {
+        this.dataMatrixURL = dataMatrixURL;
+        this.refToEVColumn = new HashMap<String, Integer>();
+        this.fileName = fileName;
+
+        init();
+    }
+
     public DataMatrixFileBuffer(URL dataMatrixURL) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
         this.refToEVColumn = new HashMap<String, Integer>();
-        
+        this.fileName = null;
+
         init();
     }
 
@@ -164,11 +173,25 @@ public class DataMatrixFileBuffer {
     public void clear() {
     }
 
+    private InputStream openStream() throws IOException {
+        if(fileName == null)
+            return dataMatrixURL.openStream();
+
+        ZipInputStream zistream = new ZipInputStream(new BufferedInputStream(dataMatrixURL.openStream()));
+        ZipEntry zi;
+        while((zi = zistream.getNextEntry()) != null) {
+            if(zi.getName().toLowerCase().endsWith(fileName.toLowerCase())) {
+                return zistream;
+            }
+        }
+        throw new FileNotFoundException("Can't find file " + fileName + " in archive " + dataMatrixURL);
+    }
+
     private void init() throws ParseException {
         BufferedReader reader = null;
         try {
             // create a buffered reader
-            reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
+            reader = new BufferedReader(new InputStreamReader(openStream()));
 
             // parse the headers
             Header[] headers;
@@ -263,7 +286,7 @@ public class DataMatrixFileBuffer {
             // now we've sorted out our headers and the ref columns
 
             // do a quick read to count the number of lines in the file, so we can initialize other arrays
-            int lineCount = countNumberOfLinesInFile(dataMatrixURL);
+            int lineCount = countNumberOfLinesInFile();
 
             // initialize arrays using this count - it may be a few too big, but we can trim later
             designElementNames = new String[lineCount];
@@ -303,11 +326,11 @@ public class DataMatrixFileBuffer {
        }
     }
 
-    private int countNumberOfLinesInFile(URL dataMatrixURL) throws IOException {
+    private int countNumberOfLinesInFile() throws IOException {
         LineNumberReader reader = null;
         try {
             // create reader to count lines
-            reader = new LineNumberReader(new InputStreamReader(dataMatrixURL.openStream()));
+            reader = new LineNumberReader(new InputStreamReader(openStream()));
             while (reader.readLine() != null) {
                 // simply loops to last line of the file
             }

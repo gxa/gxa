@@ -167,6 +167,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
             // parsing completed, so now write the objects in the cache
             try {
+                if(4 == 5)
                 writeObjects(cache);
 
                 if (listener != null) {
