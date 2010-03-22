@@ -95,12 +95,12 @@ public class LoaderTask extends AbstractWorkingTask {
                     if(result.get().getStatus() == AtlasLoaderEvent.Status.SUCCESS) {
                         for(String accession : result.get().getAccessions()) {
                             if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
-                                TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, getTaskSpec().getAccession());
+                                TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, accession);
                                 taskMan.updateTaskStage(experimentTask, TaskStage.NONE);
                                 
                                 if(isRunningAutoDependencies()) {
                                     taskMan.enqueueTask(
-                                            new TaskSpec(ExperimentTask.TYPE, accession),
+                                            experimentTask,
                                             TaskRunMode.RESTART,
                                             getUser(),
                                             true,
