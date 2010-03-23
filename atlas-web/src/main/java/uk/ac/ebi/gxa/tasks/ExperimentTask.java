@@ -43,7 +43,7 @@ public class ExperimentTask extends AbstractWorkingTask {
 
     private volatile boolean stop;
 
-    private enum Stage {
+    public enum Stage {
         NETCDF {
             public boolean run(final ExperimentTask task) {
                 final AtomicReference<NetCDFGenerationEvent> result = new AtomicReference<NetCDFGenerationEvent>(null);
