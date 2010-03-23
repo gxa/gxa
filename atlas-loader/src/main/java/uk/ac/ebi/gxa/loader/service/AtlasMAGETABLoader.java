@@ -438,6 +438,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
                 referencedArrayDesigns.add(assay.getArrayDesignAccession());
             }
+
+            if(assay.getProperties() == null || assay.getProperties().size() == 0) {
+                throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
+            }
         }
 
         // all checks passed if we got here
