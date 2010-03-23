@@ -1,6 +1,6 @@
 OPTIONS(ROWS=100000,DIRECT=TRUE)
 load data
-infile 'DataMoo/AssayPVOntology.dat'
+infile 'DataMv/AssayPVOntology.dat'
 truncate into table a2_AssayPVOntology
 fields terminated by "\t" 
 TRAILING NULLCOLS

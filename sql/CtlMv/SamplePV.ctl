@@ -1,6 +1,6 @@
 OPTIONS(ROWS=100000,DIRECT=TRUE)
 load data
-infile 'DataMoo/SamplePV.dat'
+infile 'DataMv/SamplePV.dat'
 truncate into table a2_SamplePV
 fields terminated by "\t" 
 TRAILING NULLCOLS
