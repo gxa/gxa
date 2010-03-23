@@ -96,7 +96,7 @@ public class LoaderTask extends AbstractWorkingTask {
                         for(String accession : result.get().getAccessions()) {
                             if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
                                 TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, accession);
-                                taskMan.updateTaskStage(experimentTask, TaskStage.NONE);
+                                taskMan.updateTaskStage(experimentTask, TaskStage.valueOf(ExperimentTask.Stage.ANALYTICS));
                                 
                                 if(isRunningAutoDependencies()) {
                                     taskMan.enqueueTask(
