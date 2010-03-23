@@ -32,6 +32,8 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
@@ -176,6 +178,20 @@ public class DataMatrixFileBuffer {
     private InputStream openStream() throws IOException {
         if(fileName == null)
             return dataMatrixURL.openStream();
+
+        // HACK: fix bad ArrayExpress URLs like 
+        // ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/TABM/E-TABM-733/TABM/E-TABM-733/E-TABM-733.processed.1.zip
+        String strDataMatrixURL = dataMatrixURL.toExternalForm();
+        Pattern badArrayExpressURLPattern =
+                Pattern.compile("ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
+
+        Matcher m = badArrayExpressURLPattern.matcher(strDataMatrixURL);
+        if(m.matches()) {
+            strDataMatrixURL = "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/" +
+                    m.group(1) + "/" + m.group(2) + "/" + m.group(2) + "." + m.group(3);
+            
+            dataMatrixURL = new URL(strDataMatrixURL);
+        }
 
         ZipInputStream zistream = new ZipInputStream(new BufferedInputStream(dataMatrixURL.openStream()));
         ZipEntry zi;
