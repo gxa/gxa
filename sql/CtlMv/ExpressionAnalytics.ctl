@@ -1,6 +1,6 @@
 OPTIONS(ROWS=100000,DIRECT=TRUE)
 load data
-infile 'Data/ExpressionAnalytics.dat'
+infile 'DataMv/ExpressionAnalytics.dat'
 truncate into table a2_ExpressionAnalytics
 fields terminated by "\t" 
 TRAILING NULLCOLS

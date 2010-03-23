@@ -71,7 +71,7 @@ as
   r integer;
 begin
   
-  select spv.AssayPVID into r
+  select MIN(spv.AssayPVID) into r
   from a2_AssayPV spv
   join a2_PropertyValue pv on pv.PropertyValueID = spv.PropertyValueID
   join a2_property p on p.PropertyID = pv.PropertyID
@@ -102,6 +102,28 @@ begin
 
   return r;
 end;
+
+/**
+
+**/
+
+create or replace
+function get_GenePropertyValueID(
+  GenePropertyID integer
+ ,Value varchar2
+) return INTEGER
+as
+  r INTEGER;
+begin
+  select GenePropertyValueID into r
+  from a2_GenePropertyValue
+  where GenePropertyID = get_GenePropertyValueID.GenePropertyID
+  and Value = get_GenePropertyValueID.Value;
+
+  return r;
+end;
+
+select * from a2_genepropertyvalue
 
 select * from loggy
 truncate table loggy
