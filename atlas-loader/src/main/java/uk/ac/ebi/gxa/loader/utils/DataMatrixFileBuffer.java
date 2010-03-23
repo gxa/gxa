@@ -311,7 +311,6 @@ public class DataMatrixFileBuffer {
                                     1023,
                                     this.getClass());
 
-            log.error("Error", e);
             throw new ParseException(error, true, e);
         }
         finally {

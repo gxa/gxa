@@ -350,7 +350,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         for(Assay assay : assays) {
             Assay cacheAssay = cache.fetchAssay(assay.getAccession());
             assay.setExpressionValues(cacheAssay.getExpressionValues());
-            assay.setExpressionValuesByDesignElementReference(cacheAssay.getExpressionValuesByDesignElementReference());
         }
 
         Map<String, List<Assay>> assaysByArrayDesign = new HashMap<String,List<Assay>>();
@@ -369,7 +368,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
         for(String adAcc : assaysByArrayDesign.keySet()) {
             // create a data slicer to slice up this experiment
-            DataSlice dataSlice = new DataSlice(cache.fetchExperiment(),
+            DataSlice dataSlice = new DataSlice(getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession()),
                                                 getAtlasDAO().getArrayDesignByAccession(adAcc));
 
             dataSlice.storeAssays(assaysByArrayDesign.get(adAcc));
@@ -396,7 +395,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                     dataSlice.getExperiment(),
                     dataSlice.getArrayDesign());
 
-            // format it with paramaters suitable for our data
+            // format it with parameters suitable for our data
             NetCDFFormatter formatter = new NetCDFFormatter();
             formatter.formatNetCDF(netCDF, dataSlice);
 
