@@ -245,16 +245,27 @@ public class DataMatrixFileBuffer {
                 // more than one possible type or not possible and more than one total
                 if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
                     StringBuffer sb = new StringBuffer();
-                    sb.append("[");
-                    for (String pt : possibleTypes) {
-                        sb.append(pt).append(", ");
+
+                    if(possibleTypes.size() > 1) {
+                        sb.append("Possible types: [");
+                         for (String pt : possibleTypes) {
+                            sb.append(pt).append(", ");
+                        }
+                        sb.append("]");
                     }
-                    sb.append("]");
+
+                    if(allTypes.size() > 1) {
+                        sb.append("All types: [");
+                         for (String at : allTypes) {
+                            sb.append(at).append(", ");
+                        }
+                        sb.append("]");
+                    }
 
                     String message =
                             "Unable to load - data matrix file contains " + possibleTypes.size() + " " +
-                                    "recognised candidate quantitation types to use for " +
-                                    "expression values.\n" +
+                                    "recognised candidate quantitation types out of " + allTypes.size() + " total " +
+                                    " to use for expression values.\n" +
                                     "Ambiguity over which QT type should be used, from: " + sb.toString();
                     ErrorItem error =
                             ErrorItemFactory
@@ -293,6 +304,7 @@ public class DataMatrixFileBuffer {
 
                 // Use either possible (only one) or absolutely one qt type
                 String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
+                log.info("Using " + qtType + " for expression values");
                 refToEVColumn.put(header.assayRef,
                         header.getIndexOfQuantitationType(
                                 qtType));
