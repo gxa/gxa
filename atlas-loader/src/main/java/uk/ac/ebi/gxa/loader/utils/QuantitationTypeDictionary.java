@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 
@@ -175,8 +176,11 @@ public class QuantitationTypeDictionary {
                 URL url = resources.nextElement();
                 log.info(
                         "Loading dictionary of Quantitation Types from " + url.toString());
+
                 Properties props = new Properties();
-                props.load(url.openStream());
+                InputStream is = url.openStream();
+                props.load(is);
+                is.close();
 
                 for (Object key : props.keySet()) {
                     String qtType = MAGETABUtils.digestHeader(key.toString());

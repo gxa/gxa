@@ -200,6 +200,13 @@ public class DataMatrixFileBuffer {
                 return zistream;
             }
         }
+
+        try {
+            zistream.close();
+        } catch (IOException e) {
+            //
+        }
+
         throw new FileNotFoundException("Can't find file " + fileName + " in archive " + dataMatrixURL);
     }
 
