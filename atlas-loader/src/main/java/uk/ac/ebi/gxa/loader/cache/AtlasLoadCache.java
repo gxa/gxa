@@ -43,7 +43,7 @@ public class AtlasLoadCache {
     private ArrayDesignBundle arrayDesignBundle;
     private Map<String, Assay> assaysByAcc;
     private Map<String, Sample> samplesByAcc;
-    private Map<URL, DataMatrixFileBuffer> dataMatrixBuffers;
+    private Map<String, DataMatrixFileBuffer> dataMatrixBuffers;
 
 
     /**
@@ -52,7 +52,7 @@ public class AtlasLoadCache {
     public AtlasLoadCache() {
         this.assaysByAcc = new HashMap<String, Assay>();
         this.samplesByAcc = new HashMap<String, Sample>();
-        this.dataMatrixBuffers = new HashMap<URL, DataMatrixFileBuffer>();
+        this.dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     }
 
     /**
@@ -194,19 +194,19 @@ public class AtlasLoadCache {
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url) throws ParseException {
-        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url);
+        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url.toExternalForm());
         if(buffer == null) {
             buffer = new DataMatrixFileBuffer(url);
-            dataMatrixBuffers.put(url, buffer);
+            dataMatrixBuffers.put(url.toExternalForm(), buffer);
         }
         return buffer;
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws ParseException {
-        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url);
+        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url.toExternalForm() + fileName);
         if(buffer == null) {
             buffer = new DataMatrixFileBuffer(url, fileName);
-            dataMatrixBuffers.put(url, buffer);
+            dataMatrixBuffers.put(url.toExternalForm() + fileName, buffer);
         }
         return buffer;
     }
