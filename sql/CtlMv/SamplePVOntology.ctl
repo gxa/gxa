@@ -1,7 +1,8 @@
 OPTIONS(ROWS=100000,DIRECT=TRUE)
 load data
-infile 'DataMv/SamplePV.dat'
+infile 'DataMv/SamplePVOntology.dat'
 truncate into table a2_SamplePVOntology
+WHEN SAMPLEPVID <> "0"
 fields terminated by "\t" 
 TRAILING NULLCOLS
 (SAMPLEPVONTOLOGYID 
