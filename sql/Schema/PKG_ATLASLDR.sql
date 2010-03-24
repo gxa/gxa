@@ -245,7 +245,7 @@ begin
         join tmp_DesignElementMap m on m.designelementaccession = t.Accession
         join a2_GeneProperty p on p.name = t.EntryName
         join a2_genepropertyvalue pv on pv.genepropertyid = p.genepropertyid and pv.value = t.EntryValue) t 
- ON (t.GeneID = gpv.GeneID)
+ ON (t.GeneID = gpv.GeneID and t.GenePropertyValueID = gpv.GenePropertyValueID)
  WHEN MATCHED THEN 
   Update set gpv.GeneGPVID = gpv.GeneGPVID --9i noop  
  WHEN NOT MATCHED THEN

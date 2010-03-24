@@ -63,6 +63,7 @@ select ASSAY_ID_KEY, 114 as PropertyID, Value from AE1__ASSAY_QCDESCRTYPE__DM UN
 select ASSAY_ID_KEY, 115 as PropertyID, Value from AE1__ASSAY_SOURCEPROVIDER__DM UNION ALL                                                                                                                                                                                                                                                                         
 select ASSAY_ID_KEY, 116 as PropertyID, Value from AE1__ASSAY_TESTTYPE__DM ) t
 WHERE Value is not null
+AND EXISTS (select 1 from AE1__ASSAY__MAIN where  AE1__ASSAY__MAIN.ASSAY_ID_KEY = t.ASSAY_ID_KEY AND AE1__ASSAY__MAIN.ARRAYDESIGN_ID is not null)
 ORDER BY t.PropertyID, ASSAY_ID_KEY, VALUE
 
 /

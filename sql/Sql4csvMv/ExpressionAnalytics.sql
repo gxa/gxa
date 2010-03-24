@@ -21,6 +21,7 @@ FPVAL || chr(9) ||
 FPVALADJ || chr(9) ||
 UPDN_pvaladj 
 from Atlas
+where exists(select 1 from AE1__EXPERIMENT__MAIN where AE1__EXPERIMENT__MAIN.EXPERIMENT_ID_KEY = Atlas.EXPERIMENT_ID_KEY)
 
 /
 quit;

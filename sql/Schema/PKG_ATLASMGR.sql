@@ -39,6 +39,9 @@ AS
  cursor c1 is select CONSTRAINT_NAME, TABLE_NAME from user_constraints where constraint_type = 'R';
  q varchar2(8000);
 begin
+ delete from A2_ASSAYPVONTOLOGY where ASSAYPVID = 0;
+ delete from A2_SAMPLEPVONTOLOGY where SAMPLEPVID  = 0;
+ 
 for rec in c1
  loop
     q := 'ALTER TABLE ' || rec.TABLE_NAME  || ' DISABLE CONSTRAINT ' || rec.CONSTRAINT_NAME;
