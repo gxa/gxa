@@ -311,18 +311,24 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             start = System.currentTimeMillis();
             getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
-                if (sample.getAssayAccessions().size() > 0) {
+                if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
                     String experimentAccession = cache.fetchExperiment().getAccession();
                     getAtlasDAO().writeSample(sample, experimentAccession);
                 }
                 else {
-                    throw new AtlasLoaderServiceException("No assays for sample found");
+                    getLog().error("No assays found for " + sample.getAccession());
+                    // throw new AtlasLoaderServiceException("No assays for sample found");
                 }
             }
 
             // write data to netcdf
             try {
+                start = System.currentTimeMillis();
+                getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
                 writeExperimentNetCDF(cache);
+                end = System.currentTimeMillis();
+                total = new DecimalFormat("#.##").format((end - start) / 1000);
+                getLog().info("Wrote NetCDF in {}s.", total);
             } catch (NetCDFGeneratorException e) {
                 getLog().error("Failed to generate netcdf", e);
             } catch (IOException e) {
@@ -337,6 +343,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Writing " + numOfObjects + " objec" +
                     "ts completed successfully");
             success = true;
+        } catch (Throwable t) {
+            getLog().error("Error!", t);
         }
         finally {
             // end the load(s)
@@ -441,6 +449,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
             if(assay.getProperties() == null || assay.getProperties().size() == 0) {
                 throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
+            }
+
+            if(assay.getExpressionValues() == null &&
+                    assay.getExpressionValuesByDesignElementReference() == null) {
+                throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no expression values! All assays need some.");
             }
         }
 

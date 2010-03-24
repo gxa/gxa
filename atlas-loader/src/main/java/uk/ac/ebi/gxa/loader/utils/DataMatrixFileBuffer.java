@@ -371,7 +371,7 @@ public class DataMatrixFileBuffer {
      */
     private void readFileIntoBuffer(BufferedReader reader) throws ParseException {
         try {
-            log.info("Reading data matrix from " + dataMatrixURL + "...");
+            log.info("Reading data matrix from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + "...");
 
             // read data - track the design element index in order to store axis info
             int deIndex = 0;
@@ -448,7 +448,7 @@ public class DataMatrixFileBuffer {
         }
         finally {
             try {
-                log.info("Finished reading from " + dataMatrixURL + ", closing");
+                log.info("Finished reading from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + ", closing");
                 if (reader != null) {
                     reader.close();
                 }
