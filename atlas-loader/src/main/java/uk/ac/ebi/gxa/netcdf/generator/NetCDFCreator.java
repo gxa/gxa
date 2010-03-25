@@ -241,7 +241,7 @@ public class NetCDFCreator {
 
         netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
 
-        Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfvLength);
+        Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
         netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
 
         Dimension uefvDimension = netCdf.addDimension("uEFV", totalUniqueEfvs);
@@ -374,7 +374,7 @@ public class NetCDFCreator {
         // write assay property values
         ArrayChar ef = new ArrayChar.D2(efvMap.keySet().size(), maxEfLength);
         ArrayChar efv = new ArrayChar.D3(efvMap.keySet().size(), assays.size(), maxEfvLength);
-        ArrayChar uefv = new ArrayChar.D2(totalUniqueEfvs, maxEfvLength);
+        ArrayChar uefv = new ArrayChar.D2(totalUniqueEfvs, maxEfLength + maxEfvLength + 2);
         ArrayInt uefvNum = new ArrayInt.D1(efvMap.keySet().size());
 
         int ei = 0;
@@ -386,7 +386,7 @@ public class NetCDFCreator {
                 efv.setString(efv.getIndex().set(ei, vi++), v);
 
             for(String v : uniqueEfvMap.get(e.getKey()))
-                uefv.setString(uefvi++, v);
+                uefv.setString(uefvi++, e.getKey() + "||" + v);
             uefvNum.setInt(ei, uniqueEfvMap.get(e.getKey()).size());
             ++ei;
         }
