@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.tasks;
 
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 
 import java.util.*;
