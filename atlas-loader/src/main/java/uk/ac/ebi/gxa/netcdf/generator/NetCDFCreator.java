@@ -46,9 +46,9 @@ public class NetCDFCreator {
     private ArrayDesign arrayDesign;
 
     private List<Assay> assays;
-    private List<Sample> samples = new ArrayList<Sample>();
+    private Collection<Sample> samples = new LinkedHashSet<Sample>();
     private ValueListHashMap<Assay, Sample> samplesMap= new ValueListHashMap<Assay, Sample>();
-    private Map<Assay, AssayDataMatrixRef> assayDataMap = new HashMap<Assay, AssayDataMatrixRef>();
+    private Map<String, AssayDataMatrixRef> assayDataMap = new HashMap<String, AssayDataMatrixRef>();
 
     private List<DataMatrixFileBuffer> buffers = new ArrayList<DataMatrixFileBuffer>();
     private ValueListHashMap<DataMatrixFileBuffer,Assay> bufferAssaysMap = new ValueListHashMap<DataMatrixFileBuffer, Assay>();
@@ -94,11 +94,11 @@ public class NetCDFCreator {
         this.samplesMap.put(assay, sample);
     }
 
-    public void setAssayDataMap(Map<Assay, AssayDataMatrixRef> assayDataMap) {
+    public void setAssayDataMap(Map<String, AssayDataMatrixRef> assayDataMap) {
         this.assayDataMap = assayDataMap;
     }
 
-    private Map<String, List<String>> extractProperties(List<? extends ObjectWithProperties> objects) {
+    private Map<String, List<String>> extractProperties(Collection<? extends ObjectWithProperties> objects) {
         Map<String, List<String>> propertyMap = new HashMap<String, List<String>>();
 
         // iterate over assays, create keys for the map
@@ -129,17 +129,19 @@ public class NetCDFCreator {
 
     public void prepareData() {
 
-        // sort assay in orrder of buffers and refernce numbers in those buffers
+        // sort assay in orrder of buffers and reference numbers in those buffers
         Collections.sort(assays, new Comparator<Assay>() {
             public int compare(Assay o1, Assay o2) {
-                DataMatrixFileBuffer buf1 = assayDataMap.get(o1).buffer;
+                AssayDataMatrixRef ref1 = assayDataMap.get(o1.getAccession());
+                DataMatrixFileBuffer buf1 = ref1.buffer;
                 int i1 = buffers.indexOf(buf1);
                 if(i1 == -1) {
                     buffers.add(buf1);
                     i1 = buffers.size() - 1;
                 }
 
-                DataMatrixFileBuffer buf2 = assayDataMap.get(o2).buffer;
+                AssayDataMatrixRef ref2 = assayDataMap.get(o2.getAccession());
+                DataMatrixFileBuffer buf2 = ref2.buffer;
                 int i2 = buffers.indexOf(buf1);
                 if(i2 == -1) {
                     buffers.add(buf2);
@@ -149,13 +151,13 @@ public class NetCDFCreator {
                 if(i1 != i2)
                     return i1 - i2;
 
-                return assayDataMap.get(o1).referenceIndex - assayDataMap.get(o2).referenceIndex;
+                return ref1.referenceIndex - ref2.referenceIndex;
             }
         });
 
         // build reverse map
         for(Assay a : assays)
-            bufferAssaysMap.put(assayDataMap.get(a).buffer, a);
+            bufferAssaysMap.put(assayDataMap.get(a.getAccession()).buffer, a);
 
         // reshape available properties to match assays & samples
         efvMap = extractProperties(assays);
@@ -425,7 +427,7 @@ public class NetCDFCreator {
         int currentDestination = -1;
         int currentReference = -1;
         for(Assay assay : bufferAssaysMap.get(buffer)) {
-            currentReference = assayDataMap.get(assay).referenceIndex;
+            currentReference = assayDataMap.get(assay.getAccession()).referenceIndex;
             if(currentDestination == -1)
                 currentDestination = assays.indexOf(assay);
 
