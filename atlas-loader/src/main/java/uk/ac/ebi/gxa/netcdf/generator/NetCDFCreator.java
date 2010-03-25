@@ -128,6 +128,11 @@ public class NetCDFCreator {
     }
 
     public void prepareData() {
+        for(Assay a : assays) {
+            DataMatrixFileBuffer buf = assayDataMap.get(a.getAccession()).buffer;
+            if(!buffers.contains(buf))
+                buffers.add(buf);
+        }
 
         // sort assay in orrder of buffers and reference numbers in those buffers
         Collections.sort(assays, new Comparator<Assay>() {
@@ -135,18 +140,10 @@ public class NetCDFCreator {
                 AssayDataMatrixRef ref1 = assayDataMap.get(o1.getAccession());
                 DataMatrixFileBuffer buf1 = ref1.buffer;
                 int i1 = buffers.indexOf(buf1);
-                if(i1 == -1) {
-                    buffers.add(buf1);
-                    i1 = buffers.size() - 1;
-                }
 
                 AssayDataMatrixRef ref2 = assayDataMap.get(o2.getAccession());
                 DataMatrixFileBuffer buf2 = ref2.buffer;
-                int i2 = buffers.indexOf(buf1);
-                if(i2 == -1) {
-                    buffers.add(buf2);
-                    i2 = buffers.size() - 1;
-                }
+                int i2 = buffers.indexOf(buf2);
 
                 if(i1 != i2)
                     return i1 - i2;
