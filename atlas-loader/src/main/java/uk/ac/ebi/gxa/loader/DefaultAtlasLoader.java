@@ -22,22 +22,26 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +60,6 @@ import java.util.concurrent.TimeUnit;
 public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     private AtlasDAO atlasDAO;
     private File atlasNetCDFRepo;
-    private double missingDesignElementsCutoff = -1;
     private boolean allowReloading = false;
     private List<String> geneIdentifierPriority = new ArrayList<String>();
 
@@ -77,16 +80,16 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         this.atlasDAO = atlasDAO;
     }
 
-    public double getMissingDesignElementsCutoff() {
-        return missingDesignElementsCutoff;
-    }
-
-    public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) {
-        this.missingDesignElementsCutoff = missingDesignElementsCutoff;
-    }
-
     public boolean getAllowReloading() {
         return allowReloading;
+    }
+
+    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
+        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    }
+
+    public File getAtlasNetCDFRepo() {
+        return atlasNetCDFRepo;
     }
 
     public void setAllowReloading(boolean allowReloading) {
@@ -110,15 +113,12 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
             // do some initialization...
 
             // create the experiment loading service
-            experimentLoaderService = new AtlasMAGETABLoader(getAtlasDAO(), getAtlasNetCDFRepo());
+            experimentLoaderService = new AtlasMAGETABLoader(this);
             experimentLoaderService.setAllowReloading(getAllowReloading());
             // if we have set the cutoff for missing design elements, set on the service
-            if (missingDesignElementsCutoff != -1) {
-                experimentLoaderService.setMissingDesignElementsCutoff(getMissingDesignElementsCutoff());
-            }
 
             // create the experiment loading service
-            arrayLoaderService = new AtlasArrayDesignLoader(getAtlasDAO());
+            arrayLoaderService = new AtlasArrayDesignLoader(this);
             arrayLoaderService.setAllowReloading(getAllowReloading());
             arrayLoaderService.setGeneIdentifierPriority(getGeneIdentifierPriority());
 
@@ -240,11 +240,49 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         });
     }
 
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    public void unloadExperiment(String accession) throws AtlasUnloaderException {
+        try {
+            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
+            if(experiment == null)
+                throw new AtlasUnloaderException("Can't find experiment to unload");
+
+            List<ArrayDesign> arrayDesigns = getAtlasDAO().getArrayDesignByExperimentAccession(accession);
+
+            getAtlasDAO().deleteExperiment(accession);
+
+            for(ArrayDesign ad : arrayDesigns) {
+                File netCdf = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + ad.getArrayDesignID() + ".nc");
+                if(netCdf.exists()) {
+                    if(!netCdf.delete())
+                        log.warn("Can't delete NetCDF: " + netCdf);
+                }
+            }
+        } catch(DataAccessException e) {
+            throw new AtlasUnloaderException("DB error while unloading experiment " + accession, e);
+        }
     }
 
-    public File getAtlasNetCDFRepo() {
-        return atlasNetCDFRepo;
+    public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
+        log.error("Attempt to unload array design " + accession);
+        throw new AtlasUnloaderException("Not implemented");
+    }
+
+    public String getVersionFromMavenProperties() {
+        String version = "AtlasLoader Version ";
+        try {
+            Properties properties = new Properties();
+            InputStream in = getClass().getClassLoader().
+                    getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa/" +
+                            "atlas-loader/pom.properties");
+            properties.load(in);
+
+            version = version + properties.getProperty("version");
+        }
+        catch (Exception e) {
+            log.warn("Version number couldn't be discovered from pom.properties");
+            version = version + "[Unknown]";
+        }
+
+        return version;
     }
 }

@@ -38,7 +38,7 @@ public class ArrayDesign {
     private String name;
     private String provider;
     private int arrayDesignID;
-    private Map<Integer, String> designElements;
+    private Map<String, Integer> designElements;
     private Map<Integer, List<Integer>> genes;
 
     public String getAccession() {
@@ -81,11 +81,11 @@ public class ArrayDesign {
         this.arrayDesignID = arrayDesignID;
     }
 
-    public Map<Integer, String> getDesignElements() {
+    public Map<String, Integer> getDesignElements() {
         return designElements;
     }
 
-    public void setDesignElements(Map<Integer, String> designElements) {
+    public void setDesignElements(Map<String, Integer> designElements) {
         this.designElements = designElements;
     }
 

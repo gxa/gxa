@@ -22,46 +22,24 @@
 
 package uk.ac.ebi.gxa.requesthandlers.tasks;
 
+import org.apache.commons.lang.StringUtils;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import uk.ac.ebi.gxa.utils.JoinIterator;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.unloader.AtlasUnloader;
-import uk.ac.ebi.gxa.unloader.AtlasUnloaderException;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-
-import org.apache.commons.lang.StringUtils;
+import java.util.*;
 
 /**
  * Task manager AJAX servlet
@@ -87,214 +65,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
-    }
-
-    static void delay() {
-        try { Thread.sleep(1000); } catch(Exception e) {/**/}
-    }
-
-    static int DONOTHINGNUM() {
-        return (int)Math.round(Math.random() * 20) + 5;
-    }
-
-    private void installTestProcessors() {
-        final List<Throwable> ERRORS = Collections.<Throwable>singletonList(new Exception("Your biggest mistake"));
-        taskManager.setAnalyticsGenerator(new AnalyticsGenerator() {
-            boolean fixEverything = true;
-
-            public void startup() throws AnalyticsGeneratorException {
-                fixEverything = true;
-            }
-
-            public void shutdown() throws AnalyticsGeneratorException {
-                fixEverything = false;
-            }
-
-            public void generateAnalytics() {
-            }
-
-            public void generateAnalytics(AnalyticsGeneratorListener listener) {
-            }
-
-            public void generateAnalyticsForExperiment(String experimentAccession) {
-            }
-
-            public void generateAnalyticsForExperiment(final String experimentAccession, final AnalyticsGeneratorListener listener) {
-                // this one we would use
-                log.info("Starting to generate analytics for " + experimentAccession);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        for(int i = 0; i < DONOTHINGNUM(); ++i) {
-                            listener.buildProgress("Heavy analytics calculations " + i + " for " + experimentAccession);
-                            delay();
-                        }
-                        if(fixEverything)
-                            listener.buildSuccess(new AnalyticsGenerationEvent(1000, TimeUnit.MILLISECONDS));
-                        else
-                            listener.buildError(new AnalyticsGenerationEvent(1000, TimeUnit.MILLISECONDS, ERRORS));
-                    }
-                }.start();
-            }
-        });
-
-        taskManager.setNetcdfGenerator(new NetCDFGenerator() {
-            boolean fixEverything = true;
-
-            public void startup() throws NetCDFGeneratorException {
-                fixEverything = true;
-            }
-
-            public void shutdown() throws NetCDFGeneratorException {
-                fixEverything = false;
-            }
-
-            public void generateNetCDFs() {
-            }
-
-            public void generateNetCDFs(NetCDFGeneratorListener listener) {
-            }
-
-            public void generateNetCDFsForExperiment(String experimentAccession) {
-            }
-
-            public void generateNetCDFsForExperiment(final String experimentAccession, final NetCDFGeneratorListener listener) {
-                // this one we would use
-                log.info("Starting to generate netcdfs for " + experimentAccession);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        for(int i = 0; i < DONOTHINGNUM(); ++i) {
-                            listener.buildProgress("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
-                            delay();
-                        }
-                        if(fixEverything)
-                            listener.buildSuccess(new NetCDFGenerationEvent(1000, TimeUnit.MILLISECONDS));
-                        else
-                            listener.buildError(new NetCDFGenerationEvent(1000, TimeUnit.MILLISECONDS, ERRORS));
-                    }
-                }.start();
-            }
-        });
-
-        taskManager.setIndexBuilder(new IndexBuilder() {
-            boolean shouldFail = false;
-            public void setIncludeIndexes(List<String> includeIndexes) {
-            }
-
-            public List<String> getIncludeIndexes() {
-                return null;
-            }
-
-            public void startup() throws IndexBuilderException {
-            }
-
-            public void shutdown() throws IndexBuilderException {
-                shouldFail = true; // a hack
-            }
-
-            public void buildIndex() {
-            }
-
-            public void buildIndex(final IndexBuilderListener listener) {
-                log.info("Building indexes");
-                new Thread() {
-                    @Override
-                    public void run() {
-                        for(int i = 0; i < DONOTHINGNUM(); ++i) {
-                            log.info("Index building " + i);
-                            listener.buildProgress("Index building " + i);
-                            delay();
-                        }
-                        if(shouldFail)
-                            listener.buildError(new IndexBuilderEvent(1000, TimeUnit.MILLISECONDS, ERRORS));
-                        else
-                            listener.buildSuccess(new IndexBuilderEvent(1000, TimeUnit.MILLISECONDS));
-                    }
-                }.start();
-            }
-
-            public void updateIndex() {
-            }
-
-            public void updateIndex(final IndexBuilderListener listener) {
-                buildIndex(listener);
-            }
-
-            public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-            }
-
-            public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-            }
-        });
-
-        taskManager.setLoader(new AtlasLoader<URL>() {
-            boolean shouldFail = false;
-            public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) { }
-            public double getMissingDesignElementsCutoff() { return 0; }
-            public void setAllowReloading(boolean allowReloading) { }
-            public boolean getAllowReloading() { return false; }
-            public List<String> getGeneIdentifierPriority() { return null; }
-            public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) { }
-
-            public void startup() throws AtlasLoaderException {
-                shouldFail = false; // a hack
-            }
-            public void shutdown() throws AtlasLoaderException {
-                shouldFail = true; // a hack
-            }
-
-            public void loadExperiment(URL experimentResource) { }
-            public void loadArrayDesign(URL arrayDesignResource) { }
-
-            public void loadExperiment(final URL url, final AtlasLoaderListener listener) {
-                log.info("Loading experiment " + url);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        int cnt = DONOTHINGNUM();
-                        for(int i = 0; i < cnt; ++i) {
-                            listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
-                            delay();
-                        }
-                        if(shouldFail)
-                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
-                        else
-                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
-                                    Collections.singletonList(url.getPath().substring(1))));
-                    }
-                }.start();
-            }
-
-            public void loadArrayDesign(final URL url, final AtlasLoaderListener listener) {
-                log.info("Loading array design " + url);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        int cnt = DONOTHINGNUM();
-                        for(int i = 0; i < cnt; ++i) {
-                            listener.loadProgress("Parsing " + (i*100/ cnt) + "%");
-                            delay();
-                        }
-                        if(shouldFail)
-                            listener.loadError(AtlasLoaderEvent.error(1000, TimeUnit.MILLISECONDS, ERRORS));
-                        else
-                            listener.loadSuccess(AtlasLoaderEvent.success(1000, TimeUnit.MILLISECONDS,
-                                    Collections.singletonList(url.getPath().substring(1))));
-                    }
-                }.start();
-            }
-        });
-
-        taskManager.setUnloader(new AtlasUnloader() {
-            public void unloadExperiment(String accession) throws AtlasUnloaderException {
-                log.info("Unloading experiment " + accession);
-            }
-
-            public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
-                log.info("Unloading array design " + accession);
-           }
-        });
     }
 
     public void setDao(AtlasDAO dao) {

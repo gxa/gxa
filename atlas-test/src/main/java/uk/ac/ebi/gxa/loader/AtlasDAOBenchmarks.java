@@ -389,10 +389,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetExpressionAnalyticsByGeneID();
         System.out.print(".");
-        benchmarkGetExpressionValuesByExperimentAndArray();
-        System.out.print(".");
-        benchmarkGetExpressionValuesForAssays();
-        System.out.print(".");
         benchmarkGetGeneCount();
         System.out.print(".");
         benchmarkGetGenesByExperimentAccession();
@@ -561,28 +557,6 @@ public class AtlasDAOBenchmarks {
                          timer.execute(new TimedOperation() {
                              void doOperation() {
                                  atlasDAO.getPropertiesForAssays(assays);
-                             }
-                         }));
-    }
-
-    public void benchmarkGetExpressionValuesForAssays() {
-        final String acc = extractParameter("experiment.accession");
-        final List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(acc);
-        reportBenchmarks("getExpressionValuesForAssays()", AtlasDAO.EXPRESSION_VALUES_BY_RELATED_ASSAYS,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getExpressionValuesForAssays(assays);
-                             }
-                         }));
-    }
-
-    public void benchmarkGetExpressionValuesByExperimentAndArray() {
-        final int expID = Integer.parseInt(extractParameter("experiment.id"));
-        final int arrayID = Integer.parseInt(extractParameter("array.id"));
-        reportBenchmarks("getExpressionValuesByExperimentAndArray()", AtlasDAO.EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getExpressionValuesByExperimentAndArray(expID, arrayID);
                              }
                          }));
     }

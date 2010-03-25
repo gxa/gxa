@@ -40,11 +40,6 @@
         <property name="successView" value="redirect:admin.jsp"/>
     </bean>
 
-    <bean id="atlasNetCDFController" class="uk.ac.ebi.gxa.web.controller.AtlasNetCDFController">
-        <property name="netCDFGenerator" ref="netCDFGenerator"/>
-        <property name="successView" value="redirect:admin.jsp"/>
-    </bean>
-
     <bean id="atlasReschedulerController" class="uk.ac.ebi.gxa.web.controller.AtlasReschedulerController">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="successView" value="redirect:admin.jsp"/>
@@ -66,7 +61,6 @@
             <map>
                 <entry key="admin/doload.web" value-ref="atlasLoadController"/>
                 <entry key="admin/doindex.web" value-ref="atlasIndexController"/>
-                <entry key="admin/donetcdf.web" value-ref="atlasNetCDFController"/>
                 <entry key="admin/doanalytics.web" value-ref="atlasAnalyticsController"/>
                 <entry key="admin/doreschedule.web" value-ref="atlasReschedulerController"/>
                 <entry key="admin/ajax.web" value-ref="ajaxController"/>

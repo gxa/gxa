@@ -253,4 +253,5 @@ public class AtlasLoadCacheRegistry {
             MAGETABArrayDesign arrayDesign) {
         return arrayRegistry.get(arrayDesign);
     }
+
 }

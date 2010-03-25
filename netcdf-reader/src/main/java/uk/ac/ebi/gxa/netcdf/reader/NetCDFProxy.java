@@ -348,29 +348,6 @@ public class NetCDFProxy {
     }
 
     /**
-     * Gets all expression data from this NetCDF, in a two dimensional double array.  This array is indexed by assays
-     * and design elements.
-     *
-     * @return a 2-D double array representing the expression matrix
-     * @throws IOException if something went wrong accessing the NetCDF
-     */
-    public double[][] getExpressionMatrix() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        if (netCDF.findVariable("BDC") == null) {
-            return new double[0][0];
-        }
-        else {
-            // read bdc
-            Array bdc = netCDF.findVariable("BDC").read();
-            // copy to a double array - BDC is 2d array so this should drop out
-            return (double[][]) bdc.copyToNDJavaArray();
-        }
-    }
-
-    /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
      * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
      * index supplied is the row number.  As the expression value matrix has the same ordering as the design element
@@ -380,21 +357,21 @@ public class NetCDFProxy {
      * @return the double array representing expression values for this design element
      * @throws IOException if the NetCDF could not be accessed
      */
-    public double[] getExpressionDataForDesignElement(int designElementIndex) throws IOException {
+    public float[] getExpressionDataForDesignElement(int designElementIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         Variable bdcVariable = netCDF.findVariable("BDC");
         if (bdcVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] bdcShape = bdcVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, bdcShape[1]};
             try {
-                return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) bdcVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
@@ -414,7 +391,7 @@ public class NetCDFProxy {
      * @return the double array representing expression values for this assay
      * @throws IOException if the NetCDF could not be accessed
      */
-    public double[] getExpressionDataForAssay(int assayIndex) throws IOException {
+    public float[] getExpressionDataForAssay(int assayIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
@@ -422,14 +399,14 @@ public class NetCDFProxy {
         Variable bdcVariable = netCDF.findVariable("BDC");
 
         if (bdcVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] bdcShape = bdcVariable.getShape();
             int[] origin = {0, assayIndex};
             int[] size = new int[]{bdcShape[0], 1};
             try {
-                return (double[]) bdcVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) bdcVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + assayIndex + ": " + e.getMessage());

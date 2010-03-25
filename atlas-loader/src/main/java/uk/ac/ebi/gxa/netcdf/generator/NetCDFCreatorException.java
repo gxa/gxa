@@ -19,25 +19,25 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.unloader;
+package uk.ac.ebi.gxa.netcdf.generator;
 
 /**
- * Unloader exception class
+ * NetCDF creator exception
  * @author pashky
  */
-public class AtlasUnloaderException extends Exception {
-    public AtlasUnloaderException() {
+public class NetCDFCreatorException extends Exception {
+    public NetCDFCreatorException() {
     }
 
-    public AtlasUnloaderException(String message) {
+    public NetCDFCreatorException(String message) {
         super(message);
     }
 
-    public AtlasUnloaderException(String message, Throwable cause) {
+    public NetCDFCreatorException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public AtlasUnloaderException(Throwable cause) {
+    public NetCDFCreatorException(Throwable cause) {
         super(cause);
     }
 }

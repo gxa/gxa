@@ -41,6 +41,7 @@ import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.AtlasUnloaderException;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 
@@ -177,45 +178,6 @@ public class TaskManagerTest {
             }
         });
 
-        manager.setNetcdfGenerator(new NetCDFGenerator() {
-            boolean fixEverything = false;
-
-            public void startup() throws NetCDFGeneratorException {
-                fixEverything = true;
-            }
-
-            public void shutdown() throws NetCDFGeneratorException {
-            }
-
-            public void generateNetCDFs() {
-            }
-
-            public void generateNetCDFs(NetCDFGeneratorListener listener) {
-            }
-
-            public void generateNetCDFsForExperiment(String experimentAccession) {
-            }
-
-            public void generateNetCDFsForExperiment(final String experimentAccession, final NetCDFGeneratorListener listener) {
-                // this one we would use
-                log.info("Starting to generate netcdfs for " + experimentAccession);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        for(int i = 0; i < DONOTHINGNUM; ++i) {
-                            log.info("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
-                            listener.buildProgress("Flooding your disk with netcdfs for " + i + " for " + experimentAccession);
-                            delay();
-                        }
-                        if(fixEverything || experimentAccession.contains("N"))
-                            listener.buildSuccess(new NetCDFGenerationEvent(1000, TimeUnit.MILLISECONDS));
-                        else
-                            listener.buildError(new NetCDFGenerationEvent(1000, TimeUnit.MILLISECONDS, ERRORS));
-                    }
-                }.start();
-            }
-        });
-
         manager.setIndexBuilder(new IndexBuilder() {
             boolean shouldFail = false;
             public void setIncludeIndexes(List<String> includeIndexes) {
@@ -322,6 +284,14 @@ public class TaskManagerTest {
                                     Collections.singletonList(url.getPath().substring(1))));
                     }
                 }.start();
+            }
+
+            public void unloadExperiment(String accession) throws AtlasUnloaderException {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
+                //To change body of implemented methods use File | Settings | File Templates.
             }
         });
 

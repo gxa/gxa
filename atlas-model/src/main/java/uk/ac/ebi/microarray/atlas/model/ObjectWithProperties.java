@@ -19,30 +19,18 @@
  *
  * http://gxa.github.com/gxa
  */
+package uk.ac.ebi.microarray.atlas.model;
 
-package uk.ac.ebi.gxa.netcdf.generator;
+import java.util.List;
 
 /**
- * An exception that occurs whenever something went wrong during NetCDF
- * generation
- *
- * @author Tony Burdett
- * @date 28-Sep-2009
+ * Base interface for something having properties, like assays and samples
+ * @author pashky
  */
-public class NetCDFGeneratorException extends Exception {
-  public NetCDFGeneratorException() {
-    super();
-  }
+public interface ObjectWithProperties {
 
-  public NetCDFGeneratorException(String s) {
-    super(s);
-  }
-
-  public NetCDFGeneratorException(String s, Throwable throwable) {
-    super(s, throwable);
-  }
-
-  public NetCDFGeneratorException(Throwable throwable) {
-    super(throwable);
-  }
+    public List<Property> getProperties();
+    
+    public void setProperties(List<Property> properties);
+    
 }

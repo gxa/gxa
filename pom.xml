@@ -166,7 +166,6 @@
     <modules>
         <module>atlas-index-api</module>
         <module>indexbuilder</module>
-        <module>netcdf-generator</module>
         <module>atlas-web</module>
         <module>atlas-archetype</module>
         <module>atlas-loader</module>

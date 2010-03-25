@@ -143,7 +143,7 @@ public class NetCDFReader {
          */
         experiment.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
             int lastDesignElement = -1;
-            double [] lastData = null;
+            float [] lastData = null;
             public double getExpression(int designElementId, int assayId) {
                 if(lastData != null && designElementId == lastDesignElement)
                     return lastData[assayId];
@@ -153,7 +153,7 @@ public class NetCDFReader {
                 originBDC[0] = designElementId;
                 shapeBDC[0] = 1;
                 try {
-                    lastData = (double[])varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(double.class);
+                    lastData = (float[])varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
                 } catch(IOException e) {
                     throw new RuntimeException("Exception during matrix load", e);
                 } catch (InvalidRangeException e) {

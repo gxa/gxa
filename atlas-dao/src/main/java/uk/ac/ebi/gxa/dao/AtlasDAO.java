@@ -34,7 +34,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -198,18 +197,6 @@ public class AtlasDAO {
             ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
                     "AND a.accession=?";
 
-
-    // expression value queries
-    public static final String EXPRESSION_VALUES_BY_RELATED_ASSAYS =
-            "SELECT ev.assayid, ev.designelementid, ev.value " +
-                    "FROM a2_expressionvalue ev " +
-                    "WHERE ev.assayid IN (:assayids)";
-    public static final String EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY =
-            "SELECT ev.assayid, ev.designelementid, ev.value " +
-                    "FROM A2_Expressionvalue ev " +
-                    "JOIN a2_assay a ON a.assayid = ev.assayid " +
-                    "WHERE a.experimentid=? AND a.arraydesignid=?";
-
     // sample queries
     public static final String SAMPLES_BY_ASSAY_ACCESSION =
             "SELECT s.accession, s.species, s.channel, s.sampleid " +
@@ -264,7 +251,7 @@ public class AtlasDAO {
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
-            "SELECT de.arraydesignid, de.designelementid, de.accession, de.geneid " +
+            "SELECT de.arraydesignid, de.designelementid, de.accession, de.name, de.geneid " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid IN (:arraydesignids)";
     public static final String DESIGN_ELEMENTS_BY_GENEID =
@@ -744,61 +731,6 @@ public class AtlasDAO {
         if (assays.size() > 0) {
             fillOutAssays(assays);
         }
-    }
-
-    public void getExpressionValuesForAssays(List<Assay> assays) {
-        // map assays to assay id
-        Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
-        for (Assay assay : assays) {
-            // index this assay
-            assaysByID.put(assay.getAssayID(), assay);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (assay.getExpressionValues() == null) {
-                assay.setExpressionValues(new HashMap<Integer, Float>());
-            }
-        }
-
-        // maps properties to assays
-        AssayExpressionValueMapper assayExpressionValueMapper = new AssayExpressionValueMapper(assaysByID);
-
-        // query template for assays
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // if we have more than 'maxQueryParams' assays, split into smaller queries
-        List<Integer> assayIDs = new ArrayList<Integer>(assaysByID.keySet());
-        boolean done = false;
-        int startpos = 0;
-        int endpos = maxQueryParams;
-
-        while (!done) {
-            List<Integer> assayIDsChunk;
-            if (endpos > assayIDs.size()) {
-                // we've reached the last segment, so query all of these
-                assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
-                done = true;
-            }
-            else {
-                // still more left - take next sublist and increment counts
-                assayIDsChunk = assayIDs.subList(startpos, endpos);
-                startpos = endpos;
-                endpos += maxQueryParams;
-            }
-
-            // now query for properties that map to one of the samples in the sublist
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("assayids", assayIDsChunk);
-            namedTemplate.query(EXPRESSION_VALUES_BY_RELATED_ASSAYS, propertyParams, assayExpressionValueMapper);
-        }
-    }
-
-    public Map<Integer, Map<Integer, Float>> getExpressionValuesByExperimentAndArray(
-            int experimentID, int arrayDesignID) {
-        Object results = template.query(EXPRESSION_VALUES_BY_EXPERIMENT_AND_ARRAY,
-                                        new Object[]{experimentID, arrayDesignID},
-                                        new ExpressionValueMapper());
-
-        return (Map<Integer, Map<Integer, Float>>) results;
     }
 
     public List<Sample> getSamplesByAssayAccession(String assayAccession) {
@@ -1636,7 +1568,7 @@ public class AtlasDAO {
 
             // also initialize design elements is null - once this method is called, you should never get an NPE
             if (array.getDesignElements() == null) {
-                array.setDesignElements(new HashMap<Integer, String>());
+                array.setDesignElements(new HashMap<String, Integer>());
             }
             if (array.getGenes() == null) {
                 array.setGenes(new HashMap<Integer, List<Integer>>());
@@ -2064,27 +1996,6 @@ public class AtlasDAO {
         }
     }
 
-    private class AssayExpressionValueMapper implements RowMapper {
-        private Map<Integer, Assay> assaysByID;
-
-        public AssayExpressionValueMapper(Map<Integer, Assay> assaysByID) {
-            this.assaysByID = assaysByID;
-        }
-
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            // get assay ID key
-            int assayID = resultSet.getInt(1);
-            // get design element id key
-            int designElementID = resultSet.getInt(2);
-            // get expression value
-            float value = resultSet.getFloat(3);
-
-            assaysByID.get(assayID).getExpressionValues().put(designElementID, value);
-
-            return null;
-        }
-    }
-
     private class SampleMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Sample sample = new Sample();
@@ -2186,14 +2097,16 @@ public class AtlasDAO {
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            int assayID = resultSet.getInt(1);
+            int arrayID = resultSet.getInt(1);
 
             Integer id = resultSet.getInt(2);
             String acc = resultSet.getString(3);
-            Integer geneId = resultSet.getInt(4);
+            String name = resultSet.getString(4);
+            Integer geneId = resultSet.getInt(5);
 
-            ArrayDesign ad = arrayByID.get(assayID);
-            ad.getDesignElements().put(id, acc);
+            ArrayDesign ad = arrayByID.get(arrayID);
+            ad.getDesignElements().put(acc, id);
+            ad.getDesignElements().put(name, id);
             ad.getGenes().put(id, Collections.singletonList(geneId)); // TODO: as of today, we have one gene per de
 
             return null;
@@ -2335,95 +2248,6 @@ public class AtlasDAO {
             property.setFactorValue(resultSet.getInt(5) > 0);
             return property;
         }
-    }
-
-    //AZ:to be moved to model
-
-    public static class ExpressionValueMatrix {
-        public static class ExpressionValue {
-            //can I just leave it here without get/set methods?
-            public int assayID;
-            public int designElementID;
-            public double value;
-
-            public ExpressionValue(int assayID, int designElementID, float value) {
-                this.assayID = assayID;
-                this.designElementID = designElementID;
-                this.value = value;
-            }
-        }
-
-        public static class DesignElement {
-            public int designElementID;
-            public int geneID;
-
-            public DesignElement(int designElementID, int geneID) {
-                this.designElementID = designElementID;
-                this.geneID = geneID;
-            }
-        }
-
-        public List<ExpressionValue> expressionValues;
-        public List<DesignElement> designElements;
-        public List<Integer> assays;
-
-        public ExpressionValueMatrix() {
-            expressionValues = new ArrayList<ExpressionValue>();
-            designElements = new ArrayList<DesignElement>();
-            assays = new ArrayList<Integer>();
-        }
-    }
-
-
-    public class AssayRowMapper implements ParameterizedRowMapper<Integer> {
-        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return rs.getInt("AssayID");
-        }
-    }
-
-    public class DesignElementRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.DesignElement> {
-        public ExpressionValueMatrix.DesignElement mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new ExpressionValueMatrix.DesignElement(rs.getInt("DesignElementID")
-                    , rs.getInt("GeneID"));
-        }
-    }
-
-    public class ExpressionValueRowMapper implements ParameterizedRowMapper<ExpressionValueMatrix.ExpressionValue> {
-        public ExpressionValueMatrix.ExpressionValue mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new ExpressionValueMatrix.ExpressionValue(rs.getInt("AssayID")
-                    , rs.getInt("DesignElementID")
-                    , rs.getFloat("Value"));
-        }
-    }
-
-    public ExpressionValueMatrix getExpressionValueMatrix(int ExperimentID, int ArrayDesignID) {
-
-        ExpressionValueMatrix result = new ExpressionValueMatrix();
-
-        SimpleJdbcCall procedure1 =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASAPI.A2_EXPRESSIONVALUEGET")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("EXPERIMENTID")
-                        .useInParameterNames("ARRAYDESIGNID")
-                        .declareParameters(new SqlParameter("EXPERIMENTID", Types.INTEGER))
-                        .declareParameters(new SqlParameter("ARRAYDESIGNID", Types.INTEGER))
-                        .returningResultSet("ASSAYS", new AssayRowMapper())
-                        .returningResultSet("DESIGNELEMENTS", new DesignElementRowMapper())
-                        .returningResultSet("EXPRESSIONVALUES", new ExpressionValueRowMapper());
-
-        // map parameters...
-        MapSqlParameterSource params1 = new MapSqlParameterSource()
-                .addValue("EXPERIMENTID", ExperimentID)
-                .addValue("ARRAYDESIGNID", ArrayDesignID);
-
-        Map<String, Object> proc_result = procedure1.execute(params1);
-
-        result.assays = (List<Integer>) proc_result.get("ASSAYS");
-        result.designElements = (List<ExpressionValueMatrix.DesignElement>) proc_result.get("DESIGNELEMENTS");
-        result.expressionValues = (List<ExpressionValueMatrix.ExpressionValue>) proc_result.get("EXPRESSIONVALUES");
-
-        return result;
     }
 
 }

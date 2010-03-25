@@ -38,10 +38,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -67,7 +63,6 @@ public class LoaderDriver {
     private static boolean do_load = false;
     private static boolean do_delete = false;
     private static boolean do_index = false;
-    private static boolean do_netcdfs = false;
     private static boolean do_analytics = false;
 
     public static void main(String[] args) {
@@ -157,18 +152,6 @@ public class LoaderDriver {
                     throw new ParseException("You must specify -all to build the index");
                 }
             }
-            if (commandLine.hasOption("netcdf")) {
-                do_netcdfs = true;
-                if (commandLine.hasOption('a')) {
-                    accession = commandLine.getOptionValue('a');
-                }
-                else if (commandLine.hasOption("all")) {
-                    accession = null;
-                }
-                else {
-                    throw new ParseException("You must specify the accession or 'all' to generate NetCDFs");
-                }
-            }
             if (commandLine.hasOption("analytics")) {
                 do_analytics = true;
                 if (commandLine.hasOption('a')) {
@@ -210,8 +193,6 @@ public class LoaderDriver {
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
-        // netcdfs
-        final NetCDFGenerator generator = (NetCDFGenerator) factory.getBean("netcdfGenerator");
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
         // solrIndex
@@ -344,62 +325,6 @@ public class LoaderDriver {
                 solrContainer.shutdown();
             }
             catch (IndexBuilderException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // run the NetCDFGenerator
-        if (do_netcdfs) {
-            final long netStart = System.currentTimeMillis();
-            NetCDFGeneratorListener listener = new NetCDFGeneratorListener() {
-                public void buildSuccess(NetCDFGenerationEvent event) {
-                    final long netEnd = System.currentTimeMillis();
-
-                    String total = new DecimalFormat("#.##").format(
-                            (netEnd - netStart) / 60000);
-                    System.out.println(
-                            "NetCDFs generated successfully in " + total + " mins.");
-
-                    try {
-                        generator.shutdown();
-                    }
-                    catch (NetCDFGeneratorException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                public void buildError(NetCDFGenerationEvent event) {
-                    System.out.println("NetCDF Generation failed!");
-                    for (Throwable t : event.getErrors()) {
-                        t.printStackTrace();
-                    }
-
-                    try {
-                        generator.shutdown();
-                    }
-                    catch (NetCDFGeneratorException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                public void buildProgress(String progressStatus) {
-                    System.out.println("NetCDF progress now: " + progressStatus);
-                }
-            };
-
-            if (accession.equals("ALL")) {
-                generator.generateNetCDFs(listener);
-            }
-            else {
-                generator.generateNetCDFsForExperiment(accession, listener);
-            }
-        }
-        else {
-            // in case we don't run netCDF generator
-            try {
-                generator.shutdown();
-            }
-            catch (NetCDFGeneratorException e) {
                 e.printStackTrace();
             }
         }

@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -36,10 +35,8 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonAffiliationHandler
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
@@ -48,14 +45,13 @@ import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
 import uk.ac.ebi.gxa.loader.handler.sdrf.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
-import uk.ac.ebi.gxa.netcdf.generator.helper.DataSlice;
-import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFFormatter;
-import uk.ac.ebi.gxa.netcdf.generator.helper.NetCDFWriter;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.utils.ValueListHashMap;
+import uk.ac.ebi.gxa.loader.AtlasUnloaderException;
+import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -74,30 +70,8 @@ import java.util.*;
  * @date 26-Aug-2009
  */
 public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
-    private double missingDesignElementsCutoff = 1.0;
-    private File atlasNetCDFRepo;
-
-    public AtlasMAGETABLoader(AtlasDAO atlasDAO, File atlasNetCDFRepo) {
-        super(atlasDAO);
-
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
-    }
-
-    protected double getMissingDesignElementsCutoff() {
-        return missingDesignElementsCutoff;
-    }
-
-    /**
-     * Sets the percentage of design elements that are allowed to be "missing" in the database before this load fails.
-     * This is set at 1.0 (i.e. 100%) by default, so no job will ever fail.  You should normally override this, as high
-     * percentages of missing design elements usually indicates an error, either in the datafile or else during array
-     * design loading.
-     *
-     * @param missingDesignElementsCutoff the percentage of design elements that are allowed to be absent in the
-     *                                    database before a load fails.
-     */
-    public void setMissingDesignElementsCutoff(double missingDesignElementsCutoff) {
-        this.missingDesignElementsCutoff = missingDesignElementsCutoff;
+    public AtlasMAGETABLoader(DefaultAtlasLoader loader) {
+        super(loader);
     }
 
     /**
@@ -177,7 +151,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
 
             // parsing completed, so now write the objects in the cache
             try {
-                writeObjects(cache);
+                writeObjects(cache, listener);
 
                 if (listener != null) {
                     listener.setProgress("Done");
@@ -229,77 +203,37 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                                  AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
 
-    protected void writeObjects(AtlasLoadCache cache) throws AtlasLoaderServiceException {
+    protected void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
-        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays());
+        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays(), listener);
 
         // start the load(s)
         boolean success = false;
         startLoad(cache.fetchExperiment().getAccession());
 
         try {
-            // prior to writing, do some data cleanup to handle missing design elements.
-            // this is workaround for legacy data, can be removed when loader is improved
-            getLog().info("Cleaning up data - removing any expression values linked " +
-                    "to design elements missing from the database");
-            long start = System.currentTimeMillis();
-
-            Map<String,Map<Integer, String>> deAccsByAD = new HashMap<String,Map<Integer,String>>();
-            Map<String,Map<Integer, String>> deNamesByAD = new HashMap<String,Map<Integer,String>>();
-
-            for(Assay assay : cache.fetchAllAssays()) {
-                // get the array design for this assay
-                String arrayDesignAccession = assay.getArrayDesignAccession();
-
-                if(!deAccsByAD.containsKey(arrayDesignAccession)) {
-                    deAccsByAD.put(arrayDesignAccession,
-                        getAtlasDAO().getDesignElementsByArrayAccession(arrayDesignAccession));
-
-                    deNamesByAD.put(arrayDesignAccession,
-                        getAtlasDAO().getDesignElementNamesByArrayAccession(arrayDesignAccession));
-                }
-
-                // TODO: pretty dirty here, assumes all assays have the same DE content
-                Map<String, Float> evsByDEref = assay.getExpressionValuesByDesignElementReference();
-                Map<Integer,Float> evsByDEID = new HashMap<Integer,Float>();
-
-                deAccsByAD.get(arrayDesignAccession).values().retainAll(evsByDEref.keySet());
-                for (Map.Entry<Integer, String> deAcc : deAccsByAD.get(arrayDesignAccession).entrySet()) {
-                    evsByDEID.put(deAcc.getKey(), evsByDEref.get(deAcc.getValue()));
-                }
-
-                deNamesByAD.get(arrayDesignAccession).values().retainAll(evsByDEref.keySet());
-                for (Map.Entry<Integer, String> deName : deNamesByAD.get(arrayDesignAccession).entrySet()) {
-                    evsByDEID.put(deName.getKey(), evsByDEref.get(deName.getValue()));
-                }
-
-                if(evsByDEID.size() == 0) {
-                    getLog().info("No design elements found in DB for array design " + arrayDesignAccession);
-                }
-                assay.setExpressionValues(evsByDEID);
-            }
-            long end = System.currentTimeMillis();
-
-            String total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Data cleanup took " + total + "s.");
-
             // now write the cleaned up data
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
-
             // first, load experiment
-            start = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             getLog().info("Writing experiment " + cache.fetchExperiment().getAccession());
+            if(listener != null)
+                listener.setProgress("Writing experiment " + cache.fetchExperiment().getAccession());
+
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
-            end = System.currentTimeMillis();
-            total = new DecimalFormat("#.##").format((end - start) / 1000);
+            long end = System.currentTimeMillis();
+            String total = new DecimalFormat("#.##").format((end - start) / 1000);
             getLog().info("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
 
             // next, write assays
             start = System.currentTimeMillis();
             getLog().info("Writing " + cache.fetchAllAssays().size() + " assays");
+            if(listener != null)
+                listener.setProgress("Writing " + cache.fetchAllAssays().size() + " assays");
+
             for (Assay assay : cache.fetchAllAssays()) {
                 getAtlasDAO().writeAssay(assay);
             }
@@ -310,6 +244,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             // finally, load samples
             start = System.currentTimeMillis();
             getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
+            if(listener != null)
+                listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
                     String experimentAccession = cache.fetchExperiment().getAccession();
@@ -324,17 +260,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             // write data to netcdf
             try {
                 start = System.currentTimeMillis();
-                getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
-                writeExperimentNetCDF(cache);
+                getLog().info("Writing NetCDF...");
+                writeExperimentNetCDF(cache, listener);
                 end = System.currentTimeMillis();
                 total = new DecimalFormat("#.##").format((end - start) / 1000);
                 getLog().info("Wrote NetCDF in {}s.", total);
-            } catch (NetCDFGeneratorException e) {
-                getLog().error("Failed to generate netcdf", e);
-            } catch (IOException e) {
+            } catch (NetCDFCreatorException e) {
                 getLog().error("Failed to generate netcdf", e);
             }
-
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
@@ -345,6 +278,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             success = true;
         } catch (Throwable t) {
             getLog().error("Error!", t);
+            throw new AtlasLoaderServiceException(t);
         }
         finally {
             // end the load(s)
@@ -352,86 +286,59 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache) throws NetCDFGeneratorException, IOException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
-        for(Assay assay : assays) {
-            Assay cacheAssay = cache.fetchAssay(assay.getAccession());
-            assay.setExpressionValues(cacheAssay.getExpressionValues());
-        }
-
-        Map<String, List<Assay>> assaysByArrayDesign = new HashMap<String,List<Assay>>();
-
+        ValueListHashMap<String, Assay> assaysByArrayDesign = new ValueListHashMap<String, Assay>();
         for(Assay assay : assays) {
             String adAcc = assay.getArrayDesignAccession();
             if(null != adAcc) {
-                if(!assaysByArrayDesign.containsKey(adAcc))
-                    assaysByArrayDesign.put(adAcc, new ArrayList<Assay>());
-
-                assaysByArrayDesign.get(adAcc).add(assay);
+                assaysByArrayDesign.put(adAcc, assay);
             } else {
-                throw new NetCDFGeneratorException("ArrayDesign accession missing");
+                throw new NetCDFCreatorException("ArrayDesign accession missing");
             }
         }
 
+        Experiment experiment = getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession());
+        String version = getAtlasLoader().getVersionFromMavenProperties();
+
         for(String adAcc : assaysByArrayDesign.keySet()) {
-            // create a data slicer to slice up this experiment
-            DataSlice dataSlice = new DataSlice(getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession()),
-                                                getAtlasDAO().getArrayDesignByAccession(adAcc));
+            List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
+            getLog().info("Starting NetCDF for " + cache.fetchExperiment().getAccession() +
+                    " and " + adAcc + " (" + adAssays.size() + " assays)");
 
-            dataSlice.storeAssays(assaysByArrayDesign.get(adAcc));
+            if(listener != null)
+                listener.setProgress("Writing NetCDF for " +  cache.fetchExperiment().getAccession() +
+                    " and " + adAcc);
 
-            for (Assay assay : assaysByArrayDesign.get(adAcc)) {
-                // fetch samples for this assay
-                List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(assay.getAccession());
-                for (Sample sample : samples) {
-                    // and store
-                    dataSlice.storeSample(assay, sample);
-                }
-            }
+            NetCDFCreator netCdfCreator = new NetCDFCreator();
 
-            Map<Integer, Map<Integer,Float>> evs = new HashMap<Integer,Map<Integer,Float>>();
+            netCdfCreator.setAssays(adAssays);
+            for (Assay assay : adAssays)
+                for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()))
+                    netCdfCreator.setSample(assay, sample);
 
-            for(Assay assay : assaysByArrayDesign.get(adAcc)) {
-                evs.put(assay.getAssayID(),
-                        assay.getExpressionValues());
-            }
+            netCdfCreator.setArrayDesign(getAtlasDAO().getArrayDesignByAccession(adAcc));
+            netCdfCreator.setExperiment(experiment);
+            netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
+            netCdfCreator.setVersion(version);
 
-            dataSlice.storeExpressionValues(evs);
-
-            NetcdfFileWriteable netCDF = createNetCDF(
-                    dataSlice.getExperiment(),
-                    dataSlice.getArrayDesign());
-
-            // format it with parameters suitable for our data
-            NetCDFFormatter formatter = new NetCDFFormatter();
-            formatter.formatNetCDF(netCDF, dataSlice);
-
-            // actually create the netCDF
-            netCDF.create();
-
-            // write the data from our data slice to this netCDF
-            try {
-                NetCDFWriter writer = new NetCDFWriter();
-                writer.writeNetCDF(netCDF, dataSlice);
-            }
-            finally {
-                // save and close the netCDF
-                netCDF.close();
-            }
-            getLog().info("Finalising NetCDF changes for " + dataSlice.getExperiment().getAccession() +
-                    " and " + dataSlice.getArrayDesign().getAccession());
+            netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
+            
+            getLog().info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
+                    " and " + adAcc);
         }
     }
 
-    private void validateLoad(Experiment experiment, Collection<Assay> assays) throws AtlasLoaderServiceException {
+    private void validateLoad(Experiment experiment, Collection<Assay> assays, AtlasLoaderServiceListener listener)
+            throws AtlasLoaderServiceException {
         if (experiment == null) {
             String msg = "Cannot load without an experiment";
             getLog().error(msg);
             throw new AtlasLoaderServiceException(msg);
         }
 
-        checkExperiment(experiment.getAccession());
+        checkExperiment(experiment.getAccession(), listener);
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : assays) {
@@ -450,17 +357,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             if(assay.getProperties() == null || assay.getProperties().size() == 0) {
                 throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
-
-            if(assay.getExpressionValues() == null &&
-                    assay.getExpressionValuesByDesignElementReference() == null) {
-                throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no expression values! All assays need some.");
-            }
         }
 
         // all checks passed if we got here
     }
 
-    private void checkExperiment(String accession) throws AtlasLoaderServiceException {
+    private void checkExperiment(String accession, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
@@ -491,7 +393,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 if (getAtlasDAO().getExperimentByAccession(accession) != null) {
                     // experiment genuinely was already in the DB, so remove old experiment
                     getLog().info("Deleting existing version of experiment " + accession);
-                    getAtlasDAO().deleteExperiment(accession);
+                    try {
+                        if(listener != null)
+                            listener.setProgress("Unloading existing version of experiment " + accession);
+                        getAtlasLoader().unloadExperiment(accession);
+                    } catch (AtlasUnloaderException e) {
+                        throw new AtlasLoaderServiceException(e);
+                    }
                 }
             }
         }
@@ -524,60 +432,5 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     private void endLoad(String accession, boolean success) {
         getLog().info("Updating load_monitor: ending load for " + accession);
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
-    }
-
-    private NetcdfFileWriteable createNetCDF(Experiment experiment,
-                                             ArrayDesign arrayDesign)
-            throws IOException {
-
-        // repository location exists?
-        if (!getRepositoryLocation().exists()) {
-            if (!getRepositoryLocation().mkdirs()) {
-                throw new IOException("Could not read create directory at " +
-                        getRepositoryLocation().getAbsolutePath());
-            }
-        }
-
-        String netcdfName =
-                experiment.getExperimentID() + "_" +
-                        arrayDesign.getArrayDesignID() + ".nc";
-        String netcdfPath =
-                new File(getRepositoryLocation(), netcdfName).getAbsolutePath();
-        NetcdfFileWriteable netcdfFile =
-                NetcdfFileWriteable.createNew(netcdfPath, false);
-
-        // add metadata global attributes
-        netcdfFile.addGlobalAttribute(
-                "CreateNetCDF_VERSION",
-                "test");
-        netcdfFile.addGlobalAttribute(
-                "experiment_accession",
-                experiment.getAccession());
-//    netcdfFile.addGlobalAttribute(
-//        "quantitationType",
-//        qtType); // fixme: quantitation type lookup required
-        netcdfFile.addGlobalAttribute(
-                "ADaccession",
-                arrayDesign.getAccession());
-        netcdfFile.addGlobalAttribute(
-                "ADid",
-                arrayDesign.getArrayDesignID());
-        netcdfFile.addGlobalAttribute(
-                "ADname",
-                arrayDesign.getName());
-
-        return netcdfFile;
-    }
-
-    private File getRepositoryLocation() {
-        return getAtlasNetCDFRepo();
-    }
-
-    public File getAtlasNetCDFRepo() {
-        return atlasNetCDFRepo;
-    }
-
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 }

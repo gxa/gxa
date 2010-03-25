@@ -20,14 +20,16 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.loader.utils;
+package uk.ac.ebi.gxa.loader.cache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.loader.utils.QuantitationTypeDictionary;
+import uk.ac.ebi.gxa.utils.FlattenIterator;
 
 import java.io.*;
 import java.net.URL;
@@ -38,15 +40,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.  This is
- * accomplished by use of a factory method to generate a single DataMatrixFileBuffer object per-file.  On construction,
- * the buffer is initialized - this starts a process that runs in a new thread, parsing the file for headers and doing a
- * dictionary lookup for quantitation types in the file. Once initialization has completed, data can be quickly and
- * easily read out of the file by calling the {@link #readExpressionValues(String...)}  method, passing in the id of the
- * referenced value (usually an assay, but sometimes the associated scan) you wish to read (which should be obtained
- * from the SDRF file, and binds to particular columns in the data matrix file).  You can call {@link
- * #readExpressionValues(String...)} immediately once your bufer object is returned, but this method blocks until
- * initialization has completed.
+ * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
  *
  * @author Tony Burdett
  * @date 03-Sep-2009
@@ -62,7 +56,7 @@ public class DataMatrixFileBuffer {
      * expression values for (so the correct quantitation type).  This is only used in parsing - don't use it to look up
      * the array index from expression values!
      */
-    private Map<String, Integer> refToEVColumn;
+    private Map<String, Integer> refToEVColumn = new HashMap<String, Integer>();
 
     /**
      * An array of reference names - "references" will normally be assays, hybs or scans depending on the type
@@ -70,23 +64,13 @@ public class DataMatrixFileBuffer {
      * unique values.
      */
     private String[] referenceNames;
-    /**
-     * An array of design element names.  This array has the same ordering as design elements in the data matrix file
-     * this object buffers.
-     */
-    private String[] designElementNames;
-    /**
-     * A 2D array of floats.  The outer array orders elements corresponding to the reference column names, whereas the
-     * inner array orders values corresponding to design elements.  Only relevant values are stored, so the outer
-     * 'reference-indexed' array does not have the same number of columns as the data matrix file
-     */
-    private float[][] expressionValues;
 
-    private Log log = LogFactory.getLog(this.getClass());
+    private LinkedList<DataMatrixBlock> dataBlocks = new LinkedList<DataMatrixBlock>();
+
+    private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
     public DataMatrixFileBuffer(URL dataMatrixURL, String fileName) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
-        this.refToEVColumn = new HashMap<String, Integer>();
         this.fileName = fileName;
 
         init();
@@ -94,7 +78,6 @@ public class DataMatrixFileBuffer {
 
     public DataMatrixFileBuffer(URL dataMatrixURL) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
-        this.refToEVColumn = new HashMap<String, Integer>();
         this.fileName = null;
 
         init();
@@ -107,7 +90,7 @@ public class DataMatrixFileBuffer {
      *
      * @return the reference column name
      */
-    public String readReferenceColumnName() {
+    public String getReferenceColumnName() {
         return referenceColumnName;
     }
 
@@ -117,69 +100,31 @@ public class DataMatrixFileBuffer {
      *
      * @return the 'references' in this data file, which should correspond to the e.g. hybridization name in the SDRF
      */
-    public String[] readReferences() {
+    public String[] getReferences() {
         return referenceNames;
     }
 
-    /**
-     * Returns an array of design element names observed in the data file.  This ordering exactly matches the ordering
-     * of returned expression values, so that for each expression value.
-     * <p/>
-     * Design element names are lazily instantiated during reading, so if the data matrix file hasn't been read once
-     * already the result may be null
-     *
-     * @return the design element names listed in this file
-     */
-    public String[] readDesignElements() {
-        return designElementNames;
+    public Iterable<DataMatrixBlock> getDataBlocks() {
+        return dataBlocks;
     }
 
-    /**
-     * Read off expression values for the column reference.  The reference will normally be a hyb, assay or scan column
-     * from the SDRF file.  This buffer object automatically knows which columns must be read, as a dictionary lookup on
-     * column names was performed on initialization.  You can configure the dictionary of terms to use manually - for
-     * more on this see {@link QuantitationTypeDictionary}.  This method blocks until initialization has completed, and
-     * this buffer knows which columns to read to obtain expression values.
-     * <p/>
-     * The result of this operation is a two-dimensional array of floats.  This 2D array has defined ordering - the
-     * outer array is ordered by the design elements in this file.  You can map to these by calling {@link
-     * #readDesignElements()} - this returns an array of string representing the design element names, with the same
-     * ordering as the outer array returned.  The inner array of floats has the same ordering as the references passed
-     * as a parameter to this method.
-     *
-     * @param references the references of the assays you wish to find expression values for
-     * @return an array of float expression values, with specific ordering
-     */
-    public float[][] readExpressionValues(String... references) {
-        // buffer was initialized, so grab results from expression values buffer
-
-        // result is an array of float arrays, sized by the number of references passed
-        float[][] results = new float[references.length][designElementNames.length];
-
-        // loop over indices to match ref names
-        for (int resultIndex = 0; resultIndex < references.length; resultIndex++) {
-            String reference = references[resultIndex];
-            // get index of this reference
-            for (int bufferRefIndex = 0; bufferRefIndex < referenceNames.length; bufferRefIndex++) {
-                if (referenceNames[bufferRefIndex].equals(reference) && expressionValues[bufferRefIndex] != null) {
-                    // update our result with the values that are already buffered
-                    results[resultIndex] = expressionValues[bufferRefIndex];
-                    break;
-                }
+    public Iterable<String> getDesignElements() {
+        return new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return new FlattenIterator<DataMatrixBlock, String>(dataBlocks.iterator()) {
+                    public Iterator<String> inner(DataMatrixBlock dataMatrixBlock) {
+                        return Arrays.asList(dataMatrixBlock.designElements).subList(0, dataMatrixBlock.size()).iterator();
+                    }
+                };
             }
-        }
-
-        return results;
-    }
-
-    public void clear() {
+        };
     }
 
     private InputStream openStream() throws IOException {
         if(fileName == null)
             return dataMatrixURL.openStream();
 
-        // HACK: fix bad ArrayExpress URLs like 
+        // HACK: fix bad ArrayExpress URLs like
         // ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/TABM/E-TABM-733/TABM/E-TABM-733/E-TABM-733.processed.1.zip
         String strDataMatrixURL = dataMatrixURL.toExternalForm();
         Pattern badArrayExpressURLPattern =
@@ -189,7 +134,7 @@ public class DataMatrixFileBuffer {
         if(m.matches()) {
             strDataMatrixURL = "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/" +
                     m.group(1) + "/" + m.group(2) + "/" + m.group(2) + "." + m.group(3);
-            
+
             dataMatrixURL = new URL(strDataMatrixURL);
         }
 
@@ -199,14 +144,9 @@ public class DataMatrixFileBuffer {
             if(zi.getName().toLowerCase().endsWith(fileName.toLowerCase())) {
                 return zistream;
             }
+            zistream.closeEntry();
         }
-
-        try {
-            zistream.close();
-        } catch (IOException e) {
-            //
-        }
-
+        zistream.close();
         throw new FileNotFoundException("Can't find file " + fileName + " in archive " + dataMatrixURL);
     }
 
@@ -255,10 +195,10 @@ public class DataMatrixFileBuffer {
 
                     if(possibleTypes.size() > 1) {
                         sb.append("Possible types: [");
-                         for (String pt : possibleTypes) {
-                            sb.append(pt).append(", ");
-                        }
-                        sb.append("]");
+                    for (String pt : possibleTypes) {
+                        sb.append(pt).append(", ");
+                    }
+                    sb.append("]");
                     }
 
                     if(allTypes.size() > 1) {
@@ -320,13 +260,6 @@ public class DataMatrixFileBuffer {
 
             // now we've sorted out our headers and the ref columns
 
-            // do a quick read to count the number of lines in the file, so we can initialize other arrays
-            int lineCount = countNumberOfLinesInFile();
-
-            // initialize arrays using this count - it may be a few too big, but we can trim later
-            designElementNames = new String[lineCount];
-            expressionValues = new float[referenceNames.length][designElementNames.length];
-
             // read all the data into the buffer...
             readFileIntoBuffer(reader);
         }
@@ -360,24 +293,6 @@ public class DataMatrixFileBuffer {
        }
     }
 
-    private int countNumberOfLinesInFile() throws IOException {
-        LineNumberReader reader = null;
-        try {
-            // create reader to count lines
-            reader = new LineNumberReader(new InputStreamReader(openStream()));
-            while (reader.readLine() != null) {
-                // simply loops to last line of the file
-            }
-            // and returns line number
-            return reader.getLineNumber();
-        }
-        finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
-    }
-
     /**
      * Reads the entire contents of a data matrix file into memory, utlisiing a two dimension float array for the data.
      * The float[][] "expressionValues" should have been pre-initialised with AT LEAST enough elements to hold all the
@@ -390,16 +305,15 @@ public class DataMatrixFileBuffer {
      */
     private void readFileIntoBuffer(BufferedReader reader) throws ParseException {
         try {
-            log.info("Reading data matrix from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + "...");
+            log.info("Reading data matrix from " + dataMatrixURL + "...");
 
             // read data - track the design element index in order to store axis info
-            int deIndex = 0;
             String line;
             while ((line = reader.readLine()) != null) {
                 // ignore empty lines
                 if (!line.trim().equals("")) {
                     if (!line.startsWith("#")) {
-                        String[] tokens = line.split("\t");
+                        final String[] tokens = line.split("\t");
 
                         if (tokens.length > 0) {
                             // ignore header lines
@@ -416,37 +330,32 @@ public class DataMatrixFileBuffer {
                                 log.debug("Skipping line, looks like a header [" + line + "]");
                             }
                             else {
-                                // this isn't a header - read values out
-                                designElementNames[deIndex] = tokens[0];
-
-                                // now, read out the expression values
-                                for (int refIndex = 0; refIndex < referenceNames.length; refIndex++) {
-                                    String reference = referenceNames[refIndex];
-
-                                    // get the float value from the next ref column
-                                    try {
-                                        float ev = Float.parseFloat(tokens[refToEVColumn.get(reference)]);
-                                        // and set the float at the appropriate coordinate
-                                        expressionValues[refIndex][deIndex] = ev;
-                                    } catch(NumberFormatException e) {
-                                        expressionValues[refIndex][deIndex] = -1000000;
+                                DataMatrixBlock block;
+                                if(dataBlocks.isEmpty()) {
+                                    block = new DataMatrixBlock(10000, referenceNames.length);
+                                    dataBlocks.add(block);
+                                } else {
+                                    block = dataBlocks.getLast();
+                                    if(block.size() == block.capacity()) {
+                                        block = new DataMatrixBlock(1000, referenceNames.length);
+                                        dataBlocks.add(block);
                                     }
                                 }
 
-
-                                // and increment our design element count
-                                deIndex++;
+                                int position = block.size++;
+                                block.designElements[position] = tokens[0];
+                                for(int i = 0; i < referenceNames.length; ++i) {
+                                    try {
+                                        block.expressionValues[position * referenceNames.length + i]
+                                                = Float.parseFloat(tokens[refToEVColumn.get(referenceNames[i])]);
+                                    } catch(NumberFormatException e) {
+                                        block.expressionValues[position * referenceNames.length + i] =  -1000000f;
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-
-            // we've now read all the data
-            // truncate the design element names and expression value arrays to the correct size
-            designElementNames = resizeArray(designElementNames, deIndex);
-            for (int i = 0; i < expressionValues.length; i++) {
-                expressionValues[i] = resizeArray(expressionValues[i], deIndex);
             }
         }
         catch (IOException e) {
@@ -476,18 +385,6 @@ public class DataMatrixFileBuffer {
                 // ignore
             }
         }
-    }
-
-    private String[] resizeArray(String[] array, int size) {
-        String[] newarray = new String[size];
-        System.arraycopy(array, 0, newarray, 0, Math.min(size, array.length));
-        return newarray;
-    }
-
-    private float[] resizeArray(float[] array, int size) {
-        float[] newarray = new float[size];
-        System.arraycopy(array, 0, newarray, 0, Math.min(size, array.length));
-        return newarray;
     }
 
     private Header[] parseHeaders(BufferedReader reader)

@@ -22,15 +22,17 @@
 
 package uk.ac.ebi.gxa.loader.cache;
 
-import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
+import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
+import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 
-import java.util.*;
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
@@ -41,18 +43,15 @@ import java.net.URL;
 public class AtlasLoadCache {
     private Experiment experiment;
     private ArrayDesignBundle arrayDesignBundle;
-    private Map<String, Assay> assaysByAcc;
-    private Map<String, Sample> samplesByAcc;
-    private Map<String, DataMatrixFileBuffer> dataMatrixBuffers;
-
+    private Map<String, Assay> assaysByAcc = new HashMap<String, Assay>();
+    private Map<String, Sample> samplesByAcc = new HashMap<String, Sample>();
+    private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
+    private Map<Assay, AssayDataMatrixRef> assayDataMap = new HashMap<Assay, AssayDataMatrixRef>();
 
     /**
      * Creates a new cache for storing objects that are to be loaded into the database.
      */
     public AtlasLoadCache() {
-        this.assaysByAcc = new HashMap<String, Assay>();
-        this.samplesByAcc = new HashMap<String, Sample>();
-        this.dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     }
 
     /**
@@ -254,6 +253,14 @@ public class AtlasLoadCache {
         return samplesByAcc.values();
     }
 
+    public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixFileBuffer buffer, int columnIndex) {
+        assayDataMap.put(assay, new AssayDataMatrixRef(buffer, columnIndex));
+    }
+
+    public synchronized Map<Assay, AssayDataMatrixRef> getAssayDataMap() {
+        return assayDataMap;
+    }
+
     /**
      * Clears the cache.  All objects currently stored in this cache will be removed.
      */
@@ -265,9 +272,6 @@ public class AtlasLoadCache {
         assaysByAcc.clear();
         samplesByAcc.clear();
         // clear all our data matrix file buffers
-        for (DataMatrixFileBuffer buffer : dataMatrixBuffers.values()) {
-            buffer.clear();
-        }
         dataMatrixBuffers.clear();
         notifyAll();
     }
