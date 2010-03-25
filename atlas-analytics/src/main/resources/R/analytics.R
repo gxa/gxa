@@ -7,7 +7,7 @@
 ### Post-AEW migration TODOs:
 ### * NChannelSet
 ### * Multiple array designs
-read.atlas.nc <-
+read.atlas.nc <<-
   function (filename, accnum=NULL) {
     require(ncdf)
     require(Biobase)
@@ -26,7 +26,12 @@ read.atlas.nc <-
     scv = get.var.ncdf(nc,"SCV")
 
     de  = get.var.ncdf(nc,"DE")
+    deacc = get.var.ncdf(nc,"DEacc")
     gn  = get.var.ncdf(nc,"GN")
+
+    # make de's unique
+    de[de==0] <- -(1:length(which(de==0)))
+
 
     accnum = att.get.ncdf(nc,varid=0,"experiment_accession")$value
     qt     = att.get.ncdf(nc,varid=0,"quantitationType")$value
@@ -63,7 +68,6 @@ read.atlas.nc <-
     print(paste("Read in EFV:",nrow(efv),"x",ncol(efv)))
     print(paste("Read in SCV:",nrow(scv),"x",ncol(scv)))
 
-
     ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
     exptid = ncinfo[1]
     arraydesignid = ncinfo[2]
@@ -82,7 +86,7 @@ read.atlas.nc <-
 #      }
 #    }
     
-    fDataFrame = data.frame(gn=gn,de=de)
+    fDataFrame = data.frame(gn=gn,de=de, deacc=deacc)
     fData = new("AnnotatedDataFrame", data=fDataFrame)
     featureNames(fData) = de
     pData  = new("AnnotatedDataFrame", data=efscv)
@@ -99,9 +103,13 @@ read.atlas.nc <-
     
     attr(eData, "scv") <- scv           
     attr(eData, "b2a") <- b2a
+
+    aData <- assayDataNew(storage.mode="lockedEnvironment", exprs=bdc)
+    featureNames(aData) <- de
+    sampleNames(aData) <- as
     
     print(paste("Computed phenoData for", paste(varLabels(pData),collapse=", "), nrow(pData), "x", ncol(pData)))
-    return(new("ExpressionSet", exprs=bdc, phenoData=pData, featureData=fData, experimentData=eData))
+    return(new("ExpressionSet", assayData=aData, phenoData=pData, featureData=fData, experimentData=eData))
   }
 
 ### Log function that does not return NAs
