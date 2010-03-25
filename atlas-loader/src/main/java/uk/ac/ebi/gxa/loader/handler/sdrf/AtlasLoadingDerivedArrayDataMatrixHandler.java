@@ -123,24 +123,17 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             String assayName;
                             if (refNodeName.equals("scanname")) {
                                 // this requires mapping the assay upstream of this node to the scan
-                                SDRFNode refNode = null;
-                                while (refNode == null) {
-                                    try {
-                                        refNode = ParsingUtils.waitForSDRFNode(
-                                                refName, refNodeName, investigation.SDRF);
-                                    }
-                                    catch (InterruptedException e) {
-                                        if (investigation.SDRF.getStatus() == Status.FAILED) {
-                                            // generate error item and throw exception
-                                            String message =
-                                                    "SDRF graph failed to parse before scans could be read";
-                                            ErrorItem error =
-                                                    ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                                            .generateErrorItem(message, 511, this.getClass());
+                                // no need to block, since if we are reading data, we've parsed the scans already
+                                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+                                if (refNode == null) {
+                                    // generate error item and throw exception
+                                    String message =
+                                            "Could not find " + refName + " [" + refNodeName + "] in SDRF";
+                                    ErrorItem error =
+                                            ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                    .generateErrorItem(message, 511, this.getClass());
 
-                                            throw new ObjectConversionException(error, true);
-                                        }
-                                    }
+                                    throw new ObjectConversionException(error, true);
                                 }
 
                                 // collect all the possible 'assay' forming nodes
@@ -185,26 +178,6 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
 
                             getLog().trace(
                                     "Updating assay " + assayName + " with expression values, must be stored first...");
-
-                            // try to acquire the assay node from the graph
-                            while (true) {
-                                try {
-                                    if (ParsingUtils.waitForSDRFNode(
-                                            assayName, "hybridizationname", investigation.SDRF) == null) {
-                                        // try again for assay, but if this throws a lookup exception we really throw it
-                                        ParsingUtils.waitForSDRFNode(assayName, "assayname", investigation.SDRF);
-                                        break;
-                                    }
-                                    else {
-                                        break;
-                                    }
-                                }
-                                catch (InterruptedException e) {
-                                    if (investigation.SDRF.getStatus() == Status.FAILED) {
-                                        break;
-                                    }
-                                }
-                            }
 
                             // now we have the name of the assay to attach EVs to, so lookup
                             Assay assay = AtlasLoaderUtils.waitForAssay(
