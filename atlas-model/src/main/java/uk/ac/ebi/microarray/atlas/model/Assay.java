@@ -128,14 +128,13 @@ public class Assay implements ObjectWithProperties {
 
         Assay assay = (Assay) o;
 
-        if (accession != null ? !accession.equals(assay.accession) : assay.accession != null) return false;
+        if (assayID != assay.assayID) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = accession != null ? accession.hashCode() : 0;
-        return result;
+        return assayID;
     }
 }

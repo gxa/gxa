@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.cache.AssayDataMatrixRef;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
@@ -208,25 +209,40 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
-        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays(), listener);
+        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays(), cache.getAssayDataMap(), listener);
+
+
+        // check experiment exists in database, and not just in the loadmonitor
+        String experimentAccession = cache.fetchExperiment().getAccession();
+        if (getAtlasDAO().getExperimentByAccession(experimentAccession) != null) {
+            // experiment genuinely was already in the DB, so remove old experiment
+            getLog().info("Deleting existing version of experiment " + experimentAccession);
+            try {
+                if(listener != null)
+                    listener.setProgress("Unloading existing version of experiment " + experimentAccession);
+                getAtlasLoader().unloadExperiment(experimentAccession);
+            } catch (AtlasUnloaderException e) {
+                throw new AtlasLoaderServiceException(e);
+            }
+        }
 
         // start the load(s)
         boolean success = false;
-        startLoad(cache.fetchExperiment().getAccession());
+        startLoad(experimentAccession);
 
         try {
             // now write the cleaned up data
             getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
             // first, load experiment
             long start = System.currentTimeMillis();
-            getLog().info("Writing experiment " + cache.fetchExperiment().getAccession());
+            getLog().info("Writing experiment " + experimentAccession);
             if(listener != null)
-                listener.setProgress("Writing experiment " + cache.fetchExperiment().getAccession());
+                listener.setProgress("Writing experiment " + experimentAccession);
 
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
             long end = System.currentTimeMillis();
             String total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote experiment {} in {}s.", cache.fetchExperiment().getAccession(), total);
+            getLog().info("Wrote experiment {} in {}s.", experimentAccession, total);
 
             // next, write assays
             start = System.currentTimeMillis();
@@ -248,7 +264,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
-                    String experimentAccession = cache.fetchExperiment().getAccession();
                     getAtlasDAO().writeSample(sample, experimentAccession);
                 }
                 else {
@@ -282,7 +297,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
         finally {
             // end the load(s)
-            endLoad(cache.fetchExperiment().getAccession(), success);
+            endLoad(experimentAccession, success);
         }
     }
 
@@ -330,7 +345,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private void validateLoad(Experiment experiment, Collection<Assay> assays, AtlasLoaderServiceListener listener)
+    private void validateLoad(Experiment experiment, Collection<Assay> assays,
+                              Map<String, AssayDataMatrixRef> refMap,
+                              AtlasLoaderServiceListener listener)
             throws AtlasLoaderServiceException {
         if (experiment == null) {
             String msg = "Cannot load without an experiment";
@@ -357,6 +374,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             if(assay.getProperties() == null || assay.getProperties().size() == 0) {
                 throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
+
+            if(!refMap.containsKey(assay.getAccession()))
+                throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " contains no data! All assays need some.");
         }
 
         // all checks passed if we got here
@@ -388,19 +408,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 // not suppressing reloads, so continue
                 getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
-
-                // check experiment exists in database, and not just in the loadmonitor
-                if (getAtlasDAO().getExperimentByAccession(accession) != null) {
-                    // experiment genuinely was already in the DB, so remove old experiment
-                    getLog().info("Deleting existing version of experiment " + accession);
-                    try {
-                        if(listener != null)
-                            listener.setProgress("Unloading existing version of experiment " + accession);
-                        getAtlasLoader().unloadExperiment(accession);
-                    } catch (AtlasUnloaderException e) {
-                        throw new AtlasLoaderServiceException(e);
-                    }
-                }
             }
         }
         else {

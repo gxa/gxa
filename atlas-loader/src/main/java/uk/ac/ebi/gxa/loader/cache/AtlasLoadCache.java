@@ -46,7 +46,7 @@ public class AtlasLoadCache {
     private Map<String, Assay> assaysByAcc = new HashMap<String, Assay>();
     private Map<String, Sample> samplesByAcc = new HashMap<String, Sample>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
-    private Map<Assay, AssayDataMatrixRef> assayDataMap = new HashMap<Assay, AssayDataMatrixRef>();
+    private Map<String, AssayDataMatrixRef> assayDataMap = new HashMap<String, AssayDataMatrixRef>();
 
     /**
      * Creates a new cache for storing objects that are to be loaded into the database.
@@ -254,10 +254,10 @@ public class AtlasLoadCache {
     }
 
     public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixFileBuffer buffer, int columnIndex) {
-        assayDataMap.put(assay, new AssayDataMatrixRef(buffer, columnIndex));
+        assayDataMap.put(assay.getAccession(), new AssayDataMatrixRef(buffer, columnIndex));
     }
 
-    public synchronized Map<Assay, AssayDataMatrixRef> getAssayDataMap() {
+    public synchronized Map<String, AssayDataMatrixRef> getAssayDataMap() {
         return assayDataMap;
     }
 
