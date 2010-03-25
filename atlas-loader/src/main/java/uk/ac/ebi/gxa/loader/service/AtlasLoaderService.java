@@ -25,6 +25,10 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+
+import java.io.File;
 
 /**
  * An abstract Atlas loader service, containing basic setup that is required across all loader implementations.  This
@@ -34,14 +38,14 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
  * @date 27-Nov-2009
  */
 public abstract class AtlasLoaderService<T> {
-    private AtlasDAO atlasDAO;
+    private DefaultAtlasLoader atlasLoader;
     private boolean allowReloading = false;
 
     // logging
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected AtlasLoaderService(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
+    protected AtlasLoaderService(DefaultAtlasLoader atlasLoader) {
+        this.atlasLoader = atlasLoader;
     }
 
     protected Logger getLog() {
@@ -49,7 +53,15 @@ public abstract class AtlasLoaderService<T> {
     }
 
     protected AtlasDAO getAtlasDAO() {
-        return atlasDAO;
+        return atlasLoader.getAtlasDAO();
+    }
+
+    protected File getAtlasNetCDFRepo() {
+        return atlasLoader.getAtlasNetCDFRepo();
+    }
+
+    protected DefaultAtlasLoader getAtlasLoader() {
+        return atlasLoader;
     }
 
     protected boolean allowReloading() {

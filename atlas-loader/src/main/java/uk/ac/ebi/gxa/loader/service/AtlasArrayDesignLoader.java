@@ -35,7 +35,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.ProviderHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.TechnologyTypeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.CompositeElementHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.dao.LoadType;
@@ -43,6 +42,7 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.adf.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
@@ -60,8 +60,8 @@ import java.util.List;
 public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
     private List<String> geneIdentifierPriority = new ArrayList<String>();
 
-    public AtlasArrayDesignLoader(AtlasDAO atlasDAO) {
-        super(atlasDAO);
+    public AtlasArrayDesignLoader(DefaultAtlasLoader loader) {
+        super(loader);
     }
 
     public List<String> getGeneIdentifierPriority() {

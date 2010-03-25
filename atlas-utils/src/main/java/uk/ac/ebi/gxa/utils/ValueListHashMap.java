@@ -19,24 +19,22 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.unloader;
+package uk.ac.ebi.gxa.utils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
+ * Helper class for creating key -> [value list] maps, automatically adding new lists for entries
  * @author pashky
  */
-public interface AtlasUnloader {
-
-    /**
-     * Unloads an experiment by accession cleaning up all related resources
-     * @param accession experiment's accession
-     * @throws AtlasUnloaderException if anything goes wrong
-     */
-    void unloadExperiment(String accession) throws AtlasUnloaderException;
-
-    /**
-     * Unloads an array design by accession cleaning up all related resources
-     * @param accession arraydesigns's accession
-     * @throws AtlasUnloaderException if anything goes wrong
-     */
-    void unloadArrayDesign(String accession) throws AtlasUnloaderException;
+public class ValueListHashMap<From,To> extends HashMap<From, List<To>> {
+    public List<To> put(From key, To value) {
+        List<To> list = get(key);
+        if(list == null)
+            put(key, list = new ArrayList<To>());
+        list.add(value);
+        return list;
+    }
 }

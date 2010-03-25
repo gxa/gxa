@@ -38,7 +38,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.IOException;
 import java.net.URL;
@@ -152,19 +151,6 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         // expect 404 assays
         assertEquals("Local cache doesn't contain correct number of assays",
                      404, cache.fetchAllAssays().size());
-
-        // get the title of the experiment
-        for (Assay assay : cache.fetchAllAssays()) {
-            Map<String, Float> evs = assay.getExpressionValuesByDesignElementReference();
-
-            if (evs == null) {
-                fail("Expression values are null for assay " + assay.getAccession());
-            }
-            System.out.println("Found " + evs.keySet().size() + " expression values for " +
-                    assay.getAccession());
-            assertNotSame("No evs found for assay " + assay.getAccession(),
-                          evs.size(), 0);
-        }
     }
 
     public void testFindUpstreamAssays() {

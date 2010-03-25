@@ -26,8 +26,6 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFGenerator;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.unloader.AtlasUnloader;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,9 +43,7 @@ public class TaskManager implements InitializingBean {
 
     private AnalyticsGenerator analyticsGenerator;
     private IndexBuilder indexBuilder;
-    private NetCDFGenerator netcdfGenerator;
     private AtlasLoader<URL> loader;
-    private AtlasUnloader unloader;
 
     private PersistentStorage storage;
     private volatile boolean running = true;
@@ -135,28 +131,12 @@ public class TaskManager implements InitializingBean {
         this.indexBuilder = indexBuilder;
     }
 
-    NetCDFGenerator getNetcdfGenerator() {
-        return netcdfGenerator;
-    }
-
-    public void setNetcdfGenerator(NetCDFGenerator netcdfGenerator) {
-        this.netcdfGenerator = netcdfGenerator;
-    }
-
     public AtlasLoader<URL> getLoader() {
         return loader;
     }
 
     public void setLoader(AtlasLoader<URL> loader) {
         this.loader = loader;
-    }
-
-    public AtlasUnloader getUnloader() {
-        return unloader;
-    }
-
-    public void setUnloader(AtlasUnloader unloader) {
-        this.unloader = unloader;
     }
 
     public int getMaxWorkingTasks() {

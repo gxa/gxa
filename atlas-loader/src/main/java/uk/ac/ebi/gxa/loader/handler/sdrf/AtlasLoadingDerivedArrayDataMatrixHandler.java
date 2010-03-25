@@ -36,7 +36,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixH
 import uk.ac.ebi.arrayexpress2.magetab.utils.ParsingUtils;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.utils.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -110,15 +110,14 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         }
 
                         // find the type of nodes we need - lookup from data matrix buffer
-                        String refNodeName = buffer.readReferenceColumnName();
+                        String refNodeName = buffer.getReferenceColumnName();
 
                         // fetch the references from the buffer
-                        String[] refNames = buffer.readReferences();
+                        String[] refNames = buffer.getReferences();
 
                         // for each refName, identify the assay the expression values relate to
-                        int done = 0;
-                        int total = refNames.length;
-                        for (String refName : refNames) {
+                        for (int refIndex = 0; refIndex < refNames.length; ++refIndex) {
+                            String refName = refNames[refIndex];
                             getLog().debug("Attempting to attach expression values to next reference " + refName);
                             String assayName;
                             if (refNodeName.equals("scanname")) {
@@ -183,33 +182,8 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                             Assay assay = AtlasLoaderUtils.waitForAssay(
                                     assayName, investigation, getClass().getSimpleName(), getLog());
 
-                            done++;
                             if (assay != null) {
-                                float[][] expressionValues = buffer.readExpressionValues(refName);
-                                if (expressionValues.length == 1) {
-                                    // read expression values from buffer into a map - todo: gah, memory hog
-                                    Map<String, Float> assayExpressionValues = new HashMap<String, Float>();
-                                    for (int i = 0; i< expressionValues[0].length; i++) {
-                                        String designElementName = buffer.readDesignElements()[i];
-                                        assayExpressionValues.put(designElementName, expressionValues[0][i]);
-                                    }
-
-                                    // now we've read everything, set on assay
-                                    assay.setExpressionValuesByDesignElementReference(assayExpressionValues);
-                                    getLog().debug("Updated assay " + assayName + " with " +
-                                            expressionValues[0].length + " expression values. " +
-                                            "Now done " + done + "/" + total + " expression value updates");
-                                }
-                                else {
-                                    // generate error item and throw exception
-                                    String message =
-                                            "SDRF file references elements that are not present in the data file";
-                                    ErrorItem error =
-                                            ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
-                                                    .generateErrorItem(message, 511, this.getClass());
-
-                                    throw new ObjectConversionException(error, true);
-                                }
+                                cache.setAssayDataMatrixRef(assay, buffer, refIndex);
                             }
                             else {
                                 // generate error item and throw exception

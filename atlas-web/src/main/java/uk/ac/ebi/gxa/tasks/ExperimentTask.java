@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGenerationEvent;
-import uk.ac.ebi.gxa.netcdf.generator.listener.NetCDFGeneratorListener;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,51 +42,6 @@ public class ExperimentTask extends AbstractWorkingTask {
     private volatile boolean stop;
 
     public enum Stage {
-        NETCDF {
-            public boolean run(final ExperimentTask task) {
-                final AtomicReference<NetCDFGenerationEvent> result = new AtomicReference<NetCDFGenerationEvent>(null);
-                task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.STARTED, "");
-                task.taskMan.getNetcdfGenerator().generateNetCDFsForExperiment(task.getTaskSpec().getAccession(),
-                        new NetCDFGeneratorListener() {
-                            public void buildSuccess(NetCDFGenerationEvent event) {
-                               synchronized (task) {
-                                    result.set(event);
-                                    task.notifyAll();
-                                }
-                            }
-
-                            public void buildError(NetCDFGenerationEvent event) {
-                                synchronized (task) {
-                                    result.set(event);
-                                    task.notifyAll();
-                                }
-                            }
-
-                            public void buildProgress(String progressStatus) {
-                                task.currentProgress = progressStatus;
-                            }
-                        });
-                synchronized (task) {
-                    while(result.get() == null)
-                        try {
-                            task.wait();
-                        } catch (InterruptedException e) {
-                            // skip
-                        }
-                }
-                if(result.get().getStatus() == NetCDFGenerationEvent.Status.SUCCESS) {
-                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FINISHED, "");
-                    return true;
-                } else {
-                    for(Throwable e : result.get().getErrors()) {
-                        log.error("Task failed because of:", e);
-                    }
-                    task.taskMan.writeTaskLog(task.getTaskSpec(), stage(), TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
-                    return false;
-                }
-            }
-        },
-
         ANALYTICS {
             public boolean run(final ExperimentTask task) {
                 final AtomicReference<AnalyticsGenerationEvent> result = new AtomicReference<AnalyticsGenerationEvent>(null);

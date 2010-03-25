@@ -19,32 +19,31 @@
  *
  * http://gxa.github.com/gxa
  */
-
-package uk.ac.ebi.gxa.netcdf.generator.helper;
-
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFGeneratorException;
+package uk.ac.ebi.gxa.loader.cache;
 
 /**
- * An exception generated whenever an attempt to evaluate a slice of data
- * appropriate for NetCDF generation fails.
- *
- * @author Tony Burdett
- * @date 22-Oct-2009
- */
-public class DataSlicingException extends NetCDFGeneratorException {
-  public DataSlicingException() {
-    super();
-  }
+ * @author pashky
+*/
+public class DataMatrixBlock {
+    public final float[] expressionValues;
+    public final String[] designElements;
+    int size = 0;
 
-  public DataSlicingException(String s) {
-    super(s);
-  }
+    DataMatrixBlock(DataMatrixBlock block) {
+        this.expressionValues = block.expressionValues;
+        this.designElements = block.designElements;
+    }
 
-  public DataSlicingException(String s, Throwable throwable) {
-    super(s, throwable);
-  }
+    DataMatrixBlock(int size, int width) {
+        this.expressionValues = new float[size * width];
+        this.designElements = new String[size];
+    }
 
-  public DataSlicingException(Throwable throwable) {
-    super(throwable);
-  }
+    public int capacity() {
+        return designElements.length;
+    }
+
+    public int size() {
+        return size;
+    }
 }

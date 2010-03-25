@@ -235,7 +235,7 @@ public class AtlasPlotter {
         // get unique factor values
         String[] assayFVs = netCDF.getFactorValues(ef);
         String[] uniqueFVs = sortUniqueFVs(assayFVs);
-        double[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
+        float[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
 
         // data for mean series
         List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
@@ -253,7 +253,7 @@ public class AtlasPlotter {
 
             for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
                 if(assayFVs[assayIndex].equals(factorValue)) {
-                    double value = expressions[assayIndex];
+                    float value = expressions[assayIndex];
                     seriesData.add(Arrays.<Number>asList(++position, value <= -1000000 ? null : value));
 
                     meanForFV += value;
@@ -326,7 +326,7 @@ public class AtlasPlotter {
 
         String[] assayFVs = netCDF.getFactorValues(ef);
         String[] uniqueFVs = sortUniqueFVs(assayFVs);
-        double[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
+        float[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
 
         int startMark = 0;
         int endMark = 0;
@@ -342,7 +342,7 @@ public class AtlasPlotter {
 
             for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
                 if(assayFVs[assayIndex].equals(factorValue)) {
-                    double value = expressions[assayIndex];
+                    float value = expressions[assayIndex];
                     seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
                 }
 
@@ -401,7 +401,7 @@ public class AtlasPlotter {
             if(deIndex == null)
                 continue;
 
-            double[] expressions = netCDF.getExpressionDataForDesignElement(deIndex);
+            float[] expressions = netCDF.getExpressionDataForDesignElement(deIndex);
 
             // create series objects for this row of the data matrix
             List<List<Number>> seriesData = new ArrayList<List<Number>>();
@@ -409,7 +409,7 @@ public class AtlasPlotter {
             for(String factorValue : uniqueFVs) {
                 for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
                     if(assayFVs[assayIndex].equals(factorValue)) {
-                        double value = expressions[assayIndex];
+                        float value = expressions[assayIndex];
                         seriesData.add(Arrays.<Number>asList(0.5d + seriesData.size(), value <= -1000000 ? null : value));
                     }
             }

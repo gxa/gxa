@@ -217,34 +217,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testGetExpressionValuesForAssays() {
-        try {
-            // fetch the accession of the first experiment in our dataset
-            String accession =
-                    getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
-                            .toString();
-
-            // get some assays for this experiment
-            List<Assay> assays =
-                    getAtlasDAO().getAssaysByExperimentAccession(accession);
-
-            // populate their expression values
-            getAtlasDAO().getExpressionValuesForAssays(assays);
-
-            // now check EVS
-            for (Assay assay : assays) {
-                assertNotNull("Null collection of expression values",
-                              assay.getAllExpressionValues());
-                System.out.println("Assay " + assay.getAccession() + " has " +
-                        assay.getAllExpressionValues().length + " expression values");
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
     public void testGetSamplesByAssayAccession() {
         try {
             String accession =

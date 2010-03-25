@@ -108,7 +108,6 @@
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
-        <property name="missingDesignElementsCutoff" value="1.0"/>
         <property name="allowReloading" value="true"/>
         <property name="geneIdentifierPriority">
             <util:list>
@@ -116,11 +115,6 @@
                 <value>uniprot</value>
             </util:list>
         </property>
-    </bean>
-
-    <bean name="atlasUnloader" class="uk.ac.ebi.gxa.unloader.DefaultAtlasUnloader">
-        <property name="atlasDao" ref="atlasDAO"/>
-        <property name="netcdfPath" ref="atlasNetCDFRepo"/>
     </bean>
 
     <!-- Index Builder component -->
@@ -159,18 +153,6 @@
                 <value>genes</value>
             </util:list>
         </property>
-    </bean>
-
-    <!-- NetCDF Generator component -->
-
-    <bean name="netCDFGenerator" class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator"
-          destroy-method="shutdown">
-        <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <!-- repository of NetCDFs, local filesystem directory -->
-        <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
-        <!-- the number of NetCDFs that can be generated in parallel.  May need tweaking based on memory constraints -->
-        <property name="maxThreads" value="8"/>
     </bean>
 
     <!-- Analytics Generator component -->
@@ -268,9 +250,7 @@
     <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
         <property name="analyticsGenerator" ref="analyticsGenerator"/>
         <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="netcdfGenerator" ref="netCDFGenerator"/>
         <property name="loader" ref="atlasLoader"/>
-        <property name="unloader" ref="atlasUnloader"/>
         <property name="storage" ref="taskManagerStorage"/>
         <property name="maxWorkingTasks" value="16" />
     </bean>

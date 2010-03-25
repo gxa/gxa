@@ -23,7 +23,7 @@ package uk.ac.ebi.gxa.tasks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.unloader.AtlasUnloaderException;
+import uk.ac.ebi.gxa.loader.AtlasUnloaderException;
 
 /**
  * Unload experiment task
@@ -45,7 +45,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
                     currentProgress = "Unloading...";
 
                     log.info("Unloading experiment " + getTaskSpec().getAccession());
-                    taskMan.getUnloader().unloadExperiment(getTaskSpec().getAccession());
+                    taskMan.getLoader().unloadExperiment(getTaskSpec().getAccession());
                     log.info("Unloading experiment " + getTaskSpec().getAccession() + " - done");
 
                     taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FINISHED, "");

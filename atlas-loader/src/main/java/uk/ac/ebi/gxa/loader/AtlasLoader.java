@@ -45,33 +45,6 @@ import java.util.List;
  */
 public interface AtlasLoader<L> {
     /**
-     * Sets the percentage of design elements that are allowed to be "missing" in the database before this load fails.
-     * The percentage value - e.g. 0.25 - should be supplied here. Missing design elements occur when the data in the
-     * database excludes certain design elements that may be referenced in the data file supplied.  This can happen for
-     * valid reasons: for example, control spots on an array are often not recorded in the database.  This value sets
-     * the percentage of design elements that are referenced in the data file but NOT the database.  If this percentage
-     * is exceeded in any particular load, it will fail.
-     * <p/>
-     * AtlasLoaderService implementations should define sensible defaults for this cutoff - if it is not set here, the
-     * default for the service implementation will be used.
-     *
-     * @param missingDesignElementsCutoff the percentage of design elements that are allowed to be absent in the
-     *                                    database before a load fails.
-     */
-    void setMissingDesignElementsCutoff(double missingDesignElementsCutoff);
-
-    /**
-     * Gets the percentage of design elements that are allowed to be "missing" in the database before this load fails.
-     * Missing design elements occur when the data in the database excludes certain design elements that may be
-     * referenced in the data file supplied.  This can happen for valid reasons: for example, control spots on an array
-     * are often not recorded in the database.  This value sets the percentage of design elements that are referenced in
-     * the data file but NOT the database.  If this percentage is exceeded in any particular load, it will fail.
-     *
-     * @return the percentage of design elements that are allowed to be absent in the database before a load fails.
-     */
-    double getMissingDesignElementsCutoff();
-
-    /**
      * Sets whether reloads are permissible by this loader.  If true, experiments that are already present in the
      * backing datasource will be reloaded unchecked (with an optional warning log statement).  If false, attempting to
      * reload an existing experiment will cause an exception to be thrown.
@@ -160,4 +133,19 @@ public interface AtlasLoader<L> {
      *                            completes, or when any errors occur.
      */
     void loadArrayDesign(L arrayDesignResource, AtlasLoaderListener listener);
+
+
+    /**
+     * Unloads an experiment by accession cleaning up all related resources
+     * @param accession experiment's accession
+     * @throws AtlasUnloaderException if anything goes wrong
+     */
+    void unloadExperiment(String accession) throws AtlasUnloaderException;
+
+    /**
+     * Unloads an array design by accession cleaning up all related resources
+     * @param accession arraydesigns's accession
+     * @throws AtlasUnloaderException if anything goes wrong
+     */
+    void unloadArrayDesign(String accession) throws AtlasUnloaderException;
 }
