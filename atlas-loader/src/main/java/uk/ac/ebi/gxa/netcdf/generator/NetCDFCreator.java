@@ -330,7 +330,7 @@ public class NetCDFCreator {
         ArrayInt gnIds = new ArrayInt.D1(totalDesignElements);
         for(String de : mergedDesignElements) {
             deName.setString(0, de);
-            netCdf.write("DEacc", new int[] { i++, 0 }, deName);
+            netCdf.write("DEacc", new int[] { i, 0 }, deName);
             Integer deId = arrayDesign.getDesignElements().get(de);
             if(deId != null) {
                 deIds.setInt(i, deId);
@@ -338,6 +338,7 @@ public class NetCDFCreator {
                 if(gnId != null && !gnId.isEmpty())
                     gnIds.setInt(i, gnId.get(0));
             }
+            ++i;
         }
 
         netCdf.write("DE", deIds);
