@@ -158,7 +158,7 @@ public class LoaderTask extends AbstractWorkingTask {
         }
 
         public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return isForType(by);
+            return false;
         }
     };
     
