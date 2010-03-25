@@ -251,7 +251,7 @@ public class DataMatrixFileBuffer {
 
                 // Use either possible (only one) or absolutely one qt type
                 String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
-                log.info("Using " + qtType + " for expression values");
+                log.trace("Using " + qtType + " for expression values");
                 refToEVColumn.put(header.assayRef,
                         header.getIndexOfQuantitationType(
                                 qtType));
