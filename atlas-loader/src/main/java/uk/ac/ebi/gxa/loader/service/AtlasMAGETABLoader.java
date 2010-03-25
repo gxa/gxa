@@ -288,8 +288,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
 
             // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " objec" +
-                    "ts completed successfully");
+            getLog().info("Writing " + numOfObjects + " objects completed successfully");
             success = true;
         } catch (Throwable t) {
             getLog().error("Error!", t);
