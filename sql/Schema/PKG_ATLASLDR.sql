@@ -202,12 +202,22 @@ begin
  Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
  select Accession, null, EntryValue
  from (
- select t.Accession, EntryValue, RowNum r 
+ select t.Accession
+      , EntryValue
+      , RANK() OVER (PARTITION BY t.Accession ORDER BY p.priority) r 
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
  join vwgeneidproperty p on p.Name = t.EntryName
  where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession)
- order by p.Priority ) t where r=1;
+ ) t where t.r=1;
  dbms_output.put_line(' add accessions for non-existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
+ 
+ /*for r in (select * from table(CAST(LowerCaseDesignElements as DesignElementTable))) loop
+       dbms_output.put_line( 'ACCESSION:' || r.ACCESSION || ' ENTRYNAME:' || r.ENTRYNAME || ' ENTRYVALUE:' || r.ENTRYVALUE );
+   end loop;
+  
+   for r in (select * from tmp_DesignElementMap) loop
+       dbms_output.put_line( 'DE ACCESSION:' || r.DESIGNELEMENTACCESSION || ' GENEID:' || r.GENEID || ' GENEIDENTIFIER:' || r.GENEIDENTIFIER );
+   end loop;*/
   
  -- add accessions for non-identifiable genes  
  Insert into  tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)

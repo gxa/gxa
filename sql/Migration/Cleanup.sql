@@ -1,51 +1,42 @@
-delete from a2_ExpressionAnalytics where not exists(select 1 from a2_Experiment 
-where a2_Experiment.ExperimentID = a2_ExpressionAnalytics.ExperimentID)
-
-commit
-
-select * from user_indexes where status <> 'VALID'
-
-select * from a2_experiment where accession = 'E-TABM-18'
-select * from a2_assay where ExperimentID = 1036804590
-select count(1) from a2_expressionvalue where assayid in (
-  select assayid from a2_assay where ExperimentID = 1036804590
-)
-
-select count(1) from a2_assaysample where assayid in (
-  select assayid from a2_assay where ExperimentID = 1036804590
-)
-
-call atlasldr.IsExperimentValid(1036804590);
-
-rownum < 10
-
-
-call ATLASMGR.EnableTriggers()
-
-select ONTOLOGYTERMID, ASSAYPVID, count(1)
-from a2_assaypvontology
-group by ONTOLOGYTERMID, ASSAYPVID
-having count(1) > 1
-
-delete from a2_assaypvontology where ASSAYPVID is null
-
 alter table a2_assaypvontology drop constraint UQ_ASSAYPVONTOLOGY;
 alter table a2_genepropertyvalue drop constraint UQ_GENEPROPERTYVALUE_VALUE;
 alter table a2_propertyvalue drop constraint UQ_PROPERTYVALUE_NAME;
 alter table a2_samplepvontology drop constraint UQ_SAMPLEPVONTOLOGY;
 
-alter table 
-
-delete from a2_assaypvontology where ASSAYPVID is null
 delete from a2_assaypvontology where ASSAYPVID is null
 
 select * from a2_PropertyValue where PropertyID = 28 and name like 'mammary%'
+
+select PropertyID, TRIM(Name), count(1) from a2_propertyvalue
+group by PropertyID, TRIM(Name)
+having count(1) > 1
 
 select * from a2_PropertyValue where PropertyID = 28 and name like 'mammary%'
 select * from a2_PropertyValue where PropertyID = 28 and name like 'mammary%'
 
 delete from a2_propertyvalue where propertyvalueid = 17977
 delete from a2_samplepvontology where SAMPLEPVID is null;
+
+select * from a2_expressionvalue where rownum < 10
+
+call ATLASMGR.DisableConstraints();
+call ATLASMGR.EnableConstraints();
+
+select distinct SampleID  from a2_SamplePV 
+where not exists(select 1 from a2_Sample where a2_Sample.SampleID = a2_SamplePV.SampleID )
+and rownum < 10
+
+select distinct AssayID  from a2_AssayPV 
+where not exists(select 1 from a2_Assay where a2_Assay.AssayID = a2_AssayPV.AssayID )
+and rownum < 10
+
+Select * from a2_SamplePV where SampleID = 886628464
+select * from a2_propertyvalue where propertyvalueid = 2854
+1006
+
+select * from A2_ASSAYPVONTOLOGY where AssayPVID is null
+
+select * from a2_Proper
 
  ALTER TABLE "A2_SAMPLEPVONTOLOGY" 
   ADD CONSTRAINT "UQ_SAMPLEPVONTOLOGY" 
@@ -125,6 +116,15 @@ where exists(select 1 from a2_genepropertyvalue t2
              where t1.GENEPROPERTYID = t2.GENEPROPERTYID 
              and t1.Value = t2.value 
              and t1.Genepropertyvalueid > t2.genepropertyvalueid)
+             
+             
+create table a2_expressionvalue_tmp NOLOGGING PARALLEL 32
+as select *
+from a2_expressionvalue
+where exists (select 1 from a2_assay
+ where a2_Assay.AssayID = a2_expressionvalue.AssayID)
+and exists (select 1 from a2_designelement 
+ where a2_designelement.DesignElementID = a2_expressionvalue.DesignElementID)              
 
 
 select 'ALTER INDEX ' || INDEX_NAME || ' REBUILD PARALLEL 32 NOLOGGING;' from user_indexes; 
