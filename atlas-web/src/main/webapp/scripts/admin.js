@@ -60,26 +60,6 @@ var $msg = {
         ANALYTICS: 'NetCDF complete, Not computed or Failed Analytics',
         DONE: 'Complete'
     },
-    stage: {
-        experiment: {
-            NETCDF: 'Writing NetCDFs',
-            ANALYTICS: 'Computing Analytics'
-        },
-        index: {
-            INDEX: 'Indexing'
-        },
-        loadexperiment: {
-            LOAD: 'Loading'
-        },
-        loadarraydesign: {
-            LOAD: 'Loading'
-        },
-        unloadexperiment: {
-            UNLOAD: 'Unloading'
-        },
-        NONE: 'Nothing',
-        DONE: 'Complete'
-    },
     taskState: {
         WORKING: 'Working',
         PENDING: 'Pending'
@@ -88,13 +68,6 @@ var $msg = {
 
 function msgMapper(field, dict) {
     return function (r) { return r.item[field] ? $msg[dict][r.item[field]] : ''; };
-}
-
-function taskStageMsgMapper(r) {
-    var m = $msg.stage[r.item.type][r.item.stage];
-    if(!m)
-        m = $msg.stage[r.item.stage];
-    return m ? m : r.item.stage;
 }
 
 var currentStateHash;
@@ -517,7 +490,6 @@ function compileTemplates() {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'task.accession',
                 '.user': 'task.user',
-                '.stage': taskStageMsgMapper,
                 '.runMode': msgMapper('runMode', 'runMode'),
                 '.progress': 'task.progress',
                 'input@class+': 'task.id',
@@ -548,7 +520,6 @@ function compileTemplates() {
             'litem <- items': {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'litem.accession',
-                '.stage': taskStageMsgMapper,
                 '.event': msgMapper('event', 'event'),
                 '.message': 'litem.message',
                 '.time': 'litem.time',

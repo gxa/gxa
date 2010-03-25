@@ -166,7 +166,7 @@ input.date { width: 70px; }
     color: #aaaaaa; font-weight: bold;
 }
 
-#taskLog td.event, #taskLog td.stage {
+#taskLog td.event {
     color: #005555; font-weight: bold; white-space:nowrap;
 }
 
