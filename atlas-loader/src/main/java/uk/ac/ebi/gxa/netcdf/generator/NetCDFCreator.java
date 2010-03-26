@@ -365,7 +365,7 @@ public class NetCDFCreator {
         // iterate over assays and samples,
         for (Sample sample : samples)
             for (Assay assay : assays)
-                bs2asIt.setIntNext(samplesMap.get(assay).contains(sample) ? 1 : 0);
+                bs2asIt.setIntNext(samplesMap.containsKey(assay) && samplesMap.get(assay).contains(sample) ? 1 : 0);
 
         netCdf.write("BS2AS", bs2as);
     }

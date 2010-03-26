@@ -209,7 +209,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         // validate the load(s)
-        validateLoad(cache.fetchExperiment(), cache.fetchAllAssays(), cache.getAssayDataMap(), listener);
+        validateLoad(cache);
 
 
         // check experiment exists in database, and not just in the loadmonitor
@@ -265,10 +265,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
                     getAtlasDAO().writeSample(sample, experimentAccession);
-                }
-                else {
-                    getLog().error("No assays found for " + sample.getAccession());
-                    // throw new AtlasLoaderServiceException("No assays for sample found");
                 }
             }
 
@@ -344,20 +340,21 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private void validateLoad(Experiment experiment, Collection<Assay> assays,
-                              Map<String, AssayDataMatrixRef> refMap,
-                              AtlasLoaderServiceListener listener)
+    private void validateLoad(AtlasLoadCache cache)
             throws AtlasLoaderServiceException {
-        if (experiment == null) {
+        if (cache.fetchExperiment() == null) {
             String msg = "Cannot load without an experiment";
             getLog().error(msg);
             throw new AtlasLoaderServiceException(msg);
         }
 
-        checkExperiment(experiment.getAccession(), listener);
+        checkExperiment(cache.fetchExperiment().getAccession());
+
+        if(cache.fetchAllAssays().isEmpty())
+            throw new AtlasLoaderServiceException("No assays found");
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
-        for (Assay assay : assays) {
+        for (Assay assay : cache.fetchAllAssays()) {
             if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
                 if (!checkArray(assay.getArrayDesignAccession())) {
                     String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
@@ -374,14 +371,29 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
                 throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
 
-            if(!refMap.containsKey(assay.getAccession()))
+            if(!cache.getAssayDataMap().containsKey(assay.getAccession()))
                 throw new AtlasLoaderServiceException("Assay " + assay.getAccession() + " contains no data! All assays need some.");
         }
+
+        if(cache.fetchAllSamples().isEmpty())
+            throw new AtlasLoaderServiceException("No samples found");
+
+        Set<String> sampleReferencedAssays = new HashSet<String>();
+        for(Sample sample : cache.fetchAllSamples()) {
+            if (sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty())
+                throw new AtlasLoaderServiceException("No assays for sample " + sample.getAccession() + " found");
+            else
+                sampleReferencedAssays.addAll(sample.getAssayAccessions());
+        }
+
+        for(Assay assay : cache.fetchAllAssays())
+            if(!sampleReferencedAssays.contains(assay.getAccession()))
+                throw new AtlasLoaderServiceException("No sample for assay " + assay.getAccession() + " found");
 
         // all checks passed if we got here
     }
 
-    private void checkExperiment(String accession, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
+    private void checkExperiment(String accession) throws AtlasLoaderServiceException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
