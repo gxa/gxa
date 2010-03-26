@@ -131,7 +131,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
                     service.awaitTermination(15, TimeUnit.SECONDS);
                     // if it's STILL not terminated...
                     if (!service.isTerminated()) {
-                        StringBuffer sb = new StringBuffer();
+                        StringBuilder sb = new StringBuilder();
                         sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
                         if (tasks.size() > 0) {
                             sb.append("The following tasks are still active or suspended:\n");
