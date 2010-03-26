@@ -249,9 +249,8 @@ public class NetCDFCreator {
         netCdf.addVariable("uEFV", DataType.CHAR, new Dimension[]{uefvDimension, efvlenDimension});
         netCdf.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
 
-        netCdf.addVariable("PVAL", DataType.DOUBLE, new Dimension[]{designElementDimension, uefvDimension});
-        netCdf.addVariable("TSTAT", DataType.DOUBLE, new Dimension[]{designElementDimension, uefvDimension});
-
+        netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
+        netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
 
         netCdf.addVariable("BDC", DataType.FLOAT, new Dimension[]{designElementDimension, assayDimension});
 

@@ -264,6 +264,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     }
                 };
 
+                NetCDFProxy proxy = null;
+
                 // now run this compute task
                 try {
                     getAtlasComputeService().computeTask(computeAnalytics);
@@ -271,7 +273,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                             " has completed.");
 
                     // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
-                    NetCDFProxy proxy = new NetCDFProxy(netCDF);
+                    proxy = new NetCDFProxy(netCDF);
 
                     // get unique factor values for the expression value matrix
                     int[] designElements = proxy.getDesignElements();
@@ -286,8 +288,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         for (int i = 1; i < values.length; i++) {
                             String efv = values[i];
 
-                            double[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                            double[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+                            float[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                            float[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
 
                             // write values
                             getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
@@ -320,6 +322,14 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     success = false;
                     getLog().error("An error occurred whilst generating analytics for {}\n{}", netCDF.getAbsolutePath(),
                                    e);
+                } finally {
+                    if(proxy != null) {
+                        try {
+                            proxy.close();
+                        } catch (IOException e) {
+                            getLog().error("Failed to close NetCDF proxy for " + netCDF.getAbsolutePath());
+                        }
+                    }
                 }
             }
 
