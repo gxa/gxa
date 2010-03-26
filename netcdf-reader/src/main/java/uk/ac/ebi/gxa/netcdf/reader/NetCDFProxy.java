@@ -60,7 +60,7 @@ import java.io.IOException;
  * @date 11-Nov-2009
  */
 public class NetCDFProxy {
-    // this is false if oeping a conneciton to the netcdf file failed
+    // this is false if opening a connection to the netcdf file failed
     private boolean proxied;
     private String pathToNetCDF;
 
@@ -440,7 +440,7 @@ public class NetCDFProxy {
         }
     }
 
-    public double[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
+    public float[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
@@ -448,14 +448,14 @@ public class NetCDFProxy {
         Variable pValVariable = netCDF.findVariable("PVAL");
 
         if (pValVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] pValShape = pValVariable.getShape();
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{pValShape[0], 1};
             try {
-                return (double[]) pValVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) pValVariable.read(origin, size).copyTo1DJavaArray();
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
@@ -467,21 +467,21 @@ public class NetCDFProxy {
         }
     }
 
-        public double[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
+    public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         Variable tStatVariable = netCDF.findVariable("TSTAT");
         if (tStatVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] tStatShape = tStatVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, tStatShape[1]};
             try {
-                return (double[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
@@ -491,7 +491,7 @@ public class NetCDFProxy {
         }
     }
 
-    public double[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
+    public float[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
@@ -499,14 +499,14 @@ public class NetCDFProxy {
         Variable tStatVariable = netCDF.findVariable("TSTAT");
 
         if (tStatVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] tStatShape = tStatVariable.getShape();
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{tStatShape[0], 1};
             try {
-                return (double[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
@@ -516,5 +516,14 @@ public class NetCDFProxy {
                         "[" + e.getMessage() + "]");
             }
         }
+    }
+
+    /**
+     * Closes the proxied NetCDF file
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        if(this.netCDF != null)
+            this.netCDF.close();
     }
 }

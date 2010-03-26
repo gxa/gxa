@@ -1275,8 +1275,8 @@ public class AtlasDAO {
                                          String property,
                                          String propertyValue,
                                          int[] designElements,
-                                         double[] pValues,
-                                         double[] tStatistics) {
+                                         float[] pValues,
+                                         float[] tStatistics) {
         // execute this procedure...
         /*
         PROCEDURE A2_AnalyticsSet(
@@ -1828,8 +1828,8 @@ public class AtlasDAO {
     }
 
     private SqlTypeValue convertExpressionAnalyticsToOracleARRAY(final int[] designElements,
-                                                                 final double[] pValues,
-                                                                 final double[] tStatistics) {
+                                                                 final float[] pValues,
+                                                                 final float[] tStatistics) {
         if (designElements == null || pValues == null || tStatistics == null ||
                 designElements.length != pValues.length || pValues.length != tStatistics.length) {
             throw new RuntimeException(
