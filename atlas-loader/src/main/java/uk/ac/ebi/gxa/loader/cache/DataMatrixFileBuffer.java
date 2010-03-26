@@ -26,9 +26,9 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.loader.utils.QuantitationTypeDictionary;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 
 import java.io.*;
@@ -50,6 +50,7 @@ public class DataMatrixFileBuffer {
     private URL dataMatrixURL;
     private String fileName;
     private String referenceColumnName;
+    private Collection<String> possibleQTypes;
 
     /**
      * References the target name (normally hyb/assay/sacn) to the column in the data matrix file we need to read
@@ -69,16 +70,18 @@ public class DataMatrixFileBuffer {
 
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
-    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName) throws ParseException {
+    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName, Collection<String> possibleQTypes) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
         this.fileName = fileName;
+        this.possibleQTypes = possibleQTypes;
 
         init();
     }
 
-    public DataMatrixFileBuffer(URL dataMatrixURL) throws ParseException {
+    public DataMatrixFileBuffer(URL dataMatrixURL, Collection<String> possibleQTypes) throws ParseException {
         this.dataMatrixURL = dataMatrixURL;
         this.fileName = null;
+        this.possibleQTypes = possibleQTypes;
 
         init();
     }
@@ -168,7 +171,6 @@ public class DataMatrixFileBuffer {
             }
 
             // now, iterate over headers, doing dictionary lookup for qtTypes and setting the known reference names
-            QuantitationTypeDictionary dictionary = QuantitationTypeDictionary.getQTDictionary();
             referenceNames = new String[headers.length];
             int referenceIndex = 0;
             for (Header header : headers) {
@@ -184,28 +186,24 @@ public class DataMatrixFileBuffer {
                 for (String qtType : allTypes) {
                     log.trace("Checking type (" + qtType + ") against dictionary " +
                             "for " + header.assayRef);
-                    if (dictionary.lookupTerm(qtType)) {
+                    if (possibleQTypes.contains(qtType)) {
                         possibleTypes.add(qtType);
                     }
                 }
 
                 // more than one possible type or not possible and more than one total
                 if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
-                    StringBuffer sb = new StringBuffer();
+                    StringBuilder sb = new StringBuilder();
 
                     if(possibleTypes.size() > 1) {
                         sb.append("Possible types: [");
-                    for (String pt : possibleTypes) {
-                        sb.append(pt).append(", ");
-                    }
-                    sb.append("]");
+                        sb.append(StringUtils.join(possibleTypes, ","));
+                        sb.append("]");
                     }
 
                     if(allTypes.size() > 1) {
                         sb.append("All types: [");
-                         for (String at : allTypes) {
-                            sb.append(at).append(", ");
-                        }
+                        sb.append(StringUtils.join(allTypes, ","));
                         sb.append("]");
                     }
 
@@ -225,14 +223,7 @@ public class DataMatrixFileBuffer {
                     throw new ParseException(error, true);
                 }
                 else if (allTypes.isEmpty()) {
-                    // zero possible types - dump dictionary to logs
-                    StringBuffer sb = new StringBuffer();
-                    sb.append("QuantitationTypeDictionary: [");
-                    for (String term : dictionary.listQTTypes()) {
-                        sb.append(term).append(", ");
-                    }
-                    sb.append("]");
-                    log.error("No matching terms: " + sb.toString());
+                    log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
 
                     String message =
                             "Unable to load - data matrix file contains 0 " +

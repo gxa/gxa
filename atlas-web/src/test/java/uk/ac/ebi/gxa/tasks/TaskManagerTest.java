@@ -234,6 +234,14 @@ public class TaskManagerTest {
             public List<String> getGeneIdentifierPriority() { return null; }
             public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) { }
 
+            public void setPossibleQTypes(Collection<String> possibleQTypes) {
+                
+            }
+
+            public Set<String> getPossibleQTypes() {
+                return null;
+            }
+
             public void startup() throws AtlasLoaderException {
                 shouldFail = false; // a hack
             }

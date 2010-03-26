@@ -39,7 +39,6 @@ import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.cache.AssayDataMatrixRef;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
 import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
@@ -85,6 +84,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
     public void load(URL idfFileLocation, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
+
+        cache.setAvailQTypes(getAtlasLoader().getPossibleQTypes());
 
         // create an investigation ready to parse to
         MAGETABInvestigation investigation = new MAGETABInvestigation();

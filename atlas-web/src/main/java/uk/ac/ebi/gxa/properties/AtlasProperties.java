@@ -244,4 +244,7 @@ public class AtlasProperties  {
         return getProperty("head.gene." + geneProperty);
     }
 
+    public List<String> getPossibleQuantitaionTypes() {
+        return getListProperty("atlas.loader.possible.qtypes");
+    }
 }

@@ -75,6 +75,9 @@ public class LoaderTask extends AbstractWorkingTask {
                             currentProgress = progress;
                         }
                     };
+
+                    taskMan.getLoader().setPossibleQTypes(taskMan.getAtlasProperties().getPossibleQuantitaionTypes());
+
                     if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
                         taskMan.getLoader().loadExperiment(new URL(getTaskSpec().getAccession()), listener);
                     else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()))

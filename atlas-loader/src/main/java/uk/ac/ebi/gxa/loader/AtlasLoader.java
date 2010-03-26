@@ -26,6 +26,8 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 
 import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Interface for loading experiments and array designs into the Atlas.  Loaders require access to an {@link
@@ -71,6 +73,10 @@ public interface AtlasLoader<L> {
     List<String> getGeneIdentifierPriority();
 
     void setGeneIdentifierPriority(List<String> geneIdentifierPriority);
+
+    public void setPossibleQTypes(Collection<String> possibleQTypes);
+
+    Set<String> getPossibleQTypes();
 
     /**
      * Initializes this loader and any resources it requires.

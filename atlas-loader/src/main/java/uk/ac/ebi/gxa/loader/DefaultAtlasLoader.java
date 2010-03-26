@@ -39,9 +39,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +60,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     private File atlasNetCDFRepo;
     private boolean allowReloading = false;
     private List<String> geneIdentifierPriority = new ArrayList<String>();
+    private volatile Set<String> possibleQTypes = new HashSet<String>();
 
     private AtlasMAGETABLoader experimentLoaderService;
     private AtlasArrayDesignLoader arrayLoaderService;
@@ -102,6 +101,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
 
     public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) {
         this.geneIdentifierPriority = geneIdentifierPriority;
+    }
+
+    public void setPossibleQTypes(Collection<String> possibleQTypes) {
+        this.possibleQTypes = new HashSet<String>(possibleQTypes);
+    }
+
+    public Set<String> getPossibleQTypes() {
+        return possibleQTypes;
     }
 
     public void afterPropertiesSet() throws Exception {
