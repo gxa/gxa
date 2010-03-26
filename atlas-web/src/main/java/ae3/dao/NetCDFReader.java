@@ -203,8 +203,8 @@ public class NetCDFReader {
                         int[] originBDC = new int[varPVAL.getRank()];
                         originBDC[0] = designElementId;
                         shapeBDC[0] = 1;
-                        double[] pvals = (double[])varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(double.class);
-                        double[] tstats = (double[])varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(double.class);
+                        float[] pvals = (float[])varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                        float[] tstats = (float[])varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
 
                         EfvTree<Stat> result = new EfvTree<Stat>();
                         for(EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
