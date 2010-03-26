@@ -32,6 +32,8 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RChar;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import java.io.*;
 import java.rmi.RemoteException;
@@ -245,21 +247,35 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             for (final File netCDF : netCDFs) {
                 count++;
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
-                    public Void compute(RServices rs) throws RemoteException {
+                    public Void compute(RServices rs) throws ComputeException {
                         try {
                             // first, make sure we load the R code that runs the analytics
                             rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
                             // note - the netCDF file MUST be on the same file system where the workers run
                             getLog().debug("Starting compute task for " + netCDF.getAbsolutePath());
-                            rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
+                            RObject r = rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
                             getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
 
-                            // todo - handle the returned results - RChar, array of codes?
-                            return null;
-                        }
-                        catch (IOException e) {
-                            throw new RemoteException("Unable to load R source from R/analytics.R", e);
+                            if(r instanceof RChar) {
+                                String[] names  = ((RChar) r).getNames();
+                                String[] values = ((RChar) r).getValue();
+
+                                for(int i = 0; i < names.length; i++) {
+                                    getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
+                                }
+
+                                String rc = ((RChar) r).getValue()[0];
+                                if(rc.indexOf("Error") >= 0) {
+                                    throw new ComputeException(rc);
+                                }
+                            }
+
+                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                        } catch (RemoteException e) {
+                            throw new ComputeException("Problem communicating with R service", e);
+                        } catch (IOException e) {
+                            throw new ComputeException("Unable to load R source from R/analytics.R", e);
                         }
                     }
                 };
@@ -313,15 +329,18 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 catch (IOException e) {
                     success = false;
                     getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
+                    throw new AnalyticsGeneratorException(e);
                 }
                 catch (ComputeException e) {
                     success = false;
                     getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: ", e);
+                    throw new AnalyticsGeneratorException(e);
                 }
                 catch (Exception e) {
                     success = false;
                     getLog().error("An error occurred whilst generating analytics for {}\n{}", netCDF.getAbsolutePath(),
                                    e);
+                    throw new AnalyticsGeneratorException(e);
                 } finally {
                     if(proxy != null) {
                         try {
@@ -357,7 +376,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // create a reader to read in code
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             sb.append(line).append("\n");

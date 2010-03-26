@@ -26,7 +26,7 @@ read.atlas.nc <<-
     scv = get.var.ncdf(nc,"SCV")
 
     de  = get.var.ncdf(nc,"DE")
-    deacc = get.var.ncdf(nc,"DEacc")
+    # deacc = get.var.ncdf(nc,"DEacc")
     gn  = get.var.ncdf(nc,"GN")
 
     # make de's unique
@@ -86,7 +86,7 @@ read.atlas.nc <<-
 #      }
 #    }
     
-    fDataFrame = data.frame(gn=gn,de=de, deacc=deacc)
+    fDataFrame = data.frame(gn=gn,de=de) #, deacc=deacc)
     fData = new("AnnotatedDataFrame", data=fDataFrame)
     featureNames(fData) = de
     pData  = new("AnnotatedDataFrame", data=efscv)
@@ -277,7 +277,7 @@ function (nc)
 
 #        tab <- data.frame(tab, check.names = FALSE)
 
-        return("ОК")
+        return("OK")
       } else {
         return("NOK")
       }
