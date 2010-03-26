@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.loader.utils;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
 
 import java.io.BufferedReader;
@@ -32,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Arrays;
 
 /**
  * This tests the DataMatrixFileBuffer class.  This does not implement TestCase because junit doesn't like running
@@ -141,7 +141,9 @@ public class TestDataMatrixFileBuffer extends TestCase {
     }
 
     public void testReadReferenceNames() throws Exception {
-        DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
+        DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL,
+                Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".split(","))
+        );
 
         try {
             Set<String> refNames = new HashSet<String>();

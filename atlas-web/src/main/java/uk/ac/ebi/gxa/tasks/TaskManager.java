@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.tasks;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,6 +44,7 @@ public class TaskManager implements InitializingBean {
     private AnalyticsGenerator analyticsGenerator;
     private IndexBuilder indexBuilder;
     private AtlasLoader<URL> loader;
+    private AtlasProperties atlasProperties;
 
     private PersistentStorage storage;
     private volatile boolean running = true;
@@ -109,6 +111,14 @@ public class TaskManager implements InitializingBean {
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
 
     private final LinkedHashSet<WorkingTask> workingTasks = new LinkedHashSet<WorkingTask>();
+
+    public AtlasProperties getAtlasProperties() {
+        return atlasProperties;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
 
     public void setStorage(PersistentStorage storage) {
         this.storage = storage;
