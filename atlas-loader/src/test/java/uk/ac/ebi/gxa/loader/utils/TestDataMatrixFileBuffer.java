@@ -142,7 +142,7 @@ public class TestDataMatrixFileBuffer extends TestCase {
 
     public void testReadReferenceNames() throws Exception {
         DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL,
-                Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".split(","))
+                Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(","))
         );
 
         try {
