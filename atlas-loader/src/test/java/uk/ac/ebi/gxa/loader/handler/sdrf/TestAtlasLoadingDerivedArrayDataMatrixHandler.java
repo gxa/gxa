@@ -41,6 +41,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -61,6 +62,8 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         // now, create an investigation
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
+        cache.setAvailQTypes(
+                Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(",")));
 
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
