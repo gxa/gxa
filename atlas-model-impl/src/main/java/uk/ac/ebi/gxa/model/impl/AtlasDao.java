@@ -30,12 +30,10 @@ package uk.ac.ebi.gxa.model.impl; /**
 
 import uk.ac.ebi.gxa.model.*;
 import uk.ac.ebi.gxa.db.utils.AtlasDB;
-import uk.ac.ebi.gxa.model.impl.ExpressionStatDao;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
@@ -43,8 +41,6 @@ import java.math.BigDecimal;
 
 import oracle.jdbc.OracleConnection;
 import oracle.sql.ARRAY;
-import org.apache.commons.lang.StringUtils;
-import org.junit.Test;
 
 public class AtlasDao implements Dao {
 
