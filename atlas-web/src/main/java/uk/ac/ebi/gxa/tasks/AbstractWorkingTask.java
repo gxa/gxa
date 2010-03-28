@@ -50,7 +50,7 @@ public abstract class AbstractWorkingTask implements WorkingTask {
         return prototype.getRunMode();
     }
 
-    public int getTaskId() {
+    public long getTaskId() {
         return prototype.getTaskId();
     }
 

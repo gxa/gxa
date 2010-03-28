@@ -45,13 +45,13 @@ public class AssaySetter {
     // lookup ids from accession first
     Statement stmt = conn.createStatement();
 
-    int experimentID = -1;
-    int arrayDesignID = -1;
+    long experimentID = -1;
+    long arrayDesignID = -1;
     ResultSet rs = stmt.executeQuery("SELECT e.experimentid " +
         "FROM a2_experiment e " +
         "WHERE e.accession = '" + experimentAccession + "';");
     while(rs.next()) {
-      experimentID = rs.getInt(1);
+      experimentID = rs.getLong(1);
     }
     rs.close();
 
@@ -59,12 +59,12 @@ public class AssaySetter {
         "FROM a2_arraydesign d " +
         "WHERE d.accession = '" + arrayDesignAccession + "';");
     while(rs.next()) {
-      arrayDesignID = rs.getInt(1);
+      arrayDesignID = rs.getLong(1);
     }
     rs.close();
 
     // create an assayid - no oracle id generators here!
-    int assayid = (int) System.currentTimeMillis();
+    long assayid = (long) System.currentTimeMillis();
 
     stmt.executeQuery(
         "INSERT INTO A2_ASSAY(assayid, accession, experimentid, arraydesignid) " +

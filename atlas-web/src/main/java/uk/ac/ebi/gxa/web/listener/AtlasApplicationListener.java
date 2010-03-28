@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web.listener;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasDownloadService;
 import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
@@ -32,7 +32,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.web.Atlas;
@@ -78,7 +77,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
         AtlasComputeService computeService = (AtlasComputeService) context.getBean("atlasComputeService");
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
-        AtlasDao atlasSolrDAO = (AtlasDao) context.getBean("atlasSolrDAO");
+        AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
         GeneListCacheService geneCacheService = (GeneListCacheService) context.getBean("geneListCacheService");
         AtlasProperties atlasProperties = (AtlasProperties) context.getBean("atlasProperties"); 
 

@@ -29,7 +29,7 @@ package uk.ac.ebi.microarray.atlas.model;
  * @date 25-Sep-2009
  */
 public class OntologyMapping {
-    private Long experimentId;
+    private long experimentId;
     private String experimentAccession;
     private String property;
     private String propertyValue;
@@ -41,7 +41,7 @@ public class OntologyMapping {
     private boolean isAssayProperty;
     private boolean isFactorValue;
 
-    public Long getExperimentId() {
+    public long getExperimentId() {
         return experimentId;
     }
 

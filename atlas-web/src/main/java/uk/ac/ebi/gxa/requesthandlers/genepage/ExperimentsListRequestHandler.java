@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
+import ae3.dao.AtlasSolrDAO;
 import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +31,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
 
-import ae3.dao.AtlasDao;
 import ae3.model.AtlasExperiment;
 
 /**
@@ -38,14 +38,14 @@ import ae3.model.AtlasExperiment;
  * @author pashky
  */
 public class ExperimentsListRequestHandler implements HttpRequestHandler {
-    private AtlasDao atlasSolrDao;
+    private AtlasSolrDAO atlasSolrDAO;
 
-    public AtlasDao getAtlasSolrDao() {
-        return atlasSolrDao;
+    public AtlasSolrDAO getAtlasSolrDao() {
+        return atlasSolrDAO;
     }
 
-    public void setAtlasSolrDao(AtlasDao atlasSolrDao) {
-        this.atlasSolrDao = atlasSolrDao;
+    public void setAtlasSolrDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
 
@@ -60,9 +60,9 @@ public class ExperimentsListRequestHandler implements HttpRequestHandler {
             String ef = request.getParameter("factor");
             String efv = request.getParameter("efv");
 
-            AtlasDao.AtlasGeneResult atlasGene = atlasSolrDao.getGeneByIdentifier(geneId);
+            AtlasSolrDAO.AtlasGeneResult atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId);
             if(atlasGene.isFound()) {
-                List<AtlasExperiment> exps = atlasSolrDao.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
+                List<AtlasExperiment> exps = atlasSolrDAO.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
                 request.setAttribute("exps",exps);
                 request.setAttribute("atlasGene", atlasGene.getGene());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/experiment-list.jsp").include(request, response);

@@ -22,7 +22,7 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import org.apache.solr.common.params.FacetParams;
 import uk.ac.ebi.gxa.utils.MappingIterator;
@@ -72,7 +72,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasEfoService efoService;
     private AtlasGenePropertyService genePropService;
 
-    private AtlasDao atlasSolrDAO;
+    private AtlasSolrDAO atlasSolrDAO;
 
     private CoreContainer coreContainer;
 
@@ -154,12 +154,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         this.efoService = efoService;
     }
 
-    public AtlasDao getAtlasSolrDAO() {
+    public AtlasSolrDAO getAtlasSolrDAO() {
         return atlasSolrDAO;
     }
 
-    public void setAtlasSolrDAO(AtlasDao solrAtlasDAO) {
-        this.atlasSolrDAO = solrAtlasDAO;
+    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -376,7 +376,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         return result;
     }
 
-    public List<ListResultRow> findGenesForExperiment(Object geneIds, int experimentId, int start, int rows) {
+    public List<ListResultRow> findGenesForExperiment(Object geneIds, long experimentId, int start, int rows) {
         AtlasStructuredQueryResult result = doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                 .andGene(geneIds)
                 .andUpdnIn(Constants.EXP_FACTOR_NAME, String.valueOf(experimentId))
@@ -388,9 +388,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         List<ListResultRow> res = new ArrayList<ListResultRow>();
         for(AtlasStructuredQueryResult.ListResultGene gene : result.getListResultsGenes()) {
             ListResultRow minRow = null;
-            double minPvalue = 1;
+            float minPvalue = 1;
             for(ListResultRow row : gene.getExpressions()) {
-                double pvalue = 1;
+                float pvalue = 1;
                 for(ListResultRowExperiment e : row.getExp_list()) {
                     if(e.getExperimentId() == experimentId) {
                         pvalue = e.getPvalue();
@@ -886,7 +886,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 break;
 
             int cup = 0, cdn = 0;
-            double pup = 1, pdn = 1;
+            float pup = 1, pdn = 1;
             for(ListResultRowExperiment exp : e.getValue())
                 if(exp.getUpdn().isUp()) {
                     ++cup;
@@ -900,7 +900,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             row.setGene(gene);
             Collections.sort(e.getValue(), new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {
-                    return Double.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
+                    return Float.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
                 }
             });
             row.setExp_list(e.getValue());

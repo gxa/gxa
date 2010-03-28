@@ -37,7 +37,7 @@ import java.util.Date;
  */
 public class AtlasExperiment implements Experiment {
     private String accession;
-    private int id;
+    private long id;
     private Collection<String> assayAccessions = null;
     private Collection<String> sampleAccessions = null;
     private PropertyCollection properties = null;
@@ -50,10 +50,10 @@ public class AtlasExperiment implements Experiment {
         this.accession = accession;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
-    public void setid(int id){
+    public void setid(long id){
         this.id = id;
     }
 

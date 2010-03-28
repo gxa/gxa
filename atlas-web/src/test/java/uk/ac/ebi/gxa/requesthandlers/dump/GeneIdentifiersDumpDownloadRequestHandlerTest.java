@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
-import uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 

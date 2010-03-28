@@ -30,6 +30,6 @@ package  uk.ac.ebi.gxa.model;
  * To change this template use File | Settings | File Templates.
  */
 public interface Accessible {
-    public int getId();
+    public long getId();
     public String getAccession();
 }

@@ -35,7 +35,7 @@ public class Experiment {
     private String lab;
     private Date loadDate;
 
-    private int experimentID;
+    private long experimentID;
 
     public String getAccession() {
         return accession;
@@ -69,11 +69,11 @@ public class Experiment {
         this.lab = lab;
     }
 
-    public int getExperimentID() {
+    public long getExperimentID() {
         return experimentID;
     }
 
-    public void setExperimentID(int experimentID) {
+    public void setExperimentID(long experimentID) {
         this.experimentID = experimentID;
     }
 

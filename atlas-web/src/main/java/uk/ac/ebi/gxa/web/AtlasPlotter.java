@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 public class AtlasPlotter {
     private File atlasNetCDFRepo;
     private AtlasDAO atlasDatabaseDAO;
-    private AtlasDao atlasSolrDAO;
+    private AtlasSolrDAO atlasSolrDAO;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -62,11 +62,11 @@ public class AtlasPlotter {
         this.atlasDatabaseDAO = atlasDatabaseDAO;
     }
 
-    public AtlasDao getAtlasSolrDAO() {
+    public AtlasSolrDAO getAtlasSolrDAO() {
         return atlasSolrDAO;
     }
 
-    public void setAtlasSolrDAO(AtlasDao atlasSolrDAO) {
+    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
@@ -106,7 +106,7 @@ public class AtlasPlotter {
 
             // lookup gene names, again using SOLR index
             for(String geneIdStr : geneIdKey.split(",")) {
-                AtlasDao.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(geneIdStr);
+                AtlasSolrDAO.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(geneIdStr);
                 if (gene.isFound()) {
                     genes.add(gene.getGene());
                 }
@@ -132,25 +132,25 @@ public class AtlasPlotter {
             Map<AtlasGene,Integer> deIndexMap = new HashMap<AtlasGene, Integer>();
 
             boolean[] stop = new boolean[genes.size()];
-            Integer[] desearch = new Integer[genes.size()];
+            Long[] desearch = new Long[genes.size()];
 
             // this is the NetCDF containing the gene we care about
             NetCDFProxy proxy = null;
             // this is a list of the indices marking the positions of design elements that correspond to the gene we're after
             for (NetCDFProxy next : proxies) {
                 // loop over all de/genes in this NetCDFProxy
-                int[] designElements = next.getDesignElements();
-                int[] ncgenes = next.getGenes();
+                long[] designElements = next.getDesignElements();
+                long[] ncgenes = next.getGenes();
                 for (int deIndex = 0; deIndex < designElements.length; ++deIndex) {
                     int i = 0;
                     for(AtlasGene gene : genes) {
-                        if(!stop[i] && Integer.valueOf(gene.getGeneId()) == ncgenes[deIndex]) {
+                        if(!stop[i] && Long.valueOf(gene.getGeneId()) == ncgenes[deIndex]) {
                             proxy = next;
                             if(deIndexMap.containsKey(gene)) {
                                 // okay, we got at least two DEs for the same gene. it's time to use analytics to choose one
-                                Integer deId = atlasDatabaseDAO.getBestDesignElementForExpressionProfile(
-                                        Integer.valueOf(gene.getGeneId()),
-                                        Integer.valueOf(experimentID),
+                                Long deId = atlasDatabaseDAO.getBestDesignElementForExpressionProfile(
+                                        Long.valueOf(gene.getGeneId()),
+                                        Long.valueOf(experimentID),
                                         efToPlot);
                                 if(deId != null) {
                                     // this (second) one is the best
@@ -223,6 +223,15 @@ public class AtlasPlotter {
                     " for " + experimentID);
             throw new RuntimeException("IOException whilst trying to read from NetCDF for "
                     + atlasNetCDFRepo.getAbsolutePath(), e);
+        } finally {
+            for(NetCDFProxy proxy : proxies) {
+                try {
+                    if(null != proxy)
+                        proxy.close();
+                } catch (IOException e) {
+                    log.error("Failed to close NetCDF proxy", e);
+                }
+            }
         }
     }
 
@@ -235,7 +244,7 @@ public class AtlasPlotter {
         // get unique factor values
         String[] assayFVs = netCDF.getFactorValues(ef);
         String[] uniqueFVs = sortUniqueFVs(assayFVs);
-        float[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
+        float[] expressions = netCDF.getExpressionDataForDesignElementAtIndex(geneIndex);
 
         // data for mean series
         List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
@@ -326,7 +335,7 @@ public class AtlasPlotter {
 
         String[] assayFVs = netCDF.getFactorValues(ef);
         String[] uniqueFVs = sortUniqueFVs(assayFVs);
-        float[] expressions = netCDF.getExpressionDataForDesignElement(geneIndex);
+        float[] expressions = netCDF.getExpressionDataForDesignElementAtIndex(geneIndex);
 
         int startMark = 0;
         int endMark = 0;
@@ -401,7 +410,7 @@ public class AtlasPlotter {
             if(deIndex == null)
                 continue;
 
-            float[] expressions = netCDF.getExpressionDataForDesignElement(deIndex);
+            float[] expressions = netCDF.getExpressionDataForDesignElementAtIndex(deIndex);
 
             // create series objects for this row of the data matrix
             List<List<Number>> seriesData = new ArrayList<List<Number>>();
@@ -452,10 +461,10 @@ public class AtlasPlotter {
         }
 
         // get array design id
-        final int adID = netCDF.getArrayDesignID() != -1 ? netCDF.getArrayDesignID() :
+        final long adID = netCDF.getArrayDesignID() != -1 ? netCDF.getArrayDesignID() :
                 getAtlasDatabaseDAO().getArrayDesignByAccession(netCDF.getArrayDesignAccession()).getArrayDesignID();
 
-        final int[] deIds = netCDF.getDesignElements();
+        final long[] deIds = netCDF.getDesignElements();
         final List<String> efs = Arrays.asList(netCDF.getFactors());
         final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
         final int[][] bs2as = netCDF.getSamplesToAssays();

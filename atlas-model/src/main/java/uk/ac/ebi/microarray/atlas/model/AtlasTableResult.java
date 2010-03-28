@@ -29,26 +29,26 @@ package uk.ac.ebi.microarray.atlas.model;
  * @date 06-Nov-2009
  */
 public class AtlasTableResult {
-    private int experimentID;
-    private int geneID;
+    private long experimentID;
+    private long geneID;
     private String property;
     private String propertyValue;
     private String upOrDown;
-    private double pValAdj;
+    private float pValAdj;
 
-    public int getExperimentID() {
+    public long getExperimentID() {
         return experimentID;
     }
 
-    public void setExperimentID(int experimentID) {
+    public void setExperimentID(long experimentID) {
         this.experimentID = experimentID;
     }
 
-    public int getGeneID() {
+    public long getGeneID() {
         return geneID;
     }
 
-    public void setGeneID(int geneID) {
+    public void setGeneID(long geneID) {
         this.geneID = geneID;
     }
 
@@ -76,11 +76,11 @@ public class AtlasTableResult {
         this.upOrDown = upOrDown;
     }
 
-    public double getPValAdj() {
+    public float getPValAdj() {
         return pValAdj;
     }
 
-    public void setPValAdj(double pValAdj) {
+    public void setPValAdj(float pValAdj) {
         this.pValAdj = pValAdj;
     }
 }

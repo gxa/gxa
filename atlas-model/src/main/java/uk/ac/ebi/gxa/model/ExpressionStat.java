@@ -41,8 +41,8 @@ public interface ExpressionStat<NextType extends ExpressionStat> {
 
     public Integer getUpExperimentsCount();
     public Integer getDnExperimentsCount();
-    public Double getUpPvalue();
-    public Double getDnPvalue();
+    public float getUpPvalue();
+    public float getDnPvalue();
 
     public Iterable<NextType> getDrillDown();
 }

@@ -22,12 +22,11 @@
 
 package uk.ac.ebi.gxa.web;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,15 +38,15 @@ import java.util.Map;
  */
 public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
-    private AtlasDao atlasSolrDao;
+    private AtlasSolrDAO atlasSolrDAO;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
 
-        atlasSolrDao = new AtlasDao();
-        atlasSolrDao.setSolrServerAtlas(getSolrServerAtlas());
-        atlasSolrDao.setSolrServerExpt(getSolrServerExpt());
+        atlasSolrDAO = new AtlasSolrDAO();
+        atlasSolrDAO.setSolrServerAtlas(getSolrServerAtlas());
+        atlasSolrDAO.setSolrServerExpt(getSolrServerExpt());
 
         plotter = new AtlasPlotter();
         plotter.setAtlasDatabaseDAO(getAtlasDAO());
@@ -86,7 +85,7 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
         }
     }
 
-    public AtlasDao getAtlasSolrDao() {
-        return atlasSolrDao;
+    public AtlasSolrDAO getAtlasSolrDao() {
+        return atlasSolrDAO;
     }
 }

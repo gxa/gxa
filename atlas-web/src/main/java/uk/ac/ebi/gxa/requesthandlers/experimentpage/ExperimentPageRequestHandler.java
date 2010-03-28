@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
@@ -48,12 +48,12 @@ import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
  */
 public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
-    private AtlasDao dao;
+    private AtlasSolrDAO atlasSolrDAO;
     private AtlasStructuredQueryService queryService;
     private File atlasNetCDFRepo;
 
-    public void setDao(AtlasDao dao) {
-        this.dao = dao;
+    public void setDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
@@ -71,7 +71,7 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
         String ef = request.getParameter("ef");
 
         if (expAcc != null && !"".equals(expAcc)) {
-            final AtlasExperiment exp = dao.getExperimentByAccession(expAcc);
+            final AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession(expAcc);
             if (exp != null) {
                 request.setAttribute("exp", exp);
                 request.setAttribute("eid", exp.getId());
@@ -82,7 +82,7 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                 Collection<AtlasGene> genes = new ArrayList<AtlasGene>();
                 if(geneIds != null) {
                     for(String geneQuery : StringUtils.split(geneIds, ",")) {
-                        AtlasDao.AtlasGeneResult result = dao.getGeneByIdentifier(geneQuery);
+                        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneQuery);
                         if (result.isFound()) {
                             genes.add(result.getGene());
                         }
@@ -102,9 +102,11 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                         ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
                         return;
                     }
+
                     NetCDFProxy netcdf = new NetCDFProxy(netCDFs[0]);
-                    for(int geneId : netcdf.getGenes()) {
-                        AtlasDao.AtlasGeneResult result = dao.getGeneById(String.valueOf(geneId));
+
+                    for(long geneId : netcdf.getGenes()) {
+                        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(String.valueOf(geneId));
                         if (result.isFound()) {
                             genes.add(result.getGene());
                             if(genes.size() >= 5)
@@ -118,6 +120,8 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                         ErrorResponseHelper.errorNotFound(request, response, "No genes to display for experiment " + String.valueOf(expAcc));
                         return;
                     }
+
+                    netcdf.close();
                 }
 
                 request.setAttribute("genes", genes);

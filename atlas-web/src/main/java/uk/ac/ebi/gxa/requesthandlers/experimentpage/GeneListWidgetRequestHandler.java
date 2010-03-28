@@ -67,7 +67,7 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        int eid = Integer.valueOf(request.getParameter("eid"));
+        long eid = Long.valueOf(request.getParameter("eid"));
         String qryType = request.getParameter("query");
         String geneId = request.getParameter("gid");
         String startRow = request.getParameter("from");

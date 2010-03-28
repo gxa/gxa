@@ -36,7 +36,7 @@ public class Assay implements ObjectWithProperties {
     private String experimentAccession;
     private String arrayDesignAccession;
     private List<Property> properties;
-    private int assayID;
+    private Long assayID;
 
     public String getAccession() {
         return accession;
@@ -70,11 +70,11 @@ public class Assay implements ObjectWithProperties {
         this.properties = properties;
     }
 
-    public int getAssayID() {
+    public long getAssayID() {
         return assayID;
     }
 
-    public void setAssayID(int assayID) {
+    public void setAssayID(long assayID) {
         this.assayID = assayID;
     }
 
@@ -123,18 +123,11 @@ public class Assay implements ObjectWithProperties {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Assay assay = (Assay) o;
-
-        if (assayID != assay.assayID) return false;
-
-        return true;
+        return o instanceof Assay && ((Assay) o).assayID == assayID;
     }
 
     @Override
     public int hashCode() {
-        return assayID;
+        return assayID.hashCode();
     }
 }

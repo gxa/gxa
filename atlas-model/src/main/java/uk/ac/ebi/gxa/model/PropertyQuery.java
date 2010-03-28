@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Retrieving list of properties. 
+ * Retrieving list of properties.
  * User: Andrey
  * Date: Oct 22, 2009
  * Time: 9:45:43 AM
@@ -38,7 +38,7 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
     private List<SampleQuery> sampleQueries = new ArrayList<SampleQuery>();
     private List<AssayQuery> assayQueries = new ArrayList<AssayQuery>();
     private List<ExperimentQuery> experimentQueries = new ArrayList<ExperimentQuery>();
-    private int propertyID;
+    private long propertyID;
 
     public PropertyQuery(){};
     public PropertyQuery(AccessionQuery accessionQuery){
@@ -101,5 +101,5 @@ public class PropertyQuery extends AbstractPropertyQuery<PropertyQuery>{
     public int getPropertyID(){
         return this.propertyID;
     }
-    **/ 
+    **/
 }

@@ -35,7 +35,7 @@ public class Sample implements ObjectWithProperties {
   private List<Property> properties;
   private String species;
   private String channel;
-  private int sampleID;
+  private Long sampleID;
 
   public String getAccession() {
     return accession;
@@ -77,11 +77,11 @@ public class Sample implements ObjectWithProperties {
     this.channel = channel;
   }
 
-  public int getSampleID() {
+  public long getSampleID() {
     return sampleID;
   }
 
-  public void setSampleID(int sampleID) {
+  public void setSampleID(long sampleID) {
     this.sampleID = sampleID;
   }
 
@@ -145,17 +145,11 @@ public class Sample implements ObjectWithProperties {
 
   @Override
   public int hashCode() {
-    return 23 * getSampleID();
+      return sampleID.hashCode();
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof Sample) {
-      Sample that = (Sample)o;
-      return this.sampleID == that.sampleID;
-    }
-    else {
-      return false;
-    }
+      return o instanceof Sample && ((Sample) o).sampleID == sampleID;
   }
 }

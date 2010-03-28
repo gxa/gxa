@@ -27,24 +27,24 @@ package uk.ac.ebi.microarray.atlas.model;
  * To change this template use File | Settings | File Templates.
  */
 public class ExpressionValue {
-  private int designElementID;
-  private int assayID;
+  private long designElementID;
+  private long assayID;
   private String designElementAccession;
-  private Float value;
+  private float value;
 
-  public int getDesignElementID() {
+  public long getDesignElementID() {
     return designElementID;
   }
 
-  public void setDesignElementID(int designElementID) {
+  public void setDesignElementID(long designElementID) {
     this.designElementID = designElementID;
   }
 
-  public int getAssayID() {
+  public long getAssayID() {
     return assayID;
   }
 
-  public void setAssayID(int assayID) {
+  public void setAssayID(long assayID) {
     this.assayID = assayID;
   }
 
@@ -56,7 +56,7 @@ public class ExpressionValue {
     this.designElementAccession = designElementAccession;
   }
 
-  public Float getValue() {
+  public float getValue() {
     return value;
   }
 

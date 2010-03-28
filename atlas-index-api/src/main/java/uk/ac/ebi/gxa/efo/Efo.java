@@ -40,7 +40,7 @@ import java.net.URI;
 import java.util.*;
 
 /**
- * Class representing EFO heirarchy
+ * Class representing EFO hierarchy
  * @author pashky
  */
 public class Efo implements InitializingBean {

@@ -35,7 +35,7 @@ import uk.ac.ebi.gxa.model.PropertyCollection;
 public class AtlasGene implements Gene {
 
     private String accession;
-    private int id;
+    private long id;
     private PropertyCollection properties;
 
     public String getAccession(){
@@ -45,10 +45,10 @@ public class AtlasGene implements Gene {
         this.accession = accession;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
-    public void setid(int id){
+    public void setid(long id){
         this.id = id;
     }
 

@@ -113,12 +113,13 @@ public class SimilarGeneListTest extends TestCase {
         // create a reader to read in code
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             sb.append(line).append("\n");
         }
 
+        in.close();
         return sb.toString();
     }
 }

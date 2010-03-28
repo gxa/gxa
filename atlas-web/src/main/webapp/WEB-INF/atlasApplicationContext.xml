@@ -168,7 +168,7 @@
 
     <!-- Web interface component -->
 
-    <bean name="atlasSolrDAO" class="ae3.dao.AtlasDao">
+    <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="atlasProperties" ref="atlasProperties"/>

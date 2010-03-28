@@ -40,15 +40,15 @@ public interface ExpressionStats {
      * Expression statistics for ef/efv pair for one design element
      */
     public static class Stat implements Comparable<Stat> {
-        private final double pvalue;
-        private final double tstat;
+        private final float pvalue;
+        private final float tstat;
 
         /**
          * Constructor
          * @param tstat t-statistics
          * @param pvalue p-value
          */
-        public Stat(double tstat, double pvalue) {
+        public Stat(float tstat, float pvalue) {
             this.pvalue = pvalue;
             this.tstat = tstat;
         }
@@ -57,7 +57,7 @@ public interface ExpressionStats {
          * Gets p-value
          * @return p-value
          */
-        public double getPvalue() {
+        public float getPvalue() {
             return pvalue;
         }
 
@@ -65,7 +65,7 @@ public interface ExpressionStats {
          * Gets t-statistics
          * @return t-statistics value
          */
-        public double getTstat() {
+        public float getTstat() {
             return tstat;
         }
 
@@ -84,7 +84,7 @@ public interface ExpressionStats {
          * @return 1, 0 or -1
          */
         public int compareTo(Stat o) {
-            return Double.valueOf(getPvalue()).compareTo(o.getPvalue());
+            return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
         }
     }
 }

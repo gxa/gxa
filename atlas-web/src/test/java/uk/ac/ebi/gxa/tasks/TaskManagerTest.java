@@ -490,7 +490,7 @@ public class TaskManagerTest {
     @Test
     public void test_cancelWorkingTask() throws Exception {
         TaskSpec spec = new TaskSpec("experiment", "EXP-AN-1");
-        int id = manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false, ""); // no index task again
+        long id = manager.enqueueTask(spec, TaskRunMode.CONTINUE, defaultUser, false, ""); // no index task again
         delay(); // let it do something
         manager.cancelTask(id, defaultUser, ""); // and now kill it
         waitForManager();
@@ -511,7 +511,7 @@ public class TaskManagerTest {
         TaskSpec spece1 = new TaskSpec("experiment", "EXP-AN-1");
         manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true, "");
         TaskSpec specidx = new TaskSpec("index", "");
-        int taskIdxId = manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true, "");
+        long taskIdxId = manager.enqueueTask(spece1, TaskRunMode.CONTINUE, defaultUser, true, "");
         manager.start();
         delay(); // let it do something
         manager.cancelTask(taskIdxId, defaultUser, ""); // change our mind, cancel auto-added task

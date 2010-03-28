@@ -43,7 +43,7 @@ public class ExperimentSetter {
     Statement stmt = conn.createStatement();
 
     // create an experimentid - no oracle id generators here!
-    int experimentid = (int) System.currentTimeMillis();
+    long experimentid = (long) System.currentTimeMillis();
 
     stmt.executeQuery(
         "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +

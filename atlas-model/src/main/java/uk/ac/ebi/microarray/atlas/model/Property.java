@@ -28,8 +28,8 @@ package uk.ac.ebi.microarray.atlas.model;
  */
 
 public class Property {
-    private int propertyId;
-    private int propertyValueId;
+    private long propertyId;
+    private long propertyValueId;
     private String accession;
     private String name;
     private String value;
@@ -67,19 +67,19 @@ public class Property {
         isFactorValue = factorValue;
     }
 
-    public int getPropertyId() {
+    public long getPropertyId() {
         return propertyId;
     }
 
-    public void setPropertyId(int propertyId) {
+    public void setPropertyId(long propertyId) {
         this.propertyId = propertyId;
     }
 
-    public int getPropertyValueId() {
+    public long getPropertyValueId() {
         return propertyValueId;
     }
 
-    public void setPropertyValueId(int propertyValueId) {
+    public void setPropertyValueId(long propertyValueId) {
         this.propertyValueId = propertyValueId;
     }
 

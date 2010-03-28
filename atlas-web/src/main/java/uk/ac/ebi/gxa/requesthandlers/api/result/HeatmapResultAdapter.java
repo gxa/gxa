@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRowExperiment;
@@ -42,12 +42,12 @@ import java.util.Iterator;
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
-    private final AtlasDao dao;
+    private final AtlasSolrDAO atlasSolrDAO;
     private final Efo efo;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDao dao, Efo efo) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasSolrDAO atlasSolrDAO, Efo efo) {
         this.r = r;
-        this.dao = dao;
+        this.atlasSolrDAO = atlasSolrDAO;
         this.efo = efo;
     }
 
@@ -89,7 +89,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             public Iterator<ListResultRowExperiment> getExperiments() {
                 return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
                     public ListResultRowExperiment map(ExpressionAnalysis e) {
-                        AtlasExperiment aexp = dao.getExperimentById(e.getExperimentID());
+                        AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getExperimentID());
                         if (aexp == null) {
                             return null;
                         }

@@ -199,7 +199,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 }
                 catch (Exception e) {
                     // print the stacktrace, but swallow this exception to rethrow at the very end
-                    getLog().error("An error occurred whilst building the Experiments index:\n{}", e);
+                    getLog().error("An error occurred whilst building the gene index:\n{}", e);
                     if (firstError == null) {
                         firstError = e;
                     }
@@ -247,7 +247,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return x;
     }
 
-    private boolean addEfoCounts(SolrInputDocument solrDoc, int geneId) {
+    private boolean addEfoCounts(SolrInputDocument solrDoc, long geneId) {
         Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
         Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
         Set<Long> upexp = new HashSet<Long>();
@@ -274,7 +274,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             boolean isUp = expressionAnalytic.getTStatistic() > 0;
-            double pval = expressionAnalytic.getPValAdjusted();
+            float pval = expressionAnalytic.getPValAdjusted();
             final String ef = expressionAnalytic.getEfName();
             final String efv = expressionAnalytic.getEfvName();
 
@@ -395,8 +395,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             int cup = ud.childrenUp.size();
             int cdn = ud.childrenDn.size();
 
-            double pup = Math.min(ud.minpvalChildrenUp, ud.minpvalUp);
-            double pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
+            float pup = Math.min(ud.minpvalChildrenUp, ud.minpvalUp);
+            float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
 
             if (cup > 0) {
                 solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
@@ -417,15 +417,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             if (cup > 0) {
                 solrDoc.addField("s_efo_" + accessionE + "_up",
-                                 shorten(cup * (1.0 - pup) - cdn * (1.0 - pdn)));
+                                 shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
             }
             if (cdn > 0) {
                 solrDoc.addField("s_efo_" + accessionE + "_dn",
-                                 shorten(cdn * (1.0 - pdn) - cup * (1.0 - pup)));
+                                 shorten(cdn * (1.0f - pdn) - cup * (1.0f - pup)));
             }
             if (cup + cdn > 0) {
                 solrDoc.addField("s_efo_" + accessionE + "_ud",
-                                 shorten(cup * (1.0 - pup) + cdn * (1.0 - pdn)));
+                                 shorten(cup * (1.0f - pup) + cdn * (1.0f - pdn)));
             }
 
             if (cup > 0) {
@@ -448,8 +448,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             int cup = ud.cup;
             int cdn = ud.cdn;
-            double pvup = ud.pup;
-            double pvdn = ud.pdn;
+            float pvup = ud.pup;
+            float pvdn = ud.pdn;
 
             if (cup != 0) {
                 solrDoc.addField("cnt_" + efvid + "_up", cup);
@@ -461,11 +461,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             solrDoc.addField("s_" + efvid + "_up",
-                             shorten(cup * (1.0 - pvup) - cdn * (1.0 - pvdn)));
+                             shorten(cup * (1.0f - pvup) - cdn * (1.0f - pvdn)));
             solrDoc.addField("s_" + efvid + "_dn",
-                             shorten(cdn * (1.0 - pvdn) - cup * (1.0 - pvup)));
+                             shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
             solrDoc.addField("s_" + efvid + "_ud",
-                             shorten(cup * (1.0 - pvup) + cdn * (1.0 - pvdn)));
+                             shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
 
         }
     }
@@ -497,15 +497,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info("Ontology mappings loaded");
     }
 
-    private short shorten(double d) {
-        d = d * 256;
-        if (d > Short.MAX_VALUE) {
+    private short shorten(float f) {
+        f = f * 256;
+        if (f > Short.MAX_VALUE) {
             return Short.MAX_VALUE;
         }
-        if (d < Short.MIN_VALUE) {
+        if (f < Short.MIN_VALUE) {
             return Short.MIN_VALUE;
         }
-        return (short) d;
+        return (short) f;
     }
 
     private class UpDnSet {
@@ -514,10 +514,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Set<Long> childrenUp = new HashSet<Long>();
         Set<Long> childrenDn = new HashSet<Long>();
         boolean processed = false;
-        double minpvalUp = 1;
-        double minpvalDn = 1;
-        double minpvalChildrenUp = 1;
-        double minpvalChildrenDn = 1;
+        float minpvalUp = 1;
+        float minpvalDn = 1;
+        float minpvalChildrenUp = 1;
+        float minpvalChildrenDn = 1;
 
         void addChild(UpDnSet child) {
             childrenUp.addAll(child.childrenUp);
@@ -536,8 +536,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private class UpDn {
         int cup = 0;
         int cdn = 0;
-        double pup = 1;
-        double pdn = 1;
+        float pup = 1;
+        float pdn = 1;
     }
 
     public String getName() {

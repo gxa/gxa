@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.structuredquery.Constants;
@@ -40,16 +40,16 @@ import java.util.*;
  */
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
-    private AtlasDao dao;
+    private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
 
-    public AtlasDao getDao() {
-        return dao;
+    public AtlasSolrDAO getDao() {
+        return atlasSolrDAO;
     }
 
-    public void setDao(AtlasDao dao) {
-        this.dao = dao;
+    public void setDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public Efo getEfo() {
@@ -85,7 +85,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             }
 
-            AtlasDao.AtlasGeneResult result = dao.getGeneById(geneIdKey);
+            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneIdKey);
             if (!result.isFound()) {
                 throw new IllegalArgumentException("Atlas gene " + geneIdKey + " not found");
             }
@@ -99,7 +99,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            Map<Integer, Map<String, List<ExpressionAnalysis>>> exmap = new HashMap<Integer, Map<String, List<ExpressionAnalysis>>>();
+            Map<Long, Map<String, List<ExpressionAnalysis>>> exmap = new HashMap<Long, Map<String, List<ExpressionAnalysis>>>();
             for (ExpressionAnalysis exp : isEfo ?
                     gene.getExpressionAnalyticsTable().findByEfoSet(efo.getTermAndAllChildrenIds(factorValue)) :
                     gene.getExpressionAnalyticsTable().findByEfEfv(factor, factorValue)) {
@@ -129,11 +129,11 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             @SuppressWarnings("unchecked")
 
-            List<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>> exps =
-                    new ArrayList<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>>(exmap.entrySet());
-            Collections.sort(exps, new Comparator<Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>>>() {
-                public int compare(Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> o1,
-                                   Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> o2) {
+            List<Map.Entry<Long, Map<String, List<ExpressionAnalysis>>>> exps =
+                    new ArrayList<Map.Entry<Long, Map<String, List<ExpressionAnalysis>>>>(exmap.entrySet());
+            Collections.sort(exps, new Comparator<Map.Entry<Long, Map<String, List<ExpressionAnalysis>>>>() {
+                public int compare(Map.Entry<Long, Map<String, List<ExpressionAnalysis>>> o1,
+                                   Map.Entry<Long, Map<String, List<ExpressionAnalysis>>> o2) {
                     double minp1 = 1;
                     for (Map.Entry<String, List<ExpressionAnalysis>> ef : o1.getValue().entrySet()) {
                         minp1 = Math.min(minp1, ef.getValue().get(0).getPValAdjusted());
@@ -149,8 +149,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             int numUp = 0, numDn = 0;
 
             List<Map> jsExps = new ArrayList<Map>();
-            for (Map.Entry<Integer, Map<String, List<ExpressionAnalysis>>> e : exps) {
-                AtlasExperiment aexp = dao.getExperimentById(e.getKey());
+            for (Map.Entry<Long, Map<String, List<ExpressionAnalysis>>> e : exps) {
+                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());

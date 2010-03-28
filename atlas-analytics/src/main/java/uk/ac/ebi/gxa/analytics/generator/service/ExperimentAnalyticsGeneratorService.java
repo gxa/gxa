@@ -292,7 +292,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     proxy = new NetCDFProxy(netCDF);
 
                     // get unique factor values for the expression value matrix
-                    int[] designElements = proxy.getDesignElements();
+                    long[] designElements = proxy.getDesignElements();
                     String[] uefvs = proxy.getUniqueFactorValues();
 
                     // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
@@ -382,18 +382,19 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             sb.append(line).append("\n");
         }
 
+        in.close();
         return sb.toString();
     }
 
     private class AnalyticsTimer {
-        private int[] experimentIDs;
+        private long[] experimentIDs;
         private boolean[] completions;
         private int completedCount;
         private long startTime;
         private long lastEstimate;
 
         public AnalyticsTimer(List<Experiment> experiments) {
-            experimentIDs = new int[experiments.size()];
+            experimentIDs = new long[experiments.size()];
             completions = new boolean[experiments.size()];
             int i = 0;
             for (Experiment exp : experiments) {
@@ -409,7 +410,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             return this;
         }
 
-        public synchronized AnalyticsTimer completed(int experimentID) {
+        public synchronized AnalyticsTimer completed(long experimentID) {
             for (int i = 0; i < experimentIDs.length; i++) {
                 if (experimentIDs[i] == experimentID) {
                     if (!completions[i]) {

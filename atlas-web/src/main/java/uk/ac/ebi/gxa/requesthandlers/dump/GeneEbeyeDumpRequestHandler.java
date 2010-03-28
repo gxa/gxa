@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.XML4dbDumps;
 import ae3.util.FileDownloadServer;
@@ -52,16 +52,16 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private File dumpGeneIdsFile;
-    private AtlasDao dao;
+    private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
 
-    public AtlasDao getDao() {
-        return dao;
+    public AtlasSolrDAO getDao() {
+        return atlasSolrDAO;
     }
 
-    public void setDao(AtlasDao dao) {
-        this.dao = dao;
+    public void setDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -99,7 +99,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
      */
     public void dumpGeneIdentifiers() {
         try {
-            List<AtlasGene> genes = dao.getGenes();
+            List<AtlasGene> genes = atlasSolrDAO.getGenes();
 
             XML4dbDumps.Document d1 = new XML4dbDumps.Document();
             d1.setName("Gene Expression Atlas"); //db_name

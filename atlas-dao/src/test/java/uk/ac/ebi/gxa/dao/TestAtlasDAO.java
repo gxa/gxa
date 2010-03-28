@@ -107,7 +107,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             // fetch the accession of the first experiment in our dataset
             String accession = getDataSet().getTable("A2_EXPERIMENT")
                     .getValue(0, "accession").toString();
-            int id = Integer.parseInt(getDataSet().getTable("A2_EXPERIMENT")
+            long id = Long.parseLong(getDataSet().getTable("A2_EXPERIMENT")
                     .getValue(0, "experimentid").toString());
 
             // fetch the experiment using the DAO
@@ -313,8 +313,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             String accession =
                     getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
                             .toString();
-            int id =
-                    Integer.parseInt(getDataSet().getTable("A2_ARRAYDESIGN")
+            long id =
+                    Long.parseLong(getDataSet().getTable("A2_ARRAYDESIGN")
                             .getValue(0, "arraydesignid")
                             .toString());
 
@@ -344,11 +344,11 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                     getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
                             .toString();
 
-            Map<Integer, String> designElements =
+            Map<Long, String> designElements =
                     getAtlasDAO().getDesignElementsByArrayAccession(accession);
 
             // check the returned data
-            for (Integer deID : designElements.keySet()) {
+            for (Long deID : designElements.keySet()) {
                 assertNotNull(deID);
                 assertNotSame("Empty int for design element ID", deID, "");
                 System.out.println("Got design element: " + deID);
@@ -363,14 +363,14 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     public void testGetDesignElementsByGeneID() {
         try {
             // fetch the accession of the first gene in our dataset
-            int id = Integer.parseInt(
+            long id = Long.parseLong(
                     getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
 
-            Map<Integer, String> designElements =
+            Map<Long, String> designElements =
                     getAtlasDAO().getDesignElementsByGeneID(id);
 
             // check the returned data
-            for (int deID : designElements.keySet()) {
+            for (long deID : designElements.keySet()) {
                 assertNotNull(deID);
                 assertNotSame("Got 0 for design element ID", deID, 0);
                 assertNotSame("Got -1 for design element ID", deID, -1);
@@ -386,7 +386,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     public void testGetAtlasCountsByExperimentID() {
         try {
             // fetch the id of the first experiment in our dataset
-            int id = Integer.parseInt(getDataSet().getTable("A2_EXPERIMENT").
+            long id = Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").
                     getValue(0, "experimentid").toString());
 
             List<AtlasCount> atlasCounts =
@@ -412,7 +412,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     public void testGetExpressionAnalyticsByGeneID() {
         try {
             // fetch the accession of the first gene in our dataset
-            int id = Integer.parseInt(
+            long id = Long.parseLong(
                     getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
 
             List<ExpressionAnalysis> exprAnalyses =
