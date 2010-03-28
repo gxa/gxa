@@ -37,7 +37,7 @@ import java.util.Collection;
 public class AtlasSample implements Sample {
 
     private String accession;
-    private int id;
+    private long id;
     private Collection<String> assayAccessions;
     private PropertyCollection properties;
 
@@ -48,10 +48,10 @@ public class AtlasSample implements Sample {
         this.accession = accession;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
-    public void setid(int id){
+    public void setid(long id){
         this.id = id;
     }
 

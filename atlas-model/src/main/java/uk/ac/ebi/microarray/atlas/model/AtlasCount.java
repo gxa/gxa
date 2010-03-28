@@ -37,8 +37,8 @@ public class AtlasCount {
     private String propertyValue;
     private String upOrDown;
     private int geneCount;
-    private int propertyId;
-    private int propertyValueId;
+    private long propertyId;
+    private long propertyValueId;
 
     public String getProperty() {
         return property;
@@ -72,19 +72,19 @@ public class AtlasCount {
         this.geneCount = geneCount;
     }
 
-    public int getPropertyId() {
+    public long getPropertyId() {
         return propertyId;
     }
 
-    public void setPropertyId(int propertyId) {
+    public void setPropertyId(long propertyId) {
         this.propertyId = propertyId;
     }
 
-    public int getPropertyValueId() {
+    public long getPropertyValueId() {
         return propertyValueId;
     }
 
-    public void setPropertyValueId(int propertyValueId) {
+    public void setPropertyValueId(long propertyValueId) {
         this.propertyValueId = propertyValueId;
     }
 

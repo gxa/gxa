@@ -631,7 +631,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetDesignElementsByArrayID() {
-        final int arrID = Integer.parseInt(extractParameter("array.id"));
+        final long arrID = Long.parseLong(extractParameter("array.id"));
         reportBenchmarks("getDesignElementsByArrayID()", AtlasDAO.DESIGN_ELEMENTS_BY_ARRAY_ID,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
@@ -642,7 +642,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetDesignElementsByGeneID() {
-        final int geneID = Integer.parseInt(extractParameter("gene.id"));
+        final long geneID = Long.parseLong(extractParameter("gene.id"));
         reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENTS_BY_GENEID, timer.execute(new TimedOperation() {
             void doOperation() {
                 atlasDAO.getDesignElementsByGeneID(geneID);
@@ -652,7 +652,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetExpressionAnalyticsByGeneID() {
-        final int geneID = Integer.parseInt(extractParameter("gene.id"));
+        final long geneID = Long.parseLong(extractParameter("gene.id"));
         reportBenchmarks("getExpressionAnalyticsByGeneID()", AtlasDAO.EXPRESSIONANALYTICS_BY_GENEID,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
@@ -663,7 +663,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetExpressionAnalyticsByDesignElementID() {
-        final int deID = Integer.parseInt(extractParameter("design.element.id"));
+        final long deID = Long.parseLong(extractParameter("design.element.id"));
         reportBenchmarks("getExpressionAnalyticsByDesignElementID()", AtlasDAO.EXPRESSIONANALYTICS_BY_DESIGNELEMENTID,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
@@ -673,7 +673,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetExpressionAnalyticsByExperimentID() {
-        final int expID = Integer.parseInt(extractParameter("experiment.id"));
+        final long expID = Long.parseLong(extractParameter("experiment.id"));
         reportBenchmarks("getExpressionAnalyticsByExperimentID()", AtlasDAO.EXPRESSIONANALYTICS_BY_EXPERIMENTID,
                          timer.execute(new TimedOperation() {
                              void doOperation() {
@@ -713,7 +713,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAtlasCountsByExperimentID() {
-        final int expID = Integer.parseInt(extractParameter("experiment.id"));
+        final long expID = Long.parseLong(extractParameter("experiment.id"));
         reportBenchmarks("getAtlasCountsByExperimentID()", AtlasDAO.ATLAS_COUNTS_BY_EXPERIMENTID,
                          timer.execute(new TimedOperation() {
                              void doOperation() {

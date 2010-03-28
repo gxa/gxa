@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
+import ae3.dao.AtlasSolrDAO;
 import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
-import ae3.dao.AtlasDao;
 import ae3.model.AtlasGene;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
@@ -38,21 +38,21 @@ import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
  * @author pashky
  */
 public class GenePageRequestHandler implements HttpRequestHandler {
-    private AtlasDao atlasSolrDao;
+    private AtlasSolrDAO atlasSolrDAO;
 
-    public AtlasDao getAtlasSolrDao() {
-        return atlasSolrDao;
+    public AtlasSolrDAO getAtlasSolrDao() {
+        return atlasSolrDAO;
     }
 
-    public void setAtlasSolrDao(AtlasDao atlasSolrDao) {
-        this.atlasSolrDao = atlasSolrDao;
+    public void setAtlasSolrDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String geneId = request.getParameter("gid");
 
         if (geneId != null || !"".equals(geneId)) {
-            AtlasDao.AtlasGeneResult result = atlasSolrDao.getGeneByIdentifier(geneId);
+            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneId);
             if(result.isMulti()) {
                 response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
                 return;
@@ -60,7 +60,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
 
             if(result.isFound()) {
                 AtlasGene gene = result.getGene();
-                request.setAttribute("orthologs", atlasSolrDao.getOrthoGenes(gene));
+                request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMapRows());
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());

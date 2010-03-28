@@ -110,7 +110,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
             } catch (SolrServerException e) {
                 throw new RuntimeException(e);
             }
-            log.info("Done getting counts for ontoltogy");
+            log.info("Done getting counts for ontology");
         }
 
         return counts.get(id);

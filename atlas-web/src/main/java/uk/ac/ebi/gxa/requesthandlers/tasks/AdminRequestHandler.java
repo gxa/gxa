@@ -111,12 +111,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId, TaskUser user) {
-        Map<String,Integer> result = new HashMap<String, Integer>();
+        Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
         for(String accession : accessions) {
-            int id = taskManager.enqueueTask(new TaskSpec(taskType, accession),
+            long id = taskManager.enqueueTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
                     user,
                     toBoolean(autoDepend),
@@ -151,13 +151,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processEnqueueSearchExperiments(String type,
                                                    String searchText, String fromDate, String toDate, String pendingOnlyStr,
                                                    String runMode, String autoDepend, String remoteId, TaskUser user) {
-        Map<String,Integer> result = new HashMap<String, Integer>();
+        Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
         for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
             Experiment experiment = i.next().getFirst();
-            int id = taskManager.enqueueTask(new TaskSpec(type, experiment.getAccession()),
+            long id = taskManager.enqueueTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     toBoolean(autoDepend), WEB_REQ_MESSAGE + remoteId);

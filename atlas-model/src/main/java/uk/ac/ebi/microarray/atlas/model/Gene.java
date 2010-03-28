@@ -37,22 +37,22 @@ public class Gene {
     private String name;
     private String species;
     private List<Property> properties;
-    private int geneID;
-    private Set<Integer> designElementIDs;
+    private long geneID;
+    private Set<Long> designElementIDs;
 
-    public int getGeneID() {
+    public long getGeneID() {
         return geneID;
     }
 
-    public void setGeneID(int geneID) {
+    public void setGeneID(long geneID) {
         this.geneID = geneID;
     }
 
-    public Set<Integer> getDesignElementIDs() {
+    public Set<Long> getDesignElementIDs() {
         return designElementIDs;
     }
 
-    public void setDesignElementIDs(Set<Integer> designElementIDs) {
+    public void setDesignElementIDs(Set<Long> designElementIDs) {
         this.designElementIDs = designElementIDs;
     }
 

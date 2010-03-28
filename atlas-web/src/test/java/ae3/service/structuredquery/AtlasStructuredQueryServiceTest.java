@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 
 import java.net.URI;
 
@@ -56,9 +56,9 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Efo efo = new Efo();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
 
-        AtlasDao dao = new AtlasDao();
-        dao.setSolrServerAtlas(solrServerAtlas);
-        dao.setSolrServerExpt(expt);
+        AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
+        atlasSolrDAO.setSolrServerAtlas(solrServerAtlas);
+        atlasSolrDAO.setSolrServerExpt(expt);
 
         AtlasEfvService efvService = new AtlasEfvService();
         efvService.setSolrServerAtlas(solrServerAtlas);
@@ -78,7 +78,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setSolrServerAtlas(solrServerAtlas);
         service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
-        service.setAtlasSolrDAO(dao);
+        service.setAtlasSolrDAO(atlasSolrDAO);
         service.setEfoService(efoService);
         service.setEfvService(efvService);
         service.setEfo(efo);

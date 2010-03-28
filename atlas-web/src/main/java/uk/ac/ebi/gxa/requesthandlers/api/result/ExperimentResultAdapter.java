@@ -29,7 +29,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import ae3.service.structuredquery.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 
 import java.util.*;
 
@@ -44,12 +44,12 @@ public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Collection<AtlasGene> genes;
-    private final AtlasDao dao;
+    private final AtlasSolrDAO atlasSolrDAO;
 
-    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes, ExperimentalData expData, AtlasDao dao) {
+    public ExperimentResultAdapter(AtlasExperiment experiment, Collection<AtlasGene> genes, ExperimentalData expData, AtlasSolrDAO atlasSolrDAO) {
         this.experiment = experiment;
         this.genes = genes;
-        this.dao = dao;
+        this.atlasSolrDAO = atlasSolrDAO;
         this.expData = expData;
     }
 
@@ -65,7 +65,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
-        return dao.getExperimentSpecies(experiment.getId());
+        return atlasSolrDAO.getExperimentSpecies(experiment.getId());
     }
 
     public class ArrayDesignExpression {
@@ -90,23 +90,23 @@ public class ExperimentResultAdapter {
                 @RestOut(forRenderer = XmlRestResultRenderer.class, asString = true),
                 @RestOut(forRenderer = JsonRestResultRenderer.class, asString = false)
         })
-        public class DesignElementExpressions implements Iterable<Double> {
+        public class DesignElementExpressions implements Iterable<Float> {
             private final int designElementId;
             public DesignElementExpressions(int designElementId) {
                 this.designElementId = designElementId;
             }
 
-            public Iterator<Double> iterator() {
-                return new MappingIterator<Assay,Double>(getExperimentalData().getAssays(arrayDesign).iterator()) {
-                    public Double map(Assay assay) {
+            public Iterator<Float> iterator() {
+                return new MappingIterator<Assay,Float>(getExperimentalData().getAssays(arrayDesign).iterator()) {
+                    public Float map(Assay assay) {
                         return getExperimentalData().getExpression(assay, designElementId);
                     }
                 };
             }
 
             public boolean isEmpty() {
-                for(Double d : this)
-                    if(d > -1000000.0d)
+                for(Float f : this)
+                    if(f > -1000000.0f)
                         return false;
                 return true;
             }
@@ -122,7 +122,7 @@ public class ExperimentResultAdapter {
         public Map<String,DesignElementExpMap> getGeneExpressions() {
             Map<String,DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
             for(AtlasGene gene : genes) {
-                int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Integer.valueOf(gene.getGeneId()));
+                int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Long.valueOf(gene.getGeneId()));
                 if(designElements != null) {
                     DesignElementExpMap deMap = new DesignElementExpMap();
                     for(final int designElementId : designElements) {
@@ -151,7 +151,7 @@ public class ExperimentResultAdapter {
         public Map<String,DesignElementStatMap> getGeneExpressions() {
             Map<String,DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
             for(AtlasGene gene : genes) {
-                int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Integer.valueOf(gene.getGeneId()));
+                int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Long.valueOf(gene.getGeneId()));
                 if(designElements != null) {
                     DesignElementStatMap deMap = new DesignElementStatMap();
                     for(final int designElementId : designElements) {

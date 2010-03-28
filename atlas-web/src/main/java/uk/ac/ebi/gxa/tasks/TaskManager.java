@@ -61,7 +61,7 @@ public class TaskManager implements InitializingBean {
     }
 
     private static class QueuedTask implements Task {
-        private final int taskId;
+        private final long taskId;
         private final TaskSpec taskSpec;
         private TaskRunMode runMode;
         private final TaskStage stage;
@@ -79,7 +79,7 @@ public class TaskManager implements InitializingBean {
 
         }
 
-        public int getTaskId() {
+        public long getTaskId() {
             return taskId;
         }
 
@@ -187,7 +187,7 @@ public class TaskManager implements InitializingBean {
         return null;
     }
 
-    public int enqueueTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
+    public long enqueueTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
         synchronized(this) {
             log.info("Queuing task " + taskSpec + " in mode " + runMode + " as user " + user);
             storage.logTaskOperation(taskSpec, runMode, user, TaskOperation.ENQUEUE, message);
@@ -225,7 +225,7 @@ public class TaskManager implements InitializingBean {
         }
     }
 
-    private Task getTaskById(final int taskId) {
+    private Task getTaskById(final long taskId) {
         for(Task task : workingTasks)
             if(task.getTaskId() == taskId)
                 return task;
@@ -258,7 +258,7 @@ public class TaskManager implements InitializingBean {
         }
     }
 
-    public void cancelTask(int taskId, TaskUser user, String message) {
+    public void cancelTask(long taskId, TaskUser user, String message) {
         synchronized (this) {
             log.info("Cancelling taskId " + taskId + " as user " + user);
             Task task = getTaskById(taskId);

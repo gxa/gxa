@@ -37,9 +37,9 @@ public class ArrayDesign {
     private String type;
     private String name;
     private String provider;
-    private int arrayDesignID;
-    private Map<String, Integer> designElements;
-    private Map<Integer, List<Integer>> genes;
+    private long arrayDesignID;
+    private Map<String, Long> designElements;
+    private Map<Long, List<Long>> genes;
 
     public String getAccession() {
         return accession;
@@ -73,27 +73,27 @@ public class ArrayDesign {
         this.provider = provider;
     }
 
-    public int getArrayDesignID() {
+    public long getArrayDesignID() {
         return arrayDesignID;
     }
 
-    public void setArrayDesignID(int arrayDesignID) {
+    public void setArrayDesignID(long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
     }
 
-    public Map<String, Integer> getDesignElements() {
+    public Map<String, Long> getDesignElements() {
         return designElements;
     }
 
-    public void setDesignElements(Map<String, Integer> designElements) {
+    public void setDesignElements(Map<String, Long> designElements) {
         this.designElements = designElements;
     }
 
-    public Map<Integer, List<Integer>> getGenes() {
+    public Map<Long, List<Long>> getGenes() {
         return genes;
     }
 
-    public void setGenes(Map<Integer, List<Integer>> genes) {
+    public void setGenes(Map<Long, List<Long>> genes) {
         this.genes = genes;
     }
 }

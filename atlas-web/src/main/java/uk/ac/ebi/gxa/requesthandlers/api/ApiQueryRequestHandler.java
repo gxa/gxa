@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
@@ -56,7 +56,7 @@ import org.springframework.beans.factory.DisposableBean;
  */
 public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
-    private AtlasDao dao;
+    private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
     private IndexBuilder indexBuilder;
 
@@ -71,12 +71,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.queryService = queryService;
     }
 
-    public AtlasDao getDao() {
-        return dao;
+    public AtlasSolrDAO getDao() {
+        return atlasSolrDAO;
     }
 
-    public void setDao(AtlasDao dao) {
-        this.dao = dao;
+    public void setDao(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public Efo getEfo() {
@@ -112,7 +112,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
         if(!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
-            final AtlasDao.AtlasExperimentsResult experiments = dao.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+            final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
             if(experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
@@ -128,7 +128,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     } catch(Exception e) {/**/}
                 } else {
                     for(String geneId : geneIds) {
-                        AtlasDao.AtlasGeneResult agr = dao.getGeneByIdentifier(geneId);
+                        AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
                         if(agr.isFound() && !genes.contains(agr.getGene()))
                             genes.add(agr.getGene());
                     }
@@ -167,7 +167,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             } catch(IOException e) {
                                 throw new RuntimeException("Failed to read experimental data");
                             }
-                            return new ExperimentResultAdapter(experiment, genes, expData, dao);
+                            return new ExperimentResultAdapter(experiment, genes, expData, atlasSolrDAO);
                         }
                     };
                 }
@@ -180,7 +180,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, dao, efo);
+                return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo);
             }
             else {
                 return new ErrorResult("Empty query specified");

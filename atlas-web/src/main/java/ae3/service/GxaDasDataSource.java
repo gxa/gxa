@@ -22,7 +22,7 @@
 
 package ae3.service;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.util.HtmlHelper;
 import org.springframework.web.context.WebApplicationContext;
@@ -62,7 +62,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
     ServletContext svCon;
     Map<String, String> globalParameters;
     DataSourceConfiguration config;
-    AtlasDao dao;
+    AtlasSolrDAO atlasSolrDAO;
     AtlasProperties atlasProperties;
 
 
@@ -96,7 +96,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
         this.config = dataSourceConfig;
 
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(svCon);
-        dao = (AtlasDao)context.getBean("atlasSolrDAO");
+        atlasSolrDAO = (AtlasSolrDAO)context.getBean("atlasSolrDAO");
         atlasProperties = (AtlasProperties)context.getBean("atlasProperties");
     }
 
@@ -205,7 +205,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
             GeneExpressionAnalyticsTable tbl = atlasGene.getExpressionAnalyticsTable();
             for (ExpressionAnalysis e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
                 // lookup search service from context
-                AtlasExperiment atlasExperiment = dao.getExperimentById(e.getExperimentID());
+                AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(e.getExperimentID());
 
                 if (null == atlasExperiment) {
                     continue;
@@ -341,7 +341,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
         String geneId = segmentReference;
 
         //AtlasGeneService.getAtlasGene(geneId);
-        AtlasGene atlasGene = dao.getGeneByIdentifier(geneId).getGene();
+        AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId).getGene();
 
         if (null == atlasGene) {
             //this.cacheManager.emptyCache();
@@ -374,7 +374,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
             feat.add(HeatmapDasFeature(atlasGene, i));
         }
 
-        List<AtlasExperiment> t = dao.getRankedGeneExperiments(atlasGene, null, null, -1, -1);
+        List<AtlasExperiment> t = atlasSolrDAO.getRankedGeneExperiments(atlasGene, null, null, -1, -1);
         for (AtlasExperiment e : t) {
             feat.add(ExperimentDasFeature(atlasGene, e));
         }

@@ -33,12 +33,12 @@ import java.io.Serializable;
 public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
     private String efName;
     private String efvName;
-    private int experimentID;
-    private transient int designElementID;  // we don't care about it
-    private double tStatistic;
-    private double pValAdjusted;
-    private transient int efId;  // TODO: make it properly
-    private transient int efvId; // TODO: make it properly
+    private long experimentID;
+    private transient long designElementID;  // we don't care about it
+    private float tStatistic;
+    private float pValAdjusted;
+    private transient long efId;  // TODO: make it properly
+    private transient long efvId; // TODO: make it properly
     private String[] efoAccessions;
 
     public String getEfName() {
@@ -57,51 +57,51 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         this.efvName = efvName;
     }
 
-    public int getExperimentID() {
+    public long getExperimentID() {
         return experimentID;
     }
 
-    public void setExperimentID(int experimentID) {
+    public void setExperimentID(long experimentID) {
         this.experimentID = experimentID;
     }
 
-    public int getDesignElementID() {
+    public long getDesignElementID() {
         return designElementID;
     }
 
-    public void setDesignElementID(int designElementID) {
+    public void setDesignElementID(long designElementID) {
         this.designElementID = designElementID;
     }
 
-    public double getPValAdjusted() {
+    public float getPValAdjusted() {
         return pValAdjusted;
     }
 
-    public void setPValAdjusted(double pValAdjusted) {
+    public void setPValAdjusted(float pValAdjusted) {
         this.pValAdjusted = pValAdjusted;
     }
 
-    public double getTStatistic() {
+    public float getTStatistic() {
         return tStatistic;
     }
 
-    public void setTStatistic(double tStatistic) {
+    public void setTStatistic(float tStatistic) {
         this.tStatistic = tStatistic;
     }
 
-    public int getEfId() {
+    public long getEfId() {
         return efId;
     }
 
-    public void setEfId(int efId) {
+    public void setEfId(long efId) {
         this.efId = efId;
     }
 
-    public int getEfvId() {
+    public long getEfvId() {
         return efvId;
     }
 
-    public void setEfvId(int efvId) {
+    public void setEfvId(long efvId) {
         this.efvId = efvId;
     }
 
@@ -114,7 +114,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     }
 
     public int compareTo(ExpressionAnalysis o) {
-        return Double.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
+        return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
     }
 
     public boolean isUp() {

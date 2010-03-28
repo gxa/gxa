@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class Sample {
     private int number;
-    private int id;
+    private long id;
     private Map<String,String> sampleCharacteristics;
     private ExperimentalData experiment;
     private Set<Assay> assays = new HashSet<Assay>();
@@ -49,7 +49,7 @@ public class Sample {
      * @param sampleCharacteristics sample characteristics values map
      * @param id sample DW id
      */
-    Sample(ExperimentalData experiment, int number, Map<String, String> sampleCharacteristics, int id) {
+    Sample(ExperimentalData experiment, int number, Map<String, String> sampleCharacteristics, long id) {
         this.number = number;
         this.sampleCharacteristics = sampleCharacteristics;
         this.experiment = experiment;
@@ -97,7 +97,7 @@ public class Sample {
      * Returns DW sample id
      * @return sample id
      */
-    int getId() {
+    long getId() {
         return id;
     }
 
@@ -123,8 +123,7 @@ public class Sample {
 
     @Override
     public int hashCode() {
-        int result = number;
-        return result;
+        return number;
     }
 
     @Override

@@ -539,14 +539,14 @@ public class AtlasDAO {
         List<Gene> genes = (List<Gene>) results;
 
         // map genes to gene id
-        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
         for (Gene gene : genes) {
             // index this assay
             genesByID.put(gene.getGeneID(), gene);
 
             // also, initialize properties if null - once this method is called, you should never get an NPE
             if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Integer>());
+                gene.setDesignElementIDs(new HashSet<Long>());
             }
         }
 
@@ -607,14 +607,14 @@ public class AtlasDAO {
         List<Gene> genes = (List<Gene>) results;
 
         // map genes to gene id
-        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
         for (Gene gene : genes) {
             // index this assay
             genesByID.put(gene.getGeneID(), gene);
 
             // also, initialize properties if null - once this method is called, you should never get an NPE
             if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Integer>());
+                gene.setDesignElementIDs(new HashSet<Long>());
             }
         }
 
@@ -842,14 +842,14 @@ public class AtlasDAO {
      * design elements.  This takes the accession of the array design as a parameter.
      *
      * @param arrayDesignAccession the accession number of the array design to query for
-     * @return the map of design element accessions indexed by unique design element id integers
+     * @return the map of design element accessions indexed by unique design element id longs
      */
-    public Map<Integer, String> getDesignElementsByArrayAccession(
+    public Map<Long, String> getDesignElementsByArrayAccession(
             String arrayDesignAccession) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
                                         new Object[]{arrayDesignAccession},
                                         new DesignElementMapper());
-        return (Map<Integer, String>) results;
+        return (Map<Long, String>) results;
     }
 
     /**
@@ -860,33 +860,33 @@ public class AtlasDAO {
      * names for design elements.  This takes the accession of the array design as a parameter.
      *
      * @param arrayDesignAccession the accession number of the array design to query for
-     * @return the map of design element names indexed by unique design element id integers
+     * @return the map of design element names indexed by unique design element id longs
      */
-    public Map<Integer, String> getDesignElementNamesByArrayAccession(
+    public Map<Long, String> getDesignElementNamesByArrayAccession(
             String arrayDesignAccession) {
         Object results = template.query(DESIGN_ELEMENT_NAMES_BY_ARRAY_ACCESSION,
                                         new Object[]{arrayDesignAccession},
                                         new DesignElementMapper());
-        return (Map<Integer, String>) results;
+        return (Map<Long, String>) results;
     }
 
-    public Map<Integer, String> getDesignElementsByArrayID(
-            int arrayDesignID) {
+    public Map<Long, String> getDesignElementsByArrayID(
+            long arrayDesignID) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ID,
                                         new Object[]{arrayDesignID},
                                         new DesignElementMapper());
-        return (Map<Integer, String>) results;
+        return (Map<Long, String>) results;
     }
 
-    public Map<Integer, String> getDesignElementsByGeneID(int geneID) {
+    public Map<Long, String> getDesignElementsByGeneID(long geneID) {
         Object results = template.query(DESIGN_ELEMENTS_BY_GENEID,
                                         new Object[]{geneID},
                                         new DesignElementMapper());
-        return (Map<Integer, String>) results;
+        return (Map<Long, String>) results;
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
-            int geneID) {
+            long geneID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
                                       new Object[]{geneID},
                                       new ExpressionAnalyticsMapper());
@@ -894,7 +894,7 @@ public class AtlasDAO {
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByDesignElementID(
-            int designElementID) {
+            long designElementID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_DESIGNELEMENTID,
                                       new Object[]{designElementID},
                                       new ExpressionAnalyticsMapper());
@@ -902,7 +902,7 @@ public class AtlasDAO {
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByExperimentID(
-            int experimentID) {
+            long experimentID) {
         List results = template.query(EXPRESSIONANALYTICS_BY_EXPERIMENTID,
                                       new Object[]{experimentID},
                                       new ExpressionAnalyticsMapper());
@@ -939,7 +939,7 @@ public class AtlasDAO {
         return (List<OntologyMapping>) results;
     }
 
-    public List<AtlasCount> getAtlasCountsByExperimentID(int experimentID) {
+    public List<AtlasCount> getAtlasCountsByExperimentID(long experimentID) {
         List results = template.query(ATLAS_COUNTS_BY_EXPERIMENTID,
                                       new Object[]{experimentID},
                                       new AtlasCountMapper());
@@ -965,7 +965,7 @@ public class AtlasDAO {
         return new HashSet<String>(results);
     }
 
-    public List<AtlasTableResult> getAtlasResults(int[] geneIds, int[] exptIds, int upOrDown, String[] efvs) {
+    public List<AtlasTableResult> getAtlasResults(long[] geneIds, long[] exptIds, int upOrDown, String[] efvs) {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -1008,9 +1008,9 @@ public class AtlasDAO {
         return stats;
     }
 
-    public Integer getBestDesignElementForExpressionProfile(int geneId, int experimentId, String ef) {
+    public Long getBestDesignElementForExpressionProfile(long geneId, long experimentId, String ef) {
         try {
-            return template.queryForInt(BEST_DESIGNELEMENTID_FOR_GENE, new Object[]{ef, experimentId, geneId});
+            return template.queryForLong(BEST_DESIGNELEMENTID_FOR_GENE, new Object[]{ef, experimentId, geneId});
         }
         catch (EmptyResultDataAccessException e) {
             // no statistically best element found
@@ -1274,7 +1274,7 @@ public class AtlasDAO {
     public void writeExpressionAnalytics(String experimentAccession,
                                          String property,
                                          String propertyValue,
-                                         int[] designElements,
+                                         long[] designElements,
                                          float[] pValues,
                                          float[] tStatistics) {
         // execute this procedure...
@@ -1561,17 +1561,17 @@ public class AtlasDAO {
 
     private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
         // map array designs to array design id
-        Map<Integer, ArrayDesign> arrayDesignsByID = new HashMap<Integer, ArrayDesign>();
+        Map<Long, ArrayDesign> arrayDesignsByID = new HashMap<Long, ArrayDesign>();
         for (ArrayDesign array : arrayDesigns) {
             // index this array
             arrayDesignsByID.put(array.getArrayDesignID(), array);
 
             // also initialize design elements is null - once this method is called, you should never get an NPE
             if (array.getDesignElements() == null) {
-                array.setDesignElements(new HashMap<String, Integer>());
+                array.setDesignElements(new HashMap<String, Long>());
             }
             if (array.getGenes() == null) {
-                array.setGenes(new HashMap<Integer, List<Integer>>());
+                array.setGenes(new HashMap<Long, List<Long>>());
             }
         }
 
@@ -1586,7 +1586,7 @@ public class AtlasDAO {
 
     private void fillOutGeneProperties(List<Gene> genes) {
         // map genes to gene id
-        Map<Integer, Gene> genesByID = new HashMap<Integer, Gene>();
+        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
         for (Gene gene : genes) {
             // index this assay
             genesByID.put(gene.getGeneID(), gene);
@@ -1604,13 +1604,13 @@ public class AtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' genes, split into smaller queries
-        List<Integer> geneIDs = new ArrayList<Integer>(genesByID.keySet());
+        List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         boolean done = false;
         int startpos = 0;
         int endpos = maxQueryParams;
 
         while (!done) {
-            List<Integer> geneIDsChunk;
+            List<Long> geneIDsChunk;
             if (endpos > geneIDs.size()) {
                 // we've reached the last segment, so query all of these
                 geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
@@ -1632,7 +1632,7 @@ public class AtlasDAO {
 
     private void fillOutAssays(List<Assay> assays) {
         // map assays to assay id
-        Map<Integer, Assay> assaysByID = new HashMap<Integer, Assay>();
+        Map<Long, Assay> assaysByID = new HashMap<Long, Assay>();
         for (Assay assay : assays) {
             // index this assay
             assaysByID.put(assay.getAssayID(), assay);
@@ -1650,13 +1650,13 @@ public class AtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' assays, split into smaller queries
-        List<Integer> assayIDs = new ArrayList<Integer>(assaysByID.keySet());
+        List<Long> assayIDs = new ArrayList<Long>(assaysByID.keySet());
         boolean done = false;
         int startpos = 0;
         int endpos = maxQueryParams;
 
         while (!done) {
-            List<Integer> assayIDsChunk;
+            List<Long> assayIDsChunk;
             if (endpos > assayIDs.size()) {
                 // we've reached the last segment, so query all of these
                 assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
@@ -1678,7 +1678,7 @@ public class AtlasDAO {
 
     private void fillOutSamples(List<Sample> samples) {
         // map samples to sample id
-        Map<Integer, Sample> samplesByID = new HashMap<Integer, Sample>();
+        Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
 
@@ -1699,13 +1699,13 @@ public class AtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' samples, split into smaller queries
-        List<Integer> sampleIDs = new ArrayList<Integer>(samplesByID.keySet());
+        List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
         boolean done = false;
         int startpos = 0;
         int endpos = maxQueryParams;
 
         while (!done) {
-            List<Integer> sampleIDsChunk;
+            List<Long> sampleIDsChunk;
             if (endpos > sampleIDs.size()) {
                 sampleIDsChunk = sampleIDs.subList(startpos, sampleIDs.size());
                 done = true;
@@ -1723,7 +1723,7 @@ public class AtlasDAO {
 
             // now query for properties that map to one of these samples
             StringBuffer sb  = new StringBuffer();
-            for (int sampleID : sampleIDsChunk) {
+            for (long sampleID : sampleIDsChunk) {
                 sb.append(sampleID).append(",");
             }
             log.trace("Querying for properties where sample IN (" + sb.toString() + ")");
@@ -1827,7 +1827,7 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertExpressionAnalyticsToOracleARRAY(final int[] designElements,
+    private SqlTypeValue convertExpressionAnalyticsToOracleARRAY(final long[] designElements,
                                                                  final float[] pValues,
                                                                  final float[] tStatistics) {
         if (designElements == null || pValues == null || tStatistics == null ||
@@ -1837,7 +1837,7 @@ public class AtlasDAO {
         }
         else {
             int realDECount = 0;
-            for (int de : designElements) 
+            for (long de : designElements) 
                 realDECount += de != 0 ? 1 : 0;
             final int deCount = realDECount;
             return new AbstractSqlTypeValue() {
@@ -1941,7 +1941,7 @@ public class AtlasDAO {
             experiment.setDescription(resultSet.getString(2));
             experiment.setPerformer(resultSet.getString(3));
             experiment.setLab(resultSet.getString(4));
-            experiment.setExperimentID(resultSet.getInt(5));
+            experiment.setExperimentID(resultSet.getLong(5));
             experiment.setLoadDate(resultSet.getDate(6));
 
             return experiment;
@@ -1952,7 +1952,7 @@ public class AtlasDAO {
         public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
             Gene gene = new Gene();
 
-            gene.setGeneID(resultSet.getInt(1));
+            gene.setGeneID(resultSet.getLong(1));
             gene.setIdentifier(resultSet.getString(2));
             gene.setName(resultSet.getString(3));
             gene.setSpecies(resultSet.getString(4));
@@ -1968,7 +1968,7 @@ public class AtlasDAO {
             assay.setAccession(resultSet.getString(1));
             assay.setExperimentAccession(resultSet.getString(2));
             assay.setArrayDesignAccession(resultSet.getString(3));
-            assay.setAssayID(resultSet.getInt(4));
+            assay.setAssayID(resultSet.getLong(4));
 
             return assay;
         }
@@ -1977,22 +1977,22 @@ public class AtlasDAO {
     private class ExpressionValueMapper implements ResultSetExtractor {
         public Object extractData(ResultSet resultSet)
                 throws SQLException, DataAccessException {
-            // maps assay ID (int) to a map of expression values - which is...
-            // a map of design element IDs (int) to expression value (float)
-            Map<Integer, Map<Integer, Float>> assayToEVs =
-                    new HashMap<Integer, Map<Integer, Float>>();
+            // maps assay ID (long) to a map of expression values - which is...
+            // a map of design element IDs (long) to expression value (float)
+            Map<Long, Map<Long, Float>> assayToEVs =
+                    new HashMap<Long, Map<Long, Float>>();
 
             while (resultSet.next()) {
                 // get assay ID key
-                int assayID = resultSet.getInt(1);
+                long assayID = resultSet.getLong(1);
                 // get design element id key
-                int designElementID = resultSet.getInt(2);
+                long designElementID = resultSet.getLong(2);
                 // get expression value
                 float value = resultSet.getFloat(3);
                 // check assay key - can we add new expression value to existing map?
                 if (!assayToEVs.containsKey(assayID)) {
                     // if not, create a new expression values maps
-                    assayToEVs.put(assayID, new HashMap<Integer, Float>());
+                    assayToEVs.put(assayID, new HashMap<Long, Float>());
                 }
                 // insert the expression value map into the assay-linked map
                 assayToEVs.get(assayID).put(designElementID, value);
@@ -2009,21 +2009,21 @@ public class AtlasDAO {
             sample.setAccession(resultSet.getString(1));
             sample.setSpecies(resultSet.getString(2));
             sample.setChannel(resultSet.getString(3));
-            sample.setSampleID(resultSet.getInt(4));
+            sample.setSampleID(resultSet.getLong(4));
 
             return sample;
         }
     }
 
     private class AssaySampleMapper implements RowMapper {
-        Map<Integer, Sample> samplesMap;
+        Map<Long, Sample> samplesMap;
 
-        public AssaySampleMapper(Map<Integer, Sample> samplesMap) {
+        public AssaySampleMapper(Map<Long, Sample> samplesMap) {
             this.samplesMap = samplesMap;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            int sampleID = resultSet.getInt(1);
+            long sampleID = resultSet.getLong(1);
             samplesMap.get(sampleID).addAssayAccession(resultSet.getString(2));
             return null;
         }
@@ -2038,7 +2038,7 @@ public class AtlasDAO {
             array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
-            array.setArrayDesignID(resultSet.getInt(5));
+            array.setArrayDesignID(resultSet.getLong(5));
 
             return array;
         }
@@ -2047,10 +2047,10 @@ public class AtlasDAO {
     private class DesignElementMapper implements ResultSetExtractor {
         public Object extractData(ResultSet resultSet)
                 throws SQLException, DataAccessException {
-            Map<Integer, String> designElements = new HashMap<Integer, String>();
+            Map<Long, String> designElements = new HashMap<Long, String>();
 
             while (resultSet.next()) {
-                designElements.put(resultSet.getInt(1), resultSet.getString(2));
+                designElements.put(resultSet.getLong(1), resultSet.getString(2));
             }
 
             return designElements;
@@ -2063,13 +2063,13 @@ public class AtlasDAO {
 
             ea.setEfName(resultSet.getString(1));
             ea.setEfvName(resultSet.getString(2));
-            ea.setExperimentID(resultSet.getInt(3));
-            ea.setDesignElementID(resultSet.getInt(4));
-            ea.setTStatistic(resultSet.getDouble(5));
-            ea.setPValAdjusted(resultSet.getDouble(6));
+            ea.setExperimentID(resultSet.getLong(3));
+            ea.setDesignElementID(resultSet.getLong(4));
+            ea.setTStatistic(resultSet.getFloat(5));
+            ea.setPValAdjusted(resultSet.getFloat(6));
 
-            ea.setEfId(resultSet.getInt(7));
-            ea.setEfvId(resultSet.getInt(8));
+            ea.setEfId(resultSet.getLong(7));
+            ea.setEfvId(resultSet.getLong(8));
 
             return ea;
         }
@@ -2096,19 +2096,19 @@ public class AtlasDAO {
     }
 
     private class ArrayDesignElementMapper implements RowMapper {
-        private Map<Integer, ArrayDesign> arrayByID;
+        private Map<Long, ArrayDesign> arrayByID;
 
-        public ArrayDesignElementMapper(Map<Integer, ArrayDesign> arraysByID) {
+        public ArrayDesignElementMapper(Map<Long, ArrayDesign> arraysByID) {
             this.arrayByID = arraysByID;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            int arrayID = resultSet.getInt(1);
+            long arrayID = resultSet.getLong(1);
 
-            Integer id = resultSet.getInt(2);
+            long id = resultSet.getLong(2);
             String acc = resultSet.getString(3);
             String name = resultSet.getString(4);
-            Integer geneId = resultSet.getInt(5);
+            long geneId = resultSet.getLong(5);
 
             ArrayDesign ad = arrayByID.get(arrayID);
             ad.getDesignElements().put(acc, id);
@@ -2120,16 +2120,16 @@ public class AtlasDAO {
     }
 
     private class AssayPropertyMapper implements RowMapper {
-        private Map<Integer, Assay> assaysByID;
+        private Map<Long, Assay> assaysByID;
 
-        public AssayPropertyMapper(Map<Integer, Assay> assaysByID) {
+        public AssayPropertyMapper(Map<Long, Assay> assaysByID) {
             this.assaysByID = assaysByID;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
-            int assayID = resultSet.getInt(1);
+            long assayID = resultSet.getLong(1);
 
             property.setName(resultSet.getString(2));
             property.setValue(resultSet.getString(3));
@@ -2142,16 +2142,16 @@ public class AtlasDAO {
     }
 
     private class SamplePropertyMapper implements RowMapper {
-        private Map<Integer, Sample> samplesByID;
+        private Map<Long, Sample> samplesByID;
 
-        public SamplePropertyMapper(Map<Integer, Sample> samplesByID) {
+        public SamplePropertyMapper(Map<Long, Sample> samplesByID) {
             this.samplesByID = samplesByID;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
-            int sampleID = resultSet.getInt(1);
+            long sampleID = resultSet.getLong(1);
 
             property.setName(resultSet.getString(2));
             property.setValue(resultSet.getString(3));
@@ -2166,18 +2166,18 @@ public class AtlasDAO {
     }
 
     private class GenePropertyMapper implements RowMapper {
-        private Map<Integer, Gene> genesByID;
+        private Map<Long, Gene> genesByID;
 
-        public GenePropertyMapper(Map<Integer, Gene> genesByID) {
+        public GenePropertyMapper(Map<Long, Gene> genesByID) {
             this.genesByID = genesByID;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
-            int geneID = resultSet.getInt(1);
+            long geneID = resultSet.getLong(1);
 
-            property.setName(resultSet.getString(2));
+            property.setName(resultSet.getString(2).toLowerCase());
             property.setValue(resultSet.getString(3));
             property.setFactorValue(false);
 
@@ -2188,15 +2188,15 @@ public class AtlasDAO {
     }
 
     private class GeneDesignElementMapper implements RowMapper {
-        private Map<Integer, Gene> genesByID;
+        private Map<Long, Gene> genesByID;
 
-        public GeneDesignElementMapper(Map<Integer, Gene> genesByID) {
+        public GeneDesignElementMapper(Map<Long, Gene> genesByID) {
             this.genesByID = genesByID;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            int geneID = resultSet.getInt(1);
-            int designElementID = resultSet.getInt(2);
+            long geneID = resultSet.getLong(1);
+            long designElementID = resultSet.getLong(2);
 
             genesByID.get(geneID).getDesignElementIDs().add(designElementID);
 
@@ -2215,8 +2215,8 @@ public class AtlasDAO {
             atlasCount.setUpOrDown(resultSet.getString(4));
             atlasCount.setGeneCount(resultSet.getInt(6));
 
-            atlasCount.setPropertyId(resultSet.getInt(7));
-            atlasCount.setPropertyValueId(resultSet.getInt(8));
+            atlasCount.setPropertyId(resultSet.getLong(7));
+            atlasCount.setPropertyValueId(resultSet.getLong(8));
 
             return atlasCount;
         }
@@ -2226,12 +2226,12 @@ public class AtlasDAO {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             AtlasTableResult atlasTableResult = new AtlasTableResult();
 
-            atlasTableResult.setExperimentID(resultSet.getInt(1));
-            atlasTableResult.setGeneID(resultSet.getInt(2));
+            atlasTableResult.setExperimentID(resultSet.getLong(1));
+            atlasTableResult.setGeneID(resultSet.getLong(2));
             atlasTableResult.setProperty(resultSet.getString(3));
             atlasTableResult.setPropertyValue(resultSet.getString(4));
             atlasTableResult.setUpOrDown(resultSet.getString(5));
-            atlasTableResult.setPValAdj(resultSet.getDouble(6));
+            atlasTableResult.setPValAdj(resultSet.getFloat(6));
 
             return atlasTableResult;
         }
@@ -2239,17 +2239,17 @@ public class AtlasDAO {
 
     private static class SpeciesMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            return new Species(resultSet.getInt(1), resultSet.getString(2));
+            return new Species(resultSet.getLong(1), resultSet.getString(2));
         }
     }
 
     private static class PropertyMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
-            property.setPropertyId(resultSet.getInt(1));
+            property.setPropertyId(resultSet.getLong(1));
             property.setAccession(resultSet.getString(2));
             property.setName(resultSet.getString(2));
-            property.setPropertyValueId(resultSet.getInt(3));
+            property.setPropertyValueId(resultSet.getLong(3));
             property.setValue(resultSet.getString(4));
             property.setFactorValue(resultSet.getInt(5) > 0);
             return property;

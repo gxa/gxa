@@ -30,20 +30,20 @@ package uk.ac.ebi.microarray.atlas.model;
  * To change this template use File | Settings | File Templates.
  */
 public class ExpressionAnalyticsStatistic {
-    private double pvalue;
-    private double tstat;
+    private float pvalue;
+    private float tstat;
 
-    public double getPvalue(){
+    public float getPvalue(){
         return pvalue;
     }
-    public void setPvalue(double pvalue){
+    public void setPvalue(float pvalue){
         this.pvalue = pvalue;
     }
 
-    public double getTstat(){
+    public float getTstat(){
         return tstat;
     }
-    public void setTstat(double tstat){
+    public void setTstat(float tstat){
         this.tstat = tstat;
     }
 

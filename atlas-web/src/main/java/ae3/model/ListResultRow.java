@@ -39,14 +39,14 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	private String ef;
 	private int count_up;
 	private int count_dn;
-	private double minPval_up;
-	private double minPval_dn;
+	private float minPval_up;
+	private float minPval_dn;
 	private AtlasGene gene;
 
     Collection<ListResultRowExperiment> exp_list;
 
 	
-	public ListResultRow(String ef, String efv, int count_up, int count_dn, double min_up, double min_dn){
+	public ListResultRow(String ef, String efv, int count_up, int count_dn, float min_up, float min_dn){
 		this.ef = ef;
 		this.fv = efv;
 		this.count_dn = count_dn;
@@ -74,13 +74,13 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	public int getCount_dn() {
 		return count_dn;
 	}
-	public double getPvalMin_up() {
+	public float getPvalMin_up() {
 		return minPval_up;
 	}
-	public double getPvalMin_dn() {
+	public float getPvalMin_dn() {
 		return minPval_dn;
 	}
-	public double getMinPval(){
+	public float getMinPval(){
 		if(isMixedCell())
 		return Math.min(Math.abs(minPval_dn), Math.abs(minPval_up));
 		else

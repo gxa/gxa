@@ -32,7 +32,7 @@ public class ListResultRowExperiment {
     private String experimentAccession;
     private String experimentDescription;
     private Expression updn;
-    private double pvalue;
+    private float pvalue;
 
     /**
      * Constructor
@@ -43,7 +43,7 @@ public class ListResultRowExperiment {
      * @param updn up or down
      */
     public ListResultRowExperiment(long experimentId, String experimentAccession, String experimentDescription,
-                                   double pvalue, Expression updn) {
+                                   float pvalue, Expression updn) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
@@ -56,7 +56,7 @@ public class ListResultRowExperiment {
      * @return p-value
      */
     @RestOut(name="pvalue")
-    public double getPvalue() {
+    public float getPvalue() {
         return pvalue;
     }
 

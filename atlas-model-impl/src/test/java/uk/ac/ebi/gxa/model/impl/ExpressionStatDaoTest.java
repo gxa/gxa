@@ -130,7 +130,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                         return null;  //To change body of implemented methods use File | Settings | File Templates.
                     }
 
-                    public int getId() {
+                    public long getId() {
                         return 0;  //To change body of implemented methods use File | Settings | File Templates.
                     }
 
@@ -162,7 +162,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
                         return Collections.singleton("liver");
                     }
 
-                    public int getId() {
+                    public long getId() {
                         return 0;
                     }
 
@@ -221,14 +221,15 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
     @Test
     public void testGetExpressionStat_gene_id() throws GxaException {
 
-        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>> result = statDao.getExpressionStat(new ExpressionStatQuery().hasGene(new GeneQuery().hasId("153074124")), new PageSortParams());
+        QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>> result = statDao.getExpressionStat(
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasId("153070758")), new PageSortParams());
         assertNotNull(result);
 
         assertEquals(true, result.isFound());
         assertEquals(1, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
-        assertEquals("153074124", result.getItem().getGene());
+        assertEquals("153070758", result.getItem().getGene());
     }
 
     @Test
@@ -236,7 +237,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
-                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("ENSG00000120471")),
+                new ExpressionStatQuery().hasGene(new GeneQuery().hasAccession("ENSG00000066279")),
                 new PageSortParams());
         assertNotNull(result);
 
@@ -244,7 +245,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         assertEquals(1, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
-        assertEquals("153074124", result.getItem().getGene());
+        assertEquals("153070758", result.getItem().getGene());
     }
 
     @Test
@@ -274,7 +275,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(14, result.getNumberOfResults());
+        assertEquals(13, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 
@@ -302,7 +303,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(7, result.getNumberOfResults());
+        assertEquals(9, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 
@@ -324,7 +325,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(12, result.getNumberOfResults());
+        assertEquals(15, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 

@@ -26,7 +26,7 @@ package uk.ac.ebi.gxa.tasks;
  * @author pashky
  */
 public interface Task {
-    int getTaskId();
+    long getTaskId();
         
     TaskSpec getTaskSpec();
 

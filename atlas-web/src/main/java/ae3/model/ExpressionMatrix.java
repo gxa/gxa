@@ -23,7 +23,7 @@
 package ae3.model;
 
 /**
- * Expression matrxi interface
+ * Expression matrix interface
  * @author pashky
  */
 public interface ExpressionMatrix {
@@ -33,5 +33,5 @@ public interface ExpressionMatrix {
      * @param assayPos assay's position in matrix
      * @return expression value
      */
-    double getExpression(int designElementId, int assayPos);
+    float getExpression(int designElementId, int assayPos);
 }

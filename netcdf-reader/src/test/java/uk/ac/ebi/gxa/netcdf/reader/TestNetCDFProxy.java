@@ -42,13 +42,14 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("645932669_159274783.nc").toURI());
+        netCDFfile = new File(getClass().getClassLoader().getResource("1036804667_160588088.nc").toURI());
         netCDF = new NetCDFProxy(netCDFfile);
     }
 
     @Override
     protected void tearDown() throws Exception {
         netCDFfile = null;
+        netCDF.close();
         netCDF = null;
     }
 
@@ -62,7 +63,7 @@ public class TestNetCDFProxy extends TestCase {
 
     public void testGetAssays() throws IOException {
         System.out.print("Assays: {");
-        for (int assay : netCDF.getAssays()) {
+        for (long assay : netCDF.getAssays()) {
             System.out.print(assay + ", ");
         }
         System.out.println("}");
@@ -70,7 +71,7 @@ public class TestNetCDFProxy extends TestCase {
 
     public void testGetSamples() throws IOException {
         System.out.print("Samples: {");
-        for (int sample : netCDF.getSamples()) {
+        for (long sample : netCDF.getSamples()) {
             System.out.print(sample + ", ");
         }
         System.out.println("}");
@@ -159,7 +160,7 @@ public class TestNetCDFProxy extends TestCase {
     public void testGetExpressionDataForDesignElement() throws IOException {
 //        for (int i = 0; i < netCDF.getDesignElements().length; i++) {
 //            System.out.println("Expression Values for design element " + netCDF.getDesignElements()[i] + " {");
-//            for (double cell : netCDF.getExpressionDataForDesignElement(i)) {
+//            for (double cell : netCDF.getExpressionDataForDesignElementAtIndex(i)) {
 //                System.out.print(cell + ", ");
 //            }
 //            System.out.println("}");

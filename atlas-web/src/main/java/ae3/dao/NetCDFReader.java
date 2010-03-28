@@ -121,7 +121,7 @@ public class NetCDFReader {
 
         Sample[] samples = new Sample[numSamples];
 
-        int[] sampleIds = (int[])varBS.read().get1DJavaArray(Integer.class);
+        long[] sampleIds = (long[])varBS.read().get1DJavaArray(long.class);
         for(int i = 0; i < numSamples; ++i) {
             Map<String,String> scvMap = new HashMap<String,String>();
             for(String sc : scvs.keySet())
@@ -142,9 +142,9 @@ public class NetCDFReader {
          * Lazy loading of data, matrix is read only for required elements
          */
         experiment.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
-            int lastDesignElement = -1;
-            float [] lastData = null;
-            public double getExpression(int designElementId, int assayId) {
+            float lastDesignElement = -1;
+            float[] lastData = null;
+            public float getExpression(int designElementId, int assayId) {
                 if(lastData != null && designElementId == lastDesignElement)
                     return lastData[assayId];
 
@@ -177,7 +177,7 @@ public class NetCDFReader {
                 private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
                 private EfvTree<Stat> lastData;
-                int lastDesignElement = -1;
+                long lastDesignElement = -1;
 
                 {
                     int k = 0;
@@ -208,8 +208,8 @@ public class NetCDFReader {
 
                         EfvTree<Stat> result = new EfvTree<Stat>();
                         for(EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                            double pvalue = pvals[efefv.getPayload()];
-                            double tstat = tstats[efefv.getPayload()];
+                            float pvalue = pvals[efefv.getPayload()];
+                            float tstat = tstats[efefv.getPayload()];
                             if(tstat > 1e-8 || tstat < -1e-8)
                                 result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
                         }
@@ -230,7 +230,7 @@ public class NetCDFReader {
                 if(mappingI.hasNext() && mappingI.getIntNext() > 0)
                     experiment.addSampleAssayMapping(samples[sampleI], assays[assayI]);
 
-        final int[] geneIds = (int[])varGN.read().get1DJavaArray(int.class);
+        final long[] geneIds = (long[])varGN.read().get1DJavaArray(long.class);
 
         experiment.setGeneIds(arrayDesign, geneIds);
     }

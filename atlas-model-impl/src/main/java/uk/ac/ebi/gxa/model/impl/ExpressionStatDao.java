@@ -238,7 +238,7 @@ public class ExpressionStatDao {
                                     current = fIter.next();
                                 
                                 return new Property() {
-                                    public int getId() {
+                                    public long getId() {
                                         return 0;
                                     }
 
@@ -276,11 +276,11 @@ public class ExpressionStatDao {
                         return countCache != null ? countCache.dnExperimentsCount : (countCache = sumCache(getDrillDown())).dnExperimentsCount;
                     }
 
-                    public Double getUpPvalue() {
+                    public float getUpPvalue() {
                         return countCache != null ? countCache.upPvalue : (countCache = sumCache(getDrillDown())).upPvalue;
                     }
 
-                    public Double getDnPvalue() {
+                    public float getDnPvalue() {
                         return countCache != null ? countCache.dnPvalue : (countCache = sumCache(getDrillDown())).dnPvalue;
                     }
 
@@ -310,11 +310,11 @@ public class ExpressionStatDao {
                                                 return nullzero((Short)sd.getFieldValue("cnt_" + fieldId + "_dn"));
                                             }
 
-                                            public Double getUpPvalue() {
+                                            public float getUpPvalue() {
                                                 return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_up"));
                                             }
 
-                                            public Double getDnPvalue() {
+                                            public float getDnPvalue() {
                                                 return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_dn"));
                                             }
 
@@ -341,11 +341,11 @@ public class ExpressionStatDao {
                                                                     public Integer getUpExperimentsCount() { return experimentExpression.getTStatistic() > 0 ? 1 : 0; }
                                                                     public Integer getDnExperimentsCount() { return experimentExpression.getTStatistic() > 0 ? 0 : 1; }
 
-                                                                    public Double getUpPvalue() {
+                                                                    public float getUpPvalue() {
                                                                         return experimentExpression.getPValAdjusted();
                                                                     }
 
-                                                                    public Double getDnPvalue() {
+                                                                    public float getDnPvalue() {
                                                                         return experimentExpression.getPValAdjusted();
                                                                     }
 
@@ -500,7 +500,7 @@ public class ExpressionStatDao {
                             return values;
                         }
 
-                        public int getId() {
+                        public long getId() {
                             return 0;  // TODO: solve this
                         }
 
@@ -525,8 +525,8 @@ public class ExpressionStatDao {
                         return species;
                     }
 
-                    public int getId() {
-                        return Integer.valueOf(id);
+                    public long getId() {
+                        return Long.valueOf(id);
                     }
 
                     public String getAccession() {
@@ -553,8 +553,8 @@ public class ExpressionStatDao {
     private static class CountCache {
         int upExperimentsCount = 0;
         int dnExperimentsCount = 0;
-        double upPvalue = 1;
-        double dnPvalue = 1;
+        float upPvalue = 1;
+        float dnPvalue = 1;
     }
 
     static private CountCache sumCache(Iterable<? extends ExpressionStat> tosum) {

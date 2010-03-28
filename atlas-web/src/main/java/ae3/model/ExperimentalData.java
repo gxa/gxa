@@ -37,7 +37,7 @@ public class ExperimentalData {
     private List<Assay> assays = new ArrayList<Assay>();
 
     private Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign,ExpressionMatrix>();
-    private Map<ArrayDesign, Map<Integer,int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Integer,int[]>>();
+    private Map<ArrayDesign, Map<Long,int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long,int[]>>();
 
     private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
     private Set<String> experimentalFactors = new HashSet<String>();
@@ -57,7 +57,7 @@ public class ExperimentalData {
      * @param id sample id
      * @return created sample reference
      */
-    public Sample addSample(Map<String, String> scvMap, int id) {
+    public Sample addSample(Map<String, String> scvMap, long id) {
         for(Sample s : samples)
             if(s.getId() == id)
                 return s;
@@ -118,7 +118,7 @@ public class ExperimentalData {
      * @param designElement design element id
      * @return expression value
      */
-    private double getExpression(ArrayDesign ad, int assayPosition, int designElement) {
+    private float getExpression(ArrayDesign ad, int assayPosition, int designElement) {
         return expressionMatrix.get(ad).getExpression(designElement, assayPosition);
     }
 
@@ -128,7 +128,7 @@ public class ExperimentalData {
      * @param designElement design element id
      * @return expression value
      */
-    public double getExpression(Assay assay, int designElement) {
+    public float getExpression(Assay assay, int designElement) {
         return getExpression(assay.getArrayDesign(), assay.getPositionInMatrix(), designElement);
     }
 
@@ -149,12 +149,12 @@ public class ExperimentalData {
      * @param geneId gene id (the Atlas/DW one)
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
-    public int[] getDesignElements(ArrayDesign arrayDesign, int geneId) {
+    public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
         return geneIdMap.get(arrayDesign).get(geneId);
     }
 
-    public int[] getAllDesignElementsForArrayDesign(ArrayDesign arrayDesign) {
-        Map<Integer, int[]> geneToDEMap = geneIdMap.get(arrayDesign);
+    public Integer[] getAllDesignElementsForArrayDesign(ArrayDesign arrayDesign) {
+        Map<Long, int[]> geneToDEMap = geneIdMap.get(arrayDesign);
 
         Set<Integer> designElementIDs = new HashSet<Integer>();
         for (int[] deArray : geneToDEMap.values()) {
@@ -164,17 +164,13 @@ public class ExperimentalData {
         }
 
         // copy set to array - can't do toArray() due to unboxing
-        int[] result = new int[designElementIDs.size()];
-        int i =0;
-        for (Integer designElementID : designElementIDs) {
-            result[i] = designElementID;
-            i++;
-        }
-        return result;
+//        long[] result = new long[designElementIDs.size()];
+//        System.arraycopy(designElementIDs.toArray(new Long[1]), 0, result, 0, designElementIDs.size());
+        return designElementIDs.toArray(new Integer[1]);
     }
 
-    public int[] getAllDesignElements() {
-        Set<int[]> parts = new HashSet<int[]>();
+    public Integer[] getAllDesignElements() {
+        Set<Integer[]> parts = new HashSet<Integer[]>();
 
         // get each individual set of design elements for each array design
         for (ArrayDesign ad : getArrayDesigns()) {
@@ -183,14 +179,14 @@ public class ExperimentalData {
 
         // total number of design elements?
         int size = 0;
-        for (int[] part : parts) {
+        for (Integer[] part : parts) {
             size = size+part.length;
         }
 
         // copy into a single array
-        int[] result = new int[size];
+        Integer[] result = new Integer[size];
         int counter = 0;
-        for (int[] part : parts) {
+        for (Integer[] part : parts) {
             System.arraycopy(part, 0, result, counter, part.length);
             counter = counter+part.length;
         }
@@ -204,15 +200,15 @@ public class ExperimentalData {
      * @return map of assays to expression values
      */
     @Deprecated
-    public Map<Assay,Double> getExpressionsForGene(int geneId) {
-        Map<Assay,Double> result = new HashMap<Assay, Double>();
+    public Map<Assay,Float> getExpressionsForGene(long geneId) {
+        Map<Assay,Float> result = new HashMap<Assay, Float>();
         for(Assay ass : assays) {
             final ArrayDesign ad = ass.getArrayDesign();
-            int [] deIds = geneIdMap.get(ad).get(geneId);
+            int[] deIds = geneIdMap.get(ad).get(geneId);
             if(deIds != null)
                 for(int designElement : deIds) {
-                    double expression = getExpression(ass, designElement);
-                    if(expression > -1000000.0d)
+                    float expression = getExpression(ass, designElement);
+                    if(expression > -1000000.0f)
                         result.put(ass, expression);
                 }
         }
@@ -286,8 +282,8 @@ public class ExperimentalData {
      * @param arrayDesign array design, this map applies to
      * @param geneIds array of gene ids corresponding to rows of expression matrix (and thus, design elements)
      */
-    public void setGeneIds(ArrayDesign arrayDesign, int[] geneIds) {
-        Map<Integer,int[]> geneMap = new HashMap<Integer,int[]>();
+    public void setGeneIds(ArrayDesign arrayDesign, long[] geneIds) {
+        Map<Long,int[]> geneMap = new HashMap<Long,int[]>();
         for(int i = 0; i < geneIds.length; ++i) {
             int [] olda = geneMap.get(geneIds[i]);
             int [] newa;

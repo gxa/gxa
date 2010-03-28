@@ -28,9 +28,6 @@ import java.util.List;
  * @author pashky
  */
 public interface ObjectWithProperties {
-
     public List<Property> getProperties();
-    
     public void setProperties(List<Property> properties);
-    
 }

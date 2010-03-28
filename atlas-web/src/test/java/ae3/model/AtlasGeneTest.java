@@ -24,7 +24,7 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import org.junit.Before;
@@ -48,10 +48,10 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Before
     public void initGene() {
-        AtlasDao dao = new AtlasDao();
-        dao.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
-        dao.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
-        gene = dao.getGeneByIdentifier("ENSG00000066279").getGene();
+        AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
+        atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
+        atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
+        gene = atlasSolrDAO.getGeneByIdentifier("ENSG00000066279").getGene();
     }
 
     @Test
@@ -131,13 +131,13 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     public void getSynonyms(){
         assertNotNull(gene.getSynonyms());
         assertFalse("Synonym is an empty string", gene.getSynonyms().isEmpty());
-        assertTrue(gene.getSynonyms().contains("ASPM"));
+        assertTrue(gene.getSynonyms().contains("MCPH5"));
     }
 
     @Test
     public void test_highlighting() {
         Map<String, List<String>> highlights = new HashMap<String, List<String>>();
-        highlights.put("property_synonim", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
+        highlights.put("property_synonym", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
         gene.setGeneHighlights(highlights);
         assertTrue(gene.getHilitSynonym().matches(".*<em>.*"));
     }
@@ -151,7 +151,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 	}
 
    @Test
-    public void test_getExpermientsTable() {
+    public void test_getExperimentsTable() {
         GeneExpressionAnalyticsTable et = gene.getExpressionAnalyticsTable();
         assertTrue(et.getAll().iterator().hasNext());
     }
@@ -179,10 +179,10 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getTopFVs() {
-        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(204778371);
+        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(1036804938);
         assertNotNull(efvs);
 
-        double pv = 0;
+        float pv = 0;
         for(ExpressionAnalysis t : efvs) {
             assertTrue(pv <= t.getPValAdjusted());
             pv = t.getPValAdjusted();
@@ -191,7 +191,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getHighestRankEF() {
-        Pair<String,Double> hef = gene.getHighestRankEF(204778371);
+        Pair<String,Float> hef = gene.getHighestRankEF(1036804938);
         assertNotNull(hef);
         assertTrue(hef.getSecond() >= 0);
         assertTrue(hef.getFirst().matches(".*[A-Za-z]+.*"));

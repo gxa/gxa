@@ -42,24 +42,24 @@ public class NetCDFReaderTest {
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
 
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 645932669);
+        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804667);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
         assertEquals(0, expData.getExpressionsForGene(123456).size());
-        assertEquals(expData.getAssays().size(), expData.getExpressionsForGene(281616865).size());
+        assertEquals(expData.getAssays().size(), expData.getExpressionsForGene(160588339).size());
     }
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
 
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 824359618);
+        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804668);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
         
         assertEquals(0, expData.getExpressionsForGene(123456).size());
-        assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(169991224).size());
-        assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(175824562).size());
+        assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(102013).size());
+        assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(160591550).size());
     }
 
     private String getTestNCPath() throws URISyntaxException {

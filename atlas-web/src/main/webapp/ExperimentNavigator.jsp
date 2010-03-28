@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.dao.AtlasDao" %>
+<%@ page import="ae3.dao.AtlasSolrDAO" %>
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
@@ -31,9 +31,9 @@
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <%
-    AtlasDao dao = (AtlasDao) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
+    AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
     AtlasProperties atlasProperties = (AtlasProperties) application.getAttribute("atlasProperties");
-    List<AtlasExperiment> expz = dao.getExperiments();
+    List<AtlasExperiment> expz = atlasSolrDAO.getExperiments();
     request.setAttribute("allexpts", expz);
 %>
 

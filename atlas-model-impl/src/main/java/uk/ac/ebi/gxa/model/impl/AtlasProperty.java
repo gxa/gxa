@@ -37,7 +37,7 @@ public class AtlasProperty implements Property {
 
     private Collection<String> values;
     private String accession;
-    private int id;
+    private long id;
 
     public Collection<String> getValues(){
         return values;
@@ -53,10 +53,10 @@ public class AtlasProperty implements Property {
         this.accession = accession;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
-    public void setid(int id){
+    public void setid(long id){
         this.id = id;
     }
 

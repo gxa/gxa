@@ -209,24 +209,24 @@ public class NetCDFCreator {
     }
 
     private void create() throws IOException {
+        // NetCDF doesn't know how to store longs, so we use DataType.DOUBLE for internal DB ids
 
         Dimension assayDimension = netCdf.addDimension("AS", assays.size());
-        netCdf.addVariable("AS", DataType.INT, new Dimension[]{assayDimension});
+        netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
 
         Dimension sampleDimension = netCdf.addDimension("BS", samples.size());
-        netCdf.addVariable("BS", DataType.INT, new Dimension[]{sampleDimension});
+        netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
 
         netCdf.addVariable("BS2AS", DataType.INT,
                            new Dimension[]{sampleDimension, assayDimension});
-
 
         // update the netCDF with the genes count
         Dimension designElementDimension = netCdf.addDimension("DE", totalDesignElements);
         Dimension designElementLenDimension = netCdf.addDimension("DElen", maxDesignElementLength);
 
         netCdf.addVariable("DEacc", DataType.CHAR, new Dimension[]{designElementDimension, designElementLenDimension});
-        netCdf.addVariable("DE", DataType.INT, new Dimension[]{designElementDimension});
-        netCdf.addVariable("GN", DataType.INT, new Dimension[]{designElementDimension});
+        netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
+        netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
         Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
         Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
@@ -266,7 +266,7 @@ public class NetCDFCreator {
                 arrayDesign.getAccession());
         netCdf.addGlobalAttribute(
                 "ADid",
-                arrayDesign.getArrayDesignID());
+                (double) arrayDesign.getArrayDesignID()); // netcdf doesn't know how to store longs
         netCdf.addGlobalAttribute(
                 "ADname",
                 arrayDesign.getName());
@@ -329,12 +329,12 @@ public class NetCDFCreator {
         for(String de : mergedDesignElements) {
             deName.setString(0, de);
             netCdf.write("DEacc", new int[] { i, 0 }, deName);
-            Integer deId = arrayDesign.getDesignElements().get(de);
+            Long deId = arrayDesign.getDesignElements().get(de);
             if(deId != null) {
-                deIds.setInt(i, deId);
-                List<Integer> gnId = arrayDesign.getGenes().get(deId);
+                deIds.setLong(i, deId);
+                List<Long> gnId = arrayDesign.getGenes().get(deId);
                 if(gnId != null && !gnId.isEmpty())
-                    gnIds.setInt(i, gnId.get(0));
+                    gnIds.setLong(i, gnId.get(0));
             }
             ++i;
         }
@@ -347,14 +347,14 @@ public class NetCDFCreator {
         ArrayInt as = new ArrayInt.D1(assays.size());
         IndexIterator asIt = as.getIndexIterator();
         for (Assay assay : assays) {
-            asIt.setIntNext(assay.getAssayID());
+            asIt.setLongNext(assay.getAssayID());
         }
         netCdf.write("AS", as);
 
         ArrayInt bs = new ArrayInt.D1(samples.size());
         IndexIterator bsIt = bs.getIndexIterator();
         for (Sample sample : samples) {
-            bsIt.setIntNext(sample.getSampleID());
+            bsIt.setLongNext(sample.getSampleID());
         }
         netCdf.write("BS", bs);
 

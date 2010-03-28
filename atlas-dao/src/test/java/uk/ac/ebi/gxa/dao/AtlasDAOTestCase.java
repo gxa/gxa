@@ -139,7 +139,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_EXPERIMENT " +
-                             "(EXPERIMENTID INTEGER NOT NULL, " +
+                             "(EXPERIMENTID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "DESCRIPTION CHAR, " +
                              "PERFORMER CHAR, " +
@@ -149,7 +149,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_ARRAYDESIGN " +
-                             "(ARRAYDESIGNID INTEGER NOT NULL, " +
+                             "(ARRAYDESIGNID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "TYPE CHAR, " +
                              "NAME CHAR, " +
@@ -158,28 +158,28 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_PROPERTY " +
-                             "(PROPERTYID INTEGER NOT NULL, " +
+                             "(PROPERTYID NUMERIC NOT NULL, " +
                              "NAME CHAR, " +
                              "ACCESSION CHAR, " +
                              "AE1TABLENAME_ASSAY CHAR, " +
                              "AE1TABLENAME_SAMPLE CHAR, " +
-                             "ASSAYPROPERTYID INTEGER, " +
-                             "SAMPLEPROPERTYID INTEGER, " +
+                             "ASSAYPROPERTYID NUMERIC, " +
+                             "SAMPLEPROPERTYID NUMERIC, " +
                              "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
         runStatement(conn,
                      "CREATE TABLE A2_PROPERTYVALUE " +
-                             "(PROPERTYVALUEID INTEGER NOT NULL, " +
-                             "PROPERTYID INTEGER, " +
+                             "(PROPERTYVALUEID NUMERIC NOT NULL, " +
+                             "PROPERTYID NUMERIC, " +
                              "NAME CHAR, " +
                              "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,
                      "CREATE TABLE A2_ASSAY " +
-                             "(ASSAYID INTEGER NOT NULL, " +
+                             "(ASSAYID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
-                             "EXPERIMENTID INTEGER NOT NULL, " +
-                             "ARRAYDESIGNID INTEGER NOT NULL, " +
+                             "EXPERIMENTID NUMERIC NOT NULL, " +
+                             "ARRAYDESIGNID NUMERIC NOT NULL, " +
                              "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
                              "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
                              "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +
@@ -188,15 +188,15 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_ASSAYPV " +
-                             "(ASSAYPVID INTEGER NOT NULL, " +
-                             "ASSAYID INTEGER, " +
-                             "PROPERTYVALUEID INTEGER, " +
+                             "(ASSAYPVID NUMERIC NOT NULL, " +
+                             "ASSAYID NUMERIC, " +
+                             "PROPERTYVALUEID NUMERIC, " +
                              "ISFACTORVALUE INTEGER, " +
                              "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
 
         runStatement(conn,
                      "CREATE TABLE A2_SAMPLE " +
-                             "(SAMPLEID INTEGER NOT NULL, " +
+                             "(SAMPLEID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "SPECIES CHAR, " +
                              "CHANNEL CHAR, " +
@@ -204,59 +204,59 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "  CREATE TABLE A2_SAMPLEPV " +
-                             "(SAMPLEPVID INTEGER NOT NULL, " +
-                             "SAMPLEID INTEGER NOT NULL, " +
-                             "PROPERTYVALUEID INTEGER, " +
+                             "(SAMPLEPVID NUMERIC NOT NULL, " +
+                             "SAMPLEID NUMERIC NOT NULL, " +
+                             "PROPERTYVALUEID NUMERIC, " +
                              "ISFACTORVALUE INTEGER, " +
                              "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_ASSAYSAMPLE " +
-                             "(ASSAYSAMPLEID INTEGER NOT NULL, " +
-                             "ASSAYID INTEGER, " +
-                             "SAMPLEID INTEGER, " +
+                             "(ASSAYSAMPLEID NUMERIC NOT NULL, " +
+                             "ASSAYID NUMERIC, " +
+                             "SAMPLEID NUMERIC, " +
                              "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_GENE " +
-                             "(GENEID INTEGER, " +
-                             "ORGANISMID INTEGER NOT NULL, " +
+                             "(GENEID NUMERIC, " +
+                             "ORGANISMID NUMERIC NOT NULL, " +
                              "IDENTIFIER CHAR, " +
                              "NAME CHAR) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_GENEPROPERTY " +
-                             "(GENEPROPERTYID INTEGER NOT NULL, " +
+                             "(GENEPROPERTYID NUMERIC NOT NULL, " +
                              "NAME CHAR, " +
                              "AE2TABLENAME CHAR, " +
                              "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
 
         runStatement(conn,
                      "  CREATE TABLE A2_GENEGPV " +
-                             "(GENEGPVID INTEGER NOT NULL," +
-                             "GENEID INTEGER, " +
-                             "GENEPROPERTYVALUEID INTEGER, " +
+                             "(GENEGPVID NUMERIC NOT NULL," +
+                             "GENEID NUMERIC, " +
+                             "GENEPROPERTYVALUEID NUMERIC, " +
                              "VALUE CHAR, " +
                              "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
 
         runStatement(conn,
                      "  CREATE TABLE A2_GENEPROPERTYVALUE " +
-                             "(GENEPROPERTYVALUEID INTEGER, " +
-                             "GENEPROPERTYID INTEGER, " +
+                             "(GENEPROPERTYVALUEID NUMERIC, " +
+                             "GENEPROPERTYID NUMERIC, " +
                              "VALUE CHAR," +
                              "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_ORGANISM " +
-                             "(ORGANISMID INTEGER NOT NULL, " +
+                             "(ORGANISMID NUMERIC NOT NULL, " +
                              "NAME CHAR, " +
                              "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_DESIGNELEMENT " +
-                             "(DESIGNELEMENTID INTEGER NOT NULL, " +
-                             "ARRAYDESIGNID INTEGER, " +
-                             "GENEID INTEGER NOT NULL, " +
+                             "(DESIGNELEMENTID NUMERIC NOT NULL, " +
+                             "ARRAYDESIGNID NUMERIC, " +
+                             "GENEID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "NAME CHAR, " +
                              "TYPE CHAR, " +
@@ -265,10 +265,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_EXPRESSIONVALUE " +
-                             "(EXPRESSIONVALUEID INTEGER NOT NULL, " +
-                             "DESIGNELEMENTID INTEGER NOT NULL, " +
-                             "EXPERIMENTID INTEGER NOT NULL, " +
-                             "ASSAYID INTEGER NOT NULL, " +
+                             "(EXPRESSIONVALUEID NUMERIC NOT NULL, " +
+                             "DESIGNELEMENTID NUMERIC NOT NULL, " +
+                             "EXPERIMENTID NUMERIC NOT NULL, " +
+                             "ASSAYID NUMERIC NOT NULL, " +
                              "VALUE FLOAT, " +
                              "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
                              "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
@@ -276,26 +276,26 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE A2_EXPRESSIONANALYTICS " +
-                             "(EXPRESSIONID INTEGER NOT NULL, " +
-                             "EXPERIMENTID INTEGER NOT NULL, " +
-                             "PROPERTYVALUEID INTEGER NOT NULL, " +
-                             "GENEID INTEGER, " +
+                             "(EXPRESSIONID NUMERIC NOT NULL, " +
+                             "EXPERIMENTID NUMERIC NOT NULL, " +
+                             "PROPERTYVALUEID NUMERIC NOT NULL, " +
+                             "GENEID NUMERIC, " +
                              "TSTAT FLOAT, " +
                              "PVALADJ FLOAT, " +
                              "FPVAL FLOAT, " +
                              "FPVALADJ FLOAT, " +
-                             "DESIGNELEMENTID INTEGER NOT NULL, " +
+                             "DESIGNELEMENTID NUMERIC NOT NULL, " +
                              "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
 
         runStatement(conn,
                      "CREATE TABLE A2_ONTOLOGYMAPPING " +
-                             "(EXPERIMENTID INTEGER NOT NULL, " + 
+                             "(EXPERIMENTID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "PROPERTY CHAR, " +
                              "PROPERTYVALUE CHAR, " +
                              "ONTOLOGYTERM CHAR, " +
                              "ONTOLOGYTERMNAME CHAR, " +
-                             "ONTOLOGYTERMID INTEGER, " +
+                             "ONTOLOGYTERMID NUMERIC, " +
                              "ONTOLOGYNAME CHAR, " +
                              "ISSAMPLEPROPERTY BOOLEAN, " +
                              "ISASSAYPROPERTY BOOLEAN, " +
@@ -303,7 +303,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE LOAD_MONITOR " +
-                             "(ID INTEGER NOT NULL, " +
+                             "(ID NUMERIC NOT NULL, " +
                              "ACCESSION CHAR, " +
                              "STATUS CHAR, " +
                              "NETCDF CHAR, " +
@@ -315,14 +315,14 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                      "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
-                             "(GENEID INTEGER NOT NULL, " +
+                             "(GENEID NUMERIC NOT NULL, " +
                              "EF CHAR NOT NULL, " +
                              "EFV CHAR NOT NULL, " +
-                             "EXPERIMENTID INTEGER NOT NULL, " +
+                             "EXPERIMENTID NUMERIC NOT NULL, " +
                              "PVALADJ FLOAT NOT NULL, " +
                              "TSTAT FLOAT NOT NULL, " +
-                             "EFID INTEGER NOT NULL, " +
-                             "EFVID INTEGER NOT NULL)");
+                             "EFID NUMERIC NOT NULL, " +
+                             "EFVID NUMERIC NOT NULL)");
 
         // testing adding stored procedures
         runStatement(conn,

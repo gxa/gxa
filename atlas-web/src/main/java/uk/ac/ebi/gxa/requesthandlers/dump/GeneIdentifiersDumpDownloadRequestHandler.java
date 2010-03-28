@@ -23,8 +23,6 @@
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import ae3.util.FileDownloadServer;
-import ae3.dao.AtlasDao;
-import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
@@ -34,8 +32,6 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
@@ -47,7 +43,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;

@@ -22,7 +22,7 @@
 
 package ae3.model;
 
-import ae3.dao.AtlasDao;
+import ae3.dao.AtlasSolrDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -110,7 +110,7 @@ public class AtlasGene {
     }
 
     public String getHilitSynonym(){
-    	return getHilitValue("property_synonim");
+    	return getHilitValue("property_synonym");
     }
 
     @RestOut(name="name")
@@ -165,7 +165,7 @@ public class AtlasGene {
 
     @RestOut(name="synonyms", exposeEmpty = false)
     public Collection<String> getSynonyms(){
-    	return getValues("property_synonim");
+    	return getValues("property_synonym");
     }
 
     @RestOut(name="orthologs", exposeEmpty = false)
@@ -242,11 +242,11 @@ public class AtlasGene {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_dn"));
     }
 
-    public double getMin_up(String ef, String efv) {
+    public float getMin_up(String ef, String efv) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_up"));
     }
 
-    public double getMin_dn(String ef, String efv) {
+    public float getMin_dn(String ef, String efv) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_dn"));
     }
 
@@ -258,11 +258,11 @@ public class AtlasGene {
         return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
-    public double getMin_up(String efo) {
+    public float getMin_up(String efo) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_up"));
     }
 
-    public double getMin_dn(String efo) {
+    public float getMin_dn(String efo) {
         return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
@@ -273,7 +273,7 @@ public class AtlasGene {
     }
 
     public int getNumberOfExperiments() {
-        Set<Integer> exps = new HashSet<Integer>();
+        Set<Long> exps = new HashSet<Long>();
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
             exps.add(e.getExperimentID());
         return exps.size();
@@ -290,13 +290,13 @@ public class AtlasGene {
 
     private static final String omittedEFs = "age,individual,time,dose,V1";
 
-    private Map<Integer,AtlasExperiment> experimentsMap;
+    private Map<Long,AtlasExperiment> experimentsMap;
 
-    public void loadGeneExperiments(AtlasDao dao) {
-        experimentsMap = new HashMap<Integer, AtlasExperiment>();
+    public void loadGeneExperiments(AtlasSolrDAO atlasSolrDAO) {
+        experimentsMap = new HashMap<Long, AtlasExperiment>();
         for(ExpressionAnalysis exp : getExpressionAnalyticsTable().getAll())
             if(!experimentsMap.containsKey(exp.getExperimentID())) {
-                AtlasExperiment aexp = dao.getExperimentById(String.valueOf(exp.getExperimentID()));
+                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(String.valueOf(exp.getExperimentID()));
                 if(aexp != null)
                     experimentsMap.put(exp.getExperimentID(), aexp);
             }
@@ -349,7 +349,7 @@ public class AtlasGene {
         }
         Collections.sort(result, new Comparator<ExpressionAnalysis>() {
             public int compare(ExpressionAnalysis o1, ExpressionAnalysis o2) {
-                return Double.valueOf(o1.getPValAdjusted()).compareTo(o2.getPValAdjusted());
+                return Float.valueOf(o1.getPValAdjusted()).compareTo(o2.getPValAdjusted());
             }
         });
         return result;
@@ -363,15 +363,15 @@ public class AtlasGene {
         return result;
     }
 
-    public Pair<String,Double> getHighestRankEF(long experimentId) {
+    public Pair<String,Float> getHighestRankEF(long experimentId) {
         String ef = null;
-        Double pvalue = null;
+        Float pvalue = null;
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(experimentId))
             if(pvalue == null || pvalue > e.getPValAdjusted()) {
                 pvalue = e.getPValAdjusted();
                 ef = e.getEfName();
             }
-        return new Pair<String,Double>(ef, pvalue);
+        return new Pair<String,Float>(ef, pvalue);
     }
 
     @Override

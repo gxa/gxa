@@ -157,7 +157,7 @@
 
     <A2_GENEPROPERTY
             genepropertyid="1"
-            name="GOTERM"
+            name="goterm"
             ae2tablename="AE2__GENE_GOTERM__DM"
             />
 

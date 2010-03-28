@@ -39,7 +39,7 @@ public class AtlasAssay implements Assay {
 
     private String experimentAccession;
     private String accession;
-    private int id;
+    private long id;
     private Collection<String> sampleAccessions;
     private PropertyCollection properties;
 
@@ -57,10 +57,10 @@ public class AtlasAssay implements Assay {
         this.accession = accession;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
-    public void setid(int id){
+    public void setid(long id){
         this.id = id;
     }
 

@@ -39,11 +39,11 @@ import java.io.IOException;
  * <p/>
  * The NetCDFs for Atlas are structured as follows:
  * <pre>
- *    int AS(AS) ;
- *    int BS(BS) ;
+ *    long AS(AS) ;
+ *    long BS(BS) ;
  *    int BS2AS(BS, AS) ;
- *    int DE(DE) ;
- *    int GN(GN) ;
+ *    long DE(DE) ;
+ *    long GN(GN) ;
  *    int DE2GN(DE, GN) ;
  *    char EF(EF, EFlen) ;
  *    char EFV(EF, AS, EFlen) ;
@@ -51,9 +51,9 @@ import java.io.IOException;
  *    int uEFVnum(EF) ;
  *    char SC(SC, SClen) ;
  *    char SCV(SC, BS, SClen) ;
- *    double BDC(DE, AS) ;
- *    double PVAL(DE, uEFV) ;
- *    double TSTAT(DE, uEFV) ;
+ *    float BDC(DE, AS) ;
+ *    float PVAL(DE, uEFV) ;
+ *    float TSTAT(DE, uEFV) ;
  * </pre>
  *
  * @author Tony Burdett
@@ -71,7 +71,7 @@ public class NetCDFProxy {
     public NetCDFProxy(File netCDF) {
         this.pathToNetCDF = netCDF.getAbsolutePath();
         try {
-            this.netCDF = NetcdfFile.open(netCDF.getAbsolutePath());
+                this.netCDF = NetcdfFile.open(netCDF.getAbsolutePath());
             proxied = true;
         }
         catch (IOException e) {
@@ -95,7 +95,7 @@ public class NetCDFProxy {
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
-    public int getArrayDesignID() throws IOException {
+    public long getArrayDesignID() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
@@ -103,36 +103,36 @@ public class NetCDFProxy {
         if (netCDF.findGlobalAttribute("ADid") != null) {
             Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
             if(value != null)
-                return value.intValue();
+                return value.longValue();
             return -1;
         }
 
         return -1;
     }
 
-    public int[] getAssays() throws IOException {
+    public long[] getAssays() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         if (netCDF.findVariable("AS") == null) {
-            return new int[0];
+            return new long[0];
         }
         else {
-            return (int[]) netCDF.findVariable("AS").read().copyTo1DJavaArray();
+            return (long[]) netCDF.findVariable("AS").read().get1DJavaArray(long.class);
         }
     }
 
-    public int[] getSamples() throws IOException {
+    public long[] getSamples() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         if (netCDF.findVariable("BS") == null) {
-            return new int[0];
+            return new long[0];
         }
         else {
-            return (int[]) netCDF.findVariable("BS").read().copyTo1DJavaArray();
+            return (long[]) netCDF.findVariable("BS").read().get1DJavaArray(long.class);
         }
     }
 
@@ -153,35 +153,35 @@ public class NetCDFProxy {
         }
     }
 
-    public int[] getDesignElements() throws IOException {
+    public long[] getDesignElements() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         if (netCDF.findVariable("DE") == null) {
-            return new int[0];
+            return new long[0];
         }
         else {
-            return (int[]) netCDF.findVariable("DE").read().copyTo1DJavaArray();
+            return (long[]) netCDF.findVariable("DE").read().get1DJavaArray(long.class);
         }
     }
 
     /**
-     * Gets the array of gene ID integers from this NetCDF
+     * Gets the array of gene IDs from this NetCDF
      *
-     * @return an int[] representing the one dimensional array of gene identifiers
+     * @return an long[] representing the one dimensional array of gene identifiers
      * @throws IOException if accessing the NetCDF failed
      */
-    public int[] getGenes() throws IOException {
+    public long[] getGenes() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         if (netCDF.findVariable("GN") == null) {
-            return new int[0];
+            return new long[0];
         }
         else {
-            return (int[]) netCDF.findVariable("GN").read().copyTo1DJavaArray();
+            return (long[]) netCDF.findVariable("GN").read().get1DJavaArray(long.class);
         }
     }
 
@@ -357,7 +357,7 @@ public class NetCDFProxy {
      * @return the double array representing expression values for this design element
      * @throws IOException if the NetCDF could not be accessed
      */
-    public float[] getExpressionDataForDesignElement(int designElementIndex) throws IOException {
+    public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
@@ -416,21 +416,21 @@ public class NetCDFProxy {
         }
     }
 
-    public double[] getPValuesForDesignElement(int designElementIndex) throws IOException {
+    public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
         Variable pValVariable = netCDF.findVariable("PVAL");
         if (pValVariable == null) {
-            return new double[0];
+            return new float[0];
         }
         else {
             int[] pValShape = pValVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, pValShape[1]};
             try {
-                return (double[]) pValVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
@@ -455,7 +455,7 @@ public class NetCDFProxy {
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{pValShape[0], 1};
             try {
-                return (float[]) pValVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
@@ -481,7 +481,7 @@ public class NetCDFProxy {
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, tStatShape[1]};
             try {
-                return (float[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
@@ -506,7 +506,7 @@ public class NetCDFProxy {
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{tStatShape[0], 1};
             try {
-                return (float[]) tStatVariable.read(origin, size).copyTo1DJavaArray();
+                return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +

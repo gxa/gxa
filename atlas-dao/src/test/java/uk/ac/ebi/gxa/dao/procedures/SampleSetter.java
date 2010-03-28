@@ -44,7 +44,7 @@ public class SampleSetter {
     Statement stmt = conn.createStatement();
 
     // create an sampleid - no oracle id generators here!
-    int sampleid = (int) System.currentTimeMillis();
+    long sampleid = (long) System.currentTimeMillis();
 
     stmt.executeQuery(
         "INSERT INTO A2_SAMPLE(sampleid, accession, species, channel) " +

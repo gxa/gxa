@@ -187,7 +187,12 @@ public class EscapeUtil {
         return i == null ? 0 : i;
     }
 
-    public static double nullzero(Float d)
+    public static float nullzero(Float f)
+    {
+        return f == null ? 0.0f : f;
+    }
+
+    public static double nullzero(Double d)
     {
         return d == null ? 0.0 : d;
     }
