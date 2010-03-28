@@ -347,7 +347,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertEquals(true, result.isFound());
-        assertEquals(12, result.getNumberOfResults());
+        assertEquals(17, result.getNumberOfResults());
         assertNotNull(result.getItems());
         assertNotNull(result.getItem());
 
