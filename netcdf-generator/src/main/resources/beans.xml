@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the Gene Expression Atlas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://gxa.github.com/gxa
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+    <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="defaultAutoCommit" value="false"/>
+        <property name="initialSize" value="32"/>
+        <property name="maxIdle" value="32" />
+        <property name="maxActive" value="100"/>
+        <property name="maxWait" value="-1" />
+    </bean>
+
+    <!-- etxract native jdbc connection for working with oracle connections -->
+    <bean name="nativeJdbcExtractor"
+          class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
+
+    <bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
+        <!-- datasource bean, from JNDI -->
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
+        <property name="ignoreWarnings" value="true"/>
+    </bean>
+
+    <!-- Configure AtlasDAO for this datasource -->
+    <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="template"/>
+    </bean>
+
+    <bean id="atlasNetCDFs" class="java.io.File">
+        <constructor-arg value="${netcdf.path}"/>
+    </bean>
+
+    <bean name="service"
+          class="uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
+        <property name="maxThreads" value="32"/>
+    </bean>
+</beans>
