@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 
 import java.io.*;
 import java.net.URL;

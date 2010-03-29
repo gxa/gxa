@@ -38,6 +38,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.netcdf.migrator.AtlasNetCDFMigrator;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -63,6 +64,7 @@ public class LoaderDriver {
     private static boolean do_load = false;
     private static boolean do_delete = false;
     private static boolean do_index = false;
+    private static boolean do_netcdf = false;
     private static boolean do_analytics = false;
 
     public static void main(String[] args) {
@@ -146,6 +148,18 @@ public class LoaderDriver {
                     throw new ParseException("You must specify the accession to delete");
                 }
             }
+            if (commandLine.hasOption("netcdf")) {
+                do_netcdf = true;
+                if (commandLine.hasOption('a')) {
+                    accession = commandLine.getOptionValue('a');
+                }
+                else if (commandLine.hasOption("all")) {
+                    accession = "ALL";
+                }
+                else {
+                    throw new ParseException("You must specify the accession or 'all' to generate netcdfs");
+                }
+            }
             if (commandLine.hasOption("index")) {
                 do_index = true;
                 if (!commandLine.hasOption("all")) {
@@ -193,10 +207,13 @@ public class LoaderDriver {
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
+        // netcdf
+        final AtlasNetCDFMigrator netcdf = (AtlasNetCDFMigrator) factory.getBean("netcdfMigrator");
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
         // solrIndex
         final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
+        // net
 
         // run the loader
         if (do_load) {
@@ -264,6 +281,13 @@ public class LoaderDriver {
             catch (AtlasLoaderException e) {
                 e.printStackTrace();
             }
+        }
+
+        if(do_netcdf) {
+            if (accession.equals("ALL"))
+                netcdf.generateNetCDFForAllExperiments();
+            else
+                netcdf.generateNetCDFForExperiment(accession);
         }
 
         if (do_delete) {

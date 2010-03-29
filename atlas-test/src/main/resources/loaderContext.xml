@@ -51,7 +51,7 @@
         <constructor-arg value="properties"/>
     </bean>
 
-    <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
+    <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close" lazy-init="true">
         <property name="uri" value="resource:META-INF/efo.owl"/>
     </bean>
 
@@ -84,21 +84,17 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/index"/>
-    </bean>
-
-    <bean id="efoIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/efoindex"/>
+        <constructor-arg value="/Users/pashky/projects/atlas2/index"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/ebi/ArrayExpress-files/NetCDFs.INTEGRATION.TEST"/>
+        <constructor-arg value="/Users/pashky/projects/atlas2/netcdf"/>
     </bean>
 
     <!-- Requires a loader -->
     <bean id="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="missingDesignElementsCutoff" value="1.0"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
         <property name="allowReloading" value="true"/>
     </bean>
 
@@ -138,11 +134,11 @@
         </property>
     </bean>
 
-    <bean name="netcdfGenerator"
-          class="uk.ac.ebi.gxa.netcdf.generator.DefaultNetCDFGenerator">
+    <bean name="netcdfMigrator"
+          class="uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="repositoryLocation" ref="atlasNetCDFs"/>
-        <property name="maxThreads" value="8"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
+        <property name="maxThreads" value="16"/>
     </bean>
 
     <!-- Analytics Generator component -->
