@@ -24,9 +24,7 @@ package uk.ac.ebi.gxa.netcdf.generator;
 import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.gxa.loader.cache.AssayDataMatrixRef;
-import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.cache.DataMatrixBlock;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.ValueListHashMap;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -48,10 +46,10 @@ public class NetCDFCreator {
     private List<Assay> assays;
     private Collection<Sample> samples = new LinkedHashSet<Sample>();
     private ValueListHashMap<Assay, Sample> samplesMap= new ValueListHashMap<Assay, Sample>();
-    private Map<String, AssayDataMatrixRef> assayDataMap = new HashMap<String, AssayDataMatrixRef>();
+    private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
 
-    private List<DataMatrixFileBuffer> buffers = new ArrayList<DataMatrixFileBuffer>();
-    private ValueListHashMap<DataMatrixFileBuffer,Assay> bufferAssaysMap = new ValueListHashMap<DataMatrixFileBuffer, Assay>();
+    private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
+    private ValueListHashMap<DataMatrixStorage,Assay> storageAssaysMap = new ValueListHashMap<DataMatrixStorage, Assay>();
 
     private Iterable<String> mergedDesignElements;
     private Map<String,Integer> mergedDesignElementsMap;
@@ -94,7 +92,7 @@ public class NetCDFCreator {
         this.samplesMap.put(assay, sample);
     }
 
-    public void setAssayDataMap(Map<String, AssayDataMatrixRef> assayDataMap) {
+    public void setAssayDataMap(Map<String, DataMatrixStorage.ColumnRef> assayDataMap) {
         this.assayDataMap = assayDataMap;
     }
 
@@ -129,21 +127,21 @@ public class NetCDFCreator {
 
     public void prepareData() {
         for(Assay a : assays) {
-            DataMatrixFileBuffer buf = assayDataMap.get(a.getAccession()).buffer;
-            if(!buffers.contains(buf))
-                buffers.add(buf);
+            DataMatrixStorage buf = assayDataMap.get(a.getAccession()).storage;
+            if(!storages.contains(buf))
+                storages.add(buf);
         }
 
-        // sort assay in orrder of buffers and reference numbers in those buffers
+        // sort assay in order of buffers and reference numbers in those buffers
         Collections.sort(assays, new Comparator<Assay>() {
             public int compare(Assay o1, Assay o2) {
-                AssayDataMatrixRef ref1 = assayDataMap.get(o1.getAccession());
-                DataMatrixFileBuffer buf1 = ref1.buffer;
-                int i1 = buffers.indexOf(buf1);
+                DataMatrixStorage.ColumnRef ref1 = assayDataMap.get(o1.getAccession());
+                DataMatrixStorage buf1 = ref1.storage;
+                int i1 = storages.indexOf(buf1);
 
-                AssayDataMatrixRef ref2 = assayDataMap.get(o2.getAccession());
-                DataMatrixFileBuffer buf2 = ref2.buffer;
-                int i2 = buffers.indexOf(buf2);
+                DataMatrixStorage.ColumnRef ref2 = assayDataMap.get(o2.getAccession());
+                DataMatrixStorage buf2 = ref2.storage;
+                int i2 = storages.indexOf(buf2);
 
                 if(i1 != i2)
                     return i1 - i2;
@@ -154,7 +152,7 @@ public class NetCDFCreator {
 
         // build reverse map
         for(Assay a : assays)
-            bufferAssaysMap.put(assayDataMap.get(a.getAccession()).buffer, a);
+            storageAssaysMap.put(assayDataMap.get(a.getAccession()).storage, a);
 
         // reshape available properties to match assays & samples
         efvMap = extractProperties(assays);
@@ -187,11 +185,11 @@ public class NetCDFCreator {
 
 
         // merge available design elements (if needed)
-        if(buffers.size() == 1)
-            mergedDesignElements = buffers.get(0).getDesignElements();
+        if(storages.size() == 1)
+            mergedDesignElements = storages.get(0).getDesignElements();
         else {
             mergedDesignElementsMap = new HashMap<String, Integer>();
-            for(DataMatrixFileBuffer buffer : buffers)
+            for(DataMatrixStorage buffer : storages)
                 for(String de : buffer.getDesignElements())
                     if(!mergedDesignElementsMap.containsKey(de))
                         mergedDesignElementsMap.put(de, mergedDesignElementsMap.size());
@@ -284,14 +282,14 @@ public class NetCDFCreator {
 
     private void writeExpressionValues() throws IOException, InvalidRangeException {
         boolean first = true;
-        for(DataMatrixFileBuffer buffer : buffers) {
-            if(bufferAssaysMap.get(buffer).isEmpty()) // shouldn't happen, but let;'s be sure
+        for(DataMatrixStorage storage : storages) {
+            if(storageAssaysMap.get(storage).isEmpty()) // shouldn't happen, but let;'s be sure
                 continue;
 
             if(first) { // skip first
                 int deNum = 0;
-                for(DataMatrixBlock block : buffer.getDataBlocks()) {
-                    writeAssayDataBlock(buffer, block, deNum, 0, block.size() - 1);
+                for(DataMatrixStorage.Block block : storage.getBlocks()) {
+                    writeAssayDataBlock(storage, block, deNum, 0, block.size() - 1);
                     deNum += block.size();
                 }
 
@@ -300,7 +298,7 @@ public class NetCDFCreator {
             }
 
             // write other buffers finding continuous (in terms of output sequence) blocks of design elements
-            for(DataMatrixBlock block : buffer.getDataBlocks()) {
+            for(DataMatrixStorage.Block block : storage.getBlocks()) {
                 int startSource = -1;
                 int startDestination = -1;
                 int currentSource;
@@ -310,14 +308,50 @@ public class NetCDFCreator {
                         startSource = currentSource;
                         startDestination = currentDestination;
                     } else if(currentDestination != startDestination + (currentSource - startSource)) {
-                        writeAssayDataBlock(buffer, block, startDestination, startSource, currentSource - 1);
+                        writeAssayDataBlock(storage, block, startDestination, startSource, currentSource - 1);
                         startSource = currentSource;
                         startDestination = currentDestination;
                     }
                 }
-                writeAssayDataBlock(buffer, block, startDestination, startSource, currentSource - 1);
+                writeAssayDataBlock(storage, block, startDestination, startSource, currentSource - 1);
             }
         }
+    }
+
+    private void writeAssayDataBlock(DataMatrixStorage storage, DataMatrixStorage.Block block, int deNum, int deBlockFrom, int deBlockTo)
+        throws IOException, InvalidRangeException {
+        int width = storage.getWidth();
+        ArrayFloat data = (ArrayFloat)Array.factory(Float.class, new int[] { block.designElements.length, width }, block.expressionValues);
+
+        int startReference = -1;
+        int startDestination = -1;
+        int currentDestination = -1;
+        int currentReference = -1;
+        for(Assay assay : storageAssaysMap.get(storage)) {
+            currentReference = assayDataMap.get(assay.getAccession()).referenceIndex;
+            if(currentDestination == -1)
+                currentDestination = assays.indexOf(assay);
+
+            if(startReference == -1) {
+                startReference = currentReference;
+                startDestination = currentDestination;
+            } else if(currentDestination != startDestination + (currentReference - startReference)) {
+                ArrayFloat adata = (ArrayFloat)data.sectionNoReduce(
+                        Arrays.asList(
+                                new Range(deBlockFrom, deBlockTo),
+                                new Range(startReference, currentReference - 1)));
+                netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
+            }
+
+            ++currentDestination;
+        }
+
+        ArrayFloat adata = (ArrayFloat)data.sectionNoReduce(
+                Arrays.asList(
+                        new Range(deBlockFrom, deBlockTo),
+                        new Range(startReference, currentReference)));
+        netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
+
     }
 
     private void writeDesignElements() throws IOException, InvalidRangeException {
@@ -411,42 +445,6 @@ public class NetCDFCreator {
 
         netCdf.write("SC", sc);
         netCdf.write("SCV", scv);
-    }
-
-    private void writeAssayDataBlock(DataMatrixFileBuffer buffer, DataMatrixBlock block, int deNum, int deBlockFrom, int deBlockTo)
-        throws IOException, InvalidRangeException {
-        int width = buffer.getReferences().length;
-        ArrayFloat data = (ArrayFloat)Array.factory(Float.class, new int[] { block.designElements.length, width }, block.expressionValues);
-
-        int startReference = -1;
-        int startDestination = -1;
-        int currentDestination = -1;
-        int currentReference = -1;
-        for(Assay assay : bufferAssaysMap.get(buffer)) {
-            currentReference = assayDataMap.get(assay.getAccession()).referenceIndex;
-            if(currentDestination == -1)
-                currentDestination = assays.indexOf(assay);
-
-            if(startReference == -1) {
-                startReference = currentReference;
-                startDestination = currentDestination;
-            } else if(currentDestination != startDestination + (currentReference - startReference)) {
-                ArrayFloat adata = (ArrayFloat)data.sectionNoReduce(
-                        Arrays.asList(
-                                new Range(deBlockFrom, deBlockTo),
-                                new Range(startReference, currentReference - 1)));
-                netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
-            }
-
-            ++currentDestination;
-        }
-
-        ArrayFloat adata = (ArrayFloat)data.sectionNoReduce(
-                Arrays.asList(
-                        new Range(deBlockFrom, deBlockTo),
-                        new Range(startReference, currentReference)));
-        netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
-
     }
 
     public void createNetCdf(File netCdfRepository) throws NetCDFCreatorException {
