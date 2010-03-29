@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.loader.utils;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 
 import java.io.BufferedReader;
 import java.io.IOException;

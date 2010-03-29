@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -33,10 +32,9 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
-import uk.ac.ebi.arrayexpress2.magetab.utils.ParsingUtils;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -183,7 +181,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                     assayName, investigation, getClass().getSimpleName(), getLog());
 
                             if (assay != null) {
-                                cache.setAssayDataMatrixRef(assay, buffer, refIndex);
+                                cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                             }
                             else {
                                 // generate error item and throw exception

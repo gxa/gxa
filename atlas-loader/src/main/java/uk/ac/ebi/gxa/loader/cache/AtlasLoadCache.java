@@ -24,7 +24,8 @@ package uk.ac.ebi.gxa.loader.cache;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.loader.cache.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -48,7 +49,7 @@ public class AtlasLoadCache {
     private Map<String, Assay> assaysByAcc = new HashMap<String, Assay>();
     private Map<String, Sample> samplesByAcc = new HashMap<String, Sample>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
-    private Map<String, AssayDataMatrixRef> assayDataMap = new HashMap<String, AssayDataMatrixRef>();
+    private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
 
     /**
@@ -263,11 +264,11 @@ public class AtlasLoadCache {
         return samplesByAcc.values();
     }
 
-    public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixFileBuffer buffer, int columnIndex) {
-        assayDataMap.put(assay.getAccession(), new AssayDataMatrixRef(buffer, columnIndex));
+    public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixStorage buffer, int columnIndex) {
+        assayDataMap.put(assay.getAccession(), new DataMatrixStorage.ColumnRef(buffer, columnIndex));
     }
 
-    public synchronized Map<String, AssayDataMatrixRef> getAssayDataMap() {
+    public synchronized Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
     }
 

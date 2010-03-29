@@ -20,24 +20,25 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.loader.cache;
+package uk.ac.ebi.gxa.loader.datamatrix;
 
+import org.apache.commons.lang.StringUtils;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.utils.FlattenIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 
 import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
@@ -66,7 +67,7 @@ public class DataMatrixFileBuffer {
      */
     private String[] referenceNames;
 
-    private LinkedList<DataMatrixBlock> dataBlocks = new LinkedList<DataMatrixBlock>();
+    private DataMatrixStorage storage;
 
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
@@ -107,20 +108,8 @@ public class DataMatrixFileBuffer {
         return referenceNames;
     }
 
-    public Iterable<DataMatrixBlock> getDataBlocks() {
-        return dataBlocks;
-    }
-
-    public Iterable<String> getDesignElements() {
-        return new Iterable<String>() {
-            public Iterator<String> iterator() {
-                return new FlattenIterator<DataMatrixBlock, String>(dataBlocks.iterator()) {
-                    public Iterator<String> inner(DataMatrixBlock dataMatrixBlock) {
-                        return Arrays.asList(dataMatrixBlock.designElements).subList(0, dataMatrixBlock.size()).iterator();
-                    }
-                };
-            }
-        };
+    public DataMatrixStorage getStorage() {
+        return storage;
     }
 
     private InputStream openStream() throws IOException {
@@ -298,6 +287,8 @@ public class DataMatrixFileBuffer {
         try {
             log.info("Reading data matrix from " + dataMatrixURL + "...");
 
+            storage = new DataMatrixStorage(referenceNames.length, 10000, 1000);
+            
             // read data - track the design element index in order to store axis info
             String line;
             while ((line = reader.readLine()) != null) {
@@ -321,28 +312,15 @@ public class DataMatrixFileBuffer {
                                 log.debug("Skipping line, looks like a header [" + line + "]");
                             }
                             else {
-                                DataMatrixBlock block;
-                                if(dataBlocks.isEmpty()) {
-                                    block = new DataMatrixBlock(10000, referenceNames.length);
-                                    dataBlocks.add(block);
-                                } else {
-                                    block = dataBlocks.getLast();
-                                    if(block.size() == block.capacity()) {
-                                        block = new DataMatrixBlock(1000, referenceNames.length);
-                                        dataBlocks.add(block);
+                                storage.add(tokens[0], new MappingIterator<String, Float>(Arrays.asList(referenceNames).iterator()) {
+                                    public Float map(String ref) {
+                                        try {
+                                            return Float.parseFloat(tokens[refToEVColumn.get(ref)]);
+                                        } catch(NumberFormatException e) {
+                                            return -1000000f;
+                                        }
                                     }
-                                }
-
-                                int position = block.size++;
-                                block.designElements[position] = tokens[0];
-                                for(int i = 0; i < referenceNames.length; ++i) {
-                                    try {
-                                        block.expressionValues[position * referenceNames.length + i]
-                                                = Float.parseFloat(tokens[refToEVColumn.get(referenceNames[i])]);
-                                    } catch(NumberFormatException e) {
-                                        block.expressionValues[position * referenceNames.length + i] =  -1000000f;
-                                    }
-                                }
+                                });
                             }
                         }
                     }
