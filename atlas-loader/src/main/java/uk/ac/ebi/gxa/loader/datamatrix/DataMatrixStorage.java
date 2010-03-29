@@ -56,9 +56,10 @@ public class DataMatrixStorage {
 
         int position = block.size++;
         block.designElements[position] = designElement;
-        for(int i = 0; i < width; ++i) {
-            block.expressionValues[position * width + i] = values.next();
-        }
+        for(int i = 0; i < width; ++i)
+            if(values.hasNext())
+                block.expressionValues[position * width + i] = values.next();
+        
     }
 
     public static class ColumnRef {
