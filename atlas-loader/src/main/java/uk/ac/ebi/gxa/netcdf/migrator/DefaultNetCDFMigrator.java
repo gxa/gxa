@@ -30,7 +30,7 @@ import org.springframework.dao.DataAccessException;
  * @author pashky
  */
 public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
-    private Logger log = LoggerFactory.getLogger(DefaultNetCDFMigrator.class);
+    private static Logger log = LoggerFactory.getLogger(DefaultNetCDFMigrator.class);
 
     private AtlasDAO atlasDAO;
     private File atlasNetCDFRepo;
@@ -62,10 +62,13 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
 
     public void generateNetCDFForAllExperiments() {
 
+        log.info("Generating NetCDFs for all experiments from database");
         ExecutorService service = Executors.newFixedThreadPool(getMaxThreads());
         Deque<Future> futures = new Deque<Future>(5);
-        for(final Experiment experiment : getAtlasDAO().getAllExperiments()) {
-            service.submit(new Runnable() {
+        final List<Experiment> allExperiments = getAtlasDAO().getAllExperiments();
+        log.info(allExperiments.size() + " found");
+        for(final Experiment experiment : allExperiments) {
+            futures.offerLast(service.submit(new Runnable() {
                 public void run() {
                     try {
                         generateNetCDFForExperiment(experiment.getAccession());
@@ -74,7 +77,7 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                         throw e;
                     }
                 }
-            });
+            }));
         }
 
         while(true) {
@@ -93,6 +96,7 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
             }
         }
 
+        log.info("Shutting down");
         service.shutdown();
     }
 

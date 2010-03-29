@@ -178,6 +178,7 @@
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
         <module>atlas-skin</module>
+        <module>netcdf-generator</module>
     </modules>
 
     <dependencies>
