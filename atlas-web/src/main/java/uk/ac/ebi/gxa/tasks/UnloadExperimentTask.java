@@ -35,6 +35,8 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
     public static final String TYPE = "unloadexperiment";
     public static final TaskStage STAGE = TaskStage.valueOf("UNLOAD"); // we have only one non-done stage here
 
+    boolean stop;
+
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -43,6 +45,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
 
                 try {
                     currentProgress = "Unloading...";
+                    stop = false;
 
                     log.info("Unloading experiment " + getTaskSpec().getAccession());
                     taskMan.getLoader().unloadExperiment(getTaskSpec().getAccession());
@@ -56,7 +59,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
 
                     TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
                     taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
-                    if(isRunningAutoDependencies()) {
+                    if(!stop && isRunningAutoDependencies()) {
                         taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                 "Automatically added by unload of experiment " + getTaskSpec().getAccession());
                     }
@@ -74,7 +77,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
     }
 
     public void stop() {
-
+        stop = true;
     }
 
     public UnloadExperimentTask(TaskManager taskMan, Task prototype) {

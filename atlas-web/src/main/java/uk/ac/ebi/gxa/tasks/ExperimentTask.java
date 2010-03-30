@@ -133,7 +133,7 @@ public class ExperimentTask extends AbstractWorkingTask {
                         // reset index to "dirty" stage
                         TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
                         taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
-                        if(isRunningAutoDependencies()) {
+                        if(!stop && isRunningAutoDependencies()) {
                             taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                     "Automatically added by experiment " + getTaskSpec().getAccession() + " processing task");
                         }
