@@ -58,20 +58,6 @@ public class AtlasComputeService implements Compute {
         this.atlasRFactory = atlasRFactory;
     }
 
-    private Boolean valid = null;
-
-    public Boolean isValid() {
-        if(valid == null) {
-            try {
-                valid = getAtlasRFactory().validateEnvironment();
-            } catch(AtlasRServicesException e) {
-                log.error("R validate error", e);
-                valid = false;
-            }
-        }
-        return valid;
-    }
-
     /**
      * Executes task on a borrowed worker. Returns type specified in generic type parameter T to the method.
      *
@@ -82,11 +68,12 @@ public class AtlasComputeService implements Compute {
     public <T> T computeTask(ComputeTask<T> task) throws ComputeException {
         RServices rService = null;
         try {
-            if(!isValid())
-                throw new ComputeException("Invalid R environment");
-            
             log.debug("Acquiring RServices");
             rService = getAtlasRFactory().createRServices();
+            if(rService == null) {
+                log.error("Can't create R service, so can't compute!");
+                return null;
+            }
 
             log.debug("Computing on " + rService.getServantName());
             return task.compute(rService);
