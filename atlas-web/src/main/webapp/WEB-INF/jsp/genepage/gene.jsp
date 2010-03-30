@@ -439,7 +439,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                                     </td>
 
                                                     <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD;min-width: 80px;">
-                                                        <u:curatedName ef="${EF}" escape="xml"/>
+                                                        <u:curatedName ef="${row.ef}" escape="xml"/>
                                                     </td>
 
                                                     <td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
