@@ -167,7 +167,7 @@ public class AtlasRFactoryBuilder {
         if (properties.getProperty("R.remote.host") == null) {
             throw new InstantiationException("Supplied properties don't contain required property 'R.remote.host'");
         }
-        System.setProperty("R_HOME", properties.getProperty("R_HOME"));
+        System.setProperty("R.remote.host", properties.getProperty("R.remote.host"));
     }
 
     private void setBiocepSystemProperties(Properties biocepProps) throws InstantiationException {

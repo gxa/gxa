@@ -38,9 +38,8 @@
         <fileSet filtered="true">
             <directory>src/main/resources</directory>
             <includes>
-                <include>biocep.properties</include>
+                <include>rservice.properties</include>
                 <include>atlas.properties</include>
-                <include>R.properties</include>
             </includes>
         </fileSet>
     </fileSets>

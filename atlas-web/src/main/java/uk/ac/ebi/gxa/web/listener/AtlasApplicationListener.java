@@ -36,6 +36,8 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
 import javax.servlet.ServletContext;
@@ -75,7 +77,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // fetch services from the context
         AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
-        AtlasComputeService computeService = (AtlasComputeService) context.getBean("atlasComputeService");
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
         AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
         GeneListCacheService geneCacheService = (GeneListCacheService) context.getBean("geneListCacheService");
@@ -95,11 +96,16 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...
         // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
         // that will bring down tomcat if R environment is not configured correctly, but variables are set
-        if (!computeService.isValid()) {
-            log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
-        }
-        else {
-            log.info("R environment validated, R services fully available");
+        AtlasRFactory rFactory = (AtlasRFactory) context.getBean("atlasRFactory");
+        try {
+            if (!rFactory.validateEnvironment()) {
+                log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
+            }
+            else {
+                log.info("R environment validated, R services fully available");
+            }
+        } catch (AtlasRServicesException e) {
+            log.error("R environment validation failed.  Atlas on-the-fly computations will fail", e);
         }
 
         // discover our datasource URL from the database metadata

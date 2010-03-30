@@ -69,10 +69,6 @@
 
     
     <!-- Atlas properties -->
-    <bean name="atlasPropertiesDbStorage" class="uk.ac.ebi.gxa.properties.DbStorage">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-    </bean>
-
     <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
         <property name="storage">
             <bean class="uk.ac.ebi.gxa.properties.ChainedStorage">
@@ -95,6 +91,10 @@
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.GenePropHeadersStorage">
                             <property name="genePropService" ref="atlasGenePropertyService"/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.RServicePropertyStorage">
+                            <property name="dataSource" ref="atlasDataSource"/>
+                            <property name="resourcePath" value="rservice.properties"/>
                         </bean>
                     </util:list>
                 </property>
@@ -422,12 +422,10 @@
           class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
 
     <!--Configure R workbench -->
-    <!-- note that no-arg factory method reads R.properties from classpath, and possibly biocep.properties too -->
-    <bean name="atlasRFactory" factory-bean="atlasRFactoryBuilder" factory-method="buildAtlasRFactory"/>
-
-    <bean name="atlasRFactoryBuilder"
-          class="uk.ac.ebi.gxa.R.AtlasRFactoryBuilder"
-          factory-method="getAtlasRFactoryBuilder"/>
+    <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
+    <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory">
+        <property name="atlasProperties" ref="atlasProperties"/>
+    </bean>
 
     <!-- Configuration for JNDI resource lookup -->
     <jee:jndi-lookup id="atlasDataSource"

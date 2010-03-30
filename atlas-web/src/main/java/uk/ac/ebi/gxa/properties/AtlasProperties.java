@@ -252,4 +252,19 @@ public class AtlasProperties  {
     public List<String> getPossibleQuantitaionTypes() {
         return getListProperty("atlas.loader.possible.qtypes");
     }
+
+    /* R & Biocep */
+    public String getRMode() {
+        return getProperty("atlas.rservice.mode");
+    }
+
+    public Properties getRProperties() {
+        final String prefix = "atlas.rservice.";
+        Properties result = new Properties();
+        for(String property : getAvailablePropertyNames()) {
+            if(property.startsWith(prefix))
+                result.setProperty(property.substring(prefix.length()), getProperty(property));
+        }
+        return result;
+    }
 }
