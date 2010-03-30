@@ -30,8 +30,10 @@ public class App {
         Option netcdf = new Option("n", "netcdf", true, "NetCDF directory path");
         netcdf.setArgName("path");
         netcdf.setRequired(true);
+        Option missing = new Option("m", "missingOnly", false, "Do not build existing NetCDFs");
+        missing.setRequired(false);
 
-        options.addOption(url).addOption(username).addOption(password).addOption(netcdf);
+        options.addOption(url).addOption(username).addOption(password).addOption(netcdf).addOption(missing);
 
         // Parse the arguments
         try {
@@ -52,7 +54,7 @@ public class App {
 
             AtlasNetCDFMigrator service = (AtlasNetCDFMigrator)factory.getBean("service");
 
-            service.generateNetCDFForAllExperiments();
+            service.generateNetCDFForAllExperiments(commandLine.hasOption('m'));
         } catch(ParseException e) {
             HelpFormatter helpFormatter = new HelpFormatter();
             helpFormatter.setWidth(1000);

@@ -285,9 +285,9 @@ public class LoaderDriver {
 
         if(do_netcdf) {
             if (accession.equals("ALL"))
-                netcdf.generateNetCDFForAllExperiments();
+                netcdf.generateNetCDFForAllExperiments(false);
             else
-                netcdf.generateNetCDFForExperiment(accession);
+                netcdf.generateNetCDFForExperiment(accession, false);
         }
 
         if (do_delete) {
