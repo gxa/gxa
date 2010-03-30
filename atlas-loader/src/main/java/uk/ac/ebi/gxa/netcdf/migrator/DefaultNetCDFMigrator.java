@@ -60,9 +60,9 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
         this.maxThreads = maxThreads;
     }
 
-    public void generateNetCDFForAllExperiments() {
+    public void generateNetCDFForAllExperiments(final boolean missingOnly) {
 
-        log.info("Generating NetCDFs for all experiments from database");
+        log.info("Generating NetCDFs for all experiments from database" + (missingOnly ? " (only missing files)" : " (all files)"));
         ExecutorService service = Executors.newFixedThreadPool(getMaxThreads());
         Deque<Future> futures = new Deque<Future>(5);
         final List<Experiment> allExperiments = getAtlasDAO().getAllExperiments();
@@ -71,7 +71,7 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
             futures.offerLast(service.submit(new Runnable() {
                 public void run() {
                     try {
-                        generateNetCDFForExperiment(experiment.getAccession());
+                        generateNetCDFForExperiment(experiment.getAccession(), missingOnly);
                     } catch(RuntimeException e) {
                         log.error("Exception", e);
                         throw e;
@@ -97,10 +97,13 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
         }
 
         log.info("Shutting down");
+        arrayDesignCache.clear();
         service.shutdown();
     }
 
-    public void generateNetCDFForExperiment(String experimentAccession) {
+    private Map<String, ArrayDesign> arrayDesignCache = new WeakHashMap<String, ArrayDesign>();
+
+    public void generateNetCDFForExperiment(String experimentAccession, boolean missingOnly) {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
 
         ValueListHashMap<String, Assay> assaysByArrayDesign = new ValueListHashMap<String, Assay>();
@@ -114,6 +117,17 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
         final String version = "NetCDF Migrator";
 
         for(String arrayDesignAccession : assaysByArrayDesign.keySet()) {
+            ArrayDesign arrayDesign = arrayDesignCache.get(arrayDesignAccession);
+            if(arrayDesign == null)
+                arrayDesignCache.put(arrayDesignAccession, arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession));
+
+            final File file = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
+            log.info("File is " + file);
+            if(missingOnly && file.exists()) {
+                log.info("Already exists, will not update");
+                continue;
+            }
+
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
@@ -132,7 +146,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                 for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()))
                     netCdfCreator.setSample(assay, sample);
 
-            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
             final DataMatrixStorage storage = new DataMatrixStorage(assays.size(), arrayDesign.getDesignElements().values().size() / 2, 1000);
             final boolean[] found = new boolean[] { false };
@@ -203,7 +216,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
             netCdfCreator.setVersion(version);
 
             try {
-                log.info("File is " + new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc"));
                 netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
                 log.info("Successfully finished NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
