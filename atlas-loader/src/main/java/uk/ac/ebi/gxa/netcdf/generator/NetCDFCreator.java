@@ -226,29 +226,33 @@ public class NetCDFCreator {
         netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
         netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
-        Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
-        Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
+        if(!scvMap.isEmpty()) {
+            Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
+            Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
 
-        netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
+            netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
 
-        Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
-        netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+            Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
+            netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+        }
+        
+        if(!efvMap.isEmpty()) {
+            Dimension efDimension = netCdf.addDimension("EF", efvMap.size());
+            Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
 
-        Dimension efDimension = netCdf.addDimension("EF", efvMap.size());
-        Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
+            netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
 
-        netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
+            Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
+            netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
 
-        Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
-        netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
+            Dimension uefvDimension = netCdf.addDimension("uEFV", totalUniqueEfvs);
 
-        Dimension uefvDimension = netCdf.addDimension("uEFV", totalUniqueEfvs);
+            netCdf.addVariable("uEFV", DataType.CHAR, new Dimension[]{uefvDimension, efvlenDimension});
+            netCdf.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
 
-        netCdf.addVariable("uEFV", DataType.CHAR, new Dimension[]{uefvDimension, efvlenDimension});
-        netCdf.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
-
-        netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
-        netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
+            netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
+            netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
+        }
 
         netCdf.addVariable("BDC", DataType.FLOAT, new Dimension[]{designElementDimension, assayDimension});
 
@@ -274,8 +278,12 @@ public class NetCDFCreator {
 
     private void write() throws IOException, InvalidRangeException {
         writeSamplesAssays();
-        writeEfvs();
-        writeScvs();
+
+        if(!efvMap.isEmpty())
+            writeEfvs();
+        if(!scvMap.isEmpty())
+            writeScvs();
+
         writeDesignElements();
         writeExpressionValues();
     }
