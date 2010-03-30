@@ -43,6 +43,8 @@ public class LoaderTask extends AbstractWorkingTask {
 
     private static class TaskInternalError extends Exception { }
 
+    boolean stop;
+
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -51,6 +53,7 @@ public class LoaderTask extends AbstractWorkingTask {
                     return;
                 }
 
+                stop = false;
                 taskMan.updateTaskStage(getTaskSpec(), currentStage = STAGE);
                 taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
                 final AtomicReference<AtlasLoaderEvent> result = new AtomicReference<AtlasLoaderEvent>(null);
@@ -101,7 +104,7 @@ public class LoaderTask extends AbstractWorkingTask {
                                 TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, accession);
                                 taskMan.updateTaskStage(experimentTask, TaskStage.valueOf(ExperimentTask.Stage.ANALYTICS));
                                 
-                                if(isRunningAutoDependencies()) {
+                                if(!stop && isRunningAutoDependencies()) {
                                     taskMan.enqueueTask(
                                             experimentTask,
                                             TaskRunMode.RESTART,
@@ -112,7 +115,7 @@ public class LoaderTask extends AbstractWorkingTask {
                             } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType())) {
                                 TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
                                 taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
-                                if(isRunningAutoDependencies()) {
+                                if(!stop && isRunningAutoDependencies()) {
                                     taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                             "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                                 }
@@ -144,7 +147,7 @@ public class LoaderTask extends AbstractWorkingTask {
     }
 
     public void stop() {
-        // can't stop this task as there's no stages and no control of index builder when it's running
+        stop = true;
     }
 
     private LoaderTask(final TaskManager queue, final Task prototype) {
