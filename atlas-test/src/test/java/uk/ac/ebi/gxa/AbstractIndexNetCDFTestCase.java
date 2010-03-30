@@ -38,6 +38,8 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -75,7 +77,20 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         SLF4JBridgeHandler.install();
 
         buildSolrIndexes();
+        generateNetCDFs();
     }
+    
+    private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
+        netCDFRepoLocation = new File(
+                "target" + File.separator + "test" + File.separator + "netcdfs");
+
+        DefaultNetCDFMigrator service = new DefaultNetCDFMigrator();
+        service.setAtlasDAO(getAtlasDAO());
+        service.setAtlasNetCDFRepo(netCDFRepoLocation);
+        service.setMaxThreads(1);
+        service.generateNetCDFForAllExperiments(false);
+    }
+
 
     protected void tearDown() throws Exception {
         super.tearDown();
