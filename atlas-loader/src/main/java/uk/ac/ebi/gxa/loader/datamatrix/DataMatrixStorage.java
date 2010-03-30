@@ -17,7 +17,7 @@ public class DataMatrixStorage {
 
     public DataMatrixStorage(int width, int initialSize, int growSize) {
         this.width = width;
-        this.initialSize = initialSize;
+        this.initialSize = initialSize > 0 ? initialSize : 1;
         this.growSize = growSize;
     }
 

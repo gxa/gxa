@@ -164,10 +164,14 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                         public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                             String lastDE = null;
                             final Map<Long,Float> values = new HashMap<Long, Float>();
-                            final MappingIterator<Assay, Float> valueMapper = new MappingIterator<Assay, Float>(arrayDesignAssays.iterator()) {
-                                public Float map(Assay a) {
-                                    Float v = values.get(a.getAssayID());
-                                    return v != null ? v : -1000000f;
+                            final Iterable<Float> valueMapper = new Iterable<Float>() {
+                                public Iterator<Float> iterator() {
+                                    return new MappingIterator<Assay, Float>(arrayDesignAssays.iterator()) {
+                                        public Float map(Assay a) {
+                                            Float v = values.get(a.getAssayID());
+                                            return v != null ? v : -1000000f;
+                                        }
+                                    };
                                 }
                             };
                             while(rs.next()) {
@@ -178,7 +182,7 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                                 if(lastDE == null) {
                                     lastDE = deAccession;
                                 } else if(!lastDE.equals(deAccession)) {
-                                    storage.add(lastDE, valueMapper);
+                                    storage.add(lastDE, valueMapper.iterator());
                                     lastDE = deAccession;
                                     values.clear();
                                 }
@@ -187,7 +191,7 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                                 found[0] = true;
                             }
                             if(!values.isEmpty() && lastDE != null)
-                                storage.add(lastDE, valueMapper);
+                                storage.add(lastDE, valueMapper.iterator());
 
                             return null;
                         }
