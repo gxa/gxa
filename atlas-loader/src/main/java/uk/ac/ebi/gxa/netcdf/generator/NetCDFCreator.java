@@ -461,6 +461,9 @@ public class NetCDFCreator {
         try {
             String netcdfName = experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
             File netcdfPath = new File(netCdfRepository, netcdfName);
+            if(!netCdfRepository.exists())
+                netCdfRepository.mkdirs();
+
             netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), false);
 
             try {
