@@ -288,20 +288,22 @@ function drawZoomControls(){
 function showSampleTooltip(dataIndex,x,y){
     var ul = $('<ul/>');
 
-    var scvs = assayProperties[dataIndex].scvs;
-    for (var i = 0; i < scvs.length; ++i) {
-        ul.append($('<li/>')
-                .css('padding', '0px')
-                .text(scvs[i].v)
-                .prepend($('<span/>').css('fontWeight','bold').text(curatedSCs[scvs[i].k] + ': ')));
-    }
-
+    var keys = {};
     var efvs = assayProperties[dataIndex].efvs;
-    for (i = 0; i < efvs.length; ++i) {
+    for (i = 0; i < efvs.length; ++i) if(efvs[i].v != '') {
         ul.append($('<li/>')
                 .css('padding', '0px')
                 .text(efvs[i].v)
                 .prepend($('<span/>').css('fontWeight','bold').text(curatedEFs[efvs[i].k] + ': ')));
+        keys[efvs[i].k] = efvs[i].v;
+    }
+
+    var scvs = assayProperties[dataIndex].scvs;
+    for (var i = 0; i < scvs.length; ++i) if(scvs[i].v != '' && keys[scvs[i].k] != scvs[i].v) {
+        ul.append($('<li/>')
+                .css('padding', '0px')
+                .text(scvs[i].v)
+                .prepend($('<span/>').css('fontWeight','bold').text(curatedSCs[scvs[i].k] + ': ')));
     }
 
     $('<div id="tooltip"/>').append(ul).css( {
