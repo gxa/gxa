@@ -44,7 +44,7 @@ public class ResourceFileStorageTest {
 
     @Test
     public void test_getProperty() {
-        assertEquals("time,individual,age,ALL", storage.getProperty("atlas.facet.ignore.efs"));
+        assertEquals("time,individual,age,ALL", storage.getProperty("atlas.ignore.efs.facet"));
     }
 
     @Test
@@ -54,8 +54,8 @@ public class ResourceFileStorageTest {
         assertEquals("hoppa", storage.getProperty("dummy"));
 
         // existing property
-        storage.setProperty("atlas.facet.ignore.efs", "bugoga");
-        assertEquals("bugoga", storage.getProperty("atlas.facet.ignore.efs"));
+        storage.setProperty("atlas.ignore.efs.facet", "bugoga");
+        assertEquals("bugoga", storage.getProperty("atlas.ignore.efs.facet"));
     }
 
     @Test
