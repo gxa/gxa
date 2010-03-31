@@ -358,7 +358,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 QueryResponse qr = solrServerAtlas.query(q);
                 if(qr.getFacetFields().get(0).getValues() != null)
                     for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                        allProperties.add(ffc.getName().toLowerCase());
+                        allProperties.add(ffc.getName());
                     }
             } catch(SolrServerException e) {
                 throw new RuntimeException("Can't fetch all factors", e);
