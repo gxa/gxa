@@ -355,6 +355,7 @@
 
     <bean name="genePageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.GenePageRequestHandler">
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
+        <property name="atlasProperties" ref="atlasProperties"/> 
     </bean>
 
     <bean name="geneExperimentsListRequestHandler"

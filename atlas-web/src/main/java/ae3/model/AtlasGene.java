@@ -288,8 +288,6 @@ public class AtlasGene {
         return efs;
     }
 
-    private static final String omittedEFs = "age,individual,time,dose,V1";
-
     private Map<Long,AtlasExperiment> experimentsMap;
 
     public void loadGeneExperiments(AtlasSolrDAO atlasSolrDAO) {
@@ -302,14 +300,14 @@ public class AtlasGene {
             }
     }
 
-    public List<ListResultRow> getHeatMapRows() {
+    public List<ListResultRow> getHeatMapRows(Collection<String> omittedEFs) {
         ListResultRow heatmapRow;
         ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
         for(String ef : getAllEfs()) {
             Set<String> efvs = getAllFactorValues(ef);
             if(!efvs.isEmpty()){
                 for(String efv : efvs) {
-                    if(!omittedEFs.contains(efv) && !omittedEFs.contains(ef)){
+                    if(!omittedEFs.contains(ef) && !"V1".equals(efv)){
                         heatmapRow = new ListResultRow(ef, efv,
                                 getCount_up(ef, efv),
                                 getCount_dn(ef, efv),

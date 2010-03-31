@@ -172,7 +172,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getHeatMapRows() {
-        Collection<ListResultRow> rows = gene.getHeatMapRows();
+        Collection<ListResultRow> rows = gene.getHeatMapRows(Arrays.asList("age,dose,time,individual".split(",")));
         assertNotNull(rows);
         assertTrue(rows.size() > 0);
     }

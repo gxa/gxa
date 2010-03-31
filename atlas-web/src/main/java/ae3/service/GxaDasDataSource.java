@@ -349,7 +349,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
             throw new BadReferenceObjectException("can not find gene with ID=" + geneId, "DAS");
         }
 
-        List<ListResultRow> heatmaps = atlasGene.getHeatMapRows();
+        List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
 
         ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
 
