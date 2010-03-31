@@ -32,8 +32,11 @@ public class App {
         netcdf.setRequired(true);
         Option missing = new Option("m", "missingOnly", false, "Do not build existing NetCDFs");
         missing.setRequired(false);
+        Option accession = new Option("a", "accession", true, "Build specific experiment accession");
+        accession.setArgName("accession");
+        missing.setRequired(false);
 
-        options.addOption(url).addOption(username).addOption(password).addOption(netcdf).addOption(missing);
+        options.addOption(url).addOption(username).addOption(password).addOption(netcdf).addOption(missing).addOption(accession);
 
         // Parse the arguments
         try {
@@ -54,7 +57,10 @@ public class App {
 
             AtlasNetCDFMigrator service = (AtlasNetCDFMigrator)factory.getBean("service");
 
-            service.generateNetCDFForAllExperiments(commandLine.hasOption('m'));
+            if(commandLine.hasOption('a'))
+                service.generateNetCDFForExperiment(commandLine.getOptionValue('a'), commandLine.hasOption('m'));
+            else
+                service.generateNetCDFForAllExperiments(commandLine.hasOption('m'));
         } catch(ParseException e) {
             HelpFormatter helpFormatter = new HelpFormatter();
             helpFormatter.setWidth(1000);
