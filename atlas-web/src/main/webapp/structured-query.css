@@ -26,7 +26,7 @@
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
 
 /* basic colors */
-#apilinks div.abs, #expopup, #expopup .exptable, #tooltip, #waiter, .tokeninput { border: 1px solid #5E9E9E }
+#apilinks div.abs, #expopup, #expopup .exptable, #tooltip, .waiter, .tokeninput { border: 1px solid #5E9E9E }
 fieldset, #drill {  border: none }
 
 #apilinks div.abs, #squery th, #tooltip, #expopup, .diaghead, .tokeninput
@@ -168,7 +168,7 @@ legend { font-weight: bold; }
     z-index:2000;
 }
 
-#waiter {
+.waiter {
     position: absolute;
     padding: 3px;
     background-color: white;
