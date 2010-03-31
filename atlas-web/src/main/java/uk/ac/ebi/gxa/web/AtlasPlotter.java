@@ -494,9 +494,10 @@ public class AtlasPlotter {
                 "assayProperties", new MappingIterator<Integer,Map>(Arrays.asList(sortedAssayOrder).iterator()) {
                     public Map map(final Integer assayIndex) {
                         return makeMap(
-                                "efvs", new MappingIterator<String,Map>(efs.iterator()) {
+                                "efvs", new FilterIterator<String,Map>(efs.iterator()) {
                                     public Map map(String ef) {
-                                        return makeMap("k", ef, "v", efvs.get(ef)[assayIndex]);
+                                        String v = efvs.get(ef)[assayIndex];
+                                        return v.length() > 0 ? makeMap("k", ef, "v", v) : null;
                                     }
                                 },
                                 "scvs", new FlattenIterator<Integer,Map>(
@@ -509,7 +510,8 @@ public class AtlasPlotter {
                                     public Iterator<Map> inner(final Integer sampleIndex) {
                                         return new MappingIterator<String,Map>(scs.iterator()) {
                                             public Map map(String sc) {
-                                                return makeMap("k", sc, "v", scvs.get(sc)[sampleIndex]);
+                                                String v = scvs.get(sc)[sampleIndex];
+                                                return v.length() > 0 ? makeMap("k", sc, "v", v) : null;
                                             }
                                         };
                                     }
