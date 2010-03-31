@@ -1,8 +1,9 @@
 #!/bin/bash
 # Installing Atlas2 database
+# 31 Mar 2010 - wait
 # 16 Mar 2010 - not using sed -i
 
-INDEX_TABLESPACE=#make blank for database default
+INDEX_TABLESPACE=
 ORACLE_CONNECTION=
 PARALLEL_LOAD=0 #zero for singlethreaded load
 #scripts which must be executed first, in given order
@@ -167,6 +168,8 @@ else
 	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV7.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=600000000 &
 	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV8.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=700000000 &
 
+	wait
+
 	echo "call ATLASLDR.A2_ASSAYSETEND(NULL);" | sqlplus -L -S $ORACLE_CONNECTION
 fi
 
@@ -176,26 +179,5 @@ fi
 
 echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ORACLE_CONNECTION
 echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ORACLE_CONNECTION
-
-#sqlldr $ORACLE_CONNECTION control=ctl/Spec.ctl data=$DataFolder/Spec.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Gene.ctl data=$DataFolder/Gene.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/ArrayDesign.ctl data=$DataFolder/ArrayDesign.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Assay.ctl data=$DataFolder/Assay.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/AssayOntology.ctl data=$DataFolder/AssayOntology.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/AssayPropertyValue.ctl data=$DataFolder/AssayPropertyValue.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/AssaySample.ctl data=$DataFolder/AssaySample.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/DesignElement.ctl data=$DataFolder/DesignElement.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Experiment.ctl data=$DataFolder/Experiment.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/ExpressionAnalytics.ctl data=$DataFolder/ExpressionAnalytics.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/GeneProperty.ctl data=$DataFolder/GeneProperty.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/GenePropertyValue.ctl data=$DataFolder/GenePropertyValue.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Ontology.ctl data=$DataFolder/Ontology.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/OntologyTerm.ctl data=$DataFolder/OntologyTerm.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Property.ctl data=$DataFolder/Property.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/PropertyValue.ctl data=$DataFolder/PropertyValue.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/Sample.ctl data=$DataFolder/Sample.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/SampleOntology.ctl data=$DataFolder/SampleOntology.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/SamplePropertyValue.ctl data=$DataFolder/SamplePropertyValue.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/ExpressionValue.ctl data=$DataFolder/ExpressionValue.dat
 
 echo "installation complete"
