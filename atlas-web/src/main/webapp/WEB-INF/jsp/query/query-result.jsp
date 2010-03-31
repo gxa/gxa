@@ -397,10 +397,10 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
     <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
-        <span>(you can <a href="query-result.jsp#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
+        <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
     &nbsp;•&nbsp;
-    <a class="export_lnk" title="Download results in a tab-delimited format." href="query-result.jsp#" >Download all results</a>
+    <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
     <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads')">in progress</a></span>
     &nbsp;•&nbsp; <c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
 </div>
@@ -419,8 +419,8 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:set var="efohgt" value="${150 - 9 - 4 * u:max(efoSubTree, 'getDepth')}"/>
             <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                 <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
-                <c:if test="${i.depth == 0}">
-                    <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" href="query-result.jsp#">
+                <c:if test="${i.depth == 0 && !i.root}">
+                    <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" href="#">
                 </c:if>
             </c:forEach>
         </map>
@@ -460,7 +460,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="tsy" value="5" />
                 </c:url>
                 <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;">
-                    <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="query-result.jsp#efomap" alt=""></div>
+                    <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                         <c:if test="${i.depth == 0 && !i.root}">
                             <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
@@ -481,7 +481,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <c:param name="lc" value="cdcdcd" />
                     <c:param name="tc" value="000000" />
                 </c:url>
-                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="query-result.jsp#efvmap" alt=""></div></div></td>
+                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efvmap" alt=""></div></div></td>
             </c:if>
         </tr>
         <tr>
