@@ -449,6 +449,7 @@ public class NetCDFCreator {
             int vi = 0;
             for(String v : e.getValue())
                 scv.setString(scv.getIndex().set(ei, vi++), v);
+            ++ei;
         }
 
         netCdf.write("SC", sc);
