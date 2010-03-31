@@ -86,7 +86,10 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 }
                 break;
                 case JSON: {
-                    response.setContentType("text/plain");
+                    if(indent)
+                        response.setContentType("application/javascript");
+                    else
+                        response.setContentType("application/json");
                     response.setCharacterEncoding("utf-8");
                     String jsonCallback = request.getParameter("callback");
                     if(jsonCallback != null)
