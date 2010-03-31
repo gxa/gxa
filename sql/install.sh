@@ -12,6 +12,7 @@ DATA_FOLDER="Data"
 CTL_FOLDER="Ctl"
 SCHEMA_FOLDER="Schema"
 EXPRESSION_FOLDER="Expression"
+NETCDF_FOLDER="NetCDF"
 TABLE_NAMES="Organism \
              Gene \
              ArrayDesign \
@@ -153,6 +154,13 @@ if [ "$INSTALL_MODE" == "Data" ]; then
         exit  
 fi
 
+
+# load unpack NetCDF and exit
+zcat NetCDF.tar.gz | tar xvf -
+
+exit
+
+################################################################################################################################
 # load expression values - 40GB
 if [ "$PARALLEL_LOAD" == "0" ]; then
 	 sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat log=install.log
