@@ -416,7 +416,7 @@ if(!atlas)
                 plotel.css({ height: (height * 16 + 20) + 'px' });
             }
             
-            root.find('.waiter').remove();
+            root.find('.plotwaiter').remove();
             root.find('.efname,.plot').show();
 
             jsonObj.options.grid.markings = markings;

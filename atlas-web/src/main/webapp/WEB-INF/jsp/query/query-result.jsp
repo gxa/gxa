@@ -713,7 +713,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <span class="expname"></span>
 
                     <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                        <td><img src="${pageContext.request.contextPath}/images/indicator.gif" class="waiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
+                        <td><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
                                                                                                                                              style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
                         <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
                     </tr></table>
