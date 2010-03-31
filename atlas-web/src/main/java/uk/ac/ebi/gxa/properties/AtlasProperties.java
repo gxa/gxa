@@ -212,15 +212,19 @@ public class AtlasProperties  {
     /* EFs */
 
     public List<String> getOptionsIgnoredEfs() {
-        return getListProperty("atlas.options.ignore.efs");
+        return getListProperty("atlas.ignore.efs.options");
     }
 
     public List<String> getAnyConditionIgnoredEfs() {
-        return getListProperty("atlas.anycondition.ignore.efs");
+        return getListProperty("atlas.ignore.efs.anycondition");
     }
 
     public List<String> getFacetIgnoredEfs() {
-        return getListProperty("atlas.facet.ignore.efs");
+        return getListProperty("atlas.ignore.efs.facet");
+    }
+
+    public List<String> getGeneHeatmapIgnoredEfs() {
+        return getListProperty("atlas.ignore.efs.gene.heatmap"); 
     }
 
     /* Feedback mail */

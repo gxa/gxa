@@ -25,7 +25,6 @@ package ae3.model;
 import ae3.service.GxaDasDataSource;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
@@ -178,7 +177,7 @@ public class AtlasGeneDescription {
 
         this.atlasProperties = atlasProp;
 
-        List<ListResultRow> efs = gene.getHeatMapRows();
+        List<ListResultRow> efs = gene.getHeatMapRows(atlasProp.getGeneHeatmapIgnoredEfs());
 
         Collections.sort(efs, new Comparator<ListResultRow>() {
             public int compare(ListResultRow o1, ListResultRow o2) {

@@ -32,6 +32,7 @@ import java.io.IOException;
 
 import ae3.model.AtlasGene;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * Gene page request handler 
@@ -39,6 +40,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
  */
 public class GenePageRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
+    private AtlasProperties atlasProperties;
 
     public AtlasSolrDAO getAtlasSolrDao() {
         return atlasSolrDAO;
@@ -46,6 +48,10 @@ public class GenePageRequestHandler implements HttpRequestHandler {
 
     public void setAtlasSolrDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -61,7 +67,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
             if(result.isFound()) {
                 AtlasGene gene = result.getGene();
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
-                request.setAttribute("heatMapRows", gene.getHeatMapRows());
+                request.setAttribute("heatMapRows", gene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs()));
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
