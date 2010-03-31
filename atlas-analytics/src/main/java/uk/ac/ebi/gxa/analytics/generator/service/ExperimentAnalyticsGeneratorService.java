@@ -265,9 +265,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                     getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
                                 }
 
-                                String rc = ((RChar) r).getValue()[0];
-                                if(rc.indexOf("Error") >= 0) {
-                                    throw new ComputeException(rc);
+                                for(String rc :values) {
+                                    if(rc.contains("Error"))
+                                        throw new ComputeException(rc);
                                 }
                             } else
                                 throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
