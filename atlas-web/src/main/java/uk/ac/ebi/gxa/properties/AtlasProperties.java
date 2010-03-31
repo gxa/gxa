@@ -86,10 +86,6 @@ public class AtlasProperties  {
     }
 
 
-    private List<String> getListPropertyLowerCase(String key) {
-        return Arrays.asList(getProperty(key).toLowerCase().split(","));
-    }
-
     private int getIntProperty(String key) {
         try {
             if (key.equals("atlas.last.experiment")) {
@@ -162,15 +158,15 @@ public class AtlasProperties  {
     }
 
     public List<String> getGeneAutocompleteIdFields() {
-        return getListPropertyLowerCase("atlas.gene.autocomplete.ids");
+        return getListProperty("atlas.gene.autocomplete.ids");
     }
 
     public List<String> getGeneAutocompleteNameFields() {
-        return getListPropertyLowerCase("atlas.gene.autocomplete.names");
+        return getListProperty("atlas.gene.autocomplete.names");
     }
 
     public List<String> getGeneAutocompleteDescFields() {
-        return getListPropertyLowerCase("atlas.gene.autocomplete.descs");
+        return getListProperty("atlas.gene.autocomplete.descs");
     }
 
     /* Query properties */
@@ -192,13 +188,13 @@ public class AtlasProperties  {
     }
 
     public List<String> getQueryDrilldownGeneFields() {
-        return getListPropertyLowerCase("atlas.gene.drilldowns");
+        return getListProperty("atlas.gene.drilldowns");
     }
 
     /* Dump properties */
 
     public List<String> getDumpGeneIdFields() {
-        return getListPropertyLowerCase("atlas.dump.geneidentifiers");
+        return getListProperty("atlas.dump.geneidentifiers");
     }
 
     public String getDumpGeneIdentifiersFilename() {
