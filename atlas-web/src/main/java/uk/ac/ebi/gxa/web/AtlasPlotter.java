@@ -455,7 +455,7 @@ public class AtlasPlotter {
 
             markings.add(makeMap(
                     "xaxis", makeMap("from", start, "to", position),
-                    "label", factorValue,
+                    "label", factorValue.length() > 0 ? factorValue : "unannotated",
                     "color", markingColors[++flicker % 2]
                     ));
         }
