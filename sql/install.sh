@@ -146,14 +146,8 @@ do
 	rm $LDR_CTL.log
 done
 
-if [ "$INSTALL_MODE" == "Data" ]; then
-	echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ORACLE_CONNECTION
-	echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ORACLE_CONNECTION
-
-	echo "Data loaded, exit"
-        exit  
-fi
-
+echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ORACLE_CONNECTION
+echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ORACLE_CONNECTION
 
 # load unpack NetCDF and exit
 # zcat NetCDF.tar.gz | tar xvf -
