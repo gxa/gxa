@@ -60,9 +60,9 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
             this.profile = profile;
             process(object, null, null);
-            
+
             // and write out
-            where.append(xml.asString(indent, indentAmount));
+            xml.write(where, indent, indentAmount);
         }
         catch (ParserConfigurationException e) {
             throw new RestResultRenderException(e);
