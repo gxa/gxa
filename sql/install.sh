@@ -33,7 +33,7 @@ TABLE_NAMES="Organism \
              Sample \
              SamplePV \
              SamplePVOntology"
-ARCHIVE_NAMES="Schema.tar.Z Data.tar.Z Expression.tar.Z"
+ARCHIVE_NAMES="Schema.tar.Z Data.tar.Z NetCDF.tar.Z"
 
 if [ -z "$1" ]; then
    echo "usage: $0 Schema|ArrayDesign|Data|Expression user/password@tns_name"
@@ -65,7 +65,7 @@ case $INSTALL_MODE in
 "Data")
  ARCHIVE_NAMES="Schema.tar.Z Data.tar.Z";;
 "Expression")
- ARCHIVE_NAMES="Schema.tar.Z Data.tar.Z Expression.tar.Z"
+ ARCHIVE_NAMES="Schema.tar.Z Data.tar.Z NetCDF.tar.Z"
 esac 
 
 #echo $ARCHIVE_NAMES
@@ -156,7 +156,7 @@ fi
 
 
 # load unpack NetCDF and exit
-zcat NetCDF.tar.gz | tar xvf -
+# zcat NetCDF.tar.gz | tar xvf -
 
 exit
 
