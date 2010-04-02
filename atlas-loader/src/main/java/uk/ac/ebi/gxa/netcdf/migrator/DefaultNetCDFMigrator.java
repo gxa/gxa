@@ -159,15 +159,9 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
             final DataMatrixStorage storage = new DataMatrixStorage(assays.size(), arrayDesign.getDesignElements().values().size() / 2, 1000);
             final boolean[] found = new boolean[] { false };
             log.info("Fetching expression values");
-            getAewDAO().getJdbcTemplate().query(
-                    "SELECT ev.assay_id, ev.designelement_identifier, nvl(ev.absolute, ev.ratio) " +
-                            "FROM ae2__expressionvalue__main ev " +
-                            "WHERE ev.experiment_id=? AND ev.arraydesign_id=? " +
-                            "ORDER BY ev.designelement_identifier, ev.assay_id",
-                    new Object[] {
-                            experiment.getExperimentID(),
-                            arrayDesign.getArrayDesignID()
-                    },
+            getAewDAO().processExpressionValues(
+                    experiment.getExperimentID(),
+                    arrayDesign.getArrayDesignID(),
                     new ResultSetExtractor() {
                         public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                             String lastDE = null;
