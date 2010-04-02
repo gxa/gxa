@@ -34,9 +34,20 @@ public class App {
         missing.setRequired(false);
         Option accession = new Option("a", "accession", true, "Build specific experiment accession");
         accession.setArgName("accession");
-        missing.setRequired(false);
+        accession.setRequired(false);
 
-        options.addOption(url).addOption(username).addOption(password).addOption(netcdf).addOption(missing).addOption(accession);
+        Option aewurl = new Option("w", "aewurl", true, "AEW Database URL");
+        aewurl.setArgName("aewurl");
+        aewurl.setRequired(true);
+        Option aewusername = new Option("v", "aewuser", true, "AEW Database username");
+        aewusername.setArgName("aewusername");
+        aewusername.setRequired(true);
+        Option aewpassword = new Option("q", "aewpassword", true, "AEW Database password");
+        aewpassword.setArgName("aewpassword");
+        aewpassword.setRequired(true);
+
+        options.addOption(url).addOption(username).addOption(password).addOption(netcdf).addOption(missing).
+                addOption(accession).addOption(aewurl).addOption(aewusername).addOption(aewpassword);
 
         // Parse the arguments
         try {
@@ -47,6 +58,10 @@ public class App {
             props.setProperty("jdbc.username", commandLine.getOptionValue('u'));
             props.setProperty("jdbc.password", commandLine.getOptionValue('p'));
             props.setProperty("netcdf.path", commandLine.getOptionValue('n'));
+
+            props.setProperty("jdbc.aew.url", commandLine.getOptionValue('w'));
+            props.setProperty("jdbc.aew.username", commandLine.getOptionValue('v'));
+            props.setProperty("jdbc.aew.password", commandLine.getOptionValue('q'));
 
             log.info(props.toString());
 
