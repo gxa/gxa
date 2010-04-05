@@ -240,8 +240,8 @@ public class SimilarityResultSet {
             for (int i = 0; i < rdf.getRowNames().length; i++) {
                 SimilarityResult sr = new SimilarityResult();
 
-                sr.setGeneId(String.valueOf(((RInteger) gnIds.getValue()).getValue()[i]));
-                sr.setDesignElementId(String.valueOf(((RInteger) deIds.getValue()).getValue()[i]));
+                sr.setGeneId(String.valueOf(((RNumeric) gnIds.getValue()).getValue()[i]));
+                sr.setDesignElementId(String.valueOf(((RNumeric) deIds.getValue()).getValue()[i]));
                 sr.setScore_row1(scores.getValue()[i]);
                 addResult(sr, scores.getValue()[i]);
             }
