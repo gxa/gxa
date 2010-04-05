@@ -36,6 +36,7 @@ import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 
@@ -45,7 +46,7 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     private AtlasStructuredQueryService queryService;
     private AtlasComputeService computeService;
     private AtlasProperties atlasProperties;
-    private String atlasNetCDFRepo;
+    private File atlasNetCDFRepo;
 
     public AtlasStructuredQueryService getQueryService() {
         return queryService;
@@ -84,7 +85,7 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         if (qryType.equals("sim")) {
             String DEid = request.getParameter("deid");
             String ADid = request.getParameter("adid");
-            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid, getAtlasNetCDFRepo());
+            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid, getAtlasNetCDFRepo().getAbsolutePath());
 
             try {
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
@@ -127,11 +128,11 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/gene-list.jsp").forward(request, response);
     }
 
-    public void setAtlasNetCDFRepo(String atlasNetCDFRepo) {
+    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
         this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 
-    public String getAtlasNetCDFRepo() {
+    public File getAtlasNetCDFRepo() {
         return atlasNetCDFRepo;
     }
 }
