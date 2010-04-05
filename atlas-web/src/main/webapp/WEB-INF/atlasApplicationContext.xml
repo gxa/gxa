@@ -316,6 +316,7 @@
         <property name="queryService" ref="atlasQueryService"/>
         <property name="computeService" ref="atlasComputeService"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>        
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"

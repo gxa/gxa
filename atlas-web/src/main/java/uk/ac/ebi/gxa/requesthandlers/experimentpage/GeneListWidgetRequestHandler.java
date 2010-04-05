@@ -45,6 +45,7 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     private AtlasStructuredQueryService queryService;
     private AtlasComputeService computeService;
     private AtlasProperties atlasProperties;
+    private String atlasNetCDFRepo;
 
     public AtlasStructuredQueryService getQueryService() {
         return queryService;
@@ -83,7 +84,7 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         if (qryType.equals("sim")) {
             String DEid = request.getParameter("deid");
             String ADid = request.getParameter("adid");
-            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid);
+            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid, getAtlasNetCDFRepo());
 
             try {
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
@@ -124,5 +125,13 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         request.setAttribute("gid", geneId);
 
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/gene-list.jsp").forward(request, response);
+    }
+
+    public void setAtlasNetCDFRepo(String atlasNetCDFRepo) {
+        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    }
+
+    public String getAtlasNetCDFRepo() {
+        return atlasNetCDFRepo;
     }
 }
