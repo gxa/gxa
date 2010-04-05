@@ -1,4 +1,4 @@
-OPTIONS(ROWS=100000,DIRECT=TRUE)
+OPTIONS(ROWS=1000000,DIRECT=TRUE)
 load data
 infile 'Data/GenePropertyValue.dat'
 truncate into table a2_GenePropertyValue
