@@ -53,16 +53,15 @@ public class SimilarityResultSet {
         results = new Vector<SimilarityResult>();
     }
 
-    public SimilarityResultSet(String eid, String deid, String adid) {
-        targetExperimentId = eid;
-        targetArrayDesignId = adid;
-        targetDesignElementId = deid;
-        netCDFsPath = "/ebi/ArrayExpress-files/NetCDFs.ATLAS";//DataServerAPI.getNetCDFPath();
+    public SimilarityResultSet(String eid, String deid, String adid, String netCDFsPath) {
+        this.targetExperimentId    = eid;
+        this.targetArrayDesignId   = adid;
+        this.targetDesignElementId = deid;
+        this.netCDFsPath           = netCDFsPath;
         if (eid != "" && deid != "" && adid != "") {
             sourceNetCDF = netCDFsPath + "/" + targetExperimentId + "_" + targetArrayDesignId + ".nc";
         }
         results = new Vector<SimilarityResult>();
-
     }
 
     /**
