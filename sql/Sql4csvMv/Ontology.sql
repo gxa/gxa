@@ -3,19 +3,17 @@ set newp none
 set recsep off
 set echo off
 set serveroutput off
-set tab on
+set tab off
 set line 500
 set wrap off
 SET FEEDBACK OFF 
 SET VERIFY OFF 
 
-Select
-ONTOLOGYID|| chr(9) ||                     
-NAME|| chr(9) ||                           
-SOURCE_URI|| chr(9) ||                     
-DESCRIPTION|| chr(9) ||                    
-VERSION     
-from A2_ONTOLOGY
+select ontology_id_key || chr(9) ||
+       name            || chr(9) ||
+       source_uri      || chr(9) ||
+       description     || chr(9) ||
+       version
+from ontology_sources;
 
-/
 quit;

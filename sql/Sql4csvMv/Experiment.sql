@@ -3,20 +3,17 @@ set newp none
 set recsep off
 set echo off
 set serveroutput off
-set tab on
+set tab off
 set line 500
 set wrap off
 SET FEEDBACK OFF 
 SET VERIFY OFF 
 
-Select
-EXPERIMENTID || chr(9) ||
-ACCESSION || chr(9) ||
-DESCRIPTION || chr(9) ||
-PERFORMER || chr(9) ||
-LAB || chr(9) ||
-LOADDATE  
-from A2_EXPERIMENT
+select experiment_id_key      || chr(9) ||
+       experiment_accession   || chr(9) ||
+       experiment_description || chr(9) ||
+       experiment_performer   || chr(9) ||
+       experiment_lab
+from ae1__experiment__main;
 
-/
 quit;

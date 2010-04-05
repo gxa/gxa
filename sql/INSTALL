@@ -1,0 +1,8 @@
+To install the database, run the install.sh script. It takes two parameters:
+
+  install.sh ATLAS_CONNECTION [ATLAS_INDEX_TABLESPACE]
+
+ATLAS_CONNECTION - Oracle connection (userid/password@SID)
+ATLAS_INDEX_TABLES - Optional parameter, if you want indexes to reside in a different tablespace.
+
+Do not forget to unpack and install the NetCDFs into a dedicated directory.

@@ -3,13 +3,18 @@ set newp none
 set recsep off
 set echo off
 set serveroutput off
-set tab on
+set tab off
 set line 500
 set wrap off
 SET FEEDBACK OFF 
 SET VERIFY OFF 
 
-select ROWNUM || chr(9) || ASSAY_ID_KEY  || chr(9) || PropertyID || chr(9) || NULL || chr(9) ||Value
+select ROWNUM        || chr(9) ||
+       ASSAY_ID_KEY  || chr(9) ||
+       PropertyID    || chr(9) ||
+       VALUE
+from (
+select distinct assay_id_key, propertyid, trim(replace(value,'  ',' ')) value
 from (                                      
 select distinct ASSAY_ID_KEY, 1 as PropertyID, Value from AE1__ASSAY_RNAI__DM UNION ALL                                                                                                                                                                                                                                                                                     
 select distinct ASSAY_ID_KEY, 2 as PropertyID, Value from AE1__ASSAY_AGE__DM UNION ALL                                                                                                                                                                                                                                                                                      
@@ -45,26 +50,27 @@ select distinct ASSAY_ID_KEY, 32 as PropertyID, Value from AE1__ASSAY_SEX__DM UN
 select distinct ASSAY_ID_KEY, 33 as PropertyID, Value from AE1__ASSAY_STRAINORLINE__DM UNION ALL                                                                                                                                                                                                                                                                            
 select distinct ASSAY_ID_KEY, 34 as PropertyID, Value from AE1__ASSAY_TARGETCELLTYPE__DM UNION ALL                                                                                                                                                                                                                                                                          
 select distinct ASSAY_ID_KEY, 35 as PropertyID, Value from AE1__ASSAY_TEMPERATURE__DM UNION ALL                                                                                                                                                                                                                                                                             
-select ASSAY_ID_KEY, 36 as PropertyID, Value from AE1__ASSAY_TESTRESULT__DM UNION ALL                                                                                                                                                                                                                                                                              
-select ASSAY_ID_KEY, 37 as PropertyID, Value from AE1__ASSAY_TIME__DM UNION ALL                                                                                                                                                                                                                                                                                    
-select ASSAY_ID_KEY, 38 as PropertyID, Value from AE1__ASSAY_TUMORGRADING__DM UNION ALL                                                                                                                                                                                                                                                                            
-select ASSAY_ID_KEY, 39 as PropertyID, Value from AE1__ASSAY_VEHICLE__DM UNION ALL                                                                                                                                                                                                                                                                                 
-select ASSAY_ID_KEY, 104 as PropertyID, Value from AE1__ASSAY_BIOMETRIC__DM UNION ALL                                                                                                                                                                                                                                                                              
-select ASSAY_ID_KEY, 105 as PropertyID, Value from AE1__ASSAY_CULTIVAR__DM UNION ALL                                                                                                                                                                                                                                                                               
-select ASSAY_ID_KEY, 106 as PropertyID, Value from AE1__ASSAY_DISEASELOC__DM UNION ALL                                                                                                                                                                                                                                                                             
-select ASSAY_ID_KEY, 107 as PropertyID, Value from AE1__ASSAY_ENVHISTORY__DM UNION ALL                                                                                                                                                                                                                                                                             
-select ASSAY_ID_KEY, 108 as PropertyID, Value from AE1__ASSAY_FAMILYHISTORY__DM UNION ALL                                                                                                                                                                                                                                                                          
-select ASSAY_ID_KEY, 109 as PropertyID, Value from AE1__ASSAY_GENERATION__DM UNION ALL                                                                                                                                                                                                                                                                             
-select ASSAY_ID_KEY, 110 as PropertyID, Value from AE1__ASSAY_INITIALTIME__DM UNION ALL                                                                                                                                                                                                                                                                            
-select ASSAY_ID_KEY, 111 as PropertyID, Value from AE1__ASSAY_ORGANISMSTATUS__DM UNION ALL                                                                                                                                                                                                                                                                         
-select ASSAY_ID_KEY, 112 as PropertyID, Value from AE1__ASSAY_PERFORMER__DM UNION ALL                                                                                                                                                                                                                                                                              
-select ASSAY_ID_KEY, 113 as PropertyID, Value from AE1__ASSAY_POPULATION__DM UNION ALL                                                                                                                                                                                                                                                                             
-select ASSAY_ID_KEY, 114 as PropertyID, Value from AE1__ASSAY_QCDESCRTYPE__DM UNION ALL                                                                                                                                                                                                                                                                            
-select ASSAY_ID_KEY, 115 as PropertyID, Value from AE1__ASSAY_SOURCEPROVIDER__DM UNION ALL                                                                                                                                                                                                                                                                         
-select ASSAY_ID_KEY, 116 as PropertyID, Value from AE1__ASSAY_TESTTYPE__DM ) t
+select distinct ASSAY_ID_KEY, 36 as PropertyID, Value from AE1__ASSAY_TESTRESULT__DM UNION ALL
+select distinct ASSAY_ID_KEY, 37 as PropertyID, Value from AE1__ASSAY_TIME__DM UNION ALL
+select distinct ASSAY_ID_KEY, 38 as PropertyID, Value from AE1__ASSAY_TUMORGRADING__DM UNION ALL
+select distinct ASSAY_ID_KEY, 39 as PropertyID, Value from AE1__ASSAY_VEHICLE__DM UNION ALL
+select distinct ASSAY_ID_KEY, 104 as PropertyID, Value from AE1__ASSAY_BIOMETRIC__DM UNION ALL
+select distinct ASSAY_ID_KEY, 105 as PropertyID, Value from AE1__ASSAY_CULTIVAR__DM UNION ALL
+select distinct ASSAY_ID_KEY, 106 as PropertyID, Value from AE1__ASSAY_DISEASELOC__DM UNION ALL
+select distinct ASSAY_ID_KEY, 107 as PropertyID, Value from AE1__ASSAY_ENVHISTORY__DM UNION ALL
+select distinct ASSAY_ID_KEY, 108 as PropertyID, Value from AE1__ASSAY_FAMILYHISTORY__DM UNION ALL
+select distinct ASSAY_ID_KEY, 109 as PropertyID, Value from AE1__ASSAY_GENERATION__DM UNION ALL
+select distinct ASSAY_ID_KEY, 110 as PropertyID, Value from AE1__ASSAY_INITIALTIME__DM UNION ALL
+select distinct ASSAY_ID_KEY, 111 as PropertyID, Value from AE1__ASSAY_ORGANISMSTATUS__DM UNION ALL
+select distinct ASSAY_ID_KEY, 112 as PropertyID, Value from AE1__ASSAY_PERFORMER__DM UNION ALL
+select distinct ASSAY_ID_KEY, 113 as PropertyID, Value from AE1__ASSAY_POPULATION__DM UNION ALL
+select distinct ASSAY_ID_KEY, 114 as PropertyID, Value from AE1__ASSAY_QCDESCRTYPE__DM UNION ALL
+select distinct ASSAY_ID_KEY, 115 as PropertyID, Value from AE1__ASSAY_SOURCEPROVIDER__DM UNION ALL
+select distinct ASSAY_ID_KEY, 116 as PropertyID, Value from AE1__ASSAY_TESTTYPE__DM ) t
 WHERE Value is not null
-AND EXISTS (select 1 from AE1__ASSAY__MAIN where  AE1__ASSAY__MAIN.ASSAY_ID_KEY = t.ASSAY_ID_KEY AND AE1__ASSAY__MAIN.ARRAYDESIGN_ID is not null)
-ORDER BY t.PropertyID, ASSAY_ID_KEY, VALUE
+AND EXISTS
+  (select 1 from AE1__ASSAY__MAIN
+    where AE1__ASSAY__MAIN.ASSAY_ID_KEY = t.ASSAY_ID_KEY
+      AND AE1__ASSAY__MAIN.ARRAYDESIGN_ID is not null));
 
-/
 quit;
