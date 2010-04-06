@@ -8,4 +8,4 @@
 #Êinstead of sqlplus.
 
 proc ./flat_array.pc
-gcc -o flat_array ./flat_array.c -L /sw/arch/dbtools/oracle/product/11.1.0.6.2/client/lib -lclntsh
+gcc -o flat_array ./flat_array.c -L $ORACLE_HOME/lib -lclntsh
