@@ -238,7 +238,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             });
 
-            if (netCDFs.length == 0) {
+            if (netCDFs == null || netCDFs.length == 0) {
                 success = false;
                 throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
