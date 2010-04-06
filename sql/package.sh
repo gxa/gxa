@@ -4,7 +4,7 @@
 source install-routines.sh
 
 if [ $# -ne 3 ]; then
-	echo "Usage: $0 ATLAS_CONNNECTION ATLAS_NCDF_PATH ATLAS_RELEASE"
+	echo "Usage: $0 ATLAS_CONNECTION ATLAS_NCDF_PATH ATLAS_RELEASE"
 	exit;
 fi
 
