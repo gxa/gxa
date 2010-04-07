@@ -33,4 +33,6 @@ public interface WorkingTask extends Task {
 
     String getCurrentProgress();
 
+    long getElapsedTime();
+
 }

@@ -30,12 +30,14 @@ public abstract class AbstractWorkingTask implements WorkingTask {
     protected final TaskManager taskMan;
     protected volatile TaskStage currentStage;
     protected volatile String currentProgress;
+    private long startTime;
 
     public AbstractWorkingTask(final TaskManager taskMan, final Task prototype) {
         this.taskMan = taskMan;
         this.prototype = prototype;
         this.currentStage = taskMan.getTaskStage(getTaskSpec());
         this.currentProgress = "";
+        this.startTime = System.currentTimeMillis();
     }
 
     public TaskSpec getTaskSpec() {
@@ -64,5 +66,9 @@ public abstract class AbstractWorkingTask implements WorkingTask {
 
     public String getCurrentProgress() {
         return currentProgress;
+    }
+
+    public long getElapsedTime() {
+        return System.currentTimeMillis() - startTime;
     }
 }
