@@ -68,7 +68,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
             this.profile = profile;
             try {
-                process(object, null, null);
+                process(object);
             } catch(IOException e) {
                 throw e;
             } catch(RestResultRenderException e) {
@@ -76,7 +76,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             } catch(Throwable e) {
                 xml = XMLBuilder.create(rootName);
                 if(errorWrapper != null)
-                    process(errorWrapper.wrapError(e), null, null);
+                    process(errorWrapper.wrapError(e));
                 else
                     throw new RestResultRenderException(e);
             }
@@ -87,6 +87,11 @@ public class XmlRestResultRenderer implements RestResultRenderer {
         catch (ParserConfigurationException e) {
             throw new RestResultRenderException(e);
         }
+    }
+
+    private void process(Object o) throws IOException, RestResultRenderException {
+        if(o != null)
+            process(o, null, null);
     }
 
     private void process(Object o, String iname, RestOut outProp) throws IOException, RestResultRenderException {

@@ -37,8 +37,12 @@ public class JsonResultRendererTest {
 
     @Test
     public void testNoIndentRender() {
-        RestResultRenderer r = new JsonRestResultRenderer(true, 4);
-
+        RestResultRenderer r = new JsonRestResultRenderer(true, 4, "atlas");
+        r.setErrorWrapper(new RestResultRenderer.ErrorWrapper() {
+            public Object wrapError(Throwable e) {
+                return "error:" + e.getClass().getSimpleName();
+            }
+        });
         Object o = new Object() {
             @RestOut
             public String getString() { return "some text"; }
