@@ -134,6 +134,11 @@ input.date { width: 70px; }
 
 #taskList td.cancel {
     text-align: right;
+    border-left: none;
+}
+
+#taskList td.elapsed {
+    border-right: none;
 }
 
 #taskList tr.statePENDING {
@@ -189,3 +194,6 @@ thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 #loginUser { width: 100px; }
 #loginPassword { width: 100px; }
 #loginForm { width: 400px; }
+
+#numWorking { font-weight: bold; }
+#numPending { font-weight: bold; }
