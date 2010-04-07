@@ -38,4 +38,10 @@ public interface RestResultRenderer {
      * @throws IOException if i/o write error occurs
      */
     void render(Object object, Appendable where, final Class profile) throws RestResultRenderException, IOException;
+
+    public interface ErrorWrapper {
+        Object wrapError(Throwable e);
+    }
+
+    void setErrorWrapper(ErrorWrapper wrapper);
 }
