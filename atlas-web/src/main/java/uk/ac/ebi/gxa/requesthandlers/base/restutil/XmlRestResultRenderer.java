@@ -41,25 +41,45 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     private boolean indent = false;
     private int indentAmount = 4;
     private Class profile;
+    private String rootName;
+    private ErrorWrapper errorWrapper;
 
     /**
      * Constructor
      *
      * @param indent       set to true if output should be pretty formatted and indented
      * @param indentAmount amount of each indentation step
+     * @param rootName
      */
-    public XmlRestResultRenderer(boolean indent, int indentAmount) {
+    public XmlRestResultRenderer(boolean indent, int indentAmount, String rootName) {
         this.indent = indent;
         this.indentAmount = indentAmount;
+        this.rootName = rootName;
+    }
+
+    public void setErrorWrapper(ErrorWrapper wrapper) {
+        this.errorWrapper= wrapper;
     }
 
 
     public void render(Object object, Appendable where, final Class profile) throws RestResultRenderException, IOException {
         try {
-            xml = XMLBuilder.create("atlasResponse");
+            xml = XMLBuilder.create(rootName);
 
             this.profile = profile;
-            process(object, null, null);
+            try {
+                process(object, null, null);
+            } catch(IOException e) {
+                throw e;
+            } catch(RestResultRenderException e) {
+                throw e;
+            } catch(Throwable e) {
+                xml = XMLBuilder.create(rootName);
+                if(errorWrapper != null)
+                    process(errorWrapper.wrapError(e), null, null);
+                else
+                    throw new RestResultRenderException(e);
+            }
 
             // and write out
             xml.write(where, indent, indentAmount);
