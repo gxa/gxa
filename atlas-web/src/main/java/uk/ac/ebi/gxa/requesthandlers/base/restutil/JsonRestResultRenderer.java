@@ -78,7 +78,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             where.append(callback).append('(');
         }
         try {
-            process(o, null);
+            process(o);
         } catch(IOException e) {
             throw e;
         } catch(RestResultRenderException e) {
@@ -86,7 +86,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } catch(Throwable e) {
             if(errorWrapper != null) {
                 where.append(",");
-                process(errorWrapper.wrapError(e), null);
+                process(errorWrapper.wrapError(e));
             } else
                 throw new RestResultRenderException(e);
         } finally {
@@ -98,6 +98,13 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
     public void setErrorWrapper(ErrorWrapper wrapper) {
         this.errorWrapper = wrapper;
+    }
+
+    private void process(Object o) throws IOException, RestResultRenderException {
+        if(o == null)
+            where.append("null");
+        else
+            process(o, null);
     }
 
     private void process(Object o, RestOut outProp) throws IOException, RestResultRenderException {
