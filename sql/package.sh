@@ -1,61 +1,46 @@
 #!/bin/bash
 # Installing Atlas2 database
 
-ORACLE_CONNECTION=Atlas2/atlas2@WINDON
-TABLE_NAMES="Organism \
-  Gene \
-  ArrayDesign \
-  Assay \
-  AssayPV \
-  AssayPVOntology \
-  AssaySample \
-  DesignElement \
-  Experiment \
-  ExpressionAnalytics \
-  GeneProperty \
-  GenePropertyValue \
-  GeneGPV \
-  Ontology \
-  OntologyTerm \
-  Property \
-  PropertyValue \
-  Sample \
-  SamplePV \
-  SamplePVOntology"
+source install-routines.sh
 
-mkdir Ctl
+if [ $# -ne 3 ]; then
+	echo "Usage: $0 ATLAS_CONNECTION ATLAS_NCDF_PATH ATLAS_RELEASE"
+	exit;
+fi
+
+ATLAS_CONNECTION=$1
+ATLAS_NCDF_PATH=$2
+ATLAS_RELEASE=$3
+
+if [ -d $ATLAS_RELEASE ]; then
+	echo "$ATLAS_RELEASE already exists! Choose another directory name.";
+	exit;
+fi
+
+mkdir $ATLAS_RELEASE
+pushd $ATLAS_RELEASE
+
+echo "Dumping data..."
 mkdir Data
-mkdir Sql4csv
-mkdir Schema
-mkdir Expression
-
-cd Sql4csv
-svn co "svn://bar.ebi.ac.uk/branches/atlas-standalone-data/sql-data/Sql4csv" .
-cd ..
-
-cd Ctl
-svn co "svn://bar.ebi.ac.uk/branches/atlas-standalone-data/sql-data/Ctl" .
-cd ..
-
-cd Schema
-svn co "svn://bar.ebi.ac.uk/branches/atlas-standalone/sql/" .
-cd ..
-
 for TABLE_NAME in $TABLE_NAMES
 do
-	echo  "sqlplus -S $ORACLE_CONNECTION @Sql4csv/$TABLE_NAME.sql > Data/$TABLE_NAME.dat"
-#       sqlplus -S $ORACLE_CONNECTION @Sql4csv/$TABLE_NAME.sql > Data/$TABLE_NAME.dat
+  echo "... $TABLE_NAME"
+  sqlplus -S $ATLAS_CONNECTION @../create_ctl_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.ctl
+  sqlplus -S $ATLAS_CONNECTION @../create_sql_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.sql
+
+  ../flat_array userid=$ATLAS_CONNECTION sqlstmt="`cat Data/$TABLE_NAME.sql`" arraysize=100 > Data/$TABLE_NAME.dat
 done
 
-# TODO: download Expressions
+echo "Exporting schema scripts"
+svn export svn://bar.ebi.ac.uk/branches/atlas-standalone/sql/Schema Schema
 
-rm Schema.tar.Z
-rm Data.tar.Z
-# rm Expression.tar.Z
+echo "Packing NetCDFs"
+ln -sf $ATLAS_NCDF_PATH ncdf/
+find ncdf/ -name '*.nc' | xargs tar cvzf ncdf.tar.Z
+rm ncdf
 
-tar -zcvf Schema.tar.Z ./Schema/*.sql
-tar -zcvf Data.tar.Z ./Data/*.dat ./Ctl/*.ctl
-# tar -zcvf Expression.tar.Z ./Expression/*.dat
+popd
 
-tar -zcvf AtlasData-10.3rel-2.14.tar.Z Schema.tar.Z Data.tar.Z Expression.tar.Z install.sh readme.txt
-
+echo "Packing the release"
+cp drop_all.sql install-routines.sh install.sh INSTALL $ATLAS_RELEASE/
+tar cvzf $ATLAS_RELEASE.tar.Z $ATLAS_RELEASE

@@ -47,6 +47,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     private final static char NL = '\n';
     private Class profile;
     private String callback;
+    private ErrorWrapper errorWrapper;
 
     /**
      * Constructor
@@ -76,15 +77,38 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         if(callback != null) {
             where.append(callback).append('(');
         }
-        process(o, null);
-        if(callback != null) {
-            where.append(')');
+        try {
+            process(o);
+        } catch(IOException e) {
+            throw e;
+        } catch(RestResultRenderException e) {
+            throw e;
+        } catch(Throwable e) {
+            if(errorWrapper != null) {
+                where.append(",");
+                process(errorWrapper.wrapError(e));
+            } else
+                throw new RestResultRenderException(e);
+        } finally {
+            if(callback != null) {
+                where.append(')');
+            }
         }
+    }
+
+    public void setErrorWrapper(ErrorWrapper wrapper) {
+        this.errorWrapper = wrapper;
+    }
+
+    private void process(Object o) throws IOException, RestResultRenderException {
+        if(o == null)
+            where.append("null");
+        else
+            process(o, null);
     }
 
     private void process(Object o, RestOut outProp) throws IOException, RestResultRenderException {
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
-
         if(o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
         } else if(o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
@@ -105,35 +129,37 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             currentIndent += indentAmount;
             where.append(NL);
         }
-        
-        boolean first = true;
-        for(RestResultRendererUtil.Prop p : RestResultRendererUtil.iterableProperties(o, profile, this)) {
-            if(first)
-                first = false;
-            else {
-                where.append(',');
+
+        try {
+            boolean first = true;
+            for(RestResultRendererUtil.Prop p : RestResultRendererUtil.iterableProperties(o, profile, this)) {
+                if(first)
+                    first = false;
+                else {
+                    where.append(',');
+                    if(indent)
+                        where.append(NL);
+                }
+                appendIndent();
+                appendOptQuotedString(p.name);
+
                 if(indent)
-                    where.append(NL);
+                    where.append(' ');
+                where.append(':');
+                if(indent)
+                    where.append(' ');
+
+                process(p.value, p.outProp);
+            }
+
+            if(indent) {
+                currentIndent -= indentAmount;
+                where.append(NL);
             }
             appendIndent();
-            appendOptQuotedString(p.name);
-
-            if(indent)
-                where.append(' ');
-            where.append(':');
-            if(indent)
-                where.append(' ');
-
-            process(p.value, p.outProp);
+        } finally {
+            where.append('}');
         }
-
-        if(indent) {
-            currentIndent -= indentAmount;
-            where.append(NL);
-        }
-        appendIndent();
-        where.append('}');
-
     }
 
 
@@ -144,32 +170,34 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             where.append(NL);
         }
 
-        boolean first = true;
-        Iterator i = oi instanceof Iterator ? (Iterator)oi : ((Iterable)oi).iterator();
-        while(i.hasNext()) {
-            Object object = i.next();
-            if(first)
-                first = false;
-            else {
-                where.append(',');
-                if(indent)
-                    where.append(NL);
+        try {
+            boolean first = true;
+            Iterator i = oi instanceof Iterator ? (Iterator)oi : ((Iterable)oi).iterator();
+            while(i.hasNext()) {
+                Object object = i.next();
+                if(first)
+                    first = false;
+                else {
+                    where.append(',');
+                    if(indent)
+                        where.append(NL);
+                }
+                appendIndent();
+                if(object != null)
+                    process(object, null);
+                else
+                    where.append("null");
             }
+
+            if(indent) {
+                currentIndent -= indentAmount;
+                where.append(NL);
+            }
+
+        } finally {
             appendIndent();
-            if(object != null)
-                process(object, null);
-            else
-                where.append("null");
+            where.append(']');
         }
-
-        if(indent) {
-            currentIndent -= indentAmount;
-            where.append(NL);
-        }
-
-        appendIndent();
-        where.append(']');
-
     }
 
     private void appendIndent() throws IOException {
@@ -190,46 +218,49 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         String       t;
 
         where.append('"');
-        for (i = 0; i < len; i += 1) {
-            b = c;
-            c = string.charAt(i);
-            switch (c) {
-            case '\\':
-            case '"':
-                where.append('\\');
-                where.append(c);
-                break;
-            case '/':
-                if (b == '<') {
-                    where.append('\\');
-                }
-                where.append(c);
-                break;
-            case '\b':
-                where.append("\\b");
-                break;
-            case '\t':
-                where.append("\\t");
-                break;
-            case '\n':
-                where.append("\\n");
-                break;
-            case '\f':
-                where.append("\\f");
-                break;
-            case '\r':
-                where.append("\\r");
-                break;
-            default:
-                if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
-                               (c >= '\u2000' && c < '\u2100')) {
-                    t = "000" + Integer.toHexString(c);
-                    where.append("\\u" + t.substring(t.length() - 4));
-                } else {
-                    where.append(c);
+        try {
+            for (i = 0; i < len; i += 1) {
+                b = c;
+                c = string.charAt(i);
+                switch (c) {
+                    case '\\':
+                    case '"':
+                        where.append('\\');
+                        where.append(c);
+                        break;
+                    case '/':
+                        if (b == '<') {
+                            where.append('\\');
+                        }
+                        where.append(c);
+                        break;
+                    case '\b':
+                        where.append("\\b");
+                        break;
+                    case '\t':
+                        where.append("\\t");
+                        break;
+                    case '\n':
+                        where.append("\\n");
+                        break;
+                    case '\f':
+                        where.append("\\f");
+                        break;
+                    case '\r':
+                        where.append("\\r");
+                        break;
+                    default:
+                        if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
+                                (c >= '\u2000' && c < '\u2100')) {
+                            t = "000" + Integer.toHexString(c);
+                            where.append("\\u" + t.substring(t.length() - 4));
+                        } else {
+                            where.append(c);
+                        }
                 }
             }
+        } finally {
+            where.append('"');
         }
-        where.append('"');
     }
 }

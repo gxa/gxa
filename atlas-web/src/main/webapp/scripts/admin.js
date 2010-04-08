@@ -29,9 +29,11 @@ var $tpl = {};
 var $tab = {};
 var $options = {
     queueRefreshRate: 5000,
+    queuePageSize: 20,
     searchDelay: 500,
     logNumItems: 20
 };
+
 var $msg = {
     operation: {
         ENQUEUE: 'Scheduled',
@@ -304,8 +306,36 @@ function updatePauseButton(isRunning) {
 
 function updateQueue() {
     clearTimeout($time.queue);
-    adminCall('tasklist', {}, function (result) {
+    adminCall('tasklist', {
+        p: currentState['que-p'] || 0,
+        n: $options.queuePageSize
+    }, function (result) {
         renderTpl('taskList', result);
+
+        $('#numPending').text(result.numPending);
+        $('#numWorking').text(result.numWorking);
+
+        if(result.page != currentState['que-p']) {
+            currentState['que-p'] = result.page;
+            storeState();
+        }
+
+        if(result.numTotal > $options.queuePageSize)
+            $('#taskListPages').pagination(result.numTotal, {
+                current_page: result.page,
+                num_edge_entries: 2,
+                num_display_entries: 5,
+                items_per_page: $options.queuePageSize,
+                prev_text: "prev",
+                next_text: "Next",
+                callback: function(page) {
+                    currentState['que-p'] = page;
+                    storeState();
+                    updateQueue();
+                    return false;
+                }});
+        else
+            $('#taskListPages').empty();
 
         for(var i in result.tasks) {
             (function (task) {
@@ -492,6 +522,7 @@ function compileTemplates() {
                 '.user': 'task.user',
                 '.runMode': msgMapper('runMode', 'runMode'),
                 '.progress': 'task.progress',
+                '.elapsed': 'task.elapsed',
                 'input@class+': 'task.id',
                 '.@class+': ' state#{task.state} mode#{task.runMode} type#{task.type}'
             }

@@ -467,19 +467,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                 </td>
                             </tr>
                         </table>
-
-                        <BR/><BR/>
-                        <table align="left">
-                            <tr>
-                                <td id="expHeader_td_1" class="sectionHeader" style="vertical-align: top">Organism Parts</td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                        <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" />
-                                </td>
-                            </tr>
-                        </table>
                     </td>
                     <td valign="top" align="left">
                         <table align="left">
@@ -520,9 +507,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
     </tr>
 
 </table>
-
-
-
 
 <c:set var="timeFinish" value="${u:currentTime()}" />
 <div align="center">Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}" /> secs.</div>

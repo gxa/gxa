@@ -1,3 +1,13 @@
+AtlasData-10.3rel-2.15.tar.Z - data release 10.3
+01/04/2010
++ Expression values in NetCDF
+
+AtlasData-10.3rel-2.14.tar.Z - data release 10.3
+31/03/2010
++ cleaned up data
++ not null constraints
++ ATLASLDR.A2_AnatomogrammGet
+
 AtlasData-10.3rel-2.14.tar.Z - data release 10.3
 12/03/2010
 + install bug fixed

@@ -213,13 +213,13 @@ public class TaskManager implements InitializingBean {
         }
     }
 
-    public Collection<WorkingTask> getWorkingTasks() {
+    public List<WorkingTask> getWorkingTasks() {
         synchronized (this) {
             return new ArrayList<WorkingTask>(workingTasks);
         }
     }
 
-    public  Collection<Task> getQueuedTasks() {
+    public  List<Task> getQueuedTasks() {
         synchronized (this) {
             return new ArrayList<Task>(queuedTasks);
         }
