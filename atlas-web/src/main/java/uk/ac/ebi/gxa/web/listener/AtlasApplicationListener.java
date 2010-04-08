@@ -112,6 +112,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             }
         } catch (AtlasRServicesException e) {
             log.error("R environment validation failed.  Atlas on-the-fly computations will fail", e);
+        } catch (UnsatisfiedLinkError ule) {
+            log.error("Atlas configured to use local R which is not present. Atlas on-the-fly computations will fail", ule);
         }
 
         // discover our datasource URL from the database metadata
