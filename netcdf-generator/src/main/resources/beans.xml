@@ -36,18 +36,6 @@
         <property name="maxWait" value="-1" />
     </bean>
 
-    <bean id="aewDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="${jdbc.aew.url}"/>
-        <property name="username" value="${jdbc.aew.username}"/>
-        <property name="password" value="${jdbc.aew.password}"/>
-        <property name="defaultAutoCommit" value="false"/>
-        <property name="initialSize" value="32"/>
-        <property name="maxIdle" value="32" />
-        <property name="maxActive" value="100"/>
-        <property name="maxWait" value="-1" />
-    </bean>
-
     <!-- etxract native jdbc connection for working with oracle connections -->
     <bean name="nativeJdbcExtractor"
           class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
@@ -59,21 +47,9 @@
         <property name="ignoreWarnings" value="true"/>
     </bean>
 
-
-    <bean name="aewTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="aewDataSource"/>
-        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
-        <property name="ignoreWarnings" value="true"/>
-    </bean>
-
     <!-- Configure AtlasDAO for this datasource -->
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="template"/>
-    </bean>
-
-    <bean name="aewDAO" class="uk.ac.ebi.gxa.netcdf.migrator.AewDAO">
-        <property name="jdbcTemplate" ref="aewTemplate"/>
     </bean>
 
     <bean id="atlasNetCDFs" class="java.io.File">
@@ -83,7 +59,6 @@
     <bean name="service"
           class="uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="aewDAO" ref="aewDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
         <property name="maxThreads" value="32"/>
     </bean>

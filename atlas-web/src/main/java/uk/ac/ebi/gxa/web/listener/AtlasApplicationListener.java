@@ -72,14 +72,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // get context, driven by config
         ServletContext application = sce.getServletContext();
-        WebApplicationContext context = null;
-        try {
-            context =
+        WebApplicationContext context =
                 WebApplicationContextUtils.getWebApplicationContext(application);
-        } catch (Throwable e) {
-            log.error("\n\n**** FATAL STARTUP ERROR ****\nFailed to get web application context! Is your context set up correctly?\n\n");
-            return;
-        }
 
         // fetch services from the context
         AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
@@ -112,6 +106,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             }
         } catch (AtlasRServicesException e) {
             log.error("R environment validation failed.  Atlas on-the-fly computations will fail", e);
+        } catch (UnsatisfiedLinkError ule) {
+            log.error("Atlas configured to use local R which is not present. Atlas on-the-fly computations will fail", ule);
         }
 
         // discover our datasource URL from the database metadata
