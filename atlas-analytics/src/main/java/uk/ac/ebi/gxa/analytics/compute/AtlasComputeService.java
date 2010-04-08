@@ -75,8 +75,7 @@ public class AtlasComputeService implements Compute {
                 return null;
             }
 
-            if(rService.getServantName() != null)
-                log.debug("Computing on " + rService.getServantName());
+            log.debug("Computing on " + rService.getServantName());
             return task.compute(rService);
         }
         catch (ComputeException e) {

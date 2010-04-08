@@ -27,6 +27,7 @@ import ae3.model.*;
 import ae3.util.HtmlHelper;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.mydas.controller.CacheManager;
@@ -56,7 +57,13 @@ import java.util.*;
  *         <a href="http://code.google.com/p/mydas/wiki/HOWTO_WritePluginIntro"> Writing a MyDas Data Source - Selecting
  *         the Best Inteface </a>
  */
+
 public class GxaDasDataSource implements AnnotationDataSource {
+
+    private static AtlasDAO atlasDao;
+    public void setDao(AtlasDAO atlasDao){
+        GxaDasDataSource.atlasDao = atlasDao;
+    }
 
     CacheManager cacheManager = null;
     ServletContext svCon;
@@ -149,14 +156,14 @@ public class GxaDasDataSource implements AnnotationDataSource {
     }
 
 
-    public DasFeature GeneDasFeature(AtlasGene gene) throws DataSourceException {
+    public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
             String notes = gene.getGeneDescription();
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
-                    "gene",
-                    "gene",
+                    "description",
+                    "description",
                     getSortableCaption("Gene"),
                     "ExperimentalFactor",
                     "Experimental Factor",
@@ -177,7 +184,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
         }
     }
 
-    public DasFeature HeatmapDasFeature(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
+    public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
         try {
 
             String notes = "";
@@ -248,8 +255,8 @@ public class GxaDasDataSource implements AnnotationDataSource {
             return new DasFeature(
                     atlasGene.getGeneIdentifier() + featureLabel,
                     FactorValue,
-                    "efv",
-                    "efv",
+                    "efv-summary",
+                    "efv-summary",
                     getSortableCaption(atlasProperties.getCuratedEf(ExperimentFactor)),
                     "ExperimentalFactor",
                     "Experimental Factor",
@@ -272,15 +279,15 @@ public class GxaDasDataSource implements AnnotationDataSource {
         }
     }
 
-    public DasFeature ExperimentDasFeature(AtlasGene atlasGene, AtlasExperiment experiment) throws DataSourceException {
+    public DasFeature getExperimentDasFeature(AtlasGene atlasGene, AtlasExperiment experiment) throws DataSourceException {
         try {
             String notes = (new AtlasGeneExperimentDescription(atlasProperties, atlasGene, experiment, null).toLongString());
 
             return (new DasFeature(
                     atlasGene.getGeneIdentifier() + " " + experiment.getAccession(),
                     experiment.getAccession(),
-                    "exp",
-                    "exp",
+                    "exp-summary",
+                    "exp-summary",
                     getSortableCaption("Experiment"),
                     "ExperimentalFactor",
                     "Experimental Factor",
@@ -308,6 +315,31 @@ public class GxaDasDataSource implements AnnotationDataSource {
         }
     }
 
+    public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
+        try{
+            return new DasFeature(
+                     atlasGene.getGeneIdentifier() //String featureId,
+                     ,atlasGene.getGeneIdentifier()//String featureLabel,
+                     ,"image"                      //String typeId,
+                     ,"image"                      //String typeCategory,
+                     ,"image"                      //String typeLabel,
+                     ,"image"                      //String methodId,
+                     ,"image"                      //String methodLabel,
+                     ,0                            //int startCoordinate,
+                     ,0                            //int endCoordinate,
+                     ,0.0                          //Double score,
+                     ,DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE //DasFeatureOrientation orientation,
+                     ,DasPhase.PHASE_NOT_APPLICABLE  //DasPhase phase,
+                     ,Collections.singleton("anatomogram")                //Collection<String> notes,
+                     ,Collections.singletonMap(new URL("http://www.ebi.ac.uk/tc-test/microarray-as/atlas/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), "")  //Map<URL, String> links,
+                     ,null                              //Collection<DasTarget> targets,
+                     ,null                              //Collection<DasGroup> groups
+                    );
+        }
+        catch (Exception e){
+            throw new DataSourceException("Error creating Image DasFeature.", e);
+        }
+    }
 
     /**
      * This method returns a List of DasAnnotatedSegment objects, describing the annotated segment and the features of
@@ -353,7 +385,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
         ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
 
-        feat.add(GeneDasFeature(atlasGene)); //first row - gene
+        feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
         /*  DAS server sort lexicographically */
         Collections.sort(heatmaps, new Comparator<ListResultRow>() {
@@ -371,12 +403,19 @@ public class GxaDasDataSource implements AnnotationDataSource {
         /* */
 
         for (ListResultRow i : heatmaps) {
-            feat.add(HeatmapDasFeature(atlasGene, i));
+            feat.add(getHeatmapDasFeature(atlasGene, i));
         }
 
         List<AtlasExperiment> t = atlasSolrDAO.getRankedGeneExperiments(atlasGene, null, null, -1, -1);
         for (AtlasExperiment e : t) {
-            feat.add(ExperimentDasFeature(atlasGene, e));
+            feat.add(getExperimentDasFeature(atlasGene, e));
+        }
+
+
+        List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
+
+        if(!anatomogrammAnnotations.isEmpty()){
+            feat.add(getImageDasFeature(atlasGene));
         }
 
         DasAnnotatedSegment result =

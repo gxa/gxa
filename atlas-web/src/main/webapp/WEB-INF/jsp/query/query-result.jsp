@@ -494,10 +494,10 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
                         <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
-                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
+                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;&nbsp;fewer</a>
                         </c:when>
                         <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
-                            <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}"><c:if test="${f:length(c.efvs) > 1}">more&nbsp;</c:if>&#0187;</a>
+                            <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}">more&nbsp;&#0187;</a>
                         </c:when>
                     </c:choose>
                 </th>

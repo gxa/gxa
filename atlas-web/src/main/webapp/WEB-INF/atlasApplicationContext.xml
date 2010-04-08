@@ -67,6 +67,9 @@
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
     </bean>
 
+    <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
+    </bean>
+
     
     <!-- Atlas properties -->
     <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
@@ -316,7 +319,6 @@
         <property name="queryService" ref="atlasQueryService"/>
         <property name="computeService" ref="atlasComputeService"/>
         <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>        
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
@@ -380,6 +382,12 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
+    <bean name="anatomogramRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler">
+        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
+        <property name="efo" ref="efo"/>
+        <property name="annotator" ref="annotator"/>
+    </bean>
+
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
         <property name="domain" value="GXAtlas"/>
@@ -427,6 +435,10 @@
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory">
         <property name="atlasProperties" ref="atlasProperties"/>
+    </bean>
+
+    <bean name="gxaDasDataSource" class="ae3.service.GxaDasDataSource">
+        <property name="dao" ref="atlasDAO" />
     </bean>
 
     <!-- Configuration for JNDI resource lookup -->

@@ -35,7 +35,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
     private AtlasDAO atlasDAO;
     private File atlasNetCDFRepo;
     private int maxThreads;
-    private AewDAO aewDAO;
 
     public AtlasDAO getAtlasDAO() {
         return atlasDAO;
@@ -43,14 +42,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public void setAewDAO(AewDAO aewDAO) {
-        this.aewDAO = aewDAO;
-    }
-
-    public AewDAO getAewDAO() {
-        return aewDAO;
     }
 
     public File getAtlasNetCDFRepo() {
@@ -159,9 +150,16 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
             final DataMatrixStorage storage = new DataMatrixStorage(assays.size(), arrayDesign.getDesignElements().values().size() / 2, 1000);
             final boolean[] found = new boolean[] { false };
             log.info("Fetching expression values");
-            getAewDAO().processExpressionValues(
-                    experiment.getExperimentID(),
-                    arrayDesign.getArrayDesignID(),
+            getAtlasDAO().getJdbcTemplate().query(
+                    "SELECT ev.assayid, de.accession, ev.value " +
+                            "FROM A2_Expressionvalue ev " +
+                            "JOIN a2_assay a ON a.assayid = ev.assayid " +
+                            "JOIN a2_designelement de ON de.designelementid = ev.designelementid " +
+                            "WHERE a.experimentid=? AND a.arraydesignid=? ORDER BY de.accession, ev.assayid",
+                    new Object[] {
+                            experiment.getExperimentID(),
+                            arrayDesign.getArrayDesignID()
+                    },
                     new ResultSetExtractor() {
                         public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                             String lastDE = null;

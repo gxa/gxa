@@ -40,7 +40,7 @@ public class ErrorResult {
         this.error = error;
     }
 
-    private static String exceptionToString(Throwable e) {
+    private static String exceptionToString(Exception e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw, true);
         e.printStackTrace(pw);
@@ -52,7 +52,7 @@ public class ErrorResult {
     }
 
 
-    public ErrorResult(Throwable e) {
+    public ErrorResult(Exception e) {
         this.error = "Exception occured: " + exceptionToString(e);
     }
 

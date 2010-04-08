@@ -1,35 +1,45 @@
 #!/bin/bash
-# Migrating from AEW to ATLAS2
+# Installing Atlas2 database
 
-source migration-routines.sh
+ORACLE_CONNECTION=AEMART/marte@AEDWP_SMITHERS
+TABLE_NAMES="Organism \
+  Gene \
+  ArrayDesign \
+  Assay \
+  AssayOntology \
+  AssayPropertyValue \
+  AssaySample \
+  DesignElement \
+  Experiment \
+  ExpressionAnalytics \
+  GeneProperty \
+  GenePropertyValue \
+  Ontology \
+  OntologyTerm \
+  Property \
+  PropertyValue \
+  Sample \
+  SampleOntology \
+  SamplePropertyValue"
 
-if [ $# -ne 3 ]; then
-        echo "Usage: $0 AEW_CONNECTION ATLAS_CONNNECTION ATLAS_INDEX_TABLESPACE"
-        exit;
-fi
+sqlplus -S AEMART/marte@AEDWP_SMITHERS @Sql4csvMoo/SamplePV.sql > DataMoo/SamplePV.dat
 
-AEW_CONNECTION=$1
-ATLAS_CONNECTION=$2
-ATLAS_INDEX_TABLESPACE=$3
+exit 0;
 
-DATA_FOLDER=Data
-CTL_FOLDER=Ctl
+for TABLE_NAME in $TABLE_NAMES
+do
+	echo  "sqlplus -S $ORACLE_CONNECTION @Sql4csvMoo/$TABLE_NAME.sql > DataMoo/$TABLE_NAME.dat"
+        sqlplus -S $ORACLE_CONNECTION @Sql4csvMoo/$TABLE_NAME.sql > DataMoo/$TABLE_NAME.dat
 
-if [ -d $DATA_FOLDER ]; then
-	echo "$DATA_FOLDER directory already exists, will assume data export is already in it!"
-else
-    mkdir $DATA_FOLDER
-    echo "Exporting data for migration..."
-    export_data_for_migration $AEW_CONNECTION
-fi
+        echo sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/$LDR_CTL.ctl data=$DATA_FOLDER/$LDR_CTL.dat
+        sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/$LDR_CTL.ctl data=$DATA_FOLDER/$LDR_CTL.dat
 
-echo "Dropping all objects..."
-sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
+        if [ "$?" -ne "0" ]; then
+                 echo "can not execute sqlldr:" $LDR_CTL $? ; exit -1
+        fi
 
-echo "Creating schema..."
-create_schema $ATLAS_CONNECTION $ATLAS_INDEX_TABLESPACE
+        cat $LDR_CTL.log >> install.log
+        rm $LDR_CTL.log
+done
 
-echo "Loading data..."
-load_data $ATLAS_CONNECTION $DATA_FOLDER $CTL_FOLDER
 
-echo "Migration complete. Please migrate NetCDFs separately."

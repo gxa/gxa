@@ -41,57 +41,32 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     private boolean indent = false;
     private int indentAmount = 4;
     private Class profile;
-    private String rootName;
-    private ErrorWrapper errorWrapper;
 
     /**
      * Constructor
      *
      * @param indent       set to true if output should be pretty formatted and indented
      * @param indentAmount amount of each indentation step
-     * @param rootName
      */
-    public XmlRestResultRenderer(boolean indent, int indentAmount, String rootName) {
+    public XmlRestResultRenderer(boolean indent, int indentAmount) {
         this.indent = indent;
         this.indentAmount = indentAmount;
-        this.rootName = rootName;
-    }
-
-    public void setErrorWrapper(ErrorWrapper wrapper) {
-        this.errorWrapper= wrapper;
     }
 
 
     public void render(Object object, Appendable where, final Class profile) throws RestResultRenderException, IOException {
         try {
-            xml = XMLBuilder.create(rootName);
+            xml = XMLBuilder.create("atlasResponse");
 
             this.profile = profile;
-            try {
-                process(object);
-            } catch(IOException e) {
-                throw e;
-            } catch(RestResultRenderException e) {
-                throw e;
-            } catch(Throwable e) {
-                xml = XMLBuilder.create(rootName);
-                if(errorWrapper != null)
-                    process(errorWrapper.wrapError(e));
-                else
-                    throw new RestResultRenderException(e);
-            }
-
+            process(object, null, null);
+            
             // and write out
-            xml.write(where, indent, indentAmount);
+            where.append(xml.asString(indent, indentAmount));
         }
         catch (ParserConfigurationException e) {
             throw new RestResultRenderException(e);
         }
-    }
-
-    private void process(Object o) throws IOException, RestResultRenderException {
-        if(o != null)
-            process(o, null, null);
     }
 
     private void process(Object o, String iname, RestOut outProp) throws IOException, RestResultRenderException {

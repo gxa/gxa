@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.requesthandlers.base;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.EnumMap;
 
 /**
  * REST API base servlet, implementing common functions as output format and style parameters handling,
@@ -45,12 +43,6 @@ import java.util.EnumMap;
  */
 public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
     protected Logger log = LoggerFactory.getLogger(getClass());
-    private static final RestResultRenderer.ErrorWrapper ERROR_WRAPPER = new RestResultRenderer.ErrorWrapper() {
-        public Object wrapError(Throwable e) {
-            return new ErrorResult(e);
-        }
-    };
-    private static final String XML_ROOTNAME = "atlasResponse";
 
     private static enum Format {
         JSON, XML;
@@ -90,7 +82,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 case XML: {
                     response.setContentType("text/xml");
                     response.setCharacterEncoding("utf-8");
-                    renderer = new XmlRestResultRenderer(indent, 4, XML_ROOTNAME);
+                    renderer = new XmlRestResultRenderer(indent, 4);
                 }
                 break;
                 case JSON: {
@@ -109,12 +101,8 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                     renderer = null;
             }
 
-            renderer.setErrorWrapper(ERROR_WRAPPER);
             renderer.render(o, response.getWriter(), profile);
-        } catch (IOException e) {
-            // i/o exception is bad, we probably better give up writing anything
-            log.error("I/O exception", e);
-        } catch (RestResultRenderException e) {
+        } catch (Exception e) {
             fatal(format, "Response render exception", e, response.getWriter());
         }
     }
@@ -126,7 +114,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 out.println("{error:\"Fatal error\"}");
                 break;
             case XML:
-                out.println("<?xml version=\"1.0\"?><" + XML_ROOTNAME + "><error>Fatal error</error></" + XML_ROOTNAME + ">");
+                out.println("<?xml version=\"1.0\"?><atlasResponse><error>Fatal error</error></atlasResponse>");
                 break;
         }
     }

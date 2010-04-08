@@ -28,7 +28,6 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -40,7 +39,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
 import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
@@ -62,7 +60,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
-    private AewDAO aewDAO;
 
     private boolean solrBuildFinished;
 
@@ -87,27 +84,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         netCDFRepoLocation = new File(
                 "target" + File.separator + "test" + File.separator + "netcdfs");
 
-        // create a special AewDAO to read from the same database
-        aewDAO = new AewDAO() {
-            @Override
-            public void processExpressionValues(long experimentId, long arraydesignId, ResultSetExtractor rse) {
-                getJdbcTemplate().query(
-                        "SELECT ev.assayid, de.accession, ev.value " +
-                                "FROM A2_Expressionvalue ev " +
-                                "JOIN a2_assay a ON a.assayid = ev.assayid " +
-                                "JOIN a2_designelement de ON de.designelementid = ev.designelementid " +
-                                "WHERE a.experimentid=? AND a.arraydesignid=? ORDER BY de.accession, ev.assayid",
-                        new Object[] {
-                                experimentId,
-                                arraydesignId},
-                        rse);
-            }
-        };
-        aewDAO.setJdbcTemplate(getAtlasDAO().getJdbcTemplate());
-
         DefaultNetCDFMigrator service = new DefaultNetCDFMigrator();
         service.setAtlasDAO(getAtlasDAO());
-        service.setAewDAO(aewDAO);
         service.setAtlasNetCDFRepo(netCDFRepoLocation);
         service.setMaxThreads(1);
         service.generateNetCDFForAllExperiments(false);

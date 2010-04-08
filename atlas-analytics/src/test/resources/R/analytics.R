@@ -32,8 +32,6 @@ read.atlas.nc <-
     adacc  = att.get.ncdf(nc,varid=0,"ADaccession")$value
     adname = att.get.ncdf(nc,varid=0,"ADname")$value
 
-    close.ncdf(nc)
-
     colnames(efv) = ef
     rownames(efv) = as
     efv = data.frame(efv)

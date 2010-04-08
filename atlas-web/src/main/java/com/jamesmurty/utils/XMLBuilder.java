@@ -13,7 +13,7 @@ import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.StringWriter;
 
 /**
  * XML Builder is a utility that creates simple XML documents using relatively
@@ -318,24 +318,23 @@ public class XMLBuilder {
      *
      * @param indent indent or not
      * @param indentAmount how much
-     * @param where appendable to write to 
      * @throws IOException if can't write
+     *
+     * @return
+     * the XML document as a string
+     *
      */
-    public void write(final Appendable where, boolean indent, int indentAmount)
+    public String asString(boolean indent, int indentAmount)
         throws IOException
     {
+        StringWriter writer = new StringWriter();
         OutputFormat of = new OutputFormat("XML","utf-8",true);
         of.setIndent(indentAmount);
         of.setIndenting(indent);
-        XMLSerializer serializer = new XMLSerializer(new Writer() {
-            public void write(char[] cbuf, int off, int len) throws IOException {
-                where.append(java.nio.CharBuffer.wrap(cbuf, off, len));
-            }
-            public void flush() throws IOException { }
-            public void close() throws IOException { }
-        }, of);
+        XMLSerializer serializer = new XMLSerializer(writer, of);
         serializer.asDOMSerializer();
         serializer.serialize(getDocument());
+        return writer.toString();
     }
 
 }
