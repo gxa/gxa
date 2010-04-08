@@ -75,7 +75,7 @@ public class SimilarGeneListTest extends TestCase {
     public void testComputeSimilarityTask() {
         // do a similarity over E-AFMX-5 for an arbitrary design element/array design
         // TODO: fix similarity result test!
-        final SimilarityResultSet simRS = new SimilarityResultSet("226010852", "153094131", "153069949", "");
+        final SimilarityResultSet simRS = new SimilarityResultSet("226010852", "153094131", "153069949", "/ebi/ArrayExpress-files/NetCDFs.ATLAS");
         final String callSim = "sim.nc(" + simRS.getTargetDesignElementId() + ",'" + simRS.getSourceNetCDF() + "')";
 
         RDataFrame sim = null;
