@@ -38,6 +38,7 @@
          1 IsSampleProperty, 
          0 IsAssayProperty, 
          0 IsFactorValue,
+         pv.PropertyValueID,
          e.ExperimentID 
  FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
  JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
@@ -60,6 +61,7 @@ SELECT distinct e.accession,
          0 IsSampleProperty, 
          1 IsAssayProperty, 
          1 IsFactorValue,
+         pv.PropertyValueID,
          e.ExperimentID 
   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 

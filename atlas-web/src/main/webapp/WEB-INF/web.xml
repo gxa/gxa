@@ -383,18 +383,7 @@
     <servlet-mapping>
         <servlet-name>admin</servlet-name>
         <url-pattern>*.web</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <url-pattern>/anatomogram/*</url-pattern>
-    </servlet-mapping>
-
+    </servlet-mapping>    
 
     <!-- end of servlets -->
 

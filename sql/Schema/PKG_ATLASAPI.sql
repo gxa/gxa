@@ -48,10 +48,13 @@ TYPE CurGenePropertyValue     IS REF CURSOR RETURN vwGenePropertyValue%ROWTYPE;
 TYPE ExpressionValueAssayRec IS RECORD(AssayID int);
 TYPE ExpressionValueDERec IS RECORD(DesignElementID int, GeneID int);
 TYPE ExpressionValueRec IS RECORD(AssayID int, DesignElementID int, value float);
+TYPE AnnotationRec IS RECORD(OntologyTerm varchar2(255), Caption varchar2(255), ExperimentsUp int, ExperimentsDown int);
 
 TYPE CurExpressionValueAssay  IS REF CURSOR RETURN ExpressionValueAssayRec;
 TYPE CurExpressionValueDE     IS REF CURSOR RETURN ExpressionValueDERec; 
 TYPE CurExpressionValues      IS REF CURSOR RETURN ExpressionValueRec;      
+
+TYPE CurAnnotations           IS REF CURSOR RETURN AnnotationRec; 
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -143,6 +146,11 @@ PROCEDURE A2_EXPRESSIONVALUEGET(
     ,assays           OUT AtlasAPI.CurExpressionValueAssay
     ,designElements   OUT AtlasAPI.CurExpressionValueDE
     ,expressionValues OUT AtlasAPI.CurExpressionValues
+);
+
+PROCEDURE A2_ANATOMOGRAMMGET(
+    geneIdentifier IN varchar2
+   ,annotations   OUT AtlasAPI.CurAnnotations 
 );
   
 END AtlasAPI;
@@ -725,7 +733,35 @@ begin
   order by de.Accession, a.Accession;
   
 end;
+
+/*******************************************************************************/
+/*******************************************************************************/
+PROCEDURE A2_ANATOMOGRAMMGET(
+    geneIdentifier IN varchar2
+   ,annotations   OUT AtlasAPI.CurAnnotations 
+)
+AS
+BEGIN
+  open annotations for 
+  WITH M AS(
+  select PropertyValueID, OntologyTerm from a2_ontologymapping where ontologyterm in ('EFO_0000800'
+  ,'EFO_0000302','EFO_0000792','EFO_0000800','EFO_0000943','EFO_0000110','EFO_0000265'
+  ,'EFO_0000815','EFO_0000803','EFO_0000793','EFO_0000827','EFO_0000889','EFO_0000934'
+  ,'EFO_0000935','EFO_0000968','EFO_0001385','EFO_0001412','EFO_0001413','EFO_0001937')
+  )
+  select OntologyTerm  
+        ,name as Caption
+        ,count(case when TSTAT > 0 then 1 else NULL end) as ExperimentsUp
+        ,count(case when TSTAT < 0 then 1 else NULL end) as ExperimentsDown
+  from a2_expressionanalytics a
+  join a2_designelement de on de.designelementid = a.designelementid
+  join a2_gene g on g.GeneID = de.GeneID
+  join a2_PropertyValue pv on pv.propertyvalueid = a.propertyvalueid
+  join m on m.PropertyValueID = pv.propertyvalueid 
+  where g.Identifier = geneIdentifier
+  group by name, ontologyterm;
   
+END;  
 
 END AtlasAPI;
 /

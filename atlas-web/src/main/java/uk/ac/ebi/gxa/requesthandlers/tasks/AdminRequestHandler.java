@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.addMap;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
@@ -54,6 +55,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private AtlasProperties atlasProperties;
     private static final String WEB_REQ_MESSAGE = "By web request from ";
     private static final String SESSION_ADMINUSER = "adminUserName";
+    private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+    private static SimpleDateFormat ELAPSED_FORMAT = new SimpleDateFormat("HH:mm:ss");
+
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -81,7 +86,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Map makeTaskObject(Task task, String state, String progress) {
+    private Map<String,String> makeTaskObject(Task task, String state) {
         return makeMap(
                 "state", state,
                 "id", task.getTaskId(),
@@ -89,23 +94,53 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "stage", task.getCurrentStage().toString(),
                 "type", task.getTaskSpec().getType(),
                 "user", task.getUser().getUserName(),
-                "accession", task.getTaskSpec().getAccession(),
-                "progress", progress);
+                "accession", task.getTaskSpec().getAccession());
     }
 
-    private Object processTaskList() {
+    private Object processTaskList(String pageStr, String numStr) {
+        int page = Math.max(0, Integer.valueOf(pageStr));
+        int num = Math.max(1, Integer.valueOf(numStr));
+
+        List<WorkingTask> working = taskManager.getWorkingTasks();
+        List<Task> pending = taskManager.getQueuedTasks();
+
+        int wsize = working.size();
+        int psize = pending.size();
+
+        int from = page * num;
+        if(wsize + psize > 0 && from >= wsize + psize) {
+            page = (wsize + psize - 1) / num;
+            from = page * num;
+        }
+
+        working = working.subList(
+                Math.min(from, wsize),
+                Math.min(from + num, wsize));
+        pending = pending.subList(
+                Math.min(Math.max(0, from - wsize), psize),
+                Math.min(Math.max(0, from + num - wsize), psize));
+
         return makeMap(
                 "isRunning", taskManager.isRunning(),
+                "start", from,
+                "page", page,
+                "numTotal", wsize + psize,
+                "numWorking", wsize,
+                "numPending", psize,
                 "tasks", new JoinIterator<WorkingTask,Task,Map>(
-                        taskManager.getWorkingTasks().iterator(),
-                        taskManager.getQueuedTasks().iterator()
+                        working.iterator(),
+                        pending.iterator()
                 ) {
                     public Map map1(WorkingTask task) {
-                        return makeTaskObject(task, "WORKING", task.getCurrentProgress());
+                        long elapsedTime = task.getElapsedTime() / 1000;
+                        return addMap(makeTaskObject(task, "WORKING"),
+                                "progress", task.getCurrentProgress(),
+                                "elapsed", String.format("%d:%02d:%02d",
+                                        elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60));
                     }
 
                     public Map map2(Task task) {
-                        return makeTaskObject(task, "PENDING", null);
+                        return makeTaskObject(task, "PENDING");
                     }
                 });
     }
@@ -222,9 +257,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
-    private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-
     private static String formatTimeStamp(Timestamp ts) {
         return OUT_DATE_FORMAT.format(ts);
     }
@@ -325,7 +357,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processRestart();
 
         else if("tasklist".equals(op))
-            return processTaskList();
+            return processTaskList(request.getParameter("p"), request.getParameter("n"));
 
         else if("enqueue".equals(op))
             return processEnqueue(

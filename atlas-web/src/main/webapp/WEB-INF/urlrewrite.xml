@@ -74,15 +74,6 @@
 
 
     <rule>
-        <note>
-            gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
-            rewritten with anatomogram?gid=ENSG00000171227
-        </note>
-        <from>/anatomogram/([a-zA-Z0-9]+).png</from>
-        <to>/anatomogram?gid=$1</to>
-    </rule>
-
-    <rule>
         <note>Experiment Index</note>
         <from>/experiment/index.htm</from>
         <to>/ExperimentNavigator.jsp</to>

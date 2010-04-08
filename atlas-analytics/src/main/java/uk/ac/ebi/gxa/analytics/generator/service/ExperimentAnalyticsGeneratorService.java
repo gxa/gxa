@@ -238,7 +238,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             });
 
-            if (netCDFs.length == 0) {
+            if (netCDFs == null || netCDFs.length == 0) {
                 success = false;
                 throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
@@ -265,18 +265,18 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                     getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
                                 }
 
-                                String rc = ((RChar) r).getValue()[0];
-                                if(rc.indexOf("Error") >= 0) {
-                                    throw new ComputeException(rc);
+                                for(String rc :values) {
+                                    if(rc.contains("Error"))
+                                        throw new ComputeException(rc);
                                 }
-                            }
-
-                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                            } else
+                                throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
                         } catch (RemoteException e) {
                             throw new ComputeException("Problem communicating with R service", e);
                         } catch (IOException e) {
                             throw new ComputeException("Unable to load R source from R/analytics.R", e);
                         }
+                        return null;
                     }
                 };
 
