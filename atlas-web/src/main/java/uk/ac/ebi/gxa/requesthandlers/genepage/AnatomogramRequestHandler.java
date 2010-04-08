@@ -77,10 +77,12 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         if (geneResult.isFound()) {
             AtlasGene gene = geneResult.getGene();
 
-            for (String acc : Arrays.asList("EFO_0000302","EFO_0000792","EFO_0000800","EFO_0000943","EFO_0000110"
-                            ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
+            /*Arrays.asList("EFO_0000302","EFO_0000792","EFO_0000800","EFO_0000943","EFO_0000110"
+                ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
                 ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
-                ,"EFO_0001413","EFO_0001937")) {
+                ,"EFO_0001413","EFO_0001937")*/
+
+            for (String acc : annotator.getKnownEfo()) {
                 
                 EfoTerm term = getEfo().getTermById(acc);
 
