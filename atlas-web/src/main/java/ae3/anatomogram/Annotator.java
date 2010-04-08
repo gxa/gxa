@@ -46,6 +46,7 @@ import java.util.*;
 
 public class Annotator {
     public static final int MAX_ANNOTATIONS = 9;
+    public static final String EFO_GROUP_ID ="LAYER_EFO";
     public static Document templatedocument = null;
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -100,6 +101,36 @@ public class Annotator {
 
     enum HeatmapStyle {
         UpDn, Up, Dn, Blank
+    }
+
+    public List<String> getKnownEfo(){
+        List<String> result = new ArrayList<String>();
+
+        Element layer = templatedocument.getElementById(EFO_GROUP_ID);
+
+        NodeList nl =  layer.getChildNodes();
+
+        for(int i=0; i!=nl.getLength(); i++){
+
+            Node n = nl.item(i);
+
+            if(null==n)
+                continue;
+
+            org.w3c.dom.NamedNodeMap nnm = n.getAttributes();
+
+            if(null==nnm)
+                continue;
+            
+            Node n2 = nnm.getNamedItem("id");
+
+            if(null==n2)
+                continue;
+
+            result.add(n2.getNodeValue());
+        }
+
+        return result;
     }
 
     public void process(List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream) throws Exception {

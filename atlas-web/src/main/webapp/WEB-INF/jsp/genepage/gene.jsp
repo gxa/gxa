@@ -468,6 +468,8 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                             </tr>
                         </table>
 
+
+                        <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
                         <BR/><BR/>
                         <table align="left">
                             <tr>
@@ -480,6 +482,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                 </td>
                             </tr>
                         </table>
+                        </c:if>
                     </td>
                     <td valign="top" align="left">
                         <table align="left">
