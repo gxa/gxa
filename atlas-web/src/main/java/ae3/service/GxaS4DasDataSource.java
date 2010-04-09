@@ -184,9 +184,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         }
     }
 
-    public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
-        try {
-
+    public String getHeatmapString(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
             String notes = "";
             if (row.getCount_up() > 0) {
                 notes += "up in " + row.getCount_up();
@@ -207,57 +205,40 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
             featureLabel = ExperimentFactor + ":" + FactorValue;
 
-            notes = "[" + row.getCount_up() + " up/" + row.getCount_dn() + " dn] - ";
-
-            GeneExpressionAnalyticsTable tbl = atlasGene.getExpressionAnalyticsTable();
-            for (ExpressionAnalysis e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
-                // lookup search service from context
-                AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(e.getExperimentID());
-
-                if (null == atlasExperiment) {
-                    continue;
-                }
-
-                try {
-                    notes += (new AtlasGeneExperimentDescription(atlasProperties, atlasGene, atlasExperiment, e.isUp())).toShortString();
-                }
-                catch (Exception Ex) {
-                    throw new DataSourceException(Ex.getMessage(), Ex);
-                }
-
-                notes += "; ";
-            }
+            notes = "[" + row.getCount_up() + " up/" + row.getCount_dn() + " dn]";
 
             //replace last "; "  with "."
             if (notes.endsWith("; ")) {
                 notes = notes.substring(0, notes.lastIndexOf("; ")) + ".";
             }
 
+            return FactorValue + ' ' + notes;
+   }
 
-            /*
-            if(null!=exps)
-            {
-            notes+="<br/><table>";
-            for(AtlasExperiment e : exps)
-            {
-                e.getDwExpAccession();
-                e.getDwExpId();
-                //e.toString();
+   public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, String factor, int count, List<ListResultRow> all_rows) throws DataSourceException {
 
-                notes+="<tr><td><a href=\"http://www.ebi.ac.uk/gxa/experiment/" + e.getDwExpAccession() + "?gid="+ atlasGene.getGeneIdentifier() +" \">"+ e.getDwExpAccession() +"</a></td>";
-                notes+="<td>"+ e.getDwExpDescription() +"</td></tr>";
+       try{
+        List<ListResultRow> my_rows = new ArrayList<ListResultRow>();
+
+        for(ListResultRow r : all_rows){
+            if(r.getEf().equals(factor)){
+                my_rows.add(r);
             }
-                notes+="</table>";
-                //notes = "This gene has expression in 62 organs : adipose tissue, Anatomical System, aorta&lt;a href=\"http://bgee.unil.ch/bgee/bgee?page=gene&amp;amp;action=expression&amp;amp;gene_id=ENSG00000139618#sectionExpressionAnatomicalOntologyBrowsing\">... (total = 62)&lt;/a> (in 53 homologous structures).&lt;br/>This gene has expression in 8 developmental stages : CarnegieStage22, post-embryonic development, fetus&lt;a href=\"http://bgee.unil.ch/bgee/bgee?page=gene&amp;amp;action=expression&amp;amp;gene_id=ENSG00000139618#sectionExpressionDevelopmentalOntologyBrowsing\">... (total = 8).&lt;/a>";
-           }
-           */
+        }
 
-            return new DasFeature(
-                    atlasGene.getGeneIdentifier() + featureLabel,
-                    FactorValue,
-                    "efv-summary",
-                    "efv-summary",
-                    getSortableCaption(atlasProperties.getCuratedEf(ExperimentFactor)),
+        String notes = "";
+
+        for(ListResultRow r : my_rows){
+            notes += getHeatmapString(atlasGene,r);
+            notes += ",";
+        }
+
+        return new DasFeature(
+                    count + " " + factor,
+                    count + " " + factor,
+                    "summary",
+                    "summary",
+                    getSortableCaption(atlasProperties.getCuratedEf(factor)),
                     "ExperimentalFactor",
                     "Experimental Factor",
                     0,
@@ -267,16 +248,18 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
-                            new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier() + "?efv=" +
-                                    HtmlHelper.escapeURL(row.getRow_id())),
-                            "view " + atlasGene.getGeneName() + " expression in " + FactorValue),
+                            new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier()),
+                            "view " + atlasGene.getGeneName() + " expression in " + factor),
                     null,
                     null
             );
-        }
-        catch (MalformedURLException e) {
+       }
+       catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
-        }
+       }
+       catch (Exception e) {
+            throw new DataSourceException("Error creating DasFeature.", e);
+       }
     }
 
     public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
@@ -348,8 +331,17 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
-        for (ListResultRow i : description.getEfs()) {
-            feat.add(getHeatmapDasFeature(atlasGene, i));
+        List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
+
+        Map<String,Integer> factors = new HashMap<String,Integer>();
+        
+        for(ListResultRow r :heatmaps){
+            int count = factors.containsKey(r.getEf()) ? factors.get(r.getEf()) : 0;
+            factors.put(r.getEf(), count + 1);
+        }
+
+        for (String s : factors.keySet()) {
+            feat.add(getHeatmapDasFeature(atlasGene, s, factors.get(s), heatmaps));
         }
 
         List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
