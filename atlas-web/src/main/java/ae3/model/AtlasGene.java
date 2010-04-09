@@ -388,4 +388,7 @@ public class AtlasGene {
        return new AtlasGeneDescription(atlasProperties, this).toString();
     }
 
+    public AtlasGeneDescription getGeneDescriptionObject(){
+        return new AtlasGeneDescription(atlasProperties, this);
+    }
 }

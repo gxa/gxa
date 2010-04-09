@@ -442,6 +442,10 @@
         <property name="dao" ref="atlasDAO" />
     </bean>
 
+    <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
+        <property name="dao" ref="atlasDAO" />
+    </bean>
+
     <!-- Configuration for JNDI resource lookup -->
     <jee:jndi-lookup id="atlasDataSource"
                      jndi-name="/jdbc/ATLAS2"

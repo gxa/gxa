@@ -38,5 +38,11 @@ public class URLUtil {
        return request.getRequestURL().toString();
 //       return "http://" + AtlasProperties.getProperty("atlas.host") + request.getContextPath() + "/das/" + AtlasProperties.getProperty("atlas.dasdsn");
     }
+
+    public static String getDasS4Url(HttpServletRequest request)
+    {
+       return request.getRequestURL().toString();
+//       return "http://" + AtlasProperties.getProperty("atlas.host") + request.getContextPath() + "/das/" + AtlasProperties.getProperty("atlas.dasdsn");
+    }
 }
 

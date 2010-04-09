@@ -145,6 +145,21 @@
             through the DataSource interface, so the plugin author can
             add arbitrary additional configuration to their data source.-->
         </datasource>
+
+        <datasource id="gxas4"
+                    name="gxas4"
+                    version="0.1"
+                    mapmaster="${atlas.baseurl}/das/gxas4"
+                    description="Gene eXxpression Atlas Annotation Data Source S4"
+                    description-href="http://code.google.com/p/mydas/">
+            <class>ae3.service.GxaS4DasDataSource</class>
+            <stylesheet>TEST.style</stylesheet>
+            <dna-command-enabled>true</dna-command-enabled>
+            <features-strictly-enclosed>true</features-strictly-enclosed>
+            <use-feature-id-for-feature-label>true</use-feature-id-for-feature-label>
+            <include-types-with-zero-count>true</include-types-with-zero-count>
+        </datasource>
+
     </datasources>
 </mydasserver>
 
