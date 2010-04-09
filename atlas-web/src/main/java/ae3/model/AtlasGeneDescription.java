@@ -44,7 +44,13 @@ public class AtlasGeneDescription {
     final public static int MAX_EF = 5;
 
     private String text;
+    private String experimentCountText;
     private final AtlasProperties atlasProperties;
+    private List<ListResultRow> efs;
+
+    public List<ListResultRow> getEfs(){
+        return efs;
+    }
 
     class Ef {
         class Efv{
@@ -177,7 +183,7 @@ public class AtlasGeneDescription {
 
         this.atlasProperties = atlasProp;
 
-        List<ListResultRow> efs = gene.getHeatMapRows(atlasProp.getGeneHeatmapIgnoredEfs());
+        efs = gene.getHeatMapRows(atlasProp.getGeneHeatmapIgnoredEfs());
 
         Collections.sort(efs, new Comparator<ListResultRow>() {
             public int compare(ListResultRow o1, ListResultRow o2) {
@@ -218,8 +224,10 @@ public class AtlasGeneDescription {
         //sometimes ", ...;"  appears at the end of the description
         text = StringUtil.replaceLast(text,"...;","...");
 
+        experimentCountText = gene.getGeneName() + " is differentially expressed in " + writer.getTotalExperiments() + " experiments [" + writer.getTotalUp()+" up/" +writer.getTotalDn() + " dn]";
+
         //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
-        text = gene.getGeneName() + " is differentially expressed in " + writer.getTotalExperiments() + " experiments [" + writer.getTotalUp()+" up/" +writer.getTotalDn() + " dn]: " + text;
+        text = experimentCountText + ": " + text;
         //text += "<a href=\"http://www.ebi.ac.uk/gxa\">.</a>";
     }
 
@@ -231,5 +239,9 @@ public class AtlasGeneDescription {
     @Override
     public String toString(){
         return text;
+    }
+
+    public String toStringExperimentCount(){
+        return experimentCountText;
     }
 }
