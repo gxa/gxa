@@ -4,7 +4,7 @@
 source migration-routines.sh
 
 if [ $# -ne 3 ]; then
-        echo "Usage: $0 AEW_CONNECTION ATLAS_CONNNECTION ATLAS_INDEX_TABLESPACE"
+        echo "Usage: $0 AEW_CONNECTION ATLAS_CONNECTION ATLAS_INDEX_TABLESPACE"
         exit;
 fi
 

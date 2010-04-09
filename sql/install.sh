@@ -5,7 +5,7 @@ source install-routines.sh
 
 ################################## start ##############################
 
-if [ $# -le 1 ]; then
+if [ $# -eq 0 ]; then
         echo "Usage: $0 ATLAS_CONNECTION [ATLAS_INDEX_TABLESPACE]"
         exit;
 fi
