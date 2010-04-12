@@ -28,7 +28,6 @@ import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.net.URL;
 
 import org.slf4j.Logger;
@@ -48,13 +47,12 @@ public class TaskManager implements InitializingBean {
 
     private PersistentStorage storage;
     private volatile boolean running = true;
-    private AtomicInteger idGenerator = new AtomicInteger(0);
     private int maxWorkingTasks = 16;
 
     private static List<WorkingTaskFactory> taskFactories = new ArrayList<WorkingTaskFactory>();
 
     static {
-        taskFactories.add(ExperimentTask.FACTORY);
+        taskFactories.add(AnalyticsTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
         taskFactories.add(UnloadExperimentTask.FACTORY);
@@ -64,11 +62,11 @@ public class TaskManager implements InitializingBean {
         private final long taskId;
         private final TaskSpec taskSpec;
         private TaskRunMode runMode;
-        private final TaskStage stage;
+        private final TaskStatus stage;
         private final TaskUser user;
         private final boolean runningAutoDependencies;
 
-        QueuedTask(int taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskStage stage,
+        QueuedTask(long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskStatus stage,
                    TaskUser user, boolean runningAutoDependencies) {
             this.taskId = taskId;
             this.taskSpec = taskSpec;
@@ -87,7 +85,7 @@ public class TaskManager implements InitializingBean {
             return taskSpec;
         }
 
-        public TaskStage getCurrentStage() {
+        public TaskStatus getCurrentStage() {
             return stage;
         }
 
@@ -160,8 +158,8 @@ public class TaskManager implements InitializingBean {
         start();
     }
 
-    private int getNextId() {
-        return idGenerator.incrementAndGet();
+    private long getNextId() {
+        return storage.getNextTaskId();
     }
 
     private void insertTaskToQueue(QueuedTask task) {
@@ -187,22 +185,32 @@ public class TaskManager implements InitializingBean {
         return null;
     }
 
-    public long enqueueTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
+    public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
+        return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message);
+    }
+
+    long scheduleTask(Task parentTask, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
         synchronized(this) {
             log.info("Queuing task " + taskSpec + " in mode " + runMode + " as user " + user);
-            storage.logTaskOperation(taskSpec, runMode, user, TaskOperation.ENQUEUE, message);
 
             QueuedTask alreadyThere = getTaskInQueue(taskSpec);
             if(alreadyThere != null) {
                 log.info("Task is already queued, do not run it twice");
                 if(alreadyThere.getRunMode() == TaskRunMode.CONTINUE && runMode == TaskRunMode.RESTART)
                     alreadyThere.setRunMode(runMode); // adjust run mode to more deep
-                return alreadyThere.getTaskId();
+
+                long alreadyThereId = alreadyThere.getTaskId();
+                if(parentTask != null)
+                    storage.joinTagCloud(parentTask, alreadyThere);
+                return alreadyThereId;
             }
 
             // okay, we should run it propbably
-            int taskId = getNextId();
+            long taskId = getNextId();
             QueuedTask proposedTask = new QueuedTask(taskId, taskSpec, runMode, getTaskStage(taskSpec), user, autoAddDependent);
+            if(parentTask != null)
+                storage.joinTagCloud(parentTask, proposedTask);
+            storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message);
 
             insertTaskToQueue(proposedTask);
 
@@ -248,11 +256,11 @@ public class TaskManager implements InitializingBean {
             log.info("Cancelling all tasks");
 
             for(WorkingTask workingTask : workingTasks) {
-                storage.logTaskOperation(workingTask.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
+                storage.logTaskEvent(workingTask, TaskEvent.CANCELLED, message);
                 workingTask.stop();
             }
             for(QueuedTask queuedTask : queuedTasks) {
-                storage.logTaskOperation(queuedTask.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
+                storage.logTaskEvent(queuedTask, TaskEvent.CANCELLED, message);
             }
             queuedTasks.clear();
         }
@@ -267,7 +275,7 @@ public class TaskManager implements InitializingBean {
                 return;
             }
 
-            storage.logTaskOperation(task.getTaskSpec(), null, user, TaskOperation.CANCEL, message);
+            storage.logTaskEvent(task, TaskEvent.CANCELLED, message);
             for(WorkingTask workingTask : workingTasks)
                 if(workingTask == task) { // identity check is intentional
                     log.info("It's working now, requesting to stop");
@@ -331,28 +339,32 @@ public class TaskManager implements InitializingBean {
 
     void notifyTaskFinished(WorkingTask task) {
         synchronized (this) {
-            log.info("Task " + task.getTaskSpec() + " finished at stage " + task.getCurrentStage());
+            log.info("Task " + task.getTaskSpec() + " finished");
             workingTasks.remove(task);
         }
         if(running)
             runNextTask();
     }
 
-    void updateTaskStage(TaskSpec taskSpec, TaskStage stage) {
-        storage.updateTaskStage(taskSpec, stage);
+    void updateTaskStage(TaskSpec taskSpec, TaskStatus stage) {
+        storage.updateTaskStatus(taskSpec, stage);
     }
 
-    public TaskStage getTaskStage(TaskSpec taskSpec) {
-        return storage.getTaskStage(taskSpec);
+    public TaskStatus getTaskStage(TaskSpec taskSpec) {
+        return storage.getTaskStatus(taskSpec);
     }
 
-    void writeTaskLog(TaskSpec taskSpec, TaskStage stage, TaskStageEvent event, String message) {
-        String logmsg = "Task " + taskSpec + " " + event + " at stage " + stage + " " + message;
-        if(event == TaskStageEvent.FAILED)
+    void writeTaskLog(Task task, TaskEvent event, String message) {
+        String logmsg = "Task " + task.getTaskSpec() + " " + event + " " + message;
+        if(event == TaskEvent.FAILED)
             log.error(logmsg);
         else
             log.info(logmsg);
-        storage.logTaskStageEvent(taskSpec, stage, event, message);
+        
+        storage.logTaskEvent(task, event, message);
     }
 
+    void addTaskTag(Task task, TaskTagType type, String tag) {
+        storage.addTag(task, type, tag);
+    }
 }

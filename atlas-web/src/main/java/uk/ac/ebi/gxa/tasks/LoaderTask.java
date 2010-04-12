@@ -39,7 +39,6 @@ public class LoaderTask extends AbstractWorkingTask {
 
     public static final String TYPE_EXPERIMENT = "loadexperiment";
     public static final String TYPE_ARRAYDESIGN = "loadarraydesign";    
-    public static final TaskStage STAGE = TaskStage.valueOf("LOAD"); // we have only one non-done stage here
 
     private static class TaskInternalError extends Exception { }
 
@@ -48,14 +47,15 @@ public class LoaderTask extends AbstractWorkingTask {
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(getRunMode() == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
+                if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(getCurrentStatus())) {
+                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.SKIPPED, "");
                     taskMan.notifyTaskFinished(LoaderTask.this);
                     return;
                 }
 
                 stop = false;
-                taskMan.updateTaskStage(getTaskSpec(), currentStage = STAGE);
-                taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
+                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.STARTED, "");
                 final AtomicReference<AtlasLoaderEvent> result = new AtomicReference<AtlasLoaderEvent>(null);
 
                 try {
@@ -99,13 +99,19 @@ public class LoaderTask extends AbstractWorkingTask {
                     }
 
                     if(result.get().getStatus() == AtlasLoaderEvent.Status.SUCCESS) {
+                        taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FINISHED, "");
+                        taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
+
                         for(String accession : result.get().getAccessions()) {
                             if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
-                                TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, accession);
-                                taskMan.updateTaskStage(experimentTask, TaskStage.valueOf(ExperimentTask.Stage.ANALYTICS));
-                                
+                                taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
+
+                                TaskSpec experimentTask = new TaskSpec(AnalyticsTask.TYPE, accession);
+                                taskMan.updateTaskStage(experimentTask, TaskStatus.INCOMPLETE);
+
                                 if(!stop && isRunningAutoDependencies()) {
-                                    taskMan.enqueueTask(
+                                    taskMan.scheduleTask(
+                                            LoaderTask.this,
                                             experimentTask,
                                             TaskRunMode.RESTART,
                                             getUser(),
@@ -113,30 +119,28 @@ public class LoaderTask extends AbstractWorkingTask {
                                             "Automatically added by experiment " + getTaskSpec().getAccession() + " loading task");
                                 }
                             } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType())) {
+                                taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
+
                                 TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
-                                taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
+                                taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
                                 if(!stop && isRunningAutoDependencies()) {
-                                    taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                                    taskMan.scheduleTask(LoaderTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                             "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                                 }
                             } else
                                 throw new TaskInternalError();
                         }
-
-                        taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FINISHED, "");
-                        taskMan.updateTaskStage(getTaskSpec(), TaskStage.DONE);
-                        currentStage = TaskStage.DONE;
                     } else {
                         for(Throwable e : result.get().getErrors()) {
                             log.error("Task failed because of:", e);
                         }
-                        taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                        taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                     }
 
                 } catch(MalformedURLException e) {
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
+                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
                 } catch(TaskInternalError e) {
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, "Impossible happened");
+                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Impossible happened");
                 }
 
                 taskMan.notifyTaskFinished(LoaderTask.this); // it's waiting for this
@@ -152,6 +156,7 @@ public class LoaderTask extends AbstractWorkingTask {
 
     private LoaderTask(final TaskManager queue, final Task prototype) {
         super(queue, prototype);
+        taskMan.addTaskTag(LoaderTask.this, TaskTagType.URL, getTaskSpec().getAccession());
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {

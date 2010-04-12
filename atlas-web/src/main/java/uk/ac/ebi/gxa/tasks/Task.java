@@ -30,8 +30,6 @@ public interface Task {
         
     TaskSpec getTaskSpec();
 
-    TaskStage getCurrentStage();
-
     TaskRunMode getRunMode();
 
     TaskUser getUser();

@@ -34,6 +34,15 @@ import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +50,7 @@ import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Task manager AJAX servlet
@@ -57,7 +67,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static final String SESSION_ADMINUSER = "adminUserName";
     private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-    private static SimpleDateFormat ELAPSED_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
 
     public void setTaskManager(TaskManager taskManager) {
@@ -91,7 +100,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "state", state,
                 "id", task.getTaskId(),
                 "runMode", task.getRunMode(),
-                "stage", task.getCurrentStage().toString(),
                 "type", task.getTaskSpec().getType(),
                 "user", task.getUser().getUserName(),
                 "accession", task.getTaskSpec().getAccession());
@@ -145,13 +153,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processEnqueue(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId, TaskUser user) {
+    private Object processSchedule(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId, TaskUser user) {
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
         for(String accession : accessions) {
-            long id = taskManager.enqueueTask(new TaskSpec(taskType, accession),
+            long id = taskManager.scheduleTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
                     user,
                     toBoolean(autoDepend),
@@ -179,20 +187,20 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processGetStage(String taskType, String accession) {
-        TaskStage stage = taskManager.getTaskStage(new TaskSpec(taskType, accession));
+        TaskStatus stage = taskManager.getTaskStage(new TaskSpec(taskType, accession));
         return makeMap("stage", stage.toString());
     }
 
-    private Object processEnqueueSearchExperiments(String type,
+    private Object processScheduleSearchExperiments(String type,
                                                    String searchText, String fromDate, String toDate, String pendingOnlyStr,
                                                    String runMode, String autoDepend, String remoteId, TaskUser user) {
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
-        for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
             Experiment experiment = i.next().getFirst();
-            long id = taskManager.enqueueTask(new TaskSpec(type, experiment.getAccession()),
+            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     toBoolean(autoDepend), WEB_REQ_MESSAGE + remoteId);
@@ -206,12 +214,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr) {
         List<Map> results = new ArrayList<Map>();
         int numCollapsed = 0;
-        for(Iterator<Pair<Experiment, TaskStage>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
-            Pair<Experiment, TaskStage> e = i.next();
+        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+            Pair<Experiment, TaskStatus> e = i.next();
             if(results.size() < 20)
                 results.add(makeMap(
                         "accession", e.getFirst().getAccession(),
-                        "stage", e.getSecond().toString(),
+                        "description", e.getFirst().getDescription(),
+                        "analytics", e.getSecond().toString(),
                         "loadDate", e.getFirst().getLoadDate() != null ? IN_DATE_FORMAT.format(e.getFirst().getLoadDate()) : "unknown"));
             else
                 ++numCollapsed;
@@ -224,7 +233,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 );
     }
 
-    private Iterator<Pair<Experiment,TaskStage>> getSearchExperiments(String searchTextStr,
+    private Iterator<Pair<Experiment, TaskStatus>> getSearchExperiments(String searchTextStr,
                                                                   String fromDateStr, String toDateStr,
                                                                   String pendingOnlyStr) {
         final String searchText = searchTextStr.toLowerCase();
@@ -235,16 +244,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         List<Experiment> experiments = dao.getExperimentByLoadDate(fromDate, toDate);
 
-        return new FilterIterator<Experiment, Pair<Experiment, TaskStage>>(experiments.iterator()) {
+        return new FilterIterator<Experiment, Pair<Experiment, TaskStatus>>(experiments.iterator()) {
             @Override
-            public Pair<Experiment, TaskStage> map(Experiment experiment) {
-                final TaskStage stage = taskManager.getTaskStage(new TaskSpec(ExperimentTask.TYPE, experiment.getAccession()));
+            public Pair<Experiment, TaskStatus> map(Experiment experiment) {
+                final TaskStatus analyticsState = taskManager.getTaskStage(new TaskSpec(AnalyticsTask.TYPE, experiment.getAccession()));
                 boolean searchYes = "".equals(searchText)
                         || experiment.getAccession().toLowerCase().contains(searchText)
                         || experiment.getDescription().toLowerCase().contains(searchText);
                 boolean pendingYes = !pendingOnly
-                        || !TaskStage.DONE.equals(stage);
-                return searchYes && pendingYes ? new Pair<Experiment, TaskStage>(experiment, stage) : null;
+                        || !TaskStatus.DONE.equals(analyticsState);
+                return searchYes && pendingYes ? new Pair<Experiment, TaskStatus>(experiment, analyticsState) : null;
             }
         };
     }
@@ -261,37 +270,31 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return OUT_DATE_FORMAT.format(ts);
     }
 
-    private Object processOperationLog(String numStr) {
-        int num = Integer.valueOf(numStr);
-        return makeMap("items", new MappingIterator<DbStorage.OperationLogItem, Map>(taskManagerDbStorage.getLastOperationLogItems(num).iterator()) {
-            public Map map(DbStorage.OperationLogItem li) {
-                return makeMap(
-                        "runMode", li.runMode,
-                        "operation", li.operation,
-                        "type", li.taskSpec.getType(),
-                        "accession", li.taskSpec.getAccession(),
-                        "user", li.user.getUserName(),
-                        "message", li.message,
-                        "time", formatTimeStamp(li.timestamp)
-                );
-            }
-        });
+    private class TaskEventLogMapper extends MappingIterator<DbStorage.TaskEventLogItem, Map> {
+        private TaskEventLogMapper(Iterator<DbStorage.TaskEventLogItem> fromiter) {
+            super(fromiter);
+        }
+
+        public Map map(DbStorage.TaskEventLogItem li) {
+            return makeMap(
+                    "type", li.taskSpec.getType(),
+                    "accession", li.taskSpec.getAccession(),
+                    "message", li.message,
+                    "user", li.user.getUserName(),
+                    "runMode", li.runMode,
+                    "event", li.event,
+                    "time", formatTimeStamp(li.timestamp)
+            );
+        }
     }
 
     private Object processTaskEventLog(String numStr) {
         int num = Integer.valueOf(numStr);
-        return makeMap("items", new MappingIterator<DbStorage.TaskEventLogItem, Map>(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()) {
-            public Map map(DbStorage.TaskEventLogItem li) {
-                return makeMap(
-                        "type", li.taskSpec.getType(),
-                        "accession", li.taskSpec.getAccession(),
-                        "message", li.message,
-                        "stage", li.stage.getStage(),
-                        "event", li.event,
-                        "time", formatTimeStamp(li.timestamp)
-                );
-            }
-        });
+        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()));
+    }
+
+    private Object processExperimentTaskEventLog(String accession) {
+        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getExperimentHistory(accession).iterator()));
     }
 
     private Object processPropertyList() {
@@ -325,7 +328,63 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     @SuppressWarnings("unchecked")
     public Object process(HttpServletRequest request) {
 
-//        installTestProcessors();
+//        taskManager.setIndexBuilder(new IndexBuilder() {
+//            public void setIncludeIndexes(List<String> includeIndexes) {
+//            }
+//            public List<String> getIncludeIndexes() {
+//                return null;
+//            }
+//            public void startup() throws IndexBuilderException {
+//            }
+//            public void shutdown() throws IndexBuilderException {
+//            }
+//            public void buildIndex() {
+//            }
+//            public void buildIndex(final IndexBuilderListener listener) {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        for(int i = 0; i < 10; ++i) {
+//                            log.info("Index building " + i);
+//                            listener.buildProgress("Index building " + i);
+//                            try { Thread.sleep(1000); } catch (Exception e) {}
+//                        }
+//                        listener.buildSuccess(new IndexBuilderEvent(1000, TimeUnit.MILLISECONDS));
+//                    }
+//                }.start();
+//            }
+//            public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+//            }
+//            public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+//            }
+//        });
+//
+//        taskManager.setAnalyticsGenerator(new AnalyticsGenerator() {
+//            public void startup() throws AnalyticsGeneratorException {
+//            }
+//            public void shutdown() throws AnalyticsGeneratorException {
+//            }
+//            public void generateAnalytics() {
+//            }
+//            public void generateAnalytics(AnalyticsGeneratorListener listener) {
+//            }
+//            public void generateAnalyticsForExperiment(String experimentAccession) {
+//            }
+//            public void generateAnalyticsForExperiment(String experimentAccession, final AnalyticsGeneratorListener listener) {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        for(int i = 0; i < 4; ++i) {
+//                            log.info("Analytics " + i);
+//                            listener.buildProgress("Analytics " + i);
+//                            try { Thread.sleep(1000); } catch (Exception e) {}
+//                        }
+//                        listener.buildSuccess(new AnalyticsGenerationEvent(1000, TimeUnit.MILLISECONDS));
+//                    }
+//                }.start();
+//            }
+//        });
+//
         String op = request.getParameter("op");
 
         String remoteId = request.getRemoteHost();
@@ -359,8 +418,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         else if("tasklist".equals(op))
             return processTaskList(request.getParameter("p"), request.getParameter("n"));
 
-        else if("enqueue".equals(op))
-            return processEnqueue(
+        else if("schedule".equals(op))
+            return processSchedule(
                     request.getParameter("type"),
                     request.getParameterValues("accession"),
                     request.getParameter("runMode"),
@@ -388,8 +447,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     request.getParameter("toDate"),
                     request.getParameter("pendingOnly"));
 
-        else if("enqueuesearchexp".equals(op))
-            return processEnqueueSearchExperiments(
+        else if("schedulesearchexp".equals(op))
+            return processScheduleSearchExperiments(
                     request.getParameter("type"),
                     request.getParameter("search"),
                     request.getParameter("fromDate"),
@@ -400,11 +459,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     remoteId,
                     authenticatedUser);
 
-        else if("operlog".equals(op))
-            return processOperationLog(request.getParameter("num"));
-
         else if("tasklog".equals(op))
             return processTaskEventLog(request.getParameter("num"));
+
+        else if("tasklogexp".equals(op))
+            return processExperimentTaskEventLog(request.getParameter("accession"));
 
         else if("proplist".equals(op))
             return processPropertyList();

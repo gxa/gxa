@@ -38,18 +38,18 @@ public class IndexTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(IndexTask.class);
     
     public static final String TYPE = "index";
-    public static final TaskStage STAGE = TaskStage.valueOf("INDEX"); // we have only one non-done stage here
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(getRunMode() == TaskRunMode.CONTINUE && TaskStage.DONE.equals(currentStage)) {
+                if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(getCurrentStatus())) {
+                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.SKIPPED, "");
                     taskMan.notifyTaskFinished(IndexTask.this);
                     return;
                 }
 
-                taskMan.updateTaskStage(getTaskSpec(), STAGE);
-                taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
+                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+                taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
                 final AtomicReference<IndexBuilderEvent> result = new AtomicReference<IndexBuilderEvent>(null);
                 taskMan.getIndexBuilder().buildIndex(new IndexBuilderListener() {
                     public void buildSuccess(IndexBuilderEvent event) {
@@ -82,14 +82,13 @@ public class IndexTask extends AbstractWorkingTask {
                 }
 
                 if(result.get().getStatus() == IndexBuilderEvent.Status.SUCCESS) {
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FINISHED, "");
-                    taskMan.updateTaskStage(getTaskSpec(), TaskStage.DONE);
-                    currentStage = TaskStage.DONE;
+                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
+                    taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
                 } else {
                     for(Throwable e : result.get().getErrors()) {
                         log.error("Task failed because of:", e);
                     }
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
                 }
                 taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
             }
@@ -117,7 +116,7 @@ public class IndexTask extends AbstractWorkingTask {
 
         public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
             return Arrays.asList(
-                    ExperimentTask.TYPE,
+                    AnalyticsTask.TYPE,
                     LoaderTask.TYPE_EXPERIMENT,
                     LoaderTask.TYPE_ARRAYDESIGN
             ).contains(by.getType());
