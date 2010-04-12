@@ -38,6 +38,7 @@ import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
 import uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException;
 import uk.ac.ebi.mydas.model.*;
+import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.ServletContext;
 import java.net.MalformedURLException;
@@ -158,7 +159,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            AtlasGeneDescription notes = gene.getGeneDescriptionObject();
+            String notes = String.format("%1$s differential expression in Gene Expression Atlas",gene.getGeneName());
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
@@ -172,7 +173,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     0.0,
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
-                    Collections.singleton(notes.toStringExperimentCount()),
+                    Collections.singleton(notes),
                     Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene/" + gene.getGeneIdentifier()),
                                              "view " + gene.getGeneName() + " expression in all conditions"),
                     null,
@@ -215,7 +216,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             return FactorValue + ' ' + notes;
    }
 
-   public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, String factor, int count, List<ListResultRow> all_rows) throws DataSourceException {
+   public DasFeature getFactorDasFeature(AtlasGene atlasGene, String factor, List<ListResultRow> all_rows) throws DataSourceException {
 
        try{
         List<ListResultRow> my_rows = new ArrayList<ListResultRow>();
@@ -227,15 +228,26 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         }
 
         String notes = "";
+        int iCount = 0;
 
         for(ListResultRow r : my_rows){
-            notes += getHeatmapString(atlasGene,r);
-            notes += ",";
+            ++iCount;
+            if(iCount>=5){
+              continue;
+            }
+            if(notes.length() > 0){
+                notes += ", ";
+            }
+            notes += r.getFv();
+        }
+
+        if( iCount > 5){
+            notes += String.format(", ... (%1$d more)", (iCount-5));
         }
 
         return new DasFeature(
-                    count + " " + factor,
-                    count + " " + factor,
+                    atlasProperties.getCuratedEf(factor),
+                    atlasProperties.getCuratedEf(factor),
                     "summary",
                     "summary",
                     getSortableCaption(atlasProperties.getCuratedEf(factor)),
@@ -249,7 +261,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
                             new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier()),
-                            "view " + atlasGene.getGeneName() + " expression in " + factor),
+                            "view all"),
                     null,
                     null
             );
@@ -261,6 +273,35 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             throw new DataSourceException("Error creating DasFeature.", e);
        }
     }
+
+    public DasFeature getPlainTextDasFeature(String caption, String description) throws DataSourceException {
+
+        try{
+
+         return new DasFeature(
+                     caption,
+                     caption,
+                     "summary",
+                     "summary",
+                     caption,
+                     "ExperimentalFactor",
+                     "Experimental Factor",
+                     0,
+                     0,
+                     0.0,
+                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                     DasPhase.PHASE_NOT_APPLICABLE,
+                     Collections.singleton(description), //notes -- do not show notes
+                     null, //no links
+                     null,
+                     null
+             );
+        }
+        catch (Exception e) {
+             throw new DataSourceException("Error creating DasFeature.", e);
+        }
+     }
+
 
     public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
         try{
@@ -331,17 +372,16 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
+        feat.add(getPlainTextDasFeature("Anatomogram","The anatomogram on the right shows up to nine organism parts where this gene" +
+                " was differentially expressed. The squares indicate the number of independent experiments where this" +
+                "gene was over- (red) or under- (blue) expressed"));
+
+
         List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
 
-        Map<String,Integer> factors = new HashMap<String,Integer>();
-        
-        for(ListResultRow r :heatmaps){
-            int count = factors.containsKey(r.getEf()) ? factors.get(r.getEf()) : 0;
-            factors.put(r.getEf(), count + 1);
-        }
+        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound"}){
 
-        for (String s : factors.keySet()) {
-            feat.add(getHeatmapDasFeature(atlasGene, s, factors.get(s), heatmaps));
+            feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
 
         List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
