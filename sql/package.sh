@@ -36,7 +36,7 @@ svn export svn://bar.ebi.ac.uk/branches/atlas-standalone/sql/Schema Schema
 
 echo "Packing NetCDFs"
 ln -sf $ATLAS_NCDF_PATH ncdf/
-find ncdf/ -name '*.nc' | xargs tar cvzf ncdf.tar.Z
+find ncdf/ -name '*.nc' | xargs tar rvf ncdf.tar
 rm ncdf
 
 popd
