@@ -33,15 +33,14 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(UnloadExperimentTask.class);
 
     public static final String TYPE = "unloadexperiment";
-    public static final TaskStage STAGE = TaskStage.valueOf("UNLOAD"); // we have only one non-done stage here
 
     boolean stop;
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                taskMan.updateTaskStage(getTaskSpec(), currentStage = STAGE);
-                taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.STARTED, "");
+                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+                taskMan.writeTaskLog(UnloadExperimentTask.this, TaskEvent.STARTED, "");
 
                 try {
                     currentProgress = "Unloading...";
@@ -51,21 +50,21 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
                     taskMan.getLoader().unloadExperiment(getTaskSpec().getAccession());
                     log.info("Unloading experiment " + getTaskSpec().getAccession() + " - done");
 
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FINISHED, "");
-                    taskMan.updateTaskStage(getTaskSpec(), currentStage = TaskStage.DONE);
+                    taskMan.writeTaskLog(UnloadExperimentTask.this, TaskEvent.FINISHED, "");
+                    taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                    TaskSpec experimentTask = new TaskSpec(ExperimentTask.TYPE, getTaskSpec().getAccession());
-                    taskMan.updateTaskStage(experimentTask, TaskStage.NONE);
+                    TaskSpec experimentTask = new TaskSpec(AnalyticsTask.TYPE, getTaskSpec().getAccession());
+                    taskMan.updateTaskStage(experimentTask, TaskStatus.NONE);
 
                     TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
-                    taskMan.updateTaskStage(indexTask, IndexTask.STAGE);
+                    taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
                     if(!stop && isRunningAutoDependencies()) {
-                        taskMan.enqueueTask(indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                        taskMan.scheduleTask(UnloadExperimentTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                 "Automatically added by unload of experiment " + getTaskSpec().getAccession());
                     }
                 } catch(AtlasUnloaderException e) {
                     log.error("Unloading experiment " + getTaskSpec().getAccession() + " - failed", e);
-                    taskMan.writeTaskLog(getTaskSpec(), STAGE, TaskStageEvent.FAILED, e.toString());
+                    taskMan.writeTaskLog(UnloadExperimentTask.this, TaskEvent.FAILED, e.toString());
                 }
 
                 taskMan.notifyTaskFinished(UnloadExperimentTask.this); // it's waiting for this
@@ -82,6 +81,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
 
     public UnloadExperimentTask(TaskManager taskMan, Task prototype) {
         super(taskMan, prototype);
+        taskMan.addTaskTag(this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
 
     public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
@@ -94,7 +94,7 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
         }
 
         public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return isForType(by) || (by.getType().equals(ExperimentTask.TYPE) && what.getAccession().equals(by.getAccession()));
+            return isForType(by) || (by.getType().equals(AnalyticsTask.TYPE) && what.getAccession().equals(by.getAccession()));
         }
     };
 

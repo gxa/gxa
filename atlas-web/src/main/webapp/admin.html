@@ -63,101 +63,136 @@
     <li><a href="#tab-load">Load</a></li>
     <li><a href="#tab-que">Queue</a></li>
     <li><a href="#tab-exp">Loaded Experiments</a></li>
-    <li><a href="#tab-olog">Actions Audit</a></li>
     <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
 </ul>
 
 <div id="tab-exp">
-    <div style="width:850px;">
-        <fieldset>
-            <form action="#" id="experimentBrowseForm">
-                <table>
-                    <tr>
-                        <td class="label"><label for="experimentSearch">Experiment:</label></td>
-                        <td>
-                            <input type="text" id="experimentSearch" class="value" style="width:400px;">
-                        </td>
-                        <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
-                        <td><input type="checkbox" id="incompleteOnly" value="1"></td>
-                    </tr>
-                    <tr>
-                        <td class="label"><label for="dateFrom">Load date:</label></td>
-                        <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
-                        <td style="padding-left:20px;">
-                            <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-                        </td>
-                        <td></td>
-                    </tr>
-                </table>
-            </form>
+    <fieldset>
+        <form action="#" id="experimentBrowseForm">
+            <table>
+                <tr>
+                    <td class="label"><label for="experimentSearch">Experiment:</label></td>
+                    <td>
+                        <input type="text" id="experimentSearch" class="value" style="width:400px;">
+                    </td>
+                    <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
+                    <td><input type="checkbox" id="incompleteOnly" value="1"></td>
+                </tr>
+                <tr>
+                    <td class="label"><label for="dateFrom">Load date:</label></td>
+                    <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
+                    <td style="padding-left:20px;">
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </form>
+    </fieldset>
+
+    <div id="experimentList">
+        <table class="results">
+            <thead>
+                <tr>
+                    <td class="sel">
+
+                    </td>
+                    <td class="accession">Accession</td>
+                    <td>Load Date</td>
+                    <td>Status</td>
+                    <td>Description</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="exprow">
+                    <td class="sel">
+                        <input class="selector" type="checkbox" value="" id="selExp">
+                    </td>
+                    <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
+                    <td class="loaddate">10/10/2010</td>
+                    <td class="analytics">Loaded</td>
+                    <td class="description">Blah</td>
+                    <td>
+                        <a class="history" href="#">Show history</a>
+                    </td>
+                </tr>
+                <tr class="expcoll whenanything">
+                    <td class="sel">
+                        <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
+                    </td>
+                    <td colspan="3" class="selall">
+                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
+                    </td>
+                </tr>
+                <tr class="expall">
+                    <td class="sel">
+                        <input id="selectAll" type="checkbox">
+                    </td>
+                    <td colspan="5" class="selall">
+                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <fieldset class="expall opbuttons">
+            <input type="button" value="Recompute analytics for selection" class="restart">
+            <input type="button" value="Unload selection" class="unload">
+            <div style="margin-top:5px;">
+                <input type="checkbox" id="experimentAutodep" checked="checked">
+                <label for="experimentAutodep">Automatically rebuild index after processing</label>
+            </div>
         </fieldset>
 
-        <div id="experimentList">
-            <table class="results">
-                <thead>
-                    <tr>
-                        <td class="sel">
-
-                        </td>
-                        <td class="accession">Accession</td>
-                        <td>Load Date</td>
-                        <td class="stage">Status</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="exprow">
-                        <td class="sel">
-                            <input class="selector" type="checkbox" value="" id="selExp">
-                        </td>
-                        <td class="accession"><label class="accession" for="selExp">E-TABM-1</label></td>
-                        <td class="loaddate">10/10/2010</td>
-                        <td class="stage">NETCDF</td>
-                    </tr>
-                    <tr class="expcoll whenanything">
-                        <td class="sel">
-                            <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
-                        </td>
-                        <td colspan="3" class="selall">
-                            <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
-                        </td>
-                    </tr>
-                    <tr class="expall">
-                        <td class="sel">
-                            <input id="selectAll" type="checkbox">
-                        </td>
-                        <td colspan="3" class="selall">
-                            <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
-                        </td>
-                    </tr>
-                </tbody>
+        <fieldset class="rebuildIndex">
+            <table>
+                <tr>
+                    <td class="label">Index build is incomplete</td>
+                    <td>
+                        <input type="button" value="Rebuild index">
+                    </td>
+                </tr>
             </table>
-            <fieldset class="expall opbuttons">
-                <input type="button" value="Continue processing selection" class="continue">
-                <input type="button" value="Restart processing selection" class="restart">
-                <input type="button" value="Unload selection" class="unload">
-                <div style="margin-top:5px;">
-                    <input type="checkbox" id="experimentAutodep" checked="checked">
-                    <label for="experimentAutodep">Automatically rebuild index after processing</label>
-                </div>
-            </fieldset>
+        </fieldset>
 
-            <fieldset class="rebuildIndex">
-                <table>
-                    <tr>
-                        <td class="label">Index build is incomplete</td>
-                        <td>
-                            <input type="button" value="Rebuild index">
-                        </td>
-                    </tr>
-                </table>
-            </fieldset>
-            
-            <div class="expnone">
-                No matching experiments found! Please check your query.
-            </div>
+        <div class="expnone">
+            No matching experiments found! Please check your query.
         </div>
     </div>
+
+    <div class="expTaskLog">
+        <table>
+            <thead>
+                <tr>
+                    <td>Time</td>
+                    <td>Task Type</td>
+                    <td>Event</td>
+                    <td>Mode</td>
+                    <td>Accession/URL</td>
+                    <td>User</td>
+                    <td>Comment</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time">10:34</td>
+                    <td class="type">experiment</td>
+                    <td class="event">STARTED</td>
+                    <td class="runMode">RESTART</td>
+                    <td class="accession">E-TABM-1</td>
+                    <td class="user">user</td>
+                    <td class="message">
+                        Blah...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="none">
+            No associated events were found in system logs
+        </div>
+    </div>
+
 </div>
 
 <div id="tab-que">
@@ -208,38 +243,6 @@
         </table>
     </div>
 </div>
-<div id="tab-olog">
-    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-    <div id="operLog">
-        <table>
-            <thead>
-                <tr>
-                    <td>Time</td>
-                    <td>Action</td>
-                    <td>Running Mode</td>
-                    <td>Task Type</td>
-                    <td>Accession/URL</td>
-                    <td>User</td>
-                    <td>Comment</td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="time">10:34</td>
-                    <td class="operation">ENQUEUE</td>
-                    <td class="runMode">RESTART</td>
-                    <td class="type">experiment</td>
-                    <td class="accession">E-TABM-1</td>
-                    <td class="user">foo</td>
-                    <td class="message">
-                        Blah...
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
 <div id="tab-tlog">
     Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
     <div id="taskLog">
@@ -248,6 +251,8 @@
                 <tr>
                     <td>Time</td>
                     <td>Event</td>
+                    <td>Running Mode</td>
+                    <td>User</td>
                     <td>Task Type</td>
                     <td>Accession/URL</td>
                     <td colspan="2">Comment</td>
@@ -257,6 +262,8 @@
                 <tr>
                     <td class="time">10:34</td>
                     <td class="event">STARTED</td>
+                    <td class="runMode">RESTART</td>
+                    <td class="user">user</td>
                     <td class="type">experiment</td>
                     <td class="accession">E-TABM-1</td>
                     <td class="message">

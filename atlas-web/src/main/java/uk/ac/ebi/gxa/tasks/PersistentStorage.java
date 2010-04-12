@@ -27,11 +27,15 @@ package uk.ac.ebi.gxa.tasks;
  */
 public interface PersistentStorage {
 
-    public void logTaskStageEvent(TaskSpec task, TaskStage stage, TaskStageEvent event, String message);
+    long getNextTaskId();
 
-    public void updateTaskStage(TaskSpec task, TaskStage stage);
+    void updateTaskStatus(TaskSpec task, TaskStatus stage);
 
-    public TaskStage getTaskStage(TaskSpec task);
+    TaskStatus getTaskStatus(TaskSpec task);
 
-    public void logTaskOperation(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message);
+    void logTaskEvent(Task task, TaskEvent event, String message);
+
+    void addTag(Task task, TaskTagType type, String tag);
+
+    void joinTagCloud(Task existingTask, Task newTaskId);
 }

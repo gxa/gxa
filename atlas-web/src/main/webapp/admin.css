@@ -60,18 +60,27 @@ input.date { width: 70px; }
 
 #experimentList table.results,
     #taskList table,
-    #operLog table,
     #taskLog table,
-    #propList table
+    #propList table,
+    #experimentList .expTaskLog table
 {
     border-collapse:collapse;
     margin: 10px 0;
     width: 100%;
 }
 
+#experimentList .expTaskLog table {
+    margin:0;
+}
+
+#experimentList .expTaskLog {
+    max-height:250px;
+    overflow-y: auto;
+    border: 2px solid #cdcdcd;
+}
+
 #experimentList table.results td,
     #taskList td,
-    #operLog td,
     #taskLog td,
     #propList td,
     #propList th
@@ -79,6 +88,18 @@ input.date { width: 70px; }
     border: 1px solid #cdcdcd;
     padding: 3px 7px;
     vertical-align:top;
+}
+
+#experimentList table.results td.expLog {
+    padding:0;
+}
+
+#experimentList a.history {
+    white-space:nowrap;
+}
+
+#experimentList .expTaskLog .none {
+    padding:10px;
 }
 
 #experimentList table.results td.sel {
@@ -163,21 +184,9 @@ input.date { width: 70px; }
 #taskList td.runMode { border-left: none; }
 #taskList td.type { border-right: none;white-space:nowrap; }
 
-#operLog tr.modeRESTART td.runMode, #operLog tr.operationENQUEUE td.operation {
-    color: #005555; font-weight: bold;
-}
-
-#operLog tr.modeCONTINUE td.runMode, #operLog tr.operationCANCEL td.operation {
-    color: #aaaaaa; font-weight: bold;
-}
-
 #taskLog td.event {
     color: #005555; font-weight: bold; white-space:nowrap;
 }
-
-#operLog td.type, #taskLog td.type { white-space: nowrap; }
-
-#operLog td.message, #taskLog td.message { width: 50%; }
 
 #taskLog td.message { border-right: none; }
 #taskLog td.retry { border-left:none; } 

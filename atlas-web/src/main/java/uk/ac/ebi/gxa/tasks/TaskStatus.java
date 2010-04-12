@@ -25,9 +25,6 @@ package uk.ac.ebi.gxa.tasks;
 /**
  * @author pashky
  */
-public enum TaskStageEvent {
-    STARTED,
-    FINISHED,
-    STOPPED,
-    FAILED
+public enum TaskStatus {
+    NONE, DONE, INCOMPLETE
 }

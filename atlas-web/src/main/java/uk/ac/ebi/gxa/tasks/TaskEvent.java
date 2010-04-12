@@ -25,7 +25,11 @@ package uk.ac.ebi.gxa.tasks;
 /**
  * @author pashky
  */
-public enum TaskOperation {
-    ENQUEUE,
-    CANCEL
+public enum TaskEvent {
+    SCHEDULED,
+    CANCELLED,
+    STARTED,
+    FINISHED,
+    FAILED,
+    SKIPPED
 }

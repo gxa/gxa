@@ -29,12 +29,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -64,161 +61,151 @@ public class DbStorage implements PersistentStorage {
     }
 
 
-    public void updateTaskStage(TaskSpec task, TaskStage stage) {
+    public long getNextTaskId() {
+        return jdbcTemplate.queryForLong("SELECT A2_TASKMAN_TASKID_SEQ.NEXTVAL FROM DUAL");
+    }
+
+    public void updateTaskStatus(TaskSpec task, TaskStatus status) {
         try {
             if(jdbcTemplate.update(
-                    "MERGE INTO A2_TASKMAN_TASKSTAGE ts USING DUAL ON (ts.type = :1 and ts.accession = :2) " +
-                            "WHEN MATCHED THEN UPDATE SET stage = :3 " +
-                            "WHEN NOT MATCHED THEN INSERT (type,accession,stage) values (:4, :5, :6)",
+                    "MERGE INTO A2_TASKMAN_STATUS ts USING DUAL ON (ts.type = :1 and ts.accession = :2) " +
+                            "WHEN MATCHED THEN UPDATE SET status = :3 " +
+                            "WHEN NOT MATCHED THEN INSERT (type,accession,status) values (:4, :5, :6)",
                     new Object[] {
                             task.getType(),
                             encodeAccession(task.getAccession()),
-                            stage.toString(),
+                            status.toString(),
                             task.getType(),
                             encodeAccession(task.getAccession()),
-                            stage.toString()
+                            status.toString()
                     }) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
-            log.error("Can't store task stage " + task + " " + stage, e);
+            log.error("Can't store task stage " + task + " " + status, e);
         }
     }
 
-    public TaskStage getTaskStage(TaskSpec task) {
+    public TaskStatus getTaskStatus(TaskSpec task) {
         try {
-            return TaskStage.valueOf(jdbcTemplate.queryForObject(
-                    "SELECT stage FROM A2_TASKMAN_TASKSTAGE ts WHERE ts.type = :1 AND ts.accession = :2",
+            return TaskStatus.valueOf(jdbcTemplate.queryForObject(
+                    "SELECT status FROM A2_TASKMAN_STATUS ts WHERE ts.type = :1 AND ts.accession = :2",
                     new Object[] {
                             task.getType(),
                             encodeAccession(task.getAccession())
                     }, String.class).toString());
         } catch (EmptyResultDataAccessException e) {
-            return TaskStage.NONE;
+            return TaskStatus.NONE;
         } catch (DataAccessException e) {
             log.error("Can't retrieve task stage " + task, e);
-            return TaskStage.NONE;
+            return TaskStatus.NONE;
         }
     }
 
-    public void logTaskStageEvent(TaskSpec task, TaskStage stage, TaskStageEvent event, String message) {
+    public void logTaskEvent(Task task, TaskEvent event, String message) {
         try {
             if(jdbcTemplate.update(
-                    "INSERT INTO A2_TASKMAN_TASKSTAGELOG (TYPE, ACCESSION, STAGE, EVENT, MESSAGE) VALUES (?,?,?,?,?)",
+                    "INSERT INTO A2_TASKMAN_LOG (TASKID, TYPE, ACCESSION, RUNMODE, USERNAME, EVENT, MESSAGE) VALUES (?,?,?,?,?,?,?)",
                     new Object[] {
-                            task.getType(),
-                            encodeAccession(task.getAccession()),
-                            stage.getStage(),
+                            task.getTaskId(),
+                            task.getTaskSpec().getType(),
+                            encodeAccession(task.getTaskSpec().getAccession()),
+                            task.getRunMode() == null ? "" : task.getRunMode().toString(),
+                            task.getUser().getUserName(),
                             event.toString(),
                             message == null ? "" : message
                     }) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
-            log.error("Can't store task stage log " + task + " " + stage + " " + event + " " + message, e);
+            log.error("Can't store task stage log " + task + " " + event + " " + message, e);
         }
     }
 
-    public void logTaskOperation(TaskSpec task, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message) {
+
+    public void addTag(Task task, TaskTagType type, String tag) {
         try {
             if(jdbcTemplate.update(
-                    "INSERT INTO A2_TASKMAN_OPERATIONLOG (TYPE, ACCESSION, RUNMODE, USERNAME, OPERATION, MESSAGE) VALUES (?,?,?,?,?,?)",
+                    "MERGE INTO A2_TASKMAN_TAG t " +
+                            "USING (SELECT NVL(TT.TASKCLOUDID, ?) AS TASKCLOUDID, ? AS TAGTYPE, ? AS TAG FROM DUAL LEFT JOIN A2_TASKMAN_TAGTASKS tt ON tt.TASKID=?) nt " +
+                            "ON (nt.TAGTYPE=t.TAGTYPE AND nt.TAG=t.TAG AND nt.TASKCLOUDID=t.TASKCLOUDID) " +
+                            "WHEN NOT MATCHED THEN INSERT (TASKCLOUDID, TAGTYPE, TAG) VALUES (nt.TASKCLOUDID, nt.TAGTYPE, nt.TAG)",
                     new Object[] {
-                            task.getType(),
-                            encodeAccession(task.getAccession()),
-                            runMode == null ? "" : runMode.toString(),
-                            user.getUserName(),
-                            operation.toString(),
-                            message == null ? "" : message
-                    }) != 1)
+                            task.getTaskId(), type.toString().toLowerCase(), tag, task.getTaskId()
+                    }) > 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
-            log.error("Can't store task operation log " + task + " " + runMode + " " + operation + " " + " " + user + " " + message, e);
+            log.error("Can't store task " + task.getTaskId() + " tag " + tag, e);
         }
     }
 
-    public static class OperationLogItem {
-        public final TaskSpec taskSpec;
-        public final TaskRunMode runMode;
-        public final TaskUser user;
-        public final TaskOperation operation;
-        public final String message;
-        public final Timestamp timestamp;
-
-        public OperationLogItem(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, TaskOperation operation, String message, Timestamp timestamp) {
-            this.taskSpec = taskSpec;
-            this.runMode = runMode;
-            this.user = user;
-            this.operation = operation;
-            this.message = message != null ? message : "";
-            this.timestamp = timestamp;
+    public void joinTagCloud(Task existingTask, Task newTaskId) {
+        try {
+            if(jdbcTemplate.update(
+                    "MERGE INTO A2_TASKMAN_TAGTASKS t " +
+                            "USING (SELECT NVL(tt.TASKCLOUDID, ?) AS TASKCLOUDID, ? AS TASKID FROM DUAL LEFT JOIN A2_TASKMAN_TAGTASKS tt ON tt.TASKID=?) nt " +
+                            "ON (nt.TASKID=t.TASKID AND nt.TASKCLOUDID=t.TASKCLOUDID) " +
+                            "WHEN NOT MATCHED THEN INSERT (TASKCLOUDID, TASKID) VALUES (nt.TASKCLOUDID, nt.TASKID)",
+                    new Object[] {
+                            existingTask.getTaskId(), newTaskId.getTaskId(), existingTask.getTaskId()
+                    }) > 1)
+                throw new IncorrectResultSizeDataAccessException(1);
+        } catch (DataAccessException e) {
+            log.error("Can't store task " + newTaskId.getTaskId() + " in cloud of " + existingTask.getTaskId(), e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<OperationLogItem> getLastOperationLogItems(int number) {
-        return (List<OperationLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,RUNMODE,USERNAME,OPERATION,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_OPERATIONLOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
-                new Object[] { number },
-                new RowMapper() {
-                    public Object mapRow(ResultSet rs, int i) throws SQLException {
-                        return new OperationLogItem(
-                                new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
-                                rs.getString(3) != null ? TaskRunMode.valueOf(rs.getString(3)) : null,
-                                new TaskUser(rs.getString(4)),
-                                TaskOperation.valueOf(rs.getString(5)),
-                                rs.getString(6),
-                                rs.getTimestamp(7)
-                        );
-                    }
-                });
     }
 
     public static class TaskEventLogItem {
         public final TaskSpec taskSpec;
-        public final TaskStage stage;
-        public final TaskStageEvent event;
+        public final TaskUser user;
+        public final TaskRunMode runMode;
+        public final TaskEvent event;
         public final String message;
         public final Timestamp timestamp;
 
-        public TaskEventLogItem(TaskSpec taskSpec, TaskStage stage, TaskStageEvent event, String message, Timestamp timestamp) {
+        public TaskEventLogItem(TaskSpec taskSpec,
+                                TaskUser user,
+                                TaskRunMode runMode,
+                                TaskEvent event,
+                                String message,
+                                Timestamp timestamp) {
             this.taskSpec = taskSpec;
-            this.stage = stage;
+            this.user = user;
+            this.runMode = runMode;
             this.event = event;
             this.message = message != null ? message : "";
             this.timestamp = timestamp;
         }
     }
 
+    private final static RowMapper LOG_ROWMAPPER = new RowMapper() {
+        public Object mapRow(ResultSet rs, int i) throws SQLException {
+            return new TaskEventLogItem(
+                    new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
+                    new TaskUser(rs.getString(3)),
+                    rs.getString(4) != null ? TaskRunMode.valueOf(rs.getString(4)) : null,
+                    TaskEvent.valueOf(rs.getString(5)),
+                    rs.getString(6),
+                    rs.getTimestamp(7)
+            );
+        }
+    };
+
     @SuppressWarnings("unchecked")
     public List<TaskEventLogItem> getLastTaskEventLogItems(int number) {
-        return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,STAGE,EVENT,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_TASKSTAGELOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
+        return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_LOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
                 new Object[] { number },
-                new RowMapper() {
-                    public Object mapRow(ResultSet rs, int i) throws SQLException {
-                        return new TaskEventLogItem(
-                                new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
-                                TaskStage.valueOf(rs.getString(3)),
-                                TaskStageEvent.valueOf(rs.getString(4)),
-                                rs.getString(5),
-                                rs.getTimestamp(6)
-                        );
-                    }
-                });
+                LOG_ROWMAPPER);
     }
 
-    public Map<TaskSpec,TaskStage> getTaskStagesByType(final String type) {
-        final Map<TaskSpec,TaskStage> result = new HashMap<TaskSpec, TaskStage>();
-        jdbcTemplate.query("SELECT TYPE,ACCESSION,STAGE FROM A2_TASKMAN_TASKSTAGE WHERE TYPE = ?",
-                new Object[] { type },
-                new ResultSetExtractor() {
-                    public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        while(rs.next()) {
-                            result.put(
-                                    new TaskSpec(rs.getString(1), decodeAccession(rs.getString(2))),
-                                    TaskStage.valueOf(rs.getString(3))
-                            );
-                        }
-                        return null;
-                    }
-                });
-        return result;
+    @SuppressWarnings("unchecked")
+    public List<TaskEventLogItem> getExperimentHistory(String accession) {
+        String type = TaskTagType.EXPERIMENT.toString().toLowerCase();
+        return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM A2_TASKMAN_LOG " +
+                "WHERE TASKID IN (" +
+                "  select taskcloudid from a2_taskman_tag where tagtype=? and tag=? " +
+                "  union " +
+                "  select taskid from a2_taskman_tagtasks tt join a2_taskman_tag t on t.taskcloudid=tt.taskcloudid and t.tagtype=? and t.tag=?" +
+                ") ORDER BY TIME ASC",
+                new Object[] { type, accession, type, accession },
+                LOG_ROWMAPPER);
     }
 }

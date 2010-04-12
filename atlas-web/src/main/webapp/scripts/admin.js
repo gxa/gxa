@@ -35,12 +35,8 @@ var $options = {
 };
 
 var $msg = {
-    operation: {
-        ENQUEUE: 'Scheduled',
-        CANCEL: 'Cancelled'
-    },
     taskType: {
-        experiment: 'Process experiment',
+        analytics: 'Compute analytics',
         loadexperiment: 'Load experiment',
         loadarraydesign: 'Load array design',
         index: 'Build index',
@@ -51,15 +47,16 @@ var $msg = {
         CONTINUE: 'Continue'
     },
     event: {
+        SCHEDULED: 'Scheduled',
+        CANCELLED: 'Cancelled',
         STARTED: 'Started',
         FINISHED: 'Finished',
-        FAILED: 'Failed',
-        STOPPED: 'Stopped'
+        SKIPPED: 'Skipped',
+        FAILED: 'Failed'
     },
     expStage: {
-        NONE: 'Loaded, No NetCDF, No analytics',
-        NETCDF: 'NetCDF failed, No analytics',
-        ANALYTICS: 'NetCDF complete, Not computed or Failed Analytics',
+        NONE: 'No analytics',
+        INCOMPLETE: 'No analytics',
         DONE: 'Complete'
     },
     taskState: {
@@ -192,6 +189,28 @@ function updateBrowseExperiments() {
         }
 
         renderTpl('experimentList', result);
+
+        $('#experimentList a.history').each(function (i,e) {
+            var expShowHistory = function() {
+                adminCall('tasklogexp', {
+                    accession: result.experiments[i].accession
+                }, function(logresult) {
+                    var newc = $('<td/>').addClass('expLog').attr('colspan', $(e).parents('tr:first').find('td').length);
+                    var tr = $('<tr/>').append(newc);
+                    $(e).parents('tr:first').after(tr);
+                    newc.appendClassTpl(logresult, 'expTaskLog');
+                    $(e).text('Hide history').unbind('click').click(function () {
+                        tr.remove();
+                        $(e).text('Show history').click(expShowHistory);
+                        return false;
+                    });
+                });
+                return false;
+            };
+
+            $(e).unbind('click').click(expShowHistory);
+        });
+
         $('#experimentList tr input.selector').click(function () {
             if($(this).is(':checked'))
                 selectedExperiments[this.value] = 1;
@@ -238,7 +257,7 @@ function updateBrowseExperiments() {
                     + (selectAll ? result.numTotal : accessions.length)
                     + ' experiment(s)' + (autoDep ? ' and rebuild index afterwards' : '') +'?')) {
                 if(selectAll) {
-                    adminCall('enqueuesearchexp', {
+                    adminCall('schedulesearchexp', {
                         runMode: mode,
                         type: type,
                         search: $('#experimentSearch').val(),
@@ -248,7 +267,7 @@ function updateBrowseExperiments() {
                         autoDepends: autoDep
                     }, switchToQueue);
                 } else {
-                    adminCall('enqueue', {
+                    adminCall('schedule', {
                         runMode: mode,
                         accession: accessions,
                         type: type,
@@ -261,12 +280,8 @@ function updateBrowseExperiments() {
             }
         }
 
-        $('#experimentList input.continue').click(function () {
-            startSelectedTasks('experiment', 'CONTINUE', 'continue processing of');
-        });
-
         $('#experimentList input.restart').click(function () {
-            startSelectedTasks('experiment', 'RESTART', 'restart processing of');
+            startSelectedTasks('analytics', 'RESTART', 'restart processing of');
         });
 
         $('#experimentList input.unload').click(function () {
@@ -275,7 +290,7 @@ function updateBrowseExperiments() {
 
         $('#experimentList .rebuildIndex input').click(function () {
             if(window.confirm('Do you really want to rebuild index?')) {
-                adminCall('enqueue', {
+                adminCall('schedule', {
                     runMode: 'RESTART',
                     accession: '',
                     type: 'index',
@@ -365,17 +380,6 @@ function updateQueue() {
     });
 }
 
-function updateOperLog() {
-    clearTimeout($time.queue);
-    $time.queue = null;
-    adminCall('operlog', { num: $options.logNumItems }, function (result) {
-        renderTpl('operLog', result);
-        $time.queue = setTimeout(function () {
-            updateOperLog();
-        }, $options.queueRefreshRate);
-    });
-}
-
 function updateTaskLog() {
     clearTimeout($time.queue);
     $time.queue = null;
@@ -389,7 +393,7 @@ function updateTaskLog() {
                             + $msg.taskType[li.type].toLowerCase() + (li.accession != '' ? ' ' + li.accession : '') +'?'))
                     {
                         var autoDep = window.confirm('Do you want to run further processing tasks automatically afterwards?');
-                        adminCall('enqueue', {
+                        adminCall('schedule', {
                             runMode: 'RESTART',
                             accession: li.accession,
                             type: li.type,
@@ -455,9 +459,6 @@ function redrawCurrentState() {
         updateQueue();
     } else if(currentState['tab'] == $tab.load) {
         $('#tabs').tabs('select', $tab.load);
-    } else if(currentState['tab'] == $tab.olog) {
-        updateOperLog();
-        $('#tabs').tabs('select', $tab.olog);
     } else if(currentState['tab'] == $tab.tlog) {
         updateTaskLog();
         $('#tabs').tabs('select', $tab.tlog);
@@ -483,17 +484,31 @@ function renderTpl(name, data) {
     $('#'+name).render(data, $tpl[name]);
 }
 
+$.fn.appendClassTpl = function (data, name) {
+    var n = $('<div/>');
+    this.append(n);
+    n.render(data, $tpl[name]);
+    n.replaceWith(n.children());
+    return this;
+};
+
 function compileTemplates() {
     function compileTpl(name, func) {
         $tpl[name] = $('#' + name).compile(func);
         $('#' + name).empty();
     }
 
+    function compileClassTpl(name, func) {
+        $tpl[name] = $('.' + name).compile(func);
+        $('.' + name).remove();
+    }
+
     compileTpl('experimentList', {
         '.exprow': {
             'experiment <- experiments' : {
                 'label.accession': 'experiment.accession',
-                '.stage': msgMapper('stage', 'expStage'),
+                '.analytics': msgMapper('analytics', 'expStage'),
+                '.description': 'experiment.description', 
                 '.loaddate': 'experiment.loadDate', 
                 '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
                 '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },
@@ -529,22 +544,6 @@ function compileTemplates() {
         }
     });
 
-    compileTpl('operLog', {
-        'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
-        'tbody tr' : {
-            'litem <- items': {
-                '.type': msgMapper('type', 'taskType'),
-                '.accession': 'litem.accession',
-                '.runMode': msgMapper('runMode', 'runMode'),
-                '.operation': msgMapper('operation', 'operation'),
-                '.message': 'litem.message',
-                '.time': 'litem.time',
-                '.user': 'litem.user',
-                '.@class+': ' operation#{litem.operation} mode#{litem.runMode} type#{litem.type}'
-            }
-        }
-    });
-
     compileTpl('taskLog', {
         'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
         'tbody tr' : {
@@ -552,7 +551,9 @@ function compileTemplates() {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'litem.accession',
                 '.event': msgMapper('event', 'event'),
+                '.runMode': msgMapper('runMode', 'runMode'),
                 '.message': 'litem.message',
+                '.user': 'litem.user',
                 '.time': 'litem.time',
                 '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
             }
@@ -564,6 +565,23 @@ function compileTemplates() {
             'property <- properties': {
                 '.name': 'property.name',
                 '.value': 'property.value'
+            }
+        }
+    });
+
+    compileClassTpl('expTaskLog', {
+        '.none@style': function (r) { return r.context.items.length ? 'display:none' : ''; },
+        'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
+        'tbody tr' : {
+            'litem <- items': {
+                '.type': msgMapper('type', 'taskType'),
+                '.accession': 'litem.accession',
+                '.event': msgMapper('event', 'event'),
+                '.runMode': msgMapper('runMode', 'runMode'),
+                '.message': 'litem.message',
+                '.user': 'litem.user',
+                '.time': 'litem.time',
+                '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
             }
         }
     });
@@ -635,7 +653,7 @@ $(document).ready(function () {
     $('#loadExperimentButton').click(function () {
         var url = $('#loadExperimentUrl').val();
         var autoDep = $('#loadExperimentAutodep').is(':checked');
-        adminCall('enqueue', {
+        adminCall('schedule', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadexperiment',
@@ -646,7 +664,7 @@ $(document).ready(function () {
     $('#loadArrayDesignButton').click(function () {
         var url = $('#loadArrayDesignUrl').val();
         var autoDep = $('#loadArrayDesignAutodep').is(':checked');
-        adminCall('enqueue', {
+        adminCall('schedule', {
             runMode: 'RESTART',
             accession: url,
             type: 'loadarraydesign',
