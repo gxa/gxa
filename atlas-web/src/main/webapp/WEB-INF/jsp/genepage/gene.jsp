@@ -396,6 +396,21 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                 <tr>
 
                     <td valign="top" style="padding-right: 30px">
+
+                        <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
+                        <table align="left">
+                            <tr>
+                                <td id="expHeader_td_1" class="sectionHeader" style="vertical-align: top">Organism Parts</td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                        <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" />
+                                </td>
+                            </tr>
+                        </table>
+                        </c:if>
+
                         <table>
                             <tr>
                                 <td class="sectionHeader">
@@ -468,21 +483,6 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                             </tr>
                         </table>
 
-
-                        <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
-                        <BR/><BR/>
-                        <table align="left">
-                            <tr>
-                                <td id="expHeader_td_1" class="sectionHeader" style="vertical-align: top">Organism Parts</td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                        <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" />
-                                </td>
-                            </tr>
-                        </table>
-                        </c:if>
                     </td>
                     <td valign="top" align="left">
                         <table align="left">
