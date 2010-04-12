@@ -24,26 +24,31 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
-import ae3.service.XML4dbDumps;
+import ae3.model.ListResultRow;
 import ae3.util.FileDownloadServer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.HttpRequestHandler;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
-
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
+import java.util.Map;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
@@ -51,7 +56,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private File dumpGeneIdsFile;
+    private File ebeyeDumpFile;
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
@@ -74,20 +79,20 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void afterPropertiesSet() throws Exception {
-        if(dumpGeneIdsFile == null)
-            dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpEbeyeFilename());
+        if(ebeyeDumpFile == null)
+            ebeyeDumpFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpEbeyeFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene ebeye dump download request");
-        if(!dumpGeneIdsFile.exists())
-            dumpGeneIdentifiers();
-        FileDownloadServer.processRequest(dumpGeneIdsFile, "text/xml", httpServletRequest, httpServletResponse);
+        if(!ebeyeDumpFile.exists())
+            dumpEbeyeData();
+        FileDownloadServer.processRequest(ebeyeDumpFile, "text/xml", httpServletRequest, httpServletResponse);
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
-        dumpGeneIdsFile.delete();
-        dumpGeneIdentifiers();
+        ebeyeDumpFile.delete();
+        dumpEbeyeData();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
@@ -97,77 +102,132 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     /**
      * Generates a special file containing all gene identifiers, for external users to use for linking.
      */
-    public void dumpGeneIdentifiers() {
+    public void dumpEbeyeData() {
+        XMLOutputFactory output = null;
+        XMLStreamWriter writer = null;
+
         try {
-            List<AtlasGene> genes = atlasSolrDAO.getGenes();
+            log.info("Writing ebeye file from index to " + ebeyeDumpFile);
 
-            XML4dbDumps.Document d1 = new XML4dbDumps.Document();
-            d1.setName("Gene Expression Atlas"); //db_name
-            d1.setDescription("Impressive Gene Expression Atlas");
-            d1.setRelease("1.0");
-            d1.setReleaseDate("29-AUG-2006");
+            output = XMLOutputFactory.newInstance();
+            writer = output.createXMLStreamWriter(new BufferedOutputStream(new FileOutputStream(ebeyeDumpFile)));
 
-            for (AtlasGene g : genes) {
-                XML4dbDumps.Document.Entry e1 = new XML4dbDumps.Document.Entry();
-                d1.getEntries().add(e1);
+            writer.writeStartDocument();
+            writer.writeStartElement("database");
 
-                e1.setId(g.getGeneIdentifier());
-                e1.setAccessionNumber(g.getGeneName());
-                e1.setName(g.getGeneName());
-                e1.setDateCreated(atlasProperties.getDataRelease());
-                e1.setDateModified(atlasProperties.getDataRelease());
+            writer.writeStartElement("name");
+            writer.writeCharacters("Gene Expression Atlas");
+            writer.writeEndElement();
 
-                e1.setDescription("");
-                e1.setAuthors("");
-                e1.setKeywords("");
+            writer.writeStartElement("description");
+            writer.writeCharacters("Large scale meta-analysis of public transcriptomics data");
+            writer.writeEndElement();
 
-                XML4dbDumps.Document.Entry.Reference ref1 = new XML4dbDumps.Document.Entry.Reference();
-                ref1.setDbName("db2");
-                ref1.setDbKey("abc123");
-                e1.getReferences().add(ref1);
+            writer.writeStartElement("release");
+            writer.writeCharacters(atlasProperties.getDataRelease());
+            writer.writeEndElement();
 
-                XML4dbDumps.Document.Entry.Reference ref2 = new XML4dbDumps.Document.Entry.Reference();
-                ref2.setDbName("db3");
-                ref2.setDbKey("abcdef");
-                e1.getReferences().add(ref2);
+            writer.writeStartElement("release_date");
+            writer.writeCharacters(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+            writer.writeEndElement();
 
-                XML4dbDumps.Document.Entry.AdditionalField f1 = new XML4dbDumps.Document.Entry.AdditionalField();
-                f1.setName("namefield1");
-                f1.setValue("value1");
-                e1.getAdditionalFields().add(f1);
+            writer.writeStartElement("entry_count");
+            writer.writeCharacters(String.valueOf(atlasSolrDAO.getGeneCount()));
+            writer.writeEndElement();
 
-                XML4dbDumps.Document.Entry.AdditionalField f2 = new XML4dbDumps.Document.Entry.AdditionalField();
-                f2.setName("namefield2");
-                f2.setValue("value2");
-                e1.getAdditionalFields().add(f2);
+            writer.writeStartElement("entries");
+
+            int i = 0;
+            for (AtlasGene gene : atlasSolrDAO.getAllGenes()) {
+                Map<String, Collection<String>> geneprops = gene.getGeneProperties();
+
+                writer.writeStartElement("entry");
+                writer.writeAttribute("id", gene.getGeneIdentifier());
+                writer.writeAttribute("acc", gene.getGeneIdentifier());
+
+                writer.writeStartElement("name");
+                writer.writeCharacters(gene.getGeneName());
+                writer.writeEndElement();
+
+                writer.writeStartElement("description");
+                writer.writeCharacters(gene.getGeneDescription());
+                writer.writeEndElement();
+
+                writer.writeStartElement("keywords");
+                writer.writeCharacters(StringUtils.join(gene.getKeywords().toArray(), ", "));
+                writer.writeEndElement();
+
+                writer.writeStartElement("dates");
+
+                writer.writeStartElement("date");
+                writer.writeAttribute("type","creation");
+                writer.writeAttribute("value",new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writer.writeEndElement();
+
+                writer.writeStartElement("date");
+                writer.writeAttribute("type","last_modification");
+                writer.writeAttribute("value",new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writer.writeEndElement();
+
+                writer.writeEndElement(); // dates
+
+                writer.writeStartElement("cross_references");
+                for (String geneIdField : atlasProperties.getDumpGeneIdFields()) {
+                    Collection<String> genepropvals = geneprops.get(geneIdField);
+                    if(null != genepropvals && genepropvals.size() > 0) {
+                        for (String propval : genepropvals) {
+                            writer.writeStartElement("ref");
+                            writer.writeAttribute("dbname",geneIdField);
+                            writer.writeAttribute("dbkey",propval);
+                            writer.writeEndElement();
+                        }
+                    }
+                }
+                writer.writeEndElement(); // xrefs
+
+                writer.writeStartElement("additional_fields");
+                for (Map.Entry<String, Collection<String>> geneprop : geneprops.entrySet()) {
+                    if(!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey())) {
+                        writer.writeStartElement("field");
+                        writer.writeAttribute("name",geneprop.getKey());
+                        writer.writeCharacters(StringUtils.join(geneprop.getValue(), ", "));
+                        writer.writeEndElement();
+                    }
+
+                    List<ListResultRow> data = gene.getHeatMapRows(atlasProperties.getOptionsIgnoredEfs());
+                    for (ListResultRow row : data) {
+                        writer.writeStartElement("field");
+                        writer.writeAttribute("name",row.getEf());
+                        writer.writeCharacters(row.getFv());
+                        writer.writeEndElement();
+                    }
+                }
+                writer.writeEndElement(); // add'l fields
+
+                writer.writeEndElement(); // entry
+
+                if (0 == (++i % 100)) {
+                    writer.flush();
+                    log.debug("Wrote " + i + " genes");
+                }
             }
 
-            //File dumpGeneIdsFile = new File(dumpGeneIdsAbsoluteFilename);
-            //RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
-            //IndexReader r = searcher.get().getReader();
+            writer.writeEndElement(); // entries
+            writer.writeEndDocument();
+            writer.flush();
 
-            log.info("Writing ebeye file from index to " + dumpGeneIdsFile);
-
-            //BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
-            //List<String> geneids = Arrays.asList(StringUtils.split(AtlasProperties.getProperty("atlas.dump.geneidentifiers"), ','));
-            //ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-
-            FileOutputStream ostream = new FileOutputStream(dumpGeneIdsFile);
-
-            try {
-                ostream.write(XML4dbDumps.Serialize(d1).getBytes());
-            }
-            catch (Exception Ex) {
-                log.error("Failed to dump gene identifiers from index", Ex.getMessage());
-            }
-            finally {
-                ostream.close();
-                log.info("Writing ebeye file from index to " + dumpGeneIdsFile + " - done");
-            }
-
-        }
-        catch (IOException e) {
+        } catch (XMLStreamException e) {
             log.error("Failed to dump gene identifiers from index", e);
+        } catch (FileNotFoundException e) {
+            log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
+        } finally {
+            try {
+                if(null != writer) writer.close();
+            } catch (XMLStreamException x) {
+                log.error("Failed to close XMLStreamWriter", x);
+            }
+
+            log.info("Writing ebeye file from index to " + ebeyeDumpFile + " - done");
         }
     }
 

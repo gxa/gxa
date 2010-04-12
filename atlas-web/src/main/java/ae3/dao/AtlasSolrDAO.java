@@ -254,27 +254,92 @@ public class AtlasSolrDAO {
         }
     }
 
-    public List<AtlasGene> getGenes() {
-        List<AtlasGene> result = new ArrayList<AtlasGene>();
+    public long getGeneCount() {
+        final SolrQuery q = new SolrQuery("*:*");
+        q.setRows(0);
 
-        SolrQuery q = new SolrQuery("*:*");
-        q.setRows(1000);
-        q.setFields("name,id,identifier");
         try {
             QueryResponse queryResponse = solrServerAtlas.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
-            for (SolrDocument d : documentList) {
-                AtlasGene g = new AtlasGene(atlasProperties, d);
-                result.add(g);
-            }
-
-            return result;
-
-        }
-        catch (SolrServerException e) {
+            return documentList.getNumFound();
+        } catch (SolrServerException e) {
             throw new RuntimeException("Error querying list of genes");
         }
+    }
+
+    /**
+     * Returns genes that can be iterated
+     * @return Iterable<AtlasGene>
+     */
+    public Iterable<AtlasGene> getAllGenes() {
+        final SolrQuery q = new SolrQuery("*:*");
+        q.setRows(0);
+        final long total;
+
+        try {
+            QueryResponse queryResponse = solrServerAtlas.query(q);
+            SolrDocumentList documentList = queryResponse.getResults();
+
+            total = documentList.getNumFound();
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying list of genes");
+        }
+
+        return new Iterable<AtlasGene>() {
+            public Iterator<AtlasGene> iterator() {
+                return new Iterator<AtlasGene> () {
+                    private Iterator<AtlasGene> genes = null;
+                    private int totalSeen = 0;
+
+                    public boolean hasNext() {
+                        if(null == genes
+                                ||
+                           (!genes.hasNext() && totalSeen < total)) {
+                            getNextGeneBatch();
+                        }
+
+                        return totalSeen < total && genes.hasNext();
+                    }
+
+                    public AtlasGene next() {
+                        if(null == genes
+                                ||
+                           (!genes.hasNext() && totalSeen < total)) {
+                            getNextGeneBatch();
+                        }
+
+                        totalSeen++;
+                        return genes.next();
+                    }
+
+                    public void remove() {}
+
+                    private void getNextGeneBatch() {
+                        try {
+                            log.debug("Loading next batch of genes, seen " + totalSeen + " out of " + total);
+                            List<AtlasGene> geneList = new ArrayList<AtlasGene>();
+
+                            q.setRows(50);
+                            q.setStart(totalSeen);
+
+                            QueryResponse queryResponse = solrServerAtlas.query(q);
+                            SolrDocumentList documentList = queryResponse.getResults();
+
+                            for (SolrDocument d : documentList) {
+                                AtlasGene g = new AtlasGene(atlasProperties, d);
+                                geneList.add(g);
+                            }
+
+                            genes = geneList.iterator();
+                        } catch (SolrServerException e) {
+                            throw new RuntimeException("Error querying list of genes");
+                        }
+
+                    }
+                };
+            };
+        };
     }
 
     /**
