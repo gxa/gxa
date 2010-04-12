@@ -49,11 +49,17 @@ read.atlas.nc <<-
     scv = data.frame(scv)
 
     for ( i in 1:length(ef) ) {
-      levels(efv[[i]]) = mixedsort(levels(efv[[i]]))
+      lefv <- levels(efv[[i]])
+      if(length(lefv) > 1) {
+        levels(efv[[i]]) = mixedsort(lefv)
+      }
     }
 
     for ( i in 1:length(sc) ) {
-      levels(scv[[i]]) = mixedsort(levels(scv[[i]]))
+      lscv = levels(scv[[i]])
+      if(length(lscv) > 1) {
+        levels(scv[[i]]) = mixedsort(lscv)
+      }
     }
 
     bdc[bdc<=-1e6] = NA
