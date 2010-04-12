@@ -226,6 +226,7 @@ public class Annotator {
                     editor.setTextAndAlign(textCalloutUpId, String.format("%1$d", current_annotation.up));
                     editor.setTextAndAlign(textCalloutDnId, String.format("%1$d", current_annotation.dn));
                     editor.setVisibility(textCalloutCenterId, "hidden");
+                    editor.fill(current_annotation.id, "grey");
                     break;
                 case Up:
                     editor.fill(rectId, "red");
