@@ -39,23 +39,23 @@ public class Editor {
         this.document = document;
     }
 
-    public void fill(String Id, String Color) {
-        Element e = document.getElementById(Id);
+    public void fill(String id, String color) {
+        Element e = document.getElementById(id);
         if (null != e) {
             String s = e.getAttribute("style");
-            s = s.replace("fill:#ffffff", "fill:" + Color);
-            s = s.replace("fill:none", "fill:" + Color);
-            s = s.replace("fill:#0000ff", "fill:" + Color);
+            s = s.replace("fill:#ffffff", "fill:" + color);
+            s = s.replace("fill:none", "fill:" + color);
+            s = s.replace("fill:#0000ff", "fill:" + color);
             e.setAttributeNS(null, "style", s);
         }
     }
 
-    public void setText(String Id, String Text) {
-        Element e = document.getElementById(Id);
+    public void setText(String id, String text) {
+        Element e = document.getElementById(id);
         if (null != e) {
             //setTextContent is abstract
             try {
-                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(Text);
+                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(text);
             }
             catch (Exception ex) {
                 log.error("can not set text", ex);
@@ -63,20 +63,20 @@ public class Editor {
         }
     }
 
-    public void setTextAndAlign(String Id, String Text) {
-        Element e = document.getElementById(Id);
+    public void setTextAndAlign(String id, String text) {
+        Element e = document.getElementById(id);
         if (null != e) {
             try {
-                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(Text);
+                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(text);
             } catch (Exception ex) {
                 log.error("can not set text", ex);
             }
 
 
-            if (Text.length() > 1) {
+            if (text.length() > 1) {
                 Float i = Float.parseFloat(e.getAttribute("x"));
 
-                String new_x = String.format("%1$f", i - (Text.length() - 1) * CHAR_WIDTH);
+                String new_x = String.format("%1$f", i - (text.length() - 1) * CHAR_WIDTH);
 
                 e.setAttribute("x", new_x);
                 e.getFirstChild().getAttributes().removeNamedItem("x");
@@ -84,18 +84,27 @@ public class Editor {
         }
     }
 
-    public void setVisibility(String Id, String Visibility) {
-        Element e = document.getElementById(Id);
+    public void setVisibility(String id, String visibility) {
+        Element e = document.getElementById(id);
         if (null != e) {
-            e.setAttributeNS(null, "visibility", Visibility);
+            e.setAttributeNS(null, "visibility", visibility);
         }
     }
 
-    public void setStroke(String Id, String Color) {
-        Element e = document.getElementById(Id);
+    public void setStroke(String id, String color) {
+        Element e = document.getElementById(id);
         if (null != e) {
             String s = e.getAttribute("style");
-            s = s.replace("stroke:#ffffff", "stroke:" + Color);
+            s = s.replace("stroke:#ffffff", "stroke:" + color);
+            e.setAttributeNS(null, "style", s);
+        }
+    }
+
+    public void setOpacity(String id, String opacity) {
+        Element e = document.getElementById(id);
+        if (null != e) {
+            String s = e.getAttribute("style");
+            s = s + ";opacity:" + opacity;
             e.setAttributeNS(null, "style", s);
         }
     }

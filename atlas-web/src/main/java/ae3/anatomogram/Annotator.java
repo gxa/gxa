@@ -227,6 +227,7 @@ public class Annotator {
                     editor.setTextAndAlign(textCalloutDnId, String.format("%1$d", current_annotation.dn));
                     editor.setVisibility(textCalloutCenterId, "hidden");
                     editor.fill(current_annotation.id, "grey");
+                    editor.setOpacity(current_annotation.id, "0.5");
                     break;
                 case Up:
                     editor.fill(rectId, "red");
@@ -235,6 +236,7 @@ public class Annotator {
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
                     editor.fill(current_annotation.id, "red");
+                    editor.setOpacity(current_annotation.id, "0.5");
                     break;
                 case Dn:
                     editor.fill(rectId, "blue");
@@ -243,6 +245,7 @@ public class Annotator {
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
                     editor.fill(current_annotation.id, "blue");
+                    editor.setOpacity(current_annotation.id, "0.5");
                     break;
                 case Blank:
                     editor.fill(rectId, "none");
@@ -251,6 +254,7 @@ public class Annotator {
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
                     editor.setStroke(textCalloutCenterId, "black");
+                    editor.setOpacity(current_annotation.id, "0.5");
                     break;
             }
 
