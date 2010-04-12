@@ -176,7 +176,7 @@ function updateBrowseExperiments() {
 
     }, function (result) {
 
-        function updateRestartContinueButtons() {
+        function updateExperimentButtons() {
             var cando = selectAll;
             for(var k in selectedExperiments) {
                 cando = true;
@@ -199,9 +199,11 @@ function updateBrowseExperiments() {
                     var tr = $('<tr/>').append(newc);
                     $(e).parents('tr:first').after(tr);
                     newc.appendClassTpl(logresult, 'expTaskLog');
+                    $(e).parents('td:first').css('background', '#cdcdcd');
                     $(e).text('Hide history').unbind('click').click(function () {
                         tr.remove();
                         $(e).text('Show history').click(expShowHistory);
+                        $(e).parents('td:first').css('background', 'inherit');
                         return false;
                     });
                 });
@@ -216,7 +218,7 @@ function updateBrowseExperiments() {
                 selectedExperiments[this.value] = 1;
             else
                 delete selectedExperiments[this.value];
-            updateRestartContinueButtons();
+            updateExperimentButtons();
         });
 
         var newAccessions = {};
@@ -225,7 +227,7 @@ function updateBrowseExperiments() {
         for(i in selectedExperiments)
             if(!newAccessions[i])
                 delete selectedExperiments[i];
-        updateRestartContinueButtons();
+        updateExperimentButtons();
 
         $('#selectAll').click(function () {
             if($(this).is(':checked')) {
@@ -238,7 +240,7 @@ function updateBrowseExperiments() {
                 selectAll = false;
                 $('#selectCollapsed').css('visibility', 'hidden');
             }
-            updateRestartContinueButtons();
+            updateExperimentButtons();
         });
 
         if(selectAll)
