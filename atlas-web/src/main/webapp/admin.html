@@ -63,6 +63,7 @@
     <li><a href="#tab-load">Load</a></li>
     <li><a href="#tab-que">Queue</a></li>
     <li><a href="#tab-exp">Experiments</a></li>
+    <li><a href="#tab-ad">Array designs</a></li>
     <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
 </ul>
@@ -169,39 +170,57 @@
             No matching experiments found! Please check your query.
         </div>
     </div>
+</div>
 
-    <div class="expTaskLog">
+<div id="tab-ad">
+    <fieldset>
+        <form action="#" id="adBrowseForm">
+            <table>
+                <tr>
+                    <td class="label"><label for="adSearch">Array design:</label></td>
+                    <td>
+                        <input type="text" id="adSearch" class="value" style="width:400px;">
+                    </td>
+                    <td>
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <span id="adPages" class="pagination_ie"></span>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </form>
+    </fieldset>
+
+    <div id="adList">
         <table>
             <thead>
                 <tr>
-                    <td>Time</td>
-                    <td>Task Type</td>
-                    <td>Event</td>
-                    <td>Mode</td>
-                    <td>Accession/URL</td>
-                    <td>User</td>
-                    <td>Comment</td>
+                    <td class="accession">Accession</td>
+                    <td>Provider</td>
+                    <td>Description</td>
+                    <td></td>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td class="time">10:34</td>
-                    <td class="type">experiment</td>
-                    <td class="event">STARTED</td>
-                    <td class="runMode">RESTART</td>
                     <td class="accession">E-TABM-1</td>
-                    <td class="user">user</td>
-                    <td class="message">
-                        Blah...
+                    <td class="provider">Blah</td>
+                    <td class="description">Blah</td>
+                    <td>
+                        <a class="history" href="#">Show history</a>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="none">
-            No associated events were found in system logs
+            No matching array designs found! Please check your query.
         </div>
     </div>
-
 </div>
 
 <div id="tab-que">
@@ -358,6 +377,38 @@
             </table>
         </fieldset>
     </form>
+</div>
+
+<div class="expTaskLog">
+    <table>
+        <thead>
+            <tr>
+                <td>Time</td>
+                <td>Task Type</td>
+                <td>Event</td>
+                <td>Mode</td>
+                <td>Accession/URL</td>
+                <td>User</td>
+                <td>Comment</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="time">10:34</td>
+                <td class="type">experiment</td>
+                <td class="event">STARTED</td>
+                <td class="runMode">RESTART</td>
+                <td class="accession">E-TABM-1</td>
+                <td class="user">user</td>
+                <td class="message">
+                    Blah...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="none">
+        No associated events were found in system logs
+    </div>
 </div>
 
 </div><!-- ae_pagecontainer -->

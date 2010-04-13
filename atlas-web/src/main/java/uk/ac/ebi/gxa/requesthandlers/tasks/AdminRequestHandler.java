@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -248,6 +249,30 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         };
     }
 
+    private Object processSearchArrayDesigns(String search, int page, int num) {
+        search = search.toLowerCase();
+        List<Map> results = new ArrayList<Map>();
+
+        int from = page * num;
+        int total = 0;
+        for(ArrayDesign arrayDesign : dao.getAllArrayDesigns())
+            if("".equals(search)
+                    || arrayDesign.getAccession().toLowerCase().contains(search)
+                    || StringUtils.trimToEmpty(arrayDesign.getName()).toLowerCase().contains(search)
+                    || StringUtils.trimToEmpty(arrayDesign.getProvider()).toLowerCase().contains(search)
+                    ) {
+                if(total >= from && total < from + num)
+                    results.add(makeMap(
+                            "accession", arrayDesign.getAccession(),
+                            "provider", arrayDesign.getProvider(),
+                            "description", arrayDesign.getName()));
+
+                ++total;
+            }
+
+        return makeMap("arraydesigns", results, "page", page, "numTotal", total); 
+    }
+
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(toDateStr);
@@ -282,8 +307,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()));
     }
 
-    private Object processExperimentTaskEventLog(String accession) {
-        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getExperimentHistory(accession).iterator()));
+    private Object processExperimentTaskEventLog(TaskTagType tagtype, String accession) {
+        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getTaggedHistory(tagtype, accession).iterator()));
     }
 
     private Object processPropertyList() {
@@ -430,6 +455,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p"),
                     req.getInt("n", 1, 1));
 
+        else if("searchad".equals(op))
+            return processSearchArrayDesigns(
+                    req.getStr("search"),
+                    req.getInt("p"),
+                    req.getInt("n", 1, 1));
+
         else if("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
                     req.getStr("type"),
@@ -445,8 +476,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         else if("tasklog".equals(op))
             return processTaskEventLog(req.getInt("num"));
 
-        else if("tasklogexp".equals(op))
-            return processExperimentTaskEventLog(req.getStr("accession"));
+        else if("tasklogtag".equals(op))
+            return processExperimentTaskEventLog(req.getEnum("type", TaskTagType.EXPERIMENT), req.getStr("accession"));
 
         else if("proplist".equals(op))
             return processPropertyList();
