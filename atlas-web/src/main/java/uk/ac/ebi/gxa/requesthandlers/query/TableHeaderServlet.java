@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import uk.ac.ebi.gxa.requesthandlers.query.DiagonalTextRenderer;
-
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

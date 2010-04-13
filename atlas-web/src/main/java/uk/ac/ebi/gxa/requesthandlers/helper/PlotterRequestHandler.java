@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
@@ -42,22 +43,12 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
     }
 
     public Object process(HttpServletRequest request) {
+        RequestWrapper req = new RequestWrapper(request);
 
-        String gid = request.getParameter("gid");
-        String eid = request.getParameter("eid");
-        String plotType = "bar";
-        String ef = "default";
-        String efv = "";
-
-        if(request.getParameter("plot") != null)
-            plotType = request.getParameter("plot");
-
-        if(request.getParameter("ef") != null && !request.getParameter("ef").equals(""))
-            ef = request.getParameter("ef");
-
-        if(request.getParameter("efv") != null)
-            efv = request.getParameter("efv");
-
-        return plotter.getGeneInExpPlotData(gid, eid, ef, efv, plotType);
+        String ef = req.getStr("ef");
+        if("".equals(ef))
+            ef = "default";
+        return plotter.getGeneInExpPlotData(req.getStr("gid"), req.getStr("eid"),
+                ef, req.getStr("efv"), req.getStr("plot"));
     }
 }

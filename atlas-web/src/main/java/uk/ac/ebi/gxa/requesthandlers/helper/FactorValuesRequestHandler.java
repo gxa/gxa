@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.AutoCompleter;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -56,32 +57,19 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
         this.autoCompleters = autoCompleters;
     }
 
-    public Object process(HttpServletRequest request) {
-        List<AutoCompleter> listers = null;
+    public Object process(HttpServletRequest request0) {
+        RequestWrapper request = new RequestWrapper(request0);
 
-        String type = request.getParameter("type");
-        if(type != null)
-             listers = autoCompleters.get(type);
+        List<AutoCompleter> listers = autoCompleters.get(request.getStr("type"));
 
 
         Map<String, Object> result = new HashMap<String, Object>();
 
-        String factor = request.getParameter("factor");
-        if(factor == null)
-            factor = "";
+        String factor = request.getStr("factor");
         result.put("factor", factor);
 
-        int nlimit = 100;
-        try {
-            nlimit = Integer.parseInt(request.getParameter("limit"));
-            if (nlimit > 1000) {
-                nlimit = 1000;
-            }
-        }
-        catch (Exception e) {
-            // just ignore
-        }
-        String[] queries = request.getParameterValues("q");
+        int nlimit = request.getInt("limit", 100, 1, 1000);
+        String[] queries = request.getStrArray("q");
 
         Map<String, List<AutoCompleteItem>> values = new ACMap();
         result.put("completions", values);
@@ -96,11 +84,8 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
             }
 
             Map<String, String> filters = new HashMap<String, String>();
-            String[] filtps = request.getParameterValues("f");
-            if (filtps != null) {
-                for (String filter : filtps) {
-                    filters.put(filter, request.getParameter(filter));
-                }
+            for (String filter : request.getStrArray("f")) {
+                filters.put(filter, request.getStr(filter));
             }
 
             List<AutoCompleteItem> resultList = new ACList();
