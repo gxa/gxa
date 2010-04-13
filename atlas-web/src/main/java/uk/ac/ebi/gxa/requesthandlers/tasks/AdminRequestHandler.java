@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -34,15 +35,6 @@ import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +42,6 @@ import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Task manager AJAX servlet
@@ -105,9 +96,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "accession", task.getTaskSpec().getAccession());
     }
 
-    private Object processTaskList(String pageStr, String numStr) {
-        int page = Math.max(0, Integer.valueOf(pageStr));
-        int num = Math.max(1, Integer.valueOf(numStr));
+    private Object processTaskList(int page, int num) {
 
         List<WorkingTask> working = taskManager.getWorkingTasks();
         List<Task> pending = taskManager.getQueuedTasks();
@@ -153,7 +142,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processSchedule(String taskType, String[] accessions, String runMode, String autoDepend, String remoteId, TaskUser user) {
+    private Object processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user) {
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
@@ -162,17 +151,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             long id = taskManager.scheduleTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
                     user,
-                    toBoolean(autoDepend),
+                    autoDepend,
                     WEB_REQ_MESSAGE + remoteId);
             result.put(accession,  id);
         }
         if(wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
         return result;
-    }
-
-    private static boolean toBoolean(String stringValue) {
-        return "1".equals(stringValue) || "true".equalsIgnoreCase(stringValue) || "yes".equalsIgnoreCase(stringValue);
     }
 
     private Object processCancel(String[] taskIds, String remoteId, TaskUser user) {
@@ -186,24 +171,26 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processGetStage(String taskType, String accession) {
-        TaskStatus stage = taskManager.getTaskStage(new TaskSpec(taskType, accession));
-        return makeMap("stage", stage.toString());
+    private enum ExpPending {
+        COMPLETE,
+        INCOMPLETE,
+        ALL
     }
 
     private Object processScheduleSearchExperiments(String type,
-                                                   String searchText, String fromDate, String toDate, String pendingOnlyStr,
-                                                   String runMode, String autoDepend, String remoteId, TaskUser user) {
+                                                   String searchText, String fromDate, String toDate, ExpPending pendingOnly,
+                                                   String runMode, boolean autoDepend, String remoteId, TaskUser user) {
+
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
-        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnly); i.hasNext();) {
             Experiment experiment = i.next().getFirst();
             long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     user,
-                    toBoolean(autoDepend), WEB_REQ_MESSAGE + remoteId);
+                    autoDepend, WEB_REQ_MESSAGE + remoteId);
             result.put(experiment.getAccession(),  id);
         }        
         if(wasRunning)
@@ -211,36 +198,38 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return result;
     }
 
-    private Object processSearchExperiments(String searchText, String fromDate, String toDate, String pendingOnlyStr) {
+    private Object processSearchExperiments(String searchText, String fromDate, String toDate, ExpPending pendingOnly, int page, int num) {
         List<Map> results = new ArrayList<Map>();
-        int numCollapsed = 0;
-        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnlyStr); i.hasNext();) {
+
+        int from = page * num;
+        int total = 0;
+        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnly); i.hasNext();) {
             Pair<Experiment, TaskStatus> e = i.next();
-            if(results.size() < 20)
+            if(total >= from && total < from + num)
                 results.add(makeMap(
                         "accession", e.getFirst().getAccession(),
                         "description", e.getFirst().getDescription(),
                         "analytics", e.getSecond().toString(),
                         "loadDate", e.getFirst().getLoadDate() != null ? IN_DATE_FORMAT.format(e.getFirst().getLoadDate()) : "unknown"));
-            else
-                ++numCollapsed;
+            ++total;
         }
         return makeMap(
                 "experiments", results,
-                "numCollapsed", numCollapsed,
-                "numTotal", numCollapsed + results.size(),
+                "page", page,
+                "numTotal", total,
                 "indexStage", taskManager.getTaskStage(new TaskSpec(IndexTask.TYPE, "")).toString()
                 );
     }
 
-    private Iterator<Pair<Experiment, TaskStatus>> getSearchExperiments(String searchTextStr,
-                                                                  String fromDateStr, String toDateStr,
-                                                                  String pendingOnlyStr) {
+    private Iterator<Pair<Experiment, TaskStatus>> getSearchExperiments(final String searchTextStr,
+                                                                        final String fromDateStr,
+                                                                        final String toDateStr,
+                                                                        final ExpPending pendingOnly)
+    {
         final String searchText = searchTextStr.toLowerCase();
-        final boolean pendingOnly = toBoolean(pendingOnlyStr);
 
-        final Date fromDate = parseDate(fromDateStr);
-        final Date toDate = parseDate(toDateStr);
+        final Date fromDate = parseDate(StringUtils.trimToNull(fromDateStr));
+        final Date toDate = parseDate(StringUtils.trimToNull(toDateStr));
 
         List<Experiment> experiments = dao.getExperimentByLoadDate(fromDate, toDate);
 
@@ -251,8 +240,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 boolean searchYes = "".equals(searchText)
                         || experiment.getAccession().toLowerCase().contains(searchText)
                         || experiment.getDescription().toLowerCase().contains(searchText);
-                boolean pendingYes = !pendingOnly
-                        || !TaskStatus.DONE.equals(analyticsState);
+                boolean pendingYes = pendingOnly == ExpPending.ALL
+                        || (pendingOnly == ExpPending.COMPLETE && TaskStatus.DONE.equals(analyticsState))
+                        || (pendingOnly == ExpPending.INCOMPLETE && !TaskStatus.DONE.equals(analyticsState));
                 return searchYes && pendingYes ? new Pair<Experiment, TaskStatus>(experiment, analyticsState) : null;
             }
         };
@@ -288,8 +278,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
-    private Object processTaskEventLog(String numStr) {
-        int num = Integer.valueOf(numStr);
+    private Object processTaskEventLog(int num) {
         return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()));
     }
 
@@ -327,6 +316,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     @SuppressWarnings("unchecked")
     public Object process(HttpServletRequest request) {
+        RequestWrapper req = new RequestWrapper(request);
 
 //        taskManager.setIndexBuilder(new IndexBuilder() {
 //            public void setIncludeIndexes(List<String> includeIndexes) {
@@ -385,19 +375,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 //            }
 //        });
 //
-        String op = request.getParameter("op");
+        String op = req.getStr("op");
 
-        String remoteId = request.getRemoteHost();
-        if(remoteId == null || "".equals(remoteId))
-            remoteId = request.getRemoteAddr();
-        if(remoteId == null || "".equals(remoteId))
-            remoteId = "unknown";
+        String remoteId = req.getRemoteHost();
 
-        HttpSession session = request.getSession(true);
+        HttpSession session = req.getSession(true);
 
         TaskUser authenticatedUser = (TaskUser)session.getAttribute(SESSION_ADMINUSER);
         if("login".equals(op)) {
-            authenticatedUser = checkLogin(request.getParameter("userName"), request.getParameter("password"));
+            authenticatedUser = checkLogin(req.getStr("userName"), req.getStr("password"));
             if(authenticatedUser == null) {
                 return EMPTY;
             }
@@ -416,60 +402,57 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processRestart();
 
         else if("tasklist".equals(op))
-            return processTaskList(request.getParameter("p"), request.getParameter("n"));
+            return processTaskList(req.getInt("p"), req.getInt("n", 1, 1));
 
         else if("schedule".equals(op))
             return processSchedule(
-                    request.getParameter("type"),
-                    request.getParameterValues("accession"),
-                    request.getParameter("runMode"),
-                    request.getParameter("autoDepends"),
+                    req.getStr("type"),
+                    req.getStrArray("accession"),
+                    req.getStr("runMode"),
+                    req.getBool("autoDepends"),
                     remoteId,
                     authenticatedUser);
 
         else if("cancel".equals(op))
-            return processCancel(request.getParameterValues("id"),
+            return processCancel(req.getStrArray("id"),
                     remoteId,
                     authenticatedUser);
 
         else if("cancelall".equals(op))
             return processCancelAll(remoteId, authenticatedUser);
 
-        else if("getstage".equals(op))
-            return processGetStage(
-                    request.getParameter("type"),
-                    request.getParameter("accession"));
-
         else if("searchexp".equals(op))
             return processSearchExperiments(
-                    request.getParameter("search"),
-                    request.getParameter("fromDate"),
-                    request.getParameter("toDate"),
-                    request.getParameter("pendingOnly"));
+                    req.getStr("search"),
+                    req.getStr("fromDate"),
+                    req.getStr("toDate"),
+                    req.getEnum("pendingOnly", ExpPending.ALL),
+                    req.getInt("p"),
+                    req.getInt("n", 1, 1));
 
         else if("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
-                    request.getParameter("type"),
-                    request.getParameter("search"),
-                    request.getParameter("fromDate"),
-                    request.getParameter("toDate"),
-                    request.getParameter("pendingOnly"),
-                    request.getParameter("runMode"),
-                    request.getParameter("autoDepends"),
+                    req.getStr("type"),
+                    req.getStr("search"),
+                    req.getStr("fromDate"),
+                    req.getStr("toDate"),
+                    req.getEnum("pendingOnly", ExpPending.ALL),
+                    req.getStr("runMode"),
+                    req.getBool("autoDepends"),
                     remoteId,
                     authenticatedUser);
 
         else if("tasklog".equals(op))
-            return processTaskEventLog(request.getParameter("num"));
+            return processTaskEventLog(req.getInt("num"));
 
         else if("tasklogexp".equals(op))
-            return processExperimentTaskEventLog(request.getParameter("accession"));
+            return processExperimentTaskEventLog(req.getStr("accession"));
 
         else if("proplist".equals(op))
             return processPropertyList();
 
         else if("propset".equals(op))
-            return processPropertySet((Map<String,String[]>)request.getParameterMap());
+            return processPropertySet(req.getMap());
 
         else if("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);

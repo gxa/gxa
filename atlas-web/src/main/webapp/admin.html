@@ -62,7 +62,7 @@
 <ul>
     <li><a href="#tab-load">Load</a></li>
     <li><a href="#tab-que">Queue</a></li>
-    <li><a href="#tab-exp">Loaded Experiments</a></li>
+    <li><a href="#tab-exp">Experiments</a></li>
     <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
 </ul>
@@ -73,19 +73,26 @@
             <table>
                 <tr>
                     <td class="label"><label for="experimentSearch">Experiment:</label></td>
-                    <td>
+                    <td colspan="2">
                         <input type="text" id="experimentSearch" class="value" style="width:400px;">
                     </td>
-                    <td class="label2"><label for="incompleteOnly">Incomplete only:</label></td>
-                    <td><input type="checkbox" id="incompleteOnly" value="1"></td>
+                    <td>
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    </td>
                 </tr>
                 <tr>
                     <td class="label"><label for="dateFrom">Load date:</label></td>
-                    <td><input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value"></td>
-                    <td style="padding-left:20px;">
-                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    <td>
+                        <input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value">
                     </td>
-                    <td></td>
+                    <td style="padding-left:20px;" align="right">
+                        <select id="incompleteOnly" style="width:100%">                            
+                            <option value="ALL">Any status</option>
+                            <option value="COMPLETE">Complete only</option>
+                            <option value="INCOMPLETE">Incomplete only</option>
+                        </select>
+                    </td>
+                    <td></td>                    
                 </tr>
             </table>
         </form>
@@ -122,8 +129,10 @@
                     <td class="sel">
                         <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
                     </td>
-                    <td colspan="3" class="selall">
-                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s), which are not shown</label>
+                    <td colspan="5" class="selall">
+                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s) on pages </label>
+                        &nbsp;&nbsp;&nbsp;                        
+                        <span id="expPages" class="pagination_ie"></span>
                     </td>
                 </tr>
                 <tr class="expall">
@@ -131,7 +140,7 @@
                         <input id="selectAll" type="checkbox">
                     </td>
                     <td colspan="5" class="selall">
-                        <label for="selectAll">Select all results <span class="expcoll">(including hidden)</span></label>
+                        <label for="selectAll">Select all results <span class="expcoll">(on all pages)</span></label>
                     </td>
                 </tr>
             </tbody>

@@ -118,23 +118,23 @@ input.date { width: 70px; }
     color: inherit;
 }
 
-#experimentList table.results td.stage {
-    padding-right: 10px;
-    border-left: none;
-    width: 80%;
+#experimentList table.results td.analytics, #experimentList table.results td.loaddate {
+    white-space:nowrap;
 }
 
 #experimentList table.results td.selall {
     padding-left: 10px;
     border-left: none;
     color: #005555;
-    font-weight: bold;
 }
 
 #experimentList table.results tr.expcoll td {
     padding-top: 10px;
     padding-bottom: 10px;
     color: #aaaaaa;
+}
+
+#experimentList .expcoll label, .selall label {
     font-weight: bold;
 }
 

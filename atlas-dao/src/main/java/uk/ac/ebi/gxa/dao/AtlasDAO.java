@@ -84,16 +84,16 @@ public class AtlasDAO {
 
     public static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
-                    "FROM a2_experiment";
+                    "FROM a2_experiment ORDER BY accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
-                    "FROM a2_experiment WHERE loaddate >= ?";
+                    "FROM a2_experiment WHERE loaddate >= ? ORDER BY accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_TO =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
-                    "FROM a2_experiment WHERE loaddate <= ?";
+                    "FROM a2_experiment WHERE loaddate <= ? ORDER BY accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_BETWEEN =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
-                    "FROM a2_experiment WHERE loaddate BETWEEN ? AND ?";
+                    "FROM a2_experiment WHERE loaddate BETWEEN ? AND ? ORDER BY accession";
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
             "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
                     "FROM a2_experiment e, load_monitor lm " +

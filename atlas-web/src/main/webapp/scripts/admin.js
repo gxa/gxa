@@ -30,6 +30,7 @@ var $tab = {};
 var $options = {
     queueRefreshRate: 5000,
     queuePageSize: 20,
+    experimentPageSize: 20,
     searchDelay: 500,
     logNumItems: 20
 };
@@ -169,10 +170,12 @@ function switchToQueue() {
 function updateBrowseExperiments() {
     adminCall('searchexp', {
 
+        p: currentState['exp-p'] || 0,
+        n: $options.experimentPageSize,
         search: $('#experimentSearch').val(),
         fromDate: $('#dateFrom').val(),
         toDate: $('#dateTo').val(),
-        pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0
+        pendingOnly: $('#incompleteOnly').val()
 
     }, function (result) {
 
@@ -188,7 +191,29 @@ function updateBrowseExperiments() {
                 $('#experimentList .opbuttons input').attr('disabled', 'disabled');
         }
 
+        if(result.page * $options.experimentPageSize > result.numTotal && result.numTotal > 0) {
+            currentState['exp-p'] = Math.floor((result.numTotal - 1) / $options.experimentPageSize);
+            storeState();
+            updateBrowseExperiments();
+            return;
+        }
+
         renderTpl('experimentList', result);
+
+        $('#expPages').pagination(result.numTotal, {
+            current_page: result.page,
+            num_edge_entries: 2,
+            num_display_entries: 5,
+            items_per_page: $options.experimentPageSize,
+            prev_text: "Prev",
+            next_text: "Next",
+            callback: function(page) {
+                currentState['exp-p'] = page;
+                storeState();
+                updateBrowseExperiments();
+                return false;
+            }});
+
 
         $('#experimentList a.history').each(function (i,e) {
             var expShowHistory = function() {
@@ -265,7 +290,7 @@ function updateBrowseExperiments() {
                         search: $('#experimentSearch').val(),
                         fromDate: $('#dateFrom').val(),
                         toDate: $('#dateTo').val(),
-                        pendingOnly: $('#incompleteOnly').is(':checked') ? 1 : 0,
+                        pendingOnly: $('#incompleteOnly').val(),
                         autoDepends: autoDep
                     }, switchToQueue);
                 } else {
@@ -343,7 +368,7 @@ function updateQueue() {
                 num_edge_entries: 2,
                 num_display_entries: 5,
                 items_per_page: $options.queuePageSize,
-                prev_text: "prev",
+                prev_text: "Prev",
                 next_text: "Next",
                 callback: function(page) {
                     currentState['que-p'] = page;
@@ -452,7 +477,7 @@ function redrawCurrentState() {
     if(currentState['exp-dt'] != null)
         $('#dateTo').val(currentState['exp-dt']);
     if(currentState['exp-io'] != null)
-        $('#incompleteOnly').attr('checked', currentState['exp-io'] == 1);
+        $('#incompleteOnly').val(currentState['exp-io']);
     if(currentState['tab'] == $tab.exp) {
         $('#tabs').tabs('select', $tab.exp);
         updateBrowseExperiments();
@@ -478,7 +503,7 @@ function storeExperimentsFormState() {
     currentState['exp-s'] = $('#experimentSearch').val(); 
     currentState['exp-df'] = $('#dateFrom').val();
     currentState['exp-dt'] = $('#dateTo').val();
-    currentState['exp-io'] = $('#incompleteOnly').is(':checked') ? 1 : 0;
+    currentState['exp-io'] = $('#incompleteOnly').val();
     storeState();
 }
 
@@ -522,9 +547,9 @@ function compileTemplates() {
         '.expall@style': function (r) { return r.context.experiments.length ? '' : 'display:none'; },
         '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
 
-        '.expcoll@style': function (r) { return r.context.numCollapsed > 0 ? '' : 'display:none'; },
+        '.expcoll@style': function (r) { return r.context.numTotal > $options.experimentPageSize ? '' : 'display:none'; },
         '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
-        '.numcoll': 'numCollapsed',
+        '.numcoll': function (r) { return r.context.numTotal - $options.experimentPageSize; },
 
         '.rebuildIndex .label': function (r) { return r.context.indexStage == 'DONE' ? 'Index build is complete' : 'Index build is incomplete'; }
     });
@@ -625,7 +650,7 @@ $(document).ready(function () {
         return false;
     });
 
-    $('#incompleteOnly').bind('click', function () {
+    $('#incompleteOnly').bind('change', function () {
         storeExperimentsFormState();
         updateBrowseExperiments();
     });
