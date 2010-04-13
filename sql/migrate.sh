@@ -20,10 +20,13 @@ if [ -d $DATA_FOLDER ]; then
 else
     mkdir $DATA_FOLDER
     echo "Exporting data for migration..."
-    export_data_for_migration $AEW_CONNECTION
+    export_data_for_migration $AEW_CONNECTION $DATA_FOLDER
 fi
 
 echo "Dropping all objects..."
+sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
+sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
+sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
 sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
 
 echo "Creating schema..."
