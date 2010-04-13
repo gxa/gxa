@@ -228,8 +228,7 @@ public class AtlasDAO {
             "SELECT accession, type, name, provider, arraydesignid " +
                     "FROM a2_arraydesign ORDER BY accession";
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
-            ARRAY_DESIGN_SELECT + " " +
-                    "WHERE accession=?";
+                    "SELECT accession, type, name, provider, arraydesignid FROM a2_arraydesign WHERE accession=?";
     public static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
             "SELECT " +
                     "DISTINCT d.accession, d.type, d.name, d.provider, d.arraydesignid " +
