@@ -31,6 +31,7 @@ var $options = {
     queueRefreshRate: 5000,
     queuePageSize: 20,
     experimentPageSize: 20,
+    arraydesignPageSize: 20,
     searchDelay: 500,
     logNumItems: 20
 };
@@ -167,6 +168,32 @@ function switchToQueue() {
     $('#tabs').tabs('select', $tab.que);
 }
 
+function bindHistoryExpands(root, type, items) {
+    root.find('a.history').each(function (i,e) {
+        var showHistory = function() {
+            adminCall('tasklogtag', {
+                type: type.toUpperCase(),
+                accession: items[i].accession
+            }, function(logresult) {
+                var newc = $('<td/>').addClass('expLog').attr('colspan', $(e).parents('tr:first').find('td').length);
+                var tr = $('<tr/>').append(newc);
+                $(e).parents('tr:first').after(tr);
+                newc.appendClassTpl(logresult, 'expTaskLog');
+                $(e).parents('td:first').css('background', '#cdcdcd');
+                $(e).text('Hide history').unbind('click').click(function () {
+                    tr.remove();
+                    $(e).text('Show history').click(showHistory);
+                    $(e).parents('td:first').css('background', 'inherit');
+                    return false;
+                });
+            });
+            return false;
+        };
+
+        $(e).unbind('click').click(showHistory);
+    });
+}
+
 function updateBrowseExperiments() {
     adminCall('searchexp', {
 
@@ -214,29 +241,7 @@ function updateBrowseExperiments() {
                 return false;
             }});
 
-
-        $('#experimentList a.history').each(function (i,e) {
-            var expShowHistory = function() {
-                adminCall('tasklogexp', {
-                    accession: result.experiments[i].accession
-                }, function(logresult) {
-                    var newc = $('<td/>').addClass('expLog').attr('colspan', $(e).parents('tr:first').find('td').length);
-                    var tr = $('<tr/>').append(newc);
-                    $(e).parents('tr:first').after(tr);
-                    newc.appendClassTpl(logresult, 'expTaskLog');
-                    $(e).parents('td:first').css('background', '#cdcdcd');
-                    $(e).text('Hide history').unbind('click').click(function () {
-                        tr.remove();
-                        $(e).text('Show history').click(expShowHistory);
-                        $(e).parents('td:first').css('background', 'inherit');
-                        return false;
-                    });
-                });
-                return false;
-            };
-
-            $(e).unbind('click').click(expShowHistory);
-        });
+        bindHistoryExpands($('#experimentList'), 'experiment', result.experiments);
 
         $('#experimentList tr input.selector').click(function () {
             if($(this).is(':checked'))
@@ -465,6 +470,42 @@ function saveProperties() {
     adminCall('propset', newValues, updateProperties);
 }
 
+function updateArrayDesigns() {
+    adminCall('searchad', {
+        search: currentState['ad-s'] || "",
+        p: currentState['ad-p'] || 0,
+        n: $options.arraydesignPageSize
+    }, function (result) {
+        if(result.page * $options.arraydesignPageSize > result.numTotal && result.numTotal > 0) {
+            currentState['ad-p'] = Math.floor((result.numTotal - 1) / $options.arraydesignPageSize);
+            storeState();
+            updateArrayDesigns();
+            return;
+        }
+
+        renderTpl('adList', result);
+
+        if(result.numTotal > $options.arraydesignPageSize)
+            $('#adPages').pagination(result.numTotal, {
+                current_page: result.page,
+                num_edge_entries: 2,
+                num_display_entries: 5,
+                items_per_page: $options.arraydesignPageSize,
+                prev_text: "Prev",
+                next_text: "Next",
+                callback: function(page) {
+                    currentState['ad-p'] = page;
+                    storeState();
+                    updateArrayDesigns();
+                    return false;
+                }});
+        else
+            $('#adPages').empty();
+
+        bindHistoryExpands($('#adList'), 'arraydesign', result.arraydesigns);
+    });
+}
+
 function redrawCurrentState() {
     for(var timeout in $time) {
         clearTimeout($time[timeout]);
@@ -478,6 +519,8 @@ function redrawCurrentState() {
         $('#dateTo').val(currentState['exp-dt']);
     if(currentState['exp-io'] != null)
         $('#incompleteOnly').val(currentState['exp-io']);
+    if(currentState['ad-s'] != null)
+        $('#adSearch').val(currentState['ad-s']);
     if(currentState['tab'] == $tab.exp) {
         $('#tabs').tabs('select', $tab.exp);
         updateBrowseExperiments();
@@ -492,6 +535,9 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.prop) {
         updateProperties();
         $('#tabs').tabs('select', $tab.prop);
+    } else if(currentState['tab'] == $tab.ad) {
+        updateArrayDesigns();
+        $('#tabs').tabs('select', $tab.ad);
     } else {
         $('#tabs').tabs('select', $tab.exp);
         $('#experimentSearch').val('');
@@ -500,7 +546,7 @@ function redrawCurrentState() {
 }
 
 function storeExperimentsFormState() {
-    currentState['exp-s'] = $('#experimentSearch').val(); 
+    currentState['exp-s'] = $('#experimentSearch').val();
     currentState['exp-df'] = $('#dateFrom').val();
     currentState['exp-dt'] = $('#dateTo').val();
     currentState['exp-io'] = $('#incompleteOnly').val();
@@ -596,6 +642,18 @@ function compileTemplates() {
         }
     });
 
+    compileTpl('adList', {
+        '.none@style': function (r) { return r.context.arraydesigns.length ? 'display:none' : ''; },
+        'thead@style': function(r) { return r.context.arraydesigns.length ? '' : 'display:none'; },
+        'tbody tr' : {
+            'ad <- arraydesigns': {
+                '.accession': 'ad.accession',
+                '.provider': 'ad.provider',
+                '.description': 'ad.description'
+            }
+        }
+    });
+
     compileClassTpl('expTaskLog', {
         '.none@style': function (r) { return r.context.items.length ? 'display:none' : ''; },
         'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
@@ -655,26 +713,11 @@ $(document).ready(function () {
         updateBrowseExperiments();
     });
 
-    $('#experimentSearch').bind('keydown', function (event) {
-        var keycode = event.keyCode;
-        if(keycode == 13) {
-            clearTimeout($time.search);
-            $time.search = null;
-            storeExperimentsFormState();
-            updateBrowseExperiments();
-        } else if((keycode == 8 || keycode == 46 ||
-                  (keycode >= 48 && keycode <= 90) ||      // 0-1a-z
-                  (keycode >= 96 && keycode <= 111) ||     // numpad 0-9 + - / * .
-                  (keycode >= 186 && keycode <= 192) ||    // ; = , - . / ^
-                  (keycode >= 219 && keycode <= 222))
-                && $(this).val().length > 2) {
-
-            clearTimeout($time.search);
-            $time.search = setTimeout(function () {
-                storeExperimentsFormState();
-                updateBrowseExperiments();
-            }, $options.searchDelay);
-        }
+    $('#adBrowseForm').submit(function () {
+        currentState['ad-s'] = $('#adSearch').val();
+        storeState();
+        updateArrayDesigns();
+        return false;
     });
 
     $('#loadExperimentButton').click(function () {

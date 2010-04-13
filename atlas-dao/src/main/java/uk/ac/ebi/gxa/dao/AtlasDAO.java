@@ -226,7 +226,7 @@ public class AtlasDAO {
     // array and design element queries
     public static final String ARRAY_DESIGN_SELECT =
             "SELECT accession, type, name, provider, arraydesignid " +
-                    "FROM a2_arraydesign";
+                    "FROM a2_arraydesign ORDER BY accession";
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
             ARRAY_DESIGN_SELECT + " " +
                     "WHERE accession=?";

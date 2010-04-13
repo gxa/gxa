@@ -197,15 +197,15 @@ public class DbStorage implements PersistentStorage {
     }
 
     @SuppressWarnings("unchecked")
-    public List<TaskEventLogItem> getExperimentHistory(String accession) {
-        String type = TaskTagType.EXPERIMENT.toString().toLowerCase();
+    public List<TaskEventLogItem> getTaggedHistory(TaskTagType tagtype, String tag) {
+        String type = tagtype.toString().toLowerCase();
         return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM A2_TASKMAN_LOG " +
                 "WHERE TASKID IN (" +
                 "  select taskcloudid from a2_taskman_tag where tagtype=? and tag=? " +
                 "  union " +
                 "  select taskid from a2_taskman_tagtasks tt join a2_taskman_tag t on t.taskcloudid=tt.taskcloudid and t.tagtype=? and t.tag=?" +
                 ") ORDER BY TIME ASC",
-                new Object[] { type, accession, type, accession },
+                new Object[] { type, tag, type, tag },
                 LOG_ROWMAPPER);
     }
 }
