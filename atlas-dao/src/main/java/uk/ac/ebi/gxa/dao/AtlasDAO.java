@@ -113,8 +113,8 @@ public class AtlasDAO {
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            EXPERIMENTS_SELECT + " " +
-                    "WHERE accession=?";
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment WHERE accession=?";
 
     // gene queries
     public static final String GENES_COUNT =
