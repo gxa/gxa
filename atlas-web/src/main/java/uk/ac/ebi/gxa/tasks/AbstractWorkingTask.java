@@ -24,38 +24,46 @@ package uk.ac.ebi.gxa.tasks;
 /**
  * @author pashky
  */
-public abstract class AbstractWorkingTask implements WorkingTask {
-    private final Task prototype;
+public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {
+    private final long taskId;
+    private final TaskSpec taskSpec;
+    private TaskRunMode runMode;
+    private final TaskUser user;
+    private final boolean runningAutoDependencies;
 
     protected final TaskManager taskMan;
     protected volatile String currentProgress;
     private long startTime;
 
-    public AbstractWorkingTask(final TaskManager taskMan, final Task prototype) {
+    protected AbstractWorkingTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        this.taskId = taskId;
+        this.taskSpec = taskSpec;
+        this.runMode = runMode;
+        this.user = user;
+        this.runningAutoDependencies = runningAutoDependencies;
         this.taskMan = taskMan;
-        this.prototype = prototype;
         this.currentProgress = "";
         this.startTime = System.currentTimeMillis();
     }
 
     public TaskSpec getTaskSpec() {
-        return prototype.getTaskSpec();
+        return taskSpec;
     }
 
     public TaskRunMode getRunMode() {
-        return prototype.getRunMode();
+        return runMode;
     }
 
     public long getTaskId() {
-        return prototype.getTaskId();
+        return taskId;
     }
 
     public TaskUser getUser() {
-        return prototype.getUser();
+        return user;
     }
 
     public boolean isRunningAutoDependencies() {
-        return prototype.isRunningAutoDependencies();
+        return runningAutoDependencies;
     }
 
     public String getCurrentProgress() {
@@ -66,7 +74,24 @@ public abstract class AbstractWorkingTask implements WorkingTask {
         return System.currentTimeMillis() - startTime;
     }
     
-    TaskStatus getCurrentStatus() {
-        return taskMan.getTaskStage(getTaskSpec());
+    public void setRunMode(TaskRunMode runMode) {
+        this.runMode = runMode; 
+    }
+
+    public WorkingTask getWorkingTask() {
+        return this;
+    }
+
+    protected boolean nothingToDo() {
+        if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(taskMan.getTaskStatus(getTaskSpec()))) {
+            taskMan.writeTaskLog(this, TaskEvent.SKIPPED, "");
+            taskMan.notifyTaskFinished(this);
+            return true;
+        }
+        return false;
+    }
+
+    protected void startTimer() {
+        this.startTime = System.currentTimeMillis();
     }
 }

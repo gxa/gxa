@@ -39,18 +39,15 @@ public class AnalyticsTask extends AbstractWorkingTask {
     
     public static final String TYPE = "analytics";
 
-    private boolean stop;
+    private boolean stop = false;
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(getCurrentStatus())) {
-                    taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.SKIPPED, "");
-                    taskMan.notifyTaskFinished(AnalyticsTask.this);
+                if(nothingToDo())
                     return;
-                }
 
-                stop = false;
+                startTimer();
                 final AtomicReference<AnalyticsGenerationEvent> result = new AtomicReference<AnalyticsGenerationEvent>(null);
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
                 taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.STARTED, "");
@@ -109,8 +106,8 @@ public class AnalyticsTask extends AbstractWorkingTask {
         thread.start();
     }
 
-    private AnalyticsTask(final TaskManager queue, final Task prototype) {
-        super(queue, prototype);
+    public AnalyticsTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(AnalyticsTask.this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
 
@@ -118,21 +115,19 @@ public class AnalyticsTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
-        public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new AnalyticsTask(queue, prototype);
+    public boolean isBlockedBy(Task otherTask) {
+        return Arrays.asList(
+                LoaderTask.TYPE_EXPERIMENT
+        ).contains(otherTask.getTaskSpec().getType());
+    }
+
+    public static final TaskFactory FACTORY = new TaskFactory() {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+            return new AnalyticsTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
-        public boolean isForType(TaskSpec taskSpec) {
+        public boolean isFor(TaskSpec taskSpec) {
             return TYPE.equals(taskSpec.getType());
         }
-
-        public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return Arrays.asList(
-                    LoaderTask.TYPE_EXPERIMENT
-            ).contains(by.getType());
-        }
     };
-
-
 }
