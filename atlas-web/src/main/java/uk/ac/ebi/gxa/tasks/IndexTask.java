@@ -29,7 +29,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author pashky
@@ -40,59 +39,36 @@ public class IndexTask extends AbstractWorkingTask {
     public static final String TYPE = "index";
 
     public void start() {
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                if(nothingToDo())
-                    return;
+        if(nothingToDo())
+            return;
 
-                startTimer();
-                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
-                taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
-                final AtomicReference<IndexBuilderEvent> result = new AtomicReference<IndexBuilderEvent>(null);
-                taskMan.getIndexBuilder().buildIndex(new IndexBuilderListener() {
-                    public void buildSuccess(IndexBuilderEvent event) {
-                        synchronized (IndexTask.this) {
-                            result.set(event);
-                            IndexTask.this.notifyAll();
-                        }
-                    }
-
-                    public void buildError(IndexBuilderEvent event) {
-                        synchronized (IndexTask.this) {
-                            result.set(event);
-                            IndexTask.this.notifyAll();
-                        }
-                    }
-
-                    public void buildProgress(String progressStatus) {
-                        currentProgress = progressStatus;
-                    }
-                });
-
-                synchronized (IndexTask.this) {
-                    while(result.get() == null) {
-                        try {
-                            IndexTask.this.wait();
-                        } catch(InterruptedException e) {
-                            // continue
-                        }
-                    }
-                }
-
-                if(result.get().getStatus() == IndexBuilderEvent.Status.SUCCESS) {
+        startTimer();
+        taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+        taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
+        try {
+            taskMan.getIndexBuilder().buildIndex(new IndexBuilderListener() {
+                public void buildSuccess(IndexBuilderEvent event) {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
-                } else {
-                    for(Throwable e : result.get().getErrors()) {
+                    taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
+                }
+
+                public void buildError(IndexBuilderEvent event) {
+                    for(Throwable e : event.getErrors()) {
                         log.error("Task failed because of:", e);
                     }
-                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
+                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
+                    taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
                 }
-                taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
-            }
-        });
-        thread.setName("IndexTaskThread-" + getTaskSpec() + "-" + getTaskId());
-        thread.start();
+
+                public void buildProgress(String progressStatus) {
+                    currentProgress = progressStatus;
+                }
+            });
+        } catch(Throwable e) {
+            taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, e.toString());
+            taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
+        }
     }
 
     public void stop() {
