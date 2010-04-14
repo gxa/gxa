@@ -29,7 +29,6 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author pashky
@@ -39,71 +38,50 @@ public class AnalyticsTask extends AbstractWorkingTask {
     
     public static final String TYPE = "analytics";
 
-    private boolean stop = false;
+    private volatile boolean stop = false;
 
     public void start() {
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                if(nothingToDo())
-                    return;
+        if(nothingToDo())
+            return;
 
-                startTimer();
-                final AtomicReference<AnalyticsGenerationEvent> result = new AtomicReference<AnalyticsGenerationEvent>(null);
-                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
-                taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.STARTED, "");
-                taskMan.getAnalyticsGenerator().generateAnalyticsForExperiment(getTaskSpec().getAccession(),
-                        new AnalyticsGeneratorListener() {
-                            public void buildSuccess(AnalyticsGenerationEvent event) {
-                                synchronized (AnalyticsTask.this) {
-                                    result.set(event);
-                                    AnalyticsTask.this.notifyAll();
-                                }
-                            }
+        startTimer();
+        taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+        taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.STARTED, "");
+        
+        try {
+            taskMan.getAnalyticsGenerator().generateAnalyticsForExperiment(getTaskSpec().getAccession(),
+                    new AnalyticsGeneratorListener() {
+                        public void buildSuccess(AnalyticsGenerationEvent event) {
+                            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "Successfully");
+                            taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                            public void buildError(AnalyticsGenerationEvent event) {
-                                synchronized (AnalyticsTask.this) {
-                                    result.set(event);
-                                    AnalyticsTask.this.notifyAll();
-                                }
+                            TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
+                            taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
+                            if(!stop && isRunningAutoDependencies()) {
+                                taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                                        "Automatically added by experiment " + getTaskSpec().getAccession() + " processing task");
                             }
-
-                            public void buildProgress(String progressStatus) {
-                                if(progressStatus.length() > 0)
-                                    log.info(progressStatus);
-                                currentProgress = progressStatus;
-                            }
-                        });
-                synchronized (AnalyticsTask.this) {
-                    while(result.get() == null)
-                        try {
-                            AnalyticsTask.this.wait();
-                        } catch (InterruptedException e) {
-                            // skip
+                            taskMan.notifyTaskFinished(AnalyticsTask.this);
                         }
-                }
-                if(result.get().getStatus() == AnalyticsGenerationEvent.Status.SUCCESS) {
-                    taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "Successfully");
-                    taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                    TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
-                    taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
-                    if(!stop && isRunningAutoDependencies()) {
-                        taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
-                                "Automatically added by experiment " + getTaskSpec().getAccession() + " processing task");
-                    }
+                        public void buildError(AnalyticsGenerationEvent event) {
+                            for(Throwable e : event.getErrors()) {
+                                log.error("Task failed because of:", e);
+                            }
+                            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
+                            taskMan.notifyTaskFinished(AnalyticsTask.this);
+                        }
 
-                } else {
-                    for(Throwable e : result.get().getErrors()) {
-                        log.error("Task failed because of:", e);
-                    }
-                    taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
-                }
-                taskMan.notifyTaskFinished(AnalyticsTask.this);
-            }
-        });
-
-        thread.setName("AnalyticsTaskThread-" + getTaskSpec() + "-" + getTaskId());
-        thread.start();
+                        public void buildProgress(String progressStatus) {
+                            if(progressStatus.length() > 0)
+                                log.info(progressStatus);
+                            currentProgress = progressStatus;
+                        }
+                    });
+        } catch(Throwable e) {
+            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, e.toString());
+            taskMan.notifyTaskFinished(AnalyticsTask.this);
+        }
     }
 
     public AnalyticsTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {

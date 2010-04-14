@@ -266,6 +266,7 @@ public class TaskManager implements InitializingBean {
 
     private void runNextTask() {
         synchronized (this) {
+            List<WorkingTask> toStart = new ArrayList<WorkingTask>();
             ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
             while(queueIterator.hasNext()) {
                 if(workingTasks.size() >= maxWorkingTasks)
@@ -282,9 +283,11 @@ public class TaskManager implements InitializingBean {
                     log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
                     WorkingTask workingTask = nextTask.getWorkingTask();
                     workingTasks.add(workingTask);
-                    workingTask.start();
+                    toStart.add(workingTask);
                 }
             }
+            for(WorkingTask ts : toStart)
+                ts.start();
         }
     }
 

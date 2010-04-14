@@ -40,111 +40,82 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_EXPERIMENT = "loadexperiment";
     public static final String TYPE_ARRAYDESIGN = "loadarraydesign";    
 
-    private static class TaskInternalError extends Exception { }
-
-    private boolean stop = false;
+    private volatile boolean stop = false;
 
     public void start() {
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                if(nothingToDo())
-                    return;
+        if(nothingToDo())
+            return;
 
-                startTimer();
-                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
-                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.STARTED, "");
-                final AtomicReference<AtlasLoaderEvent> result = new AtomicReference<AtlasLoaderEvent>(null);
+        startTimer();
+        taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
+        taskMan.writeTaskLog(LoaderTask.this, TaskEvent.STARTED, "");
 
-                try {
-                    AtlasLoaderListener listener = new AtlasLoaderListener() {
-                        public void loadSuccess(AtlasLoaderEvent event) {
-                            synchronized (LoaderTask.this) {
-                                result.set(event);
-                                LoaderTask.this.notifyAll();
-                            }
+        AtlasLoaderListener listener = new AtlasLoaderListener() {
+            public void loadSuccess(AtlasLoaderEvent event) {
+                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FINISHED, "");
+                taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
+
+                for(String accession : event.getAccessions()) {
+                    if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
+                        taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
+
+                        TaskSpec experimentTask = new TaskSpec(AnalyticsTask.TYPE, accession);
+                        taskMan.updateTaskStage(experimentTask, TaskStatus.INCOMPLETE);
+
+                        if(!stop && isRunningAutoDependencies()) {
+                            taskMan.scheduleTask(
+                                    LoaderTask.this,
+                                    experimentTask,
+                                    TaskRunMode.RESTART,
+                                    getUser(),
+                                    true,
+                                    "Automatically added by experiment " + getTaskSpec().getAccession() + " loading task");
                         }
+                    } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType())) {
+                        taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
-                        public void loadError(AtlasLoaderEvent event) {
-                            synchronized (LoaderTask.this) {
-                                result.set(event);
-                                LoaderTask.this.notifyAll();
-                            }
-                        }
-
-                        public void loadProgress(String progress) {
-                            currentProgress = progress;
-                        }
-                    };
-
-                    taskMan.getLoader().setPossibleQTypes(taskMan.getAtlasProperties().getPossibleQuantitaionTypes());
-
-                    if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
-                        taskMan.getLoader().loadExperiment(new URL(getTaskSpec().getAccession()), listener);
-                    else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()))
-                        taskMan.getLoader().loadArrayDesign(new URL(getTaskSpec().getAccession()), listener);
-                    else
-                        throw new TaskInternalError();
-
-                    synchronized (LoaderTask.this) {
-                        while(result.get() == null) {
-                            try {
-                                LoaderTask.this.wait();
-                            } catch(InterruptedException e) {
-                                // continue
-                            }
+                        TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
+                        taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
+                        if(!stop && isRunningAutoDependencies()) {
+                            taskMan.scheduleTask(LoaderTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
+                                    "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                         }
                     }
-
-                    if(result.get().getStatus() == AtlasLoaderEvent.Status.SUCCESS) {
-                        taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FINISHED, "");
-                        taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
-
-                        for(String accession : result.get().getAccessions()) {
-                            if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
-                                taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
-
-                                TaskSpec experimentTask = new TaskSpec(AnalyticsTask.TYPE, accession);
-                                taskMan.updateTaskStage(experimentTask, TaskStatus.INCOMPLETE);
-
-                                if(!stop && isRunningAutoDependencies()) {
-                                    taskMan.scheduleTask(
-                                            LoaderTask.this,
-                                            experimentTask,
-                                            TaskRunMode.RESTART,
-                                            getUser(),
-                                            true,
-                                            "Automatically added by experiment " + getTaskSpec().getAccession() + " loading task");
-                                }
-                            } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType())) {
-                                taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
-
-                                TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
-                                taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
-                                if(!stop && isRunningAutoDependencies()) {
-                                    taskMan.scheduleTask(LoaderTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
-                                            "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
-                                }
-                            } else
-                                throw new TaskInternalError();
-                        }
-                    } else {
-                        for(Throwable e : result.get().getErrors()) {
-                            log.error("Task failed because of:", e);
-                        }
-                        taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, StringUtils.join(result.get().getErrors(), '\n'));
-                    }
-
-                } catch(MalformedURLException e) {
-                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
-                } catch(TaskInternalError e) {
-                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Impossible happened");
                 }
-
-                taskMan.notifyTaskFinished(LoaderTask.this); // it's waiting for this
+                taskMan.notifyTaskFinished(LoaderTask.this);
             }
-        });
-        thread.setName("LoaderTaskThread-" + getTaskSpec() + "-" + getTaskId());
-        thread.start();
+
+            public void loadError(AtlasLoaderEvent event) {
+                for(Throwable e : event.getErrors()) {
+                    log.error("Task failed because of:", e);
+                }
+                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
+                taskMan.notifyTaskFinished(LoaderTask.this);
+            }
+
+            public void loadProgress(String progress) {
+                currentProgress = progress;
+            }
+        };
+
+        taskMan.getLoader().setPossibleQTypes(taskMan.getAtlasProperties().getPossibleQuantitaionTypes());
+
+        try {
+            if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
+                taskMan.getLoader().loadExperiment(new URL(getTaskSpec().getAccession()), listener);
+            else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()))
+                taskMan.getLoader().loadArrayDesign(new URL(getTaskSpec().getAccession()), listener);
+            else {
+                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Impossible happened");
+                taskMan.notifyTaskFinished(LoaderTask.this);
+            }
+        } catch(MalformedURLException e) {
+            taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
+            taskMan.notifyTaskFinished(LoaderTask.this);
+        } catch (Throwable e) {
+            taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, e.toString());
+            taskMan.notifyTaskFinished(LoaderTask.this);
+        }
     }
 
     public void stop() {
