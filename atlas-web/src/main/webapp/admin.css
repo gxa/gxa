@@ -188,9 +188,7 @@ a.history {
 #taskList td.progress {
     width: 50%;
 }
-#taskList td.state { border-right: none; }
-#taskList td.runMode { border-left: none; }
-#taskList td.type { border-right: none;white-space:nowrap; }
+#taskList .type { white-space:nowrap; }
 
 #taskLog td.event {
     color: #005555; font-weight: bold; white-space:nowrap;

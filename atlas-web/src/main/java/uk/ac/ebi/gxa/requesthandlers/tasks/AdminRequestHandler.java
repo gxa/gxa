@@ -303,8 +303,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
-    private Object processTaskEventLog(int num) {
-        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getLastTaskEventLogItems(num).iterator()));
+    private Object processTaskEventLog(int page, int num) {
+        int start = page * num;
+        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getTaskLogItems(start, num).iterator()),
+                "numTotal", taskManagerDbStorage.getTaskLogItemNum(),
+                "page", page);
     }
 
     private Object processExperimentTaskEventLog(TaskTagType tagtype, String accession) {
@@ -452,13 +455,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getStr("fromDate"),
                     req.getStr("toDate"),
                     req.getEnum("pendingOnly", ExpPending.ALL),
-                    req.getInt("p"),
+                    req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
         else if("searchad".equals(op))
             return processSearchArrayDesigns(
                     req.getStr("search"),
-                    req.getInt("p"),
+                    req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
         else if("schedulesearchexp".equals(op))
@@ -474,7 +477,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     authenticatedUser);
 
         else if("tasklog".equals(op))
-            return processTaskEventLog(req.getInt("num"));
+            return processTaskEventLog(
+                    req.getInt("p", 0, 0),
+                    req.getInt("n", 1, 1));
 
         else if("tasklogtag".equals(op))
             return processExperimentTaskEventLog(req.getEnum("type", TaskTagType.EXPERIMENT), req.getStr("accession"));
