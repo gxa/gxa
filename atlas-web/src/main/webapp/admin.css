@@ -212,3 +212,7 @@ thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 
 #numWorking { font-weight: bold; }
 #numPending { font-weight: bold; }
+
+#loadExperimentUrl, #loadArrayDesignUrl {
+    width: 750px;
+}
