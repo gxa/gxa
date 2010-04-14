@@ -27,13 +27,14 @@ var selectAll = false;
 var $time = {};
 var $tpl = {};
 var $tab = {};
+var lastLogPages;
 var $options = {
     queueRefreshRate: 5000,
     queuePageSize: 20,
     experimentPageSize: 20,
     arraydesignPageSize: 20,
     searchDelay: 500,
-    logNumItems: 20
+    tasklogPageSize: 20
 };
 
 var $msg = {
@@ -45,8 +46,8 @@ var $msg = {
         unloadexperiment: 'Unload experiment'
     },
     runMode: {
-        RESTART: 'Restart',
-        CONTINUE: 'Continue'
+        RESTART: '[Restart]',
+        CONTINUE: '[Continue]'
     },
     event: {
         SCHEDULED: 'Scheduled',
@@ -415,8 +416,41 @@ function updateQueue() {
 function updateTaskLog() {
     clearTimeout($time.queue);
     $time.queue = null;
-    adminCall('tasklog', { num: $options.logNumItems }, function (result) {
+    adminCall('tasklog', {
+        p: currentState['tlog-p'] || 0,
+        n: $options.tasklogPageSize
+    }, function (result) {
+        var nowPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
+
+        if(currentState['tlog-p'] == undefined ||
+           (lastLogPages != undefined && currentState['tlog-p'] == lastLogPages - 1 && nowPages > lastLogPages)) {
+            currentState['tlog-p'] = nowPages - 1;
+            storeState();
+            updateTaskLog();
+            return;
+        }
+
+        lastLogPages = nowPages;
+
         renderTpl('taskLog', result);
+
+        if(result.numTotal > $options.tasklogPageSize)
+            $('#taskLogPages').pagination(result.numTotal, {
+                current_page: result.page,
+                num_edge_entries: 2,
+                num_display_entries: 5,
+                items_per_page: $options.tasklogPageSize,
+                prev_text: "Prev",
+                next_text: "Next",
+                callback: function(page) {
+                    currentState['tlog-p'] = page;
+                    storeState();
+                    updateTaskLog();
+                    return false;
+                }});
+        else
+            $('#taskLogPages').empty();
+
         $('#taskLog .retry input').each(function (i,e) {
             var li = result.items[i];
             if(li.event == 'FAILED')
@@ -625,6 +659,7 @@ function compileTemplates() {
                 '.accession': 'litem.accession',
                 '.event': msgMapper('event', 'event'),
                 '.runMode': msgMapper('runMode', 'runMode'),
+                '.runMode@style': function (r) { return r.item.event == 'SCHEDULED' || r.item.event == 'STARTED' ? '' : 'display:none'; },
                 '.message': 'litem.message',
                 '.user': 'litem.user',
                 '.time': 'litem.time',

@@ -101,7 +101,7 @@
 
     <div id="experimentList">
         <table class="results">
-            <thead>
+            <thead class="expall">
                 <tr>
                     <td class="sel">
 
@@ -245,7 +245,6 @@
             <thead>
                 <tr>
                     <td>State</td>
-                    <td>Running Mode</td>
                     <td>Task Type</td>
                     <td>Accession/URL</td>
                     <td>User</td>
@@ -257,8 +256,10 @@
             <tbody>
                 <tr class="task">
                     <td class="state">WORKING</td>
-                    <td class="runMode">RESTART</td>
-                    <td class="type">experiment</td>
+                    <td>
+                        <span class="type">experiment</span>
+                        <span class="runMode">RESTART</span>
+                    </td>
                     <td class="accession">E-TABM-1</td>
                     <td class="user">foo</td>
                     <td class="progress">Wasting time...</td>
@@ -272,14 +273,16 @@
     </div>
 </div>
 <div id="tab-tlog">
-    Displaying last <span class="option-logNumItems">1</span> records <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+    <fieldset>
+        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;float:right" class="loadIndicator">
+        <div class="pagination_ie" id="taskLogPages"></div>
+    </fieldset>
     <div id="taskLog">
         <table>
             <thead>
                 <tr>
                     <td>Time</td>
                     <td>Event</td>
-                    <td>Running Mode</td>
                     <td>User</td>
                     <td>Task Type</td>
                     <td>Accession/URL</td>
@@ -290,9 +293,11 @@
                 <tr>
                     <td class="time">10:34</td>
                     <td class="event">STARTED</td>
-                    <td class="runMode">RESTART</td>
                     <td class="user">user</td>
-                    <td class="type">experiment</td>
+                    <td>
+                        <span class="type">experiment</span>
+                        <span class="runMode">RESTART</span>
+                    </td>
                     <td class="accession">E-TABM-1</td>
                     <td class="message">
                         Blah...

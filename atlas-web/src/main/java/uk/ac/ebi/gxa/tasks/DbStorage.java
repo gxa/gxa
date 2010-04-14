@@ -190,12 +190,19 @@ public class DbStorage implements PersistentStorage {
     };
 
     @SuppressWarnings("unchecked")
-    public List<TaskEventLogItem> getLastTaskEventLogItems(int number) {
-        return (List<TaskEventLogItem>) jdbcTemplate.query("SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM (SELECT * FROM A2_TASKMAN_LOG ORDER BY TIME DESC) WHERE ROWNUM <= ? ORDER BY TIME ASC",
-                new Object[] { number },
+    public List<TaskEventLogItem> getTaskLogItems(int start, int number) {
+        return (List<TaskEventLogItem>) jdbcTemplate.query("" +
+                "SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM " +
+                "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
+                "WHERE rn >= ?",
+                new Object[] { start + number, start  },
                 LOG_ROWMAPPER);
     }
 
+    public int getTaskLogItemNum() {
+        return jdbcTemplate.queryForInt("SELECT COUNT(1) FROM A2_TASKMAN_LOG");
+    }
+    
     @SuppressWarnings("unchecked")
     public List<TaskEventLogItem> getTaggedHistory(TaskTagType tagtype, String tag) {
         String type = tagtype.toString().toLowerCase();
