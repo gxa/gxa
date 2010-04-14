@@ -34,11 +34,12 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
 
     public static final String TYPE = "unloadexperiment";
 
-    boolean stop;
+    private boolean stop = false;
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
+                startTimer();
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
                 taskMan.writeTaskLog(UnloadExperimentTask.this, TaskEvent.STARTED, "");
 
@@ -79,22 +80,25 @@ public class UnloadExperimentTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public UnloadExperimentTask(TaskManager taskMan, Task prototype) {
-        super(taskMan, prototype);
+    public UnloadExperimentTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
 
-    public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
-        public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new UnloadExperimentTask(queue, prototype);
+    public boolean isBlockedBy(Task by) {
+        return TYPE.equals(by.getTaskSpec().getType())
+                ||
+                (by.getTaskSpec().getType().equals(AnalyticsTask.TYPE)
+                        && getTaskSpec().getAccession().equals(by.getTaskSpec().getAccession()));
+    }
+
+    public static final TaskFactory FACTORY = new TaskFactory() {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+            return new UnloadExperimentTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
-        public boolean isForType(TaskSpec taskSpec) {
+        public boolean isFor(TaskSpec taskSpec) {
             return TYPE.equals(taskSpec.getType());
-        }
-
-        public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return isForType(by) || (by.getType().equals(AnalyticsTask.TYPE) && what.getAccession().equals(by.getAccession()));
         }
     };
 

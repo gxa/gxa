@@ -49,61 +49,13 @@ public class TaskManager implements InitializingBean {
     private volatile boolean running = true;
     private int maxWorkingTasks = 16;
 
-    private static List<WorkingTaskFactory> taskFactories = new ArrayList<WorkingTaskFactory>();
+    private static List<TaskFactory> taskFactories = new ArrayList<TaskFactory>();
 
     static {
         taskFactories.add(AnalyticsTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
         taskFactories.add(UnloadExperimentTask.FACTORY);
-    }
-
-    private static class QueuedTask implements Task {
-        private final long taskId;
-        private final TaskSpec taskSpec;
-        private TaskRunMode runMode;
-        private final TaskStatus stage;
-        private final TaskUser user;
-        private final boolean runningAutoDependencies;
-
-        QueuedTask(long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskStatus stage,
-                   TaskUser user, boolean runningAutoDependencies) {
-            this.taskId = taskId;
-            this.taskSpec = taskSpec;
-            this.runMode = runMode;
-            this.stage = stage;
-            this.user = user;
-            this.runningAutoDependencies = runningAutoDependencies;
-
-        }
-
-        public long getTaskId() {
-            return taskId;
-        }
-
-        public TaskSpec getTaskSpec() {
-            return taskSpec;
-        }
-
-        public TaskStatus getCurrentStage() {
-            return stage;
-        }
-
-        public TaskRunMode getRunMode() {
-            return runMode;
-        }
-
-        public TaskUser getUser() {
-            return user;
-        }
-
-        public boolean isRunningAutoDependencies() {
-            return runningAutoDependencies;
-        }
-
-        public void setRunMode(TaskRunMode runMode) {
-            this.runMode = runMode;
-        }
     }
 
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
@@ -166,9 +118,8 @@ public class TaskManager implements InitializingBean {
 
         int insertTo = 0;
         int i = 0;
-        WorkingTaskFactory factory = getFactoryBySpec(task.getTaskSpec());
         for(QueuedTask queuedTask : queuedTasks) {
-            if(factory.isBlockedBy(task.getTaskSpec(), queuedTask.getTaskSpec())) {
+            if(task.isBlockedBy(queuedTask)) {
                 insertTo = i + 1;
             }
             ++i;
@@ -207,7 +158,8 @@ public class TaskManager implements InitializingBean {
 
             // okay, we should run it propbably
             long taskId = getNextId();
-            QueuedTask proposedTask = new QueuedTask(taskId, taskSpec, runMode, getTaskStage(taskSpec), user, autoAddDependent);
+            TaskFactory factory = getFactoryBySpec(taskSpec);
+            QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent);
             if(parentTask != null)
                 storage.joinTagCloud(parentTask, proposedTask);
             storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message);
@@ -243,9 +195,9 @@ public class TaskManager implements InitializingBean {
         return null;
     }
 
-    private WorkingTaskFactory getFactoryBySpec(final TaskSpec taskSpec) {
-        for(WorkingTaskFactory factory : taskFactories)
-            if(factory.isForType(taskSpec))
+    private TaskFactory getFactoryBySpec(final TaskSpec taskSpec) {
+        for(TaskFactory factory : taskFactories)
+            if(factory.isFor(taskSpec))
                 return factory;
         log.error("Can't find factory for task " + taskSpec);
         throw new IllegalStateException("Can't find factory for task " + taskSpec);
@@ -320,16 +272,15 @@ public class TaskManager implements InitializingBean {
                     return;
                 
                 QueuedTask nextTask = queueIterator.next();
-                WorkingTaskFactory nextFactory = getFactoryBySpec(nextTask.getTaskSpec());
                 boolean blocked = false;
                 for(WorkingTask workingTask : workingTasks) {
-                    blocked |= nextFactory.isBlockedBy(nextTask.getTaskSpec(), workingTask.getTaskSpec());
+                    blocked |= nextTask.isBlockedBy(workingTask);
                     blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
                 }
                 if(!blocked) {
                     queueIterator.remove();
                     log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
-                    WorkingTask workingTask = nextFactory.createTask(this, nextTask);
+                    WorkingTask workingTask = nextTask.getWorkingTask();
                     workingTasks.add(workingTask);
                     workingTask.start();
                 }
@@ -350,7 +301,7 @@ public class TaskManager implements InitializingBean {
         storage.updateTaskStatus(taskSpec, stage);
     }
 
-    public TaskStatus getTaskStage(TaskSpec taskSpec) {
+    public TaskStatus getTaskStatus(TaskSpec taskSpec) {
         return storage.getTaskStatus(taskSpec);
     }
 

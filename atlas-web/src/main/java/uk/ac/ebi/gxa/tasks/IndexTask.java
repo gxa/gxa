@@ -42,12 +42,10 @@ public class IndexTask extends AbstractWorkingTask {
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(getCurrentStatus())) {
-                    taskMan.writeTaskLog(IndexTask.this, TaskEvent.SKIPPED, "");
-                    taskMan.notifyTaskFinished(IndexTask.this);
+                if(nothingToDo())
                     return;
-                }
 
+                startTimer();
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
                 taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
                 final AtomicReference<IndexBuilderEvent> result = new AtomicReference<IndexBuilderEvent>(null);
@@ -101,25 +99,26 @@ public class IndexTask extends AbstractWorkingTask {
         // can't stop this task as there's no stages and no control of index builder when it's running
     }
 
-    private IndexTask(final TaskManager queue, final Task prototype) {
-        super(queue, prototype);
+    public IndexTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
     }
 
-    public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
-        public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new IndexTask(queue, prototype);
+    public boolean isBlockedBy(Task by) {
+        return Arrays.asList(
+                AnalyticsTask.TYPE,
+                LoaderTask.TYPE_EXPERIMENT,
+                LoaderTask.TYPE_ARRAYDESIGN
+        ).contains(by.getTaskSpec().getType());
+    }
+    
+    public static final TaskFactory FACTORY = new TaskFactory() {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+            return new IndexTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
-        public boolean isForType(TaskSpec taskSpec) {
+        public boolean isFor(TaskSpec taskSpec) {
             return TYPE.equals(taskSpec.getType());
         }
 
-        public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return Arrays.asList(
-                    AnalyticsTask.TYPE,
-                    LoaderTask.TYPE_EXPERIMENT,
-                    LoaderTask.TYPE_ARRAYDESIGN
-            ).contains(by.getType());
-        }
     };
 }

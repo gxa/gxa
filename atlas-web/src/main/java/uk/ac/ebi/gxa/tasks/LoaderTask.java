@@ -42,18 +42,15 @@ public class LoaderTask extends AbstractWorkingTask {
 
     private static class TaskInternalError extends Exception { }
 
-    boolean stop;
+    private boolean stop = false;
 
     public void start() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(getCurrentStatus())) {
-                    taskMan.writeTaskLog(LoaderTask.this, TaskEvent.SKIPPED, "");
-                    taskMan.notifyTaskFinished(LoaderTask.this);
+                if(nothingToDo())
                     return;
-                }
 
-                stop = false;
+                startTimer();
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
                 taskMan.writeTaskLog(LoaderTask.this, TaskEvent.STARTED, "");
                 final AtomicReference<AtlasLoaderEvent> result = new AtomicReference<AtlasLoaderEvent>(null);
@@ -154,23 +151,24 @@ public class LoaderTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    private LoaderTask(final TaskManager queue, final Task prototype) {
-        super(queue, prototype);
+    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(LoaderTask.this, TaskTagType.URL, getTaskSpec().getAccession());
     }
 
-    public static final WorkingTaskFactory FACTORY = new WorkingTaskFactory() {
-        public WorkingTask createTask(TaskManager queue, Task prototype) {
-            return new LoaderTask(queue, prototype);
+    public boolean isBlockedBy(Task by) {
+        return false;
+    }
+
+    public static final TaskFactory FACTORY = new TaskFactory() {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+            return new LoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
-        public boolean isForType(TaskSpec taskSpec) {
+        public boolean isFor(TaskSpec taskSpec) {
             return TYPE_EXPERIMENT.equals(taskSpec.getType()) || TYPE_ARRAYDESIGN.equals(taskSpec.getType());
         }
 
-        public boolean isBlockedBy(TaskSpec what, TaskSpec by) {
-            return false;
-        }
     };
     
 }

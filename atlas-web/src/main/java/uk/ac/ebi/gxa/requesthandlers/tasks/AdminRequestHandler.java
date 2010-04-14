@@ -218,7 +218,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "experiments", results,
                 "page", page,
                 "numTotal", total,
-                "indexStage", taskManager.getTaskStage(new TaskSpec(IndexTask.TYPE, "")).toString()
+                "indexStage", taskManager.getTaskStatus(new TaskSpec(IndexTask.TYPE, "")).toString()
                 );
     }
 
@@ -237,7 +237,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return new FilterIterator<Experiment, Pair<Experiment, TaskStatus>>(experiments.iterator()) {
             @Override
             public Pair<Experiment, TaskStatus> map(Experiment experiment) {
-                final TaskStatus analyticsState = taskManager.getTaskStage(new TaskSpec(AnalyticsTask.TYPE, experiment.getAccession()));
+                final TaskStatus analyticsState = taskManager.getTaskStatus(new TaskSpec(AnalyticsTask.TYPE, experiment.getAccession()));
                 boolean searchYes = "".equals(searchText)
                         || experiment.getAccession().toLowerCase().contains(searchText)
                         || experiment.getDescription().toLowerCase().contains(searchText);
