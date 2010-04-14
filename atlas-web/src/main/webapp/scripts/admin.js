@@ -697,6 +697,7 @@ function compileTemplates() {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'litem.accession',
                 '.event': msgMapper('event', 'event'),
+                '.runMode@style': function (r) { return r.item.event == 'SCHEDULED' || r.item.event == 'STARTED' ? '' : 'display:none'; },
                 '.runMode': msgMapper('runMode', 'runMode'),
                 '.message': 'litem.message',
                 '.user': 'litem.user',
