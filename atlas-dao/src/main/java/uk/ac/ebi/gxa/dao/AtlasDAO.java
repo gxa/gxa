@@ -84,7 +84,7 @@ public class AtlasDAO {
 
     public static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
-                    "FROM a2_experiment ORDER BY loaddate desc, accession";
+                    "FROM a2_experiment ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
                     "FROM a2_experiment WHERE loaddate >= ? ORDER BY accession";

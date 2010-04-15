@@ -98,6 +98,8 @@
                 <version>2.0.2</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
+                    <source>1.5</source>
+                    <target>1.5</target>
                 </configuration>
             </plugin>
             <plugin>
