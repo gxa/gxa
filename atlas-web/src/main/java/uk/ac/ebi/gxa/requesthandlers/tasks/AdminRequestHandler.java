@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
@@ -59,7 +60,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static final String SESSION_ADMINUSER = "adminUserName";
     private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-
+    private AtlasManager atlasManager;
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -75,6 +76,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     public void setDao(AtlasDAO dao) {
         this.dao = dao;
+    }
+
+    public void setAtlasManager(AtlasManager manager) {
+        this.atlasManager = manager;
     }
 
     private Object processPause() {
@@ -335,6 +340,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
+    private Object processAboutSystem() {
+        return makeMap(
+                "dbUrl", atlasManager.getDataSourceURL(),
+                "pathNetcdf", atlasManager.getNetCDFPath(),
+                "pathIndex", atlasManager.getIndexPath(),
+                "pathWebapp", atlasManager.getWebappPath(),
+                "efo", atlasManager.getEFO()
+        );
+    }
+
     public TaskUser checkLogin(String username, String password) {
         if(username != null && username.matches(".*\\S{3,}.*") && "password".equals(password)) {
             return new TaskUser(username);
@@ -489,6 +504,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("propset".equals(op))
             return processPropertySet(req.getMap());
+
+        else if("aboutsys".equals(op))
+            return processAboutSystem();
 
         else if("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);
