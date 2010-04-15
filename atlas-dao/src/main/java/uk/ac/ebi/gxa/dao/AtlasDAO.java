@@ -1915,6 +1915,12 @@ public class AtlasDAO {
         };
     }
 
+    public int getCountAssaysForExperimentID(long experimentID) {
+        return template.queryForInt(
+                "SELECT COUNT(DISTINCT ASSAYID) FROM VWEXPERIMENTASSAY WHERE EXPERIMENTID=?",
+                new Long[] {experimentID});
+    }
+
     private class LoadDetailsMapper implements RowMapper {
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
