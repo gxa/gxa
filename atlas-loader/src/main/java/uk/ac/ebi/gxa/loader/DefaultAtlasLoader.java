@@ -29,10 +29,7 @@ import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.*;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -64,6 +61,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
 
     private AtlasMAGETABLoader experimentLoaderService;
     private AtlasArrayDesignLoader arrayLoaderService;
+    private AtlasNetCDFUpdaterService netcdfUpdaterService;
 
     private ExecutorService service;
     private boolean running = false;
@@ -128,6 +126,8 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
             arrayLoaderService = new AtlasArrayDesignLoader(this);
             arrayLoaderService.setAllowReloading(getAllowReloading());
             arrayLoaderService.setGeneIdentifierPriority(getGeneIdentifierPriority());
+
+            netcdfUpdaterService = new AtlasNetCDFUpdaterService(this);
 
             // finally, create an executor service for processing calls to load
             service = Executors.newCachedThreadPool();
@@ -209,7 +209,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         loadByService(arrayLoaderService, arrayDesignResource, listener);
     }
 
-    private void loadByService(final AtlasLoaderService<URL> loaderService, final URL experimentResource, final AtlasLoaderListener listener) {
+    private <T> void loadByService(final AtlasLoaderService<T> loaderService, final T experimentResource, final AtlasLoaderListener listener) {
         final long startTime = System.currentTimeMillis();
         service.submit(new Runnable() {
             public void run() {
@@ -218,7 +218,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                 try {
                     log.info("Starting load operation on " + experimentResource.toString());
 
-                    loaderService.load(experimentResource,
+                    loaderService.process(experimentResource,
                             listener != null ? new AtlasLoaderServiceListener() {
                                 public void setAccession(String accession) {
                                     accessions.add(accession);
@@ -272,6 +272,10 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
         log.error("Attempt to unload array design " + accession);
         throw new AtlasUnloaderException("Not implemented");
+    }
+
+    public void updateNetCDFForExperiment(String experimentAccession, final AtlasLoaderListener listener) {
+        loadByService(netcdfUpdaterService, experimentAccession, listener);
     }
 
     public String getVersionFromMavenProperties() {
