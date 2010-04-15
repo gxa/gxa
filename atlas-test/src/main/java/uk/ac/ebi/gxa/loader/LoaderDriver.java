@@ -121,9 +121,13 @@ public class LoaderDriver {
             }
             if (commandLine.hasOption("load")) {
                 do_load = true;
-                if (commandLine.hasOption('f') && commandLine.getOptionValue('f').startsWith("/") &&
-                        commandLine.hasOption('t')) {
-                    magetab_file_url = "file://" + commandLine.getOptionValue('f');
+                if (commandLine.hasOption('f') && commandLine.hasOption('t')) {
+                    if (commandLine.getOptionValue('f').startsWith("/")) {
+                        magetab_file_url = "file://" + commandLine.getOptionValue('f');
+                    }
+                    else {
+                        magetab_file_url = commandLine.getOptionValue('f');
+                    }
                     if (commandLine.getOptionValue('t').equals("experiment")) {
                         load_type = "experiment";
                     }

@@ -27,10 +27,8 @@ import org.mged.magetab.error.ErrorItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
@@ -38,10 +36,6 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A class filled with handy convenience methods for performing writing tasks common to lots of SDRF graph nodes.  This
@@ -235,18 +229,18 @@ public class SDRFWritingUtils {
                             break;
                         }
                         else {
-                            // generate error item and throw exception
-                            String message = "Inconsistent factor values for assay " + assay.getAccession() +
-                                    ": property " + ap.getName() + " has values " + ap.getValue() + " and " +
-                                    factorValueAttribute.getNodeName() + " in different rows. Second value (" +
-                                    factorValueAttribute + ") will be ignored";
+                            // generate error item, multiple factor values for a single assay means this is probably 2 channel
+                            String message = "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueAttribute.getNodeName() +
+                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                    "of inconsistent annotations";
 
                             ErrorItem error =
                                     ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
+                                            .generateErrorItem(message, 603, SDRFWritingUtils.class);
 
                             throw new ObjectConversionException(error, false);
-
                         }
                     }
                 }

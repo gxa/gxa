@@ -33,17 +33,18 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.utils.LookupException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
+import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * A dedicated handler that parses expression data from a specified data matrix file, referenced in the SDRF.  This
@@ -59,13 +60,13 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof DerivedArrayDataMatrixNode) {
-                    getLog().info("Writing expression values from data file referenced by " +
-                            "derived array data matrix node '" + node.getNodeName() + "'");
-
                     if (node.getNodeName().equals(MissingDataFile.DERIVED_ARRAY_DATA_MATRIX_FILE)) {
                         // this data matrix is missing, no expression values present - so simply continue to next
                         continue;
                     }
+
+                    getLog().info("Writing expression values from data file referenced by " +
+                            "derived array data matrix node '" + node.getNodeName() + "'");
 
                     // sdrf location
                     URL sdrfURL = investigation.SDRF.getLocation();
@@ -89,22 +90,26 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         // now, obtain a buffer for this dataMatrixFile
                         getLog().debug("Opening buffer of data matrix file at " + dataMatrixURL);
 
-
-
-                        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+                        AtlasLoadCache cache =
+                                AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
                         DataMatrixFileBuffer buffer;
                         try {
                             buffer = cache.getDataMatrixFileBuffer(dataMatrixURL);
-                        } catch(ParseException e) {
-                            if(e.getErrorItem().getErrorCode() != 1023)
+                        }
+                        catch (ParseException e) {
+                            if (e.getErrorItem().getErrorCode() != 1023) {
                                 throw e;
+                            }
 
-                            String zipUrl = ((DerivedArrayDataMatrixNode)node).comments != null ?
-                                    ((DerivedArrayDataMatrixNode)node).comments.get("Derived ArrayExpress FTP file") : null;
-                            if(zipUrl != null) {
+                            String zipUrl = ((DerivedArrayDataMatrixNode) node).comments != null ?
+                                    ((DerivedArrayDataMatrixNode) node).comments.get("Derived ArrayExpress FTP file") :
+                                    null;
+                            if (zipUrl != null) {
                                 buffer = cache.getDataMatrixFileBuffer(new URL(zipUrl), node.getNodeName());
-                            } else
+                            }
+                            else {
                                 throw e;
+                            }
                         }
 
                         // find the type of nodes we need - lookup from data matrix buffer
@@ -117,7 +122,7 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                         for (int refIndex = 0; refIndex < refNames.length; ++refIndex) {
                             String refName = refNames[refIndex];
                             getLog().debug("Attempting to attach expression values to next reference " + refName);
-                            String assayName;
+                            Assay assay;
                             if (refNodeName.equals("scanname")) {
                                 // this requires mapping the assay upstream of this node to the scan
                                 // no need to block, since if we are reading data, we've parsed the scans already
@@ -150,7 +155,8 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                     getLog().debug("Scan node " + refNodeName + " resolves to " +
                                             assayNode.getNodeName());
 
-                                    assayName = assayNode.getNodeName();
+                                    assay = AtlasLoaderUtils.waitForAssay(assayNode.getNodeName(), investigation,
+                                                                          getClass().getSimpleName(), getLog());
                                 }
                                 else {
                                     // many to one scan-to-assay, we can't load this
@@ -169,24 +175,38 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
                                     throw new ObjectConversionException(error, true);
                                 }
                             }
+                            else if (refNodeName.equals("assayname") || refNodeName.equals("hybridizationname")) {
+                                // just check it is possible to recover the SDRF node referenced in the data file
+                                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+                                if (refNode == null) {
+                                    // generate error item and throw exception
+                                    String message =
+                                            "Could not find " + refName + " [" + refNodeName + "] in SDRF";
+                                    ErrorItem error =
+                                            ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                                                    .generateErrorItem(message, 511, this.getClass());
+
+                                    throw new ObjectConversionException(error, true);
+                                }
+
+                                // refNode is not null, meaning we recovered this assay - it's safe to wait for it
+                                assay = AtlasLoaderUtils.waitForAssay(refNode.getNodeName(), investigation,
+                                                                      getClass().getSimpleName(), getLog());
+                            }
                             else {
-                                assayName = refName;
+                                assay = null;
                             }
 
-                            getLog().trace(
-                                    "Updating assay " + assayName + " with expression values, must be stored first...");
-
-                            // now we have the name of the assay to attach EVs to, so lookup
-                            Assay assay = AtlasLoaderUtils.waitForAssay(
-                                    assayName, investigation, getClass().getSimpleName(), getLog());
-
                             if (assay != null) {
+                                getLog().trace("Updating assay " + assay.getAccession() + " with expression values, " +
+                                        "must be stored first...");
                                 cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                             }
                             else {
                                 // generate error item and throw exception
                                 String message =
-                                        "Data file references elements that are not present in the SDRF";
+                                        "Data file references elements that are not present in the SDRF (" +
+                                                refNodeName + ", " + refName + ")";
                                 ErrorItem error =
                                         ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
                                                 .generateErrorItem(message, 511, this.getClass());
