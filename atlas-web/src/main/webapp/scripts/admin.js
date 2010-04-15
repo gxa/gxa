@@ -572,6 +572,11 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.ad) {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
+    } else if(currentState['tab'] == $tab.asys) {
+        adminCall('aboutsys',{}, function (r) {
+            $('#aboutSystem').autoRender(r);
+        });
+        $('#tabs').tabs('select', $tab.asys);
     } else {
         $('#tabs').tabs('select', $tab.exp);
         $('#experimentSearch').val('');

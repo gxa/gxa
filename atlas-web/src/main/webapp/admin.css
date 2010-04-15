@@ -63,7 +63,8 @@ input.date { width: 70px; }
     #taskLog table,
     #propList table,
     #adList table,
-    #experimentList .expTaskLog table
+    #experimentList .expTaskLog table,
+    #aboutSystem
 {
     border-collapse:collapse;
     margin: 10px 0;
@@ -85,7 +86,8 @@ input.date { width: 70px; }
     #taskLog td,
     #adList td,
     #propList td,
-    #propList th
+    #propList th,
+    #aboutSystem td
 {
     border: 1px solid #cdcdcd;
     padding: 3px 7px;

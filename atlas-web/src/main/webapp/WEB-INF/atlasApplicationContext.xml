@@ -381,6 +381,7 @@
         <property name="dao" ref="atlasDAO"/>
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasManager" ref="atlasManager"/>
     </bean>
 
     <bean name="anatomogramRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler">
