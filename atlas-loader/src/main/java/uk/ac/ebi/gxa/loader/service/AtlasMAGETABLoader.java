@@ -80,7 +80,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
      * @param idfFileLocation the location of the idf part of the MAGETAB document you want to load.
      * @param listener a listener that can report on load completion or error events
      */
-    public void load(URL idfFileLocation, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
+    public void process(URL idfFileLocation, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 

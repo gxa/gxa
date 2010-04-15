@@ -87,5 +87,5 @@ public abstract class AtlasLoaderService<T> {
      * @param listener listener
      * @throws AtlasLoaderServiceException if failed
      */
-    public abstract void load(T loaderResource, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException;
+    public abstract void process(T loaderResource, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException;
 }

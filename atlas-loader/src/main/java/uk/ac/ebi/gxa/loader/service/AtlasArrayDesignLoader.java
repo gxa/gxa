@@ -72,7 +72,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         this.geneIdentifierPriority = geneIdentifierPriority;
     }
 
-    public void load(final URL adfFileLocation, final AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
+    public void process(final URL adfFileLocation, final AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 

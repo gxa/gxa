@@ -38,7 +38,8 @@ public class LoaderTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(LoaderTask.class);
 
     public static final String TYPE_EXPERIMENT = "loadexperiment";
-    public static final String TYPE_ARRAYDESIGN = "loadarraydesign";    
+    public static final String TYPE_ARRAYDESIGN = "loadarraydesign";
+    public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
 
     private volatile boolean stop = false;
 
@@ -56,11 +57,14 @@ public class LoaderTask extends AbstractWorkingTask {
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
                 for(String accession : event.getAccessions()) {
-                    if(TYPE_EXPERIMENT.equals(getTaskSpec().getType())) {
+                    if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()) ||
+                            TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
 
                         TaskSpec experimentTask = new TaskSpec(AnalyticsTask.TYPE, accession);
                         taskMan.updateTaskStage(experimentTask, TaskStatus.INCOMPLETE);
+                        TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
+                        taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
 
                         if(!stop && isRunningAutoDependencies()) {
                             taskMan.scheduleTask(
@@ -105,6 +109,8 @@ public class LoaderTask extends AbstractWorkingTask {
                 taskMan.getLoader().loadExperiment(new URL(getTaskSpec().getAccession()), listener);
             else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()))
                 taskMan.getLoader().loadArrayDesign(new URL(getTaskSpec().getAccession()), listener);
+            else if(TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
+                taskMan.getLoader().updateNetCDFForExperiment(getTaskSpec().getAccession(), listener);
             else {
                 taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Impossible happened");
                 taskMan.notifyTaskFinished(LoaderTask.this);
@@ -124,7 +130,9 @@ public class LoaderTask extends AbstractWorkingTask {
 
     public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
-        taskMan.addTaskTag(LoaderTask.this, TaskTagType.URL, getTaskSpec().getAccession());
+        taskMan.addTaskTag(LoaderTask.this,
+                TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType()) ? TaskTagType.EXPERIMENT : TaskTagType.URL,
+                getTaskSpec().getAccession());
     }
 
     public boolean isBlockedBy(Task by) {
@@ -137,7 +145,9 @@ public class LoaderTask extends AbstractWorkingTask {
         }
 
         public boolean isFor(TaskSpec taskSpec) {
-            return TYPE_EXPERIMENT.equals(taskSpec.getType()) || TYPE_ARRAYDESIGN.equals(taskSpec.getType());
+            return TYPE_EXPERIMENT.equals(taskSpec.getType())
+                    || TYPE_ARRAYDESIGN.equals(taskSpec.getType())
+                    || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType());
         }
 
     };

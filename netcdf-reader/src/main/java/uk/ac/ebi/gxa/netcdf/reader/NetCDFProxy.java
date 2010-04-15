@@ -185,6 +185,20 @@ public class NetCDFProxy {
         }
     }
 
+    public String[] getDesignElementAccessions() throws IOException {
+        if (!proxied)
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+
+        if (netCDF.findVariable("DEacc") == null) {
+            return new String[0];
+        }
+        else {
+            ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
+            // convert to a string array and return
+            return  (String[]) deacc.make1DStringArray().get1DJavaArray(String.class);
+        }
+    }
+
     public String[] getFactors() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);

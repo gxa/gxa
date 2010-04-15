@@ -36,7 +36,7 @@ public class Assay implements ObjectWithProperties {
     private String experimentAccession;
     private String arrayDesignAccession;
     private List<Property> properties;
-    private Long assayID;
+    private long assayID;
 
     public String getAccession() {
         return accession;
@@ -128,6 +128,6 @@ public class Assay implements ObjectWithProperties {
 
     @Override
     public int hashCode() {
-        return assayID.hashCode();
+        return Long.valueOf(assayID).hashCode();
     }
 }
