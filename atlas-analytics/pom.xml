@@ -57,12 +57,12 @@
         <dependency>
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-rpf</artifactId>
-            <version>1.0</version>
+            <version>1.0-beta-1</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-server</artifactId>
-            <version>1.0</version>
+            <version>1.0-beta-1</version>
         </dependency>
 
         <!-- test scope dependency on ae2-dao tests -->
