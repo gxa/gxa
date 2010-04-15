@@ -33,6 +33,7 @@ import uk.ac.ebi.rcloud.rpf.db.ServantProxyPoolSingletonDB;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RNumeric;
 import uk.ac.ebi.rcloud.server.callback.RAction;
+import uk.ac.ebi.rcloud.server.callback.RActionConst;
 import uk.ac.ebi.rcloud.server.callback.RActionListener;
 
 import java.io.Serializable;
@@ -336,7 +337,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
 
         public void notify(RAction consoleAction) throws RemoteException {
             BiocepAtlasRFactory.this.log.trace(
-                    "R console said:\n\t" + consoleAction.getAttributes().get("log"));
+                    "R console said:\n\t" + consoleAction.getAttributes().get(RActionConst.OUTPUT));
         }
     }
 

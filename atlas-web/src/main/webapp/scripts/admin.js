@@ -620,7 +620,8 @@ function compileTemplates() {
             'experiment <- experiments' : {
                 'label.accession': 'experiment.accession',
                 '.analytics': msgMapper('analytics', 'expStage'),
-                '.description': 'experiment.description', 
+                '.description': 'experiment.description',
+                '.numassays' : 'experiment.numassays',
                 '.loaddate': 'experiment.loadDate', 
                 '.selector@checked': function (r) { return selectedExperiments[r.item.accession] || selectAll ? 'checked' : ''; },
                 '.selector@disabled': function () { return selectAll ? 'disabled' : ''; },

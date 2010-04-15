@@ -215,6 +215,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 results.add(makeMap(
                         "accession", e.getFirst().getAccession(),
                         "description", e.getFirst().getDescription(),
+                        "numassays", dao.getCountAssaysForExperimentID(e.getFirst().getExperimentID()),
                         "analytics", e.getSecond().toString(),
                         "loadDate", e.getFirst().getLoadDate() != null ? IN_DATE_FORMAT.format(e.getFirst().getLoadDate()) : "unknown"));
             ++total;
