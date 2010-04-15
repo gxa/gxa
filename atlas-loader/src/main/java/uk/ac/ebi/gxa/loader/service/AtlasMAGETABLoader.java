@@ -151,20 +151,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             }
 
             // parsing completed, so now write the objects in the cache
-//            try {
-//                writeObjects(cache, listener);
-//
-//                if (listener != null) {
-//                    listener.setProgress("Done");
-//                    if (cache.fetchExperiment() != null) {
-//                        listener.setAccession(cache.fetchExperiment().getAccession());
-//                    }
-//                }
-//            } catch (AtlasLoaderServiceException e) {
-//                throw e;
-//            } catch (Exception e) {
-//                throw new AtlasLoaderServiceException(e);
-//            }
+            try {
+                writeObjects(cache, listener);
+
+                if (listener != null) {
+                    listener.setProgress("Done");
+                    if (cache.fetchExperiment() != null) {
+                        listener.setAccession(cache.fetchExperiment().getAccession());
+                    }
+                }
+            } catch (AtlasLoaderServiceException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new AtlasLoaderServiceException(e);
+            }
         }
         finally {
             try {
