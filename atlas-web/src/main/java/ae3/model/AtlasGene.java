@@ -145,7 +145,7 @@ public class AtlasGene {
 
     @RestOut(name="interProTerms", exposeEmpty = false)
     public Collection<String> getInterProTerms() {
-        return getValues("property_interpro");
+        return getValues("property_interproterm");
     }
 
     @RestOut(name="keywords", exposeEmpty = false)
