@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
@@ -87,7 +88,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         log.info("Gene ebeye dump download request");
         if(!ebeyeDumpFile.exists())
             dumpEbeyeData();
-        FileDownloadServer.processRequest(ebeyeDumpFile, "text/xml", httpServletRequest, httpServletResponse);
+        FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-gzip", httpServletRequest, httpServletResponse);
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
@@ -110,7 +111,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             log.info("Writing ebeye file from index to " + ebeyeDumpFile);
 
             output = XMLOutputFactory.newInstance();
-            writer = output.createXMLStreamWriter(new BufferedOutputStream(new FileOutputStream(ebeyeDumpFile)));
+            writer = output.createXMLStreamWriter(
+                    new GZIPOutputStream(
+                      new BufferedOutputStream(
+                        new FileOutputStream(ebeyeDumpFile), 2048)));
 
             writer.writeStartDocument();
             writer.writeStartElement("database");
@@ -218,7 +222,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
         } catch (XMLStreamException e) {
             log.error("Failed to dump gene identifiers from index", e);
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
         } finally {
             try {
