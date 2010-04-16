@@ -702,7 +702,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
 <div id="experimentsTemplate">
     <div class="head">
-        <a href="gene?gid=1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
+        <a href="gene/1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
         overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> experiments(s)
     </div>
     <div class="exptable">

@@ -283,7 +283,7 @@ if(!atlas)
 
          atlas.experimentsTemplate = $('#experimentsTemplate').compile({
              '.@id+': function () { return Math.random(10000); },
-             'div.head a@href': 'gene?gid=#{gene.identifier}',
+             'div.head a@href': 'gene/#{gene.identifier}',
              '.gname': 'gene.name',
              '.numup': 'numUp',
              '.numdn': 'numDn',
@@ -297,11 +297,11 @@ if(!atlas)
                          'ef <- experiment.efs': {
                              '.efname': 'ef.eftext',
                              '.@id': function(a) { return 'oneplot_' + a.context.counter++; },
-                             'a.proflink@href': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}'
+                             'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}'
                          }
                      },
                      '.@class+': function(a) { return (a.pos != a.items.length - 1) ? ' notlast' : ''; },
-                     'a.proflink2@href': 'experiment?gid=#{gene.identifier}&eid=#{experiment.accession}',
+                     'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
                      'a.detailink@href': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
                  }
              }
