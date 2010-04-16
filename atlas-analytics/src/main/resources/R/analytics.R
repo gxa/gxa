@@ -246,23 +246,20 @@ function (nc)
   e <- try({
     eset = read.atlas.nc(nc)
     ncd  = open.ncdf(nc, write=TRUE)
-    info = otherInfo(experimentData(eset))
     proc = allupdn(eset)
 
     uEFV  = get.var.ncdf(ncd, "uEFV")
     tstat = t(get.var.ncdf(ncd, "TSTAT"))
     pval  = t(get.var.ncdf(ncd, "PVAL"))
 
-    colnames(tstat) <- uEFV
-    colnames(pval)  <- uEFV
+    colnames(tstat) <- make.names(uEFV)
+    colnames(pval)  <- make.names(uEFV)
 
     result <- sapply(varLabels(eset), function(varLabel) {
       print(paste("Processing",varLabel))
       if(!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) {
-        fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
         tab <- list()
         tab$A <- proc[[varLabel, exact=TRUE]]$Amean
-#       tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
         tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
         tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
 
@@ -277,15 +274,13 @@ function (nc)
         tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
         tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
 
-        colnames(tab$Res) <- paste(varLabel,colnames(tab$Res),sep="||")
+        colnames(tab$Res) <- make.names(paste(varLabel,colnames(tab$Res),sep="||"))
 
-        colnames(tab$t) <- colnames(tab$Res)
+        colnames(tab$t)           <- colnames(tab$Res)
         colnames(tab$p.value.adj) <- colnames(tab$Res)
 
         tstat[,which(colnames(tstat) %in% colnames(tab$t))] <<- tab$t[,colnames(tstat)[which(colnames(tstat) %in% colnames(tab$t))]]
         pval[,which(colnames(pval) %in% colnames(tab$p.value.adj))] <<- tab$p.value.adj[,colnames(pval)[which(colnames(pval) %in% colnames(tab$p.value.adj))]]
-
-#        tab <- data.frame(tab, check.names = FALSE)
 
         return("OK")
       } else {
