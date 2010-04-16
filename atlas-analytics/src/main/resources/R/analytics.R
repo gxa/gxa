@@ -172,7 +172,9 @@ allupdn <- function (eset, alpha=0.01, evars=varLabels(eset) ) {
   for(varLabel in evars){
     try({
       print(paste("Calculating lmFit and F-stats for", varLabel))
-      if(length(levels(eset[[varLabel, exact=TRUE]]))<2 || length(levels(eset[[varLabel, exact=TRUE]])) == ncol(exprs) ) { next }
+      if( length(levels(eset[[varLabel, exact=TRUE]]))<2
+       || length(levels(eset[[varLabel, exact=TRUE]]))>200
+       || length(levels(eset[[varLabel, exact=TRUE]])) == ncol(exprs) ) { next }
       thisFit = fstat.eset(eset,varLabel=varLabel)
       
       print("Adjusting p-values")
