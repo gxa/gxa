@@ -35,4 +35,7 @@ create_schema $ATLAS_CONNECTION $ATLAS_INDEX_TABLESPACE
 echo "Loading data..."
 load_data $ATLAS_CONNECTION $DATA_FOLDER $CTL_FOLDER
 
+echo "After migration script..."
+sqlplus -S $ATLAS_CONNECTION @after_migration.sql &> after_migration.log
+
 echo "Migration complete. Please migrate NetCDFs separately."
