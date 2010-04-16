@@ -192,8 +192,8 @@ a.history {
 }
 #taskList .type { white-space:nowrap; }
 
-#taskLog td.event {
-    color: #005555; font-weight: bold; white-space:nowrap;
+td.event {
+    font-weight: bold; white-space:nowrap;
 }
 
 #taskLog td.message { border-right: none; }
@@ -217,4 +217,24 @@ thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 
 #loadExperimentUrl, #loadArrayDesignUrl {
     width: 750px;
+}
+
+.eventFAILED td.event, .eventFAILED td.message
+{
+    color: firebrick;
+}
+
+.eventWARNING td.event, .eventWARNING td.message
+{
+    color: goldenrod;
+}
+
+.eventFINISHED td.event, .eventFINISHED td.message
+{
+    color: #055555;
+}
+
+#experimentList table.results .expTaskLog td.accession {
+    font-weight:normal;
+    color: black;
 }

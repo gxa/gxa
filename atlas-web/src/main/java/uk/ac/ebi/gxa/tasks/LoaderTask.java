@@ -111,6 +111,10 @@ public class LoaderTask extends AbstractWorkingTask {
             public void loadProgress(String progress) {
                 currentProgress = progress;
             }
+
+            public void loadWarning(String message) {
+                taskMan.writeTaskLog(LoaderTask.this, TaskEvent.WARNING, message);
+            }
         };
 
         taskMan.getLoader().setPossibleQTypes(taskMan.getAtlasProperties().getPossibleQuantitaionTypes());
