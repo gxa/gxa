@@ -223,6 +223,10 @@ public class AtlasDAO {
     public static final String PROPERTY_VALUE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT name) FROM a2_propertyvalue";
 
+    // query for counts, for statistics
+    public static final String FACTOR_VALUE_COUNT_SELECT =
+            "SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors";
+
     // array and design element queries
     public static final String ARRAY_DESIGN_SELECT =
             "SELECT accession, type, name, provider, arraydesignid " +
@@ -765,19 +769,11 @@ public class AtlasDAO {
     }
 
     public int getPropertyValueCount() {
-        Object result = template.query(PROPERTY_VALUE_COUNT_SELECT, new ResultSetExtractor() {
+        return template.queryForInt(PROPERTY_VALUE_COUNT_SELECT);
+    }
 
-            public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1);
-                }
-                else {
-                    return 0;
-                }
-            }
-        });
-
-        return (Integer) result;
+    public int getFactorValueCount() {
+        return template.queryForInt(FACTOR_VALUE_COUNT_SELECT);
     }
 
     /**
@@ -1002,8 +998,9 @@ public class AtlasDAO {
         stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
         stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
         stats.setGeneCount(template.queryForInt(GENES_COUNT));
-        stats.setNewExperimentCount(0);
+        stats.setNewExperimentCount(0); // TODO
         stats.setPropertyValueCount(getPropertyValueCount());
+        stats.setFactorValueCount(getFactorValueCount());
 
         return stats;
     }

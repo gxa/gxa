@@ -35,6 +35,7 @@ public class AtlasStatistics {
     private int geneCount;
     private int propertyValueCount;
     private int newExperimentCount;
+    private int factorValueCount;
 
     public int getExperimentCount() {
         return experimentCount;
@@ -82,5 +83,13 @@ public class AtlasStatistics {
 
     public void setNewExperimentCount(int newExperimentCount) {
         this.newExperimentCount = newExperimentCount;
+    }
+
+    public void setFactorValueCount(int factorValueCount) {
+        this.factorValueCount = factorValueCount;
+    }
+
+    public int getFactorValueCount() {
+        return factorValueCount;
     }
 }
