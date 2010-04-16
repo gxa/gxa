@@ -109,6 +109,16 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             return false;
         }
 
+        try {
+            RServices r = createRServices();
+            recycleRServices(r);
+        }
+        catch (Throwable e) {
+            log.error("Critical R whilst trying to get biocep R service - " +
+                    "check biocep is installed and required database is present", e);
+            return false;
+        }
+        
         // otherwise, checks passed so return true
         return true;
     }

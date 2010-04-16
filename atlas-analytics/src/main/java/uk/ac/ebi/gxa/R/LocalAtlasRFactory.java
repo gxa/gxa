@@ -75,7 +75,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
             RServices r = createRServices();
             recycleRServices(r);
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.error("Critical R whilst trying to bridge to local R install - " +
                     "check R is installed and required libraries present", e);
             return false;
