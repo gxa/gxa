@@ -109,7 +109,7 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
                         </tr>
                         <tr>
                             <td align="left">conditions</td>
-                            <td align="right"><c:out value="${atlasStatistics.propertyValueCount}"/></td>
+                            <td align="right"><c:out value="${atlasStatistics.factorValueCount}"/></td>
                         </tr>
                         <tr>
                             <td colspan="2">&nbsp;</td>
