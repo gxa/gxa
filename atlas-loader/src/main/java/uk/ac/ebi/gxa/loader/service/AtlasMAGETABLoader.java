@@ -335,6 +335,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             netCdfCreator.setVersion(version);
 
             netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
+            if(netCdfCreator.hasWarning() && listener != null) {
+                for(String warning : netCdfCreator.getWarnings())
+                    listener.setWarning(warning);
+            }
             
             getLog().info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
                     " and " + adAcc);

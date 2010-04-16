@@ -30,6 +30,7 @@ public enum TaskEvent {
     CANCELLED,
     STARTED,
     FINISHED,
+    WARNING,
     FAILED,
     SKIPPED
 }

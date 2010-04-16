@@ -230,6 +230,10 @@ public class LoaderDriver {
                         System.out.println(progress);
                     }
 
+                    public void loadWarning(String message) {
+                        System.out.println(message);
+                    }
+
                     public void loadSuccess(AtlasLoaderEvent event) {
                         final long indexEnd = System.currentTimeMillis();
 

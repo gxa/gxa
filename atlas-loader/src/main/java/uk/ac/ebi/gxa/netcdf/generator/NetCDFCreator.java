@@ -59,6 +59,8 @@ public class NetCDFCreator {
     private Map<String, List<String>> scvMap;
     private Map<String, Set<String>> uniqueEfvMap;
 
+    private List<String> warnings = new ArrayList<String>();
+
     private NetcdfFileWriteable netCdf;
 
     private int totalDesignElements;
@@ -368,21 +370,31 @@ public class NetCDFCreator {
         ArrayChar deName = new ArrayChar.D2(1, maxDesignElementLength);
         ArrayInt deIds = new ArrayInt.D1(totalDesignElements);
         ArrayInt gnIds = new ArrayInt.D1(totalDesignElements);
+        boolean deMapped = false;
+        boolean geneMapped = false;
         for(String de : mergedDesignElements) {
             deName.setString(0, de);
             netCdf.write("DEacc", new int[] { i, 0 }, deName);
             Long deId = arrayDesign.getDesignElements().get(de);
             if(deId != null) {
+                deMapped = true;
                 deIds.setLong(i, deId);
                 List<Long> gnId = arrayDesign.getGenes().get(deId);
-                if(gnId != null && !gnId.isEmpty())
+                if(gnId != null && !gnId.isEmpty()) {
                     gnIds.setLong(i, gnId.get(0));
+                    geneMapped = true;
+                }
             }
             ++i;
         }
 
         netCdf.write("DE", deIds);
         netCdf.write("GN", gnIds);
+
+        if(!deMapped)
+            warnings.add("No design element mappings were found");
+        if(!geneMapped)
+            warnings.add("No gene mappings were found");
     }
 
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
@@ -457,6 +469,7 @@ public class NetCDFCreator {
     }
 
     public void createNetCdf(File netCdfRepository) throws NetCDFCreatorException {
+        warnings.clear();
         prepareData();
 
         try {
@@ -478,5 +491,13 @@ public class NetCDFCreator {
         } catch(IOException e) {
             throw new NetCDFCreatorException(e);
         }
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public boolean hasWarning() {
+        return !warnings.isEmpty();
     }
 }

@@ -27,4 +27,5 @@ package uk.ac.ebi.gxa.loader.service;
 public interface AtlasLoaderServiceListener {
     void setAccession(String accession);
     void setProgress(String progress);
+    void setWarning(String warning);
 }

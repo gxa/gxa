@@ -55,6 +55,7 @@ var $msg = {
         CANCELLED: 'Cancelled',
         STARTED: 'Started',
         FINISHED: 'Finished',
+        WARNING: 'Warning',
         SKIPPED: 'Skipped',
         FAILED: 'Failed'
     },
@@ -674,7 +675,7 @@ function compileTemplates() {
                 '.message': 'litem.message',
                 '.user': 'litem.user',
                 '.time': 'litem.time',
-                '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
+                '.@class+': ' event#{litem.event} type#{litem.type}'
             }
         }
     });
@@ -713,7 +714,7 @@ function compileTemplates() {
                 '.message': 'litem.message',
                 '.user': 'litem.user',
                 '.time': 'litem.time',
-                '.@class+': ' event#{litem.event} stage#{litem.stage} type#{litem.type}'
+                '.@class+': ' event#{litem.event} type#{litem.type}'
             }
         }
     });

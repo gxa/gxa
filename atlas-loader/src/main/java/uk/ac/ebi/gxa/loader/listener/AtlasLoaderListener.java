@@ -34,17 +34,24 @@ public interface AtlasLoaderListener {
      *
      * @param event the event representing this build success event
      */
-    public void loadSuccess(AtlasLoaderEvent event);
+    void loadSuccess(AtlasLoaderEvent event);
 
     /**
      * Indicates that loading of a resource failed
      *
      * @param event the event representing this build failure
      */
-    public void loadError(AtlasLoaderEvent event);
+    void loadError(AtlasLoaderEvent event);
 
     /**
      * Updates loader with current progress
+     * @param progress progress message
      */
-    public void loadProgress(String progress);
+    void loadProgress(String progress);
+
+    /**
+     * Updates loader with warning message
+     * @param message warning message
+     */
+    void loadWarning(String message);
 }

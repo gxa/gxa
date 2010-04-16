@@ -222,6 +222,11 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                                 public void setProgress(String progress) {
                                     listener.loadProgress(progress);
                                 }
+
+                                public void setWarning(String warning) {
+                                    log.warn(warning);
+                                    listener.loadWarning(warning);
+                                }
                             } : null);
 
                     log.info("Finished load operation on " + experimentResource.toString());
