@@ -39,7 +39,6 @@ import java.io.File;
  */
 public abstract class AtlasLoaderService<T> {
     private DefaultAtlasLoader atlasLoader;
-    private boolean allowReloading = false;
 
     // logging
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -65,18 +64,7 @@ public abstract class AtlasLoaderService<T> {
     }
 
     protected boolean allowReloading() {
-        return allowReloading;
-    }
-
-    /**
-     * Sets whether or not reloads should be suppressed by this load service.  If this is set to true, attempting to
-     * reload an existing experiment will cause an exception.  If false, reloads will procede like any other load
-     * (although a warning should be issued to the log stream by implementations of this class).
-     *
-     * @param allowReloading whether or not to automatically allow reloads
-     */
-    public void setAllowReloading(boolean allowReloading) {
-        this.allowReloading = allowReloading;
+        return atlasLoader.getAllowReloading();
     }
 
     /**

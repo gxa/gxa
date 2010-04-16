@@ -37,7 +37,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.AtlasUnloaderException;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;

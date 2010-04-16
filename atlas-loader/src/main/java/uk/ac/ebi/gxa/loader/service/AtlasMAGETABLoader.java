@@ -48,13 +48,14 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.utils.ValueListHashMap;
-import uk.ac.ebi.gxa.loader.AtlasUnloaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -220,8 +221,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<URL> {
             try {
                 if(listener != null)
                     listener.setProgress("Unloading existing version of experiment " + experimentAccession);
-                getAtlasLoader().unloadExperiment(experimentAccession);
-            } catch (AtlasUnloaderException e) {
+                new AtlasExperimentUnloaderService(getAtlasLoader()).process(experimentAccession, null);
+            } catch (AtlasLoaderServiceException e) {
                 throw new AtlasLoaderServiceException(e);
             }
         }
