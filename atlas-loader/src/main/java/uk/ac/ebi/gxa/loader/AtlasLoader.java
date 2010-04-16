@@ -144,16 +144,10 @@ public interface AtlasLoader<L> {
     /**
      * Unloads an experiment by accession cleaning up all related resources
      * @param accession experiment's accession
-     * @throws AtlasUnloaderException if anything goes wrong
+     * @param listener a listener that can be used to supply callbacks when processing of this experiment
+     *                           completes, or when any errors occur.
      */
-    void unloadExperiment(String accession) throws AtlasUnloaderException;
-
-    /**
-     * Unloads an array design by accession cleaning up all related resources
-     * @param accession arraydesigns's accession
-     * @throws AtlasUnloaderException if anything goes wrong
-     */
-    void unloadArrayDesign(String accession) throws AtlasUnloaderException;
+    void unloadExperiment(String accession, AtlasLoaderListener listener);
 
     /**
      * Updates NetCDF files for experiment with all new properties, but existing expression values

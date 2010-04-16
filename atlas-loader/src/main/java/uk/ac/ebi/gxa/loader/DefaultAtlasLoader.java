@@ -25,13 +25,10 @@ package uk.ac.ebi.gxa.loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.InputStream;
@@ -62,6 +59,7 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     private AtlasMAGETABLoader experimentLoaderService;
     private AtlasArrayDesignLoader arrayLoaderService;
     private AtlasNetCDFUpdaterService netcdfUpdaterService;
+    private AtlasExperimentUnloaderService experimentUnloaderService;
 
     private ExecutorService service;
     private boolean running = false;
@@ -119,15 +117,12 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
 
             // create the experiment loading service
             experimentLoaderService = new AtlasMAGETABLoader(this);
-            experimentLoaderService.setAllowReloading(getAllowReloading());
-            // if we have set the cutoff for missing design elements, set on the service
-
             // create the experiment loading service
             arrayLoaderService = new AtlasArrayDesignLoader(this);
-            arrayLoaderService.setAllowReloading(getAllowReloading());
             arrayLoaderService.setGeneIdentifierPriority(getGeneIdentifierPriority());
 
             netcdfUpdaterService = new AtlasNetCDFUpdaterService(this);
+            experimentUnloaderService = new AtlasExperimentUnloaderService(this);
 
             // finally, create an executor service for processing calls to load
             service = Executors.newCachedThreadPool();
@@ -202,14 +197,14 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
     }
 
     public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
-        loadByService(experimentLoaderService, experimentResource, listener);
+        processByService(experimentLoaderService, experimentResource, listener);
     }
 
     public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
-        loadByService(arrayLoaderService, arrayDesignResource, listener);
+        processByService(arrayLoaderService, arrayDesignResource, listener);
     }
 
-    private <T> void loadByService(final AtlasLoaderService<T> loaderService, final T experimentResource, final AtlasLoaderListener listener) {
+    private <T> void processByService(final AtlasLoaderService<T> loaderService, final T experimentResource, final AtlasLoaderListener listener) {
         final long startTime = System.currentTimeMillis();
         service.submit(new Runnable() {
             public void run() {
@@ -247,35 +242,12 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         });
     }
 
-    public void unloadExperiment(String accession) throws AtlasUnloaderException {
-        try {
-            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
-            if(experiment == null)
-                throw new AtlasUnloaderException("Can't find experiment to unload");
-
-            List<ArrayDesign> arrayDesigns = getAtlasDAO().getArrayDesignByExperimentAccession(accession);
-
-            getAtlasDAO().deleteExperiment(accession);
-
-            for(ArrayDesign ad : arrayDesigns) {
-                File netCdf = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + ad.getArrayDesignID() + ".nc");
-                if(netCdf.exists()) {
-                    if(!netCdf.delete())
-                        log.warn("Can't delete NetCDF: " + netCdf);
-                }
-            }
-        } catch(DataAccessException e) {
-            throw new AtlasUnloaderException("DB error while unloading experiment " + accession, e);
-        }
-    }
-
-    public void unloadArrayDesign(String accession) throws AtlasUnloaderException {
-        log.error("Attempt to unload array design " + accession);
-        throw new AtlasUnloaderException("Not implemented");
+    public void unloadExperiment(String accession, final AtlasLoaderListener listener) {
+        processByService(experimentUnloaderService, accession, listener);
     }
 
     public void updateNetCDFForExperiment(String experimentAccession, final AtlasLoaderListener listener) {
-        loadByService(netcdfUpdaterService, experimentAccession, listener);
+        processByService(netcdfUpdaterService, experimentAccession, listener);
     }
 
     public String getVersionFromMavenProperties() {

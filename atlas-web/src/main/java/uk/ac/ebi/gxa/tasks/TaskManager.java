@@ -55,7 +55,6 @@ public class TaskManager implements InitializingBean {
         taskFactories.add(AnalyticsTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
-        taskFactories.add(UnloadExperimentTask.FACTORY);
     }
 
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
