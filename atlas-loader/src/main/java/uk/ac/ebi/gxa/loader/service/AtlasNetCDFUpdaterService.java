@@ -81,7 +81,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
                     });
                 }                
 
-                if(!originalNetCDF.renameTo(new File(originalNetCDF.toString() + ".old")))
+                if(!originalNetCDF.delete())
                     throw new AtlasLoaderServiceException("Can't delete original NetCDF file " + originalNetCDF);
 
                 listener.setProgress("Writing new NetCDF");
