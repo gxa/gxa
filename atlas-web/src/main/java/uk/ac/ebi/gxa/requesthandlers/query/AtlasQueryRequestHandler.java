@@ -111,7 +111,7 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
 
                 if (atlasResult.getSize() == 1) {
                     StructuredResultRow row = atlasResult.getResults().iterator().next();
-                    String url = "gene?gid=" + row.getGene().getGeneIdentifier();
+                    String url = "gene/" + row.getGene().getGeneIdentifier();
                     response.sendRedirect(url);
                     return;
                 }

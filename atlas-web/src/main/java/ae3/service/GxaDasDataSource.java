@@ -244,7 +244,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                 e.getDwExpId();
                 //e.toString();
 
-                notes+="<tr><td><a href=\"http://www.ebi.ac.uk/gxa/experiment/" + e.getDwExpAccession() + "?gid="+ atlasGene.getGeneIdentifier() +" \">"+ e.getDwExpAccession() +"</a></td>";
+                notes+="<tr><td><a href=\"http://www.ebi.ac.uk/gxa/experiment/" + e.getDwExpAccession() + "/"+ atlasGene.getGeneIdentifier() +" \">"+ e.getDwExpAccession() +"</a></td>";
                 notes+="<td>"+ e.getDwExpDescription() +"</td></tr>";
             }
                 notes+="</table>";
