@@ -245,8 +245,8 @@ public class AtlasGenePropertyService implements AutoCompleter,
         SolrQuery q = new SolrQuery(query);
         q.setStart(0);
         q.setRows(50);
-        for(String field : nameFields)
-            q.addField(field);
+        for(String field : nameProperties)
+            q.addField("property_" + field);
         q.addField("species");
         q.addField("identifier");
         q.addField("name");
