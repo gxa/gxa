@@ -50,6 +50,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
 
             final File originalNetCDF = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
 
+            listener.setProgress("Reading existing NetCDF");
             final NetCDFProxy reader = new NetCDFProxy(originalNetCDF);
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
@@ -57,7 +58,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
             try {
-                List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays);
+                List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for(int i = 0; i < oldAssays.length; ++i) {
                     for(Assay assay : arrayDesignAssays)
@@ -69,21 +70,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
                 }
 
 
-                String[] deAccessions = reader.getDesignElementAccessions();
+                String[] deAccessions = reader.getDesignElementAccessions();                
                 DataMatrixStorage storage = new DataMatrixStorage(leaveAssays.size(), deAccessions.length, 1);
                 for(int i = 0; i < deAccessions.length; ++i) {
                     final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                     storage.add(deAccessions[i], new FilterIterator<Integer,Float>(CountIterator.zeroTo(values.length)) {
-                        public Float map(Integer i) {
-                            return oldAssays[i] == -1 ? values[i] : null; // skips deleted assays
+                        public Float map(Integer j) {
+                            return oldAssays[j] == -1 ? values[j] : null; // skips deleted assays
                         }
                     });
-                    ++i;
-                }
+                }                
 
-                if(!originalNetCDF.delete())
+                if(!originalNetCDF.renameTo(new File(originalNetCDF.toString() + ".old")))
                     throw new AtlasLoaderServiceException("Can't delete original NetCDF file " + originalNetCDF);
 
+                listener.setProgress("Writing new NetCDF");
                 NetCDFCreator netCdfCreator = new NetCDFCreator();
 
                 netCdfCreator.setAssays(leaveAssays);
@@ -94,7 +95,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
 
                 Map<String, DataMatrixStorage.ColumnRef> dataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
                 for(int i = 0; i < leaveAssays.size(); ++i)
-                    dataMap.put(leaveAssays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(storage, i++));
+                    dataMap.put(leaveAssays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(storage, i));
 
                 netCdfCreator.setAssayDataMap(dataMap);
 
