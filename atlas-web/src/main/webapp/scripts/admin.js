@@ -43,7 +43,8 @@ var $msg = {
         loadexperiment: 'Load experiment',
         loadarraydesign: 'Load array design',
         index: 'Build index',
-        unloadexperiment: 'Unload experiment'
+        unloadexperiment: 'Unload experiment',
+        updateexperiment: 'Update experiment'
     },
     runMode: {
         RESTART: '[Restart]',
@@ -314,11 +315,15 @@ function updateBrowseExperiments() {
         }
 
         $('#experimentList input.restart').click(function () {
-            startSelectedTasks('analytics', 'RESTART', 'restart processing of');
+            startSelectedTasks('analytics', 'RESTART', 'restart analytics of');
         });
 
         $('#experimentList input.unload').click(function () {
             startSelectedTasks('unloadexperiment', 'RESTART', 'unload');
+        });
+
+        $('#experimentList input.update').click(function () {
+            startSelectedTasks('updateexperiment', 'RESTART', 'update NetCDF of');
         });
 
         $('#experimentList .rebuildIndex input').click(function () {

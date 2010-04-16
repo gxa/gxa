@@ -194,8 +194,11 @@ public class NetCDFProxy {
         }
         else {
             ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
-            // convert to a string array and return
-            return  (String[]) deacc.make1DStringArray().get1DJavaArray(String.class);
+            ArrayChar.StringIterator si = deacc.getStringIterator();
+            String[] result = new String[deacc.getShape()[0]];
+            for(int i = 0; i < result.length && si.hasNext(); ++i)
+                result[i] = si.next();
+            return result;
         }
     }
 
