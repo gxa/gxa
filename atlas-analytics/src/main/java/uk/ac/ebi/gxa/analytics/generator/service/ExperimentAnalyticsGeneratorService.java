@@ -26,6 +26,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
@@ -78,8 +79,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         final AnalyticsTimer timer = new AnalyticsTimer(experiments);
 
         // the list of futures - we need these so we can block until completion
-        List<Future<Boolean>> tasks =
-                new ArrayList<Future<Boolean>>();
+        List<Future> tasks =
+                new ArrayList<Future>();
 
         // start the timer
         timer.start();
@@ -106,12 +107,12 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
                 // run each experiment in parallel
-                tasks.add(tpool.submit(new Callable<Boolean>() {
+                tasks.add(tpool.submit(new Callable() {
 
-                    public Boolean call() throws Exception {
+                    public Void call() throws Exception {
                         long start = System.currentTimeMillis();
                         try {
-                            return generateExperimentAnalytics(experiment.getAccession());
+                            generateExperimentAnalytics(experiment.getAccession(), null);
                         }
                         finally {
                             timer.completed(experiment.getExperimentID());
@@ -126,12 +127,14 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                     timer.getTotalExperimentCount() + "." +
                                     "\n\tEstimated time remaining: " + estimate + " mins.");
                         }
+
+                        return null;
                     }
                 }));
             }
 
             // block until completion, and throw the first error we see
-            for (Future<Boolean> task : tasks) {
+            for (Future task : tasks) {
                 try {
                     task.get();
                 }
@@ -189,7 +192,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
     }
 
-    protected void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException {
+    protected void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
         try {
             // simply call start procedure
             getAtlasDAO().startExpressionAnalytics(experimentAccession);
@@ -203,7 +206,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
 
         // then generateExperimentAnalytics
-        generateExperimentAnalytics(experimentAccession);
+        generateExperimentAnalytics(experimentAccession, listener);
 
         try {
             // finally call end procedure
@@ -217,154 +220,134 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
     }
 
-    private boolean generateExperimentAnalytics(String experimentAccession) throws AnalyticsGeneratorException {
+    private void generateExperimentAnalytics(String experimentAccession, AnalyticsGeneratorListener listener)
+            throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
-        boolean success = true;
-        try {
-            // update loadmonitor - experiment is indexing
-            getAtlasDAO().writeLoadDetails(
-                    experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
+        // update loadmonitor - experiment is indexing
+        getAtlasDAO().writeLoadDetails(
+                experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
-            // first, delete old analytics for this experiment
-            getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
+        // first, delete old analytics for this experiment
+        getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
-            // work out where the NetCDF(s) are located
-            final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-            File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
+        // work out where the NetCDF(s) are located
+        final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
+        File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
 
-                public boolean accept(File file, String name) {
-                    return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
-                }
-            });
-
-            if (netCDFs == null || netCDFs.length == 0) {
-                success = false;
-                throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
+            public boolean accept(File file, String name) {
+                return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
             }
+        });
 
-            int count = 0;
-            for (final File netCDF : netCDFs) {
-                count++;
-                ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
-                    public Void compute(RServices rs) throws ComputeException {
-                        try {
-                            // first, make sure we load the R code that runs the analytics
-                            rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
-
-                            // note - the netCDF file MUST be on the same file system where the workers run
-                            getLog().debug("Starting compute task for " + netCDF.getAbsolutePath());
-                            RObject r = rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
-                            getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
-
-                            if(r instanceof RChar) {
-                                String[] names  = ((RChar) r).getNames();
-                                String[] values = ((RChar) r).getValue();
-
-                                for(int i = 0; i < names.length; i++) {
-                                    getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
-                                }
-
-                                for(String rc :values) {
-                                    if(rc.contains("Error"))
-                                        throw new ComputeException(rc);
-                                }
-                            } else
-                                throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
-                        } catch (RemoteException e) {
-                            throw new ComputeException("Problem communicating with R service", e);
-                        } catch (IOException e) {
-                            throw new ComputeException("Unable to load R source from R/analytics.R", e);
-                        }
-                        return null;
-                    }
-                };
-
-                NetCDFProxy proxy = null;
-
-                // now run this compute task
-                try {
-                    getAtlasComputeService().computeTask(computeAnalytics);
-                    getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
-                            " has completed.");
-
-                    // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
-                    proxy = new NetCDFProxy(netCDF);
-
-                    // get unique factor values for the expression value matrix
-                    long[] designElements = proxy.getDesignElements();
-                    String[] uefvs = proxy.getUniqueFactorValues();
-
-                    // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
-                    getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
-                    int uefvIndex = 0;
-                    for (String uefv : uefvs) {
-                        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
-                        String ef = values[0];
-                        for (int i = 1; i < values.length; i++) {
-                            String efv = values[i];
-
-                            float[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                            float[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
-
-                            // write values
-                            getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
-                                    "EF: " + ef + "; EFV: " + efv);
-
-                            try {
-                                getAtlasDAO().writeExpressionAnalytics(
-                                        experimentAccession, ef, efv, designElements, pValues, tStatistics);
-                            }
-                            catch (RuntimeException e) {
-                                success = false;
-                                getLog().error("Writing analytics data for experiment: " + experimentAccession + "; " +
-                                        "EF: " + ef + "; EFV: " + efv + " failed with errors: ", e);
-                            }
-                        }
-
-                        // increment uefvIndex
-                        uefvIndex++;
-                    }
-                }
-                catch (IOException e) {
-                    success = false;
-                    getLog().error("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
-                    throw new AnalyticsGeneratorException(e);
-                }
-                catch (ComputeException e) {
-                    success = false;
-                    getLog().error("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: ", e);
-                    throw new AnalyticsGeneratorException(e);
-                }
-                catch (Exception e) {
-                    success = false;
-                    getLog().error("An error occurred whilst generating analytics for {}\n{}", netCDF.getAbsolutePath(),
-                                   e);
-                    throw new AnalyticsGeneratorException(e);
-                } finally {
-                    if(proxy != null) {
-                        try {
-                            proxy.close();
-                        } catch (IOException e) {
-                            getLog().error("Failed to close NetCDF proxy for " + netCDF.getAbsolutePath());
-                        }
-                    }
-                }
-            }
-
-            return success;
+        if (netCDFs == null || netCDFs.length == 0) {
+            throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
-        finally {
-            getLog().info("Finalising analytics changes for " + experimentAccession);
 
-            // update loadmonitor - experiment has completed analytics
-            if (success) {
-                getAtlasDAO().writeLoadDetails(
-                        experimentAccession, LoadStage.RANKING, LoadStatus.DONE);
+        int count = 0;
+        for (final File netCDF : netCDFs) {
+            count++;
+            ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
+                public Void compute(RServices rs) throws ComputeException {
+                    try {
+                        // first, make sure we load the R code that runs the analytics
+                        rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+
+                        // note - the netCDF file MUST be on the same file system where the workers run
+                        getLog().debug("Starting compute task for " + netCDF.getAbsolutePath());
+                        RObject r = rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
+                        getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
+
+                        if(r instanceof RChar) {
+                            String[] names  = ((RChar) r).getNames();
+                            String[] values = ((RChar) r).getValue();
+
+                            for(int i = 0; i < names.length; i++) {
+                                getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
+                            }
+
+                            for(String rc :values) {
+                                if(rc.contains("Error"))
+                                    throw new ComputeException(rc);
+                            }
+                        } else
+                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                    } catch (RemoteException e) {
+                        throw new ComputeException("Problem communicating with R service", e);
+                    } catch (IOException e) {
+                        throw new ComputeException("Unable to load R source from R/analytics.R", e);
+                    }
+                    return null;
+                }
+            };
+
+            NetCDFProxy proxy = null;
+
+            // now run this compute task
+            try {
+                listener.buildProgress("Computing analytics for " + experimentAccession);
+                getAtlasComputeService().computeTask(computeAnalytics);
+                getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
+                        " has completed.");
+
+                // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
+                proxy = new NetCDFProxy(netCDF);
+
+                // get unique factor values for the expression value matrix
+                long[] designElements = proxy.getDesignElements();
+                String[] uefvs = proxy.getUniqueFactorValues();
+
+                listener.buildProgress("Writing analytics for " + experimentAccession + " to the database...");
+
+                // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
+                getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
+                int uefvIndex = 0;
+                for (String uefv : uefvs) {
+                    String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+                    String ef = values[0];
+                    for (int i = 1; i < values.length; i++) {
+                        String efv = values[i];
+
+                        float[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                        float[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+
+                        // write values
+                        listener.buildProgress("Writing analytics for experiment: " + experimentAccession + "; " +
+                                "EF: " + ef + "; EFV: " + efv);
+
+                        getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
+                                "EF: " + ef + "; EFV: " + efv);
+
+                        try {
+                            getAtlasDAO().writeExpressionAnalytics(
+                                    experimentAccession, ef, efv, designElements, pValues, tStatistics);
+                        }
+                        catch (RuntimeException e) {
+                            throw new AnalyticsGeneratorException("Writing analytics data for experiment: " + experimentAccession + "; " +
+                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: ", e);
+                        }
+                    }
+
+                    // increment uefvIndex
+                    uefvIndex++;
+                }
             }
-            else {
-                getAtlasDAO().writeLoadDetails(
-                        experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
+            catch (IOException e) {
+                throw new AnalyticsGeneratorException("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
+            }
+            catch (ComputeException e) {
+                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: ", e);
+            }
+            catch (Exception e) {
+                throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
+            } finally {
+                if(proxy != null) {
+                    try {
+                        proxy.close();
+                    } catch (IOException e) {
+                        getLog().error("Failed to close NetCDF proxy for " + netCDF.getAbsolutePath());
+                    }
+                }
             }
         }
     }

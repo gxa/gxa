@@ -202,7 +202,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
                         log.info("Finished analytics generations for all experiments");
                     }
                     else {
-                        analyticsService.generateAnalyticsForExperiment(experimentAccession);
+                        analyticsService.generateAnalyticsForExperiment(experimentAccession, listener);
                     }
 
                     return true;
