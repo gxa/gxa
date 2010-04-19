@@ -32,6 +32,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.web.Atlas;
@@ -103,7 +104,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
         // that will bring down tomcat if R environment is not configured correctly, but variables are set
         AtlasRFactory rFactory = (AtlasRFactory) context.getBean("atlasRFactory");
-        try {
+/*        try {
             if (!rFactory.validateEnvironment()) {
                 log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
             }
@@ -115,7 +116,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         } catch (UnsatisfiedLinkError ule) {
             log.error("Atlas configured to use local R which is not present. Atlas on-the-fly computations will fail", ule);
         }
-
+*/
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         String atlasDatasourceUrl, atlasDatasourceUser;
@@ -135,6 +136,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // read index, netcdf directory locations
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
         String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
+
+        NetcdfDataset.initNetcdfFileCache(0,500,600);
 
         StringBuffer sb = new StringBuffer();
         sb.append("\nAtlas initializing with the following parameters...");
@@ -172,6 +175,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.removeAttribute(Atlas.ATLAS_DAO.key());
 
         application.removeAttribute(Atlas.GENES_CACHE.key());
+
+        NetcdfDataset.shutdown();
 
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;

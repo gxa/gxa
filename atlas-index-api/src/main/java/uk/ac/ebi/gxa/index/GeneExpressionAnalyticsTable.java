@@ -58,6 +58,27 @@ public class GeneExpressionAnalyticsTable implements Serializable {
 
     }
 
+    public void addAll(Collection<ExpressionAnalysis> analyses) {
+        expas.addAll(analyses);
+
+        int pos = expas.size() - 1;
+
+        for (ExpressionAnalysis analysis : analyses) {
+            String efefvId = EscapeUtil.encode(analysis.getEfName(), analysis.getEfvName());
+            if(!byEfEfvId.containsKey(efefvId))
+                byEfEfvId.put(efefvId, new BitSet());
+
+            byEfEfvId.get(efefvId).set(pos);
+
+            if(analysis.getEfoAccessions() != null)
+                for(String oneefo : analysis.getEfoAccessions()) {
+                    if(!byEfoId.containsKey(oneefo))
+                        byEfoId.put(oneefo, new BitSet());
+                    byEfoId.get(oneefo).set(pos);
+                }
+        }
+    }
+
     private Iterable<ExpressionAnalysis> makeIterable(final BitSet bs) {
         return new Iterable<ExpressionAnalysis>() {
             public Iterator<ExpressionAnalysis> iterator() {

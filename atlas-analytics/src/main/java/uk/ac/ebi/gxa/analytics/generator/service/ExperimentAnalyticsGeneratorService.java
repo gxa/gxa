@@ -40,6 +40,7 @@ import java.io.*;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -244,6 +245,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
 
+        final List<String> analysedEFs = new LinkedList<String>();
+
         int count = 0;
         for (final File netCDF : netCDFs) {
             count++;
@@ -259,14 +262,17 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
 
                         if(r instanceof RChar) {
-                            String[] names  = ((RChar) r).getNames();
-                            String[] values = ((RChar) r).getValue();
+                            String[] efs        = ((RChar) r).getNames();
+                            String[] analysedOK = ((RChar) r).getValue();
 
-                            for(int i = 0; i < names.length; i++) {
-                                getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), names[i], values[i]});
+                            for(int i = 0; i < efs.length; i++) {
+                                getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), efs[i], analysedOK[i]});
+
+                                if("OK".equals(analysedOK[i]))
+                                    analysedEFs.add(efs[i]);
                             }
 
-                            for(String rc :values) {
+                            for(String rc : analysedOK) {
                                 if(rc.contains("Error"))
                                     throw new ComputeException(rc);
                             }
@@ -305,6 +311,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 for (String uefv : uefvs) {
                     String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                     String ef = values[0];
+
+                    // only write to the database EFs that have been processed
+                    if(!analysedEFs.contains(ef))
+                        continue;
+
                     for (int i = 1; i < values.length; i++) {
                         String efv = values[i];
 

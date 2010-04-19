@@ -123,8 +123,8 @@ public class AtlasDAO {
     public static final String GENES_SELECT_FOR_ANALYTICS =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.organismid=s.organismid AND EXISTS " + 
-	            "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " + 
+                    "WHERE g.organismid=s.organismid AND EXISTS " +
+	            "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " +
                     "WHERE ea.designelementid=de.designelementid AND ea.pvaladj<0.05 AND de.geneid=g.geneid)";
 
     public static final String GENES_SELECT =
@@ -135,6 +135,10 @@ public class AtlasDAO {
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
                     "WHERE g.identifier=?";
+    public static final String GENE_BY_ID =
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_organism s " +
+                    "WHERE g.geneid=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
@@ -154,6 +158,15 @@ public class AtlasDAO {
                     "AND d.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
+    public static final String GENES_BY_EXPERIMENT_ID =
+            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
+                    "FROM a2_gene g, a2_organism s, a2_designelement d, a2_assay a, " +
+                    "a2_experiment e " +
+                    "WHERE g.geneid=d.geneid " +
+                    "AND g.organismid = s.organismid " +
+                    "AND d.arraydesignid=a.arraydesignid " +
+                    "AND a.experimentid=e.experimentid " +
+                    "AND e.experimentid=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de, a2_assay a, a2_experiment e " +
@@ -589,6 +602,27 @@ public class AtlasDAO {
         return null;
     }
 
+    /**
+     * Fetches one gene from the database. Note that genes are not automatically prepopulated with property information,
+     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
+     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     *
+     * @return the gene found
+     * @param id
+     */
+    public Gene getGeneById(Long id) {
+        // do the query to fetch gene without design elements
+        List results = template.query(GENE_BY_ID,
+                                      new Object[]{id},
+                                      new GeneMapper());
+
+        fillOutGeneProperties(results);
+
+        if (results.size() > 0) {
+            return (Gene) results.get(0);
+        }
+        return null;
+    }
 
     /**
      * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
@@ -633,6 +667,27 @@ public class AtlasDAO {
         log.debug("Design elements for genes of " + exptAccession + " acquired");
 
         // and return
+        return genes;
+    }
+
+    /**
+     * Fetches all genes for the given experiment accession.  Note that genes are not automatically pre-populated with
+     * property information, to keep query time down.  If you require this data, you can fetch it for the list of genes
+     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+     *
+     * @param experimentId the id of the experiment to query for
+     * @return the list of all genes in the database for this experiment accession
+     */
+    public List<Gene> getGenesByExperimentId(Long experimentId) {
+        // do the first query to fetch genes without design elements
+        log.debug("Querying for genes by experiment " + experimentId);
+        List results = template.query(GENES_BY_EXPERIMENT_ID,
+                                      new Object[]{experimentId},
+                                      new GeneMapper());
+        log.debug("Genes for " + experimentId + " acquired");
+
+        List<Gene> genes = (List<Gene>) results;
+
         return genes;
     }
 
@@ -1834,7 +1889,7 @@ public class AtlasDAO {
         }
         else {
             int realDECount = 0;
-            for (long de : designElements) 
+            for (long de : designElements)
                 realDECount += de != 0 ? 1 : 0;
             final int deCount = realDECount;
             return new AbstractSqlTypeValue() {
@@ -1911,6 +1966,22 @@ public class AtlasDAO {
             }
         };
     }
+
+    public List<Long> getArrayDesignsForGene(Long geneid) {
+        return template.query("SELECT arraydesignid FROM A2_DESIGNELEMENT WHERE geneid=?",
+                new Long[]{geneid}, new RowMapper() {
+                    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                        return resultSet.getLong(1);
+                    }
+                });
+    }
+
+
+    public Long getArrayDesignForDesignElement(Long deid) {
+        return template.queryForLong("SELECT arraydesignid FROM A2_DESIGNELEMENT WHERE designelementid=?",
+                new Long[]{deid});
+    }
+
 
     public int getCountAssaysForExperimentID(long experimentID) {
         return template.queryForInt(

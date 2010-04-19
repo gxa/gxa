@@ -34,6 +34,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -214,6 +215,20 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
+    }
+
+    /**
+     * Generate/update only documents for a selection of id's.
+     *
+     * @param docIds          document id's to update
+     * @param progressUpdater instance of {@link uk.ac.ebi.gxa.index.builder.service.IndexBuilderService.ProgressUpdater} to track progress
+     * @throws uk.ac.ebi.gxa.index.builder.IndexBuilderException
+     *          thrown if an error occurs
+     */
+    @Override
+    protected void updateIndexDocs(Collection<Long> docIds,
+                                   ProgressUpdater progressUpdater) throws IndexBuilderException {
+        throw new RuntimeException("Not implemented");
     }
 
     public String getName() {

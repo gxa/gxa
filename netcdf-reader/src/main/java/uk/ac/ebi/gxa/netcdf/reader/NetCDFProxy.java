@@ -24,14 +24,18 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.Array;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.InvalidRangeException;
+import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
+import ucar.nc2.dataset.NetcdfDataset;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
@@ -67,11 +71,13 @@ public class NetCDFProxy {
     private NetcdfFile netCDF;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private long experimentId;
 
     public NetCDFProxy(File netCDF) {
         this.pathToNetCDF = netCDF.getAbsolutePath();
         try {
-                this.netCDF = NetcdfFile.open(netCDF.getAbsolutePath());
+            this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
+            this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
             proxied = true;
         }
         catch (IOException e) {
@@ -450,7 +456,7 @@ public class NetCDFProxy {
                 return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
             }
             catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
+                log.trace("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
                 throw new IOException("Failed to read p-value data for design element at " + designElementIndex +
                         ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
             }
@@ -528,7 +534,7 @@ public class NetCDFProxy {
             catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
                         e.getMessage());
-                throw new IOException("Failed to read t-statistic data for unique factor value at " + 
+                throw new IOException("Failed to read t-statistic data for unique factor value at " +
                         uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
                         "[" + e.getMessage() + "]");
             }
@@ -543,4 +549,99 @@ public class NetCDFProxy {
         if(this.netCDF != null)
             this.netCDF.close();
     }
+
+    public Map<Long,List<ExpressionAnalysis>> getExpressionAnalysesForGenes() throws IOException {
+
+        final Map<Long,List<ExpressionAnalysis>> geas = new HashMap<Long,List<ExpressionAnalysis>>();
+        final String[] uEFVs = getUniqueFactorValues();
+
+        final long[]    genes = getGenes();
+        final long[]      des = getDesignElements();
+        final ArrayFloat pval  = (ArrayFloat) netCDF.findVariable("PVAL").read();
+        final ArrayFloat tstat = (ArrayFloat) netCDF.findVariable("TSTAT").read();
+
+        IndexIterator pvalIter  = pval.getIndexIterator();
+        IndexIterator tstatIter = tstat.getIndexIterator();
+
+        for(int i = 0; i < genes.length; i++) {
+            List<ExpressionAnalysis> eas;
+
+            if(0 != genes[i] &&
+                    !geas.containsKey(genes[i]))
+                eas = new LinkedList<ExpressionAnalysis>();
+            else
+                eas = geas.get(genes[i]);
+
+            for(int j = 0; j < uEFVs.length; j++) {
+                if(!pvalIter.hasNext() || !tstatIter.hasNext()) {
+                    throw new RuntimeException("Unexpected end of expression analytics data in " + pathToNetCDF);
+                }
+
+                float pval_ = pvalIter.getFloatNext();
+                float tstat_ = tstatIter.getFloatNext();
+
+                if(genes[i] == 0) continue; // skip geneid = 0
+
+                ExpressionAnalysis ea = new ExpressionAnalysis();
+
+                String[] efefv = uEFVs[j].split("\\|\\|");
+
+                ea.setDesignElementID(des[i]);
+                ea.setEfName(efefv[0]);
+                ea.setEfvName(efefv.length == 2 ? efefv[1] : "");
+                ea.setPValAdjusted(pval_);
+                ea.setTStatistic(tstat_);
+                ea.setExperimentID(getExperimentId());
+
+                eas.add(ea);
+            }
+
+            if(genes[i] != 0)  // skip geneid = 0
+                geas.put(genes[i], eas);
+        }
+
+        return geas;
+    }
+
+    public long getExperimentId() {
+        return experimentId;
+    }
+
+    public void setExperimentId(long experimentId) {
+        this.experimentId = experimentId;
+    }
+
+    public List<ExpressionAnalysis> getExpressionAnalysisForDesignElementIndexes(
+            List<Integer> designElementIndexes,
+            List<Long> designElements
+    ) throws IOException {
+        List<ExpressionAnalysis> eas = new LinkedList<ExpressionAnalysis>();
+
+        String[] uEFVs = getUniqueFactorValues();
+        List<String[]> uEF_EFVs = new LinkedList<String[]>();
+        for (String uEFV : uEFVs) {
+            uEF_EFVs.add(uEFV.split("\\|\\|"));
+        }
+
+        for(int i = 0; i < designElementIndexes.size(); i++) {
+            float[] p = getPValuesForDesignElement(designElementIndexes.get(i));
+            float[] t = getTStatisticsForDesignElement(designElementIndexes.get(i));
+
+            for(int j = 0; j < p.length; j++) {
+                ExpressionAnalysis ea = new ExpressionAnalysis();
+
+                ea.setDesignElementID(designElements.get(i));
+                ea.setEfName(uEF_EFVs.get(j)[0]);
+                ea.setEfvName(uEF_EFVs.get(j).length == 2 ? uEF_EFVs.get(j)[1] : "");
+                ea.setPValAdjusted(p[j]);
+                ea.setTStatistic(t[j]);
+                ea.setExperimentID(getExperimentId());
+
+                eas.add(ea);
+            }
+        }
+
+        return eas;
+    }
+
 }
