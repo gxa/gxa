@@ -91,7 +91,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info("Indexing all genes...");
 
         // fetch genes
-        final List<Gene> genes = getAtlasDAO().getAllGenesFast().subList(0,1000);
+        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
         indexGenes(progressUpdater, genes);
     }
 
@@ -131,7 +131,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         }
 
                         int processedNow = processed.incrementAndGet();
-                        if(processedNow % 100 == 0) {
+                        if(processedNow % 1000 == 0) {
                             long timeNow = System.currentTimeMillis();
                             long elapsed = timeNow - timeStart;
                             long speed   = elapsed / processedNow / 1000;  // (s/item)
