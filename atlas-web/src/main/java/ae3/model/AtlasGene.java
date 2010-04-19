@@ -269,7 +269,14 @@ public class AtlasGene {
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
         if(expTable != null)
             return expTable;
-        return expTable = GeneExpressionAnalyticsTable.deserialize((byte[])geneSolrDocument.getFieldValue("exp_info"));
+
+        byte[] eadata = (byte[]) geneSolrDocument.getFieldValue("exp_info");
+        if(eadata != null)
+            expTable = GeneExpressionAnalyticsTable.deserialize((byte[])geneSolrDocument.getFieldValue("exp_info"));
+        else
+            expTable = new GeneExpressionAnalyticsTable();
+
+        return expTable;
     }
 
     public int getNumberOfExperiments() {

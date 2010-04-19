@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -36,6 +37,7 @@ import java.util.List;
  */
 public class PropertiesIndexBuilderService extends IndexBuilderService {
 
+    @Override
     protected void createIndexDocs(ProgressUpdater progressUpdater) throws IndexBuilderException {
         try {
             getLog().info("Fetching all properties");
@@ -62,6 +64,20 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
         }
+    }
+
+    /**
+     * Generate/update only documents for a selection of id's.
+     *
+     * @param docIds          document id's to update
+     * @param progressUpdater instance of {@link uk.ac.ebi.gxa.index.builder.service.IndexBuilderService.ProgressUpdater} to track progress
+     * @throws uk.ac.ebi.gxa.index.builder.IndexBuilderException
+     *          thrown if an error occurs
+     */
+    @Override
+    protected void updateIndexDocs(Collection<Long> docIds,
+                                   ProgressUpdater progressUpdater) throws IndexBuilderException {
+        throw new RuntimeException("Not implemented");
     }
 
     public String getName() {

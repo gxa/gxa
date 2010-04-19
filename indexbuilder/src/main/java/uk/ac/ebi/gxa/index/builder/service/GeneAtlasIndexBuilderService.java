@@ -22,19 +22,25 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.Deque;
+import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -59,6 +65,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, List<String>> ontomap =
             new HashMap<String, List<String>>();
     private Efo efo;
+    private File netcdfRepo;
 
     public Efo getEfo() {
         return efo;
@@ -68,150 +75,97 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         this.efo = efo;
     }
 
+    @Override
+    public void updateIndexDocs(final Collection<Long> experimentIds, final ProgressUpdater progressUpdater)
+            throws IndexBuilderException {
+
+        final Set<Gene> genes = new LinkedHashSet<Gene>();
+        for (Long experimentId : experimentIds) {
+            genes.addAll(getAtlasDAO().getGenesByExperimentId(experimentId));
+        }
+
+        indexGenes(progressUpdater, genes);
+    }
+
+    @Override
     protected void createIndexDocs(final ProgressUpdater progressUpdater) throws IndexBuilderException {
-        // do initial setup - load efo mappings and build executor service
-        loadEfoMapping();
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+        getLog().info("Indexing all genes...");
 
-        getLog().info("Fetching genes to index");
         // fetch genes
-        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
+        final List<Gene> genes = getAtlasDAO().getAllGenesFast().subList(0,1000);
+        indexGenes(progressUpdater, genes);
+    }
 
-        // the list of futures - we need these so we can block until completion
-        Deque<Future<Boolean>> tasks =
-                new Deque<Future<Boolean>>();
+    private void indexGenes(final ProgressUpdater progressUpdater,
+                            final Collection<Gene> genes) throws IndexBuilderException {
+        final int total = genes.size();
+        getLog().info("Found " + total + " genes to index");
 
+        loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
-        final int total = genes.size();
+        final long timeStart = System.currentTimeMillis();
 
-        final AtomicLong timeStart = new AtomicLong(System.currentTimeMillis());
+        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
-        getLog().info("Found " + total + " genes");
+        // index all genes in parallel
+        for (final Gene gene : genes) {
+            // for each gene, submit a new task to the executor
+            tasks.add(new Callable<Boolean>() {
+                public Boolean call() throws IOException, SolrServerException {
+                    try {
+                        getLog().debug("Fetching properties for " + gene.getIdentifier());
+                        getAtlasDAO().getPropertiesForGenes(Collections.singletonList(gene));
+                        getLog().debug("Acquired genes for " + gene.getIdentifier());
 
-        // the first error encountered whilst building the index, if any
-        Exception firstError = null;
+                        getLog().debug("Updating index - adding gene " + gene.getIdentifier());
+
+                        SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
+
+                        // add EFO counts for this gene
+                        boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getGeneID());
+                        if(hasAnyAnalytics) {
+                            // finally, add the document to the index
+                            getLog().debug("Finalising changes for " + gene.getIdentifier());
+                            getSolrServer().add(solrInputDoc);
+                        }
+
+                        int processedNow = processed.incrementAndGet();
+                        if(processedNow % 100 == 0) {
+                            long timeNow = System.currentTimeMillis();
+                            long elapsed = timeNow - timeStart;
+                            long speed   = elapsed / processedNow / 1000;  // (s/item)
+
+                            long estimated = (total - processedNow) * speed / 60;
+
+                            getLog().info("Processed " + processedNow + "/" + total + " genes " +
+                                    (processedNow * 100/total) + "% " + speed +
+                                    " genes/sec, estimated " + estimated + " mins.");
+                            progressUpdater.update(processedNow + "/" + total);
+                        }
+
+                        return true;
+                    }
+                    catch (RuntimeException e) {
+                        getLog().error("Runtime exception occurred: " + e.getMessage(), e);
+                        return false;
+                    }
+                }
+            });
+        }
+
+        genes.clear();
 
         try {
-            // index all genes in parallel
-            for (final Gene gene : genes) {
-                // for each gene, submit a new task to the executor
-                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
-
-                    public Boolean call() throws IOException, SolrServerException,
-                            IndexBuilderException {
-                        try {
-                            // todo - gene indexing needs to update loadmonitor on an arraydesign level
-//                            getLog().debug("Updating load_monitor table: status = working");
-//                            getAtlasDAO().writeLoadDetails(
-//                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.WORKING, LoadType.GENE);
-//                            getLog().debug("Load_monitor table updated");
-
-                            // get the properties for all these genes
-                            getLog().debug("Fetching properties for " + gene.getIdentifier());
-                            getAtlasDAO().getPropertiesForGenes(Collections.singletonList(gene));
-                            getLog().debug("Acquired genes for " + gene.getIdentifier());
-
-                            getLog().debug("Updating index - adding gene " + gene.getIdentifier());
-
-                            // create a new solr document for this gene
-                            SolrInputDocument solrInputDoc = new SolrInputDocument();
-                            getLog().debug("Updating index with properties for " + gene.getIdentifier());
-                            // add the gene id field
-                            solrInputDoc.addField("id", gene.getGeneID());
-                            solrInputDoc.addField("species", gene.getSpecies());
-                            solrInputDoc.addField("name", gene.getName());
-                            solrInputDoc.addField("identifier", gene.getIdentifier());
-
-                            Set<String> propNames = new HashSet<String>();
-                            for (Property prop : gene.getProperties()) {
-                                String pv = prop.getValue();
-                                String p = prop.getName();
-                                if(pv == null)
-                                    continue;
-                                if(p.toLowerCase().contains("ortholog")) {
-                                    solrInputDoc.addField("orthologs", pv);
-                                } else {
-                                    getLog().trace("Updating index, gene property " + p + " = " + pv);
-                                    solrInputDoc.addField("property_" + p, pv);
-                                    propNames.add(p);
-                                }
-                            }
-                            if(!propNames.isEmpty())
-                                solrInputDoc.setField("properties", propNames);
-
-                            getLog().debug("Properties for " + gene.getIdentifier() + " updated");
-
-                            // add EFO counts for this gene
-                            boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getGeneID());
-                            if(hasAnyAnalytics) {
-                                // finally, add the document to the index
-                                getLog().debug("Finalising changes for " + gene.getIdentifier());
-                                getSolrServer().add(solrInputDoc);
-                            }
-
-                            // update loadmonitor table - experiment has completed indexing
-//                            getAtlasDAO().writeLoadDetails(
-//                                    gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.DONE, LoadType.GENE);
-
-                            int processedNow = processed.incrementAndGet();
-                            if(processedNow % 1000 == 0) {
-                                final long timeNow = System.currentTimeMillis();
-                                long diff = timeNow - timeStart.getAndSet(timeNow);
-                                long estimated = (total - processedNow) * diff / (1000 * 1000) / 60;
-                                getLog().info("Processed " + processedNow + "/" + total + " genes " +
-                                        (processedNow * 100/total) + "% " + (1000*1000/diff) +
-                                        " genes per sec, estimated " + estimated + " mins.");
-                                progressUpdater.update(processedNow + "/" + total);
-                            }
-
-                            return true;
-                        }
-                        catch (RuntimeException e) {
-                            getLog().error("Runtime exception occurred: " + e.getMessage(), e);
-//                            getLog().info("Re-queueing gene " + gene.getGeneID() + " for indexing");
-//                            genes.offerLast(gene);
-                            return false;
-                        }
-//                        finally {
-//                            // todo - gene indexing needs to update loadmonitor on an arraydesign level
-//                            // if the response was set, everything completed as expected, but if it's null we got
-//                            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-//                            if (response == null) {
-//                                getAtlasDAO().writeLoadDetails(
-//                                        gene.getIdentifier(), LoadStage.SEARCHINDEX, LoadStatus.FAILED, LoadType.GENE);
-//                            }
-//                        }
-                    }
-                }));
-            }
-
-            genes.clear();
-
-            // block until completion, and throw the first error we see
-            while (true) {
-                try {
-                    Future<Boolean> task = tasks.poll();
-                    if (task == null) {
-                        break;
-                    }
-                    task.get();
-                }
-                catch (Exception e) {
-                    // print the stacktrace, but swallow this exception to rethrow at the very end
-                    getLog().error("An error occurred whilst building the gene index:\n{}", e);
-                    if (firstError == null) {
-                        firstError = e;
-                    }
-                }
-            }
-
-            // if we have encountered an exception, throw the first error
-            if (firstError != null) {
-                throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
-            }
-        }
-        finally {
+            List<Future<Boolean>> results = Executors.newSingleThreadExecutor().invokeAll(tasks);
+            for (Future<Boolean> result : results)
+                result.get();
+        } catch (InterruptedException e) {
+            getLog().error("Indexing interrupted!", e);
+        } catch (ExecutionException e) {
+            throw new IndexBuilderException("Error in indexing!", e.getCause());
+        } finally {
             // shutdown the service
             getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
@@ -257,8 +211,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         GeneExpressionAnalyticsTable expTable = new GeneExpressionAnalyticsTable();
         getLog().debug("Fetching expression analytics for gene: " + geneId);
-        List<ExpressionAnalysis> expressionAnalytics =
-                getAtlasDAO().getExpressionAnalyticsByGeneID(geneId);
+        List<ExpressionAnalysis> expressionAnalytics = getAtlasDAO().getExpressionAnalyticsByGeneID(geneId);
         if (expressionAnalytics.size() == 0) {
             getLog().debug("Gene " + geneId + " has 0 expression analytics, " +
                     "this design element will be excluded");
@@ -346,39 +299,73 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return true;
     }
 
+    private SolrInputDocument createGeneSolrInputDocument(final Gene gene) {
+        // create a new solr document for this gene
+        SolrInputDocument solrInputDoc = new SolrInputDocument();
+        getLog().debug("Updating index with properties for " + gene.getIdentifier());
+
+        // add the gene id field
+        solrInputDoc.addField("id", gene.getGeneID());
+        solrInputDoc.addField("species", gene.getSpecies());
+        solrInputDoc.addField("name", gene.getName());
+        solrInputDoc.addField("identifier", gene.getIdentifier());
+
+        Set<String> propNames = new HashSet<String>();
+        for (Property prop : gene.getProperties()) {
+            String pv = prop.getValue();
+            String p = prop.getName();
+            if(pv == null)
+                continue;
+            if(p.toLowerCase().contains("ortholog")) {
+                solrInputDoc.addField("orthologs", pv);
+            } else {
+                getLog().trace("Updating index, gene property " + p + " = " + pv);
+                solrInputDoc.addField("property_" + p, pv);
+                propNames.add(p);
+            }
+        }
+        if(!propNames.isEmpty())
+            solrInputDoc.setField("properties", propNames);
+
+        getLog().debug("Properties for " + gene.getIdentifier() + " updated");
+
+        return solrInputDoc;
+    }
+
     private void storeEfvs(SolrInputDocument solrDoc,
                            Map<String, Set<String>> upefv,
                            Map<String, Set<String>> dnefv) {
         for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.addField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
+                solrDoc.setField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (Map.Entry<String, Set<String>> e : dnefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.addField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
+                solrDoc.setField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (String factor : union(upefv.keySet(), dnefv.keySet())) {
             for (String i : union(upefv.get(factor), dnefv.get(factor))) {
-                solrDoc.addField("efvs_ud_" + EscapeUtil.encode(factor), i);
+                solrDoc.setField("efvs_ud_" + EscapeUtil.encode(factor), i);
             }
         }
     }
 
-    private void storeExperimentIds(SolrInputDocument solrDoc, Set<Long> upexp,
+    private void storeExperimentIds(SolrInputDocument solrDoc,
+                                    Set<Long> upexp,
                                     Set<Long> dnexp) {
         for (Long i : upexp) {
-            solrDoc.addField("exp_up_ids", i);
+            solrDoc.setField("exp_up_ids", i);
         }
         for (Long i : dnexp) {
-            solrDoc.addField("exp_dn_ids", i);
+            solrDoc.setField("exp_dn_ids", i);
         }
 
         for (Long i : union(upexp, dnexp)) {
-            solrDoc.addField("exp_ud_ids", i);
+            solrDoc.setField("exp_ud_ids", i);
         }
     }
 
@@ -399,43 +386,43 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
 
             if (cup > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
-                solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
+                solrDoc.setField("cnt_efo_" + accessionE + "_up", cup);
+                solrDoc.setField("minpval_efo_" + accessionE + "_up", pup);
             }
             if (cdn > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_dn", cdn);
-                solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
+                solrDoc.setField("cnt_efo_" + accessionE + "_dn", cdn);
+                solrDoc.setField("minpval_efo_" + accessionE + "_dn", pdn);
             }
             if (ud.up.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
+                solrDoc.setField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
+                solrDoc.setField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
             }
             if (ud.dn.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
+                solrDoc.setField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
+                solrDoc.setField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
             }
 
             if (cup > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_up",
+                solrDoc.setField("s_efo_" + accessionE + "_up",
                                  shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
             }
             if (cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_dn",
+                solrDoc.setField("s_efo_" + accessionE + "_dn",
                                  shorten(cdn * (1.0f - pdn) - cup * (1.0f - pup)));
             }
             if (cup + cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_ud",
+                solrDoc.setField("s_efo_" + accessionE + "_ud",
                                  shorten(cup * (1.0f - pup) + cdn * (1.0f - pdn)));
             }
 
             if (cup > 0) {
-                solrDoc.addField("efos_up", accession);
+                solrDoc.setField("efos_up", accession);
             }
             if (cdn > 0) {
-                solrDoc.addField("efos_dn", accession);
+                solrDoc.setField("efos_dn", accession);
             }
             if (cup + cdn > 0) {
-                solrDoc.addField("efos_ud", accession);
+                solrDoc.setField("efos_ud", accession);
             }
         }
     }
@@ -452,19 +439,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             float pvdn = ud.pdn;
 
             if (cup != 0) {
-                solrDoc.addField("cnt_" + efvid + "_up", cup);
-                solrDoc.addField("minpval_" + efvid + "_up", pvup);
+                solrDoc.setField("cnt_" + efvid + "_up", cup);
+                solrDoc.setField("minpval_" + efvid + "_up", pvup);
             }
             if (cdn != 0) {
-                solrDoc.addField("cnt_" + efvid + "_dn", cdn);
-                solrDoc.addField("minpval_" + efvid + "_dn", pvdn);
+                solrDoc.setField("cnt_" + efvid + "_dn", cdn);
+                solrDoc.setField("minpval_" + efvid + "_dn", pvdn);
             }
 
-            solrDoc.addField("s_" + efvid + "_up",
+            solrDoc.setField("s_" + efvid + "_up",
                              shorten(cup * (1.0f - pvup) - cdn * (1.0f - pvdn)));
-            solrDoc.addField("s_" + efvid + "_dn",
+            solrDoc.setField("s_" + efvid + "_dn",
                              shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
-            solrDoc.addField("s_" + efvid + "_ud",
+            solrDoc.setField("s_" + efvid + "_ud",
                              shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
 
         }
@@ -508,6 +495,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return (short) f;
     }
 
+
     private class UpDnSet {
         Set<Long> up = new HashSet<Long>();
         Set<Long> dn = new HashSet<Long>();
@@ -543,4 +531,195 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     public String getName() {
         return "genes";
     }
+
+    /*****************************************************************************************************
+     * Below are some methods for updating gene analytics from NetCDFs; these are not used at the moment *
+     *****************************************************************************************************/
+
+    // can remove
+    private void updateGeneAnalytics(final SolrInputDocument solrDoc, final GeneExpressionAnalyticsTable geneData) {
+        byte[] eadata = (byte[])solrDoc.getFieldValue("exp_info");
+        final GeneExpressionAnalyticsTable oldgeat =
+                eadata == null
+                        ? new GeneExpressionAnalyticsTable()
+                        : GeneExpressionAnalyticsTable.deserialize(eadata);
+
+        Iterable<ExpressionAnalysis> iea = new Iterable<ExpressionAnalysis>() {
+                    public Iterator<ExpressionAnalysis> iterator() {
+                        return new SequenceIterator<ExpressionAnalysis>(
+                                oldgeat.getAll().iterator(),
+                                geneData.getAll().iterator());
+                    }
+                };
+
+        GeneExpressionAnalyticsTable geat = new GeneExpressionAnalyticsTable();
+
+        Map<String, UpDnSet>   efoupdn = new HashMap<String, UpDnSet>();
+        Map<String, UpDn>      efvupdn = new HashMap<String, UpDn>();
+        Set<Long>                upexp = new HashSet<Long>();
+        Set<Long>                dnexp = new HashSet<Long>();
+        Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
+
+        for (ExpressionAnalysis ea : iea) {
+            Long experimentId = ea.getExperimentID();
+            if (experimentId == 0) {
+                getLog().warn("Gene " + solrDoc.getField("id") + " references an experiment where " +
+                        "experimentId=0, this design element will be excluded");
+                continue;
+            }
+
+            boolean isUp     = ea.getTStatistic() > 0;
+            float pval       = ea.getPValAdjusted();
+            final String ef  = ea.getEfName();
+            final String efv = ea.getEfvName();
+
+            List<String> accessions =
+                    ontomap.get(experimentId + "_" + ef + "_" + efv);
+
+            String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
+            if (!efvupdn.containsKey(efvid)) {
+                efvupdn.put(efvid, new UpDn());
+            }
+            if (isUp) {
+                efvupdn.get(efvid).cup ++;
+                efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
+                if (!upefv.containsKey(ef)) {
+                    upefv.put(ef, new HashSet<String>());
+                }
+                upefv.get(ef).add(efv);
+            }
+            else {
+                efvupdn.get(efvid).cdn ++;
+                efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
+                if (!dnefv.containsKey(ef)) {
+                    dnefv.put(ef, new HashSet<String>());
+                }
+                dnefv.get(ef).add(efv);
+            }
+
+            if (accessions != null) {
+                for (String acc : accessions) {
+
+                    if (!efoupdn.containsKey(acc)) {
+                        efoupdn.put(acc, new UpDnSet());
+                    }
+                    if (isUp) {
+                        efoupdn.get(acc).up.add(experimentId);
+                        efoupdn.get(acc).minpvalUp =
+                                Math.min(efoupdn.get(acc).minpvalUp, pval);
+                    }
+                    else {
+                        efoupdn.get(acc).dn.add(experimentId);
+                        efoupdn.get(acc).minpvalDn =
+                                Math.min(efoupdn.get(acc).minpvalDn, pval);
+                    }
+                }
+            }
+
+            if (isUp) {
+                upexp.add(experimentId);
+            }
+            else {
+                dnexp.add(experimentId);
+            }
+
+            ea.setEfoAccessions(accessions != null ? accessions.toArray(new String[accessions.size()]) : new String[0]);
+            geat.add(ea);
+        }
+
+        solrDoc.setField("exp_info", geat.serialize());
+
+        for (String rootId : efo.getRootIds()) {
+            calcChildren(rootId, efoupdn);
+        }
+
+        storeEfoCounts(solrDoc, efoupdn);
+        storeEfvCounts(solrDoc, efvupdn);
+        storeExperimentIds(solrDoc, upexp, dnexp);
+        storeEfvs(solrDoc, upefv, dnefv);
+    }
+
+    // can remove
+    private static final Map<Long,GeneExpressionAnalyticsTable> geneAnalytics =
+            Collections.synchronizedMap(new HashMap<Long,GeneExpressionAnalyticsTable>());
+
+    // can remove
+    private void processNetCDF(final File netCDF, final ProgressUpdater progressUpdater)
+            throws IndexBuilderException {
+        NetCDFProxy proxy = null;
+        try {
+            proxy = new NetCDFProxy(netCDF);
+            final Map<Long, List<ExpressionAnalysis>> geas = proxy.getExpressionAnalysesForGenes();
+
+            final Set<Long> proxyGenes = geas.keySet();
+            proxyGenes.remove(new Long(0)); // remove geneid = 0 (not a gene)
+
+            int genecnt = 0;
+            for (final Long geneid : proxyGenes) {
+                if(!geneAnalytics.containsKey(geneid))
+                    geneAnalytics.put(geneid, new GeneExpressionAnalyticsTable());
+                geneAnalytics.get(geneid).addAll(geas.get(geneid));
+
+                genecnt++;
+                if (0 == (genecnt % 100))
+                    progressUpdater.update("Processing " + netCDF.getName() + ": "
+                            + genecnt
+                            + "/"
+                            + geas.size() + " genes processed");
+            }
+        } catch (IOException e) {
+            getLog().error("Problem reading NetCDF " + netCDF.getAbsolutePath(), e);
+        } finally {
+            try {
+                if(null != proxy)
+                    proxy.close();
+            } catch (IOException e) {
+                //
+            }
+        }
+    }
+
+
+    // can remove
+    private void updateGeneIndexWithAnalytics(Long geneid, GeneExpressionAnalyticsTable geat)
+            throws SolrServerException, IndexBuilderException {
+        SolrInputDocument genedoc = null;
+
+        QueryResponse qr = getSolrServer().query(new SolrQuery().setQuery("id:" + geneid));
+        if(qr.getResults().getNumFound() == 1) {
+            SolrDocument sd = qr.getResults().get(0);
+            genedoc = ClientUtils.toSolrInputDocument(sd);
+        }
+
+        // gene doesn't exist in Solr index, create new
+        if(null == genedoc) {
+            Gene gene = getAtlasDAO().getGeneById(geneid);
+            if (null == gene) {
+                getLog().warn("Gene " + geneid + " does not exist in Solr or in the datbase! Skipping.");
+                return;
+            }
+
+            genedoc = createGeneSolrInputDocument(gene);
+        }
+
+        updateGeneAnalytics(genedoc,geat);
+        try {
+            getSolrServer().add(genedoc);
+        } catch (IOException e) {
+            throw new IndexBuilderException("Failed to add updated genedoc for gene " + geneid, e);
+        }
+    }
+
+    // can remove
+    public void setNetcdfRepo(File netcdfRepo) {
+        this.netcdfRepo = netcdfRepo;
+    }
+
+    // can remove
+    public File getNetcdfRepo() {
+        return netcdfRepo;
+    }
+
+
 }

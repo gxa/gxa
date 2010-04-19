@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * An abstract IndexBuilderService, that provides convenience methods for getting and setting parameters required across
@@ -76,6 +77,7 @@ public abstract class IndexBuilderService {
     public interface ProgressUpdater {
         void update(String progress);
     }
+
     /**
      * Build the index for this particular IndexBuilderService implementation. Once the index has been built, this
      * method will automatically commit any changes and release any resources held by the SOLR server.
@@ -103,16 +105,53 @@ public abstract class IndexBuilderService {
     }
 
     /**
+     * Update the index for a selection of document ids for this particular IndexBuilderService implementation.
+     * Once the index has been built, this method will automatically commit any changes and release any
+     * resources held by the SOLR server.
+     *
+     * @param docIds document id's to update
+     * @param progressUpdater listener for passing progress updates
+     *
+     * @throws IndexBuilderException if the is a problem whilst generating the index
+     */
+    public void updateIndex(Collection<Long> docIds, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        try {
+            updateIndexDocs(docIds, progressUpdater);
+            getSolrServer().commit();
+            getSolrServer().optimize();
+        }
+        catch (IOException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server", e);
+        }
+        catch (SolrServerException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server - server threw exception",
+                    e);
+        }
+    }
+
+    /**
      * Generate the required documents for the SOLR index, as appropriate to this implementation.  This method blocks
      * until all index documents have been created.
      * <p/>
      * Implementations are free to define their own optimization strategy, and it is acceptable to use asynchronous
      * operations.
      *
+     * @param progressUpdater instance of {@link ProgressUpdater} to track progress     *
      * @throws uk.ac.ebi.gxa.index.builder.IndexBuilderException
      *          if there is a problem whilst trying to generate the index documents
      */
     protected abstract void createIndexDocs(ProgressUpdater progressUpdater) throws IndexBuilderException;
+
+    /**
+     * Generate/update only documents for a selection of id's.
+     *
+     * @param docIds document id's to update
+     * @param progressUpdater instance of {@link ProgressUpdater} to track progress
+     * @throws IndexBuilderException thrown if an error occurs
+     */
+    protected abstract void updateIndexDocs(Collection<Long> docIds, ProgressUpdater progressUpdater) throws IndexBuilderException;
 
     /**
      * Returns index name, which this service builds
