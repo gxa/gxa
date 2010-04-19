@@ -134,9 +134,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         if(processedNow % 1000 == 0) {
                             long timeNow = System.currentTimeMillis();
                             long elapsed = timeNow - timeStart;
-                            long speed   = elapsed / processedNow / 1000;  // (s/item)
+                            long speed   = processedNow / elapsed / 1000;  // (item/s)
 
-                            long estimated = (total - processedNow) * speed / 60;
+                            long estimated = (total - processedNow) / speed / 60;
 
                             getLog().info("Processed " + processedNow + "/" + total + " genes " +
                                     (processedNow * 100/total) + "% " + speed +
@@ -157,7 +157,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         genes.clear();
 
         try {
-            List<Future<Boolean>> results = Executors.newSingleThreadExecutor().invokeAll(tasks);
+            List<Future<Boolean>> results = tpool.invokeAll(tasks);
             for (Future<Boolean> result : results)
                 result.get();
         } catch (InterruptedException e) {
