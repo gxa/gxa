@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.io.InputStream;
@@ -102,15 +103,15 @@ public abstract class AnalyticsGeneratorService<T> {
         createAnalytics();
     }
 
-    public void generateAnalyticsForExperiment(String experimentAccession)
+    public void generateAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener)
             throws AnalyticsGeneratorException {
         versionDescriptor = lookupVersionFromMavenProperties();
-        createAnalyticsForExperiment(experimentAccession);
+        createAnalyticsForExperiment(experimentAccession, listener);
     }
 
     protected abstract void createAnalytics() throws AnalyticsGeneratorException;
 
-    protected abstract void createAnalyticsForExperiment(String experimentAccession) throws AnalyticsGeneratorException;
+    protected abstract void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException;
 
     private String lookupVersionFromMavenProperties() {
         String version = "Atlas Analytics Generator Version ";

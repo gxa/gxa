@@ -114,7 +114,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             recycleRServices(r);
         }
         catch (Throwable e) {
-            log.error("Critical R whilst trying to get biocep R service - " +
+            log.error("Critica  l R whilst trying to get biocep R service - " +
                     "check biocep is installed and required database is present", e);
             return false;
         }
@@ -193,21 +193,14 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
      */
     private synchronized void initialize() throws AtlasRServicesException {
         if (!isInitialized) {
-            if (validateEnvironment()) {
-                // create worker pool
-                workerPool = new GenericObjectPool(new RWorkerObjectFactory());
-                workerPool.setMaxActive(32);
-                workerPool.setMaxIdle(32);
-                workerPool.setTestOnBorrow(true);
-                workerPool.setTestOnReturn(true);
+            // create worker pool
+            workerPool = new GenericObjectPool(new RWorkerObjectFactory());
+            workerPool.setMaxActive(32);
+            workerPool.setMaxIdle(32);
+            workerPool.setTestOnBorrow(true);
+            workerPool.setTestOnReturn(true);
 
-                isInitialized = true;
-            }
-            else {
-                String msg = "Unable to initialize - R environment is not valid.  See log for details.";
-                log.error(msg);
-                throw new AtlasRServicesException(msg);
-            }
+            isInitialized = true;
         }
     }
 
