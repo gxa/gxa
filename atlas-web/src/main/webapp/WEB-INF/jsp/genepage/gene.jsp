@@ -272,11 +272,15 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 </table>
 
 
+<table cellspacing="0" cellpadding="0" border="0" width="100%">
+<tr>
+<td style="vertical-align:top;">
 <table width="100%" style="background-color: white">
 
     <tr>
         <td align="left" class="geneName">${atlasGene.geneName}</td>
         <td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
+        <td rowspan=""></td> 
     </tr>
 
     <tr>
@@ -387,6 +391,15 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </td>
     </tr>
 </table>
+</td>
+<td style="padding-top:15px;">
+          <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
+             <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
+         </c:if>
+</td>
+</tr>
+</table>
+
 <table cellspacing="0" cellpadding="0" style="margin-top:40px">
 
 
@@ -397,19 +410,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
                     <td valign="top" style="padding-right: 30px">
 
-                        <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
-                        <table align="left">
-                            <tr>
-                                <td id="expHeader_td_1" class="sectionHeader" style="vertical-align: top">Organism Parts</td>
-                            </tr>
 
-                            <tr>
-                                <td>
-                                        <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" />
-                                </td>
-                            </tr>
-                        </table>
-                        </c:if>
 
                         <table>
                             <tr>
