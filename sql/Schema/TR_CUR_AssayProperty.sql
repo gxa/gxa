@@ -71,4 +71,12 @@ begin
     where AssayID = mAssayID_old
     and PropertyValueID = mPropertyValueID_old;
   end if;
+  
+   MERGE INTO A2_TASKMAN_STATUS ts USING (select distinct (e.Accession) Accession from a2_Experiment e
+                                        join a2_assay a on a.ExperimentID = e.ExperimentID  
+                                        where a.AssayID in (mAssayID_old,mAssayID_new)) t
+   ON (ts.type = 'updateexperiment' and ts.accession = t.Accession)
+   WHEN MATCHED THEN UPDATE SET status = 'INCOMPLETE' 
+   WHEN NOT MATCHED THEN INSERT (type,accession,status) values ('updateexperiment', t.Accession, 'INCOMPLETE');
+  
 END;
