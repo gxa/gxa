@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -639,87 +638,4 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         storeExperimentIds(solrDoc, upexp, dnexp);
         storeEfvs(solrDoc, upefv, dnefv);
     }
-
-    // can remove
-    private static final Map<Long,GeneExpressionAnalyticsTable> geneAnalytics =
-            Collections.synchronizedMap(new HashMap<Long,GeneExpressionAnalyticsTable>());
-
-    // can remove
-    private void processNetCDF(final File netCDF, final ProgressUpdater progressUpdater)
-            throws IndexBuilderException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = new NetCDFProxy(netCDF);
-            final Map<Long, List<ExpressionAnalysis>> geas = proxy.getExpressionAnalysesForGenes();
-
-            final Set<Long> proxyGenes = geas.keySet();
-            proxyGenes.remove(new Long(0)); // remove geneid = 0 (not a gene)
-
-            int genecnt = 0;
-            for (final Long geneid : proxyGenes) {
-                if(!geneAnalytics.containsKey(geneid))
-                    geneAnalytics.put(geneid, new GeneExpressionAnalyticsTable());
-                geneAnalytics.get(geneid).addAll(geas.get(geneid));
-
-                genecnt++;
-                if (0 == (genecnt % 100))
-                    progressUpdater.update("Processing " + netCDF.getName() + ": "
-                            + genecnt
-                            + "/"
-                            + geas.size() + " genes processed");
-            }
-        } catch (IOException e) {
-            getLog().error("Problem reading NetCDF " + netCDF.getAbsolutePath(), e);
-        } finally {
-            try {
-                if(null != proxy)
-                    proxy.close();
-            } catch (IOException e) {
-                //
-            }
-        }
-    }
-
-
-    // can remove
-    private void updateGeneIndexWithAnalytics(Long geneid, GeneExpressionAnalyticsTable geat)
-            throws SolrServerException, IndexBuilderException {
-        SolrInputDocument genedoc = null;
-
-        QueryResponse qr = getSolrServer().query(new SolrQuery().setQuery("id:" + geneid));
-        if(qr.getResults().getNumFound() == 1) {
-            SolrDocument sd = qr.getResults().get(0);
-            genedoc = ClientUtils.toSolrInputDocument(sd);
-        }
-
-        // gene doesn't exist in Solr index, create new
-        if(null == genedoc) {
-            Gene gene = getAtlasDAO().getGeneById(geneid);
-            if (null == gene) {
-                getLog().warn("Gene " + geneid + " does not exist in Solr or in the datbase! Skipping.");
-                return;
-            }
-
-            genedoc = createGeneSolrInputDocument(gene);
-        }
-
-        updateGeneAnalytics(genedoc,geat);
-        try {
-            getSolrServer().add(genedoc);
-        } catch (IOException e) {
-            throw new IndexBuilderException("Failed to add updated genedoc for gene " + geneid, e);
-        }
-    }
-
-    // can remove
-    public void setNetcdfRepo(File netcdfRepo) {
-        this.netcdfRepo = netcdfRepo;
-    }
-
-    // can remove
-    public File getNetcdfRepo() {
-        return netcdfRepo;
-    }
-
-
 }
