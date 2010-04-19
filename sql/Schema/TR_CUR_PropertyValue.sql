@@ -46,9 +46,9 @@ begin
     if(mPropertyID_new is not null) then
       if(mPropertyValueID_old is not null) then
         dbms_output.put_line('rename value');
-      
+        
        Update a2_PropertyValue 
-       set name = :new.Value
+       set name = :new.Value, PropertyID = mPropertyID_new
        where propertyvalueid = mPropertyValueID_old;
       else
         dbms_output.put_line('insert property value');
