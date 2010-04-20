@@ -37,6 +37,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -289,6 +290,9 @@ public class AtlasDAO {
     public static final String EXPRESSIONANALYTICS_BY_GENEID =
             "SELECT ef, efv, experimentid, null, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid=?";
+    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
+            "SELECT ef, efv, experimentid, null, tstat, pvaladj, efid, efvid, geneid FROM VWEXPRESSIONANALYTICSBYGENE " +
+                    "WHERE geneid IN (:geneids)";
     public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +
@@ -942,6 +946,52 @@ public class AtlasDAO {
                                       new Object[]{geneID},
                                       new ExpressionAnalyticsMapper());
         return (List<ExpressionAnalysis>) results;
+    }
+
+    public Map<Long,List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
+            final List<Long> geneIDs) {
+
+        final Map<Long,List<ExpressionAnalysis>> result = new HashMap<Long,List<ExpressionAnalysis>>(geneIDs.size());
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        final int chunksize = getMaxQueryParams();
+        for (List<Long> genelist : new Iterable<List<Long>>() {
+            public Iterator<List<Long>> iterator() {
+                return new ChunkedSublistIterator<List<Long>>(geneIDs, chunksize);
+            }
+        }) {
+            // now query for properties that map to one of these genes
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("geneids", genelist);
+            namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
+                    new RowMapper(){
+
+                        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                            Long geneid = resultSet.getLong("geneid");
+
+                            if(!result.containsKey(geneid)) {
+                                result.put(geneid, new LinkedList<ExpressionAnalysis>());
+                            }
+
+                            ExpressionAnalysis ea = new ExpressionAnalysis();
+
+                            ea.setEfName(resultSet.getString("ef"));
+                            ea.setEfvName(resultSet.getString("efv"));
+                            ea.setExperimentID(resultSet.getLong("experimentid"));
+                            ea.setDesignElementID(0); // missing
+                            ea.setTStatistic(resultSet.getFloat("tstat"));
+                            ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
+                            ea.setEfId(resultSet.getLong("efid"));
+                            ea.setEfvId(resultSet.getLong("efvid"));
+
+                            result.get(geneid).add(ea);
+
+                            return null;
+                        }
+                    });
+            }
+
+        return result;
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByDesignElementID(

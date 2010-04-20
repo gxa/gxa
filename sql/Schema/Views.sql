@@ -323,6 +323,7 @@ AS
     ef.name                                                                                                        AS ef,
     efv.name                                                                                                       AS efv,
     a.experimentid                                                                                                 AS experimentid,
+    first_value(de.designelementid) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS designelementid,
     first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS pvaladj,
     first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC)   AS tstat,
     ef.propertyid                                                                                                  AS efid,

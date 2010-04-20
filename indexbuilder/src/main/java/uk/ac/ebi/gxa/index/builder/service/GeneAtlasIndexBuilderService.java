@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -76,7 +77,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             genes.addAll(getAtlasDAO().getGenesByExperimentId(experimentId));
         }
 
-        indexGenes(progressUpdater, genes);
+        indexGenes(progressUpdater, new ArrayList<Gene>(genes));
     }
 
     @Override
@@ -89,7 +90,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
-                            final Collection<Gene> genes) throws IndexBuilderException {
+                            final List<Gene> genes) throws IndexBuilderException {
         final int total = genes.size();
         getLog().info("Found " + total + " genes to index");
 
@@ -101,42 +102,54 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
-        final int chunksize = 200;
+        final int chunksize = 100;
 
         // index all genes in parallel
-        for (final Gene gene : genes) {
+        for (final List<Gene> genelist : new Iterable<List<Gene>>() {
+            public Iterator<List<Gene>> iterator() {
+                return new ChunkedSublistIterator<List<Gene>>(genes, chunksize);
+            }
+        }) {
             // for each gene, submit a new task to the executor
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
                     try {
-                        getLog().debug("Fetching properties for " + gene.getIdentifier());
-                        getAtlasDAO().getPropertiesForGenes(Collections.singletonList(gene));
-                        getLog().debug("Acquired genes for " + gene.getIdentifier());
+                        getAtlasDAO().getPropertiesForGenes(genelist);
 
-                        getLog().debug("Updating index - adding gene " + gene.getIdentifier());
-
-                        SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
-
-                        // add EFO counts for this gene
-                        boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, gene.getGeneID());
-                        if(hasAnyAnalytics) {
-                            // finally, add the document to the index
-                            getLog().debug("Finalising changes for " + gene.getIdentifier());
-                            getSolrServer().add(solrInputDoc);
+                        List<Long> geneids = new ArrayList<Long>(chunksize);
+                        for (Gene gene : genelist) {
+                            geneids.add(gene.getGeneID());
                         }
 
-                        int processedNow = processed.incrementAndGet();
-                        if(processedNow % 1000 == 0) {
-                            long timeNow   = System.currentTimeMillis();
-                            long elapsed   = timeNow - timeStart;
-                            double speed   = (processedNow / (elapsed / 1000D));  // (item/s)
-                            double estimated = (total - processedNow) / (speed * 60);
+                        Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
 
-                            getLog().info(
-                                    String.format("Processed %d/%d genes %d%%, %.1f genes/sec, estimated %.1f min remaining",
-                                            processedNow, total, (processedNow * 100/total), speed, estimated));
+                        for(Gene gene : genelist) {
+                            SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
-                            progressUpdater.update(processedNow + "/" + total);
+                            // add EFO counts for this gene
+                            List<ExpressionAnalysis> eal = eas.get(gene.getGeneID());
+                            if(null != eal && eal.size() > 0) {        
+                                boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, eal);
+                                if(hasAnyAnalytics) {
+                                    // finally, add the document to the index
+                                    getLog().debug("Finalising changes for " + gene.getIdentifier());
+                                    getSolrServer().add(solrInputDoc);
+                                }
+                            }
+
+                            int processedNow = processed.incrementAndGet();
+                            if(processedNow % 1000 == 0) {
+                                long timeNow   = System.currentTimeMillis();
+                                long elapsed   = timeNow - timeStart;
+                                double speed   = (processedNow / (elapsed / 1000D));  // (item/s)
+                                double estimated = (total - processedNow) / (speed * 60);
+
+                                getLog().info(
+                                        String.format("Processed %d/%d genes %d%%, %.1f genes/sec overall, estimated %.1f min remaining",
+                                                processedNow, total, (processedNow * 100/total), speed, estimated));
+
+                                progressUpdater.update(processedNow + "/" + total);
+                            }
                         }
 
                         return true;
@@ -164,6 +177,102 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
+    }
+
+    private boolean addEfoCounts(SolrInputDocument solrDoc, List<ExpressionAnalysis> expressionAnalytics) {
+        Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
+        Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
+        Set<Long> upexp = new HashSet<Long>();
+        Set<Long> dnexp = new HashSet<Long>();
+        Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
+
+        GeneExpressionAnalyticsTable expTable = new GeneExpressionAnalyticsTable();
+        if (expressionAnalytics.size() == 0) {
+            getLog().debug("Gene " + solrDoc.getField("id") + " has 0 expression analytics, " +
+                    "this design element will be excluded");
+            return false;
+        }
+
+        for (ExpressionAnalysis expressionAnalytic : expressionAnalytics) {
+            Long experimentId = expressionAnalytic.getExperimentID();
+            if (experimentId == 0) {
+                getLog().debug("Gene " + solrDoc.getField("id") + " references an experiment where " +
+                        "experimentid=0, this design element will be excluded");
+                continue;
+            }
+
+            boolean isUp = expressionAnalytic.getTStatistic() > 0;
+            float pval = expressionAnalytic.getPValAdjusted();
+            final String ef = expressionAnalytic.getEfName();
+            final String efv = expressionAnalytic.getEfvName();
+
+            List<String> accessions =
+                    ontomap.get(experimentId + "_" + ef + "_" + efv);
+
+            String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
+            if (!efvupdn.containsKey(efvid)) {
+                efvupdn.put(efvid, new UpDn());
+            }
+            if (isUp) {
+                efvupdn.get(efvid).cup ++;
+                efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
+                if (!upefv.containsKey(ef)) {
+                    upefv.put(ef, new HashSet<String>());
+                }
+                upefv.get(ef).add(efv);
+            }
+            else {
+                efvupdn.get(efvid).cdn ++;
+                efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
+                if (!dnefv.containsKey(ef)) {
+                    dnefv.put(ef, new HashSet<String>());
+                }
+                dnefv.get(ef).add(efv);
+            }
+
+            if (accessions != null) {
+                for (String acc : accessions) {
+
+                    if (!efoupdn.containsKey(acc)) {
+                        efoupdn.put(acc, new UpDnSet());
+                    }
+                    if (isUp) {
+                        efoupdn.get(acc).up.add(experimentId);
+                        efoupdn.get(acc).minpvalUp =
+                                Math.min(efoupdn.get(acc).minpvalUp, pval);
+                    }
+                    else {
+                        efoupdn.get(acc).dn.add(experimentId);
+                        efoupdn.get(acc).minpvalDn =
+                                Math.min(efoupdn.get(acc).minpvalDn, pval);
+                    }
+                }
+            }
+
+            if (isUp) {
+                upexp.add(experimentId);
+            }
+            else {
+                dnexp.add(experimentId);
+            }
+
+            expressionAnalytic.setEfoAccessions(accessions != null ? accessions.toArray(new String[accessions.size()]) : new String[0]);
+            expTable.add(expressionAnalytic);
+        }
+
+        solrDoc.addField("exp_info", expTable.serialize());
+
+        for (String rootId : efo.getRootIds()) {
+            calcChildren(rootId, efoupdn);
+        }
+
+        storeEfoCounts(solrDoc, efoupdn);
+        storeEfvCounts(solrDoc, efvupdn);
+        storeExperimentIds(solrDoc, upexp, dnexp);
+        storeEfvs(solrDoc, upefv, dnefv);
+
+        return true;
     }
 
     private void calcChildren(String currentId, Map<String, UpDnSet> efoupdn) {
