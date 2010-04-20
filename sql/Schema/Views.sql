@@ -318,7 +318,7 @@ CREATE OR REPLACE VIEW vwCheck as
 
 CREATE OR REPLACE VIEW VWEXPRESSIONANALYTICSBYGENE 
 AS
-  SELECT
+  SELECT DISTINCT
     de.geneid                                                                                                      AS geneid,
     ef.name                                                                                                        AS ef,
     efv.name                                                                                                       AS efv,
