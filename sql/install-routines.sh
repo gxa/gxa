@@ -24,7 +24,9 @@ create_schema() {
     ATLAS_INDEX_TABLESPACE=$2
 
     # scripts which must be executed first, in given order
-    CORE_SCRIPTS="Types.sql Tables.sql Views.sql list_to_table.sql PKG_ATLASMGR.sql PKG_ATLASAPI.sql PKG_ATLASLDR.sql"  
+    CORE_SCRIPTS="Types.sql Tables.sql Views.sql list_to_table.sql PKG_ATLASMGR.sql PKG_ATLASAPI.sql \
+    PKG_ATLASLDR.sql CUR_AssayProperty.sql CUR_MergePropertyValue.sql CUR_PropertyValue.sql CUR_SampleProperty.sql \
+    TR_CUR_AssayProperty.sql TR_CUR_PropertyValue.sql TR_CUR_SampleProperty.sql"
     SCHEMA_FOLDER=Schema
 
     if [ ! -z "$INDEX_TABLESPACE" ]; then
