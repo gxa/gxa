@@ -22,15 +22,11 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
@@ -39,12 +35,10 @@ import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -64,7 +58,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, List<String>> ontomap =
             new HashMap<String, List<String>>();
     private Efo efo;
-    private File netcdfRepo;
 
     public Efo getEfo() {
         return efo;
@@ -108,6 +101,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
+        final int chunksize = 200;
+
         // index all genes in parallel
         for (final Gene gene : genes) {
             // for each gene, submit a new task to the executor
@@ -131,15 +126,16 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         }
 
                         int processedNow = processed.incrementAndGet();
-                        if(processedNow > 0 && processedNow % 1000 == 0) {
-                            long timeNow = System.currentTimeMillis();
-                            long elapsed = timeNow - timeStart;
-                            long speed = processedNow / (elapsed / 1000);  // (item/s)
-                            long estimated = (total - processedNow) / (speed / 60);
+                        if(processedNow % 1000 == 0) {
+                            long timeNow   = System.currentTimeMillis();
+                            long elapsed   = timeNow - timeStart;
+                            double speed   = (processedNow / (elapsed / 1000D));  // (item/s)
+                            double estimated = (total - processedNow) / (speed * 60);
 
                             getLog().info(
-                                    String.format("Processed %d/%d genes %d%%, %d genes/sec, estimated %d min remaining",
+                                    String.format("Processed %d/%d genes %d%%, %.1f genes/sec, estimated %.1f min remaining",
                                             processedNow, total, (processedNow * 100/total), speed, estimated));
+
                             progressUpdater.update(processedNow + "/" + total);
                         }
 
@@ -494,7 +490,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
 
-    private class UpDnSet {
+    private static class UpDnSet {
         Set<Long> up = new HashSet<Long>();
         Set<Long> dn = new HashSet<Long>();
         Set<Long> childrenUp = new HashSet<Long>();
@@ -519,7 +515,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    private class UpDn {
+    private static class UpDn {
         int cup = 0;
         int cdn = 0;
         float pup = 1;
