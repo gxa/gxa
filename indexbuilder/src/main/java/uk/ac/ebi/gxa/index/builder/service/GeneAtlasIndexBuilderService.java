@@ -131,16 +131,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         }
 
                         int processedNow = processed.incrementAndGet();
-                        if(processedNow % 1000 == 0) {
+                        if(processedNow > 0 && processedNow % 1000 == 0) {
                             long timeNow = System.currentTimeMillis();
                             long elapsed = timeNow - timeStart;
-                            long speed   = processedNow / elapsed / 1000;  // (item/s)
+                            long speed = processedNow / (elapsed / 1000);  // (item/s)
+                            long estimated = (total - processedNow) / (speed / 60);
 
-                            long estimated = (total - processedNow) / speed / 60;
-
-                            getLog().info("Processed " + processedNow + "/" + total + " genes " +
-                                    (processedNow * 100/total) + "% " + speed +
-                                    " genes/sec, estimated " + estimated + " mins.");
+                            getLog().info(
+                                    String.format("Processed %d/%d genes %d%%, %d genes/sec, estimated %d min remaining",
+                                            processedNow, total, (processedNow * 100/total), speed, estimated));
                             progressUpdater.update(processedNow + "/" + total);
                         }
 
