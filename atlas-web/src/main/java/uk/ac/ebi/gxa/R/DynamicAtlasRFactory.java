@@ -129,7 +129,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     public void releaseResources() {
-        if(currentRFactory != null) {
+        if(currentRFactory != null)
             getCurrentRFactory().releaseResources();
     }
 
