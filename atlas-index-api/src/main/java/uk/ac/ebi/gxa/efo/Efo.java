@@ -35,7 +35,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.*;
 
@@ -46,18 +46,17 @@ import java.util.*;
 public class Efo implements InitializingBean {
 
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
-    private Directory indexDirectory = new RAMDirectory();
+    private Directory indexDirectory;
     private IndexSearcher indexSearcher;
     private IndexReader indexReader;
+    private File cache;
     private URI uri;
-    private Loader loader;
 
     Map<String,EfoNode> efomap;
     String version;
     String versionInfo;
 
     public Efo() {
-        loader = new Loader();
     }
 
     public URI getUri() {
@@ -68,8 +67,48 @@ public class Efo implements InitializingBean {
         this.uri = uri;
     }
 
+    public void setCache(File cache) {
+        this.cache = cache;
+    }
+
+    @SuppressWarnings("unchecked")
     public void afterPropertiesSet() throws Exception {
+        if(cache != null) {
+            try {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(cache));
+                try {
+                    String ouri = ois.readUTF();
+                    if(uri.toString().equals(ouri)) {
+                        version = ois.readUTF();
+                        versionInfo = ois.readUTF();
+                        efomap = (Map<String,EfoNode>)ois.readObject();
+                        roots = (SortedSet<EfoNode>)ois.readObject();
+                        return;
+                    }
+                } finally {
+                    ois.close();
+                }
+            } catch (Exception e) {
+                // can't read, give up
+            }
+        }
         load();
+        if(cache != null) {
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cache, false));
+                try {
+                    oos.writeUTF(uri.toString());
+                    oos.writeUTF(version);
+                    oos.writeUTF(versionInfo);
+                    oos.writeObject(efomap);
+                    oos.writeObject(roots);
+                } finally {
+                    oos.close();
+                }
+            } catch(Exception e) {
+                // can't write, give up 
+            }
+        }
     }
 
     private Map<String,EfoNode> getMap() {
@@ -91,7 +130,7 @@ public class Efo implements InitializingBean {
 
     public void load() {
         efomap = new HashMap<String,EfoNode>();
-        loader.load(this, uri);
+        new Loader().load(this, uri);
 
         EfoNode other = new EfoNode("Other", "other", true);
         for(EfoNode n : getMap().values()) {
@@ -231,6 +270,7 @@ public class Efo implements InitializingBean {
 
     private void rebuildIndex() {
         try {
+            indexDirectory = new RAMDirectory();
             IndexWriter writer = new IndexWriter(indexDirectory, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
             writer.deleteDocuments(new MatchAllDocsQuery());
 
