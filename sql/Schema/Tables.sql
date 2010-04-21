@@ -1507,10 +1507,10 @@ ALTER TRIGGER A2_ExpressionAnalytics_Insert ENABLE;
 
 create global temporary table tmp_DesignElementMap(
     DesignElementAccession varchar2(255) NOT NULL
-    ,GeneID NUMBER(22,0) NOT NULL
+    ,GeneID NUMBER(22,0) 
     ,GeneIdentifier varchar2(255)) ON COMMIT DELETE ROWS;
 
-
+ALTER table tmp_DesignElementMap MODIFY GeneID NUMBER(22,0) NULL;
 --------------------------------------------------------
 --  TASK MANAGER DATA STRUCTURES
 --------------------------------------------------------  
