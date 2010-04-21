@@ -25,20 +25,23 @@ package uk.ac.ebi.gxa.efo;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.io.Serializable;
 
 /**
      * Internal node representation structure
  */
-class EfoNode {
+class EfoNode implements Serializable {
     String id;
     String term;
     boolean branchRoot;
 
-    static Comparator<EfoNode> termAlphaComp = new Comparator<EfoNode>() {
+    private static class TermComparator implements Comparator<EfoNode>, Serializable {
         public int compare(EfoNode o1, EfoNode o2) {
             return o1.term.compareTo(o2.term);
         }
-    };
+    }
+
+    static Comparator<EfoNode> termAlphaComp = new TermComparator();
 
     SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
     SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
