@@ -158,9 +158,7 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                         "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
             }
             else {
-                log.warn("R services object became unexpectedly null, invalidating");
-                workerPool.invalidateObject(rServices);
-                workerPool.returnObject(rServices);
+                log.error("R services object became unexpectedly null!");
             }
         }
         catch (Exception e) {
