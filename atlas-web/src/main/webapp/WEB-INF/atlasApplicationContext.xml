@@ -63,6 +63,8 @@
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
+        <!-- experimental debugging EFO cache feature -->
+        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/pashky/projects/efocache.dat"/></bean></property>-->
         <!-- can be any external of file url too -->
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/efo.owl"/>-->
     </bean>
@@ -112,12 +114,6 @@
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
         <property name="allowReloading" value="true"/>
-        <property name="geneIdentifierPriority">
-            <util:list>
-                <value>ensembl</value>
-                <value>uniprot</value>
-            </util:list>
-        </property>
     </bean>
 
     <!-- Index Builder component -->
@@ -406,7 +402,6 @@
     </bean>
 
     <bean id="atlasManager" class="uk.ac.ebi.gxa.jmx.AtlasManager">
-        <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="netCDFRepo" ref="atlasNetCDFRepo"/>
         <property name="dataSource" ref="atlasDataSource"/>

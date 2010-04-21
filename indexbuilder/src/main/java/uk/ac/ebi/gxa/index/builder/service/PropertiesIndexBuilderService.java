@@ -25,11 +25,12 @@ package uk.ac.ebi.gxa.index.builder.service;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,7 +39,9 @@ import java.util.List;
 public class PropertiesIndexBuilderService extends IndexBuilderService {
 
     @Override
-    protected void createIndexDocs(ProgressUpdater progressUpdater) throws IndexBuilderException {
+    public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        super.processCommand(indexAll, progressUpdater);    //To change body of overridden methods use File | Settings | File Templates.
+
         try {
             getLog().info("Fetching all properties");
 
@@ -66,19 +69,11 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    /**
-     * Generate/update only documents for a selection of id's.
-     *
-     * @param docIds          document id's to update
-     * @param progressUpdater instance of {@link uk.ac.ebi.gxa.index.builder.service.IndexBuilderService.ProgressUpdater} to track progress
-     * @throws uk.ac.ebi.gxa.index.builder.IndexBuilderException
-     *          thrown if an error occurs
-     */
     @Override
-    protected void updateIndexDocs(Collection<Long> docIds,
-                                   ProgressUpdater progressUpdater) throws IndexBuilderException {
-        throw new RuntimeException("Not implemented");
+    public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        processCommand(new IndexAllCommand(), progressUpdater);
     }
+
 
     public String getName() {
         return "properties";

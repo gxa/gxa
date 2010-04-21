@@ -38,6 +38,10 @@ public class AnalyticsTask extends AbstractWorkingTask {
     
     public static final String TYPE = "analytics";
 
+    public static TaskSpec SPEC_ANALYTICS(String accession) {
+        return new TaskSpec(TYPE, accession);
+    }
+
     private volatile boolean stop = false;
 
     public void start() {
@@ -55,7 +59,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "Successfully");
                             taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                            TaskSpec indexTask = new TaskSpec(IndexTask.TYPE, "");
+                            final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(getTaskSpec().getAccession());
                             taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
                             if(!stop && isRunningAutoDependencies()) {
                                 taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,

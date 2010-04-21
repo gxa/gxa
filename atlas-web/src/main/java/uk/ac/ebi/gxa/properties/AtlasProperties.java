@@ -249,8 +249,12 @@ public class AtlasProperties  {
         return getProperty("head.gene." + geneProperty);
     }
 
-    public List<String> getPossibleQuantitaionTypes() {
+    public List<String> getLoaderPossibleQuantitaionTypes() {
         return getListProperty("atlas.loader.possible.qtypes");
+    }
+
+    public List<String> getLoaderGeneIdPriority() {
+        return getListProperty("atlas.loader.gene.identifier.priority");
     }
 
     /* R & Biocep */

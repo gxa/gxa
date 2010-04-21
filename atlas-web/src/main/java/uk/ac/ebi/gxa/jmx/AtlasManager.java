@@ -22,24 +22,20 @@
 
 package uk.ac.ebi.gxa.jmx;
 
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.web.context.ServletContextAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.web.context.ServletContextAware;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-import javax.sql.DataSource;
 import javax.servlet.ServletContext;
+import javax.sql.DataSource;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Properties;
 import java.util.logging.LogManager;
 
 
@@ -49,17 +45,12 @@ import java.util.logging.LogManager;
 public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private IndexBuilder indexBuilder;
     private File atlasIndex;
     private File netCDFRepo;
     private DataSource dataSource;
     private Efo efo;
     private ServletContext servletContext;
     private AtlasProperties atlasProperties;
-
-    public void setIndexBuilder(IndexBuilder indexBuilder) {
-        this.indexBuilder = indexBuilder;
-    }
 
     public void setAtlasIndex(File atlasIndex) {
         this.atlasIndex = atlasIndex;
@@ -93,20 +84,6 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
             //
         }
         SLF4JBridgeHandler.install();
-    }
-
-    public void rebuildIndex(String index) {
-        fixLog();
-        log.info("JMX: Rebuilding index " + index);
-        indexBuilder.setIncludeIndexes(Collections.singletonList(index));
-        indexBuilder.buildIndex();
-    }
-
-    public void rebuildAllIndexes() {
-        fixLog();
-        log.info("JMX: Rebuilding all indexes");
-        indexBuilder.setIncludeIndexes(Arrays.asList("properties", "experiments", "genes"));
-        indexBuilder.buildIndex();
     }
 
     public String getVersion() {

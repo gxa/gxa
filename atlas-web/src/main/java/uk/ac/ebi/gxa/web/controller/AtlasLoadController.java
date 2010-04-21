@@ -28,6 +28,7 @@ import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -73,7 +74,7 @@ public class AtlasLoadController extends AbstractController {
 
         try {
             // load this document if the URL is valid
-            loader.loadExperiment(new URL(magetabURL));
+            loader.doCommand(new LoadExperimentCommand(magetabURL), null);
 
             return new ModelAndView(getSuccessView());
         }

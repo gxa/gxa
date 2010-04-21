@@ -28,9 +28,10 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -69,24 +70,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
-    public void updateIndexDocs(final Collection<Long> experimentIds, final ProgressUpdater progressUpdater)
-            throws IndexBuilderException {
+    public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        super.processCommand(indexAll, progressUpdater);    //To change body of overridden methods use File | Settings | File Templates.
 
-        final Set<Gene> genes = new LinkedHashSet<Gene>();
-        for (Long experimentId : experimentIds) {
-            genes.addAll(getAtlasDAO().getGenesByExperimentId(experimentId));
-        }
-
-        indexGenes(progressUpdater, new ArrayList<Gene>(genes));
+        getLog().info("Indexing all genes...");
+        indexGenes(progressUpdater, getAtlasDAO().getAllGenesFast());
     }
 
     @Override
-    protected void createIndexDocs(final ProgressUpdater progressUpdater) throws IndexBuilderException {
-        getLog().info("Indexing all genes...");
+    public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        super.processCommand(cmd, progressUpdater);
 
-        // fetch genes
-        final List<Gene> genes = getAtlasDAO().getAllGenesFast();
-        indexGenes(progressUpdater, genes);
+        getLog().info("Indexing genes for experiment " + cmd.getAccession() + "...");
+        indexGenes(progressUpdater, getAtlasDAO().getGenesByExperimentAccession(cmd.getAccession()));
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,

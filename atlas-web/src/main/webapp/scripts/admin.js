@@ -44,7 +44,9 @@ var $msg = {
         loadarraydesign: 'Load array design',
         index: 'Build index',
         unloadexperiment: 'Unload experiment',
-        updateexperiment: 'Update experiment'
+        updateexperiment: 'Update NetCDF',
+        indexexperiment: 'Index experiment',
+        repairexperiment: 'Repair experiment'
     },
     runMode: {
         RESTART: '[Restart]',
@@ -279,7 +281,7 @@ function updateBrowseExperiments() {
         if(selectAll)
             $('#selectAll').attr('checked', 'checked');
 
-        function startSelectedTasks(type, mode, title) {
+        function startSelectedTasks(type, mode, title, noAutodep) {
             var accessions = [];
             for(var accession in selectedExperiments)
                 accessions.push(accession);
@@ -287,7 +289,7 @@ function updateBrowseExperiments() {
             if(accessions.length == 0 && !selectAll)
                 return;
 
-            var autoDep = $('#experimentAutodep').is(':checked');
+            var autoDep = noAutodep ? false : $('#experimentAutodep').is(':checked');
             if(window.confirm('Do you really want to ' + title + ' '
                     + (selectAll ? result.numTotal : accessions.length)
                     + ' experiment(s)' + (autoDep ? ' and rebuild index afterwards' : '') +'?')) {
@@ -315,20 +317,28 @@ function updateBrowseExperiments() {
             }
         }
 
-        $('#experimentList input.restart').click(function () {
-            startSelectedTasks('analytics', 'RESTART', 'restart analytics of');
+        $('#experimentList input.analytics').click(function () {
+            startSelectedTasks('analytics', 'RESTART', 'restart analytics of', false);
         });
 
         $('#experimentList input.unload').click(function () {
-            startSelectedTasks('unloadexperiment', 'RESTART', 'unload');
+            startSelectedTasks('unloadexperiment', 'RESTART', 'unload', false);
         });
 
-        $('#experimentList input.update').click(function () {
-            startSelectedTasks('updateexperiment', 'RESTART', 'update NetCDF of');
+        $('#experimentList input.updatenetcdf').click(function () {
+            startSelectedTasks('updateexperiment', 'RESTART', 'update NetCDF of', false);
+        });
+
+        $('#experimentList input.updateindex').click(function () {
+            startSelectedTasks('indexexperiment', 'RESTART', 'update index of', true);
+        });
+
+        $('#experimentList input.repair').click(function () {
+            startSelectedTasks('repairexperiment', 'RESTART', 'repair', true);
         });
 
         $('#experimentList .rebuildIndex input').click(function () {
-            if(window.confirm('Do you really want to rebuild index?')) {
+            if(window.confirm('Do you really want to rebuild complete index?')) {
                 adminCall('schedule', {
                     runMode: 'RESTART',
                     accession: '',

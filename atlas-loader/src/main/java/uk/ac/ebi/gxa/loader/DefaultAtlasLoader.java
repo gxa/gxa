@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.loader.service.*;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,17 +48,10 @@ import java.util.concurrent.TimeUnit;
  * @author Tony Burdett
  * @date 27-Nov-2009
  */
-public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
+public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasDAO atlasDAO;
     private File atlasNetCDFRepo;
     private boolean allowReloading = false;
-    private List<String> geneIdentifierPriority = new ArrayList<String>();
-    private volatile Set<String> possibleQTypes = new HashSet<String>();
-
-    private AtlasMAGETABLoader experimentLoaderService;
-    private AtlasArrayDesignLoader arrayLoaderService;
-    private AtlasNetCDFUpdaterService netcdfUpdaterService;
-    private AtlasExperimentUnloaderService experimentUnloaderService;
 
     private ExecutorService service;
     private boolean running = false;
@@ -91,39 +83,12 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         this.allowReloading = allowReloading;
     }
 
-    public List<String> getGeneIdentifierPriority() {
-        return geneIdentifierPriority;
-    }
-
-    public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) {
-        this.geneIdentifierPriority = geneIdentifierPriority;
-    }
-
-    public void setPossibleQTypes(Collection<String> possibleQTypes) {
-        this.possibleQTypes = new HashSet<String>(possibleQTypes);
-    }
-
-    public Set<String> getPossibleQTypes() {
-        return possibleQTypes;
-    }
-
     public void afterPropertiesSet() throws Exception {
         startup();
     }
 
     public void startup() throws AtlasLoaderException {
         if (!running) {
-            // do some initialization...
-
-            // create the experiment loading service
-            experimentLoaderService = new AtlasMAGETABLoader(this);
-            // create the experiment loading service
-            arrayLoaderService = new AtlasArrayDesignLoader(this);
-            arrayLoaderService.setGeneIdentifierPriority(getGeneIdentifierPriority());
-
-            netcdfUpdaterService = new AtlasNetCDFUpdaterService(this);
-            experimentUnloaderService = new AtlasExperimentUnloaderService(this);
-
             // finally, create an executor service for processing calls to load
             service = Executors.newCachedThreadPool();
 
@@ -188,48 +153,51 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
         }
     }
 
-    public void loadExperiment(URL experimentResource) {
-        loadExperiment(experimentResource, null);
-    }
+    private interface ServiceExecutionContext extends AtlasLoaderServiceListener, AtlasLoaderCommandVisitor { }
 
-    public void loadArrayDesign(URL arrayDesignResource) {
-        loadArrayDesign(arrayDesignResource, null);
-    }
-
-    public void loadExperiment(final URL experimentResource, final AtlasLoaderListener listener) {
-        processByService(experimentLoaderService, experimentResource, listener);
-    }
-
-    public void loadArrayDesign(final URL arrayDesignResource, final AtlasLoaderListener listener) {
-        processByService(arrayLoaderService, arrayDesignResource, listener);
-    }
-
-    private <T> void processByService(final AtlasLoaderService<T> loaderService, final T experimentResource, final AtlasLoaderListener listener) {
+    public void doCommand(final AtlasLoaderCommand command, final AtlasLoaderListener listener) {
         final long startTime = System.currentTimeMillis();
         service.submit(new Runnable() {
             public void run() {
                 final List<String> accessions = new ArrayList<String>();
                 final List<Throwable> errors = new ArrayList<Throwable>();
                 try {
-                    log.info("Starting load operation on " + experimentResource.toString());
+                    log.info("Starting loader operation: " + command.toString());
 
-                    loaderService.process(experimentResource,
-                            listener != null ? new AtlasLoaderServiceListener() {
-                                public void setAccession(String accession) {
-                                    accessions.add(accession);
-                                }
+                    command.visit(new ServiceExecutionContext() {
+                        public void setAccession(String accession) {
+                            accessions.add(accession);
+                        }
 
-                                public void setProgress(String progress) {
-                                    listener.loadProgress(progress);
-                                }
+                        public void setProgress(String progress) {
+                            if(listener != null)
+                                listener.loadProgress(progress);
+                        }
 
-                                public void setWarning(String warning) {
-                                    log.warn(warning);
-                                    listener.loadWarning(warning);
-                                }
-                            } : null);
+                        public void setWarning(String warning) {
+                            log.warn(warning);
+                            if(listener != null)
+                                listener.loadWarning(warning);
+                        }
 
-                    log.info("Finished load operation on " + experimentResource.toString());
+                        public void process(LoadExperimentCommand cmd) throws AtlasLoaderException {
+                            new AtlasMAGETABLoader(DefaultAtlasLoader.this).process(cmd, this);
+                        }
+
+                        public void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException {
+                            new AtlasArrayDesignLoader(DefaultAtlasLoader.this).process(cmd, this);
+                        }
+
+                        public void process(UnloadExperimentCommand cmd) throws AtlasLoaderException {
+                            new AtlasExperimentUnloaderService(DefaultAtlasLoader.this).process(cmd, this);
+                        }
+
+                        public void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException {
+                            new AtlasNetCDFUpdaterService(DefaultAtlasLoader.this).process(cmd, this);
+                        }
+                    });
+
+                    log.info("Finished load operation: " + command.toString());
                 }
                 catch (Exception e) {
                     log.error("Loading error", e);
@@ -245,14 +213,6 @@ public class DefaultAtlasLoader implements AtlasLoader<URL>, InitializingBean {
                 }
             }
         });
-    }
-
-    public void unloadExperiment(String accession, final AtlasLoaderListener listener) {
-        processByService(experimentUnloaderService, accession, listener);
-    }
-
-    public void updateNetCDFForExperiment(String experimentAccession, final AtlasLoaderListener listener) {
-        processByService(netcdfUpdaterService, experimentAccession, listener);
     }
 
     public String getVersionFromMavenProperties() {

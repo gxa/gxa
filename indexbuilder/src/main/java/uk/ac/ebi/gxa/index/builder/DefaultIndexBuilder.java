@@ -161,40 +161,9 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         }
     }
 
-    public void buildIndex() {
-        buildIndex(null);
-    }
+    public void doCommand(final IndexBuilderCommand command, final IndexBuilderListener listener) {
+        log.info("Started IndexBuilder: " + command.toString() + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
 
-    public void buildIndex(IndexBuilderListener listener) {
-        startIndexBuild(listener);
-        log.info("Started IndexBuilder: " + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
-    }
-
-    public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-        if (!eventHandlers.contains(handler)) {
-            eventHandlers.add(handler);
-        }
-    }
-
-    public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-        eventHandlers.remove(handler);
-    }
-
-    private void notifyBuildFinishHandlers(IndexBuilderEvent event) {
-        log.info("Index updated, notifying listeners");
-        for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildFinish(this, event);
-        }
-    }
-
-    private void notifyBuildStartHandlers() {
-        log.info("Index build started, notifying listeners");
-        for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildStart(this);
-        }
-    }
-
-    private void startIndexBuild(final IndexBuilderListener listener) {
         if(includeIndexes.isEmpty()) {
             log.info("Nothing to build");
             return;
@@ -214,23 +183,24 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                     public Boolean call() throws IndexBuilderException {
                         try {
                             log.info("Starting building of index: " + service.getName());
-                            service.buildIndex(new IndexBuilderService.ProgressUpdater() {
+                            final IndexBuilderService.ProgressUpdater updater = new IndexBuilderService.ProgressUpdater() {
                                 public void update(String progress) {
                                     synchronized (progressMap) {
                                         progressMap.put(service.getName(), progress);
                                         StringBuilder sb = new StringBuilder();
-                                        for(Map.Entry<String,String> p : progressMap.entrySet()) {
-                                            if(sb.length() > 0)
+                                        for (Map.Entry<String, String> p : progressMap.entrySet()) {
+                                            if (sb.length() > 0)
                                                 sb.append(", ");
                                             sb.append(p.getKey()).append(": ").append(p.getValue());
                                         }
-                                        if(sb.length() > 0)
+                                        if (sb.length() > 0)
                                             sb.insert(0, "Processed ");
-                                        if(listener != null)
+                                        if (listener != null)
                                             listener.buildProgress(sb.toString());
                                     }
                                 }
-                            });
+                            };
+                            service.build(command, updater);
                             return true;
                         }
                         catch (Exception e) {
@@ -284,5 +254,28 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         }).start();
     }
 
+    public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+        if (!eventHandlers.contains(handler)) {
+            eventHandlers.add(handler);
+        }
+    }
+
+    public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
+        eventHandlers.remove(handler);
+    }
+
+    private void notifyBuildFinishHandlers(IndexBuilderEvent event) {
+        log.info("Index updated, notifying listeners");
+        for (IndexBuilderEventHandler handler : eventHandlers) {
+            handler.onIndexBuildFinish(this, event);
+        }
+    }
+
+    private void notifyBuildStartHandlers() {
+        log.info("Index build started, notifying listeners");
+        for (IndexBuilderEventHandler handler : eventHandlers) {
+            handler.onIndexBuildStart(this);
+        }
+    }
 }
     

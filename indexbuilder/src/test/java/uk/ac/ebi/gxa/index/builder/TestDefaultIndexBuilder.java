@@ -170,7 +170,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
             indexBuilder.startup();
 
             // run buildIndex
-            indexBuilder.buildIndex(new IndexBuilderListener() {
+            indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
                 public void buildSuccess(IndexBuilderEvent event) {
                     try {
                         // now query the index for the stuff that is in the test DB

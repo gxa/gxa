@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.ValueListHashMap;
 import uk.ac.ebi.gxa.utils.FilterIterator;
@@ -24,13 +26,15 @@ import java.io.IOException;
  * NetCDF updater service which preserves expression values information, but updates all properties
  * @author pashky
  */
-public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
+public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFForExperimentCommand> {
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
 
-    public void process(String experimentAccession, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
+    public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+        String experimentAccession = cmd.getAccession();
+
         listener.setAccession(experimentAccession);
         
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
@@ -82,7 +86,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
                 }                
 
                 if(!originalNetCDF.delete())
-                    throw new AtlasLoaderServiceException("Can't delete original NetCDF file " + originalNetCDF);
+                    throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
 
                 listener.setProgress("Writing new NetCDF");
                 NetCDFCreator netCdfCreator = new NetCDFCreator();
@@ -110,11 +114,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<String> {
             } catch (IOException e) {
                 getLog().error("Error reading NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
-                throw new AtlasLoaderServiceException(e);
+                throw new AtlasLoaderException(e);
             } catch(NetCDFCreatorException e) {
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
-                throw new AtlasLoaderServiceException(e);
+                throw new AtlasLoaderException(e);
             }
         }
     }

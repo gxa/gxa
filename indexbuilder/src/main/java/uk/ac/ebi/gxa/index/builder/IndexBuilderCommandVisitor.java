@@ -20,25 +20,24 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.index.builder;
 
 /**
+ * Index builder command visitor
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
-
-    String getNetCDFPath();
-
-    String getDataSourceURL();
-
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+public interface IndexBuilderCommandVisitor {
+    /**
+     * Process command
+     * @param cmd command
+     * @throws IndexBuilderException if error occurs
+     */
+    void process(IndexAllCommand cmd) throws IndexBuilderException ;
+    
+    /**
+     * Process command
+     * @param cmd command
+     * @throws IndexBuilderException if error occurs
+     */
+    void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException ;
 }

@@ -20,25 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.loader;
 
 /**
+ * Atlas loader command interface
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
-
-    String getNetCDFPath();
-
-    String getDataSourceURL();
-
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+public interface AtlasLoaderCommand {
+    /**
+     * Dispatch command by visitor
+     * @param visitor visitor
+     * @throws AtlasLoaderException in error
+     */
+    public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException;
 }

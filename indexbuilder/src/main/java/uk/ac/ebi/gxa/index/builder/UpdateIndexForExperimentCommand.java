@@ -20,25 +20,37 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.index.builder;
 
 /**
+ * Update index for experiment by accession index builder command
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
+public class UpdateIndexForExperimentCommand implements IndexBuilderCommand {
+    private String accession;
 
-    String getNetCDFPath();
+    /**
+     * Creates command for specific experiment by accession
+     * @param accession experiment accession
+     */
+    public UpdateIndexForExperimentCommand(String accession) {
+        this.accession = accession;
+    }
 
-    String getDataSourceURL();
+    /**
+     * Returns experiment accession
+     * @return acession string
+     */
+    public String getAccession() {
+        return accession;
+    }
 
-    String getVersion();
+    public void visit(IndexBuilderCommandVisitor visitor) throws IndexBuilderException {
+        visitor.process(this);
+    }
 
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+    @Override
+    public String toString() {
+        return "Reindex for experiment " + getAccession();
+    }
 }
