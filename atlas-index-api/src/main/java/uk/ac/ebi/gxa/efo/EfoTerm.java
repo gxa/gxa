@@ -22,10 +22,12 @@
 
 package uk.ac.ebi.gxa.efo;
 
+import java.io.Serializable;
+
 /**
      * External view for node class
  */
-public class EfoTerm {
+public class EfoTerm implements Serializable {
     private String id;
     private String term;
     private boolean expandable;
