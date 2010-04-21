@@ -36,6 +36,7 @@ PROCEDURE A2_ARRAYDESIGNSET(
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
+  ,ENTRYPRIORITYLIST IDVALUETABLE  
   ,DesignElements DesignElementTable 
 ); 
 
@@ -119,6 +120,7 @@ PROCEDURE A2_ARRAYDESIGNSET (
   ,Type varchar2
   ,Name varchar2
   ,Provider varchar2
+  ,ENTRYPRIORITYLIST IDVALUETABLE  
   ,DesignElements DesignElementTable 
 ) 
 as
@@ -191,10 +193,18 @@ begin
  dbms_output.put_line(' update propertyvalues: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --map DesignElementAccessions to existing genes
+
  Insert into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
  select t.Accession, min(GeneID), null
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
- join vwGeneIDs IDs on ids.name = t.EntryName and ids.value = t.EntryValue
+ join (select g.GeneID
+        ,p.Name
+        ,pv.Value
+ from a2_Gene g
+ join a2_GeneGPV gpv on gpv.GeneID = g.GeneID
+ join a2_GenePropertyValue pv on pv.genepropertyvalueid = gpv.genepropertyvalueid
+ join a2_geneproperty p on p.genepropertyid = pv.genepropertyid
+ join table(CAST(ENTRYPRIORITYLIST as IDVALUETABLE)) t on t.Value = p.Name) IDs on ids.name = t.EntryName and ids.value = t.EntryValue
  group by t.Accession;
  dbms_output.put_line(' map DesignElementAccessions to existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
 
@@ -204,9 +214,9 @@ begin
  from (
  select t.Accession
       , EntryValue
-      , RANK() OVER (PARTITION BY t.Accession ORDER BY p.priority) r 
+      , RANK() OVER (PARTITION BY t.Accession ORDER BY p.priority) r
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
- join vwgeneidproperty p on p.Name = t.EntryName
+ join (select Name, ID as priority from table(cast(ENTRYPRIORITYLIST as IDVALUETABLE))) p on p.Name = t.EntryName
  where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession)
  ) t where t.r=1;
  dbms_output.put_line(' add accessions for non-existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
