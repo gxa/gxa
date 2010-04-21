@@ -1463,7 +1463,7 @@ public class AtlasDAO {
                 arrayDesignBundle.getDesignElementNames().isEmpty() ? null :
                         convertDesignElementsToOracleARRAY(arrayDesignBundle);
 
-        SqlTypeValue geneIdentifierPriorityParam = convertStringCollectionToOracleARRAY(
+        SqlTypeValue geneIdentifierPriorityParam = convertToOracleARRAYofIDVALUE(
                 arrayDesignBundle.getGeneIdentifierNames());
 
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -1841,7 +1841,7 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertStringCollectionToOracleARRAY(final Collection<String> list) {
+    private <T> SqlTypeValue convertToOracleARRAYofIDVALUE(final Collection<T> list) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 // this should be creating an oracle ARRAY of properties
@@ -1852,13 +1852,14 @@ public class AtlasDAO {
 
                     // convert each property to an oracle STRUCT
                     int i = 0;
-                    Object[] propStructValues = new Object[4];
-                    for (String elt : list) {
+                    Object[] propStructValues = new Object[2];
+                    for (T elt : list) {
                         // array representing the values to go in the STRUCT
-                        propStructValues[0] = elt;
+                        propStructValues[0] = i;
+                        propStructValues[1] = elt;
 
                         // descriptor for PROPERTY type
-                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("VARCHAR2", connection);
+                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("IDVALUE", connection);
                         // each array value is a new STRUCT
                         strArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
                     }
@@ -1868,7 +1869,7 @@ public class AtlasDAO {
                 }
                 else {
                     // throw an SQLException, as we cannot create a ARRAY with an empty array
-                    throw new SQLException("Unable to create an ARRAY from an empty list of strings");
+                    throw new SQLException("Unable to create an ARRAY from an empty list");
                 }
             }
         };
