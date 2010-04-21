@@ -132,7 +132,7 @@ public class Efo implements InitializingBean {
         efomap = new HashMap<String,EfoNode>();
         new Loader().load(this, uri);
 
-        EfoNode other = new EfoNode("Other", "other", true);
+        EfoNode other = new EfoNode("More...", "more...", true);
         for(EfoNode n : getMap().values()) {
             if(n.parents.isEmpty())
                 (n.branchRoot ? roots : other.children).add(n);
