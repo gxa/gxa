@@ -135,11 +135,11 @@ public class AtlasDAO {
     public static final String GENE_BY_IDENTIFIER =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.identifier=?";
+                    "WHERE g.organismid=s.organismid AND g.identifier=?";
     public static final String GENE_BY_ID =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.geneid=?";
+                    "WHERE g.organismid=s.organismid AND g.geneid=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
@@ -288,10 +288,10 @@ public class AtlasDAO {
                     "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
                     "WHERE a.experimentid=?";
     public static final String EXPRESSIONANALYTICS_BY_GENEID =
-            "SELECT ef, efv, experimentid, null, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
+            "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid=?";
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
-            "SELECT ef, efv, experimentid, null, tstat, pvaladj, efid, efvid, geneid FROM VWEXPRESSIONANALYTICSBYGENE " +
+            "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid, geneid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid IN (:geneids)";
     public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
@@ -978,7 +978,7 @@ public class AtlasDAO {
                             ea.setEfName(resultSet.getString("ef"));
                             ea.setEfvName(resultSet.getString("efv"));
                             ea.setExperimentID(resultSet.getLong("experimentid"));
-                            ea.setDesignElementID(0); // missing
+                            ea.setDesignElementID(resultSet.getLong("designelementid"));
                             ea.setTStatistic(resultSet.getFloat("tstat"));
                             ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
                             ea.setEfId(resultSet.getLong("efid"));
