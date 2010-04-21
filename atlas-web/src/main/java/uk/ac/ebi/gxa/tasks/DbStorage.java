@@ -29,9 +29,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.util.List;
+import java.util.Arrays;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -215,4 +218,19 @@ public class DbStorage implements PersistentStorage {
                 new Object[] { type, tag, type, tag },
                 LOG_ROWMAPPER);
     }
+
+    public boolean isAnyIncomplete(String... taskType) {
+        try {
+            NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue("types", Arrays.<String>asList(taskType));
+            return namedTemplate.queryForInt(
+                    "SELECT count(1) FROM A2_TASKMAN_STATUS ts WHERE ts.type in (:types) AND ts.status in ('INCOMPLETE', 'NONE')",
+                    parameters) > 0;
+        } catch (DataAccessException e) {
+            log.error("Can't retrieve task statuses", e);
+            return false;
+        }
+    }
+
 }

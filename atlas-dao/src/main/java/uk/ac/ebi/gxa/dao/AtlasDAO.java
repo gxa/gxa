@@ -647,29 +647,6 @@ public class AtlasDAO {
 
         // do the second query to obtain design elements
         List<Gene> genes = (List<Gene>) results;
-
-        // map genes to gene id
-        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
-        for (Gene gene : genes) {
-            // index this assay
-            genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Long>());
-            }
-        }
-
-        // map of genes and their design elements
-        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
-
-        // now query for design elements, and genes, by the experiment accession, and map them together
-        log.debug("Querying for design elements mapped to genes of " + exptAccession);
-        template.query(DESIGN_ELEMENTS_AND_GENES_BY_EXPERIMENT_ACCESSION,
-                       new Object[]{exptAccession},
-                       geneDesignElementMapper);
-        log.debug("Design elements for genes of " + exptAccession + " acquired");
-
         // and return
         return genes;
     }

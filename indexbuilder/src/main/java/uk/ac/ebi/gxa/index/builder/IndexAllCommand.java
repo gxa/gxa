@@ -20,25 +20,25 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.index.builder;
 
 /**
+ * Re-index everything index builder command
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
+public class IndexAllCommand implements IndexBuilderCommand {
+    /**
+     * Creates command
+     */
+    public IndexAllCommand() {
+    }
 
-    String getNetCDFPath();
+    public void visit(IndexBuilderCommandVisitor visitor) throws IndexBuilderException {
+        visitor.process(this);
+    }
 
-    String getDataSourceURL();
-
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+    @Override
+    public String toString() {
+        return "Index all";
+    }
 }

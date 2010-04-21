@@ -38,18 +38,19 @@ import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.dao.LoadType;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+import uk.ac.ebi.gxa.loader.LoadArrayDesignCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.handler.adf.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.LoadDetails;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Javadocs go here!
@@ -57,22 +58,14 @@ import java.util.List;
  * @author Tony Burdett
  * @date 22-Feb-2010
  */
-public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
-    private List<String> geneIdentifierPriority = new ArrayList<String>();
-
+public class AtlasArrayDesignLoader extends AtlasLoaderService<LoadArrayDesignCommand> {
     public AtlasArrayDesignLoader(DefaultAtlasLoader loader) {
         super(loader);
     }
 
-    public List<String> getGeneIdentifierPriority() {
-        return geneIdentifierPriority;
-    }
+    public void process(final LoadArrayDesignCommand cmd, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+        final URL adfFileLocation = cmd.getUrl();
 
-    public void setGeneIdentifierPriority(List<String> geneIdentifierPriority) {
-        this.geneIdentifierPriority = geneIdentifierPriority;
-    }
-
-    public void process(final URL adfFileLocation, final AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException {
         // create a cache for our objects
         AtlasLoadCache cache = new AtlasLoadCache();
 
@@ -130,7 +123,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
-                throw new AtlasLoaderServiceException(e);
+                throw new AtlasLoaderException(e);
             } finally {
                 if(watcher != null)
                     watcher.stopWatching();
@@ -143,17 +136,17 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
 
             // parsing completed, so now write the objects in the cache
             try {
-                writeObjects(cache);
+                writeObjects(cache, cmd.getGeneIdentifierPriority());
 
                 if (listener != null) {
                     if (cache.fetchArrayDesignBundle() != null) {
                         listener.setAccession(cache.fetchArrayDesignBundle().getAccession());
                     }
                 }
-            } catch (AtlasLoaderServiceException e) {
+            } catch (AtlasLoaderException e) {
                 throw e;
             } catch (Exception e) {
-                throw new AtlasLoaderServiceException(e);
+                throw new AtlasLoaderException(e);
             }
         }
         finally {
@@ -177,7 +170,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                                  AtlasLoadingTypeHandler.class);
     }
 
-    protected void writeObjects(AtlasLoadCache cache) throws AtlasLoaderServiceException {
+    protected void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
         int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
@@ -198,7 +191,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             start = System.currentTimeMillis();
             getLog().info("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
             // first, update the bundle with the identifier preferences
-            cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(getGeneIdentifierPriority());
+            cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(priority);
 
             getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
             end = System.currentTimeMillis();
@@ -210,7 +203,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
             success = true;
         }
         catch (Exception e) {
-            throw new AtlasLoaderServiceException(e);
+            throw new AtlasLoaderException(e);
         }
         finally {
             // end the load(s)
@@ -218,11 +211,11 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         }
     }
 
-    private void validateLoad(ArrayDesignBundle arrayDesignBundle) throws AtlasLoaderServiceException {
+    private void validateLoad(ArrayDesignBundle arrayDesignBundle) throws AtlasLoaderException {
         if (arrayDesignBundle == null) {
             String msg = "No array design created - unable to load";
             getLog().error(msg);
-            throw new AtlasLoaderServiceException(msg);
+            throw new AtlasLoaderException(msg);
         }
 
         checkArrayDesign(arrayDesignBundle.getAccession());
@@ -230,7 +223,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
         // all checks passed if we got here
     }
 
-    private void checkArrayDesign(String accession) throws AtlasLoaderServiceException {
+    private void checkArrayDesign(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForArrayDesignsByAccession(accession);
@@ -242,14 +235,14 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<URL> {
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
                 if(pending)
-                    throw new AtlasLoaderServiceException("Array design is in PENDING state");
+                    throw new AtlasLoaderException("Array design is in PENDING state");
 
                 boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
                 if (priorFailure) {
                     String msg = "Array Design " + accession + " was previously loaded, but failed.  " +
                             "Any bad data will be overwritten";
                     getLog().warn(msg);
-                    throw new AtlasLoaderServiceException(msg);
+                    throw new AtlasLoaderException(msg);
                 }
             }
             else {

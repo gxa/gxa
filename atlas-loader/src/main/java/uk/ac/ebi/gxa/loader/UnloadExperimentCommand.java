@@ -19,24 +19,28 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.loader.service;
+
+package uk.ac.ebi.gxa.loader;
 
 /**
+ * Unload experiment loader command
  * @author pashky
  */
-public class AtlasLoaderServiceException extends Exception {
-    public AtlasLoaderServiceException() {
+public class UnloadExperimentCommand extends AbstractAccessionCommand {
+    /**
+     * Creates unload command for accession
+     * @param accession experiment accession
+     */
+    public UnloadExperimentCommand(String accession) {
+        super(accession);
     }
 
-    public AtlasLoaderServiceException(String message) {
-        super(message);
+    public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
+        visitor.process(this);
     }
 
-    public AtlasLoaderServiceException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AtlasLoaderServiceException(Throwable cause) {
-        super(cause);
+    @Override
+    public String toString() {
+        return "Unload experiment " + getAccession();
     }
 }

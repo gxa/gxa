@@ -25,45 +25,46 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 import java.io.File;
 
 /**
- * An abstract Atlas loader service, containing basic setup that is required across all loader implementations.  This
+ * An abstract Atlas loader service, containing basic setup that is required across all loader service implementations.  This
  * leaves implementing classes free to describe only the logic required to perform loads.
  *
  * @author Tony Burdett
  * @date 27-Nov-2009
  */
-public abstract class AtlasLoaderService<T> {
-    private DefaultAtlasLoader atlasLoader;
+public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
+    final private DefaultAtlasLoader atlasLoader;
 
     // logging
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     protected AtlasLoaderService(DefaultAtlasLoader atlasLoader) {
         this.atlasLoader = atlasLoader;
     }
 
-    protected Logger getLog() {
+    final protected Logger getLog() {
         return log;
     }
 
-    protected AtlasDAO getAtlasDAO() {
+    final protected AtlasDAO getAtlasDAO() {
         return atlasLoader.getAtlasDAO();
     }
 
-    protected File getAtlasNetCDFRepo() {
+    final protected File getAtlasNetCDFRepo() {
         return atlasLoader.getAtlasNetCDFRepo();
     }
 
-    protected DefaultAtlasLoader getAtlasLoader() {
+    final protected DefaultAtlasLoader getAtlasLoader() {
         return atlasLoader;
     }
 
-    protected boolean allowReloading() {
+    final protected boolean allowReloading() {
         return atlasLoader.getAllowReloading();
     }
 
@@ -73,7 +74,7 @@ public abstract class AtlasLoaderService<T> {
      *
      * @param loaderResource the resource to load
      * @param listener listener
-     * @throws AtlasLoaderServiceException if failed
+     * @throws AtlasLoaderException if failed
      */
-    public abstract void process(T loaderResource, AtlasLoaderServiceListener listener) throws AtlasLoaderServiceException;
+    public abstract void process(Command loaderResource, AtlasLoaderServiceListener listener) throws AtlasLoaderException;
 }

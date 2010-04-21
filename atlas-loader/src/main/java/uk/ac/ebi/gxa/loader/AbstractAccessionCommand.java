@@ -20,25 +20,24 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.loader;
 
 /**
+ * Base class for commands having accession parameter
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
+abstract class AbstractAccessionCommand implements AtlasLoaderCommand {
+    private String accession;
 
-    String getNetCDFPath();
+    protected AbstractAccessionCommand(String accession) {
+        this.accession = accession;
+    }
 
-    String getDataSourceURL();
-
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+    /**
+     * Returns parameter accession
+     * @return accession string
+     */
+    public String getAccession() {
+        return accession;
+    }
 }

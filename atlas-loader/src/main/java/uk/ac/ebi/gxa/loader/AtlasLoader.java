@@ -22,12 +22,7 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-
-import java.util.List;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Interface for loading experiments and array designs into the Atlas.  Loaders require access to an {@link
@@ -45,7 +40,7 @@ import java.util.Set;
  * @author Tony Burdett
  * @date 27-Nov-2009
  */
-public interface AtlasLoader<L> {
+public interface AtlasLoader {
     /**
      * Sets whether reloads are permissible by this loader.  If true, experiments that are already present in the
      * backing datasource will be reloaded unchecked (with an optional warning log statement).  If false, attempting to
@@ -65,20 +60,6 @@ public interface AtlasLoader<L> {
     boolean getAllowReloading();
 
     /**
-     * Sets a list of type names that can be used to identify genes within the Atlas, in priority order.  Examples of
-     * values that might be entered here are "ensembl", "entrez" etc.  These strings repres
-     *
-     * @return
-     */
-    List<String> getGeneIdentifierPriority();
-
-    void setGeneIdentifierPriority(List<String> geneIdentifierPriority);
-
-    public void setPossibleQTypes(Collection<String> possibleQTypes);
-
-    Set<String> getPossibleQTypes();
-
-    /**
      * Initializes this loader and any resources it requires.
      *
      * @throws AtlasLoaderException if startup fails for any reason
@@ -93,67 +74,12 @@ public interface AtlasLoader<L> {
     void shutdown() throws AtlasLoaderException;
 
     /**
-     * Perform a load operation on a reference to a particular experiment resource
-     * <p/>
-     * Note that this method is not guaranteed to be synchronous, it only guarantees that the load operation has
-     * started.  Implementations are free to define their own multithreaded strategies for loading. If you wish to be
-     * notified on completion, you should register a listener to get callback events when the build completes by using
-     * {@link #loadExperiment(Object, uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener)}. You can also use a listener
-     * to get at any errors that may have occurred during loading.
+     * Perform a load operation according to provided command and listener asynchronously
      * <p/>
      *
-     * @param experimentResource the reference to the experiment you wish to load
-     */
-    void loadExperiment(L experimentResource);
-
-    /**
-     * Perform a load operation on a reference to a particular experiment resource
-     * <p/>
-     *
-     * @param experimentResource the reference to the experiment you wish to load
+     * @param command  command to process
      * @param listener           a listener that can be used to supply callbacks when loading of this experiment
      *                           completes, or when any errors occur.
      */
-    void loadExperiment(L experimentResource, AtlasLoaderListener listener);
-
-    /**
-     * Perform a load operation on a reference to a particular array design resource
-     * <p/>
-     * Note that this method is not guaranteed to be synchronous, it only guarantees that the load operation has
-     * started.  Implementations are free to define their own multithreaded strategies for loading. If you wish to be
-     * notified on completion, you should register a listener to get callback events when the build completes by using
-     * {@link #loadExperiment(Object, uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener)}. You can also use a listener
-     * to get at any errors that may have occurred during loading.
-     * <p/>
-     *
-     * @param arrayDesignResource the reference to the array design you wish to load
-     */
-    void loadArrayDesign(L arrayDesignResource);
-
-    /**
-     * Perform a load operation on a reference to a particular array design resource
-     * <p/>
-     *
-     * @param arrayDesignResource the reference to the experiment you wish to load
-     * @param listener            a listener that can be used to supply callbacks when loading of this experiment
-     *                            completes, or when any errors occur.
-     */
-    void loadArrayDesign(L arrayDesignResource, AtlasLoaderListener listener);
-
-
-    /**
-     * Unloads an experiment by accession cleaning up all related resources
-     * @param accession experiment's accession
-     * @param listener a listener that can be used to supply callbacks when processing of this experiment
-     *                           completes, or when any errors occur.
-     */
-    void unloadExperiment(String accession, AtlasLoaderListener listener);
-
-    /**
-     * Updates NetCDF files for experiment with all new properties, but existing expression values
-     * @param experimentAccession experiment accession to process
-     * @param listener a listener that can be used to supply callbacks when processing of this experiment
-     *                           completes, or when any errors occur.
-     */
-    void updateNetCDFForExperiment(String experimentAccession, final AtlasLoaderListener listener);
+    void doCommand(AtlasLoaderCommand command, AtlasLoaderListener listener);
 }

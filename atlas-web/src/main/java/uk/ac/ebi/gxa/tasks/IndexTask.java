@@ -27,6 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
+import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
 import java.util.Arrays;
 
@@ -36,7 +39,20 @@ import java.util.Arrays;
 public class IndexTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(IndexTask.class);
     
-    public static final String TYPE = "index";
+    public static final String TYPE_INDEX = "index";
+    public static final String TYPE_INDEXEXPERIMENT = "indexexperiment";
+
+    public static final TaskSpec SPEC_INDEXALL = new TaskSpec(TYPE_INDEX, "");
+
+    public static TaskSpec SPEC_INDEXEXPERIMENT(String accession) {
+        return new TaskSpec(TYPE_INDEXEXPERIMENT, accession);
+    }
+
+    private IndexBuilderCommand getIndexBuilderCommand() {
+        if(TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType()))
+            return new UpdateIndexForExperimentCommand(getTaskSpec().getAccession());
+        return new IndexAllCommand();
+    }
 
     public void start() {
         if(nothingToDo())
@@ -46,7 +62,7 @@ public class IndexTask extends AbstractWorkingTask {
         taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
         taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
         try {
-            taskMan.getIndexBuilder().buildIndex(new IndexBuilderListener() {
+            taskMan.getIndexBuilder().doCommand(getIndexBuilderCommand(), new IndexBuilderListener() {
                 public void buildSuccess(IndexBuilderEvent event) {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
@@ -54,7 +70,7 @@ public class IndexTask extends AbstractWorkingTask {
                 }
 
                 public void buildError(IndexBuilderEvent event) {
-                    for(Throwable e : event.getErrors()) {
+                    for (Throwable e : event.getErrors()) {
                         log.error("Task failed because of:", e);
                     }
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
@@ -77,14 +93,25 @@ public class IndexTask extends AbstractWorkingTask {
 
     public IndexTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
+        if(TYPE_INDEXEXPERIMENT.equals(taskSpec.getType()))
+            taskMan.addTaskTag(this,TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
 
     public boolean isBlockedBy(Task by) {
-        return Arrays.asList(
-                AnalyticsTask.TYPE,
-                LoaderTask.TYPE_EXPERIMENT,
-                LoaderTask.TYPE_ARRAYDESIGN
-        ).contains(by.getTaskSpec().getType());
+        if(TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType())) {
+            return (Arrays.asList(
+                    AnalyticsTask.TYPE,
+                    LoaderTask.TYPE_UPDATEEXPERIMENT
+            ).contains(by.getTaskSpec().getType()) && by.getTaskSpec().getAccession().equals(getTaskSpec().getAccession()))
+                    || Arrays.asList(TYPE_INDEX, TYPE_INDEXEXPERIMENT).contains(by.getTaskSpec().getType());
+        } else {
+            return Arrays.asList(
+                    TYPE_INDEX, TYPE_INDEXEXPERIMENT,
+                    AnalyticsTask.TYPE,
+                    LoaderTask.TYPE_EXPERIMENT,
+                    LoaderTask.TYPE_ARRAYDESIGN
+            ).contains(by.getTaskSpec().getType());
+        }
     }
     
     public static final TaskFactory FACTORY = new TaskFactory() {
@@ -93,7 +120,7 @@ public class IndexTask extends AbstractWorkingTask {
         }
 
         public boolean isFor(TaskSpec taskSpec) {
-            return TYPE.equals(taskSpec.getType());
+            return TYPE_INDEX.equals(taskSpec.getType()) || TYPE_INDEXEXPERIMENT.equals(taskSpec.getType());
         }
 
     };

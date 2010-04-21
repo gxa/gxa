@@ -20,25 +20,31 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.loader;
+
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
+ * Base class for loader commands having URL as a parameter
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
+abstract class AbstractURLCommand implements AtlasLoaderCommand {
+    private URL url;
 
-    String getNetCDFPath();
+    protected AbstractURLCommand(URL url) {
+        this.url = url;
+    }
 
-    String getDataSourceURL();
+    protected AbstractURLCommand(String url) throws MalformedURLException {
+        this.url = new URL(url);
+    }
 
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+    /**
+     * Returns parameter URL
+     * @return url
+     */
+    public URL getUrl() {
+        return url;
+    }
 }

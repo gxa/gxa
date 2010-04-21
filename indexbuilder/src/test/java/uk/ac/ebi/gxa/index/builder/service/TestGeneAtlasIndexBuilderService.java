@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
 /**
  * Javadocs go here.
@@ -55,7 +55,7 @@ public class TestGeneAtlasIndexBuilderService
     public void testCreateIndexDocs() {
         try {
             // create the docs
-            gaibs.createIndexDocs(new IndexBuilderService.ProgressUpdater() {
+            gaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
                 public void update(String progress) {}
             });
 

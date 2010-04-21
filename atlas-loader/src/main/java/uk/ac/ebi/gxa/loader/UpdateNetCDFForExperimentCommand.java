@@ -20,25 +20,27 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.jmx;
+package uk.ac.ebi.gxa.loader;
 
 /**
+ * Update NetCDF for experiment command
  * @author pashky
  */
-public interface AtlasManagerMBean {
-    String getIndexPath();
+public class UpdateNetCDFForExperimentCommand extends AbstractAccessionCommand {
+    /**
+     * Creates unload command for experiment accession
+     * @param accession experiment accession
+     */
+    public UpdateNetCDFForExperimentCommand(String accession) {
+        super(accession);
+    }
 
-    String getNetCDFPath();
+    public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
+        visitor.process(this);
+    }
 
-    String getDataSourceURL();
-
-    String getVersion();
-
-    String getEFO();
-
-    String getAtlasProperty(String property);
-
-    void setAtlasProperty(String property, String newValue);
-
-    String getWebappPath();
+    @Override
+    public String toString() {
+        return "Update NetCDF for " + getAccession();
+    }
 }

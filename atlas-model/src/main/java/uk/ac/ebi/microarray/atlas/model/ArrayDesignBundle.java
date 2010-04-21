@@ -41,7 +41,7 @@ public class ArrayDesignBundle {
     private List<String> designElementNames;
     private Map<String, Map<String, List<String>>> designElementDBEs;
 
-    private List<String> geneIdentifierNames;
+    private Collection<String> geneIdentifierNames;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -122,11 +122,11 @@ public class ArrayDesignBundle {
         designElementDBEs.get(designElement).get(type).addAll(Arrays.asList(values));
     }
 
-    public synchronized List<String> getGeneIdentifierNames() {
+    public synchronized Collection<String> getGeneIdentifierNames() {
         return geneIdentifierNames;
     }
 
-    public synchronized void setGeneIdentifierNamesInPriorityOrder(List<String> geneIdentifierNames) {
+    public synchronized void setGeneIdentifierNamesInPriorityOrder(Collection<String> geneIdentifierNames) {
         this.geneIdentifierNames = geneIdentifierNames;
     }
 }

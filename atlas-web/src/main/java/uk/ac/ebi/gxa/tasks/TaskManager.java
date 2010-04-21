@@ -42,7 +42,7 @@ public class TaskManager implements InitializingBean {
 
     private AnalyticsGenerator analyticsGenerator;
     private IndexBuilder indexBuilder;
-    private AtlasLoader<URL> loader;
+    private AtlasLoader loader;
     private AtlasProperties atlasProperties;
 
     private PersistentStorage storage;
@@ -55,6 +55,7 @@ public class TaskManager implements InitializingBean {
         taskFactories.add(AnalyticsTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
+        taskFactories.add(RepairExperimentTask.FACTORY);
     }
 
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
@@ -89,11 +90,11 @@ public class TaskManager implements InitializingBean {
         this.indexBuilder = indexBuilder;
     }
 
-    public AtlasLoader<URL> getLoader() {
+    public AtlasLoader getLoader() {
         return loader;
     }
 
-    public void setLoader(AtlasLoader<URL> loader) {
+    public void setLoader(AtlasLoader loader) {
         this.loader = loader;
     }
 

@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
@@ -270,10 +271,10 @@ public class LoaderDriver {
                 };
 
                 if (load_type.equals("experiment")) {
-                    loader.loadExperiment(url, listener);
+                    loader.doCommand(new LoadExperimentCommand(url), listener);
                 }
                 else if (load_type.equals("array")) {
-                    loader.loadArrayDesign(url, listener);
+                    loader.doCommand(new LoadArrayDesignCommand(url), listener);
                 }
             }
             catch (MalformedURLException e) {
@@ -348,7 +349,7 @@ public class LoaderDriver {
                 }
             };
 
-            builder.buildIndex(listener);
+            builder.doCommand(new IndexAllCommand(), listener);
         }
         else {
             // in case we don't run index

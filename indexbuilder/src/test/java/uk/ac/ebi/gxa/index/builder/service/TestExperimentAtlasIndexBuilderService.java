@@ -30,6 +30,8 @@ import org.dbunit.dataset.ITable;
 import java.util.Collection;
 import java.util.Map;
 
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+
 /**
  * Tests the documents that are created by the class {@link uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService}.
  * Whilst most of the lifecycle instantiation is left to the IndexBuilder and the abstract service, the logic for the
@@ -61,7 +63,7 @@ public class TestExperimentAtlasIndexBuilderService
     public void testCreateIndexDocs() {
         try {
             // create the docs
-            eaibs.createIndexDocs(new IndexBuilderService.ProgressUpdater() {
+            eaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
                 public void update(String progress) {
                     
                 }
