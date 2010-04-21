@@ -114,11 +114,29 @@ drop type TIPTB2;
 /
 
 --------------------------------------------------------
+--  DDL for Type IDVALUE
+--------------------------------------------------------
+
+  CREATE OR REPLACE TYPE "IDVALUE" is object (
+         id int 
+      ,  Value  varchar2(255) 
+);
+/
+
+--------------------------------------------------------
 --  DDL for Type DESIGNELEMENTTABLE
 --------------------------------------------------------
 
   CREATE OR REPLACE TYPE "DESIGNELEMENTTABLE" is table of DESIGNELEMENT2;
 /  
+
+--------------------------------------------------------
+--  DDL for Type IDVALUETABLE
+--------------------------------------------------------
+
+  CREATE OR REPLACE TYPE "IDVALUETABLE" is table of IDVALUE;
+/  
+
 --------------------------------------------------------
 --  DDL for Type EXPERIMENTQUERY
 --------------------------------------------------------

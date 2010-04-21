@@ -238,14 +238,16 @@ CREATE OR REPLACE VIEW vwExperimentSample as
   join a2_Assay a on a.AssayID = ass.AssayID;
 
 /  
---select * from vwGeneIDProperty
+
+/**OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE 
 CREATE OR REPLACE VIEW vwGeneIDProperty as 
   Select Name, IdentifierPriority as Priority 
   from a2_GeneProperty
   where IdentifierPriority is not null; 
 
-/
+*/
 
+/**OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE OBSOLETE 
 CREATE OR REPLACE VIEW vwGeneIDs as
  Select g.GeneID
        ,p.Name
@@ -256,7 +258,7 @@ CREATE OR REPLACE VIEW vwGeneIDs as
  join a2_geneproperty p on p.genepropertyid = pv.genepropertyid
  where p.name in (select Name from vwGeneIDProperty);
 
-/
+*/
 
 CREATE OR REPLACE VIEW vwCheck as
  select 'Experiments w/o assay' as Name
