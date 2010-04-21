@@ -102,7 +102,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
-        final int chunksize = 100;
+        final int chunksize = 50;
 
         // index all genes in parallel
         for (final List<Gene> genelist : new Iterable<List<Gene>>() {
@@ -123,12 +123,16 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                         Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
 
-                        for(Gene gene : genelist) {
+                        Iterator<Gene> geneiter = genelist.iterator();
+                        while(geneiter.hasNext()) {
+                            final Gene gene = geneiter.next();
+                            geneiter.remove();
+
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             // add EFO counts for this gene
                             List<ExpressionAnalysis> eal = eas.get(gene.getGeneID());
-                            if(null != eal && eal.size() > 0) {        
+                            if(null != eal && eal.size() > 0) {
                                 boolean hasAnyAnalytics = addEfoCounts(solrInputDoc, eal);
                                 if(hasAnyAnalytics) {
                                     // finally, add the document to the index
@@ -440,19 +444,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                            Map<String, Set<String>> dnefv) {
         for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.setField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
+                solrDoc.addField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (Map.Entry<String, Set<String>> e : dnefv.entrySet()) {
             for (String i : e.getValue()) {
-                solrDoc.setField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
+                solrDoc.addField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
             }
         }
 
         for (String factor : union(upefv.keySet(), dnefv.keySet())) {
             for (String i : union(upefv.get(factor), dnefv.get(factor))) {
-                solrDoc.setField("efvs_ud_" + EscapeUtil.encode(factor), i);
+                solrDoc.addField("efvs_ud_" + EscapeUtil.encode(factor), i);
             }
         }
     }
@@ -461,14 +465,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                     Set<Long> upexp,
                                     Set<Long> dnexp) {
         for (Long i : upexp) {
-            solrDoc.setField("exp_up_ids", i);
+            solrDoc.addField("exp_up_ids", i);
         }
         for (Long i : dnexp) {
-            solrDoc.setField("exp_dn_ids", i);
+            solrDoc.addField("exp_dn_ids", i);
         }
 
         for (Long i : union(upexp, dnexp)) {
-            solrDoc.setField("exp_ud_ids", i);
+            solrDoc.addField("exp_ud_ids", i);
         }
     }
 
@@ -489,43 +493,43 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
 
             if (cup > 0) {
-                solrDoc.setField("cnt_efo_" + accessionE + "_up", cup);
-                solrDoc.setField("minpval_efo_" + accessionE + "_up", pup);
+                solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
+                solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
             }
             if (cdn > 0) {
-                solrDoc.setField("cnt_efo_" + accessionE + "_dn", cdn);
-                solrDoc.setField("minpval_efo_" + accessionE + "_dn", pdn);
+                solrDoc.addField("cnt_efo_" + accessionE + "_dn", cdn);
+                solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
             }
             if (ud.up.size() > 0) {
-                solrDoc.setField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
-                solrDoc.setField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
+                solrDoc.addField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
+                solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
             }
             if (ud.dn.size() > 0) {
-                solrDoc.setField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
-                solrDoc.setField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
+                solrDoc.addField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
+                solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
             }
 
             if (cup > 0) {
-                solrDoc.setField("s_efo_" + accessionE + "_up",
+                solrDoc.addField("s_efo_" + accessionE + "_up",
                                  shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
             }
             if (cdn > 0) {
-                solrDoc.setField("s_efo_" + accessionE + "_dn",
+                solrDoc.addField("s_efo_" + accessionE + "_dn",
                                  shorten(cdn * (1.0f - pdn) - cup * (1.0f - pup)));
             }
             if (cup + cdn > 0) {
-                solrDoc.setField("s_efo_" + accessionE + "_ud",
+                solrDoc.addField("s_efo_" + accessionE + "_ud",
                                  shorten(cup * (1.0f - pup) + cdn * (1.0f - pdn)));
             }
 
             if (cup > 0) {
-                solrDoc.setField("efos_up", accession);
+                solrDoc.addField("efos_up", accession);
             }
             if (cdn > 0) {
-                solrDoc.setField("efos_dn", accession);
+                solrDoc.addField("efos_dn", accession);
             }
             if (cup + cdn > 0) {
-                solrDoc.setField("efos_ud", accession);
+                solrDoc.addField("efos_ud", accession);
             }
         }
     }
@@ -542,19 +546,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             float pvdn = ud.pdn;
 
             if (cup != 0) {
-                solrDoc.setField("cnt_" + efvid + "_up", cup);
-                solrDoc.setField("minpval_" + efvid + "_up", pvup);
+                solrDoc.addField("cnt_" + efvid + "_up", cup);
+                solrDoc.addField("minpval_" + efvid + "_up", pvup);
             }
             if (cdn != 0) {
-                solrDoc.setField("cnt_" + efvid + "_dn", cdn);
-                solrDoc.setField("minpval_" + efvid + "_dn", pvdn);
+                solrDoc.addField("cnt_" + efvid + "_dn", cdn);
+                solrDoc.addField("minpval_" + efvid + "_dn", pvdn);
             }
 
-            solrDoc.setField("s_" + efvid + "_up",
+            solrDoc.addField("s_" + efvid + "_up",
                              shorten(cup * (1.0f - pvup) - cdn * (1.0f - pvdn)));
-            solrDoc.setField("s_" + efvid + "_dn",
+            solrDoc.addField("s_" + efvid + "_dn",
                              shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
-            solrDoc.setField("s_" + efvid + "_ud",
+            solrDoc.addField("s_" + efvid + "_ud",
                              shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
 
         }
