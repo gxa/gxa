@@ -104,7 +104,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
         // that will bring down tomcat if R environment is not configured correctly, but variables are set
         AtlasRFactory rFactory = (AtlasRFactory) context.getBean("atlasRFactory");
-/*        try {
+        try {
             if (!rFactory.validateEnvironment()) {
                 log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
             }
@@ -116,7 +116,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         } catch (UnsatisfiedLinkError ule) {
             log.error("Atlas configured to use local R which is not present. Atlas on-the-fly computations will fail", ule);
         }
-*/
+
         // discover our datasource URL from the database metadata
         DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         String atlasDatasourceUrl, atlasDatasourceUser;
