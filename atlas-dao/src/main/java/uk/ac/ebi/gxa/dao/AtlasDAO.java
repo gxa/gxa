@@ -1444,7 +1444,7 @@ public class AtlasDAO {
                         .useInParameterNames("TYPE")
                         .useInParameterNames("NAME")
                         .useInParameterNames("PROVIDER")
-//                        .useInParameterNames("ENTRYPRIORITYLIST")
+                        .useInParameterNames("ENTRYPRIORITYLIST")
                         .useInParameterNames("DESIGNELEMENTS")
                         .declareParameters(
                                 new SqlParameter("ACCESSION", Types.VARCHAR))
@@ -1454,8 +1454,8 @@ public class AtlasDAO {
                                 new SqlParameter("NAME", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("PROVIDER", Types.VARCHAR))
-//                        .declareParameters(
-//                                new SqlParameter("ENTRYPRIORITYLIST", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("ENTRYPRIORITYLIST", OracleTypes.ARRAY, "TBLVARCHAR"))
                         .declareParameters(
                                 new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
 
@@ -1463,22 +1463,15 @@ public class AtlasDAO {
                 arrayDesignBundle.getDesignElementNames().isEmpty() ? null :
                         convertDesignElementsToOracleARRAY(arrayDesignBundle);
 
-        StringBuffer sb = new StringBuffer();
-        Iterator<String> stringIt = arrayDesignBundle.getGeneIdentifierNames().iterator();
-        if (stringIt.hasNext()) {
-            sb.append(stringIt.next());
-        }
-        while (stringIt.hasNext()) {
-            sb.append(",").append(stringIt.next());
-        }
-        String entryPriorityList = sb.toString();
+        SqlTypeValue geneIdentifierPriorityParam = convertStringCollectionToOracleARRAY(
+                arrayDesignBundle.getGeneIdentifierNames());
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", arrayDesignBundle.getAccession())
                 .addValue("TYPE", arrayDesignBundle.getType())
                 .addValue("NAME", arrayDesignBundle.getName())
                 .addValue("PROVIDER", arrayDesignBundle.getProvider())
-//                .addValue("ENTRYPRIORITYLIST", entryPriorityList)
+                .addValue("ENTRYPRIORITYLIST", geneIdentifierPriorityParam)
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);
@@ -1843,6 +1836,39 @@ public class AtlasDAO {
                 else {
                     // throw an SQLException, as we cannot create a ARRAY with an empty array
                     throw new SQLException("Unable to create an ARRAY from an empty list of properties");
+                }
+            }
+        };
+    }
+
+    private SqlTypeValue convertStringCollectionToOracleARRAY(final Collection<String> list) {
+        return new AbstractSqlTypeValue() {
+            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
+                // this should be creating an oracle ARRAY of properties
+                // the array of STRUCTS representing each property
+                Object[] strArrayValues;
+                if (list != null && !list.isEmpty()) {
+                    strArrayValues = new Object[list.size()];
+
+                    // convert each property to an oracle STRUCT
+                    int i = 0;
+                    Object[] propStructValues = new Object[4];
+                    for (String elt : list) {
+                        // array representing the values to go in the STRUCT
+                        propStructValues[0] = elt;
+
+                        // descriptor for PROPERTY type
+                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("VARCHAR2", connection);
+                        // each array value is a new STRUCT
+                        strArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
+                    }
+                    // created the array of STRUCTs, group into ARRAY
+                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+                    return new ARRAY(arrayDescriptor, connection, strArrayValues);
+                }
+                else {
+                    // throw an SQLException, as we cannot create a ARRAY with an empty array
+                    throw new SQLException("Unable to create an ARRAY from an empty list of strings");
                 }
             }
         };
