@@ -1455,7 +1455,7 @@ public class AtlasDAO {
                         .declareParameters(
                                 new SqlParameter("PROVIDER", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("ENTRYPRIORITYLIST", OracleTypes.ARRAY, "TBLVARCHAR"))
+                                new SqlParameter("ENTRYPRIORITYLIST", OracleTypes.ARRAY, "IDVALUETABLE"))
                         .declareParameters(
                                 new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
 
@@ -1471,7 +1471,7 @@ public class AtlasDAO {
                 .addValue("TYPE", arrayDesignBundle.getType())
                 .addValue("NAME", arrayDesignBundle.getName())
                 .addValue("PROVIDER", arrayDesignBundle.getProvider())
-                .addValue("ENTRYPRIORITYLIST", geneIdentifierPriorityParam)
+                .addValue("ENTRYPRIORITYLIST", geneIdentifierPriorityParam, OracleTypes.ARRAY, "IDVALUETABLE")
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);
