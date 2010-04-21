@@ -107,7 +107,7 @@ public class SimilarGeneListTest extends TestCase {
         }
     }
 
-    private String getRCodeFromResource(String resourcePath) throws IOException {
+    private String getRCodeFromResource(String resourcePath) throws ComputeException {
         // open a stream to the resource
         InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
 
@@ -116,11 +116,23 @@ public class SimilarGeneListTest extends TestCase {
 
         StringBuilder sb = new StringBuilder();
         String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
+        } finally {
+            if (null != in) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
-        in.close();
         return sb.toString();
     }
 }
