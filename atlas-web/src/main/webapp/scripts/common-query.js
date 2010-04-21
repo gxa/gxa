@@ -77,7 +77,7 @@ if(!atlas)
                                     currentDepth--;
                                 }
                                 currentDepth = dc.depth;
-                                var a = $('<a />').text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
+                                var a = dc.id == 'Other' ? $('<a>more...</a>') : $('<a />').text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
                                 if(hl && hl[dc.id])
                                     a.addClass("hl");
                                 n = $('<li />')
@@ -141,9 +141,11 @@ if(!atlas)
                     });
                     t.find('a').click(function (event) {
                         if(handler) {
-                            $(this).parent().andSelf().addClass('selected');
                             var dc = $.data($(this).parent().get(0), "efotree");
-                            handler.call(treeel, dc);
+                            if(dc.id != 'Other') {
+                                $(this).parent().andSelf().addClass('selected');
+                                handler.call(treeel, dc);
+                            }
                         } else {
                             if(event.ctrlKey || event.metaKey) {
                                 $(this).parent().andSelf().toggleClass('selected');
@@ -243,6 +245,12 @@ if(!atlas)
                     return '<nobr>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
                 }
                 return '<nobr>' + text + ' <em>(' + row.count + ' genes)</em></nobr>';
+            },
+
+            formatToken: function(row) {
+                if(row.property == 'efo' && row.id == 'Other')
+                    return 'more...';
+                return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
             },
 
             formatId: function(res) {
