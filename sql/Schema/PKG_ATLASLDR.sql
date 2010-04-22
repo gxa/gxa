@@ -216,7 +216,7 @@ begin
       , EntryValue
       , RANK() OVER (PARTITION BY t.Accession ORDER BY p.priority) r
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
- join (select Name, ID as priority from table(cast(ENTRYPRIORITYLIST as IDVALUETABLE))) p on p.Name = t.EntryName
+ join (select Value, ID as priority from table(cast(ENTRYPRIORITYLIST as IDVALUETABLE))) p on p.Value = t.EntryName
  where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession)
  ) t where t.r=1;
  dbms_output.put_line(' add accessions for non-existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
