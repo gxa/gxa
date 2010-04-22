@@ -80,3 +80,6 @@ begin
    WHEN NOT MATCHED THEN INSERT (type,accession,status) values ('updateexperiment', t.Accession, 'INCOMPLETE');
   
 END;
+/
+exit;
+/

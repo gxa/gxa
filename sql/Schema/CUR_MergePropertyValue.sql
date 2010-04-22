@@ -27,3 +27,6 @@ BEGIN
           delete from a2_propertyvalue 
           where propertyvalueid = mPropertyValueID_old;
 END;
+/
+exit;
+/
