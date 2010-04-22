@@ -9,4 +9,7 @@ select a.Accession
 from a2_Sample a
 join a2_SamplePV apv on apv.SampleID = a.SampleID
 join a2_PropertyValue pv on pv.PropertyValueID = apv.PropertyValueID
-join a2_Property p on p.PropertyID = pv.PropertyID
+join a2_Property p on p.PropertyID = pv.PropertyID;
+/
+exit;
+/
