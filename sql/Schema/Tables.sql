@@ -275,7 +275,7 @@ select A2_GENE_seq.nextval into :new.GENEID from dual;
 end if;
 
 if(:new.OrganismID is null) then
-select OrganismID into :new.OrganismID from a2_Organism where Name = 'Unknown';
+select OrganismID into :new.OrganismID from a2_Organism where Name = 'unknown';
 end if;
 
 end;
