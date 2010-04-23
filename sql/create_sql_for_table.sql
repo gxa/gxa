@@ -10,6 +10,6 @@ set feedback off
 set verify off
 
 SELECT 'SELECT ' || LISTAGG(column_name, ',') WITHIN GROUP (ORDER BY column_id) || ' FROM ' || UPPER('A2_&1')
-FROM all_tab_columns WHERE table_name=UPPER('A2_&1');
+FROM user_tab_columns WHERE table_name=UPPER('A2_&1');
 
 quit;
