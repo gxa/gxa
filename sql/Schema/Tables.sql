@@ -1510,7 +1510,6 @@ create global temporary table tmp_DesignElementMap(
     ,GeneID NUMBER(22,0) 
     ,GeneIdentifier varchar2(255)) ON COMMIT DELETE ROWS;
 
-ALTER table tmp_DesignElementMap MODIFY GeneID NUMBER(22,0) NULL;
 --------------------------------------------------------
 --  TASK MANAGER DATA STRUCTURES
 --------------------------------------------------------  
