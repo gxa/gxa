@@ -253,6 +253,7 @@
         <property name="storage" ref="taskManagerStorage"/>
         <property name="maxWorkingTasks" value="16" />
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->

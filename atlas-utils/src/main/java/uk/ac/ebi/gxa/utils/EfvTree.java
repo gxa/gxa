@@ -20,11 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.service.structuredquery;
-
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentRestProfile;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+package uk.ac.ebi.gxa.utils;
 
 import java.util.*;
 import java.io.Serializable;
@@ -84,7 +80,6 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
     }
 
-    @RestOut(xmlItemName = "expression", forProfile = ExperimentRestProfile.class) 
     public static class EfEfv<Payload> implements Comparable<EfEfv<Payload>>, Serializable {
         private String ef;
         private String efv;
@@ -97,17 +92,14 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             this.Payload = Payload;
         }
 
-        @RestOut(name = "ef")
         public String getEf() {
             return ef;
         }
 
-        @RestOut(name = "efv")
         public String getEfv() {
             return efv;
         }
 
-        @RestOut(name = "stat", forProfile = ExperimentRestProfile.class)
         public Payload getPayload() {
             return Payload;
         }
@@ -182,7 +174,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return efvs.containsKey(ef) && efvs.get(ef).containsKey(efv);
     }
 
-    public Payload getOrCreate(String ef, String efv, EfoEfvPayloadCreator<Payload> plEfoEfvPayloadCreator)
+    public Payload getOrCreate(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator)
     {
         if(!efvs.containsKey(ef))
             efvs.put(ef, new TreeMap<String,Payload>());

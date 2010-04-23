@@ -23,7 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import ae3.service.structuredquery.EfvTree;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 
 import java.util.*;
@@ -133,7 +133,7 @@ public class ExperimentalData {
     }
 
     /**
-     * Get expression statistics map ({@link ae3.service.structuredquery.EfvTree}, where payload is {@link ae3.model.ExpressionStats.Stat} structures
+     * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link ae3.model.ExpressionStats.Stat} structures
      * @param ad array design
      * @param designElement design element id
      * @return map of statstics

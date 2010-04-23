@@ -38,6 +38,7 @@ public class AtlasLoaderEvent {
     private Status status;
     private List<Throwable> errors;
     private List<String> accessions;
+    private boolean recomputeStatistics;
 
     private AtlasLoaderEvent() {
 
@@ -56,6 +57,17 @@ public class AtlasLoaderEvent {
         event.timeUnit = timeUnit;
         event.status = Status.SUCCESS;
         event.accessions = accessions;
+        event.recomputeStatistics = true;
+        return event;
+    }
+
+    public static AtlasLoaderEvent success(long runTime, TimeUnit timeUnit, List<String> accessions, boolean recomputeStatistics) {
+        AtlasLoaderEvent event = new AtlasLoaderEvent();
+        event.runTime = runTime;
+        event.timeUnit = timeUnit;
+        event.status = Status.SUCCESS;
+        event.accessions = accessions;
+        event.recomputeStatistics = recomputeStatistics;
         return event;
     }
 
@@ -95,6 +107,10 @@ public class AtlasLoaderEvent {
 
     public List<String> getAccessions() {
         return accessions;
+    }
+
+    public boolean isRecomputeStatistics() {
+        return recomputeStatistics;
     }
 
     public enum Status {

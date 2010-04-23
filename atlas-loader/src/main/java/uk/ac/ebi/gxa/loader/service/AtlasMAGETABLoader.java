@@ -275,21 +275,17 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                     getAtlasDAO().writeSample(sample, experimentAccession);
                 }
             }
-
-            // write data to netcdf
-            try {
-                start = System.currentTimeMillis();
-                getLog().info("Writing NetCDF...");
-                writeExperimentNetCDF(cache, listener);
-                end = System.currentTimeMillis();
-                total = new DecimalFormat("#.##").format((end - start) / 1000);
-                getLog().info("Wrote NetCDF in {}s.", total);
-            } catch (NetCDFCreatorException e) {
-                getLog().error("Failed to generate netcdf", e);
-            }
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
+
+            // write data to netcdf
+            start = System.currentTimeMillis();
+            getLog().info("Writing NetCDF...");
+            writeExperimentNetCDF(cache, listener);
+            end = System.currentTimeMillis();
+            total = new DecimalFormat("#.##").format((end - start) / 1000);
+            getLog().info("Wrote NetCDF in {}s.", total);
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");

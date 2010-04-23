@@ -117,6 +117,13 @@ public class AtlasDAO {
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
                     "FROM a2_experiment WHERE accession=?";
 
+    public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment " +
+                    "WHERE experimentid IN " +
+                    " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
+                    "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
+
     // gene queries
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
@@ -541,6 +548,13 @@ public class AtlasDAO {
                                       new ExperimentMapper());
 
         return results.size() > 0 ? (Experiment) results.get(0) : null;
+    }
+
+
+    public List<Experiment> getExperimentByArrayDesign(String accession) {
+        return (List<Experiment>)template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
+                new Object[]{accession},
+                new ExperimentMapper());
     }
 
     /**

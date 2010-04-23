@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.MalformedURLException;
 
@@ -82,16 +83,23 @@ public class LoaderTask extends AbstractWorkingTask {
                             TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
 
-                        taskMan.updateTaskStage(SPEC_UPDATEEXPERIMENT(accession), TaskStatus.INCOMPLETE);
+                        if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
+                            taskMan.updateTaskStage(SPEC_UPDATEEXPERIMENT(accession), TaskStatus.DONE);
 
-                        TaskSpec experimentTask = AnalyticsTask.SPEC_ANALYTICS(accession);
-                        taskMan.updateTaskStage(experimentTask, TaskStatus.INCOMPLETE);
-                        taskMan.updateTaskStage(IndexTask.SPEC_INDEXEXPERIMENT(accession), TaskStatus.NONE);
+                        TaskSpec analyticsTask = AnalyticsTask.SPEC_ANALYTICS(accession);
+                        if(event.isRecomputeStatistics()) {
+                            taskMan.updateTaskStage(analyticsTask, TaskStatus.INCOMPLETE);
+                        } else {
+                            log.info("Analytics was preserved in NetCDF, no need to recompute");
+                        }
+
+                        final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+                        taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
 
                         if(!stop && isRunningAutoDependencies()) {
                             taskMan.scheduleTask(
                                     LoaderTask.this,
-                                    experimentTask,
+                                    event.isRecomputeStatistics() ? analyticsTask : indexTask,
                                     TaskRunMode.RESTART,
                                     getUser(),
                                     true,
@@ -109,10 +117,17 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()) ) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
-                        taskMan.updateTaskStage(IndexTask.SPEC_INDEXALL, TaskStatus.INCOMPLETE);
+                        for(Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                            taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, experiment.getAccession());
+                            taskMan.updateTaskStage(LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()), TaskStatus.INCOMPLETE);
+                        }
+
                         if(!stop && isRunningAutoDependencies()) {
-                            taskMan.scheduleTask(LoaderTask.this, IndexTask.SPEC_INDEXALL, TaskRunMode.CONTINUE, getUser(), true,
-                                    "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
+                            for(Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                                taskMan.scheduleTask(LoaderTask.this, LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()),
+                                        TaskRunMode.CONTINUE, getUser(), true,
+                                        "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
+                            }
                         }
                     }
                 }

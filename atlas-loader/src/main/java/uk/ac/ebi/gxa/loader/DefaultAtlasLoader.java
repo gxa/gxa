@@ -161,9 +161,9 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
             public void run() {
                 final List<String> accessions = new ArrayList<String>();
                 final List<Throwable> errors = new ArrayList<Throwable>();
+                final boolean[] recomputeAnalytics = new boolean[] { true };
                 try {
                     log.info("Starting loader operation: " + command.toString());
-
                     command.visit(new ServiceExecutionContext() {
                         public void setAccession(String accession) {
                             accessions.add(accession);
@@ -178,6 +178,10 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                             log.warn(warning);
                             if(listener != null)
                                 listener.loadWarning(warning);
+                        }
+
+                        public void setRecomputeAnalytics(boolean recompute) {
+                            recomputeAnalytics[0] = recompute;
                         }
 
                         public void process(LoadExperimentCommand cmd) throws AtlasLoaderException {
@@ -207,7 +211,7 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                     long endTime = System.currentTimeMillis();
                     long runTime = (endTime - startTime) / 1000;
                     if(errors.isEmpty())
-                        listener.loadSuccess(AtlasLoaderEvent.success(runTime, TimeUnit.SECONDS, accessions));
+                        listener.loadSuccess(AtlasLoaderEvent.success(runTime, TimeUnit.SECONDS, accessions, recomputeAnalytics[0]));
                     else
                         listener.loadError(AtlasLoaderEvent.error(runTime, TimeUnit.SECONDS, errors));
                 }

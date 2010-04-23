@@ -26,6 +26,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.util.*;
 import java.net.URL;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
+ * Maintenance Task Manager 
  * @author pashky
  */
 public class TaskManager implements InitializingBean {
@@ -44,6 +46,7 @@ public class TaskManager implements InitializingBean {
     private IndexBuilder indexBuilder;
     private AtlasLoader loader;
     private AtlasProperties atlasProperties;
+    private AtlasDAO atlasDAO;
 
     private PersistentStorage storage;
     private volatile boolean running = true;
@@ -61,6 +64,14 @@ public class TaskManager implements InitializingBean {
     private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
 
     private final LinkedHashSet<WorkingTask> workingTasks = new LinkedHashSet<WorkingTask>();
+
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
 
     public AtlasProperties getAtlasProperties() {
         return atlasProperties;
@@ -293,7 +304,6 @@ public class TaskManager implements InitializingBean {
 
     void notifyTaskFinished(WorkingTask task) {
         synchronized (this) {
-            log.info("Task " + task.getTaskSpec() + " finished");
             workingTasks.remove(task);
         }
         if(running)

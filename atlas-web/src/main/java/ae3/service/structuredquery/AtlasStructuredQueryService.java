@@ -25,8 +25,6 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import org.apache.solr.common.params.FacetParams;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -43,7 +41,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
@@ -269,7 +267,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final EfoTree<Integer> efos = new EfoTree<Integer>(getEfo());
         private final Set<String> experiments = new HashSet<String>();
 
-        private EfoEfvPayloadCreator<Integer> numberer = new EfoEfvPayloadCreator<Integer>() {
+        private Maker<Integer> numberer = new Maker<Integer>() {
             private int num = 0;
             public Integer make() { return num++; }
         };
@@ -681,7 +679,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Iterable<EfoTree.EfoItem<Integer>> efoList = qstate.getEfos().getValueOrderedList();
         boolean hasQueryEfvs = qstate.hasQueryEfoEfvs();
 
-        EfoEfvPayloadCreator<Integer> numberer = new EfoEfvPayloadCreator<Integer>() {
+        Maker<Integer> numberer = new Maker<Integer>() {
             private int num = 0;
             public Integer make() { return num++; }
         };
@@ -1010,7 +1008,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     private EfvTree<FacetUpDn> getEfvFacet(QueryResponse response, QueryState qstate) {
         EfvTree<FacetUpDn> efvFacet = new EfvTree<FacetUpDn>();
-        EfoEfvPayloadCreator<FacetUpDn> creator = new EfoEfvPayloadCreator<FacetUpDn>() {
+        Maker<FacetUpDn> creator = new Maker<FacetUpDn>() {
             public FacetUpDn make() { return new FacetUpDn(); }
         };
         for (FacetField ff : response.getFacetFields()) {

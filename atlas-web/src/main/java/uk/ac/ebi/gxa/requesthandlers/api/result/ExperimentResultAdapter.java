@@ -27,8 +27,9 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
-import ae3.service.structuredquery.EfvTree;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import ae3.dao.AtlasSolrDAO;
 
 import java.util.*;
@@ -147,6 +148,17 @@ public class ExperimentResultAdapter {
         @RestOut(xmlItemName ="designElement", xmlAttr ="id")
         public class DesignElementStatMap extends HashMap<String,Object> { }
 
+        @RestOut(xmlItemName ="expression")
+        public class DEExpression extends MappingIterator<EfvTree.EfEfv<ExpressionStats.Stat>,Map> {
+            public DEExpression(Iterator<EfvTree.EfEfv<ExpressionStats.Stat>> fromiter) {
+                super(fromiter);
+            }
+
+            public Map map(EfvTree.EfEfv<ExpressionStats.Stat> statEfEfv) {
+                return makeMap("ef", statEfEfv.getEf(), "efv", statEfEfv.getEfv(), "stat", statEfEfv.getPayload());
+            }
+        }
+
         @RestOut(name="genes", xmlItemName ="gene", xmlAttr ="id")
         public Map<String,DesignElementStatMap> getGeneExpressions() {
             Map<String,DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
@@ -157,7 +169,7 @@ public class ExperimentResultAdapter {
                     for(final int designElementId : designElements) {
                         List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
                         if(!efefvList.isEmpty()) 
-                            deMap.put(String.valueOf(designElementId), efefvList);
+                            deMap.put(String.valueOf(designElementId), new DEExpression(efefvList.iterator()));
                     }
 
                     geneMap.put(gene.getGeneIdentifier(), deMap);

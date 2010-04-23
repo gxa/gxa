@@ -29,6 +29,7 @@ package ae3.service.structuredquery;
 
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.utils.Maker;
 
 import java.util.*;
 import java.io.Serializable;
@@ -58,7 +59,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      * @param plCreator payload creator factory
      * @param withChildren add children or not
      */
-    public void add(String id, EfoEfvPayloadCreator<PayLoad> plCreator, boolean withChildren)
+    public void add(String id, Maker<PayLoad> plCreator, boolean withChildren)
     {
 
         if(efos.containsKey(id) && explicitEfos.contains(id))
