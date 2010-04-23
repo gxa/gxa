@@ -20,9 +20,8 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.service.structuredquery;
+package uk.ac.ebi.gxa.utils;
 
-public interface EfoEfvPayloadCreator<T> {
-
+public interface Maker<T> {
     T make();
 }

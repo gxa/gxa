@@ -4,21 +4,13 @@ import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
-import uk.ac.ebi.gxa.utils.FilterIterator;
-import uk.ac.ebi.gxa.utils.CountIterator;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -30,6 +22,101 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
+    }
+
+    private static class CBitSet extends BitSet implements Comparable<CBitSet> {
+        private CBitSet(int nbits) {
+            super(nbits);
+        }
+
+        public int compareTo(CBitSet o) {
+            for(int i = 0; i < Math.max(size(), o.size()); ++i) {
+                boolean b1 = get(i);
+                boolean b2 = o.get(i);
+                if(b1 != b2)
+                    return b1 ? 1 : -1;
+            }
+            return 0;
+        }
+    }
+
+    private static class CPair<T1 extends Comparable<T1>,T2 extends Comparable<T2>> extends Pair<T1,T2> implements Comparable<CPair<T1,T2>> {
+        private CPair(T1 first, T2 second) {
+            super(first, second);
+        }
+
+        public int compareTo(CPair<T1, T2> o) {
+            int d = getFirst().compareTo(o.getFirst());
+            return d != 0 ? d : getSecond().compareTo(o.getSecond());
+        }
+    }
+
+    private EfvTree<CPair<String,String>> matchEfvs(EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
+        final List<EfvTree.Ef<CBitSet>> fromTree = matchEfvsSort(from);
+        final List<EfvTree.Ef<CBitSet>> toTree = matchEfvsSort(to);
+
+        EfvTree<CPair<String,String>> result = new EfvTree<CPair<String, String>>();
+        for(EfvTree.Ef<CBitSet> toEf : toTree) {
+            boolean matched = false;
+            for(EfvTree.Ef<CBitSet> fromEf : fromTree)
+                if(fromEf.getEfvs().size() == toEf.getEfvs().size()) {
+                    int i;
+                    for(i = 0; i < fromEf.getEfvs().size(); ++i)
+                        if(!fromEf.getEfvs().get(i).getPayload().equals(toEf.getEfvs().get(i).getPayload()))
+                            break;
+                    if(i == fromEf.getEfvs().size()) {
+                        for(i = 0; i < fromEf.getEfvs().size(); ++i)
+                            result.put(toEf.getEf(), toEf.getEfvs().get(i).getEfv(),
+                                    new CPair<String, String>(fromEf.getEf(), fromEf.getEfvs().get(i).getEfv()));
+                        matched = true;
+                    }
+                }
+            if(!matched)
+                return null;
+        }
+        return result;
+    }
+
+    private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> from) {
+        final List<EfvTree.Ef<CBitSet>> fromTree = from.getNameSortedTree();
+        for(EfvTree.Ef<CBitSet> ef : fromTree) {
+            Collections.sort(ef.getEfvs(), new Comparator<EfvTree.Efv<CBitSet>>() {
+                public int compare(EfvTree.Efv<CBitSet> o1, EfvTree.Efv<CBitSet> o2) {
+                    return o1.getPayload().compareTo(o2.getPayload());
+                }
+            });
+        }
+        return fromTree;
+    }
+
+
+    private EfvTree<CBitSet> getEfvPatternsFromAssays(final List<Assay> assays) {
+        Set<String> efs = new HashSet<String>();
+        for (ObjectWithProperties assay : assays)
+            for (Property prop : assay.getProperties())
+                efs.add(prop.getName());
+
+        EfvTree<CBitSet> efvTree = new EfvTree<CBitSet>();
+        int i = 0;
+        for (ObjectWithProperties assay : assays) {
+            for (String propName : efs) {
+                StringBuilder propValue = new StringBuilder();
+                for (Property prop : assay.getProperties())
+                    if (prop.getName().equals(propName)) {
+                        if(propValue.length() > 0)
+                            propValue.append(",");
+                        propValue.append(prop.getValue());
+                    }
+                efvTree.getOrCreate(propName, propValue.toString(), new Maker<CBitSet>() {
+                    public CBitSet make() {
+                        return new CBitSet(assays.size());
+                    }
+                }).set(i, true);
+            }
+            ++i;
+        }
+
+        return efvTree;
     }
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -62,7 +149,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
             try {
-                List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
+                final List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for(int i = 0; i < oldAssays.length; ++i) {
                     for(Assay assay : arrayDesignAssays)
@@ -73,17 +160,51 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                         }
                 }
 
+                EfvTree<CPair<String,String>> matchedEfvs = null;
+                if(oldAssays.length == leaveAssays.size()) {
+                    EfvTree<CBitSet> oldEfvPats = new EfvTree<CBitSet>();
+                    for(String ef : reader.getFactors()) {
+                        String[] efvs = reader.getFactorValues(ef);
+                        for(String efv : new HashSet<String>(Arrays.asList(efvs))) {
+                            CBitSet pattern = new CBitSet(efvs.length);
+                            for(int i = 0; i < efvs.length; ++i)
+                                pattern.set(i, efvs[i].equals(efv));
+                            oldEfvPats.put(ef, efv, pattern);
+                        }
+                    }
+
+                    EfvTree<CBitSet> newEfvPats = getEfvPatternsFromAssays(leaveAssays);
+                    matchedEfvs = matchEfvs(oldEfvPats, newEfvPats);
+                }
+
+                String[] uEFVs = reader.getUniqueFactorValues();
 
                 String[] deAccessions = reader.getDesignElementAccessions();                
-                DataMatrixStorage storage = new DataMatrixStorage(leaveAssays.size(), deAccessions.length, 1);
+                DataMatrixStorage storage = new DataMatrixStorage(
+                        leaveAssays.size() + (matchedEfvs != null ? uEFVs.length * 2 : 0), // expressions + pvals + tstats
+                        deAccessions.length, 1);
                 for(int i = 0; i < deAccessions.length; ++i) {
                     final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
-                    storage.add(deAccessions[i], new FilterIterator<Integer,Float>(CountIterator.zeroTo(values.length)) {
-                        public Float map(Integer j) {
-                            return oldAssays[j] == -1 ? values[j] : null; // skips deleted assays
-                        }
-                    });
-                }                
+                    final float[] pval = reader.getPValuesForDesignElement(i);
+                    final float[] tstat = reader.getTStatisticsForDesignElement(i);
+                    storage.add(deAccessions[i], new SequenceIterator<Float>(
+                            new FilterIterator<Integer,Float>(CountIterator.zeroTo(values.length)) {
+                                public Float map(Integer j) {
+                                    return oldAssays[j] == -1 ? values[j] : null; // skips deleted assays
+                                }
+                            },                            
+                            new MappingIterator<Integer, Float>(CountIterator.zeroTo(pval.length)) {
+                                public Float map(Integer j) {
+                                    return pval[j];
+                                }
+                            },
+                            new MappingIterator<Integer, Float>(CountIterator.zeroTo(tstat.length)) {
+                                public Float map(Integer j) {
+                                    return tstat[j];
+                                }
+                            }
+                    ));
+                }
 
                 if(!originalNetCDF.delete())
                     throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
@@ -103,6 +224,20 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
 
                 netCdfCreator.setAssayDataMap(dataMap);
 
+                if(matchedEfvs != null) {
+                    Map<Pair<String,String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+                    Map<Pair<String,String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+                    for(EfvTree.EfEfv<CPair<String,String>> efEfv : matchedEfvs.getNameSortedList()) {
+                        final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+                        pvalMap.put(new Pair<String, String>(efEfv.getEf(), efEfv.getEfv()),
+                                new DataMatrixStorage.ColumnRef(storage, leaveAssays.size() + oldPos));
+                        tstatMap.put(new Pair<String, String>(efEfv.getEf(), efEfv.getEfv()), 
+                                new DataMatrixStorage.ColumnRef(storage, leaveAssays.size() + uEFVs.length + oldPos));
+                    }
+                    netCdfCreator.setPvalDataMap(pvalMap);
+                    netCdfCreator.setTstatDataMap(tstatMap);
+                }
+
                 netCdfCreator.setArrayDesign(arrayDesign);
                 netCdfCreator.setExperiment(experiment);
                 netCdfCreator.setVersion(version);
@@ -110,6 +245,9 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                 netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
                 getLog().info("Successfully finished NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
+
+                if(matchedEfvs != null)
+                    listener.setRecomputeAnalytics(false);
 
             } catch (IOException e) {
                 getLog().error("Error reading NetCDF for " + experimentAccession +

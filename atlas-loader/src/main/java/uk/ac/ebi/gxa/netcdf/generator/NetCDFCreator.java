@@ -26,11 +26,17 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.ValueListHashMap;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.FlattenIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Efficient NetCDF writer tailored to handle chunked expression values blocks found in
@@ -39,6 +45,7 @@ import java.util.*;
  * @author pashky
  */
 public class NetCDFCreator {
+    private static Logger log = LoggerFactory.getLogger(NetCDFCreator.class);
 
     private Experiment experiment;
     private ArrayDesign arrayDesign;
@@ -53,11 +60,15 @@ public class NetCDFCreator {
 
     private Iterable<String> mergedDesignElements;
     private Map<String,Integer> mergedDesignElementsMap;
+    private boolean canWriteFirstFull;
 
     // maps of properties
     private Map<String, List<String>> efvMap;
     private Map<String, List<String>> scvMap;
-    private Map<String, Set<String>> uniqueEfvMap;
+    private Map<String, List<String>> uniqueEfvMap;
+
+    private Map<Pair<String,String>, DataMatrixStorage.ColumnRef> pvalDataMap;
+    private Map<Pair<String,String>, DataMatrixStorage.ColumnRef> tstatDataMap;
 
     private List<String> warnings = new ArrayList<String>();
 
@@ -98,8 +109,16 @@ public class NetCDFCreator {
         this.assayDataMap = assayDataMap;
     }
 
+    public void setPvalDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap) {
+        this.pvalDataMap = pvalDataMap;
+    }
+
+    public void setTstatDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatDataMap) {
+        this.tstatDataMap = tstatDataMap;
+    }
+
     private Map<String, List<String>> extractProperties(Collection<? extends ObjectWithProperties> objects) {
-        Map<String, List<String>> propertyMap = new HashMap<String, List<String>>();
+        Map<String, List<String>> propertyMap = new TreeMap<String, List<String>>();
 
         // iterate over assays, create keys for the map
         for (ObjectWithProperties assay : objects) {
@@ -134,6 +153,18 @@ public class NetCDFCreator {
                 storages.add(buf);
         }
 
+        if(pvalDataMap != null)
+            for(DataMatrixStorage.ColumnRef ref : pvalDataMap.values()) {
+                if(!storages.contains(ref.storage))
+                    storages.add(ref.storage);
+            }
+
+        if(tstatDataMap != null)
+            for(DataMatrixStorage.ColumnRef ref : tstatDataMap.values()) {
+                if(!storages.contains(ref.storage))
+                    storages.add(ref.storage);
+            }
+        
         // sort assay in order of buffers and reference numbers in those buffers
         Collections.sort(assays, new Comparator<Assay>() {
             public int compare(Assay o1, Assay o2) {
@@ -178,23 +209,51 @@ public class NetCDFCreator {
         }
 
         // unqiue EFV values
-        uniqueEfvMap = new HashMap<String, Set<String>>();
+        uniqueEfvMap = new HashMap<String, List<String>>();
         totalUniqueEfvs = 0;
-        for(Map.Entry<String,List<String>> ef : efvMap.entrySet()) {
-            uniqueEfvMap.put(ef.getKey(), new HashSet<String>(ef.getValue()));
+        for(final Map.Entry<String,List<String>> ef : efvMap.entrySet()) {
+            List<String> efvs = new ArrayList<String>(new HashSet<String>(ef.getValue()));
+            if(pvalDataMap != null) {
+                Collections.sort(efvs, new Comparator<String>() {
+                    public int compare(String o1, String o2) {
+                        DataMatrixStorage.ColumnRef ref1 = pvalDataMap.get(new Pair<String, String>(ef.getKey(), o1));
+                        DataMatrixStorage buf1 = ref1.storage;
+                        int i1 = storages.indexOf(buf1);
+
+                        DataMatrixStorage.ColumnRef ref2 = pvalDataMap.get(new Pair<String, String>(ef.getKey(), o2));
+                        DataMatrixStorage buf2 = ref2.storage;
+                        int i2 = storages.indexOf(buf2);
+
+                        if(i1 != i2)
+                            return i1 - i2;
+
+                        return ref1.referenceIndex - ref2.referenceIndex;
+                    }
+                });
+            } else
+                Collections.sort(efvs);
+            uniqueEfvMap.put(ef.getKey(), efvs);
             totalUniqueEfvs += uniqueEfvMap.get(ef.getKey()).size();
         }
 
 
         // merge available design elements (if needed)
+        canWriteFirstFull = true;
+
         if(storages.size() == 1)
             mergedDesignElements = storages.get(0).getDesignElements();
         else {
             mergedDesignElementsMap = new HashMap<String, Integer>();
-            for(DataMatrixStorage buffer : storages)
+            boolean first = true;
+            for(DataMatrixStorage buffer : storages) {
                 for(String de : buffer.getDesignElements())
                     if(!mergedDesignElementsMap.containsKey(de))
                         mergedDesignElementsMap.put(de, mergedDesignElementsMap.size());
+                    else if(first)
+                        canWriteFirstFull = false;
+
+                first = false;
+            }
             mergedDesignElements = mergedDesignElementsMap.keySet();
         }
 
@@ -287,24 +346,110 @@ public class NetCDFCreator {
             writeScvs();
 
         writeDesignElements();
-        writeExpressionValues();
+        writeData(assayDataWriter);
+
+        if(pvalDataMap != null) {
+            writeData(pvalDataWriter);
+        }
+        if(tstatDataMap != null) {
+            writeData(tstatDataWriter);
+        }
     }
 
-    private void writeExpressionValues() throws IOException, InvalidRangeException {
+    private interface DataWriterSpec<ColumnType> {
+        Iterable<ColumnType> getColumnsForStorage(DataMatrixStorage storage);
+        DataMatrixStorage.ColumnRef getColumnRefForColumn(ColumnType column);
+        int getDestinationForColumn(ColumnType column);
+        String getVariableName();
+    }
+
+    private DataWriterSpec<Assay> assayDataWriter = new DataWriterSpec<Assay>() {
+        public Iterable<Assay> getColumnsForStorage(DataMatrixStorage storage) {
+            return storageAssaysMap.get(storage);
+        }
+
+        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Assay assay) {
+            return assayDataMap.get(assay.getAccession());
+        }
+
+        public int getDestinationForColumn(Assay assay) {
+            return assays.indexOf(assay);
+        }
+
+        public String getVariableName() {
+            return "BDC";
+        }
+    };
+
+    private abstract class UniqueEfvDataWriter implements DataWriterSpec<Pair<String,String>> {
+        public Iterable<Pair<String, String>> getColumnsForStorage(DataMatrixStorage storage) {
+            return new Iterable<Pair<String, String>>() {
+                public Iterator<Pair<String, String>> iterator() {
+                    return new FlattenIterator<String,Pair<String, String>>(efvMap.keySet().iterator()) {
+                        public Iterator<Pair<String, String>> inner(final String ef) {
+                            return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
+                                @Override
+                                public Pair<String, String> map(String efv) {
+                                    return new Pair<String, String>(ef, efv);
+                                }
+                            };
+                        }
+                    };
+                }
+            };
+        }
+
+        public int getDestinationForColumn(Pair<String, String> column) {
+            int i = 0;
+            for(String ef : efvMap.keySet()) {
+                for(String efv : uniqueEfvMap.get(ef)) {
+                    if(column.getFirst().equals(ef) && column.getSecond().equals(efv))
+                        return i;
+                    ++i;
+                }
+            }
+            throw new IllegalStateException("Shouldn't be reacheable");
+        }
+
+    }
+
+    private DataWriterSpec<Pair<String,String>> pvalDataWriter = new UniqueEfvDataWriter() {
+        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Pair<String, String> column) {
+            return pvalDataMap.get(column);
+        }
+
+        public String getVariableName() {
+            return "PVAL";
+        }
+    };
+
+    private DataWriterSpec<Pair<String,String>> tstatDataWriter = new UniqueEfvDataWriter() {
+        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Pair<String, String> column) {
+            return tstatDataMap.get(column);
+        }
+
+        public String getVariableName() {
+            return "TSTAT";
+        }
+    };
+
+    private <ColumnType> void writeData(DataWriterSpec<ColumnType> spec) throws IOException, InvalidRangeException {
         boolean first = true;
         for(DataMatrixStorage storage : storages) {
-            if(storageAssaysMap.get(storage).isEmpty()) // shouldn't happen, but let;'s be sure
+            if(!spec.getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let;'s be sure
                 continue;
 
             if(first) { // skip first
-                int deNum = 0;
-                for(DataMatrixStorage.Block block : storage.getBlocks()) {
-                    writeAssayDataBlock(storage, block, deNum, 0, block.size() - 1);
-                    deNum += block.size();
-                }
-
                 first = false;
-                continue;
+                if(canWriteFirstFull) {
+                    int deNum = 0;
+                    for(DataMatrixStorage.Block block : storage.getBlocks()) {
+                        writeDataBlock(spec, storage, block, deNum, 0, block.size() - 1);
+                        deNum += block.size();
+                    }
+                    continue;
+                }
+                // else continue as merging
             }
 
             // write other buffers finding continuous (in terms of output sequence) blocks of design elements
@@ -318,17 +463,17 @@ public class NetCDFCreator {
                         startSource = currentSource;
                         startDestination = currentDestination;
                     } else if(currentDestination != startDestination + (currentSource - startSource)) {
-                        writeAssayDataBlock(storage, block, startDestination, startSource, currentSource - 1);
+                        writeDataBlock(spec, storage, block, startDestination, startSource, currentSource - 1);
                         startSource = currentSource;
                         startDestination = currentDestination;
                     }
                 }
-                writeAssayDataBlock(storage, block, startDestination, startSource, currentSource - 1);
+                writeDataBlock(spec, storage, block, startDestination, startSource, currentSource - 1);
             }
         }
     }
 
-    private void writeAssayDataBlock(DataMatrixStorage storage, DataMatrixStorage.Block block, int deNum, int deBlockFrom, int deBlockTo)
+    private <ColumnType> void writeDataBlock(DataWriterSpec<ColumnType> spec, DataMatrixStorage storage, DataMatrixStorage.Block block, int deNum, int deBlockFrom, int deBlockTo)
         throws IOException, InvalidRangeException {
         int width = storage.getWidth();
         ArrayFloat data = (ArrayFloat)Array.factory(Float.class, new int[] { block.designElements.length, width }, block.expressionValues);
@@ -337,10 +482,11 @@ public class NetCDFCreator {
         int startDestination = -1;
         int currentDestination = -1;
         int currentReference = -1;
-        for(Assay assay : storageAssaysMap.get(storage)) {
-            currentReference = assayDataMap.get(assay.getAccession()).referenceIndex;
+        for(ColumnType column : spec.getColumnsForStorage(storage)) {
+            int prevReference = currentReference;
+            currentReference = spec.getColumnRefForColumn(column).referenceIndex;
             if(currentDestination == -1)
-                currentDestination = assays.indexOf(assay);
+                currentDestination = spec.getDestinationForColumn(column);
 
             if(startReference == -1) {
                 startReference = currentReference;
@@ -349,8 +495,10 @@ public class NetCDFCreator {
                 ArrayFloat adata = (ArrayFloat)data.sectionNoReduce(
                         Arrays.asList(
                                 new Range(deBlockFrom, deBlockTo),
-                                new Range(startReference, currentReference - 1)));
-                netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
+                                new Range(startReference, prevReference)));
+                netCdf.write(spec.getVariableName(), new int[] { deNum, startDestination }, adata);
+                startReference = currentReference;
+                startDestination = currentDestination;
             }
 
             ++currentDestination;
@@ -360,7 +508,7 @@ public class NetCDFCreator {
                 Arrays.asList(
                         new Range(deBlockFrom, deBlockTo),
                         new Range(startReference, currentReference)));
-        netCdf.write("BDC", new int[] { deNum, startDestination }, adata);
+        netCdf.write(spec.getVariableName(), new int[] { deNum, startDestination }, adata);
 
     }
 
@@ -475,6 +623,7 @@ public class NetCDFCreator {
         try {
             String netcdfName = experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
             File netcdfPath = new File(netCdfRepository, netcdfName);
+            log.info("Writing NetCDF file to " + netcdfPath);
             if(!netCdfRepository.exists())
                 netCdfRepository.mkdirs();
 

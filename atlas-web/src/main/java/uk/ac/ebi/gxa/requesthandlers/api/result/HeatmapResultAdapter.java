@@ -30,6 +30,7 @@ import ae3.service.structuredquery.*;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;

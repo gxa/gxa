@@ -22,7 +22,7 @@
 
 package ae3.model;
 
-import ae3.service.structuredquery.EfvTree;
+import uk.ac.ebi.gxa.utils.EfvTree;
 
 /**
  * Expression statistics interface
@@ -30,7 +30,7 @@ import ae3.service.structuredquery.EfvTree;
  */
 public interface ExpressionStats {
     /**
-     * Gets {@link ae3.service.structuredquery.EfvTree} of expression statistics structures
+     * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
      * @param designElementId design element id
      * @return efv tree of stats
      */
@@ -78,7 +78,7 @@ public interface ExpressionStats {
         }
 
         /**
-         * Useful, as {@link ae3.service.structuredquery.EfvTree} can return elements sorted by value.
+         * Useful, as {@link uk.ac.ebi.gxa.utils.EfvTree} can return elements sorted by value.
          * P-value of statistics, in this case.
          * @param o other object
          * @return 1, 0 or -1

@@ -23,7 +23,7 @@
 package ae3.dao;
 
 import ae3.model.*;
-import ae3.service.structuredquery.EfvTree;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
