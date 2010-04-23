@@ -145,13 +145,10 @@ Select 3,'uniprot',3 from dual
 where not exists(select 1 from a2_geneproperty where Name = 'uniprot');
 
 Insert into a2_GeneProperty (GenePropertyID, Name, AE2TABLENAME, IDENTIFIERPRIORITY)
-values (33, 'mirna', null, 4)
+select 33, 'mirna', null, 4 from dual
+where not exists(select 1 from a2_geneproperty where Name = 'mirna');
 
---update a2_geneproperty set IDENTIFIERPRIORITY = 2 where name = 'uniprot'
---select * from a2_GeneProperty
---delete from a2_GeneProperty
 commit;
-
 
 --------------------------------------------------------
 -- GENE PROPERTYVALUE
