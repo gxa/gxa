@@ -91,6 +91,9 @@
                         {0,date,yyyy-MM-dd HH:mm:ss}
                     </timestampFormat>
                     <timestampPropertyName>buildTimestamp</timestampPropertyName>
+                    <providerImplementations>
+                      <svn>javasvn</svn>
+                    </providerImplementations>
                 </configuration>
             </plugin>
             <plugin>
@@ -137,6 +140,8 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
     </build>
 
     <dependencies>
