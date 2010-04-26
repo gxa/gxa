@@ -45,7 +45,7 @@ body, td { font-size: 12px; }
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
-input.value, .tokeninputinput input { margin:0; padding:1px; }
+input.value, .tokeninputinput input, textarea.value { margin:0; padding:1px; }
 
 a:link, a:visited, #ae_pagecontainer a:link, #ae_pagecontainer a:visited {
 	text-decoration: none;
@@ -111,7 +111,7 @@ a:hover, #ae_pagecontainer a:hover {
 	margin-bottom: 5px;
 }
 
-input.value { border: solid 1px #5E9E9E; }
+input.value, textarea.value { border: solid 1px #5E9E9E; }
 
 body {
     font-family: Verdana, helvetica, arial, sans-serif;

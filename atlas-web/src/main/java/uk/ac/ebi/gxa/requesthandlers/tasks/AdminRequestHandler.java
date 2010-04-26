@@ -304,6 +304,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     "user", li.user.getUserName(),
                     "runMode", li.runMode,
                     "event", li.event,
+                    "timestamp", li.timestamp,
                     "time", formatTimeStamp(li.timestamp)
             );
         }

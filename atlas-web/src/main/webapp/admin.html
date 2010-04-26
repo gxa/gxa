@@ -60,11 +60,9 @@
 
 <div id="tabs">
 <ul>
-    <li><a href="#tab-load">Load</a></li>
-    <li><a href="#tab-que">Queue</a></li>
+    <li><a href="#tab-que">Tasks</a></li>
     <li><a href="#tab-exp">Experiments</a></li>
     <li><a href="#tab-ad">Array designs</a></li>
-    <li><a href="#tab-tlog">System Log</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
 </ul>
@@ -232,6 +230,36 @@
 
 <div id="tab-que">
     <fieldset>
+        <legend>Load experiment / array design</legend>
+        <table>
+            <tr>
+                <td style="vertical-align:top">
+                    <select id="loadType">
+                        <option value="experiment">Load Experiment</option>
+                        <option value="arraydesign">Load Array Design</option>
+                    </select>
+                </td>
+                <td colspan="2">
+                    <input type="text" class="value" id="loadUrl">
+                </td>
+                <td style="vertical-align:top;padding-top:5px;">
+                    <a href="#" id="loadExpand">more files</a>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="checkbox" id="loadAutodep" checked="checked">
+                    <label for="loadAutodep">Automatically process experiment after loading</label>
+                </td>
+                <td style="text-align:right">
+                    <input type="button" value="Load" id="loadButton">
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <fieldset>
+        <legend>Running tasks</legend>
         <table><tr>
             <td>
                 <input type="button" value="Pause queue" id="pauseButton">
@@ -278,14 +306,16 @@
             </tbody>
         </table>
     </div>
-</div>
-<div id="tab-tlog">
-    <fieldset>
-        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;float:right" class="loadIndicator">
-        <div class="pagination_ie" id="taskLogPages"></div>
-    </fieldset>
+
     <div id="taskLog">
         <table>
+            <thead class="pager">
+                <tr>
+                    <td colspan="7" style="padding:10px;font-weight:normal;">
+                        <div class="pagination_ie" id="taskLogPages"></div>
+                    </td>
+                </tr>
+            </thead>
             <thead>
                 <tr>
                     <td>Time</td>
@@ -314,29 +344,7 @@
             </tbody>
         </table>
     </div>
-</div>
 
-<div id="tab-load">
-    <div style="width:850px">
-        <fieldset>
-            <legend>Load experiment</legend>
-            <input type="text" class="value" id="loadExperimentUrl">
-            <input type="button" value="Load" id="loadExperimentButton">
-            <div style="margin-top:5px;">
-                <input type="checkbox" id="loadExperimentAutodep" checked="checked">
-                <label for="loadExperimentAutodep">Automatically process experiment after loading</label>
-            </div>
-        </fieldset>
-        <fieldset>
-            <legend>Load array design</legend>
-            <input type="text" class="value" id="loadArrayDesignUrl">
-            <input type="button" value="Load" id="loadArrayDesignButton">
-            <div style="margin-top:5px;">
-                <input type="checkbox" id="loadArrayDesignAutodep" checked="checked">
-                <label for="loadArrayDesignAutodep">Automatically process array design after loading</label>
-            </div>
-        </fieldset>
-    </div>
 </div>
 
 <div id="tab-prop">

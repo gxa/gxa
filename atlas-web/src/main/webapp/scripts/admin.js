@@ -30,7 +30,7 @@ var $tab = {};
 var lastLogPages;
 var $options = {
     queueRefreshRate: 5000,
-    queuePageSize: 20,
+    queuePageSize: 10,
     experimentPageSize: 20,
     arraydesignPageSize: 20,
     searchDelay: 500,
@@ -370,6 +370,7 @@ function updatePauseButton(isRunning) {
 
 function updateQueue() {
     clearTimeout($time.queue);
+    $time.queue = null;
     adminCall('tasklist', {
         p: currentState['que-p'] || 0,
         n: $options.queuePageSize
@@ -430,8 +431,8 @@ function updateQueue() {
 }
 
 function updateTaskLog() {
-    clearTimeout($time.queue);
-    $time.queue = null;
+    clearTimeout($time.tasklog);
+    $time.tasklog = null;
     adminCall('tasklog', {
         p: currentState['tlog-p'] || 0,
         n: $options.tasklogPageSize
@@ -439,7 +440,8 @@ function updateTaskLog() {
         var nowPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
 
         if(currentState['tlog-p'] == undefined ||
-           (lastLogPages != undefined && currentState['tlog-p'] == lastLogPages - 1 && nowPages > lastLogPages)) {
+           (lastLogPages != undefined && currentState['tlog-p'] == lastLogPages - 1 && nowPages > lastLogPages) ||
+           currentState['tlog-p'] >= nowPages) {
             currentState['tlog-p'] = nowPages - 1;
             storeState();
             updateTaskLog();
@@ -486,7 +488,7 @@ function updateTaskLog() {
             else
                 $(e).remove();
         });
-        $time.queue = setTimeout(function () {
+        $time.tasklog = setTimeout(function () {
             updateTaskLog();
         }, $options.queueRefreshRate);
     });
@@ -577,11 +579,7 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.que) {
         $('#tabs').tabs('select', $tab.que);
         updateQueue();
-    } else if(currentState['tab'] == $tab.load) {
-        $('#tabs').tabs('select', $tab.load);
-    } else if(currentState['tab'] == $tab.tlog) {
         updateTaskLog();
-        $('#tabs').tabs('select', $tab.tlog);
     } else if(currentState['tab'] == $tab.prop) {
         updateProperties();
         $('#tabs').tabs('select', $tab.prop);
@@ -594,9 +592,9 @@ function redrawCurrentState() {
         });
         $('#tabs').tabs('select', $tab.asys);
     } else {
-        $('#tabs').tabs('select', $tab.exp);
-        $('#experimentSearch').val('');
-        updateBrowseExperiments();
+        $('#tabs').tabs('select', $tab.que);
+        updateQueue();
+        updateTaskLog();
     }
 }
 
@@ -675,6 +673,7 @@ function compileTemplates() {
 
     compileTpl('taskLog', {
         'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
+        'thead.pager@style': function(r) { return r.context.numTotal > $options.tasklogPageSize ? '' : 'display:none'; },
         'tbody tr' : {
             'litem <- items': {
                 '.type': msgMapper('type', 'taskType'),
@@ -686,6 +685,9 @@ function compileTemplates() {
                 '.user': 'litem.user',
                 '.time': 'litem.time',
                 '.@class+': ' event#{litem.event} type#{litem.type}'
+            },
+            sort:function(a, b){
+                return a.timestamp < b.timestamp ? 1 : -1;
             }
         }
     });
@@ -778,15 +780,29 @@ $(document).ready(function () {
         return false;
     });
 
-    $('#loadExperimentButton').click(function () {
-        var url = $('#loadExperimentUrl').val();
-        var autoDep = $('#loadExperimentAutodep').is(':checked');
+    $('#loadButton').click(function () {
+        var url = $('#loadUrl').val().replace(/^\s+/,'').replace(/\s+$/,'').split(/\s+/);
+        var type = $('#loadType').val();
+        var autoDep = $('#loadAutodep').is(':checked');
         adminCall('schedule', {
             runMode: 'RESTART',
             accession: url,
-            type: 'loadexperiment',
+            type: 'load' + type,
             autoDepends: autoDep
         }, switchToQueue);
+    });
+
+    $('#loadExpand').click(function () {
+        var loadf = $('#loadUrl');
+        var loadv = loadf.val();
+        if(loadf.is('textarea')) {
+            $(this).text('more files');
+            loadf.replaceWith($('<input type="text" id="loadUrl" class="value">').val(loadv.replace(/\s+(.|\n)*/, '')));
+        } else {
+            $(this).text('less files');
+            loadf.replaceWith($('<textarea id="loadUrl" class="value">').val(loadv));
+        }
+        return false;
     });
 
     $('#loadArrayDesignButton').click(function () {
