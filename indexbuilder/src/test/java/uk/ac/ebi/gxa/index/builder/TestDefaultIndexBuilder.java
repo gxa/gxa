@@ -201,8 +201,8 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
                 }
 
                 public void buildError(IndexBuilderEvent event) {
-                    fail();
                     buildFinished = true;
+                    fail();    
                 }
 
                 public void buildProgress(String progressStatus) {}
