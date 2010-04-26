@@ -24,20 +24,18 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.addMap;
-import uk.ac.ebi.gxa.utils.FilterIterator;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.gxa.jmx.AtlasManager;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -184,15 +182,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processScheduleSearchExperiments(String type,
-                                                   String searchText, String fromDate, String toDate, ExpPending pendingOnly,
-                                                   String runMode, boolean autoDepend, String remoteId, TaskUser user) {
+                                                    String searchText, Date fromDate, Date toDate,
+                                                    DbStorage.ExperimentIncompleteness incompleteness,
+                                                    String runMode, boolean autoDepend,
+                                                    String remoteId, TaskUser user) {
 
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
             taskManager.pause();
-        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnly); i.hasNext();) {
-            Experiment experiment = i.next().getFirst();
+        for(Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
             long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     user,
@@ -204,55 +203,30 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return result;
     }
 
-    private Object processSearchExperiments(String searchText, String fromDate, String toDate, ExpPending pendingOnly, int page, int num) {
-        List<Map> results = new ArrayList<Map>();
-
+    private Object processSearchExperiments(String searchText, Date fromDate, Date toDate,
+                                            DbStorage.ExperimentIncompleteness incompleteness,
+                                            int page, int num) {
         int from = page * num;
-        int total = 0;
-        for(Iterator<Pair<Experiment, TaskStatus>> i = getSearchExperiments(searchText, fromDate, toDate, pendingOnly); i.hasNext();) {
-            Pair<Experiment, TaskStatus> e = i.next();
-            if(total >= from && total < from + num)
-                results.add(makeMap(
-                        "accession", e.getFirst().getAccession(),
-                        "description", e.getFirst().getDescription(),
-                        "numassays", dao.getCountAssaysForExperimentID(e.getFirst().getExperimentID()),
-                        "analytics", e.getSecond().toString(),
-                        "loadDate", e.getFirst().getLoadDate() != null ? IN_DATE_FORMAT.format(e.getFirst().getLoadDate()) : "unknown"));
-            ++total;
-        }
+        DbStorage.ExperimentList experiments = taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, from, num);
+
         return makeMap(
-                "experiments", results,
+                "experiments", new MappingIterator<DbStorage.ExperimentWithStatus, Map>(experiments.iterator()) {
+                    public Map map(DbStorage.ExperimentWithStatus e) {
+                        return makeMap(
+                                "accession", e.getAccession(),
+                                "description", e.getDescription(),
+                                "numassays", dao.getCountAssaysForExperimentID(e.getExperimentID()),
+                                "analytics", e.isAnalyticsComplete(),
+                                "netcdf", e.isNetcdfComplete(),
+                                "index", e.isIndexComplete(),
+                                "loadDate", e.getLoadDate() != null ? IN_DATE_FORMAT.format(e.getLoadDate()) : "unknown"
+                        );
+                    }
+                },
                 "page", page,
-                "numTotal", total,
+                "numTotal", experiments.getNumTotal(),
                 "indexStage", taskManagerDbStorage.isAnyIncomplete(IndexTask.TYPE_INDEX, IndexTask.TYPE_INDEXEXPERIMENT)
                 );
-    }
-
-    private Iterator<Pair<Experiment, TaskStatus>> getSearchExperiments(final String searchTextStr,
-                                                                        final String fromDateStr,
-                                                                        final String toDateStr,
-                                                                        final ExpPending pendingOnly)
-    {
-        final String searchText = searchTextStr.toLowerCase();
-
-        final Date fromDate = parseDate(StringUtils.trimToNull(fromDateStr));
-        final Date toDate = parseDate(StringUtils.trimToNull(toDateStr));
-
-        List<Experiment> experiments = dao.getExperimentByLoadDate(fromDate, toDate);
-
-        return new FilterIterator<Experiment, Pair<Experiment, TaskStatus>>(experiments.iterator()) {
-            @Override
-            public Pair<Experiment, TaskStatus> map(Experiment experiment) {
-                final TaskStatus analyticsState = taskManager.getTaskStatus(new TaskSpec(AnalyticsTask.TYPE, experiment.getAccession()));
-                boolean searchYes = "".equals(searchText)
-                        || experiment.getAccession().toLowerCase().contains(searchText)
-                        || experiment.getDescription().toLowerCase().contains(searchText);
-                boolean pendingYes = pendingOnly == ExpPending.ALL
-                        || (pendingOnly == ExpPending.COMPLETE && TaskStatus.DONE.equals(analyticsState))
-                        || (pendingOnly == ExpPending.INCOMPLETE && !TaskStatus.DONE.equals(analyticsState));
-                return searchYes && pendingYes ? new Pair<Experiment, TaskStatus>(experiment, analyticsState) : null;
-            }
-        };
     }
 
     private Object processSearchArrayDesigns(String search, int page, int num) {
@@ -281,7 +255,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Date parseDate(String toDateStr) {
         try {
-            return IN_DATE_FORMAT.parse(toDateStr);
+            return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
         } catch(Exception e) {
             return null;
         }
@@ -469,9 +443,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         else if("searchexp".equals(op))
             return processSearchExperiments(
                     req.getStr("search"),
-                    req.getStr("fromDate"),
-                    req.getStr("toDate"),
-                    req.getEnum("pendingOnly", ExpPending.ALL),
+                    parseDate(req.getStr("fromDate")),
+                    parseDate(req.getStr("toDate")),
+                    req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
@@ -485,9 +459,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processScheduleSearchExperiments(
                     req.getStr("type"),
                     req.getStr("search"),
-                    req.getStr("fromDate"),
-                    req.getStr("toDate"),
-                    req.getEnum("pendingOnly", ExpPending.ALL),
+                    parseDate(req.getStr("fromDate")),
+                    parseDate(req.getStr("toDate")),
+                    req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getStr("runMode"),
                     req.getBool("autoDepends"),
                     remoteId,
