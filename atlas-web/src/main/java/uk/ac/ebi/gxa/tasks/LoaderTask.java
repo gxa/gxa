@@ -37,8 +37,8 @@ import java.net.MalformedURLException;
 public class LoaderTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(LoaderTask.class);
 
-    public static final String TYPE_EXPERIMENT = "loadexperiment";
-    public static final String TYPE_ARRAYDESIGN = "loadarraydesign";
+    public static final String TYPE_LOADEXPERIMENT = "loadexperiment";
+    public static final String TYPE_LOADARRAYDESIGN = "loadarraydesign";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
 
@@ -49,11 +49,11 @@ public class LoaderTask extends AbstractWorkingTask {
     private volatile boolean stop = false;
 
     private AtlasLoaderCommand getLoaderCommand() throws MalformedURLException {
-        if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
+        if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes());
 
-        else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()))
+        else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
             return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderGeneIdPriority());
 
@@ -79,11 +79,11 @@ public class LoaderTask extends AbstractWorkingTask {
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
                 for(String accession : event.getAccessions()) {
-                    if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()) ||
+                    if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()) ||
                             TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
 
-                        if(TYPE_EXPERIMENT.equals(getTaskSpec().getType()))
+                        if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
                             taskMan.updateTaskStage(SPEC_UPDATEEXPERIMENT(accession), TaskStatus.DONE);
 
                         TaskSpec analyticsTask = AnalyticsTask.SPEC_ANALYTICS(accession);
@@ -114,7 +114,7 @@ public class LoaderTask extends AbstractWorkingTask {
                             taskMan.scheduleTask(LoaderTask.this, IndexTask.SPEC_INDEXALL, TaskRunMode.CONTINUE, getUser(), true,
                                     "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                         }
-                    } else if(TYPE_ARRAYDESIGN.equals(getTaskSpec().getType()) ) {
+                    } else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()) ) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
                         for(Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
@@ -152,7 +152,8 @@ public class LoaderTask extends AbstractWorkingTask {
         };
 
         try {
-            taskMan.getLoader().doCommand(getLoaderCommand(), listener);
+            getLoaderCommand();
+            //taskMan.getLoader().doCommand(getLoaderCommand(), listener);
         } catch(MalformedURLException e) {
             taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
             taskMan.notifyTaskFinished(LoaderTask.this);
@@ -184,8 +185,8 @@ public class LoaderTask extends AbstractWorkingTask {
         }
 
         public boolean isFor(TaskSpec taskSpec) {
-            return TYPE_EXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_ARRAYDESIGN.equals(taskSpec.getType())
+            return TYPE_LOADEXPERIMENT.equals(taskSpec.getType())
+                    || TYPE_LOADARRAYDESIGN.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType());
         }
