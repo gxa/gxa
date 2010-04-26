@@ -207,7 +207,7 @@ begin
  join table(CAST(ENTRYPRIORITYLIST as IDVALUETABLE)) t on t.Value = p.Name) IDs on ids.name = t.EntryName and ids.value = t.EntryValue
  group by t.Accession;
  dbms_output.put_line(' map DesignElementAccessions to existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
-
+ 
  --add accessions for non-existing genes
  Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
  select Accession, null, EntryValue
@@ -218,7 +218,8 @@ begin
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
  join (select Value, ID as priority from table(cast(ENTRYPRIORITYLIST as IDVALUETABLE))) p on p.Value = t.EntryName
  where not exists(select 1 from tmp_DesignElementMap m where m.designelementaccession = t.Accession)
- ) t where t.r=1;
+ ) t where t.r=1 
+ and EntryValue is not null;
  dbms_output.put_line(' add accessions for non-existing genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  /*for r in (select * from table(CAST(LowerCaseDesignElements as DesignElementTable))) loop
@@ -242,14 +243,15 @@ begin
  dbms_output.put_line(' find orphane genes with same identifiers: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  --create missed genes  
-   Insert into a2_Gene(GeneID, Name, Identifier)
-   select a2_Gene_Seq.nextval,'GENE:' || r.GeneIdentifier, r.GeneIdentifier
-   from tmp_DesignElementMap r
-   where GeneID is null;
+ Insert into a2_Gene(GeneID, Name, Identifier)
+ select a2_Gene_Seq.nextval,'GENE:' || r.GeneIdentifier, r.GeneIdentifier
+ from (select distinct GeneIdentifier from tmp_DesignElementMap r1
+ where r1.GeneID is null
+ and not exists(select 1 from a2_Gene where a2_Gene.identifier = r1.GeneIdentifier) )r;
    
-   Update tmp_DesignElementMap 
-   set GeneID = (Select GeneID from a2_Gene where Identifier = tmp_DesignElementMap.GeneIdentifier) 
-   where GeneID is null;
+ Update tmp_DesignElementMap 
+ set GeneID = (Select GeneID from a2_Gene where Identifier = tmp_DesignElementMap.GeneIdentifier) 
+ where GeneID is null;
  dbms_output.put_line(' create missed genes: ' || TO_CHAR(sysdate, 'HH24:MI:SS'));
  
  /*
