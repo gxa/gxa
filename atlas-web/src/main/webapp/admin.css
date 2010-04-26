@@ -215,8 +215,16 @@ thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 #numWorking { font-weight: bold; }
 #numPending { font-weight: bold; }
 
-#loadExperimentUrl, #loadArrayDesignUrl {
+#loadUrl {
     width: 750px;
+}
+
+textarea#loadUrl {
+    height: 150px;
+}
+
+#loadButton {
+    width: 70px;
 }
 
 .eventFAILED td.event, .eventFAILED td.message
@@ -237,4 +245,8 @@ thead td { font-weight:bold;text-align:left;white-space:nowrap; }
 #experimentList table.results .expTaskLog td.accession {
     font-weight:normal;
     color: black;
+}
+
+td.time {
+    white-space:nowrap;
 }
