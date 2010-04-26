@@ -88,8 +88,11 @@
                     <td style="padding-left:20px;" align="right">
                         <select id="incompleteOnly" style="width:100%">                            
                             <option value="ALL">Any status</option>
-                            <option value="COMPLETE">Complete only</option>
-                            <option value="INCOMPLETE">Incomplete only</option>
+                            <option value="COMPLETE">Fully complete</option>
+                            <option value="INCOMPLETE">Incomplete by any means</option>
+                            <option value="INCOMPLETE_ANALYTICS">Waiting for analytics rebuild</option>
+                            <option value="INCOMPLETE_NETCDF">Waiting for NetCDF rebuild</option>
+                            <option value="INCOMPLETE_INDEX">Waiting for indexing</option>
                         </select>
                     </td>
                     <td></td>                    
@@ -141,7 +144,7 @@
                     <td class="sel">
                         <input id="selectAll" type="checkbox">
                     </td>
-                    <td colspan="5" class="selall">
+                    <td colspan="6" class="selall">
                         <label for="selectAll">Select all results <span class="expcoll">(on all pages)</span></label>
                     </td>
                 </tr>

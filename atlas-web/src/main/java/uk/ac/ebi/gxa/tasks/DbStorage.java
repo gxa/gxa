@@ -29,12 +29,17 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.List;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -233,4 +238,160 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
+
+    public class ExperimentWithStatus extends Experiment {
+        private boolean netcdfComplete;
+        private boolean analyticsComplete;
+        private boolean indexComplete;
+
+        public boolean isNetcdfComplete() {
+            return netcdfComplete;
+        }
+
+        public void setNetcdfComplete(boolean netcdfComplete) {
+            this.netcdfComplete = netcdfComplete;
+        }
+
+        public boolean isAnalyticsComplete() {
+            return analyticsComplete;
+        }
+
+        public void setAnalyticsComplete(boolean analyticsComplete) {
+            this.analyticsComplete = analyticsComplete;
+        }
+
+        public boolean isIndexComplete() {
+            return indexComplete;
+        }
+
+        public void setIndexComplete(boolean indexComplete) {
+            this.indexComplete = indexComplete;
+        }
+    }
+
+    public static class ExperimentList extends ArrayList<ExperimentWithStatus> {
+        private int numTotal;
+
+        public int getNumTotal() {
+            return numTotal;
+        }
+
+        private void setNumTotal(int numTotal) {
+            this.numTotal = numTotal;
+        }
+    }
+
+    public enum ExperimentIncompleteness {
+        ALL,
+        COMPLETE,
+        INCOMPLETE,
+        INCOMPLETE_ANALYTICS,
+        INCOMPLETE_NETCDF,
+        INCOMPLETE_INDEX
+    }
+
+    public ExperimentList findExperiments(String search,
+                                          Date from, Date to,
+                                          ExperimentIncompleteness incompleteness,
+                                          int start, int number) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT * FROM (SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, " +
+                        "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as hasanalytics, " +
+                        "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as hasnetcdf, " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as hasindex " +
+                        "FROM a2_experiment e LEFT JOIN a2_taskman_status s " +
+                        "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='DONE'" +
+                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate) " +
+                        "WHERE 1=1 ");
+
+        List<Object> parameters = new ArrayList<Object>();
+
+        if(to == null && from != null) {
+            sql.append(" AND e.loaddate >= ?");
+            parameters.add(from);
+        } else if(from == null && to != null) {
+            sql.append(" AND e.loaddate <= ?");
+            parameters.add(to);
+        } else if(from != null && to.after(from)) {
+            sql.append(" AND e.loaddate BETWEEN ? AND ?");
+            parameters.add(from);
+            parameters.add(to);
+        }
+
+        String searchStr = StringUtils.trimToEmpty(search);
+        if(searchStr.length() > 0) {
+            sql.append(" AND (lower(accession) LIKE ? OR lower(description) LIKE ? OR lower(performer) LIKE ? OR lower(lab) LIKE ?)");
+            searchStr = "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
+            parameters.add(searchStr);
+            parameters.add(searchStr);
+            parameters.add(searchStr);
+            parameters.add(searchStr);
+        }
+
+        switch(incompleteness) {
+            case COMPLETE:
+                sql.append(" AND hasanalytics > 0 AND hasindex > 0 AND hasnetcdf > 0");
+                break;
+
+            case INCOMPLETE:
+                sql.append(" AND (hasanalytics = 0 OR hasindex = 0 OR hasnetcdf = 0)");
+                break;
+
+            case INCOMPLETE_ANALYTICS:
+                sql.append(" AND hasanalytics = 0");
+                break;
+
+
+            case INCOMPLETE_NETCDF:
+                sql.append(" AND hasnetcdf = 0");
+                break;
+
+
+            case INCOMPLETE_INDEX:
+                sql.append(" AND hasindex = 0");
+                break;
+        }
+
+
+        final int numTotal;
+
+        if(number > 0 && start >= 0) {
+            numTotal = jdbcTemplate.queryForInt("SELECT COUNT(1) FROM (" + sql.toString() + ")",
+                    parameters.toArray(new Object[parameters.size()]));
+
+            sql.insert(0, "SELECT * FROM (SELECT l.*, rownum rn FROM (");
+            sql.append(") l WHERE ROWNUM < ?) WHERE rn >= ?");
+            parameters.add(start + number);
+            parameters.add(start);
+        } else {
+            numTotal = -1;
+        }
+
+        return (ExperimentList)jdbcTemplate.query(sql.toString(),
+                parameters.toArray(new Object[parameters.size()]),
+                new ResultSetExtractor() {
+                    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+                        ExperimentList results = new ExperimentList();
+                        int total = 0;
+                        while (resultSet.next()) {
+                            ExperimentWithStatus experiment = new ExperimentWithStatus();
+
+                            experiment.setAccession(resultSet.getString(1));
+                            experiment.setDescription(resultSet.getString(2));
+                            experiment.setPerformer(resultSet.getString(3));
+                            experiment.setLab(resultSet.getString(4));
+                            experiment.setExperimentID(resultSet.getLong(5));
+                            experiment.setLoadDate(resultSet.getDate(6));
+
+                            experiment.setAnalyticsComplete(resultSet.getInt(7) > 0);
+                            experiment.setNetcdfComplete(resultSet.getInt(8) > 0);
+                            experiment.setIndexComplete(resultSet.getInt(9) > 0);
+                            results.add(experiment);
+                            ++total;
+                        }
+                        results.setNumTotal(numTotal == -1 ? total : numTotal);
+                        return results;
+                    }
+                });
+    }
 }

@@ -61,11 +61,6 @@ var $msg = {
         SKIPPED: 'Skipped',
         FAILED: 'Failed'
     },
-    expStage: {
-        NONE: 'No analytics',
-        INCOMPLETE: 'No analytics',
-        DONE: 'Complete'
-    },
     taskState: {
         WORKING: 'Working',
         PENDING: 'Pending'
@@ -633,7 +628,18 @@ function compileTemplates() {
         '.exprow': {
             'experiment <- experiments' : {
                 'label.accession': 'experiment.accession',
-                '.analytics': msgMapper('analytics', 'expStage'),
+                '.analytics': function (r) {
+                    var t = '';
+                    if(!r.item.netcdf)
+                        t += ' NoNetCDF';
+                    if(!r.item.analytics)
+                        t += ' NoAnalytics';
+                    if(!r.item.index)
+                        t += ' NoIndex';
+                    if(t == '')
+                        t = 'Complete';
+                    return t;
+                },
                 '.description': 'experiment.description',
                 '.numassays' : 'experiment.numassays',
                 '.loaddate': 'experiment.loadDate', 
