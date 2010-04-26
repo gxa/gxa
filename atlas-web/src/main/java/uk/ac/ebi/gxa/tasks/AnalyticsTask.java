@@ -99,7 +99,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
 
     public boolean isBlockedBy(Task otherTask) {
         return Arrays.asList(
-                LoaderTask.TYPE_EXPERIMENT
+                LoaderTask.TYPE_LOADEXPERIMENT
         ).contains(otherTask.getTaskSpec().getType());
     }
 

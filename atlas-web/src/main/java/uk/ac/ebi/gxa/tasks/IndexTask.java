@@ -108,8 +108,8 @@ public class IndexTask extends AbstractWorkingTask {
             return Arrays.asList(
                     TYPE_INDEX, TYPE_INDEXEXPERIMENT,
                     AnalyticsTask.TYPE,
-                    LoaderTask.TYPE_EXPERIMENT,
-                    LoaderTask.TYPE_ARRAYDESIGN
+                    LoaderTask.TYPE_LOADEXPERIMENT,
+                    LoaderTask.TYPE_LOADARRAYDESIGN
             ).contains(by.getTaskSpec().getType());
         }
     }
