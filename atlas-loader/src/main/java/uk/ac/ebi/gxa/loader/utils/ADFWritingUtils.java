@@ -141,8 +141,11 @@ public class ADFWritingUtils {
                 }
                 else {
                     // add new entry
-                    List<String> originalValues =
-                            reporterNode.reporterDatabaseEntries.get(databaseEntryType);
+                    // add new entry
+                    List<String> originalValues = new ArrayList<String>();
+                    // grab a snapshot of current contents, may still be updating
+                    originalValues.addAll(
+                            reporterNode.reporterDatabaseEntries.get(databaseEntryType));
                     List<String> databaseEntryValues = new ArrayList<String>();
 
                     for (String originalValue : originalValues) {
