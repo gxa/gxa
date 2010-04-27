@@ -308,13 +308,13 @@ public class DbStorage implements PersistentStorage {
         List<Object> parameters = new ArrayList<Object>();
 
         if(to == null && from != null) {
-            sql.append(" AND e.loaddate >= ?");
+            sql.append(" AND loaddate >= ?");
             parameters.add(from);
         } else if(from == null && to != null) {
-            sql.append(" AND e.loaddate <= ?");
+            sql.append(" AND loaddate <= ?");
             parameters.add(to);
         } else if(from != null && to.after(from)) {
-            sql.append(" AND e.loaddate BETWEEN ? AND ?");
+            sql.append(" AND loaddate BETWEEN ? AND ?");
             parameters.add(from);
             parameters.add(to);
         }
