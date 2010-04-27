@@ -203,7 +203,7 @@ public class DbStorage implements PersistentStorage {
                 "SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM " +
                 "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
                 "WHERE rn >= ?",
-                new Object[] { start + number, start  },
+                new Object[] { start + number + 1, start + 1  },
                 LOG_ROWMAPPER);
     }
 

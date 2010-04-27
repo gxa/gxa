@@ -19,6 +19,22 @@
  *
  * http://gxa.github.com/gxa
  */
+jQuery.each(['backgroundColor'], function(i,attr){
+    jQuery.fx.step[attr] = function(fx){
+        if ( fx.state == 0 ) {
+            var r = /rgb\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/.exec(jQuery.curCSS(fx.elem, attr));
+            fx.start = [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])];
+            r = /rgb\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/.exec(fx.end);
+            fx.end = [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])];
+        }
+
+        fx.elem.style[attr] = "rgb(" + [
+            Math.max(Math.min( parseInt((fx.pos * (fx.end[0] - fx.start[0])) + fx.start[0]), 255), 0),
+            Math.max(Math.min( parseInt((fx.pos * (fx.end[1] - fx.start[1])) + fx.start[1]), 255), 0),
+            Math.max(Math.min( parseInt((fx.pos * (fx.end[2] - fx.start[2])) + fx.start[2]), 255), 0)
+        ].join(",") + ")";
+    };
+});
 
 var currentState = {};
 var atlas = { homeUrl: '' };
@@ -28,6 +44,7 @@ var $time = {};
 var $tpl = {};
 var $tab = {};
 var lastLogPages;
+var lastLogTimestamp;
 var $options = {
     queueRefreshRate: 5000,
     queuePageSize: 10,
@@ -422,8 +439,9 @@ function updateQueue() {
 function updateTaskLog() {
     clearTimeout($time.tasklog);
     $time.tasklog = null;
+    var askPage = currentState['tlog-p'] && currentState['tlog-p'] != lastLogPages - 1 ? currentState['tlog-p'] : -1;
     adminCall('tasklog', {
-        p: currentState['tlog-p'] && currentState['tlog-p'] != lastLogPages - 1 ? currentState['tlog-p'] : -1,
+        p: askPage,
         n: $options.tasklogPageSize
     }, function (result) {
         if(currentState['tlog-p'] != result.page) {
@@ -434,6 +452,10 @@ function updateTaskLog() {
         lastLogPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
 
         renderTpl('taskLog', result);
+
+        if(result.items.length)
+            if(!lastLogTimestamp || result.items[0].timestamp > lastLogTimestamp)
+                lastLogTimestamp = result.items[0].timestamp;
 
         if(result.numTotal > $options.tasklogPageSize)
             $('#taskLogPages').pagination(result.numTotal, {
@@ -471,6 +493,10 @@ function updateTaskLog() {
             else
                 $(e).remove();
         });
+
+        $('#taskLog .newitem').css('backgroundColor', 'rgb(255,255,0)')
+                .animate({backgroundColor:'rgb(250,250,250)'}, Math.min($options.queueRefreshRate / 2, 500));
+
         $time.tasklog = setTimeout(function () {
             updateTaskLog();
         }, $options.queueRefreshRate);
@@ -679,7 +705,10 @@ function compileTemplates() {
                 '.message': 'litem.message',
                 '.user': 'litem.user',
                 '.time': 'litem.time',
-                '.@class+': ' event#{litem.event} type#{litem.type}'
+                '.@class+': function (r) {
+                    return (lastLogTimestamp && r.item.timestamp > lastLogTimestamp ? ' newitem' : '')
+                            + ' event' + r.item.event + ' type' + r.item.type; 
+                }
             },
             sort:function(a, b){
                 return a.timestamp < b.timestamp ? 1 : -1;
@@ -792,7 +821,7 @@ $(document).ready(function () {
                     accession: experiments,
                     type: 'loadexperiment',
                     autoDepends: autoDep
-                }, switchToQueue);
+                }, updateQueue);
 
             if(arraydesigns.length)
                 adminCall('schedule', {
