@@ -415,4 +415,23 @@
         </jsp-property-group>
     </jsp-config>
 
+    <filter>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/admin.html</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/admin.css</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/scripts/admin.js</url-pattern>
+    </filter-mapping>
 </web-app>
