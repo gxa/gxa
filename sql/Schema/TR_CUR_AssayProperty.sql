@@ -37,13 +37,17 @@ begin
     and PropertyID = mPropertyID_new;
   end if;
   
-  Select MIN(AssayID) into mAssayID_new
-  from a2_Assay 
-  where Accession = :new.Accession; 
+  Select MIN(a.AssayID) into mAssayID_new
+  from a2_Assay a
+  join a2_Experiment e on e.ExperimentID = a.ExperimentID
+  where a.Accession = :new.Accession
+  and e.Accession = :new.Experiment; 
   
-  Select MIN(AssayID) into mAssayID_old
-  from a2_Assay 
-  where Accession = :old.Accession;
+  Select MIN(a.AssayID) into mAssayID_old
+  from a2_Assay a
+  join a2_Experiment e on e.ExperimentID = a.ExperimentID
+  where a.Accession = :old.Accession
+  and e.Accession = :new.Experiment;
   
   if ((mPropertyValueID_new is null) and (:new.value is not null)) then
     raise_application_error(-20010,'property value not found');
