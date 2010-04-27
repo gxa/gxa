@@ -21,11 +21,12 @@
  */
 jQuery.each(['backgroundColor'], function(i,attr){
     jQuery.fx.step[attr] = function(fx){
-        if ( fx.state == 0 ) {
+        if (!fx.inited) {
             var r = /rgb\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/.exec(jQuery.curCSS(fx.elem, attr));
-            fx.start = [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])];
+            fx.start = r ? [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])] : [255,255,0];
             r = /rgb\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/.exec(fx.end);
-            fx.end = [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])];
+            fx.end = r ? [parseInt(r[1]), parseInt(r[2]), parseInt(r[3])] : [255,255,255];
+            fx.inited = true;            
         }
 
         fx.elem.style[attr] = "rgb(" + [
