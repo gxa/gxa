@@ -198,6 +198,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                         writer.writeEndElement();
                     }
 
+                    /* TODO: this blows up the dump to gigabytes in size, need to rethink/redo
                     List<ListResultRow> data = gene.getHeatMapRows(atlasProperties.getOptionsIgnoredEfs());
                     for (ListResultRow row : data) {
                         writer.writeStartElement("field");
@@ -205,6 +206,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                         writer.writeCharacters(row.getFv());
                         writer.writeEndElement();
                     }
+                    */
                 }
                 writer.writeEndElement(); // add'l fields
 
