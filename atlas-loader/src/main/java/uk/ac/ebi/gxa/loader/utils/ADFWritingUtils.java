@@ -30,9 +30,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.adf.node.ReporterNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Javadocs go here!
@@ -76,8 +74,10 @@ public class ADFWritingUtils {
                 }
                 else {
                     // add new entry
-                    List<String> originalValues =
-                            compositeNode.compositeElementDatabaseEntries.get(databaseEntryType);
+                    List<String> originalValues = new ArrayList<String>();
+                    // grab a snapshot of current contents, may still be updating
+                    originalValues.addAll(
+                            compositeNode.compositeElementDatabaseEntries.get(databaseEntryType));
                     List<String> databaseEntryValues = new ArrayList<String>();
 
                     for (String originalValue : originalValues) {
