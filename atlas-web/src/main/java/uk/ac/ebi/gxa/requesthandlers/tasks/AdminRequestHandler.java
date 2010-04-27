@@ -286,8 +286,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processTaskEventLog(int page, int num) {
         int start = page * num;
+        final int total = taskManagerDbStorage.getTaskLogItemNum();
+        if((start > total || start < 0) && total > 0) {
+            page = (total - 1) / num;
+            start = page * num;
+        } else if(total == 0) {
+            page = start = 0;
+        }
         return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getTaskLogItems(start, num).iterator()),
-                "numTotal", taskManagerDbStorage.getTaskLogItemNum(),
+                "numTotal", total,
                 "page", page);
     }
 
@@ -469,7 +476,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("tasklog".equals(op))
             return processTaskEventLog(
-                    req.getInt("p", 0, 0),
+                    req.getInt("p", -1, -1),
                     req.getInt("n", 1, 1));
 
         else if("tasklogtag".equals(op))
