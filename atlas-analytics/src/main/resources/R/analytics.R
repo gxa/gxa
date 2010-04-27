@@ -292,7 +292,7 @@ function (nc)
     put.var.ncdf(ncd, "TSTAT", tstat)
     put.var.ncdf(ncd, "PVAL",  pval)
 
-    ef  = get.var.ncdf(nc,"EF")
+    ef  = get.var.ncdf(ncd,"EF")
 
     close.ncdf(ncd)
 
