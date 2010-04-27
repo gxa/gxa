@@ -72,7 +72,7 @@ public class AtlasComputeService implements Compute {
             rService = getAtlasRFactory().createRServices();
             if(rService == null) {
                 log.error("Can't create R service, so can't compute!");
-                return null;
+                throw new ComputeException("Can't create R service, so can't compute!");
             }
 
             if(rService.getServantName() != null)
