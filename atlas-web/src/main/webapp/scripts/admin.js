@@ -866,7 +866,7 @@ $(document).ready(function () {
 
     $('#cancelPropsButton').click(updateProperties);
     $('#savePropsButton').click(saveProperties);
-
+        
     $('#logout a').click(function () {
         adminCall('logout', {}, function () {
             requireLogin(null, {}, null);
@@ -879,7 +879,6 @@ $(document).ready(function () {
 
     setInterval(function () {
         if(document.location.href.indexOf('#') && currentStateHash && currentStateHash != document.location.href.substring(document.location.href.indexOf('#') + 1)) {
-            console.log(document.location.href.substring(document.location.href.indexOf('#') + 1) + " " + currentStateHash);
             restoreState();
         }
     }, 500);
