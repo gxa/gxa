@@ -362,8 +362,8 @@ public class DbStorage implements PersistentStorage {
 
             sql.insert(0, "SELECT * FROM (SELECT l.*, rownum rn FROM (");
             sql.append(") l WHERE ROWNUM < ?) WHERE rn >= ?");
-            parameters.add(start + number);
-            parameters.add(start);
+            parameters.add(start + number + 1);
+            parameters.add(start + 1);
         } else {
             numTotal = -1;
         }
