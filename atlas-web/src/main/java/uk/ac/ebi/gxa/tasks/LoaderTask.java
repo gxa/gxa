@@ -108,11 +108,13 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if(TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType())) {
                         TaskSpec experimentTask = AnalyticsTask.SPEC_ANALYTICS(accession);
                         taskMan.updateTaskStage(experimentTask, TaskStatus.NONE);
+                        TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+                        taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
 
                         taskMan.updateTaskStage(IndexTask.SPEC_INDEXALL, TaskStatus.INCOMPLETE);
                         if(!stop && isRunningAutoDependencies()) {
                             taskMan.scheduleTask(LoaderTask.this, IndexTask.SPEC_INDEXALL, TaskRunMode.CONTINUE, getUser(), true,
-                                    "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
+                                    "Automatically added by experiment " + getTaskSpec().getAccession() + " unloading task");
                         }
                     } else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()) ) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
@@ -153,7 +155,7 @@ public class LoaderTask extends AbstractWorkingTask {
 
         try {
             getLoaderCommand();
-            //taskMan.getLoader().doCommand(getLoaderCommand(), listener);
+            taskMan.getLoader().doCommand(getLoaderCommand(), listener);
         } catch(MalformedURLException e) {
             taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
             taskMan.notifyTaskFinished(LoaderTask.this);

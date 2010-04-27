@@ -225,7 +225,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 },
                 "page", page,
                 "numTotal", experiments.getNumTotal(),
-                "indexStage", taskManagerDbStorage.isAnyIncomplete(IndexTask.TYPE_INDEX, IndexTask.TYPE_INDEXEXPERIMENT)
+                "indexStatus", !taskManagerDbStorage.isAnyIncomplete(IndexTask.TYPE_INDEX, IndexTask.TYPE_INDEXEXPERIMENT)
                 );
     }
 

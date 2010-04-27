@@ -102,7 +102,7 @@ public class DbStorage implements PersistentStorage {
                             encodeAccession(task.getAccession())
                     }, String.class).toString());
         } catch (EmptyResultDataAccessException e) {
-            return TaskStatus.NONE;
+            return TaskStatus.DONE; // no status means it's complete from migration
         } catch (DataAccessException e) {
             log.error("Can't retrieve task stage " + task, e);
             return TaskStatus.NONE;
@@ -296,12 +296,13 @@ public class DbStorage implements PersistentStorage {
                                           int start, int number) {
         StringBuilder sql = new StringBuilder(
                 "SELECT * FROM (SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, " +
-                        "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as hasanalytics, " +
-                        "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as hasnetcdf, " +
-                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as hasindex " +
+                        "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
+                        "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex " +
                         "FROM a2_experiment e LEFT JOIN a2_taskman_status s " +
-                        "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='DONE'" +
-                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate) " +
+                        "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
+                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
+                        "ORDER BY e.loaddate DESC NULLS LAST, e.accession) " +
                         "WHERE 1=1 ");
 
         List<Object> parameters = new ArrayList<Object>();
@@ -330,25 +331,25 @@ public class DbStorage implements PersistentStorage {
 
         switch(incompleteness) {
             case COMPLETE:
-                sql.append(" AND hasanalytics > 0 AND hasindex > 0 AND hasnetcdf > 0");
+                sql.append(" AND incanalytics = 0 AND incindex = 0 AND incnetcdf = 0");
                 break;
 
             case INCOMPLETE:
-                sql.append(" AND (hasanalytics = 0 OR hasindex = 0 OR hasnetcdf = 0)");
+                sql.append(" AND (incanalytics > 0 OR incindex > 0 OR incnetcdf > 0)");
                 break;
 
             case INCOMPLETE_ANALYTICS:
-                sql.append(" AND hasanalytics = 0");
+                sql.append(" AND incanalytics > 0");
                 break;
 
 
             case INCOMPLETE_NETCDF:
-                sql.append(" AND hasnetcdf = 0");
+                sql.append(" AND incnetcdf > 0");
                 break;
 
 
             case INCOMPLETE_INDEX:
-                sql.append(" AND hasindex = 0");
+                sql.append(" AND incindex > 0");
                 break;
         }
 
@@ -383,9 +384,9 @@ public class DbStorage implements PersistentStorage {
                             experiment.setExperimentID(resultSet.getLong(5));
                             experiment.setLoadDate(resultSet.getDate(6));
 
-                            experiment.setAnalyticsComplete(resultSet.getInt(7) > 0);
-                            experiment.setNetcdfComplete(resultSet.getInt(8) > 0);
-                            experiment.setIndexComplete(resultSet.getInt(9) > 0);
+                            experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
+                            experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
+                            experiment.setIndexComplete(resultSet.getInt(9) == 0);
                             results.add(experiment);
                             ++total;
                         }

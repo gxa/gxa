@@ -60,7 +60,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
                             final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(getTaskSpec().getAccession());
-                            taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
+                            taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
                             if(!stop && isRunningAutoDependencies()) {
                                 taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
                                         "Automatically added by experiment " + getTaskSpec().getAccession() + " processing task");
