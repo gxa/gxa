@@ -779,12 +779,35 @@ $(document).ready(function () {
         var url = $('#loadUrl').val().replace(/^\s+/,'').replace(/\s+$/,'').split(/\s+/);
         var type = $('#loadType').val();
         var autoDep = $('#loadAutodep').is(':checked');
-        adminCall('schedule', {
-            runMode: 'RESTART',
-            accession: url,
-            type: 'load' + type,
-            autoDepends: autoDep
-        }, switchToQueue);
+        if(type == 'auto') {
+            var experiments = [];
+            var arraydesigns = [];
+            for(var k in url) {
+                (url[k].toLowerCase().replace(/^.*\//, '').indexOf(".adf") >= 0 ? arraydesigns : experiments).push(url[k]);
+            }
+
+            if(experiments.length)
+                adminCall('schedule', {
+                    runMode: 'RESTART',
+                    accession: experiments,
+                    type: 'loadexperiment',
+                    autoDepends: autoDep
+                }, switchToQueue);
+
+            if(arraydesigns.length)
+                adminCall('schedule', {
+                    runMode: 'RESTART',
+                    accession: arraydesigns,
+                    type: 'loadarraydesign',
+                    autoDepends: autoDep
+                }, updateQueue);
+        } else
+            adminCall('schedule', {
+                runMode: 'RESTART',
+                accession: url,
+                type: 'load' + type,
+                autoDepends: autoDep
+            }, updateQueue);
     });
 
     $('#loadExpand').click(function () {
