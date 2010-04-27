@@ -401,9 +401,7 @@ function updateQueue() {
             (function (task) {
                 $('#taskList .cancelButton' + task.id).click(function () {
                     if(confirm('Do you really want to cancel task ' + task.type + ' ' + task.accession + '?')) {
-                        adminCall('cancel', { id: task.id }, function () {
-                            updateQueue();
-                        });
+                        adminCall('cancel', { id: task.id }, updateQueue);
                     }
                 });
             })(result.tasks[i]);
@@ -411,17 +409,13 @@ function updateQueue() {
 
         $('#cancelAllButton').unbind('click').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
             if(confirm('Do you really want to cancel all tasks?')) {
-                adminCall('cancelall', {}, function () {
-                    updateQueue();
-                });
+                adminCall('cancelall', {}, updateQueue);
             }
         });
 
         updatePauseButton(result.isRunning);
 
-        $time.queue = setTimeout(function () {
-            updateQueue();
-        }, $options.queueRefreshRate);
+        $time.queue = setTimeout(updateQueue, $options.queueRefreshRate);
     });
 }
 
@@ -429,21 +423,15 @@ function updateTaskLog() {
     clearTimeout($time.tasklog);
     $time.tasklog = null;
     adminCall('tasklog', {
-        p: currentState['tlog-p'] || 0,
+        p: currentState['tlog-p'] && currentState['tlog-p'] != lastLogPages - 1 ? currentState['tlog-p'] : -1,
         n: $options.tasklogPageSize
     }, function (result) {
-        var nowPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
-
-        if(currentState['tlog-p'] == undefined ||
-           (lastLogPages != undefined && currentState['tlog-p'] == lastLogPages - 1 && nowPages > lastLogPages) ||
-           currentState['tlog-p'] >= nowPages) {
-            currentState['tlog-p'] = nowPages - 1;
+        if(currentState['tlog-p'] != result.page) {
+            currentState['tlog-p'] = result.page;
             storeState();
-            updateTaskLog();
-            return;
         }
 
-        lastLogPages = nowPages;
+        lastLogPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
 
         renderTpl('taskLog', result);
 
