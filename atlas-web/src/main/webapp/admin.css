@@ -227,7 +227,7 @@ textarea#loadUrl {
     width: 70px;
 }
 
-.eventFAILED td.event, .eventFAILED td.message
+.eventFAILED td.event, .eventFAILED td.message, .rebuildIndex .false
 {
     color: firebrick;
 }
@@ -237,7 +237,7 @@ textarea#loadUrl {
     color: goldenrod;
 }
 
-.eventFINISHED td.event, .eventFINISHED td.message
+.eventFINISHED td.event, .eventFINISHED td.message, .rebuildIndex .true
 {
     color: #055555;
 }
@@ -249,4 +249,14 @@ textarea#loadUrl {
 
 td.time {
     white-space:nowrap;
+}
+
+.rebuildIndex {
+    float:right;
+}
+
+.rebuildIndex td { margin:0;padding:0; }
+
+.rebuildIndex .label {
+    font-weight: bold;
 }

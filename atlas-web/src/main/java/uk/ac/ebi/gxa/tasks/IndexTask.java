@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Arrays;
 
@@ -66,6 +67,10 @@ public class IndexTask extends AbstractWorkingTask {
                 public void buildSuccess(IndexBuilderEvent event) {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
+                    if(TYPE_INDEX.equals(getTaskSpec().getType())) {
+                        for(Experiment e : taskMan.getAtlasDAO().getAllExperiments())
+                            taskMan.updateTaskStage(new TaskSpec(TYPE_INDEXEXPERIMENT, e.getAccession()), TaskStatus.DONE);
+                    }
                     taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
                 }
 

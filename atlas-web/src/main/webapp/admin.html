@@ -134,7 +134,7 @@
                     <td class="sel">
                         <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
                     </td>
-                    <td colspan="5" class="selall">
+                    <td colspan="6" class="selall">
                         <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s) on pages </label>
                         &nbsp;&nbsp;&nbsp;                        
                         <span id="expPages" class="pagination_ie"></span>
@@ -150,7 +150,20 @@
                 </tr>
             </tbody>
         </table>
+        
+        <div class="expnone">
+            No matching experiments found! Please check your query.
+        </div>
+        
         <fieldset class="expall opbuttons">
+            <table class="rebuildIndex">
+                <tr>
+                    <td class="label">Index build is incomplete</td>
+                    <td>
+                        <input type="button" value="Rebuild index">
+                    </td>
+                </tr>
+            </table>
             <input type="button" value="Repair" class="repair">
             <input type="button" value="Unload" class="unload">
             |
@@ -162,21 +175,6 @@
                 <label for="experimentAutodep">Automatically process depending tasks</label>
             </div>
         </fieldset>
-
-        <fieldset class="rebuildIndex">
-            <table>
-                <tr>
-                    <td class="label">Index build is incomplete</td>
-                    <td>
-                        <input type="button" value="Rebuild index">
-                    </td>
-                </tr>
-            </table>
-        </fieldset>
-
-        <div class="expnone">
-            No matching experiments found! Please check your query.
-        </div>
     </div>
 </div>
 

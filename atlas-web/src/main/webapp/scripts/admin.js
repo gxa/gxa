@@ -657,7 +657,8 @@ function compileTemplates() {
         '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
         '.numcoll': function (r) { return r.context.numTotal - $options.experimentPageSize; },
 
-        '.rebuildIndex .label': function (r) { return r.context.indexStage == 'DONE' ? 'Index build is complete' : 'Index build is incomplete'; }
+        '.rebuildIndex .label': function (r) { return r.context.indexStatus ? 'Index build is complete' : 'Index build is incomplete'; },
+        '.rebuildIndex .label@class+': function (r) { return ' ' + r.context.indexStatus; } 
     });
 
     compileTpl('taskList', {
