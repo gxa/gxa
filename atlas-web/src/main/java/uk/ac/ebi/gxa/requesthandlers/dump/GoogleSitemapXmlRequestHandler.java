@@ -116,7 +116,8 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
                 file.delete();
             }
         }
-        writeGeneSitemap();
+        if(atlasProperties.isGeneListAfterIndexAutogenerate())
+            writeGeneSitemap();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
