@@ -138,7 +138,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             }
 
                             int processedNow = processed.incrementAndGet();
-                            if(processedNow % 1000 == 0) {
+                            if(processedNow % 1000 == 0 || processedNow == total) {
                                 long timeNow   = System.currentTimeMillis();
                                 long elapsed   = timeNow - timeStart;
                                 double speed   = (processedNow / (elapsed / 1000D));  // (item/s)
@@ -166,8 +166,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         try {
             List<Future<Boolean>> results = tpool.invokeAll(tasks);
-            for (Future<Boolean> result : results)
+            Iterator<Future<Boolean>> iresults = results.iterator();
+            while(iresults.hasNext()) {
+                Future<Boolean> result = iresults.next();
                 result.get();
+                iresults.remove();
+            }
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
         } catch (ExecutionException e) {
