@@ -63,6 +63,8 @@ public class RepairExperimentTask extends AbstractWorkingTask {
             return;
         }
         log.info("Repair experiment - index is complete, nothing to do");
+
+        taskMan.notifyTaskFinished(this);
     }
 
     public void stop() {
