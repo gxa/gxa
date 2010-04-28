@@ -140,9 +140,9 @@ function requireLogin(op, params, func) {
                 $('#tabs').show();
                 $('#logout').show();
                 $('#userName').text(resp.userName);
-                if(op)
-                    adminCall(op, params, func);
-                else
+//                if(op)
+//                    adminCall(op, params, func);
+//                else
                     redrawCurrentState();
             } else {
                 $('#loginMessage').text('Invalid username or password');
