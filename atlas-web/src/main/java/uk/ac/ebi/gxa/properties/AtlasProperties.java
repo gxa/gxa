@@ -146,7 +146,7 @@ public class AtlasProperties  {
     /* Gene autocompleter properties */
 
     public boolean isGeneListCacheAutoGenerate() {
-        return getBoolProperty("atlas.gene.list.cache.autogenerate");
+        return getBoolProperty("atlas.gene.list.autogenerate.cache");
     }
 
     public int getGeneAutocompleteIdLimit() {
@@ -255,6 +255,10 @@ public class AtlasProperties  {
 
     public List<String> getLoaderGeneIdPriority() {
         return getListProperty("atlas.loader.gene.identifier.priority");
+    }
+
+    public boolean isGeneListAfterIndexAutogenerate() {
+        return getBoolProperty("atlas.gene.list.autogenerate.afterindex");
     }
 
     /* R & Biocep */

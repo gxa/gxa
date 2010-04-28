@@ -102,7 +102,8 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         dumpGeneIdsFile.delete();
-        dumpGeneIdentifiers();
+        if(atlasProperties.isGeneListAfterIndexAutogenerate())
+            dumpGeneIdentifiers();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {

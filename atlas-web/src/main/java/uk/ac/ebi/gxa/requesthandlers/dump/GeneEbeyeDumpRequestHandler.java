@@ -93,7 +93,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         ebeyeDumpFile.delete();
-        dumpEbeyeData();
+        if(atlasProperties.isGeneListAfterIndexAutogenerate())
+            dumpEbeyeData();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
