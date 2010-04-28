@@ -42,6 +42,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
         if(TaskStatus.DONE != netcdfState) {
             taskMan.scheduleTask(this, netcdfSpec, TaskRunMode.CONTINUE, getUser(), true,
                     "Automatically added by experiment " + accession + " repair task");
+            taskMan.notifyTaskFinished(this);
             return;
         }
         log.info("Repair experiment - NetCDF is complete, checking analytics");
@@ -51,6 +52,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
         if(TaskStatus.DONE != analyticsState) {
             taskMan.scheduleTask(this, analyticsSpec, TaskRunMode.CONTINUE, getUser(), true,
                     "Automatically added by experiment " + accession + " repair task");
+            taskMan.notifyTaskFinished(this);
             return;
         }
         log.info("Repair experiment - analytics is complete, checking index");
@@ -60,6 +62,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
         if(TaskStatus.DONE != indexState) {
             taskMan.scheduleTask(this, indexSpec, TaskRunMode.CONTINUE, getUser(), true,
                     "Automatically added by experiment " + accession + " repair task");
+            taskMan.notifyTaskFinished(this);
             return;
         }
         log.info("Repair experiment - index is complete, nothing to do");
