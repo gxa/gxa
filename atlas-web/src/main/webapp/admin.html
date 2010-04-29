@@ -75,6 +75,7 @@
                     <td class="label"><label for="experimentSearch">Experiment:</label></td>
                     <td colspan="2">
                         <input type="text" id="experimentSearch" class="value" style="width:400px;">
+                        <input type="submit" style="display:none">
                     </td>
                     <td>
                         <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
@@ -151,7 +152,7 @@
             </tbody>
         </table>
         
-        <div class="expnone">
+        <div class="none">
             No matching experiments found! Please check your query.
         </div>
         
@@ -262,15 +263,19 @@
     </fieldset>
     <fieldset>
         <legend>Running tasks</legend>
-        <table><tr>
-            <td>
+        <table style="width:100%"><tr>
+            <td style="white-space:nowrap">
                 <input type="button" value="Pause queue" id="pauseButton">
                 <input id="cancelAllButton" type="button" value="Cancel all tasks">
             </td>
-            <td style="padding-left:10px"><div id="taskListPages" class="pagination_ie"></div></td>
-            <td style="padding-left:10px">
+            <td style="padding-left:10px;white-space:nowrap"><div id="taskListPages" class="pagination_ie"></div></td>
+            <td style="padding-left:10px;white-space:nowrap">
                 <span id="numWorking">1</span> task(s) working / <span id="numPending">2</span> task(s) pending
                 <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+            </td>
+            <td style="text-align:right;width:90%">
+                <input type="checkbox" checked="checked" id="taskLogRefresh">
+                <label for="taskLogRefresh">Auto-refresh log</label>
             </td>
         </tr></table>
     </fieldset>
@@ -327,6 +332,31 @@
                     <td>Accession/URL</td>
                     <td colspan="2">Comment</td>
                 </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <select id="taskLogEventFilter">
+                            <option value=" " class="anyOption">Any</option>
+                            <option class="option"></option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="taskLogUserFilter">
+                            <option value=" " class="anyOption">Any</option>
+                            <option class="option"></option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="taskLogTypeFilter">
+                            <option value=" " class="anyOption">Any</option>
+                            <option class="option"></option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="value" id="taskLogAccessionFilter">
+                    </td>
+                    <td colspan="2"></td>
+                </tr>
             </thead>
             <tbody>
                 <tr>
@@ -345,6 +375,9 @@
                 </tr>
             </tbody>
         </table>
+        <div class="none">
+            No matching log entries were found
+        </div>
     </div>
 
 </div>

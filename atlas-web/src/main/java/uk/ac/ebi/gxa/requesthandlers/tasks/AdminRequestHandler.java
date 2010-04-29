@@ -284,18 +284,22 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
-    private Object processTaskEventLog(int page, int num) {
+    private Object processTaskEventLog(TaskEvent eventFilter, String userFilter,
+                                       String typeFilter, String accessionFilter,
+                                       int page, int num) {
         int start = page * num;
-        final int total = taskManagerDbStorage.getTaskLogItemNum();
-        if((start > total || start < 0) && total > 0) {
-            page = (total - 1) / num;
-            start = page * num;
-        } else if(total == 0) {
-            page = start = 0;
-        }
-        return makeMap("items", new TaskEventLogMapper(taskManagerDbStorage.getTaskLogItems(start, num).iterator()),
-                "numTotal", total,
-                "page", page);
+        DbStorage.TaskEventLogItemList result = taskManagerDbStorage.findTaskLogItems(
+                eventFilter,
+                StringUtils.trimToNull(userFilter) == null ? null : new TaskUser(userFilter),
+                StringUtils.trimToNull(typeFilter),
+                StringUtils.trimToNull(accessionFilter),
+                start, num);
+        return makeMap("items", new TaskEventLogMapper(result.iterator()),
+                "numTotal", result.getNumTotal(),
+                "page", result.getStart() / num,
+                "typeFacet", result.getTypeFacet(),
+                "eventFacet", result.getEventFacet(),
+                "userFacet", result.getUserNameFacet());
     }
 
     private Object processExperimentTaskEventLog(TaskTagType tagtype, String accession) {
@@ -476,6 +480,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if("tasklog".equals(op))
             return processTaskEventLog(
+                    req.getEnumNullDefault("event", TaskEvent.class),
+                    req.getStr("user"),
+                    req.getStr("type"),
+                    req.getStr("accession"),
                     req.getInt("p", -1, -1),
                     req.getInt("n", 1, 1));
 

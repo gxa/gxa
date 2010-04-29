@@ -52,7 +52,7 @@ input.date { width: 70px; }
 
 #experimentBrowseForm { margin: 0; }
 
-#tab-exp .expnone {
+div.none, #taskLog tr.none td {
     padding: 20px 3px;
     font-weight: bold;
     color: #005555;

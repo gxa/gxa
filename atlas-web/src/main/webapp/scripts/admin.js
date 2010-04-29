@@ -37,6 +37,11 @@ jQuery.each(['backgroundColor'], function(i,attr){
     };
 });
 
+$.fn.vale = function() {
+    var v = this.val();
+    return v == undefined ? "" : v;
+};
+
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
@@ -87,6 +92,10 @@ var $msg = {
 
 function msgMapper(field, dict) {
     return function (r) { return r.item[field] ? $msg[dict][r.item[field]] : ''; };
+}
+
+function msgMapperSelf(dict) {
+    return function (r) { return r.item ? $msg[dict][r.item] : ''; };
 }
 
 var currentStateHash;
@@ -440,8 +449,12 @@ function updateQueue() {
 function updateTaskLog() {
     clearTimeout($time.tasklog);
     $time.tasklog = null;
-    var askPage = currentState['tlog-p'] && currentState['tlog-p'] != lastLogPages - 1 ? currentState['tlog-p'] : -1;
+    var askPage = (currentState['tlog-p'] != null && currentState['tlog-p'] != lastLogPages - 1) ? currentState['tlog-p'] : -1;
     adminCall('tasklog', {
+        event: currentState['tlog-ef'] || "",
+        user: currentState['tlog-uf'] || "",
+        type: currentState['tlog-tf'] || "",
+        accession: currentState['tlog-af'] || "",
         p: askPage,
         n: $options.tasklogPageSize
     }, function (result) {
@@ -452,6 +465,11 @@ function updateTaskLog() {
 
         lastLogPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
 
+        result.eventFilter = currentState['tlog-ef'];
+        result.userFilter = currentState['tlog-uf'];
+        result.typeFilter = currentState['tlog-tf'];
+        result.accessionFilter = currentState['tlog-af'];
+        
         renderTpl('taskLog', result);
 
         if(result.items.length)
@@ -467,6 +485,7 @@ function updateTaskLog() {
                 prev_text: "Prev",
                 next_text: "Next",
                 callback: function(page) {
+                    lastLogTimestamp = null;
                     currentState['tlog-p'] = page;
                     storeState();
                     updateTaskLog();
@@ -498,9 +517,33 @@ function updateTaskLog() {
         $('#taskLog .newitem').css('backgroundColor', 'rgb(255,255,0)')
                 .animate({backgroundColor:'rgb(250,250,250)'}, Math.min($options.queueRefreshRate / 2, 500));
 
-        $time.tasklog = setTimeout(function () {
-            updateTaskLog();
-        }, $options.queueRefreshRate);
+        function bindFilter(id, event, stvar) { 
+            $(id).bind(event, function () {
+                currentState[stvar] = $(this).val();
+                lastLogTimestamp = null;
+                storeState();
+                updateTaskLog();
+            });
+        }
+
+        bindFilter('#taskLogEventFilter', 'change', 'tlog-ef');
+        bindFilter('#taskLogUserFilter', 'change', 'tlog-uf');
+        bindFilter('#taskLogTypeFilter', 'change', 'tlog-tf');
+
+        $('#taskLogAccessionFilter').bind('keydown', function (e) {
+            if(e.keyCode == 13) {
+                currentState['tlog-af'] = $(this).val();
+                lastLogTimestamp = null;
+                storeState();
+                updateTaskLog();
+                return false;
+            }
+        });
+
+        if($('#taskLogRefresh').is(':checked'))
+            $time.tasklog = setTimeout(function () {
+                updateTaskLog();
+            }, $options.queueRefreshRate);
     });
 }
 
@@ -573,6 +616,7 @@ function redrawCurrentState() {
         clearTimeout($time[timeout]);
         delete $time[timeout];
     }
+    
     if(currentState['exp-s'] != null)
         $('#experimentSearch').val(currentState['exp-s']);
     if(currentState['exp-df'] != null)
@@ -583,6 +627,13 @@ function redrawCurrentState() {
         $('#incompleteOnly').val(currentState['exp-io']);
     if(currentState['ad-s'] != null)
         $('#adSearch').val(currentState['ad-s']);
+    if(currentState['tlog-ar'] != null) {
+        if(currentState['tlog-ar'] > 0)
+            $('#taskLogRefresh').attr('checked','checked');
+        else
+            $('#taskLogRefresh').removeAttr('checked');
+    }
+    
     if(currentState['tab'] == $tab.exp) {
         $('#tabs').tabs('select', $tab.exp);
         updateBrowseExperiments();
@@ -666,7 +717,7 @@ function compileTemplates() {
             }
         },
         '.expall@style': function (r) { return r.context.experiments.length ? '' : 'display:none'; },
-        '.expnone@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
+        '.none@style': function (r) { return r.context.experiments.length ? 'display:none' : ''; },
 
         '.expcoll@style': function (r) { return r.context.numTotal > $options.experimentPageSize ? '' : 'display:none'; },
         '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
@@ -694,7 +745,7 @@ function compileTemplates() {
     });
 
     compileTpl('taskLog', {
-        'thead@style': function(r) { return r.context.items.length ? '' : 'display:none'; },
+        '.none@style': function(r) { return r.context.items.length ? 'display:none' : ''; },
         'thead.pager@style': function(r) { return r.context.numTotal > $options.tasklogPageSize ? '' : 'display:none'; },
         'tbody tr' : {
             'litem <- items': {
@@ -714,7 +765,47 @@ function compileTemplates() {
             sort:function(a, b){
                 return a.timestamp < b.timestamp ? 1 : -1;
             }
-        }
+        },
+        '#taskLogEventFilter .option' : {
+            'o <- eventFacet' : {
+                '.@selected': function(r) {
+                    return r.context.eventFilter == r.item ? 'selected' : "";
+                },
+                '.@value' : 'o',
+                '.' : msgMapperSelf('event')
+            }
+        },
+        '#taskLogEventFilter .anyOption@selected' : function(r) {
+            return r.context.eventFilter ? "" : 'selected';
+        },
+
+        '#taskLogUserFilter .option' : {
+            'u <- userFacet' : {
+                '.@selected': function(r) {
+                    return r.context.userFilter == r.item ? 'selected' : "";
+                },
+                '.@value' : 'u',
+                '.' : 'u'
+            }
+        },
+        '#taskLogUserFilter .anyOption@selected' : function(r) {
+            return r.context.userFilter ? "" : 'selected';
+        },
+
+        '#taskLogTypeFilter .option' : {
+            't <- typeFacet' : {
+                '.@selected': function(r) {
+                    return r.context.typeFilter == r.item ? 'selected' : "";
+                },
+                '.@value' : 't',
+                '.' : msgMapperSelf('taskType')
+            }
+        },
+        '#taskLogTypeFilter .anyOption@selected' : function(r) {
+            return r.context.typeFilter ? "" : 'selected';
+        },
+
+        '#taskLogAccessionFilter@value' : 'accessionFilter'
     });
 
     compileTpl('propList', {
@@ -809,6 +900,9 @@ $(document).ready(function () {
         var url = $('#loadUrl').val().replace(/^\s+/,'').replace(/\s+$/,'').split(/\s+/);
         var type = $('#loadType').val();
         var autoDep = $('#loadAutodep').is(':checked');
+        if(url.length == 0 || (url.length == 1 && url[0] == ""))
+            return;
+        
         if(type == 'auto') {
             var experiments = [];
             var arraydesigns = [];
@@ -872,6 +966,20 @@ $(document).ready(function () {
             requireLogin(null, {}, null);
         });
         return false;
+    });
+
+    $('#taskLogRefresh').click(function () {
+        if($(this).is(':checked')) {
+            updateTaskLog();
+        } else {
+            if($time.tasklog) {
+                clearTimeout($time.tasklog);
+                $time.tasklog = null;
+            }
+        }
+        currentState['tlog-ar'] = $(this).is(':checked') ? 1 : 0;
+        storeState();
+        return true;
     });
 
     updatePauseButton(false);

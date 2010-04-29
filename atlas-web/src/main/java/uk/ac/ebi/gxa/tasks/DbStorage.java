@@ -131,6 +131,9 @@ public class DbStorage implements PersistentStorage {
 
     public void addTag(Task task, TaskTagType type, String tag) {
         try {
+            if("".equals(tag))
+                return;
+            
             if(jdbcTemplate.update(
                     "MERGE INTO A2_TASKMAN_TAG t " +
                             "USING (SELECT NVL(TT.TASKCLOUDID, ?) AS TASKCLOUDID, ? AS TAGTYPE, ? AS TAG FROM DUAL LEFT JOIN A2_TASKMAN_TAGTASKS tt ON tt.TASKID=?) nt " +
@@ -197,20 +200,127 @@ public class DbStorage implements PersistentStorage {
         }
     };
 
-    @SuppressWarnings("unchecked")
-    public List<TaskEventLogItem> getTaskLogItems(int start, int number) {
-        return (List<TaskEventLogItem>) jdbcTemplate.query("" +
-                "SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM " +
-                "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
-                "WHERE rn >= ?",
-                new Object[] { start + number + 1, start + 1  },
-                LOG_ROWMAPPER);
+    public static class TaskEventLogItemList extends ArrayList<TaskEventLogItem> {
+        private int numTotal;
+        private int start;
+        private List<String> userNameFacet;
+        private List<String> typeFacet;
+        private List<TaskEvent> eventFacet;
+
+        public int getNumTotal() {
+            return numTotal;
+        }
+
+        public void setNumTotal(int numTotal) {
+            this.numTotal = numTotal;
+        }
+
+        public int getStart() {
+            return start;
+        }
+
+        public void setStart(int start) {
+            this.start = start;
+        }
+
+        public List<String> getUserNameFacet() {
+            return userNameFacet;
+        }
+
+        public void setUserNameFacet(List<String> userNameFacet) {
+            this.userNameFacet = userNameFacet;
+        }
+
+        public List<String> getTypeFacet() {
+            return typeFacet;
+        }
+
+        public void setTypeFacet(List<String> typeFacet) {
+            this.typeFacet = typeFacet;
+        }
+
+        public List<TaskEvent> getEventFacet() {
+            return eventFacet;
+        }
+
+        public void setEventFacet(List<TaskEvent> eventFacet) {
+            this.eventFacet = eventFacet;
+        }
     }
 
-    public int getTaskLogItemNum() {
-        return jdbcTemplate.queryForInt("SELECT COUNT(1) FROM A2_TASKMAN_LOG");
+    @SuppressWarnings("unchecked")
+    public TaskEventLogItemList findTaskLogItems(TaskEvent eventFilter, TaskUser userFilter,
+                                                String typeFilter,
+                                                String accessionFilter,
+                                                int start, int number) {
+
+        List<Object> parameters = new ArrayList<Object>();
+        StringBuilder where = new StringBuilder("WHERE 1=1");
+
+        if(eventFilter != null) {
+            where.append(" AND event=?");
+            parameters.add(eventFilter.toString());
+        }
+
+        if(userFilter != null) {
+            where.append(" AND username=?");
+            parameters.add(userFilter.getUserName());
+        }
+
+        if(typeFilter != null) {
+            where.append(" AND type=?");
+            parameters.add(typeFilter);
+        }
+
+        if(accessionFilter != null) {
+            where.append(" AND LOWER(accession) LIKE ?");
+            parameters.add(likeifyString(accessionFilter));
+        }
+
+        final String whereStr = where.toString();
+
+        final int total = jdbcTemplate.queryForInt("SELECT COUNT(1) FROM A2_TASKMAN_LOG " + whereStr,
+                parameters.toArray(new Object[parameters.size()]));
+
+        if((start > total || start < 0) && total > 0) {
+            int page = (total - 1) / number;
+            start = page * number;
+        } else if(total == 0) {
+            start = 0;
+        }
+
+        parameters.add(start + number + 1);
+        parameters.add(start + 1);
+
+        final TaskEventLogItemList results = new TaskEventLogItemList();
+        results.setNumTotal(total);
+        results.setStart(start);
+        jdbcTemplate.query("" +
+                "SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM " +
+                "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG " + whereStr +  "ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
+                "WHERE rn >= ?",
+                parameters.toArray(new Object[parameters.size()]),
+                new ResultSetExtractor() {
+                    public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
+                        while(rs.next()) {
+                            results.add((TaskEventLogItem)LOG_ROWMAPPER.mapRow(rs, 0));
+                        }
+                        return null;
+                    }
+                });
+
+        results.setUserNameFacet(jdbcTemplate.queryForList("SELECT DISTINCT username from A2_TASKMAN_LOG ORDER BY username", null, String.class));
+        results.setTypeFacet(jdbcTemplate.queryForList("SELECT DISTINCT type from A2_TASKMAN_LOG ORDER BY type", null, String.class));
+        results.setEventFacet((List<TaskEvent>)jdbcTemplate.query("SELECT DISTINCT event from A2_TASKMAN_LOG ORDER BY event",
+                new Object[0], new RowMapper() {
+                    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return TaskEvent.valueOf(rs.getString(1));
+                    }
+                }));
+
+        return results;
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<TaskEventLogItem> getTaggedHistory(TaskTagType tagtype, String tag) {
         String type = tagtype.toString().toLowerCase();
@@ -322,7 +432,7 @@ public class DbStorage implements PersistentStorage {
         String searchStr = StringUtils.trimToEmpty(search);
         if(searchStr.length() > 0) {
             sql.append(" AND (lower(accession) LIKE ? OR lower(description) LIKE ? OR lower(performer) LIKE ? OR lower(lab) LIKE ?)");
-            searchStr = "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
+            searchStr = likeifyString(searchStr);
             parameters.add(searchStr);
             parameters.add(searchStr);
             parameters.add(searchStr);
@@ -394,5 +504,9 @@ public class DbStorage implements PersistentStorage {
                         return results;
                     }
                 });
+    }
+
+    private static String likeifyString(String searchStr) {
+        return "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
     }
 }
