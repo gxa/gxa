@@ -467,13 +467,30 @@ function updateTaskLog() {
 
         renderTpl('taskLogItems', result);
 
-        result.eventFilter = currentState['tlog-ef'];
-        result.userFilter = currentState['tlog-uf'];
-        result.typeFilter = currentState['tlog-tf'];
+        function updateFilter(id, list, dict, stvar) {
+            var filter = $(id);
+            $.each(list, function (i, e) {
+                var found = false;
+                $('option.option', filter).each(function () {
+                    var v = $(this).attr('value');
+                    if(e == v) {
+                        found = true;
+                    } else if(e < v && !found) {
+                        $(this).before($('<option/>').addClass('option').attr('value', e).text(dict ? dict[e] : e));
+                    }
+                    if(v == currentState[stvar])
+                        $(this).attr('selected', 'selected');
+                    else
+                        $(this).removeAttr('selected');
+                });
+                if(!found)
+                    $(filter).append($('<option/>').addClass('option').attr('value', e).text(dict ? dict[e] : e));
+            });
+        }
 
-        renderTpl('taskLogEventFilter', result);
-        renderTpl('taskLogUserFilter', result);
-        renderTpl('taskLogTypeFilter', result);
+        updateFilter('#taskLogEventFilter', result.eventFacet, $msg.event, 'tlog-ef');
+        updateFilter('#taskLogUserFilter', result.userFacet, null, 'tlog-uf');
+        updateFilter('#taskLogTypeFilter', result.typeFacet, $msg.taskType, 'tlog-tf');
 
         if(result.items.length)
             $('#taskLog .none').hide();
@@ -527,19 +544,6 @@ function updateTaskLog() {
 
         $('#taskLog .newitem').css('backgroundColor', 'rgb(255,255,0)')
                 .animate({backgroundColor:'rgb(250,250,250)'}, Math.min($options.queueRefreshRate / 2, 500));
-
-        function bindFilter(id, event, stvar) {
-            $(id).bind(event, function () {
-                currentState[stvar] = $(this).val();
-                lastLogTimestamp = null;
-                storeState();
-                updateTaskLog();
-            });
-        }
-
-        bindFilter('#taskLogEventFilter', 'change', 'tlog-ef');
-        bindFilter('#taskLogUserFilter', 'change', 'tlog-uf');
-        bindFilter('#taskLogTypeFilter', 'change', 'tlog-tf');
 
         if($('#taskLogRefresh').is(':checked'))
             $time.tasklog = setTimeout(function () {
@@ -766,50 +770,6 @@ function compileTemplates() {
             }
         }
     });
-    compileTpl('taskLogEventFilter', {
-        '.option' : {
-            'o <- eventFacet' : {
-                '.@selected': function(r) {
-                    return r.context.eventFilter == r.item ? 'selected' : "";
-                },
-                '.@value' : 'o',
-                '.' : msgMapperSelf('event')
-            }
-        },
-        '.anyOption@selected' : function(r) {
-            return r.context.eventFilter ? "" : 'selected';
-        }
-    });
-
-    compileTpl('taskLogUserFilter', {
-        '.option' : {
-            'u <- userFacet' : {
-                '.@selected': function(r) {
-                    return r.context.userFilter == r.item ? 'selected' : "";
-                },
-                '.@value' : 'u',
-                '.' : 'u'
-            }
-        },
-        '.anyOption@selected' : function(r) {
-            return r.context.userFilter ? "" : 'selected';
-        }
-    });
-
-    compileTpl('taskLogTypeFilter', {
-        '.option' : {
-            't <- typeFacet' : {
-                '.@selected': function(r) {
-                    return r.context.typeFilter == r.item ? 'selected' : "";
-                },
-                '.@value' : 't',
-                '.' : msgMapperSelf('taskType')
-            }
-        },
-        '.anyOption@selected' : function(r) {
-            return r.context.typeFilter ? "" : 'selected';
-        }
-    });
 
     compileTpl('propList', {
         'tr.property' : {
@@ -995,6 +955,18 @@ $(document).ready(function () {
         }
     });
 
+    function bindFilter(id, stvar) {
+        $(id).bind('change', function () {
+            currentState[stvar] = $(this).val();
+            lastLogTimestamp = null;
+            storeState();
+            updateTaskLog();
+        });
+    }
+
+    bindFilter('#taskLogEventFilter', 'tlog-ef');
+    bindFilter('#taskLogUserFilter', 'tlog-uf');
+    bindFilter('#taskLogTypeFilter', 'tlog-tf');
 
     updatePauseButton(false);
     restoreState();
