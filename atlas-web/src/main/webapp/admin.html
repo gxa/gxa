@@ -156,22 +156,24 @@
             No matching experiments found! Please check your query.
         </div>
         
-        <fieldset class="expall opbuttons">
+        <fieldset class="expall">
             <table class="rebuildIndex">
                 <tr>
                     <td class="label">Index build is incomplete</td>
-                    <td>
-                        <input type="button" value="Rebuild index">
+                    <td style="padding-left:10px">
+                        <input type="button" value="Rebuild whole index">
                     </td>
                 </tr>
             </table>
-            <input type="button" value="Repair" class="repair">
-            <input type="button" value="Unload" class="unload">
-            |
-            <input type="button" value="Recompute analytics" class="analytics">
-            <input type="button" value="Update NetCDFs" class="updatenetcdf">
-            <input type="button" value="Update Index" class="updateindex">
-            <div style="margin-top:5px;">
+            <div class="opbuttons">
+                <input type="button" value="Repair" class="repair">
+                <input type="button" value="Unload" class="unload">
+                |
+                <input type="button" value="Recompute analytics" class="analytics">
+                <input type="button" value="Update NetCDFs" class="updatenetcdf">
+                <input type="button" value="Update Index" class="updateindex">
+            </div>
+            <div style="margin-top:5px;" class="opbuttons">
                 <input type="checkbox" id="experimentAutodep" checked="checked">
                 <label for="experimentAutodep">Automatically process depending tasks</label>
             </div>
