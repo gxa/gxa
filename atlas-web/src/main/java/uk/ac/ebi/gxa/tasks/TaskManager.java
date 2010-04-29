@@ -281,7 +281,7 @@ public class TaskManager implements InitializingBean {
             ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
             while(queueIterator.hasNext()) {
                 if(workingTasks.size() >= maxWorkingTasks)
-                    return;
+                    break;
                 
                 QueuedTask nextTask = queueIterator.next();
                 boolean blocked = false;
