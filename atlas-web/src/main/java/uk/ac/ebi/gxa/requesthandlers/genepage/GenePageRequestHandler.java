@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
+import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import org.springframework.web.HttpRequestHandler;
 
@@ -41,6 +42,15 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 public class GenePageRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
+    private Annotator annotator;
+
+    public Annotator getAnnotator() {
+        return annotator;
+    }
+
+    public void setAnnotator(Annotator annotator) {
+        this.annotator = annotator;
+    }
 
     public AtlasSolrDAO getAtlasSolrDao() {
         return atlasSolrDAO;
@@ -69,6 +79,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs()));
                 request.setAttribute("atlasGene", gene);
+                gene.setAnatomogramEfoList(annotator.getKnownEfo());
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;

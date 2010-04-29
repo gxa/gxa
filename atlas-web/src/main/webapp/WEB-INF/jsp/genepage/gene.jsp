@@ -393,7 +393,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 </table>
 </td>
 <td style="padding-top:15px;">
-          <c:if test="${atlasGene.geneSpecies=='Homo sapiens'}">
+          <c:if test="${atlasGene.hasAnatomogram}">
              <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
          </c:if>
 </td>
