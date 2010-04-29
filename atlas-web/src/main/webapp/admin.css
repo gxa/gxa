@@ -124,6 +124,17 @@ a.history {
     white-space:nowrap;
 }
 
+#adList tfoot td {
+    color: #aaaaaa;
+    padding-top:10px;
+    padding-bottom:10px;
+    font-weight: bold;
+}
+
+#adPages {
+    font-weight: normal;
+}
+
 #experimentList table.results thead td.accession {
     color: inherit;
 }
@@ -259,4 +270,8 @@ td.time {
 
 .rebuildIndex .label {
     font-weight: bold;
+}
+
+.total {
+    color: black;
 }
