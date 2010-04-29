@@ -60,6 +60,10 @@ begin
       if((:new.Property is null)or(:new.Value = '')) then
         if(mPropertyValueID_old is not null) then
             dbms_output.put_line('delete property value');
+           
+            if(:old.Assays + :old.Samples > 0) then
+                raise_application_error(-20010,'can not delete property associated to sample or assay');
+            end if;
             
             delete from a2_propertyvalue where propertyvalueid = mPropertyValueID_old;
         else
