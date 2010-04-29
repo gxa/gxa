@@ -489,10 +489,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         String idss = StringUtils.join(ids.iterator(), " ");
         if(idss.length() == 0)
             return sb;
-        if(e == QueryExpression.UP || e == QueryExpression.UP_DOWN)
-            sb.append("exp_up_ids:(").append(idss).append(") ");
-        if(e == QueryExpression.DOWN || e == QueryExpression.UP_DOWN)
-            sb.append("exp_dn_ids:(").append(idss).append(")");
+        switch(e) {
+            case UP:
+                sb.append("exp_up_ids:(").append(idss).append(") ");
+                break;
+            case DOWN:
+                sb.append("exp_dn_ids:(").append(idss).append(") ");
+                break;
+            case UP_DOWN:
+                sb.append("exp_ud_ids:(").append(idss).append(") ");
+                break;
+        }
         return sb;
     }
 
